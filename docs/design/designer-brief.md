@@ -1,335 +1,277 @@
-# Designer brief: everything Forgeweave drew for itself
+# Brief para o designer: tudo que o Forgeweave desenhou por conta própria
 
-This is the work list. It names every visual asset in Forgeweave whose pixels did **not** come from Tinkers' Construct, plus the things that exist in the game with no art of their own yet. If an asset is on this list, a designer owns it.
+Esta é a lista de trabalho. Ela nomeia todo asset visual do Forgeweave cujos pixels **não** vieram da Tinkers' Construct, mais as coisas que existem no jogo sem nenhuma arte própria ainda. Se um asset está nesta lista, um designer é dono dele. Se o design de um asset já está pronto, ele não aparece aqui: este documento é só o trabalho pendente.
 
-It is a companion to [docs/texture-manifest.md](../texture-manifest.md), the art guide, which explains *how* to draw for this mod: canvas sizes, the greyscale tint rule, how a tool is assembled from layers, which scripts composite what, and the delivery checklist. This document is the *what* and the *in what order*. Read the rules below, then use the manifest when you sit down to draw.
+É um companheiro de [docs/texture-manifest.pt-BR.md](../texture-manifest.pt-BR.md), o guia de arte, que explica *como* desenhar para este mod: tamanhos de tela, a regra do tingimento em cinza, como uma ferramenta é montada em camadas, quais scripts compõem o quê, e a checklist de entrega. Este documento é o *quê* e *em que ordem*. Leia as regras abaixo e use o manifesto na hora de desenhar.
 
-Audited at commit [`ba4c0b8d`](https://github.com/gkissel/forgeweave/tree/ba4c0b8d53f1cf5dfcd0fe503de287838a819223). Every path link in this document is pinned to that commit, so it opens the file exactly as audited even after the art changes.
+Auditado no commit [`ef1ca1af`](https://github.com/gkissel/forgeweave/tree/ef1ca1afc03b2ffae6a4937164112171e25039b7). Todo link de arquivo neste documento está fixado nesse commit, então ele abre o arquivo exatamente como foi auditado mesmo depois que a arte mudar.
 
-## The rules, in plain words
+Esta revisão substitui a auditoria de [`ba4c0b8d`](https://github.com/gkissel/forgeweave/tree/ba4c0b8d53f1cf5dfcd0fe503de287838a819223) (PR #1048, emendada pelo PR #1056): recontei tudo contra a árvore atual e incorporei o que as PRs #1026, #1052, #1053, #1056, #1060 e #1064 mudaram desde então. A maior mudança de conteúdo é que tudo cujo design já está pronto saiu da lista, não só os três exemplos que o mantenedor citou (katana, longsword e war mace): a regra vale para qualquer asset com arte Forged no caminho padrão, então a seção das armas próprias do Forgeweave e a seção das camadas de fundição inteiras saíram também. O que cada uma continha está resumido na seção 8, "O que já está coberto".
 
-**Sprites are 16x16.** That is the standard and it is not moving. A batch of 32x32 assembled-tool renders was tried in 2026 and thrown out; whatever resolution you work at, deliver 16x16. The exceptions are not item sprites at all: worn armor sheets are 64x32, station GUI panels run 176x166 or 256x256, the status-effect icon is 18x18, the weapon slash particles are 32x32 and 16x32, and the fluid textures are tall animated strips. Each exception is called out where it appears below.
+## As regras, em poucas palavras
 
-**Forged is what you draw.** Forgeweave ships two art sets. Forged is the default set, the art every player sees, and it is yours. Legacy is a built-in resource pack, off unless a player turns it on, that preserves the look Forgeweave had before the art rewrite started.
+Os sprites são 16x16. Esse é o padrão e não está mudando. Um lote de renders de ferramenta montada em 32x32 foi tentado em 2026 e descartado; seja qual for a resolução em que você trabalha, entregue em 16x16. As exceções não são sprites de item: as folhas de armadura vestida são 64x32, os painéis de interface das estações vão de 176x166 a 256x256, o ícone de efeito de status é 18x18, as partículas de golpe das armas são 32x32 e 16x32, e as texturas de fluido são faixas animadas altas. Cada exceção é indicada onde aparece abaixo.
 
-**Nothing you make goes into Legacy.** The Legacy pack carries art that came from Tinkers' Construct and nothing else. New things Forgeweave invented, the material forms such as plates and gears included, exist in Forged only. If you draw it, it ships at the normal path and never gets a Legacy copy. (Maintainer, 2026-09-18.)
+Forged é o que você desenha. O Forgeweave tem dois conjuntos de arte. Forged é o conjunto padrão, o que todo jogador vê, e é o seu. Legacy é um resource pack embutido, desligado por padrão, que preserva o visual que o Forgeweave tinha antes da reforma de arte começar.
 
-**Delivering a finished sprite**, in the order it happens:
+Nada do que você desenha vai para o Legacy. O pacote Legacy carrega só arte que veio da Tinkers' Construct, nada além disso. Coisas novas que o Forgeweave inventou, as formas de material como placa e engrenagem incluídas, existem só em Forged. Se você desenhar, o arquivo fica no caminho normal e nunca ganha uma cópia no Legacy (decisão do mantenedor, 2026-09-18).
 
-1. You hand over the PNG: RGBA, right size, right name. Pure greyscale if it is a tool part, a tool layer, or a worn armor sheet, because those get multiplied by the material's colour at runtime. Full colour for everything else.
-2. A developer drops it at its normal path, replacing what was there.
-3. If the file it replaced came from Tinkers' Construct, the developer copies the old file into the Legacy pack at the same relative path. If it came from Forgeweave, the old file is simply deleted.
-4. The developer reruns the four generator scripts, so every pattern, cast, clay cast and broken-tool variant built from your sprite gets rebuilt in both sets.
-5. Tests and datagen run, and the file is committed.
+Entregar um sprite pronto, na ordem em que acontece:
 
-Step 1 is yours. Sections 4 and 7 of the art guide cover the rest if you want to read it.
+1. Você entrega o PNG: RGBA, no tamanho certo, com o nome certo. Puro cinza se for uma parte de ferramenta, uma camada de ferramenta ou uma folha de armadura vestida, porque esses são multiplicados pela cor do material em tempo real. Cor cheia para todo o resto.
+2. Um desenvolvedor solta o arquivo no caminho normal, substituindo o que estava lá.
+3. Se o arquivo substituído vinha da Tinkers' Construct, o desenvolvedor copia o arquivo antigo para o pacote Legacy, no mesmo caminho relativo. Se vinha do próprio Forgeweave, o arquivo antigo é simplesmente apagado.
+4. O desenvolvedor roda de novo os quatro scripts geradores, para que todo molde de papel, molde de ouro, molde de argila e variante de ferramenta quebrada construídos a partir do seu sprite sejam refeitos nos dois conjuntos.
+5. Testes e datagen rodam, e o arquivo é commitado.
 
-**Greyscale and tinting.** Where an entry below says "tinted", the sprite is drawn in pure grey (R = G = B on every pixel) and the game multiplies it by the material's colour. Lightness is your only tool: a white pixel comes out as the material's raw colour, a mid-grey pixel at half intensity, a black pixel stays black. Use the full range, because your contrast becomes the finished piece's contrast. Where an entry says "not tinted", paint in whatever colours you like.
+O passo 1 é seu. As seções 4 e 7 do guia de arte cobrem o resto, se você quiser ler.
 
-**The shared grey ramp.** Tool parts and tool layers are drawn on one five-value ramp: 68 for the outline, 160 for the deepest shade, then 196, 219 and 251 for the highlight. It exists because a built tool stacks three or four layers that all get multiplied by the same material colour, so a layer that strays off the ramp tints differently from the rest of the tool and the seam shows. Stay on it for anything in sections 6 and 7.
+Onde uma entrada abaixo diz "tingido", o sprite é desenhado em cinza puro (R = G = B em cada pixel) e o jogo multiplica pela cor do material. Luminosidade é sua única ferramenta: um pixel branco sai na cor crua do material, um cinza médio sai pela metade da intensidade, um pixel preto continua preto. Use a faixa inteira, porque o seu contraste vira o contraste da peça pronta. Onde uma entrada diz "não tingido", pinte nas cores que quiser.
 
-**New colours have to clear a test.** Forgeweave picks a hex for every material and fluid it invents, and `PaletteAuditTest` fails the build if two of them land closer than one just-noticeable step in OKLab. A 2026 playtest found two olive-yellow fuels, three teal ingots, three purples and three reds nobody could tell apart, which is why the test exists. You do not run it, but if you propose a colour for a new material, expect it to come back if it sits on top of an existing one. [`scripts/audit_palette.py`](https://github.com/gkissel/forgeweave/blob/ba4c0b8d53f1cf5dfcd0fe503de287838a819223/scripts/audit_palette.py) reports the same thing outside the build.
+Parte de ferramenta e camada de ferramenta usam uma rampa de cinco valores de cinza: 68 para o contorno, 160 para a sombra mais funda, depois 196, 219 e 251 para o brilho. Ela existe porque uma ferramenta montada empilha três ou quatro camadas que são multiplicadas pela mesma cor de material; uma camada fora da rampa tinge diferente do resto da ferramenta e a costura aparece. Fique nela para qualquer coisa nas seções 3 e 4.
 
-**References.** Every entry links to the file as it ships today, so you can open the placeholder in a browser and see what you are replacing. Vanilla Minecraft textures are fine as a style anchor. Tinkers' Construct art is not a reference for anything here: the whole point of Forged is that it is Forgeweave's own.
+Cor nova tem que passar num teste. O Forgeweave escolhe um hex para cada material e fluido que inventa, e o `PaletteAuditTest` derruba o build se dois deles ficarem a menos de um passo perceptível de distância em OKLab. Um playtest de 2026 achou dois combustíveis oliva-amarelos, três lingotes teal, três roxos e três vermelhos que ninguém distinguia, e é por isso que o teste existe. Você não roda esse teste, mas se propuser uma cor para um material novo, espere que ela volte se cair em cima de uma já existente. [`scripts/audit_palette.py`](https://github.com/gkissel/forgeweave/blob/ef1ca1afc03b2ffae6a4937164112171e25039b7/scripts/audit_palette.py) reporta a mesma coisa fora do build.
 
-**Seeing your work.** A dev-only screenshot harness captures every screen, every held weapon, every worn armor set and every book page to a PNG, so a developer can send you the frame your sprite appears in without you installing anything. Entries below name the frame where one exists. The one to ask for when reviewing a replacement is `forged_legacy_compare`, which puts the Forged and Legacy versions of an icon side by side.
+Toda entrada linka o arquivo como ele está hoje, para você abrir o placeholder num navegador e ver o que vai substituir. Textura do Minecraft vanilla serve como referência de estilo. Arte da Tinkers' Construct não serve de referência para nada aqui: o ponto inteiro do Forged é que ele é do Forgeweave.
 
-**Priority** means how often the maintainer sees the asset while playing:
+Um harness de captura de tela, só para desenvolvimento, tira uma imagem de cada tela, cada arma segurada, cada conjunto de armadura vestida e cada página do livro, para um desenvolvedor te mandar o quadro exato sem você instalar nada. As entradas abaixo nomeiam o quadro onde existe um. O que pedir ao revisar uma troca é `forged_legacy_compare`, que põe as versões Forged e Legacy de um ícone lado a lado.
 
-- **Every session**: on screen constantly. Fix these first.
-- **Sometimes**: seen in normal play, though not every minute.
-- **Rare**: deep progression, an optional mod pairing, or a corner case.
+Prioridade quer dizer com que frequência o mantenedor vê o asset jogando:
 
-## How this list was built
+- Toda sessão: na tela o tempo todo. Corrija esses primeiro.
+- Às vezes: aparece em jogo normal, mas não a cada minuto.
+- Raro: progressão profunda, uma combinação opcional de mods, ou um caso de borda.
 
-Forgeweave's root `NOTICE.md` carries one row per file that came from somewhere else. A texture with a row is Tinkers' Construct art (or Mantle, or the tool-leveling addon), so it is not on this list: it leaves on its own when a Forged sprite replaces it. A texture with no row is Forgeweave's own, and that is what this list collects. Where a file's origin was unclear, its commit history settled it.
+## Como esta lista foi construída
 
-The audit covered every PNG in the mod: 1,837 files in total. 1,139 have a `NOTICE.md` row. The remaining 698 are Forgeweave's, 617 of them at the normal default paths and 81 inside the Legacy pack. Those 81 are script-built pattern and cast composites that only exist because the two sets have different blanks; they are not anyone's to draw.
+O `NOTICE.md` da raiz do Forgeweave carrega uma linha por arquivo que veio de outro lugar. Uma textura com linha é arte da Tinkers' Construct (ou da Mantle, ou do addon de tool leveling), então não está nesta lista: ela sai sozinha quando um sprite Forged a substitui. Uma textura sem linha é do próprio Forgeweave, e é isso que esta lista reúne. Onde a origem de um arquivo não estava clara, o histórico de commits resolveu.
 
-Of those 617, about 602 were written by a Python script recolouring a vanilla Minecraft texture. So most of this document is not authored art waiting to be improved; it is placeholder art that has never been designed.
+A auditoria cobriu todo PNG do mod: 1.872 arquivos no total, contra os 1.837 da auditoria anterior. 1.111 têm uma linha no `NOTICE.md`. Os 761 restantes são do Forgeweave, 685 deles nos caminhos padrão e 76 dentro do pacote Legacy (composites de molde e molde de ouro construídos por script que só existem porque os dois conjuntos têm bases diferentes; não são de ninguém desenhar).
 
-## 1. Material forms
+Boa parte desses 685 continua sendo placeholder nunca desenhado por um humano: as formas de material e a família de lingote/minério (seção 1 e 2 abaixo) somam 554 arquivos escritos por um script Python recolorindo uma textura vanilla do Minecraft, a partir de pouco mais de uma dúzia de templates que um designer realmente desenha.
 
-The biggest group on the list, and the cheapest to fix.
+## 1. Formas de material
 
-Every material in Forgeweave, 46 of them, has a set of intermediate items: dust you grind, plate you press, a rod, a gear, a wire. A player sees these constantly in inventory slots, in recipe books, and in other mods' machines. There are 374 of them, and they are all the same eight shapes in different colours.
+O maior grupo da lista, e o mais barato de resolver.
 
-They are made by [`scripts/generate_material_forms.py`](https://github.com/gkissel/forgeweave/blob/ba4c0b8d53f1cf5dfcd0fe503de287838a819223/scripts/generate_material_forms.py), which takes one vanilla Minecraft item texture per form and hue-shifts it to each material's colour.
+Todo material do Forgeweave, 46 deles, tem um conjunto de itens intermediários: dust que você mói, plate que você prensa, um rod, uma gear, um wire. Um jogador vê isso o tempo todo em slots de inventário, no livro de receitas, e em máquinas de outros mods. São 11 formas, todas as mesmas silhuetas em cores diferentes.
 
-| Form | What it is | Count | Current placeholder |
+| Forma | O que é | Quantidade | Placeholder atual |
 | --- | --- | --- | --- |
-| Dust | Ground material, the melting feedstock | 48 | Vanilla `glowstone_dust`, recoloured |
-| Small dust | A third of a dust, 48 mB against 144 | 48 | Same, shrunk to 10x10 on a 16x16 canvas |
-| Tiny dust | A ninth of a dust, 16 mB | 48 | Same, shrunk to 6x6 |
-| Plate | Pressed sheet, a crafting output | 46 | Vanilla `paper`, recoloured |
-| Double plate | Two plates pressed together | 46 | Two 13x13 `paper` copies offset 3px apart |
-| Rod | Metal rod | 46 | Vanilla `blaze_rod`, recoloured |
-| Gear | Toothed wheel | 46 | Vanilla `nether_star`, recoloured |
-| Wire | Drawn wire | 46 | Vanilla `string`, recoloured |
+| dust | Material moído, o insumo de fundição | 48 | vanilla `glowstone_dust`, recolorido |
+| small dust | Um terço de um dust, 48 mB contra 144 | 48 | O mesmo, encolhido para 10x10 numa tela 16x16 |
+| tiny dust | Um nono de um dust, 16 mB | 48 | O mesmo, encolhido para 6x6 |
+| plate | Chapa prensada, saída de crafting | 46 | vanilla `paper`, recolorido |
+| double plate | Duas plates prensadas juntas | 46 | Duas cópias de `paper` a 13x13, deslocadas 3px |
+| rod | Vareta de metal | 46 | vanilla `blaze_rod`, recolorido |
+| gear | Engrenagem | 46 | vanilla `nether_star`, recolorido |
+| wire | Fio puxado | 46 | vanilla `string`, recolorido |
+| clump | Um punhado bruto do minério, antes da lavagem (issue #994) | 11 | vanilla `clay_ball`, recolorido |
+| dirty dust | Dust ainda sujo, um passo antes do dust limpo (issue #994) | 11 | vanilla `gunpowder`, recolorido |
+| shard | Estilhaço do minério, uma etapa da cadeia de britagem (issue #994) | 11 | vanilla `prismarine_shard`, recolorido |
 
-Paths: `src/main/resources/assets/forgeweave/textures/item/<material>_<form>.png`. All 16x16. [Open the folder](https://github.com/gkissel/forgeweave/tree/ba4c0b8d53f1cf5dfcd0fe503de287838a819223/src/main/resources/assets/forgeweave/textures/item).
+`clump`, `dirty dust` e `shard` só existem para os onze minérios Track B que passam pela cadeia de processamento do Mekanism (issue #1060); os outros materiais não têm essas três formas.
 
-**What you actually draw: eight sprites.** One per form, one time. The gear is the worst offender and the most worth your attention: a recoloured nether star does not read as a gear at any size.
+Caminhos: `src/main/resources/assets/forgeweave/textures/item/<material>_<forma>.png`. Todos 16x16. [Abra a pasta](https://github.com/gkissel/forgeweave/tree/ef1ca1afc03b2ffae6a4937164112171e25039b7/src/main/resources/assets/forgeweave/textures/item).
 
-**The template files (issue #1049).** Each form has its own file under [`scripts/templates/material_forms/`](https://github.com/gkissel/forgeweave/tree/master/scripts/templates/material_forms): `dust.png`, `small_dust.png`, `tiny_dust.png`, `plate.png`, `double_plate.png`, `rod.png`, `gear.png`, `wire.png`. Open one, replace it with your own 16x16 RGBA sprite at the same filename, and rerun `scripts/generate_material_forms.py` -- every material regenerates from it, with no Minecraft install and no client jar involved any more. `small_dust.png`/`tiny_dust.png` and `double_plate.png` are their own files rather than something derived from `dust.png`/`plate.png` at generation time, so redrawing the full-size form does not also redraw its smaller sizes or its stacked pair -- replace all three together if a form's whole size ladder should change.
+O que você realmente desenha: 11 sprites, um por forma, uma vez cada. A gear é a pior das oito originais e a que mais merece atenção: uma nether star recolorida não lê como engrenagem em nenhum tamanho.
 
-**Tinting works differently here.** It is not the plain greyscale multiply used for tool parts. The script replaces each pixel's hue with the material's hue and scales its saturation and lightness by the ratio between the material's colour and the sprite's own average. Two consequences for you:
+Cada forma tem seu próprio arquivo em [`scripts/templates/material_forms/`](https://github.com/gkissel/forgeweave/tree/ef1ca1afc03b2ffae6a4937164112171e25039b7/scripts/templates/material_forms): `dust.png`, `small_dust.png`, `tiny_dust.png`, `plate.png`, `double_plate.png`, `rod.png`, `gear.png`, `wire.png`, `clump.png`, `dirty_dust.png`, `shard.png`. Abra um, substitua por um sprite 16x16 RGBA seu no mesmo nome de arquivo, e rode de novo `scripts/generate_material_forms.py`: todo material se regenera a partir dele, sem instalação do Minecraft e sem client jar envolvido. `small_dust.png`/`tiny_dust.png` e `double_plate.png` são arquivos independentes, não derivados de `dust.png`/`plate.png` na hora de gerar, então redesenhar a forma de tamanho cheio não redesenha os tamanhos menores nem o par empilhado: troque os três juntos se a escala inteira de uma forma deve mudar.
 
-- Do not draw these in pure grey. A fully grey sprite has no saturation to scale, and the script falls back to painting a flat chroma across it, so all of your colour variation is lost. Draw them in colour, in a mid-saturation neutral, and the recolour keeps your shading.
-- Keep clear lightness separation between the form's body and its shadow. The material's lightness is applied as a ratio to your average, so a flat sprite stays flat in all 46 colours.
+O tingimento aqui funciona diferente. Não é a multiplicação simples de cinza usada nas partes de ferramenta. O script troca o matiz de cada pixel pelo matiz do material e escala sua saturação e luminosidade pela razão entre a cor do material e a cor média do próprio sprite. Duas consequências para você:
 
-**Priority: every session.** These are on screen more than anything else in the mod.
+Não desenhe essas formas em cinza puro. Um sprite totalmente cinza não tem saturação para escalar, e o script cai num chroma plano por cima de tudo, perdendo toda a sua variação de cor. Desenhe em cor, numa saturação média neutra, e o recolorimento preserva sua sombra.
 
-## 2. Ingots, nuggets, raw drops and crystals
+Mantenha separação clara de luminosidade entre o corpo da forma e sua sombra. A luminosidade do material é aplicada como uma razão sobre a sua média, então um sprite chapado continua chapado nas 46 cores.
 
-The currency of every material: what the ore drops, what it smelts to, and the nugget it breaks into.
+Prioridade: toda sessão. Essas formas ficam na tela mais do que qualquer outra coisa no mod.
 
-| Group | What it is | Path glob | Count | Current placeholder |
-| --- | --- | --- | --- | --- |
-| Ingots | Smelted bar, the castable unit | `textures/item/<material>_ingot.png` | 37 | Vanilla `iron`/`copper`/`gold`/`diamond`/`redstone`/`lapis`/`emerald` ingot, recoloured |
-| Nuggets | A ninth of an ingot | `textures/item/<material>_nugget.png` | 37 | Same donor's nugget, recoloured. Copper falls back to iron, because vanilla ships no copper nugget |
-| Raw drops | What the ore block drops before smelting | `textures/item/raw_<material>.png` | 12 | Vanilla `raw_iron`/`raw_copper`/`raw_gold`, recoloured |
-| Gem crystals | Brimspar and fulmenite drop a faceted crystal instead of a raw chunk | `textures/item/{brimspar,fulmenite}_crystal.png` | 2 | Vanilla `amethyst_shard`, recoloured |
+## 2. Lingotes, pepitas, minério bruto e blocos
 
-All 16x16. Written by [`generate_track_b_ore_textures.py`](https://github.com/gkissel/forgeweave/blob/ba4c0b8d53f1cf5dfcd0fe503de287838a819223/scripts/generate_track_b_ore_textures.py) and [`generate_track_b_alloy_textures.py`](https://github.com/gkissel/forgeweave/blob/ba4c0b8d53f1cf5dfcd0fe503de287838a819223/scripts/generate_track_b_alloy_textures.py); the two older raw drops, cobalt and ardite, come from [`recolor_raw_ore.py`](https://github.com/gkissel/forgeweave/blob/ba4c0b8d53f1cf5dfcd0fe503de287838a819223/scripts/recolor_raw_ore.py).
+A moeda de cada material inteira num só lugar: o que o bloco de minério solta, no que ele funde, a pepita em que quebra, o bloco onde ele mora na parede e o bloco onde ele se guarda.
 
-**What you draw: four sprites**, one ingot, one nugget, one raw chunk, one crystal. Same "no checked-in template" caveat and the same colour-not-grey rule as section 1.
+| Grupo | O que é | Caminho | Templates | Sprites gerados | Placeholder atual |
+| --- | --- | --- | --- | --- | --- |
+| Lingote | Barra fundida, a unidade que vai pro molde | `textures/item/<material>_ingot.png` | 1 | 37 | Lingote vanilla de iron/copper/gold/diamond/redstone/lapis/emerald, recolorido |
+| Pepita | Um nono do lingote | `textures/item/<material>_nugget.png` | 1 | 37 | A pepita do mesmo doador, recolorida. Copper cai para a pepita de iron, porque o vanilla não tem pepita de copper |
+| Minério bruto | O que o bloco de minério solta antes de fundir | `textures/item/raw_<material>.png` | 1 | 12 | vanilla `raw_iron`/`raw_copper`/`raw_gold`, recolorido |
+| Cristal (gema bruta) | Brimspar e fulmenite soltam um cristal facetado em vez de um pedaço bruto | `textures/item/{brimspar,fulmenite}_crystal.png` | 1 | 2 | vanilla `amethyst_shard`, recolorido |
+| Bloco de minério | O minério na parede, durante a mineração | `textures/block/<material>_ore.png` | 1 | 12 | Uma textura de minério vanilla com a rocha hospedeira intacta e só o veio mineral recolorido. Os minérios de end stone são pintados por cima do `end_stone` vanilla, porque o vanilla não tem minério próprio de end stone |
+| Bloco de armazenamento | Nove lingotes compactados | `textures/block/<material>_block.png` | 1 | 37 | Bloco metálico vanilla, totalmente recolorido |
+| Bloco de armazenamento de minério bruto | Nove minérios brutos compactados | `textures/block/raw_<material>_block.png` | 1 | 10 | Bloco bruto vanilla, totalmente recolorido |
 
-Note that cobalt, ardite, manyullyn, rose gold, steel, knightslime, pig iron, amethyst bronze, queen's slime and hepatizon are **not** in these counts. Their ingots and nuggets are Tinkers' art with `NOTICE.md` rows, so they are outside this list until a Forged batch reaches them.
+Total: 7 templates, 147 sprites gerados a partir deles. Todos 16x16, não tingidos em tempo de execução, um arquivo por material. Escritos por [`generate_track_b_ore_textures.py`](https://github.com/gkissel/forgeweave/blob/ef1ca1afc03b2ffae6a4937164112171e25039b7/scripts/generate_track_b_ore_textures.py) e [`generate_track_b_alloy_textures.py`](https://github.com/gkissel/forgeweave/blob/ef1ca1afc03b2ffae6a4937164112171e25039b7/scripts/generate_track_b_alloy_textures.py); os dois raw drops mais antigos, cobalt e ardite, vêm de [`recolor_raw_ore.py`](https://github.com/gkissel/forgeweave/blob/ef1ca1afc03b2ffae6a4937164112171e25039b7/scripts/recolor_raw_ore.py). [Abra a pasta de itens](https://github.com/gkissel/forgeweave/tree/ef1ca1afc03b2ffae6a4937164112171e25039b7/src/main/resources/assets/forgeweave/textures/item) e a [pasta de blocos](https://github.com/gkissel/forgeweave/tree/ef1ca1afc03b2ffae6a4937164112171e25039b7/src/main/resources/assets/forgeweave/textures/block).
 
-**Priority: every session.**
+Mesma ressalva de cor do que de cinza da seção 1 para o lingote, a pepita, o minério bruto e o cristal: não há template já registrado no repositório para esses quatro ainda, então desenhe em cor, numa saturação média.
 
-## 3. Ore blocks, storage blocks and raw storage blocks
+O bloco de minério merece atenção à parte: o script decide quais pixels são "minério" e quais são "rocha" comparando o doador contra a textura pura da rocha hospedeira, e precisa de uma separação limpa entre as duas. Um veio mineral suave e borrado quebra essa máscara, então mantenha a forma do mineral nítida contra a rocha. A rocha hospedeira varia por material (stone, deepslate, netherrack, end stone), então o veio precisa ficar legível nas quatro.
 
-What you see in the world while mining and in a storage room.
+Note que cobalt, ardite, manyullyn, rose gold, steel, knightslime, pig iron, amethyst bronze, queen's slime e hepatizon não entram nessas contagens. O lingote e a pepita deles são arte da Tinkers' com linha no `NOTICE.md`, então ficam fora desta lista até um lote Forged chegar neles.
 
-| Group | What it is | Path glob | Count | Current placeholder |
-| --- | --- | --- | --- | --- |
-| Ore blocks | The ore in the wall | `textures/block/<material>_ore.png` | 12 | A vanilla ore texture with the host rock left untouched and only the mineral blob recoloured. End-stone ores are painted onto vanilla `end_stone`, because vanilla has no end-stone ore to borrow |
-| Storage blocks | Nine ingots compressed | `textures/block/<material>_block.png` | 37 | Vanilla metal block, fully recoloured |
-| Raw storage blocks | Nine raw drops compressed | `textures/block/raw_<material>_block.png` | 10 | Vanilla raw block, fully recoloured |
+Prioridade: toda sessão para minério bruto, lingote, pepita, cristal e bloco de minério. Às vezes para bloco de armazenamento e bloco de armazenamento de minério bruto.
 
-All 16x16, not tinted at runtime, one baked file per material. [Open the folder](https://github.com/gkissel/forgeweave/tree/ba4c0b8d53f1cf5dfcd0fe503de287838a819223/src/main/resources/assets/forgeweave/textures/block).
+## 3. Silhuetas de partes de ferramenta que ainda são arte da Tinkers'
 
-**What you draw: three block faces**, one ore overlay shape, one storage block, one raw storage block. The ore mask is worth knowing about: the script decides which pixels are "ore" and which are "rock" by comparing the donor against the plain host texture, and it needs a clean separation between the two. A soft, blended ore blob would break the mask, so keep the mineral shape crisp against the rock.
+A silhueta de uma parte de ferramenta comanda quatro arquivos. Redesenhe a parte e os scripts reconstroem seu molde de papel, seu molde de ouro, seu molde de argila e, onde existe, sua arte quebrada, nos dois conjuntos de arte. 17 silhuetas de parte ainda são arte da Tinkers' no caminho padrão:
 
-Host rock varies by material (stone, deepslate, netherrack, end stone), so the ore overlay has to sit legibly on all four.
+`cross_guard`, `excavator_head`, `fletching`, `hammer_head`, `kama_head`, `large_sword_blade`, `maille`, `pan`, `pickaxe_head`, `shard` (a parte de ferramenta da Tinkers', sem relação com a forma de minério `shard` da seção 1: são dois conceitos diferentes com o mesmo nome em inglês), `sharpening_kit`, `shovel_head`, `sign_plate`, `sword_blade`, `tough_tool_rod`, `vein_hammer_head`, `wide_guard`.
 
-**Priority: every session** for the ores, **sometimes** for the storage blocks.
+Caminhos: `textures/derived/item/<parte>.png` e, para a camada de ferramenta montada, `textures/derived/tools/<ferramenta>_<papel>.png`. Todos 16x16. [Abra a pasta de itens](https://github.com/gkissel/forgeweave/tree/ef1ca1afc03b2ffae6a4937164112171e25039b7/src/main/resources/assets/forgeweave/textures/derived/item).
 
-## 4. Smeltery tiers, one entry per tier
+Doze outras já são Forged: `arrow_head`, `arrow_shaft`, `axe_head`, `bow_limb`, `bow_string`, `broad_axe_head`, `hand_guard`, `knife_blade`, `scythe_head`, `tool_binding`, `tool_handle`, `tough_binding`.
 
-The smeltery's walls follow its core's tier, so each tier is a full recolour of 23 wall and floor faces. All of it is generated from one brick per tier by [`generate_seared_tier_textures.py`](https://github.com/gkissel/forgeweave/blob/ba4c0b8d53f1cf5dfcd0fe503de287838a819223/scripts/generate_seared_tier_textures.py), which means the designer owns the brick and the core faces and the script does the other 20 or so.
+Sobre o longsword especificamente, já que ele é um dos exemplos citados como pronto: suas camadas de ferramenta montada (`longsword_handle.png`, `longsword_head.png`, `longsword_binding.png` e a cabeça quebrada) são Forged de verdade, sem linha no `NOTICE.md` no caminho padrão, então o longsword em si não precisa de nada novo. Mas a cabeça dele é montada a partir da parte `sword_blade`, que está na lista acima: essa silhueta continua sendo arte da Tinkers', compartilhada com o broadsword e o rapier. Redesenhar `sword_blade` não é um pedido específico do longsword, mas continua pendente.
 
-### Standard, the seared tier
+Essas partes são tingidas. Desenhe em cinza puro, com os três canais iguais, e carregue a forma no canal alfa. Dois detalhes de script decorrem disso:
 
-Nothing for the designer. All 23 faces plus the Standard Core's two fronts are Tinkers' art with `NOTICE.md` rows. The Standard Core's sides are the seared brick texture itself.
+O script do molde de papel lê o alfa com limiar de 64. Um pixel mais fraco que isso é tratado como ausente e não deixa marca.
 
-### Nether tier, 7 files
+Cada parte tem um deslocamento escolhido à mão para a marca sair centralizada no molde. Se o seu redesenho mover a silhueta na tela, esse deslocamento precisa ser remedido: avise ao entregar o arquivo.
 
-`textures/derived/block/seared_bricks_nether.png`, `seared_tank_side_nether.png`, `seared_tank_top_nether.png`, `nether_core_side.png`, `nether_core_front_active.png`, `nether_core_front_inactive.png`, `nether_core_v2_front_active.png`. All 16x16, full colour, not tinted. Already designer art as of PR #983 and #987, so these are a style reference for the two tiers below rather than a gap. [Open the folder](https://github.com/gkissel/forgeweave/tree/ba4c0b8d53f1cf5dfcd0fe503de287838a819223/src/main/resources/assets/forgeweave/textures/derived/block).
+Quadros para consultar: `tool_station`, `part_builder`, `stencil_table`, e `weapon_<ferramenta>` para cada arma montada.
 
-The v2 front is the Nether Core's look above 1600 degrees. It is an active-only override, which is why there is no matching inactive or side file.
+Prioridade: toda sessão para `pickaxe_head`, `shovel_head`, `sword_blade`, `tough_tool_rod`, `tool_handle`. Às vezes para o resto.
 
-### End tier, 4 files
+Enquanto estiver nessa pasta, uma nota sobre as cinco camadas do rapier e do scythe: `rapier_binding`, `rapier_handle`, `rapier_head`, `rapier_head_broken` e `scythe_binding` carregam um ou dois pixels que não são exatamente cinza. Vão tingir com um leve desvio de matiz. Invisível a 16 pixels, mas vale limpar se você redesenhar esse conjunto.
 
-`seared_bricks_end.png`, `end_core_side.png`, `end_core_front_active.png`, `end_core_front_inactive.png`. Designer art since PR #983. Note that the End tier's tank faces are script-generated, unlike the Nether tier's, so if the End tank reads wrong in game it needs two new hand-drawn files and a script change.
+## 4. O tanque energizado
 
-### Deep tier, 4 files
+Uma parede de fundição que queima Forge Energy em vez de lava, adicionada na PR #1014. Não existe equivalente na Tinkers', então tudo aqui é do Forgeweave.
 
-`seared_bricks_deep.png`, `deep_core_side.png`, `deep_core_front_active.png`, `deep_core_front_inactive.png`. Designer art since PR #987. Its cyan sculk detail sits outside the palette ramp on purpose.
+### Texturas de bloco, 3 arquivos
 
-### The constraint that governs all three tiers
+`textures/block/energized_tank_side.png`, `energized_tank_side_overdrive.png`, `energized_tank_top.png`. Todos 16x16, desenhados à mão por um agente, não tingidos.
 
-When you hand in a tier's brick, the script derives the other 20 faces of that tier from the **standard** seared faces by swapping greys for your brick's colours. It only touches a pixel where red, green and blue are **exactly** equal. A pixel that is off by one in any channel is left as standard-tier grey, and it will show as a grey speck on a red, purple or black wall.
+Ele mostra dois estados, não três: o blockstate tem um único booleano, `overdrive`, e `energized_tank_top` serve tanto de topo quanto de base. A tela mostra calor e carga como números, mas o bloco em si não muda com o nível de carga. Se devesse mudar, isso é arte nova e uma propriedade nova de blockstate: levante isso antes de desenhar.
 
-It also reads your brick in two fixed bands: grey 28 to 38 is mortar, grey 46 to 161 is body. Greys in 39 to 45 fall through to the darkest body colour. So when you draw a tier brick, put the mortar lines in the dark end and the block body in the wide middle, and keep both inside those bands.
+- [energized_tank_side.png](https://github.com/gkissel/forgeweave/blob/ef1ca1afc03b2ffae6a4937164112171e25039b7/src/main/resources/assets/forgeweave/textures/block/energized_tank_side.png)
+- [energized_tank_side_overdrive.png](https://github.com/gkissel/forgeweave/blob/ef1ca1afc03b2ffae6a4937164112171e25039b7/src/main/resources/assets/forgeweave/textures/block/energized_tank_side_overdrive.png)
+- [energized_tank_top.png](https://github.com/gkissel/forgeweave/blob/ef1ca1afc03b2ffae6a4937164112171e25039b7/src/main/resources/assets/forgeweave/textures/block/energized_tank_top.png)
 
-**Priority: every session.** A smeltery is the centre of the game.
+Prioridade: às vezes.
 
-## 5. The energized tank
+### A tela dele, e o único widget desenhado à mão do mod
 
-A smeltery wall that burns Forge Energy instead of lava, added in PR #1014. There is no Tinkers' counterpart, so all of it is Forgeweave's.
+A PR #1026 deu uma tela ao tanque. Cada pixel dela vem emprestado de outra tela, exceto uma barra.
 
-### Block textures, 3 files
+O fundo é o painel de estação em branco da Tinkers', [`derived/gui/blank.png`](https://github.com/gkissel/forgeweave/blob/ef1ca1afc03b2ffae6a4937164112171e25039b7/src/main/resources/assets/forgeweave/textures/derived/gui/blank.png), 256x256 desenhado como uma janela de 176x166, o mesmo arquivo do baú de padrões. A metade de cima inteira dele está vazia. O medidor de combustível e sua sobreposição de escala 52x52 vêm da folha de sprites da tela da fundição.
 
-`textures/block/energized_tank_side.png`, `energized_tank_side_overdrive.png`, `energized_tank_top.png`. All 16x16, hand-drawn by an agent, not tinted.
+A barra de energia é desenhada como dois retângulos preenchidos direto no código, sem sprite por trás:
 
-It shows **two** states, not three: the blockstate has one boolean, `overdrive`, and `energized_tank_top` serves as both top and bottom face. The screen displays heat and charge as numbers, but the block itself does not change with charge level. If it should, that is new art and a new blockstate property, so raise it before drawing.
+- Trilho: 102 de largura por 8 de altura, nas coordenadas do painel (66, 36), cor `#373737`.
+- Preenchimento: recuado um pixel em cada lado, então 100 por 6 em (67, 37), cor `#E8620E`, o laranja padrão da Forge Energy.
+- Sem borda, sem ponta, sem gradiente.
 
-- [energized_tank_side.png](https://github.com/gkissel/forgeweave/blob/ba4c0b8d53f1cf5dfcd0fe503de287838a819223/src/main/resources/assets/forgeweave/textures/block/energized_tank_side.png)
-- [energized_tank_side_overdrive.png](https://github.com/gkissel/forgeweave/blob/ba4c0b8d53f1cf5dfcd0fe503de287838a819223/src/main/resources/assets/forgeweave/textures/block/energized_tank_side_overdrive.png)
-- [energized_tank_top.png](https://github.com/gkissel/forgeweave/blob/ba4c0b8d53f1cf5dfcd0fe503de287838a819223/src/main/resources/assets/forgeweave/textures/block/energized_tank_top.png)
+O comentário da classe explica o motivo: um nível de carga não é um fluido, e nenhuma das folhas portadas tem uma barra horizontal.
 
-**Priority: sometimes.**
+O resto da coluna direita, para referência de layout: calor em y=16, custo em y=26, a barra em y=36, os números de carga em y=46, e o botão de overdrive em y=56, todos em x=66 e 102 de largura.
 
-### Its screen, and the mod's only hand-made widget
+A PR #1056 adicionou um quadro no harness de captura de tela para essa tela (`energized_tank`, em `ScreenshotHarness.SCREENS`), então ela já pode ser revisada sem abrir o jogo, como qualquer outra estação.
 
-PR #1026 gave the tank a screen. Every pixel of it is borrowed from another screen except one bar.
+Prioridade: às vezes. É a única tela que ainda parece inacabada, então talvez valha mais do que sua frequência de uso sugere.
 
-The background is Tinkers' blank station panel, [`derived/gui/blank.png`](https://github.com/gkissel/forgeweave/blob/ba4c0b8d53f1cf5dfcd0fe503de287838a819223/src/main/resources/assets/forgeweave/textures/derived/gui/blank.png), 256x256 and drawn as a 176x166 window, the same file the pattern chest uses. Its whole upper half is empty. The fuel gauge and its 52x52 scale overlay are lifted from the smeltery screen's sheet.
+## 5. Armadura pesada
 
-The energy bar is drawn as two filled rectangles in code, with no sprite behind it:
+O conjunto está no jogo e é jogável, e não tem nenhuma arte própria: todo pixel que ele mostra pertence ao conjunto de armadura leve.
 
-- Track: 102 wide by 8 tall at panel coordinates (66, 36), colour `#373737`.
-- Fill: inset one pixel on every side, so 100 by 6 at (67, 37), colour `#E8620E`, Forge Energy orange.
-- No border, no end caps, no gradient.
+Quatro itens, `heavy_helmet`, `heavy_chestplate`, `heavy_leggings` e `heavy_boots`, montados a partir de três materiais cada: plating, maille, e um terceiro slot de placa grande que o conjunto leve não tem.
 
-The class comment says why outright: a charge level is not a fluid, and none of the ported sheets has a horizontal bar on it.
+Isso se divide em três frentes, para orçar uma de cada vez.
 
-The rest of the right-hand column, for layout: heat at y=16, cost at y=26, the bar at y=36, the charge numbers at y=46, and the overdrive button at y=56, all at x=66 and 102 wide.
+Os sprites de item vêm primeiro. As peças pesadas hoje renderizam os sprites do conjunto leve, porque o código tira o prefixo `heavy_` antes de procurar a arte. Então uma peça de peito pesada e uma leve são idênticas no inventário. Pior, o terceiro material é invisível: o modelo do item filtra a camada de placa grande por completo, com um comentário no código dizendo que faz isso porque essa camada não tem sprite. Entregável: 4 camadas de plating e, se o terceiro material deve aparecer, 4 camadas de placa grande. `textures/derived/tools/<peça>_{plating,maille}.png`, 16x16, tingido, em cinza.
 
-**There is no `ScreenshotHarness` frame for this screen.** Every other screen in the mod has one, so reviewing this one means launching the game and building a tank.
+Depois vêm as camadas de armadura vestida, as folhas que renderizam no corpo do jogador, em 64x32, o layout legado de armadura do Minecraft, não 16x16. Hoje existem quatro, compartilhadas entre o conjunto leve e o pesado: `textures/models/armor/derived/{plating,maille}_layer_{1,2}.png`. A camada 1 cobre capacete, peitoral e botas; a camada 2 cobre as calças. As quatro são arte da Tinkers' com linha no `NOTICE.md`, e são em cinza, tingidas em tempo de execução pela cor do material da peça de plating ou de maille equipada. Entregável: até 4 folhas novas se só o conjunto pesado ganhar visual próprio, 8 se os dois ganharem.
 
-**Priority: sometimes.** It is the only screen that looks unfinished, so it may be worth more than its play frequency suggests.
+A terceira frente, trabalho de modelo 3D, não precisa de nada. Os dois conjuntos desenham sobre a malha humanoide do vanilla, uma passada por camada declarada. Não existe classe de modelo customizada nem nada para riggar. Uma geometria mais robusta para a armadura pesada seria mudança de código, então levante isso como pedido em vez de presumir.
 
-## 6. Tool part silhouettes still waiting on a Forged sprite
+Quadros: `tool_forge_heavy_armor` para a aba da estação, `armor_heavy_iron` e `armor_heavy_iron_firstperson` para o visual vestido. Compare contra `armor_iron`, `armor_cobalt` e `armor_obsidian_chestplate`.
 
-These are Tinkers' art, so strictly they sit outside this list. They are here because they belong in the same queue and because one drawing goes a long way.
+Prioridade: às vezes. O conjunto leve carrega o visual hoje, então nada está quebrado, mas um tier visualmente idêntico ao tier abaixo dele é uma lacuna real.
 
-A tool part's silhouette drives four files. Redraw the part and the scripts rebuild its stencil pattern, its gold cast, its clay cast and, where it has one, its broken art, in both art sets. **17 part silhouettes are still Tinkers' art at their default path:**
+## 6. Coisas sem nenhuma arte
 
-`cross_guard`, `excavator_head`, `fletching`, `hammer_head`, `kama_head`, `large_sword_blade`, `maille`, `pan`, `pickaxe_head`, `shard`, `sharpening_kit`, `shovel_head`, `sign_plate`, `sword_blade`, `tough_tool_rod`, `vein_hammer_head`, `wide_guard`.
+Cada uma destas é um entregável limpo e autocontido.
 
-Paths: `textures/derived/item/<part>.png` and, for the assembled-tool layer, `textures/derived/tools/<tool>_<role>.png`. All 16x16. [Open the item folder](https://github.com/gkissel/forgeweave/tree/ba4c0b8d53f1cf5dfcd0fe503de287838a819223/src/main/resources/assets/forgeweave/textures/derived/item).
+| Asset | Onde entra | Tamanho | Estado |
+| --- | --- | --- | --- |
+| Logo do mod | raiz do jar, ligado via `logoFile` em `neoforge.mods.toml` | 128x128 ou 256x256 | Não existe. O manifesto carrega uma decisão registrada adiando isso, porque derivar o logo da engrenagem da Tinkers' passaria a impressão de estar se passando pela marca deles |
+| `pack.png` do mod | `src/main/resources/pack.png` | 128x128 | Não existe |
+| `pack.png` do pacote Legacy | `src/main/resources/resourcepacks/legacy/pack.png` | 128x128 | Não existe, então o pacote mostra o placeholder de textura faltando na lista de resource packs |
+| Fundo da aba de conquistas | `textures/gui/advancements/backgrounds/` | repetível | Reaproveita o fundo de pedra do vanilla. Opcional |
+| Partícula de golpe do longsword | `textures/particle/` mais uma reescrita de `particles/slash_longsword.json` | 8 quadros | Toma emprestado o `sweep_0` a `sweep_7` do vanilla direto. Toda outra arma tem sua própria folha de golpe. Opcional, mas é a única arma cujo golpe não bate com as outras |
 
-Twelve others are already Forged: `arrow_head`, `arrow_shaft`, `axe_head`, `bow_limb`, `bow_string`, `broad_axe_head`, `hand_guard`, `knife_blade`, `scythe_head`, `tool_binding`, `tool_handle`, `tough_binding`.
+Prioridade: raro para todos, exceto os dois `pack.png` e o logo, que são a primeira coisa que qualquer um vê numa lista de mods. Chame esses de às vezes.
 
-**These are tinted.** Draw them in pure grey, all three channels equal, and carry the shape in the alpha channel. Two script-level details follow from that:
+`slime_layer_2.png` saiu desta tabela: era listado aqui como faltando, mas a investigação registrada nas perguntas em aberto no fim deste documento mostrou que a armadura de slime não tem peça de calças, então esse arquivo nunca é necessário.
 
-- The stencil pattern script reads alpha with a threshold of 64. A pixel fainter than that is treated as absent and gets no imprint.
-- Each part has a hand-picked offset so its imprint lands centred on the pattern. If your redraw moves the silhouette on the canvas, that offset needs re-measuring. Flag it when you hand the file over.
+## 7. Itens avulsos
 
-Frames to look at: `tool_station`, `part_builder`, `stencil_table`, and `weapon_<tool>` for each assembled tool.
+Três sprites de item que nenhum template cobre.
 
-**Priority: every session** for `pickaxe_head`, `shovel_head`, `sword_blade`, `tough_tool_rod`, `tool_handle`. **Sometimes** for the rest.
+| Item | O que é | Caminho | Origem |
+| --- | --- | --- | --- |
+| Dusk cage | Uma jaula de lanterna de murkiron que captura um mob | `textures/item/dusk_cage.png` | Desenhado proceduralmente do zero por [`generate_dusk_cage_texture.py`](https://github.com/gkissel/forgeweave/blob/ef1ca1afc03b2ffae6a4937164112171e25039b7/scripts/generate_dusk_cage_texture.py), usando uma paleta de cinco cores a partir do `#3A5C56` do murkiron |
+| Weldheart | O catalisador que uma fusão do Draconic Evolution consome | `textures/item/weldheart.png` | Desenhado proceduralmente por [`generate_weldheart_texture.py`](https://github.com/gkissel/forgeweave/blob/ef1ca1afc03b2ffae6a4937164112171e25039b7/scripts/generate_weldheart_texture.py): três diamantes aninhados nas cores dos três metais de solda |
+| Nahuatl board | Um intermediário de crafting que torna alcançáveis o plating e o maille de nahuatl | `textures/item/nahuatl_board.png` | Desenhado à mão por um agente na PR #740. O único sprite em `textures/item/` que nenhum script produz |
 
-While you are in this folder, a note on the five rapier and scythe layers: `rapier_binding`, `rapier_handle`, `rapier_head`, `rapier_head_broken` and `scythe_binding` each carry one or two pixels that are not exactly grey. They will tint slightly off-hue. Invisible at 16 pixels, but worth cleaning up if you redraw that set.
+Todos 16x16, não tingidos, pinte em cor cheia. Prioridade: raro.
 
-## 7. Forgeweave's own weapons
+## 8. O que já está coberto, então pode pular
 
-The katana, the scimitar and the war mace do not exist in Tinkers' Construct. Neither do the `curved_blade` and `war_mace_head` parts. They have always been Forgeweave's, and **they never get a Legacy copy**: a test fails if one appears.
+Vale dizer isso para ninguém passar um dia em cima de algo que não é uma lacuna.
 
-Their layers carry no `NOTICE.md` row, so all of them hold original art at the default path, redrawn in the 16px batches of PRs #810, #977, #982 and #1001.
+- Toda folha de GUI: as 21 são arte da Tinkers' ou da Mantle, com linha no `NOTICE.md`: a bancada de ferramentas, a bancada de peças, a mesa de estêncil, a fundição, o forno seared, o reservatório e o duto, o painel do baú, o painel lateral e o painel de informações compartilhados, a folha de ícones das estações, as duas miras de arco. A estação de crafting usa de propósito o painel da mesa de crafting do vanilla, igual a própria Tinkers' faz. Os únicos pixels de GUI que o Forgeweave desenha são a barra de energia do tanque energizado (seção 4) e um realce de hover chapado no livro.
+- O Modifier Worktable inteiro (#1064): a folha da tela (256x256), o topo do bloco e a lateral do bloco vêm copiados sem alteração da branch 1.20 upstream, cada um com linha no `NOTICE.md`. Nada para desenhar aqui, pelo mesmo motivo das folhas de GUI acima.
+- O anel de rotação do preview no armor stand (#1053): `StandPreview.java` desenha esse anel a partir de um recorte de `icons.png` da branch 1.20, com linha no `NOTICE.md`. Também nada para desenhar.
+- As quatro camadas de fundição (standard, Nether, End, Deep): a padrão é 100% arte da Tinkers'. As outras três (`seared_bricks_{nether,end,deep}.png` e os arquivos do core de cada uma) já são Forged, desenhadas nas PRs #983 e #987. O script que deriva as outras faces de cada tier a partir de um único tijolo está documentado no guia de arte, para quando uma quinta camada for cogitada.
+- As armas próprias do Forgeweave: katana, scimitar e war mace, mais as partes `curved_blade` e `war_mace_head`, não existem na Tinkers' Construct e nunca ganham cópia no Legacy. Todas as camadas delas são Forged, sem linha no `NOTICE.md`, redesenhadas nos lotes 16px das PRs #810, #977, #982 e #1001. O cast da cabeça do war mace ficou exclusivo de vazamento desde a PR #1052 (não sai mais do Part Builder por pattern), mas isso não muda a arte em si.
+- Todo livro do guia: quatro arquivos, nenhum nosso. A dupla página e a capa, 512x512 cada, vêm da Mantle, a biblioteca da SlimeKnights onde mora o motor de livro do 1.12. A página de modificação (256x256) e o diagrama de fundição (854x480) vêm da Tinkers'. `appearance.json` não referencia nenhuma imagem; ele define um tingimento de capa `#ffce85`. Nenhuma página do livro aponta para um arquivo inexistente.
+- Todo painel e ícone do JEI: quatro folhas de painel, todas com linha. Dez dos onze ícones de categoria são só uma pilha de item, então herdam o que quer que o sprite daquele item vire. O décimo primeiro, entity melting, recorta um quadrado 16x16 da folha de fundição.
+- Todo ícone de aba criativa: seis abas, cada uma mostrando um item já existente: cristal de slime azul, picareta, cabeça de picareta, tanque seared, slime sling, solo de slime verde.
+- Todo ícone de conquista: onze conquistas, todas mostrando uma pilha de item.
+- Peças de armadura, moldes e casts: plating, maille e placa grande, com seus moldes de papel e seus casts de ouro e de argila, estão todos presentes e todos com linha. Sem lacunas.
+- Fluidos: seis texturas para o mod inteiro, todas com linha, todas animadas: `molten_metal` e seu fluxo, `liquid` e seu fluxo, `liquid_stone` e seu fluxo, de 16 a 32 quadros cada, de 16x320 até 32x1024. Todo metal fundido compartilha o mesmo par em cinza e é tingido por fluido, e é por isso que são seis arquivos e não uma centena.
+- Baldes de fluido: não há arte de balde para desenhar. O modelo de contêiner dinâmico do NeoForge desenha o fluido dentro de um balde vanilla e lê o tingimento do próprio fluido.
+- Entidades: o mod adiciona quatro tipos de entidade e envia uma única textura de entidade, o slime azul, 64x32, com linha, em cinza e tingido `#67f0f5` em tempo de execução. Flecha, shuriken e itens indestrutíveis renderizam o próprio modelo de item, então não têm textura de entidade.
+- Partículas: as 45 têm linha. Cinco sobreposições de coração a 8x8; cinco folhas de golpe de arma a 8 quadros cada, em 32x32 para machado e martelo, 16x32 para cleaver e rapier, 16x16 para a frigideira. O hatchet e o lumberaxe compartilham a folha do machado. A regra dos 16x16 não vale para quadros de golpe.
+- Cenas de ponder: os sete arquivos `.nbt` são arranjos de blocos no mundo, não desenhos. Como ficam depende inteiramente das texturas de bloco das seções 2 e 4.
+- Presets de material Track A: esses nunca ganham sprite próprio. Renderizam pelas partes em cinza da seção 3, tingidas pelo campo `color` do material. Então todo material Track A que um pack de compatibilidade adiciona herda de graça a sua arte de parte, e não há nada por material para desenhar. O mesmo vale para Occultism, Elementarium e os tiers do Allthemodium: são definições de material via datapack apontando para itens de outros mods.
+- Sprites de plantação e essência do Mystical Agriculture (PR #1036): nada para desenhar aqui também, por um motivo diferente do Track A. `MysticalAgricultureCompat` passa a cada plantação do Forgeweave um `CropTextures` pronto mais o hex do material, e o próprio `client.ModelHandler`/`client.ColorHandler` do Mystical Agriculture constrói e tinge a flor, a essência e a semente em tempo de execução a partir disso. O Forgeweave não envia sprite próprio de nada disso, então não há linha no `NOTICE.md` e nada nesta lista.
 
-| Tool | Layer files | Notes |
+## 9. A caminho: a família de tridente
+
+Só planejamento, issue #990, sem código e sem arte ainda. Listado para poder ser agendado em vez de chegar de surpresa.
+
+O mantenedor pediu um tridente do Forgeweave. A 1.12 da Tinkers' é anterior ao tridente vanilla, então não há arte nem design upstream. Tudo nele, arte incluída, vai ser original.
+
+Três perguntas na issue decidem o que será desenhado: quantas partes o tridente tem (a proposta cogita uma forma de três partes, como o javelin que foi deixado de lado), se a cabeça aceita materiais não metálicos, e se riptide, channeling e loyalty viram traits ou modifiers. Riptide em particular decide se a ferramenta precisa de um visual de arremesso diferente do visual empunhado.
+
+Se a forma se fechar em cabeça, cabo e fecho, espere o conjunto de sempre: três camadas em cinza tingidas em `textures/derived/tools/trident_{handle,head,binding}.png`, uma cabeça quebrada, e uma silhueta de parte em `textures/derived/item/trident_head.png`. O molde de papel, o molde de ouro e o molde de argila saem de graça dos scripts. Tudo 16x16.
+
+Prioridade: a caminho. Não comece; espere a sessão de planejamento fechar.
+
+## Resumo
+
+| Seção | Templates para desenhar | Prioridade |
 | --- | --- | --- |
-| Katana | `tools/katana_handle.png`, `tools/katana_binding.png`, `derived/tools/katana_head.png`, `derived/tools/katana_head_broken.png` | The handle and binding live in `textures/tools/`, not `derived/tools/`, because they were always original. The broken head is hand-drawn, the one exception to the automatic chip transform |
-| Scimitar | `derived/tools/scimitar_{handle,head,binding,head_broken}.png` | |
-| War mace | `derived/tools/warmace_{handle,head,binding,head_broken}.png` | |
-| Parts | `derived/item/curved_blade.png`, `war_mace_head.png`, `katana_blade.png` | The scimitar's blade part is `curved_blade` |
+| 1. Formas de material | 11 | Toda sessão |
+| 2. Lingotes, pepitas, minério bruto e blocos | 7 | Toda sessão / às vezes |
+| 3. Silhuetas de parte ainda em arte da Tinkers' | 17 | Toda sessão / às vezes |
+| 4. Tanque energizado, bloco e tela | 4 | Às vezes |
+| 5. Armadura pesada | 4 camadas de item + até 8 folhas vestidas | Às vezes |
+| 6. Coisas sem nenhuma arte | 5 | Às vezes / raro |
+| 7. Itens avulsos | 3 | Raro |
+| 8. Já coberto (GUI, livro, JEI, fluidos, entidades, partículas, Modifier Worktable, armas próprias, camadas de fundição, e mais) | 0 | n/a |
+| 9. Família de tridente | 0 até a #990 fechar | A caminho |
+| **Total** | **aproximadamente 59 desenhos** | |
 
-All 16x16, all tinted, all on the five-value grey ramp. Frames: `weapon_katana`, `weapon_scimitar`, `weapon_warmace`, each with `_firstperson` and `_offhand` variants.
+## Perguntas em aberto e coisas que não deu para classificar
 
-**Two of these are not hand-drawn, and they are worth redrawing.** The katana's guard and wrapped grip come out of [`generate_katana_art.py`](https://github.com/gkissel/forgeweave/blob/ba4c0b8d53f1cf5dfcd0fe503de287838a819223/scripts/generate_katana_art.py), which paints them pixel by pixel from two ASCII maps written into the script. No template, no donor, nothing to trace: an agent typed out a 16 by 16 grid of palette letters. They are on the grey ramp and they work, but nobody designed them. The grip's banding was widened from 251/219 to 251/160 so the wrap still reads after a dark handle material tints it, which is the kind of decision a designer should be making rather than inheriting.
+Nada da auditoria original ficou sem classificar: todo PNG resolveu para uma linha no `NOTICE.md`, um script gerador nomeado, ou uma pull request específica. Os itens abaixo são decisões de julgamento, não falhas de classificação, preservados da auditoria de `ba4c0b8d` porque continuam valendo.
 
-`textures/mob_effect/lacerate.png` is the same story: the status-effect icon for the scimitar's bleed, three claw slashes, painted from an 18-row ASCII map in [`generate_scimitar_art.py`](https://github.com/gkissel/forgeweave/blob/ba4c0b8d53f1cf5dfcd0fe503de287838a819223/scripts/generate_scimitar_art.py). **18x18**, not 16x16, because that is vanilla's mob-effect icon size. Not tinted, so it uses a real four-value red ramp (`#4A0C0E`, `#981E20`, `#CC3430`, `#EE6C60`) rather than greys, and you should paint it in full colour too. [Open it](https://github.com/gkissel/forgeweave/blob/ba4c0b8d53f1cf5dfcd0fe503de287838a819223/src/main/resources/assets/forgeweave/textures/mob_effect/lacerate.png).
-
-**Priority: every session** for the three weapons' layers if the current art does not satisfy. **Sometimes** for the lacerate icon.
-
-## 8. Heavy armor
-
-The set is in the game and playable, and it has no art of its own at all: every pixel it shows belongs to the light armor set.
-
-Four items, `heavy_helmet`, `heavy_chestplate`, `heavy_leggings` and `heavy_boots`, built from three materials each: plating, maille, and a third large plate slot that the light set does not have.
-
-That splits into three jobs, worth costing one at a time:
-
-**(a) Item sprites.** The heavy pieces currently render the light set's sprites, because the code strips the `heavy_` prefix before looking up art. So a heavy chestplate and a light chestplate look identical in the inventory. Worse, the third material is invisible: the item model filters the large plate layer out entirely, with a code comment saying it does so because that layer has no sprite. Deliverable: 4 plating layers and, if the third material should show, 4 large plate layers. `textures/derived/tools/<piece>_{plating,maille}.png`, 16x16, tinted, greyscale.
-
-**(b) Worn armor layers.** These are the sheets that render on the player's body, and they are **64x32**, Minecraft's legacy armor layout, not 16x16. Today there are four, shared between the light and heavy sets: `textures/models/armor/derived/{plating,maille}_layer_{1,2}.png`. Layer 1 covers helmet, chestplate and boots; layer 2 covers leggings. All four are Tinkers' art with `NOTICE.md` rows, and they are greyscale and tinted at render time by the part material's colour. Deliverable: up to 4 new sheets if only the heavy set gets its own look, 8 if both sets do.
-
-**(c) 3D model work: none needed.** Both sets draw on vanilla's humanoid mesh, one pass per declared layer. There is no custom model class and nothing to rig. Bulkier heavy geometry would be a code change, so raise it as a request rather than assuming it.
-
-Frames: `tool_forge_heavy_armor` for the station tab, `armor_heavy_iron` and `armor_heavy_iron_firstperson` for the worn look. Compare against `armor_iron`, `armor_cobalt` and `armor_obsidian_chestplate`.
-
-**Priority: sometimes.** The light set carries the look today, so nothing is broken, but a tier that is visually identical to the tier below it is a real gap.
-
-## 9. Things with no art at all
-
-Each of these is a clean, self-contained deliverable.
-
-| Asset | Where it goes | Size | State |
-| --- | --- | --- | --- |
-| Mod logo | jar root, wired via `logoFile` in `neoforge.mods.toml` | 128x128 or 256x256 | Does not exist. The manifest carries a written decision deferring it, on the grounds that deriving Tinkers' gear logo would read as impersonating their brand |
-| `pack.png` for the mod | `src/main/resources/pack.png` | 128x128 | Does not exist |
-| `pack.png` for the Legacy pack | `src/main/resources/resourcepacks/legacy/pack.png` | 128x128 | Does not exist, so the pack shows the missing-texture placeholder in the resource pack list |
-| Advancement tab background | `textures/gui/advancements/backgrounds/` | tiling | Reuses vanilla's stone background. Optional |
-| Longsword slash particle | `textures/particle/` plus a rewrite of `particles/slash_longsword.json` | 8 frames | Borrows vanilla's `sweep_0` to `sweep_7` outright. Every other weapon has its own sweep sheet. Optional, but it is the one weapon whose swing does not match the others |
-| `slime_layer_2.png` | `textures/models/armor/derived/` | 64x32 | Missing, while plating and maille both have their layer 1 and layer 2 pair. Whether slime armor needs a leggings sheet is a code question, not a drawing one; see the open questions at the end |
-
-**Priority: rare** for all of these, except the two `pack.png` files and the logo, which are the first thing anyone sees in a mod list. Call those **sometimes**.
-
-## 10. One-off items
-
-Three item sprites that no template covers.
-
-| Item | What it is | Path | Origin |
-| --- | --- | --- | --- |
-| Dusk cage | A murkiron lantern cage that captures a mob | `textures/item/dusk_cage.png` | Drawn procedurally from nothing by [`generate_dusk_cage_texture.py`](https://github.com/gkissel/forgeweave/blob/ba4c0b8d53f1cf5dfcd0fe503de287838a819223/scripts/generate_dusk_cage_texture.py), using a five-colour palette off murkiron's `#3A5C56` |
-| Weldheart | The catalyst a Draconic Evolution fusion craft consumes | `textures/item/weldheart.png` | Drawn procedurally by [`generate_weldheart_texture.py`](https://github.com/gkissel/forgeweave/blob/ba4c0b8d53f1cf5dfcd0fe503de287838a819223/scripts/generate_weldheart_texture.py): three nested diamonds in the three weld metals' colours |
-| Nahuatl board | A crafting intermediate that makes nahuatl plating and maille reachable | `textures/item/nahuatl_board.png` | Hand-drawn by an agent in PR #740. The only sprite in `textures/item/` that no script produces |
-
-All 16x16, not tinted, paint in full colour. **Priority: rare.**
-
-## 11. What is already covered, so you can skip it
-
-Worth stating so nobody spends a day on something that is not a gap.
-
-- **Every GUI sheet.** All 21 are Tinkers' or Mantle art with `NOTICE.md` rows: the tool station, part builder, stencil table, smeltery, seared furnace, reservoir and duct, the chest panel, the shared side panel and info panel, the station icon sheet, the two bow crosshairs. The crafting station deliberately uses vanilla's crafting table panel, matching what Tinkers' itself does. The only GUI pixels Forgeweave draws are the energized tank's energy bar in section 5 and a flat hover highlight in the book.
-- **Every book image.** Four files, none of them ours. The book spread and the cover, 512x512 each, come from Mantle, the SlimeKnights library the 1.12 book engine lives in. The modify page (256x256) and the smeltery diagram (854x480) come from Tinkers'. `appearance.json` references no image; it sets a cover tint of `#ffce85`. No book page points at a file that does not exist.
-- **Every JEI panel and icon.** Four panel sheets, all with rows. Ten of eleven category icons are just an item stack, so they inherit whatever that item's sprite becomes. The eleventh, entity melting, crops a 16x16 square out of the melting sheet.
-- **Every creative tab icon.** Six tabs, each showing an existing item: blue slime crystal, pickaxe, pickaxe head, seared tank, slime sling, green slime soil.
-- **Every advancement icon.** Eleven advancements, all displaying an item stack.
-- **Armor parts, casts and patterns.** Plating, maille and large plate, with their stencil patterns and gold and clay casts, are all present and all rowed. No gaps.
-- **Fluids.** Six textures for the whole mod, all rowed, all animated: `molten_metal` and its flow, `liquid` and its flow, `liquid_stone` and its flow, 16 to 32 frames each, from 16x320 up to 32x1024. Every molten metal shares the same greyscale pair and is tinted per fluid, which is why there are six files and not a hundred.
-- **Fluid buckets.** There is no bucket art to draw. NeoForge's dynamic container model draws the fluid inside a vanilla bucket and reads the fluid's own tint.
-- **Entities.** The mod adds four entity types and ships one entity texture: the blue slime, 64x32, rowed, greyscale and tinted `#67f0f5` at runtime. Arrows, shuriken and indestructible items all render their own item model, so they have no entity texture.
-- **Particles.** All 45 are rowed. Five heart overlays at 8x8; five weapon slash sheets at 8 frames each, sized 32x32 for axe and hammer, 16x32 for cleaver and rapier, 16x16 for the frying pan. The hatchet and lumberaxe share the axe sheet. The 16x16 rule does not apply to slash frames.
-- **Ponder scenes.** The seven `.nbt` files are in-world block layouts, not drawings. How they look depends entirely on the block textures in sections 3, 4 and 5.
-- **Track A material presets.** These never get their own sprite. They render through the greyscale part sprites of section 6, tinted by the material's `color` field. So every Track A material a compat pack adds inherits your part art for free, and there is nothing per-material to draw. Same for Occultism, Elementarium and the Allthemodium tiers: they are datapack material definitions pointing at other mods' items.
-- **Mystical Agriculture's crop and essence sprites** (PR #1036, merged after this brief's audit). Nothing to draw here either, for a different reason than Track A: `MysticalAgricultureCompat` hands each Forgeweave crop a preset `CropTextures` plus the material's own hex, and Mystical Agriculture's own `client.ModelHandler`/`client.ColorHandler` bake and tint the flower, essence and seed from that at runtime. Forgeweave ships no sprite of its own for any of it, so there is no `NOTICE.md` row and nothing on this list.
-
-## 12. Upcoming: the trident family
-
-Planning only, issue #990, no code and no art yet. Listed so it can be scheduled rather than arriving as a surprise.
-
-The maintainer asked for a Forgeweave trident. Tinkers' 1.12 predates the vanilla trident, so there is no upstream art and no upstream design. Everything about it, including the art, will be original.
-
-Three questions on that issue decide what gets drawn: how many parts the trident has (the proposal floats a three-part shape like the deferred javelin), whether the head accepts non-metal materials, and whether riptide, channeling and loyalty become traits or modifiers. Riptide in particular decides whether the tool needs a thrown look distinct from its held look.
-
-If the shape settles as head, handle and binding, expect the usual set: three greyscale tinted layers at `textures/derived/tools/trident_{handle,head,binding}.png`, a broken head, and one part silhouette at `textures/derived/item/trident_head.png`. The stencil pattern, gold cast and clay cast come free from the scripts. All 16x16.
-
-**Priority: upcoming.** Do not start it; wait for the planning session to close.
-
-## Summary
-
-| Section | Assets | Templates to draw | Priority |
-| --- | --- | --- | --- |
-| 1. Material forms | 374 | **8** | Every session |
-| 2. Ingots, nuggets, raw drops, crystals | 88 | **4** | Every session |
-| 3. Ore, storage and raw storage blocks | 59 | **3** | Every session / sometimes |
-| 4. Smeltery tiers (standard, Nether, End, Deep) | 15 designer files of 110 | 0 new; Nether, End and Deep already drawn | Every session |
-| 5. Energized tank block and screen | 3 blocks + 1 energy bar | **4** | Sometimes |
-| 6. Tool part silhouettes still on Tinkers' art | 17 parts driving ~68 generated files | **17** | Every session / sometimes |
-| 7. Forgeweave's own weapons | 15 | 0 new; already Forged. Lacerate icon is the exception | Sometimes |
-| 8. Heavy armor | 0 exist | **4 item layers + up to 8 worn sheets** | Sometimes |
-| 9. Things with no art at all | 0 exist | **6** | Sometimes / rare |
-| 10. One-off items | 3 | **3** | Rare |
-| 11. Already covered | 1,139 rowed + borrowed | 0 | n/a |
-| 12. Trident family | 0, planning | 0 until #990 closes | Upcoming |
-| **Total** | **617 Forgeweave-owned sprites** | **about 57 drawings** | |
-
-617 sprites ship today with Forgeweave's name on them, and roughly 57 original drawings would replace all of them.
-
-## Open questions and things that could not be classified
-
-Nothing in the audit was left unclassified: all 1,837 PNGs resolved to a `NOTICE.md` row, a named generator script, or a specific pull request. The six items below are judgement calls rather than classification failures.
-
-1. **`brimspar_ore.png`.** 16x16, full colour, no row, so it is Forgeweave's either way. It arrived in PR #907 with the fuel-ladder work rather than in a Track B texture batch, and the ore script builds its donor table at import time, so whether brimspar is in that roster or was placed by hand could not be read off the table alone. Treat it as section 3 work regardless.
-2. **`slime_layer_2.png`, resolved (issue #1049): not a bug.** Slime armor is a single item, the slime boots (`SlimeBootsItem`, `Type.BOOTS`), not a full helmet/chestplate/leggings/boots set the way plating and maille are -- there is no slime leggings item at all, so there is nothing that would ever need a layer 2 sheet. Plating and maille have the pair because both cover a real leggings piece; slime armor does not.
-3. **Two dead katana files, resolved (issue #1049): deleted.** `derived/tools/katana_binding.png` and `derived/tools/katana_handle.png` were byte-identical to the live pair in `textures/tools/`, confirmed unreferenced by any generated model, Java source or script, and removed.
-4. **Whether the material forms should keep using vanilla donors at all, resolved (issue #1049): no.** See section 1 above -- each form now has its own checked-in template file, and the script tints those instead of reading the client jar.
-5. **The energized tank has no screenshot frame, resolved (issue #1049).** `ScreenshotHarness.SCREENS` now has an `energized_tank` entry, the same single-block pattern every other M1-style station uses. The `SmelteryFuelCategory`/`CoreTransformCategory` JEI views picked up frames the same way, added to `JeiScreenshotHarness.TYPES`.
-6. **Two generator scripts appear to have been overtaken by Forged batches, resolved (issue #1049).** The war mace is a Forgeweave-only tool (CLAUDE.md), so `derive_warmace_art.py` -- which could only ever write Tinkers'-derived pixels, to either art set -- is deleted outright. The battleaxe is Tinkers'-native, so `generate_battleaxe_head.py` stays, rewritten to write through `sprite_sets.save_legacy_if_different` instead of straight to the default tree: a layer the current Forged batch has not touched (`battleaxe_handle.png`/`battleaxe_binding.png`, today) is a no-op, and a layer a Forged sprite has replaced (`battleaxe_head.png`/`battleaxe_head2.png`, today) gets its pre-Forged pixels written to the Legacy pack instead of overwriting the Forged default.
-
+1. `brimspar_ore.png` é 16x16, cor cheia, sem linha, então é do Forgeweave de qualquer jeito. Chegou na PR #907 junto do trabalho da escada de combustível, em vez de num lote de textura Track B, e o script de minério monta sua tabela de doadores na importação, então se brimspar está nesse elenco ou foi posto à mão não dava para saber só pela tabela. Trate como trabalho da seção 2 de qualquer forma.
+2. `slime_layer_2.png`, resolvido na issue #1049: não é bug. A armadura de slime é um único item, a bota de slime (`SlimeBootsItem`, `Type.BOOTS`), não um conjunto completo de capacete/peitoral/calças/botas como plating e maille são; não existe item de calças de slime nenhum, então não há nada que algum dia precisasse de uma folha de camada 2. Plating e maille têm o par porque os dois cobrem uma peça de calças de verdade; a armadura de slime não.
+3. Dois arquivos mortos da katana, resolvido na issue #1049: apagados. `derived/tools/katana_binding.png` e `derived/tools/katana_handle.png` eram idênticos byte a byte ao par ativo em `textures/tools/`, confirmados sem referência em nenhum modelo gerado, código Java ou script, e removidos.
+4. Se as formas de material deveriam continuar usando doadores vanilla, resolvido na issue #1049: não. Ver seção 1 acima: cada forma agora tem seu próprio arquivo de template, e o script tinge esses em vez de ler o client jar.
+5. O tanque energizado não tinha quadro de captura de tela, resolvido na issue #1049. `ScreenshotHarness.SCREENS` agora tem uma entrada `energized_tank`, o mesmo padrão de bloco único de toda outra estação estilo M1. As visões de JEI `SmelteryFuelCategory`/`CoreTransformCategory` ganharam quadro do mesmo jeito, adicionadas a `JeiScreenshotHarness.TYPES`.
+6. Dois scripts geradores pareciam ultrapassados por lotes Forged, resolvido na issue #1049. O war mace é uma ferramenta exclusiva do Forgeweave (CLAUDE.md), então `derive_warmace_art.py`, que só conseguiria escrever pixels derivados da Tinkers' em qualquer um dos dois conjuntos, foi apagado de vez. O battleaxe é nativo da Tinkers', então `generate_battleaxe_head.py` continua, reescrito para gravar por `sprite_sets.save_legacy_if_different` em vez de direto na árvore padrão: uma camada que o lote Forged atual ainda não tocou (`battleaxe_handle.png`/`battleaxe_binding.png`, hoje) não faz nada, e uma camada que um sprite Forged já substituiu (`battleaxe_head.png`/`battleaxe_head2.png`, hoje) tem seus pixels pré-Forged gravados no pacote Legacy em vez de sobrescrever o Forged padrão.
