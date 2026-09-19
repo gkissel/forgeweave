@@ -29,6 +29,7 @@ import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 
+import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;

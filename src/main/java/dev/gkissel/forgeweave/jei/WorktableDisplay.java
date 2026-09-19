@@ -2,6 +2,7 @@ package dev.gkissel.forgeweave.jei;
 
 import net.minecraft.resources.ResourceLocation;
 
+import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.modifier.WorktableRecipe;
 
 /**

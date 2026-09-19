@@ -21,6 +21,7 @@ import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.neoforge.items.IItemHandler;
 
+import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.modifier.Worktable;

@@ -39,6 +39,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.Block;
 
+import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.client.StationText;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.material.Material;

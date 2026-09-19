@@ -19,6 +19,8 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.api.modifier.Modifier;
+import dev.gkissel.forgeweave.api.trait.Trait;
 import dev.gkissel.forgeweave.combat.DamageRamp;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ArmorStats;

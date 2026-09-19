@@ -11,6 +11,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BonemealableBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
+import dev.gkissel.forgeweave.api.trait.Trait;
+
 /**
  * Right-click fertilizes a {@link BonemealableBlock} at a durability cost -- ADR-0004's M6
  * utility/economy library batch (issue #829). The kama's crop-harvest right-click

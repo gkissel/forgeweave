@@ -4,6 +4,10 @@ import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 
+import dev.gkissel.forgeweave.api.combat.CombatDefense;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+import dev.gkissel.forgeweave.api.combat.DefendedBlow;
+
 /**
  * The thorns armor modifier (M4-6, issue #681), ported from the 1.20 clone's
  * {@code tools/modules/armor/ThornsModule} + {@code CounterModule#onAttacked}: on a <em>direct</em>

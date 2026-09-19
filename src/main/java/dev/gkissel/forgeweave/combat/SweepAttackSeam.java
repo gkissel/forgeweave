@@ -6,6 +6,9 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.AABB;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * Passes the blow on to everything around the target -- the scythe's area attack (upstream 1.12
  * {@code tools/tools/Scythe.java} {@code #onLeftClickEntity}, which re-attacks every entity in the

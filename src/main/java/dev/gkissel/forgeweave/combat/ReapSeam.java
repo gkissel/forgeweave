@@ -1,5 +1,8 @@
 package dev.gkissel.forgeweave.combat;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * The kama's combat rider (docs/SCOPE.md M3 issue #156, maintainer decision 2026-08-12 on the
  * issue): bonus damage against a target already below a health-fraction threshold -- "finishing"

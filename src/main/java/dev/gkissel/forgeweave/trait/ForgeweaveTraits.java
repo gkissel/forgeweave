@@ -74,6 +74,8 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockDropsEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.api.trait.Trait;
+import dev.gkissel.forgeweave.api.trait.TraitRegistry;
 import dev.gkissel.forgeweave.client.StationText;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig; // #968
 import dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat;
@@ -83,16 +85,16 @@ import dev.gkissel.forgeweave.combat.BlockingDamageReduction;
 import dev.gkissel.forgeweave.combat.BonusDamageFraction;
 import dev.gkissel.forgeweave.combat.BonusDamageVsSeam;
 import dev.gkissel.forgeweave.combat.ChainArc;
-import dev.gkissel.forgeweave.combat.CombatHit;
-import dev.gkissel.forgeweave.combat.CombatDefense;
-import dev.gkissel.forgeweave.combat.CombatSeam;
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatDefense;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.combat.ThornsCounterSeam;
 import dev.gkissel.forgeweave.combat.ConditionalSeam;
 import dev.gkissel.forgeweave.combat.CritMultiplierBonus;
 import dev.gkissel.forgeweave.combat.DamageRamp;
 import dev.gkissel.forgeweave.combat.DamageScalesWith;
-import dev.gkissel.forgeweave.combat.DefendedBlow;
+import dev.gkissel.forgeweave.api.combat.DefendedBlow;
 import dev.gkissel.forgeweave.combat.EffectOnHit;
 import dev.gkissel.forgeweave.combat.EffectOnSelfOnHit;
 import dev.gkissel.forgeweave.combat.FlatBonusDamage;
@@ -125,7 +127,7 @@ import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
-import dev.gkissel.forgeweave.modifier.Modifier;
+import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.particle.ForgeweaveParticles;
 import dev.gkissel.forgeweave.tool.ToolStats;
@@ -3831,16 +3833,22 @@ public final class ForgeweaveTraits {
     private static final Map<ResourceLocation, Trait> SCRIPTED = new ConcurrentHashMap<>();
 
     /**
-     * The behaviour behind {@code id}: the Java roster first, then the datapack snapshot, then
-     * script traits -- {@code null} for an id no source implements.
+     * The behaviour behind {@code id}: the Java roster first, then the datapack snapshot, then a
+     * partner mod's {@link TraitRegistry} registration, then script traits -- {@code null} for an id
+     * no source implements. The built-in roster is first, so a built-in id always wins a collision,
+     * whichever later source claimed it.
      *
-     * <p>#968 (D-M8-5): {@code compat.kubejsTraits} gates the third source here rather than the
-     * {@code ForgeweaveEvents.traits} post that fills it. KubeJS runs its startup scripts during mod
-     * loading, when a {@code SERVER} config does not exist yet, so the post site cannot read the
-     * toggle at all; the lookup can, and gating it gives the same player-visible result -- a
-     * material naming a scripted trait behaves as if the id had no implementation, which is what a
+     * <p>#968 (D-M8-5): {@code compat.kubejsTraits} gates the <em>script</em> source here rather
+     * than the {@code ForgeweaveEvents.traits} post that fills it. KubeJS runs its startup scripts
+     * during mod loading, when a {@code SERVER} config does not exist yet, so the post site cannot
+     * read the toggle at all; the lookup can, and gating it gives the same player-visible result --
+     * a material naming a scripted trait behaves as if the id had no implementation, which is what a
      * datapack material naming an unknown trait already does. Nothing on a stack changes either way,
      * so flipping the toggle back restores the trait with no reload.
+     *
+     * <p>#1065 split that gate off the Java source. A partner mod's trait is not a KubeJS script and
+     * is not switched off by a KubeJS toggle; the addon's own config governs it, which is D-M8-5's
+     * "a toggle per integration, not per mechanism".
      */
     @Nullable
     public static Trait lookup(ResourceLocation id) {
@@ -3848,10 +3856,35 @@ public final class ForgeweaveTraits {
         if (trait == null) {
             trait = DATAPACK.get(id);
         }
+        if (trait == null) {
+            trait = TraitRegistry.trait(id);
+        }
         if (trait != null) {
             return trait;
         }
         return ForgeweaveConfig.enabled(ForgeweaveConfig.KUBEJS_TRAITS) ? SCRIPTED.get(id) : null;
+    }
+
+    /**
+     * Shuts the {@link TraitRegistry} window, called once from {@code Forgeweave}'s common setup, by
+     * which point every mod constructor has run. Logs the ids a partner mod claimed that Forgeweave
+     * already owns: those registrations are ignored and the built-in behaviour wins, the rule a
+     * {@code trait_definition} has followed since #832.
+     */
+    public static void closeApiRegistration() {
+        TraitRegistry.closeRegistration();
+        for (ResourceLocation id : TraitRegistry.traitIds()) {
+            if (REGISTRY.containsKey(id)) {
+                LOGGER.warn("A mod registered trait '{}', which is a built-in Forgeweave trait; the built-in "
+                        + "behaviour wins and the registration is ignored (issue #1065).", id);
+            }
+        }
+        for (ResourceLocation id : TraitRegistry.behaviorIds()) {
+            if (TraitBehaviors.builtInIds().contains(id)) {
+                LOGGER.warn("A mod registered trait behaviour '{}', which is a built-in Forgeweave behaviour; the "
+                        + "built-in wins and the registration is ignored (issue #1065).", id);
+            }
+        }
     }
 
     /**

@@ -1,4 +1,4 @@
-package dev.gkissel.forgeweave.trait;
+package dev.gkissel.forgeweave.api.trait;
 
 import java.util.function.Consumer;
 
@@ -16,10 +16,11 @@ import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.state.BlockState;
 
-import dev.gkissel.forgeweave.combat.CombatDefense;
-import dev.gkissel.forgeweave.combat.CombatHit;
-import dev.gkissel.forgeweave.combat.CombatSeam;
-import dev.gkissel.forgeweave.combat.DefendedBlow;
+import dev.gkissel.forgeweave.api.combat.CombatDefense;
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+import dev.gkissel.forgeweave.api.combat.DefendedBlow;
+import dev.gkissel.forgeweave.api.modifier.Modifier;
 
 /**
  * A behavior a {@code Material} grants to every Tool containing it (CONTEXT.md glossary). Trait

@@ -20,13 +20,14 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.api.combat.CombatProviders;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SlimeColour;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
-import dev.gkissel.forgeweave.combat.CombatDefense;
-import dev.gkissel.forgeweave.combat.CombatSeam;
+import dev.gkissel.forgeweave.api.combat.CombatDefense;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
 import dev.gkissel.forgeweave.combat.CombatSeams;
-import dev.gkissel.forgeweave.combat.DefendedBlow;
+import dev.gkissel.forgeweave.api.combat.DefendedBlow;
 import dev.gkissel.forgeweave.combat.Protection;
 import dev.gkissel.forgeweave.combat.ThornsCounterSeam;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -130,8 +131,8 @@ public class ArmorModifierGameTests {
         helper.assertTrue(ForgeweaveModifiers.freeSlots(one) == ForgeweaveModifiers.DEFAULT_SLOTS - 1,
                 name + ": level 1 costs one slot, free " + ForgeweaveModifiers.freeSlots(one));
         // #680's shared Protection seam, at this modifier's effective level.
-        helper.assertTrue(CombatSeams.seams(one).stream().anyMatch(seam -> seam instanceof Protection protection
-                && Math.abs(protection.value() - perLevel) < 1e-6F), name + " I resolves to " + perLevel + " protection, got " + CombatSeams.seams(one));
+        helper.assertTrue(CombatProviders.seams(one).stream().anyMatch(seam -> seam instanceof Protection protection
+                && Math.abs(protection.value() - perLevel) < 1e-6F), name + " I resolves to " + perLevel + " protection, got " + CombatProviders.seams(one));
         ItemStack two = apply(helper, player, one, reagent.copyWithCount(1));
         helper.assertTrue(ForgeweaveModifiers.freeSlots(two) == ForgeweaveModifiers.DEFAULT_SLOTS - 2,
                 name + ": the sixth unit opens level 2 and charges a second slot");
@@ -230,7 +231,7 @@ public class ArmorModifierGameTests {
         ItemStack piece = apply(helper, player, chestplate(helper, player), new ItemStack(Items.CACTUS, 25));
         ModifierEntry entry = ForgeweaveModifiers.entry(piece, id("thorns"));
         helper.assertTrue(entry != null && entry.level() == 25, "25 cactus are level 1, got " + entry);
-        List<CombatSeam> seams = CombatSeams.seams(piece);
+        List<CombatSeam> seams = CombatProviders.seams(piece);
         helper.assertTrue(seams.stream().anyMatch(seam -> seam instanceof ThornsCounterSeam thorns
                 && Math.abs(thorns.chance() - 0.15F) < 1e-6F), "thorns I resolves to a 15% counter seam, got " + seams);
 

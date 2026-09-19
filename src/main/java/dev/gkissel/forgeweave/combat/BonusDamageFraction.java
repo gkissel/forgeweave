@@ -1,5 +1,8 @@
 package dev.gkissel.forgeweave.combat;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * A hit deals {@code fraction} extra damage, as a fraction of the blow's original (pre-mitigation)
  * damage -- {@link BonusDamageVsBlocking} with its condition lifted out into {@link ConditionalSeam},

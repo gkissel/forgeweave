@@ -3,6 +3,8 @@ package dev.gkissel.forgeweave.trait;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 
+import dev.gkissel.forgeweave.api.trait.Trait;
+
 /**
  * Every heal the wearer receives is scaled -- the M6 armor library's
  * {@code amplify_incoming_healing(factor)} (issue #831).

@@ -7,6 +7,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.api.trait.Trait;
 
 /**
  * A trait a datapack defines, under {@code data/<namespace>/forgeweave/trait_definition/<name>.json}

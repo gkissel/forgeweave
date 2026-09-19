@@ -2,6 +2,9 @@ package dev.gkissel.forgeweave.combat;
 
 import net.minecraft.tags.DamageTypeTags;
 
+import dev.gkissel.forgeweave.api.combat.CombatDefense;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * Blocking negates fire damage outright, at a flat durability cost -- flammable's defensive half
  * (issue #229), ported from upstream 1.12's {@code TraitFlammable#onBlock}: cancel the event

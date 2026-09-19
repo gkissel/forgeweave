@@ -23,7 +23,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.client.book.ModifyPageContent;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
-import dev.gkissel.forgeweave.modifier.Modifier;
+import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 

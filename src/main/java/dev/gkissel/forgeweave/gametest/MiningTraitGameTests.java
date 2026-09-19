@@ -37,7 +37,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
-import dev.gkissel.forgeweave.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatHit;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
@@ -45,7 +45,7 @@ import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.tool.ToolStats;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
-import dev.gkissel.forgeweave.trait.Trait;
+import dev.gkissel.forgeweave.api.trait.Trait;
 
 /**
  * docs/SCOPE.md M3.2 issue #228's verification: one test per mining/durability-economy trait,

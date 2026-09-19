@@ -17,7 +17,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.client.book.ModifyPageContent;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
-import dev.gkissel.forgeweave.modifier.Modifier;
+import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
 
 /**

@@ -9,6 +9,8 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.ExtraCodecs;
 
+import dev.gkissel.forgeweave.api.trait.Trait;
+
 /**
  * The alien trait's progressive-stat state (upstream 1.12 {@code TraitProgressiveStats}, which
  * {@code TraitAlien} extends -- see {@code ForgeweaveTraits#ALIEN}): a {@code pool} of stat bonuses

@@ -10,6 +10,7 @@ import net.minecraft.world.inventory.Slot;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.transfer.IRecipeTransferInfo;
 
+import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
 import dev.gkissel.forgeweave.menu.ModifierWorktableMenu;
 import dev.gkissel.forgeweave.modifier.Worktable;

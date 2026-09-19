@@ -16,6 +16,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.compat.draconic.modules.DraconicModuleHost;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig; // #968
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
@@ -50,7 +51,7 @@ public final class ForgeweaveDraconicCompat {
      * -- the same "roster as a tag" call {@code ToolAssemblyRecipes#LARGE_TOOLS} makes.
      *
      * <p>Deliberately one broad tag rather than a per-line tag: which shapes a given line actually
-     * accepts is already decided, once, by {@link dev.gkissel.forgeweave.modifier.Modifier}'s own
+     * accepts is already decided, once, by {@link dev.gkissel.forgeweave.api.modifier.Modifier}'s own
      * gates, and {@link FusionUpgradeRecipe#upgrade} reads them. A second copy of that in tag form
      * would be the drift {@code jei.ModifierApplicationCategory}'s issue #764 bug was made of.
      */

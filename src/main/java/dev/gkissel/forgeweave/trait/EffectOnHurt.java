@@ -4,8 +4,9 @@ import net.minecraft.core.Holder;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 
-import dev.gkissel.forgeweave.combat.CombatDefense;
-import dev.gkissel.forgeweave.combat.DefendedBlow;
+import dev.gkissel.forgeweave.api.combat.CombatDefense;
+import dev.gkissel.forgeweave.api.combat.DefendedBlow;
+import dev.gkissel.forgeweave.api.trait.Trait;
 
 /**
  * A blow taken while this piece is worn leaves a status effect on the <em>wearer</em> -- the M6

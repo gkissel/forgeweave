@@ -1,5 +1,8 @@
 package dev.gkissel.forgeweave.combat;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * A hit deals {@code base} extra flat damage plus a fresh {@code [0, range)} roll -- upstream 1.12's
  * hammer, the only consumer: {@code Hammer#dealDamage}'s {@code damage += 3 + TConstruct.random

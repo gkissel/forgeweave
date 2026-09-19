@@ -21,6 +21,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 
+import dev.gkissel.forgeweave.api.modifier.Modifier;
+import dev.gkissel.forgeweave.api.trait.Trait;
 import dev.gkissel.forgeweave.item.AmmoToolItem;
 import dev.gkissel.forgeweave.item.BowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;

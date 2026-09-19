@@ -1,5 +1,8 @@
 package dev.gkissel.forgeweave.combat;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * Runs another seam only when the blow matches -- ADR-0004's M6 library gains one gate instead of a
  * conditional variant of every behavior in it. Issue #157's riders need two gates the shipped seams

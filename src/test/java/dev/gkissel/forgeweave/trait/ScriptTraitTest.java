@@ -15,6 +15,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 
+import dev.gkissel.forgeweave.api.trait.Trait;
+
 /**
  * Issue #832's script-trait half, without KubeJS: {@link ScriptTrait} routes each hook to its
  * callback (or keeps {@link Trait}'s default when unset), and {@link ForgeweaveTraits#registerScripted}

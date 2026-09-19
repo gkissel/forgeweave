@@ -12,8 +12,9 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.enchantment.Enchantment;
 
+import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.combat.BonusDamageVsSeam;
-import dev.gkissel.forgeweave.combat.CombatSeam;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
 import dev.gkissel.forgeweave.combat.IgniteOnHitSeam;
 import dev.gkissel.forgeweave.combat.KnockbackOnHitSeam;
 import dev.gkissel.forgeweave.combat.LifestealOnHitSeam;

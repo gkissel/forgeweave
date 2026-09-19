@@ -7,6 +7,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.api.modifier.Modifier;
 
 /**
  * A modifier a datapack defines, under {@code data/<namespace>/forgeweave/modifier_definition/
@@ -41,7 +42,7 @@ import dev.gkissel.forgeweave.Forgeweave;
  * @param behavior which {@link ModifierBehaviors} entry built {@link #modifier}
  * @param modifier the runtime behavior, wired into every seam like a Java-registered modifier
  */
-public record ModifierDefinition(ResourceLocation behavior, ModifierLibrary.Behavior modifier) {
+public record ModifierDefinition(ResourceLocation behavior, Modifier modifier) {
 
     public static final ResourceKey<Registry<ModifierDefinition>> REGISTRY = ResourceKey.createRegistryKey(
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "modifier_definition"));

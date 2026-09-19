@@ -3,8 +3,9 @@ package dev.gkissel.forgeweave.trait;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.damagesource.DamageType;
 
-import dev.gkissel.forgeweave.combat.CombatDefense;
-import dev.gkissel.forgeweave.combat.DefendedBlow;
+import dev.gkissel.forgeweave.api.combat.CombatDefense;
+import dev.gkissel.forgeweave.api.combat.DefendedBlow;
+import dev.gkissel.forgeweave.api.trait.Trait;
 
 /**
  * A blow of a named damage type does nothing and heals the wearer a fraction of what it would have

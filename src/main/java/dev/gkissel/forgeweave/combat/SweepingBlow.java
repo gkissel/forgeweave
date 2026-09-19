@@ -12,6 +12,9 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * "Sweeping heavy blow" -- the battleaxe's innate (maintainer decision on issue #159, 2026-08-12):
  * <b>a full-charge hit strikes every enemy in a short arc for 50% damage, and applies slowness I for

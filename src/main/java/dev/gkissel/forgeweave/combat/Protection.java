@@ -12,6 +12,9 @@ import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.LivingEntity;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.api.combat.CombatDefense;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+import dev.gkissel.forgeweave.api.combat.DefendedBlow;
 
 /**
  * The 1.20 clone's {@code ProtectionModule} (issue #680, M4-5; SCOPE.md D17): a worn piece adds

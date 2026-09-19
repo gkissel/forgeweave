@@ -1,5 +1,8 @@
 package dev.gkissel.forgeweave.combat;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * A hit deals {@code bonus} extra flat damage -- the unconditional core of upstream 1.12's
  * {@code TraitHellish}/{@code TraitHoly} damage hooks ({@code newDamage += bonusDamage}), with the
