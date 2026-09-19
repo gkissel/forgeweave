@@ -144,8 +144,15 @@ class MaterialSyncSizeTest {
      * <p>Merged with #998, #993 and #1031 already on master, the nine Mystical Agriculture presets
      * take the roster to 134,794 bytes. Raised to 136 KB (139,264 bytes), ~4.4 KB (3.2%) above that
      * measurement, replacing the 120 KB this branch measured on its own.
+     *
+     * <p>Issue #1058 (D-M8-24): twelve more Track A materials (Silent Gear, PneumaticCraft:
+     * Repressurized, Forbidden and Arcanus, The Aether, L_Ender's Cataclysm) take the 192-material
+     * roster to 144,504 bytes, 5,240 bytes over the 136 KB line. Raised to 145 KB (148,480 bytes),
+     * ~3.9 KB (2.7%) of headroom above the new measurement, the same deliberately-tight step as
+     * every raise above -- a sibling batch (#1059) is landing at the same time, so this leaves only
+     * its own real growth to account for rather than a speculative cushion.
      */
-    private static final int SYNC_BUDGET_BYTES = 136 * 1024;
+    private static final int SYNC_BUDGET_BYTES = 145 * 1024;
 
 
     private static RegistryOps<JsonElement> jsonOps;
