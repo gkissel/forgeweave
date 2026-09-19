@@ -1693,6 +1693,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // never appears as this one's catalyst, so the title says so up front.
         add("jei.category.forgeweave.large_tool_assembly", "Assembly (Tool Forge only)");
         add("jei.category.forgeweave.tool_repair", "Tool Repair");
+        // #1057: the Modifier Worktable's category, with a line per function since the two share it.
+        add("jei.category.forgeweave.modifier_worktable", "Modifier Worktable");
+        add("jei.category.forgeweave.modifier_worktable.remove", "Take a level off a modifier");
+        add("jei.category.forgeweave.modifier_worktable.sort", "Move a modifier up or down the list");
 
         // #109 -- smeltery/casting/modifier JEI categories (docs/SCOPE.md M2 issue #109).
         add("jei.category.forgeweave.melting", "Melting");
