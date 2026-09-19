@@ -64,7 +64,8 @@ public class M3PartGameTests {
             new Entry(ForgeweaveItems.PATTERN_KAMA_HEAD, ForgeweaveItems.PART_KAMA_HEAD, PartBuilderRecipes.HEAD_COST),
             new Entry(ForgeweaveItems.PATTERN_BROAD_AXE_HEAD, ForgeweaveItems.PART_BROAD_AXE_HEAD, PartBuilderRecipes.LARGE_HEAD_COST),
             new Entry(ForgeweaveItems.PATTERN_VEIN_HAMMER_HEAD, ForgeweaveItems.PART_VEIN_HAMMER_HEAD, PartBuilderRecipes.LARGE_HEAD_COST),
-            new Entry(ForgeweaveItems.PATTERN_WAR_MACE_HEAD, ForgeweaveItems.PART_WAR_MACE_HEAD, PartBuilderRecipes.LARGE_HEAD_COST),
+            // #1044 dropped the war mace head's row: it is cast only now, so it no longer crafts from
+            // its pattern at the Part Builder -- see WarMaceHeadCastGameTests for that refusal.
             // #159's curved blade -- the scimitar's head part, added to the same parameterized sweep
             // rather than to a test of its own, since "craftable at the Part Builder from its own
             // pattern" is exactly what this test already asserts for the other seventeen.

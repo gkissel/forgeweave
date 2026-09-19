@@ -1,7 +1,7 @@
 {
   "station": "table",
   "cast": {
-    "item": "forgeweave:war_mace_head"
+    "item": "minecraft:heavy_core"
   },
   "fluid": "forgeweave:molten_gold",
   "amount": 288,
