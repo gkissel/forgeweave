@@ -188,6 +188,14 @@ Mundo 1.21.1 novo, servidor dedicado, sem cheats, com Apotheosis, EMI, Mekanism,
 119. [ ] Salvar, reiniciar, recarregar: conteúdo dos sockets, bônus das gems, estado de affix, estado de módulo, upgrades de fusão e níveis de ferramenta sobrevivem a todos.
 120. [ ] ⚠ O livro do guia abre e cobre os sockets, as regras de affix e encantamento, e o tanque energizado. Sem GuideME (M8-6: o livro fica).
 
+## S. Troca de parte: a opção `returnExchangedParts` (#1070)
+
+Entrou depois que o resto deste checklist foi escrito. Fica em `config/forgeweave/content-server.toml`, seção `content`, e vem ligada.
+
+121. [ ] Com `returnExchangedParts = true` (o padrão), trocar a cabeça de uma picareta na Tool Station devolve a cabeça antiga, como antes.
+122. [ ] Com `returnExchangedParts = false`, a cabeça antiga não volta (comportamento do 1.12). A ferramenta sai montada certo, com durabilidade e modifiers no lugar, e nada mais se perde.
+123. [ ] ⚠ Com a opção desligada e Mekanism ou Draconic Evolution instalado: trocar a parte que sustenta os módulos ainda devolve os módulos. A opção vale só para a parte.
+
 ## Decisões pendentes
 
 - Decidido em 2026-09-18: as proporções de craft da família de placas (item 95) ficam como estão, inclusive o wire a 3 nuggets.
