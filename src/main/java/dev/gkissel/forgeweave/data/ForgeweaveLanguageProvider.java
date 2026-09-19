@@ -1851,6 +1851,17 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addFluid(ForgeweaveFluids.CYANITE, "Molten Cyanite");
         addFluid(ForgeweaveFluids.LUDICRITE, "Molten Ludicrite");
         addFluid(ForgeweaveFluids.URANINITE, "Molten Uraninite");
+        // Issue #1058 (D-M8-24): the nine ingot-shaped materials in the Silent Gear, PneumaticCraft:
+        // Repressurized, Forbidden and Arcanus and L_Ender's Cataclysm batch that melt and cast.
+        addFluid(ForgeweaveFluids.BLAZE_GOLD, "Molten Blaze Gold");
+        addFluid(ForgeweaveFluids.COMPRESSED_IRON, "Molten Compressed Iron");
+        addFluid(ForgeweaveFluids.AZURE_SILVER, "Molten Azure Silver");
+        addFluid(ForgeweaveFluids.CRIMSON_STEEL, "Molten Crimson Steel");
+        addFluid(ForgeweaveFluids.AZURE_ELECTRUM, "Molten Azure Electrum");
+        addFluid(ForgeweaveFluids.TYRIAN_STEEL, "Molten Tyrian Steel");
+        addFluid(ForgeweaveFluids.DEORUM, "Molten Deorum");
+        addFluid(ForgeweaveFluids.IGNITIUM, "Molten Ignitium");
+        addFluid(ForgeweaveFluids.CURSIUM, "Molten Cursium");
 
         addFluid(ForgeweaveFluids.FLAREALLOY, "Molten Flarealloy");
         addFluid(ForgeweaveFluids.DEEPALLOY, "Molten Deepalloy");
