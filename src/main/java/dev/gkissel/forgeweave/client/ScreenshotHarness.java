@@ -244,6 +244,17 @@ public final class ScreenshotHarness {
                     (level, pos) -> {}, ScreenshotHarness::selectChestplateTab),
             new HarnessScreen("tool_forge_heavy_armor", ForgeweaveBlocks.TOOL_FORGE,
                     (level, pos) -> {}, ScreenshotHarness::selectHeavyChestplateTab),
+            // #1043: the armor stand preview with something on it. The two frames are the two
+            // branches of StandPreview#setItem -- a pickaxe goes in the stand's off hand, a
+            // chestplate onto its body -- so a reviewer can check both against upstream 1.20's.
+            // Both loadouts are complete, which is what gives the output slot (and so the preview)
+            // a piece to show at all; the #733 frame above deliberately leaves a part missing.
+            new HarnessScreen("tool_station_stand_tool", ForgeweaveBlocks.TOOL_STATION,
+                    (level, pos) -> loadWholeToolParts(level, pos, ForgeweaveItems.TOOL_PICKAXE.get()),
+                    ScreenshotHarness::selectPickaxeTab),
+            new HarnessScreen("tool_station_stand_armor", ForgeweaveBlocks.TOOL_STATION,
+                    (level, pos) -> loadWholeToolParts(level, pos, ForgeweaveItems.ARMOR_CHESTPLATE.get()),
+                    ScreenshotHarness::selectChestplateTab),
             // #796: every item icon a Forged sprite in that issue's first batch replaced, one
             // capture -- see prepareForgedLegacyCompareScene's javadoc. Enabling the built-in Legacy
             // resource pack and re-running this one capture is the release-checklist comparison the
@@ -2478,6 +2489,24 @@ public final class ScreenshotHarness {
         handle.set(ForgeweaveDataComponents.MATERIAL.get(), material("wood"));
         station.container().setItem(ToolStationMenu.HEAD_SLOT, head);
         station.container().setItem(ToolStationMenu.HANDLE_SLOT, handle);
+    }
+
+    /**
+     * #1043: every part {@code tool} takes, all iron, straight into the station's container -- so the
+     * output slot holds a finished piece and the armor stand preview has something to show. Iron
+     * because it is the one material in {@code data/forgeweave/material/iron.json} that carries head,
+     * handle, plating and maille stats alike, so the same loader serves a tool and an armor piece.
+     */
+    private static void loadWholeToolParts(ServerLevel level, BlockPos pos, Item tool) {
+        if (!(level.getBlockEntity(pos) instanceof ToolStationBlockEntity station)) {
+            return;
+        }
+        ToolStationTabs.Tab tab = ToolStationTabs.get(ToolStationTabs.indexOfTool(tool));
+        for (int i = 0; i < tab.slots().size(); i++) {
+            ItemStack part = new ItemStack(tab.part(i));
+            part.set(ForgeweaveDataComponents.MATERIAL.get(), material("iron"));
+            station.container().setItem(i, part);
+        }
     }
 
     /** Selects the roster's last tab, so the screen opens on the grid's last page (#733). */

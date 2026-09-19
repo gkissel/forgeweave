@@ -133,13 +133,13 @@ class JeiRecipesTest {
     void partCraftingEnumeratesEveryPartTypeTimesEveryMaterial() {
         List<PartCraftingRecipe> recipes = PartCraftingRecipes.build(twoMaterials());
 
-        // 5 M1 part types + 17 M3 part types (docs/SCOPE.md issue #151) + the war mace head
-        // (issue #161) + the curved blade (issue #159) + the katana blade (issue #160) + the
-        // sharpening kit (issue #271, the one part no tool is built from) + the bow limb and bow
-        // string (issue #393) + the shard (issue #605, upstream's other no-tool part) + the arrow
-        // head, arrow shaft and fletching (issue #626) x 2 materials, both of which carry every
-        // stat block.
-        assertEquals(32 * 2, recipes.size(), "32 part types x 2 materials");
+        // 5 M1 part types + 17 M3 part types (docs/SCOPE.md issue #151) + the curved blade (issue
+        // #159) + the katana blade (issue #160) + the sharpening kit (issue #271, the one part no
+        // tool is built from) + the bow limb and bow string (issue #393) + the shard (issue #605,
+        // upstream's other no-tool part) + the arrow head, arrow shaft and fletching (issue #626)
+        // x 2 materials, both of which carry every stat block. No war mace head row any more
+        // (issue #1044): it is cast only now, so jei.PartCraftingRecipes#ENTRIES has no Entry for it.
+        assertEquals(31 * 2, recipes.size(), "31 part types x 2 materials");
         assertTrue(recipes.stream().allMatch(r -> r.result().has(ForgeweaveDataComponents.MATERIAL.get())));
     }
 

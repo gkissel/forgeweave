@@ -62,8 +62,8 @@ public class StencilTableMenu extends StationMenu {
      * five part patterns"; M3 issue #151 adds the roster's 17 more -- the sidebar grid in {@code
      * StencilTableScreen} sizes itself off {@link #PATTERNS}' length, so no layout change was needed).
      *
-     * <p>Issue #989 is the one exception: {@code PATTERN_WAR_MACE_HEAD} is deliberately not in this
-     * list, so a blank pattern alone cannot stamp it -- see the omission's own comment below.
+     * <p>Issue #989/#1044 is the one exception: {@code PATTERN_WAR_MACE_HEAD} is deliberately not in
+     * this list -- see the omission's own comment below.
      */
     public static final List<DeferredItem<Item>> PATTERNS = List.of(
             ForgeweaveItems.PATTERN_PICKAXE_HEAD,
@@ -88,10 +88,9 @@ public class StencilTableMenu extends StationMenu {
             ForgeweaveItems.PATTERN_KAMA_HEAD,
             ForgeweaveItems.PATTERN_BROAD_AXE_HEAD,
             ForgeweaveItems.PATTERN_VEIN_HAMMER_HEAD,
-            // #989: the war mace head pattern is deliberately absent from this list -- a blank
-            // pattern alone no longer stamps it. It only comes from ForgeweaveRecipeProvider's
-            // shapeless blank-pattern-plus-heavy-core crafting-table recipe (see that class), so a
-            // player's first war mace head always follows finding a vanilla Heavy Core.
+            // #989 first pulled the war mace head pattern out of this list; #1044 retired the
+            // pattern route entirely -- the part is cast only now (menu.PartBuilderRecipes has no
+            // Entry for it either), so there is no world in which stamping a blank here should work.
             ForgeweaveItems.PATTERN_CURVED_BLADE,
             ForgeweaveItems.PATTERN_KATANA_BLADE,
             // #393: M3.5's bow parts stencil like every other part (upstream registers all of
