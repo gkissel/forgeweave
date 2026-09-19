@@ -64,7 +64,13 @@ public class ModifierWorktableMenu extends StationMenu {
     public static final int SIDE_PANEL_X = SideInventorySlots.rightSlotX(PANEL_WIDTH);
     public static final int SIDE_PANEL_Y = SideInventorySlots.SLOT_Y;
 
-    private final Container container;
+    /**
+     * The station's own tool and reagent slots. Named for the station rather than {@code container}
+     * because {@link Slot} has a {@code container} field of its own, and {@link ResultSlot} below is an
+     * inner class: inside it the bare name would silently resolve to the slot's one-item result
+     * container instead of this one.
+     */
+    private final Container stationSlots;
     private final ContainerLevelAccess access;
     private final HolderLookup.Provider registries;
     @Nullable
@@ -100,7 +106,7 @@ public class ModifierWorktableMenu extends StationMenu {
             StationGroup stationGroup) {
         super(ForgeweaveMenus.MODIFIER_WORKTABLE.get(), containerId, stationGroup);
         checkContainerSize(container, CONTAINER_SLOTS);
-        this.container = container;
+        this.stationSlots = container;
         this.access = access;
         this.registries = playerInventory.player.level().registryAccess();
         this.sideInventory = sideInventory;
@@ -151,14 +157,14 @@ public class ModifierWorktableMenu extends StationMenu {
     }
 
     public ItemStack tool() {
-        return container.getItem(TOOL_SLOT);
+        return stationSlots.getItem(TOOL_SLOT);
     }
 
     /** The two reagent slots in slot order; the first being empty is what reverses a sort. */
     public List<ItemStack> inputs() {
         List<ItemStack> inputs = new ArrayList<>(Worktable.INPUT_COUNT);
         for (int i = 0; i < Worktable.INPUT_COUNT; i++) {
-            inputs.add(container.getItem(INPUT_START + i));
+            inputs.add(stationSlots.getItem(INPUT_START + i));
         }
         return List.copyOf(inputs);
     }
@@ -220,7 +226,7 @@ public class ModifierWorktableMenu extends StationMenu {
             return; // client: the server pushes the result slot down instead of computing locally.
         }
         Worktable.Result outcome = outcome();
-        result.setItem(0, outcome.isRejected() ? ItemStack.EMPTY : outcome.output());
+        result.setItem(0, outcome.output());
     }
 
     private int sideInventoryEnd() {
@@ -278,7 +284,7 @@ public class ModifierWorktableMenu extends StationMenu {
     @Override
     public void removed(Player player) {
         super.removed(player);
-        container.stopOpen(player);
+        stationSlots.stopOpen(player);
     }
 
     /**
@@ -299,12 +305,12 @@ public class ModifierWorktableMenu extends StationMenu {
         @Override
         public void onTake(Player player, ItemStack stack) {
             Worktable.Result outcome = outcome();
-            if (!outcome.isRejected()) {
-                container.setItem(TOOL_SLOT, ItemStack.EMPTY);
+            if (!outcome.output().isEmpty()) {
+                stationSlots.setItem(TOOL_SLOT, ItemStack.EMPTY);
                 List<Integer> used = outcome.used();
                 for (int i = 0; i < used.size() && i < Worktable.INPUT_COUNT; i++) {
                     if (used.get(i) > 0) {
-                        container.removeItem(INPUT_START + i, used.get(i));
+                        stationSlots.removeItem(INPUT_START + i, used.get(i));
                     }
                 }
                 for (ItemStack leftover : outcome.leftovers()) {
@@ -314,7 +320,7 @@ public class ModifierWorktableMenu extends StationMenu {
                 }
             }
             selected.set(-1);
-            container.setChanged();
+            stationSlots.setChanged();
             updateResult();
             super.onTake(player, stack);
         }

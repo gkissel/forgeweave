@@ -118,7 +118,8 @@ public class ModifierWorktableGameTests {
                 "the slot silky occupied must come back: " + freeBefore + " -> "
                         + ForgeweaveModifiers.freeSlots(stripped));
         helper.assertTrue(menu.getSlot(ModifierWorktableMenu.TOOL_SLOT).getItem().isEmpty(),
-                "taking the result must clear the tool slot");
+                "taking the result must clear the tool slot, got "
+                        + menu.getSlot(ModifierWorktableMenu.TOOL_SLOT).getItem());
         helper.assertTrue(menu.getSlot(ModifierWorktableMenu.INPUT_START).getItem().isEmpty(),
                 "the wet sponge must be spent");
         helper.assertTrue(player.getInventory().contains(new ItemStack(Items.SPONGE)),
