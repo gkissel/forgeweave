@@ -93,7 +93,7 @@ public final class ToolAssemblyRecipes {
      * registers a row by naming those two things and no third table can drift out of sync with them.
      *
      * <p>Slot {@code i} accepts the {@code PartItem} registered under
-     * {@code forgeweave:<constants.parts().get(i).partId()>}, and that slot's material feeds part slot
+     * {@code constants.parts().get(i).partId()}, and that slot's material feeds part slot
      * {@code i} of {@link ToolConstants#compute}. Matching is positional, never by part identity: the
      * cleaver takes the same {@code tough_tool_rod} in two different roles, and the hammer takes
      * {@code large_plate} in two separate HEAD slots.
@@ -117,8 +117,8 @@ public final class ToolAssemblyRecipes {
          * still being populated.
          */
         public PartItem part(int slot) {
-            String id = constants.parts().get(slot).partId();
-            Item item = BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, id));
+            ResourceLocation id = constants.parts().get(slot).partId();
+            Item item = BuiltInRegistries.ITEM.get(id);
             if (!(item instanceof PartItem partItem)) {
                 throw new IllegalStateException(constants.id() + " slot " + slot + " names part '" + id
                         + "', which is not a registered part item");

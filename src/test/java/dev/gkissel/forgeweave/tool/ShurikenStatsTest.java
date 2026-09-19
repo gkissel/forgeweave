@@ -66,7 +66,7 @@ class ShurikenStatsTest {
         assertEquals(4, ToolConstants.SHURIKEN.parts().size());
         assertTrue(ToolConstants.SHURIKEN.parts().stream()
                 .allMatch(slot -> slot.role() == ToolConstants.Role.SHURIKEN_BLADE
-                        && slot.partId().equals("knife_blade")),
+                        && slot.partId().getPath().equals("knife_blade")),
                 "all four slots are knife blades");
     }
 
