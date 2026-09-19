@@ -3,6 +3,9 @@ package dev.gkissel.forgeweave.tool;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.resources.ResourceLocation;
+
+import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.material.Material;
 
@@ -147,10 +150,26 @@ public final class ToolConstants {
      * slots with more than one HEAD part (Hammer, Vein Hammer, Battleaxe): the weighted average
      * upstream's {@code ToolNBT#head} computes by literally repeating a material in its varargs
      * array (Hammer) or, ported from the 1.20 branch, an explicit fractional weight (Vein Hammer).
+     *
+     * <p>{@code partId} is a full {@link ResourceLocation} since issue #1066, so a tool registered
+     * from another mod ({@code dev.gkissel.forgeweave.api.tool}) can name a part item in its own
+     * namespace. The two {@code String} constructors below are the Forgeweave shorthand every
+     * built-in entry is written in: they fill in {@code forgeweave} and produce exactly the ids the
+     * roster has always named, so no built-in tool's part list changed.
      */
-    public record PartSlot(Role role, String partId, float weight) {
+    public record PartSlot(Role role, ResourceLocation partId, float weight) {
+        public PartSlot(Role role, ResourceLocation partId) {
+            this(role, partId, 1.0f);
+        }
+
+        /** A Forgeweave-owned part, named by its registry path alone. */
         public PartSlot(Role role, String partId) {
             this(role, partId, 1.0f);
+        }
+
+        /** A Forgeweave-owned part with an explicit head weight. */
+        public PartSlot(Role role, String partId, float weight) {
+            this(role, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, partId), weight);
         }
     }
 

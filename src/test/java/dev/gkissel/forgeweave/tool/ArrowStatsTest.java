@@ -99,8 +99,8 @@ class ArrowStatsTest {
         assertEquals(List.of(ToolConstants.Role.SHAFT, ToolConstants.Role.ARROW_HEAD,
                 ToolConstants.Role.FLETCHING),
                 ToolConstants.ARROW.parts().stream().map(ToolConstants.PartSlot::role).toList());
-        assertEquals(List.of("arrow_shaft", "arrow_head", "fletching"),
-                ToolConstants.ARROW.parts().stream().map(ToolConstants.PartSlot::partId).toList());
+        assertEquals(List.of("forgeweave:arrow_shaft", "forgeweave:arrow_head", "forgeweave:fletching"),
+                ToolConstants.ARROW.parts().stream().map(slot -> slot.partId().toString()).toList());
     }
 
     /** Upstream default {@code TinkersItem#getRepairParts() = {1}} -- the arrow head -- at factor 1. */

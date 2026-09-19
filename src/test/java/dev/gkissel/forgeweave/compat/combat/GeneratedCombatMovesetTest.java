@@ -29,9 +29,9 @@ import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 
 /**
- * Issue #1046: walks {@link ToolAssemblyRecipes#ENTRIES} -- the same table the Tool Station itself
- * assembles from, so a new tool or weapon issue inherits this check with no second roster to keep in
- * sync -- and confirms every registered Forgeweave weapon or tool has a
+ * Issue #1046: walks {@link ToolAssemblyRecipes#BUILT_IN} -- the shipped half of the same table the
+ * Tool Station itself assembles from, so a new tool or weapon issue inherits this check with no
+ * second roster to keep in sync -- and confirms every Forgeweave weapon or tool has a
  * {@code scripts/generate_combat_movesets.py}-written Better Combat and Epic Fight file, every
  * armor piece has an Epic Fight armor file, the two ammo items ({@code shuriken}, {@code arrow}) are
  * deliberately excluded rather than merely forgotten, and no file exists for an id the registry
@@ -106,7 +106,7 @@ class GeneratedCombatMovesetTest {
         Set<String> armorIds = new TreeSet<>();
         Set<String> ammoIds = new HashSet<>();
 
-        for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
+        for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.BUILT_IN) {
             String id = entry.constants().id();
             if (entry.constants().category() == ToolConstants.Category.ARMOR) {
                 armorIds.add(id);

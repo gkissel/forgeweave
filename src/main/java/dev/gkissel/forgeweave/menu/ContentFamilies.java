@@ -66,7 +66,7 @@ public final class ContentFamilies {
      * Whether the part registered under {@code partId} is obtainable: true unless every tool taking
      * it sits in an off family. A part no tool takes is in no family and so is always obtainable.
      */
-    public static boolean partEnabled(String partId) {
+    public static boolean partEnabled(ResourceLocation partId) {
         boolean taken = false;
         for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
             for (ToolConstants.PartSlot slot : entry.constants().parts()) {
@@ -105,16 +105,16 @@ public final class ContentFamilies {
         }
         String path = id.getPath();
         if (item instanceof PartItem) {
-            return partEnabled(path);
+            return partEnabled(id);
         }
         if (path.startsWith(PATTERN_PREFIX)) {
-            return partEnabled(path.substring(PATTERN_PREFIX.length()));
+            return partEnabled(id.withPath(path.substring(PATTERN_PREFIX.length())));
         }
         if (path.startsWith(CLAY_PREFIX + CAST_PREFIX)) {
-            return partEnabled(path.substring(CLAY_PREFIX.length() + CAST_PREFIX.length()));
+            return partEnabled(id.withPath(path.substring(CLAY_PREFIX.length() + CAST_PREFIX.length())));
         }
         if (path.startsWith(CAST_PREFIX)) {
-            return partEnabled(path.substring(CAST_PREFIX.length()));
+            return partEnabled(id.withPath(path.substring(CAST_PREFIX.length())));
         }
         return true;
     }
