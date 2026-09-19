@@ -5,6 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
+import net.minecraft.client.renderer.Rect2i;
+
 import dev.gkissel.forgeweave.menu.SideInventorySlots;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
 
@@ -104,6 +106,58 @@ class ToolStationChromeLayoutTest {
         assertTrue(rows >= 1, "the panel should always show at least one row");
         assertTrue(bottom <= PANEL_HEIGHT,
                 "a 54-slot neighbour draws to y " + bottom + ", past the " + PANEL_HEIGHT + "px GUI");
+    }
+
+    /**
+     * Issue #1043: the output slot, and with it the panel arrow pointing at it, sit where upstream
+     * 1.20's {@code TinkerStationContainerMenu} puts its own result slot -- {@code (114, 38)}, ten
+     * pixels left of the 1.12 spot Forgeweave shipped before. Pinned here because the arrow is part
+     * of the background sheet: the two can only be moved together, and a slot that drifts off the
+     * arrow is not something a compile or a render catches.
+     */
+    @Test
+    void theOutputSlotSitsAtUpstreamsResultSlot() {
+        assertEquals(114, ToolStationMenu.OUTPUT_X, "upstream 1.20's LazyResultSlot x");
+        assertEquals(38, ToolStationMenu.OUTPUT_Y, "upstream 1.20's LazyResultSlot y, the same row 1.12 used");
+    }
+
+    /**
+     * Issue #1043's armor stand preview. It hangs off the panel's bottom-left corner, which is a
+     * crowded edge: the selection grid is above it and the side inventory would be on top of it (the
+     * reason {@code ToolStationScreen#openPreview} switches the preview off when a neighbour has
+     * one). This checks the two things that are true whatever the roster does -- it clears the
+     * grid's tallest page, and it stays inside vanilla's smallest guaranteed window.
+     */
+    @Test
+    void theStandPreviewClearsTheSelectionGridAndFitsTheWindow() {
+        int previewX = -55;
+        int previewY = PANEL_HEIGHT + 11;
+        Rect2i box = StandPreview.box(previewX, previewY, StandPreview.SCALE);
+
+        int gridBottom = 9 + ToolStationSelection.MAX_ROWS * (18 + 4) + 18; // last row plus the arrow row
+        assertTrue(box.getY() >= gridBottom,
+                "the stand starts at y " + box.getY() + ", inside the selection grid that ends at " + gridBottom);
+        assertTrue(box.getX() >= TAB_COLUMN_LEFT,
+                "the stand should stay within the sidebar's own left edge, not widen the station's chrome");
+
+        // 480x270 is 1920x1080 at GUI scale 4, the window ToolStationChromeLayoutTest already sizes for.
+        int window = 480;
+        int left = (window - PANEL_WIDTH) / 2;
+        assertTrue(left + box.getX() >= 0, "the stand runs off the left of a " + window + "px window");
+        // Vertically: 270px tall, and the panel is centred with the 28px station-tab strip above it.
+        int top = StationScreen.centreWithTabStrip(270, PANEL_HEIGHT);
+        assertTrue(top + box.getY() + box.getHeight() <= 270,
+                "the stand draws to y " + (top + box.getY() + box.getHeight()) + " in a 270px-tall window");
+    }
+
+    /** The grab box is upstream's: {@code scale + 30} wide, {@code scale * 2} tall, dropped 5px past the feet. */
+    @Test
+    void theStandGrabBoxIsUpstreams() {
+        Rect2i box = StandPreview.box(0, 0, 35);
+        assertEquals(65, box.getWidth());
+        assertEquals(70, box.getHeight());
+        assertEquals(-32, box.getX(), "centred on the feet");
+        assertEquals(-65, box.getY(), "the box's bottom sits 5px below the feet");
     }
 
     @Test
