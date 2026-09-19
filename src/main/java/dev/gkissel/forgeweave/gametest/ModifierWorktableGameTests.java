@@ -18,6 +18,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.ModifierWorktableBlockEntity;
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
@@ -153,7 +154,7 @@ public class ModifierWorktableGameTests {
     }
 
     /**
-     * Armor qualifies, and a {@link dev.gkissel.forgeweave.modifier.Modifier#utility} modifier that
+     * Armor qualifies, and a {@link dev.gkissel.forgeweave.api.modifier.Modifier#utility} modifier that
      * cost no slot gives none back -- Create's goggles, the only slot-free utility shipped (#1007).
      */
     @GameTest(template = "empty")

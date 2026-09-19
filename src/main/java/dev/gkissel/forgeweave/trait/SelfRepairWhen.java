@@ -4,6 +4,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 
+import dev.gkissel.forgeweave.api.trait.Trait;
+
 /**
  * Passive tool self-repair, gated on a world condition -- ADR-0004's M6 utility/economy library
  * batch (issue #829's reuse audit): {@code ecological} ({@code ForgeweaveTraits#ECOLOGICAL}, upstream

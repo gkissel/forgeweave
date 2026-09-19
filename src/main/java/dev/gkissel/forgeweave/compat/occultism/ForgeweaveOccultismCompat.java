@@ -19,7 +19,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
-import dev.gkissel.forgeweave.modifier.Modifier;
+import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
 
@@ -59,7 +59,7 @@ public final class ForgeweaveOccultismCompat {
      *
      * <p>Deliberately one broad tag rather than a per-ritual tag, and deliberately not shared with
      * {@code ForgeweaveDraconicCompat#FUSION_UPGRADABLE}: which shapes a given ritual actually accepts
-     * is already decided, once, by {@link dev.gkissel.forgeweave.modifier.Modifier}'s own gates, and
+     * is already decided, once, by {@link dev.gkissel.forgeweave.api.modifier.Modifier}'s own gates, and
      * {@link SpiritBindingRitual} reads them. A second copy of that in tag form would be the drift
      * {@code jei.ModifierApplicationCategory}'s issue #764 bug was made of.
      */

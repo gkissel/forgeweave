@@ -9,6 +9,8 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 
+import dev.gkissel.forgeweave.api.trait.Trait;
+
 /**
  * A worn piece makes its wearer move better -- the M6 armor library's
  * {@code movement_bonus(kind, magnitude)} (issue #831), one class over the reference pool's

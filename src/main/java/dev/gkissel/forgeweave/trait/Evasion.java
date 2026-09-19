@@ -1,7 +1,8 @@
 package dev.gkissel.forgeweave.trait;
 
-import dev.gkissel.forgeweave.combat.CombatDefense;
-import dev.gkissel.forgeweave.combat.DefendedBlow;
+import dev.gkissel.forgeweave.api.combat.CombatDefense;
+import dev.gkissel.forgeweave.api.combat.DefendedBlow;
+import dev.gkissel.forgeweave.api.trait.Trait;
 
 /**
  * A chance that the blow misses entirely -- the M6 armor library's {@code evasion(chance)} (issue

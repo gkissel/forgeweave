@@ -28,7 +28,7 @@ import dev.gkissel.forgeweave.compat.draconic.modules.DraconicModules;
 import dev.gkissel.forgeweave.compat.mekanism.modules.MekanismGearModules;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
-import dev.gkissel.forgeweave.modifier.Modifier;
+import dev.gkissel.forgeweave.api.modifier.Modifier;
 
 /**
  * The large tools' area mining (docs/SCOPE.md M3 issue #157), ported from upstream 1.12's

@@ -1,0 +1,5 @@
+{
+  "behavior": "forgeweave:bonus_damage_vs",
+  "condition": "any",
+  "amount": 2.0
+}

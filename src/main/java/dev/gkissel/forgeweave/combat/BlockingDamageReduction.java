@@ -1,5 +1,8 @@
 package dev.gkissel.forgeweave.combat;
 
+import dev.gkissel.forgeweave.api.combat.CombatDefense;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * Blocking shaves a flat amount off an incoming blow, never below a floor -- stiff, steel's trait
  * (issue #229), ported from upstream 1.12's {@code TraitStiff#onBlock}:

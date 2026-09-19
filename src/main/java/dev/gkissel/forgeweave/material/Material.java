@@ -12,6 +12,7 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.api.trait.Trait;
 import dev.gkissel.forgeweave.item.PartItem;
 
 import net.minecraft.core.Registry;

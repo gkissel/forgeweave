@@ -3,6 +3,9 @@ package dev.gkissel.forgeweave.combat;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.world.effect.MobEffectCategory;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * When a parameterized {@link CombatSeam} applies. ADR-0004 commits M3's combat behaviors to a
  * datapack-constructible shape at M6, so the seams below take their "vs what" as this enum rather

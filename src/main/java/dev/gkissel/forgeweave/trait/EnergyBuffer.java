@@ -5,6 +5,7 @@ import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.neoforge.energy.IEnergyStorage;
 
+import dev.gkissel.forgeweave.api.trait.Trait;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 
 /**

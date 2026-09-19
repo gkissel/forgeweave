@@ -1,4 +1,4 @@
-package dev.gkissel.forgeweave.modifier;
+package dev.gkissel.forgeweave.api.modifier;
 
 import java.util.Optional;
 
@@ -6,7 +6,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.enchantment.Enchantment;
 
-import dev.gkissel.forgeweave.combat.CombatSeam;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+import dev.gkissel.forgeweave.api.trait.Trait;
 
 /**
  * A post-assembly upgrade applied to a finished Tool at the Tool Station (CONTEXT.md glossary --

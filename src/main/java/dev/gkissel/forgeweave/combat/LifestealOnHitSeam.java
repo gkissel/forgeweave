@@ -1,5 +1,8 @@
 package dev.gkissel.forgeweave.combat;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * Necrotic (issue #162): heals the attacker for a fraction of the damage just dealt, upstream
  * {@code ModNecrotic#afterHit} ported whole. {@code fraction} is the modifier's raw level (here also

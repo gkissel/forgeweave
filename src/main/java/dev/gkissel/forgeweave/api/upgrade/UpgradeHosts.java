@@ -1,4 +1,4 @@
-package dev.gkissel.forgeweave.tool;
+package dev.gkissel.forgeweave.api.upgrade;
 
 import java.util.ArrayList;
 import java.util.List;

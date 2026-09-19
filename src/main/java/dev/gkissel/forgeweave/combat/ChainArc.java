@@ -6,6 +6,9 @@ import java.util.List;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.AABB;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * A landed hit arcs on to the nearest other enemies around the target -- ADR-0004's M6 on-hit effect
  * library batch (issue #828) {@code chain_arc(chance, range, damageFraction, maxTargets)}, the

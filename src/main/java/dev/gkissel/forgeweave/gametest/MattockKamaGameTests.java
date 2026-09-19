@@ -24,6 +24,8 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatProviders;
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.combat.HeftSeam;
 import dev.gkissel.forgeweave.combat.ReapSeam;
@@ -105,14 +107,14 @@ public class MattockKamaGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack mattock = ToolAssembly.assemble(helper, player, pos, ToolAssembly.entryFor(ForgeweaveItems.TOOL_MATTOCK.get()), List.of("wood", "stone", "stone"));
 
-        helper.assertTrue(CombatSeams.seams(mattock).contains(HeftSeam.SEAM),
+        helper.assertTrue(CombatProviders.seams(mattock).contains(HeftSeam.SEAM),
                 "an assembled mattock must resolve to the real heft seam");
 
         var attacker = helper.spawn(EntityType.PIG, new BlockPos(1, 1, 1));
         var target = helper.spawn(EntityType.PIG, new BlockPos(2, 1, 1));
         DamageSource source = helper.getLevel().damageSources().mobAttack(attacker);
-        dev.gkissel.forgeweave.combat.CombatHit hit =
-                new dev.gkissel.forgeweave.combat.CombatHit(helper.getLevel(), mattock, attacker, target, source);
+        dev.gkissel.forgeweave.api.combat.CombatHit hit =
+                new dev.gkissel.forgeweave.api.combat.CombatHit(helper.getLevel(), mattock, attacker, target, source);
 
         double before = target.getDeltaMovement().horizontalDistanceSqr();
         new HeftSeam(1.0F).onHit(hit, 1.0F);
@@ -241,7 +243,7 @@ public class MattockKamaGameTests {
         ItemStack kama = ToolAssembly.assemble(helper, player, pos, ToolAssembly.entryFor(ForgeweaveItems.TOOL_KAMA.get()), List.of("wood", "stone", "stone"));
         player.setItemInHand(InteractionHand.MAIN_HAND, kama);
 
-        helper.assertTrue(CombatSeams.seams(kama).contains(ReapSeam.SEAM),
+        helper.assertTrue(CombatProviders.seams(kama).contains(ReapSeam.SEAM),
                 "an assembled kama must resolve to the real reap seam");
 
         var target = helper.spawn(EntityType.PIG, new BlockPos(2, 1, 1));

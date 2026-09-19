@@ -11,6 +11,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 
+import dev.gkissel.forgeweave.api.trait.Trait;
 import dev.gkissel.forgeweave.tool.AoeHarvest;
 
 /**

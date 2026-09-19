@@ -20,6 +20,7 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.level.block.Block;
 
+import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.client.StationText;
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
 import dev.gkissel.forgeweave.config.ForgeweaveClientConfig; // #276
@@ -39,7 +40,7 @@ import dev.gkissel.forgeweave.tool.ToolStats;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
 import dev.gkissel.forgeweave.trait.EnergyBuffer;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
-import dev.gkissel.forgeweave.trait.Trait;
+import dev.gkissel.forgeweave.api.trait.Trait;
 
 /**
  * Builds the hover-text lines for an assembled {@link ToolItem} stack: durability (broken-integrated),

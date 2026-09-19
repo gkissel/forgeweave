@@ -1,5 +1,8 @@
 package dev.gkissel.forgeweave.combat;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * Widens a critical hit's own multiplier by {@code extra}, on top of whatever vanilla's crit roll
  * (or NeoForge's {@code CriticalHitEvent}) already settled on -- ADR-0004's M6 damage-scaling

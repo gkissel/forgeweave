@@ -196,6 +196,14 @@ Entrou depois que o resto deste checklist foi escrito. Fica em `config/forgeweav
 122. [ ] Com `returnExchangedParts = false`, a cabeça antiga não volta (comportamento do 1.12). A ferramenta sai montada certo, com durabilidade e modifiers no lugar, e nada mais se perde.
 123. [ ] ⚠ Com a opção desligada e Mekanism ou Draconic Evolution instalado: trocar a parte que sustenta os módulos ainda devolve os módulos. A opção vale só para a parte.
 
+## T. Blocos de madeira e o machado (#1075)
+
+Relato do mantenedor: a Crafting Station não quebrava fácil com machado. Ela e os outros blocos de madeira estavam fora de qualquer tag `mineable`.
+
+124. [ ] Crafting Station, Part Builder, Stencil Table, Tool Station, Part Chest, Pattern Chest, Wooden Hopper e firewood quebram rápido com machado, e devagar com a mão como qualquer bloco de madeira.
+125. [ ] As vinhas de slime quebram rápido com machado, e o bloco de mud brick com pá.
+126. [ ] Tool Forge e Modifier Worktable continuam quebrando com picareta.
+
 ## Decisões pendentes
 
 - Decidido em 2026-09-18: as proporções de craft da família de placas (item 95) ficam como estão, inclusive o wire a 3 nuggets.

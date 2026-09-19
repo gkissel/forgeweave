@@ -9,6 +9,7 @@ import dev.latvian.mods.kubejs.script.ScriptManager;
 import dev.latvian.mods.kubejs.script.ScriptType;
 import net.minecraft.resources.ResourceLocation;
 
+import dev.gkissel.forgeweave.api.trait.Trait;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 import dev.gkissel.forgeweave.trait.ScriptTrait;
 import dev.gkissel.forgeweave.trait.TraitDefinition;
@@ -30,7 +31,7 @@ import dev.gkissel.forgeweave.trait.TraitDefinition;
  *
  * The id is then named from material JSON like any other trait, and the pack supplies its {@code
  * trait.mypack.frosty.name} / {@code .description} lang keys. Every callback matches a {@link
- * dev.gkissel.forgeweave.trait.Trait} hook by name -- see {@link ScriptTrait} for the full list.
+ * dev.gkissel.forgeweave.api.trait.Trait} hook by name -- see {@link ScriptTrait} for the full list.
  *
  * <p><b>Isolation.</b> Nothing in the mod references this class: KubeJS itself instantiates it from
  * {@code kubejs.plugins.txt} when KubeJS is installed, and without KubeJS the class is never

@@ -3,6 +3,8 @@ package dev.gkissel.forgeweave.combat;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 
+import dev.gkissel.forgeweave.api.modifier.Modifier;
+
 /**
  * A secondary hit riding on a blow (a trait's true damage, a bleed tick, a thorns reflect), dealt
  * past the target's invulnerability window without disturbing it -- upstream 1.12

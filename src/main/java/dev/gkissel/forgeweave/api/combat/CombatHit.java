@@ -1,4 +1,4 @@
-package dev.gkissel.forgeweave.combat;
+package dev.gkissel.forgeweave.api.combat;
 
 import org.jetbrains.annotations.Nullable;
 

@@ -18,8 +18,9 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.api.combat.CombatProviders;
 import dev.gkissel.forgeweave.combat.AttackSlash;
-import dev.gkissel.forgeweave.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatHit;
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 
@@ -109,7 +110,7 @@ public class AttackSlashGameTests {
     }
 
     private static List<AttackSlash> slashesOf(ItemStack weapon) {
-        return CombatSeams.seams(weapon).stream()
+        return CombatProviders.seams(weapon).stream()
                 .filter(AttackSlash.class::isInstance)
                 .map(AttackSlash.class::cast)
                 .toList();

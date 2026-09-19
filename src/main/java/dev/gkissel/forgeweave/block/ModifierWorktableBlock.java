@@ -24,6 +24,8 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
+import dev.gkissel.forgeweave.api.modifier.Modifier;
+
 /**
  * The Modifier Worktable (issue #1057): the station that works on the modifiers a tool already
  * carries rather than adding new ones. 1.12 has no counterpart, so the parity target is upstream

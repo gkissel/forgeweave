@@ -11,12 +11,16 @@ import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatProviders;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+import dev.gkissel.forgeweave.api.trait.Trait;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 
 /**
  * A combat innate whose damage bonus builds up over consecutive landed hits and falls away once the
  * wielder stops landing them -- the katana's ramp (docs/SCOPE.md M3, issue #160). Attached like every
- * other combat behavior, as a {@link CombatSeam} handed out by a {@link CombatSeams.Provider}
+ * other combat behavior, as a {@link CombatSeam} handed out by a {@link CombatProviders.Provider}
  * registered in {@code Forgeweave} (ADR-0005 decision 3).
  *
  * <h2>Magnitudes (maintainer decision on issue #160, 2026-08-12)</h2>

@@ -12,6 +12,8 @@ import net.createmod.ponder.foundation.PonderIndex;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.api.modifier.Modifier;
+import dev.gkissel.forgeweave.api.trait.Trait;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 // Issue #999: the crop roster, whose own class names no Mystical Agriculture type -- see its javadoc.
 import dev.gkissel.forgeweave.compat.mysticalagriculture.ForgeweaveCrop;
@@ -1125,6 +1127,14 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.void_crystal", "Void Crystal");
         add("material.forgeweave.emeradic_crystal", "Emeradic Crystal");
         add("material.forgeweave.enori_crystal", "Enori Crystal");
+        // Issue #1069 (D-M8-26): the six empowered crystals, one Empowerer step above the plain six
+        // above.
+        add("material.forgeweave.empowered_restonia_crystal", "Empowered Restonia Crystal");
+        add("material.forgeweave.empowered_palis_crystal", "Empowered Palis Crystal");
+        add("material.forgeweave.empowered_diamatine_crystal", "Empowered Diamatine Crystal");
+        add("material.forgeweave.empowered_void_crystal", "Empowered Void Crystal");
+        add("material.forgeweave.empowered_emeradic_crystal", "Empowered Emeradic Crystal");
+        add("material.forgeweave.empowered_enori_crystal", "Empowered Enori Crystal");
         add("material.forgeweave.uraninite", "Uraninite");
         // Issue #996 (D-M8-17): the four Powah crystals #837/#872 left unshippable (no per-material
         // c: tag; see MaterialTest#noShippedMaterialConditionsOnPowahsUntaggedCrystals's old guard),
@@ -2507,6 +2517,24 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.ignitium_blaze.description", "The wielder takes no damage from fire.");
         add("trait.forgeweave.cursium_blight.name", "Cursium Blight");
         add("trait.forgeweave.cursium_blight.description", "A struck target's healing is weakened for a short time.");
+        // Issue #1069 (D-M8-26): the six empowered crystals' traits, each the plain crystal's own
+        // trait family at a higher level.
+        add("trait.forgeweave.empowered_restonia_bloodsurge.name", "Empowered Bloodsurge");
+        add("trait.forgeweave.empowered_restonia_bloodsurge.description",
+                "Much more damage against tougher targets.");
+        add("trait.forgeweave.empowered_palis_tempest.name", "Empowered Tempest");
+        add("trait.forgeweave.empowered_palis_tempest.description",
+                "Far more damage the faster the wielder is moving.");
+        add("trait.forgeweave.empowered_diamatine_prism.name", "Empowered Prism");
+        add("trait.forgeweave.empowered_diamatine_prism.description",
+                "A fully-charged swing lands much more extra damage.");
+        add("trait.forgeweave.empowered_void_maw.name", "Empowered Maw");
+        add("trait.forgeweave.empowered_void_maw.description", "A deeper void-forged edge.");
+        add("trait.forgeweave.empowered_emeradic_bulwark.name", "Empowered Bulwark");
+        add("trait.forgeweave.empowered_emeradic_bulwark.description", "Never takes a hit below a fixed health floor.");
+        add("trait.forgeweave.empowered_enori_radiance.name", "Empowered Radiance");
+        add("trait.forgeweave.empowered_enori_radiance.description",
+                "A landed hit leaves the target glowing for longer.");
         add("tooltip.forgeweave.energy", "Stored Energy");
         // #829 M6 utility/economy trait behavior library.
         add("trait.forgeweave.sunmend.name", "Sunmend");

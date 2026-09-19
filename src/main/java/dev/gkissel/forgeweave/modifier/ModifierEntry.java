@@ -10,6 +10,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
 
+import dev.gkissel.forgeweave.api.modifier.Modifier;
+
 /**
  * One modifier on a tool: <b>an id and a level, and nothing else</b>. ADR-0004's decision 2 makes
  * that a hard architectural rule -- no class reference, no cached behavior, no derived stat -- so

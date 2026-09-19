@@ -30,6 +30,7 @@ import mezz.jei.api.runtime.IJeiRuntime;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.client.ChestScreen;
 import dev.gkissel.forgeweave.client.CraftingStationScreen;

@@ -53,7 +53,9 @@ import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.common.ItemAbility;
 
 import dev.gkissel.forgeweave.Forgeweave;
-import dev.gkissel.forgeweave.combat.CombatSeam;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+import dev.gkissel.forgeweave.api.modifier.Modifier;
+import dev.gkissel.forgeweave.api.trait.Trait;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.combat.ToolUseAction;
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisAffixes; // #970
@@ -1185,7 +1187,7 @@ public class ToolItem extends Item {
      * entirely automatic once an item opts in ({@code IItemExtension#canDisableShield}, default
      * {@code this instanceof AxeItem}) -- {@code Player#blockUsingShield} calls this on the attacker's
      * main-hand item and, if it returns true, forces the blocker to drop their shield with a 100-tick
-     * cooldown ({@code Player#disableShield}). There is no {@link dev.gkissel.forgeweave.combat.CombatSeam}
+     * cooldown ({@code Player#disableShield}). There is no {@link dev.gkissel.forgeweave.api.combat.CombatSeam}
      * hook for this: it fires before a hit's damage is even resolved (from the shield-block check
      * inside {@code LivingEntity#hurt}, ahead of {@code preHit}), so it isn't a per-hit adjustment a
      * seam could make -- it is a capability the item declares, the same kind of thing
@@ -1260,7 +1262,7 @@ public class ToolItem extends Item {
      * </ul>
      *
      * <p>Once none of those apply, a fourth, <b>material-driven</b> behavior gets a turn: any trait on
-     * the tool answering {@link dev.gkissel.forgeweave.trait.Trait#useOnBlock} (issue #829's {@code
+     * the tool answering {@link dev.gkissel.forgeweave.api.trait.Trait#useOnBlock} (issue #829's {@code
      * fertilize_on_use} is the one shipped user so far), routed through {@link
      * dev.gkissel.forgeweave.trait.ForgeweaveTraits#useOnBlock}. Anything else -- and any Broken tool,
      * upstream's {@code if(isBroken) return FAIL} -- falls through to vanilla's own right-click

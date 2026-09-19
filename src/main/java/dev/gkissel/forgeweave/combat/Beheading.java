@@ -13,6 +13,9 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ResolvableProfile;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatProviders;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
@@ -81,7 +84,7 @@ public final class Beheading implements CombatSeam {
     }
 
     /**
-     * The {@link CombatSeams.Provider} for this behavior, registered in {@code Forgeweave}. Resolves
+     * The {@link CombatProviders.Provider} for this behavior, registered in {@code Forgeweave}. Resolves
      * the tool's effective level per hit and hands back a seam already carrying it, which is the shape
      * {@link CombatSeam}'s javadoc asks of a parameterized behavior.
      */

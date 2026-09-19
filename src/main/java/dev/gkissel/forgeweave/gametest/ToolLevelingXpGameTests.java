@@ -28,8 +28,9 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.api.combat.CombatProviders;
 import dev.gkissel.forgeweave.combat.BlockingXpSeam;
-import dev.gkissel.forgeweave.combat.CombatDefense;
+import dev.gkissel.forgeweave.api.combat.CombatDefense;
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.BowItem;
@@ -311,7 +312,7 @@ public class ToolLevelingXpGameTests {
         ItemStack battlesign = CombatTraitGameTests.tool(ForgeweaveItems.TOOL_BATTLESIGN.get(), List.of(), 3.0F);
         defender.setItemInHand(InteractionHand.MAIN_HAND, battlesign);
 
-        helper.assertTrue(CombatSeams.seams(battlesign).contains(BlockingXpSeam.INSTANCE),
+        helper.assertTrue(CombatProviders.seams(battlesign).contains(BlockingXpSeam.INSTANCE),
                 "an assembled battlesign must resolve to the real blocking XP seam");
 
         CombatDefense defense = new CombatDefense(helper.getLevel(), battlesign, defender, null,

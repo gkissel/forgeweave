@@ -3,6 +3,9 @@ package dev.gkissel.forgeweave.combat;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * Stacks Slowness on the target one amplifier deeper per landed hit, capped -- upstream 1.12's
  * {@code TraitFreezing#onHit} (issue #653, parity audit T17): read the target's current Slowness

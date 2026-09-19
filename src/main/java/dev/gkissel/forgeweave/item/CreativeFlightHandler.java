@@ -10,6 +10,7 @@ import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
+import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.compat.mekanism.modules.MekanismGearModules; // #994
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 

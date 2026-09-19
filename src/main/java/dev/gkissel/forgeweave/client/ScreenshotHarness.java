@@ -69,6 +69,7 @@ import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.block.CastingBlockEntity;
 import dev.gkissel.forgeweave.block.ChestBlockEntity;
 import dev.gkissel.forgeweave.block.ConnectedGlassBlock;

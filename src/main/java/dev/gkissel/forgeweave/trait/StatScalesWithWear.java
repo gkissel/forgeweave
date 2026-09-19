@@ -2,8 +2,9 @@ package dev.gkissel.forgeweave.trait;
 
 import net.minecraft.world.item.ItemStack;
 
-import dev.gkissel.forgeweave.combat.CombatDefense;
-import dev.gkissel.forgeweave.combat.DefendedBlow;
+import dev.gkissel.forgeweave.api.combat.CombatDefense;
+import dev.gkissel.forgeweave.api.combat.DefendedBlow;
+import dev.gkissel.forgeweave.api.trait.Trait;
 import dev.gkissel.forgeweave.combat.Protection;
 
 /**

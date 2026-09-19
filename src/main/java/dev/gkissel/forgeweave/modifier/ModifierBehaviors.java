@@ -2,14 +2,18 @@ package dev.gkissel.forgeweave.modifier;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+
+import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -19,6 +23,8 @@ import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.effect.MobEffect;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.api.modifier.Modifier;
+import dev.gkissel.forgeweave.api.modifier.ModifierRegistry;
 import dev.gkissel.forgeweave.modifier.ModifierLibrary.Application;
 import dev.gkissel.forgeweave.modifier.ModifierLibrary.AoeExpansion;
 import dev.gkissel.forgeweave.modifier.ModifierLibrary.Attribute;
@@ -182,27 +188,63 @@ public final class ModifierBehaviors {
     }
 
     /** The {@code behavior} field: a known id or a loud error naming every id that would have worked. */
-    private static final Codec<ResourceLocation> TYPE_CODEC = ResourceLocation.CODEC.validate(id -> TYPES.containsKey(id)
+    private static final Codec<ResourceLocation> TYPE_CODEC = ResourceLocation.CODEC.validate(id -> type(id) != null
             ? DataResult.success(id)
-            : DataResult.error(() -> "Unknown modifier behavior '" + id + "'; known behaviors: " + TYPES.keySet()));
+            : DataResult.error(() -> "Unknown modifier behavior '" + id + "'; known behaviors: " + ids()));
 
     /** See {@link ModifierDefinition#CODEC}. */
     static final Codec<ModifierDefinition> CODEC =
-            TYPE_CODEC.dispatch("behavior", ModifierDefinition::behavior, TYPES::get);
+            TYPE_CODEC.dispatch("behavior", ModifierDefinition::behavior, ModifierBehaviors::type);
 
-    /** Every behavior id a definition may name, in registration order. */
-    public static Set<ResourceLocation> ids() {
+    /**
+     * Wrapped {@link ModifierRegistry} codecs, so an addon behavior is wrapped once rather than on
+     * every file that names it. Only addon ids land here; the shipped ones are in {@link #TYPES}.
+     */
+    private static final Map<ResourceLocation, MapCodec<ModifierDefinition>> REGISTERED = new ConcurrentHashMap<>();
+
+    /**
+     * The codec behind {@code id}: the shipped table first, then whatever a partner mod registered
+     * through {@link ModifierRegistry#registerBehavior}, so a built-in id always wins.
+     */
+    @Nullable
+    private static MapCodec<ModifierDefinition> type(ResourceLocation id) {
+        MapCodec<ModifierDefinition> builtIn = TYPES.get(id);
+        if (builtIn != null) {
+            return builtIn;
+        }
+        MapCodec<? extends Modifier> registered = ModifierRegistry.behavior(id);
+        return registered == null ? null : REGISTERED.computeIfAbsent(id, key -> wrap(key, registered));
+    }
+
+    /** Just the shipped behavior ids, for the built-in-wins collision warning. */
+    static Set<ResourceLocation> builtInIds() {
         return TYPES.keySet();
+    }
+
+    /** Every behavior id a definition may name: the shipped ones first, then any an addon added. */
+    public static Set<ResourceLocation> ids() {
+        Set<ResourceLocation> registered = ModifierRegistry.behaviorIds();
+        if (registered.isEmpty()) {
+            return TYPES.keySet();
+        }
+        Set<ResourceLocation> all = new LinkedHashSet<>(TYPES.keySet());
+        all.addAll(registered);
+        return all;
     }
 
     private static <B extends Behavior> void register(String name, MapCodec<B> codec) {
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name);
-        TYPES.put(id, codec.xmap(behavior -> new ModifierDefinition(id, behavior), ModifierBehaviors::behavior));
+        TYPES.put(id, wrap(id, codec));
+    }
+
+    /** A behavior's own codec, carrying the id it was registered under. */
+    private static <B extends Modifier> MapCodec<ModifierDefinition> wrap(ResourceLocation id, MapCodec<B> codec) {
+        return codec.xmap(behavior -> new ModifierDefinition(id, behavior), ModifierBehaviors::behavior);
     }
 
     /** Encode-side cast: a definition registered under a behavior id always holds that behavior's type. */
     @SuppressWarnings("unchecked")
-    private static <B extends Behavior> B behavior(ModifierDefinition definition) {
+    private static <B extends Modifier> B behavior(ModifierDefinition definition) {
         return (B) definition.modifier();
     }
 

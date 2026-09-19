@@ -24,6 +24,7 @@ import net.minecraft.world.item.Items;
 
 import net.neoforged.neoforge.energy.IEnergyStorage;
 
+import dev.gkissel.forgeweave.api.upgrade.UpgradeHosts;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.trait.EnergyBuffer;

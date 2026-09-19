@@ -39,7 +39,7 @@ import dev.gkissel.forgeweave.item.ArmorPieceItem;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.tool.ToolConstants;
-import dev.gkissel.forgeweave.tool.UpgradeHosts;
+import dev.gkissel.forgeweave.api.upgrade.UpgradeHosts;
 
 /**
  * Forgeweave gear made of a fusion metal is a Draconic Evolution module host (issue #956,

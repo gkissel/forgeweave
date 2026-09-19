@@ -8,6 +8,9 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * A landed hit removes up to {@code count} of the target's positive status effects -- ADR-0004's M6
  * on-hit effect library batch (issue #828) {@code strip_effects(chance, count, chargedOnly)}, the

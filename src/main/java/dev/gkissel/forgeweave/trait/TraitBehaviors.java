@@ -2,10 +2,12 @@ package dev.gkissel.forgeweave.trait;
 
 import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -13,6 +15,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+
+import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
@@ -29,8 +33,10 @@ import net.minecraft.world.level.block.FallingBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.api.trait.Trait;
+import dev.gkissel.forgeweave.api.trait.TraitRegistry;
 import dev.gkissel.forgeweave.combat.ChainArc;
-import dev.gkissel.forgeweave.combat.CombatSeam;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
 import dev.gkissel.forgeweave.combat.ConditionalSeam;
 import dev.gkissel.forgeweave.combat.CritMultiplierBonus;
 import dev.gkissel.forgeweave.combat.DamageScalesWith;
@@ -274,21 +280,58 @@ public final class TraitBehaviors {
 
 
     /** The {@code behavior} field: a known id or a loud error naming every id that would have worked. */
-    private static final Codec<ResourceLocation> TYPE_CODEC = ResourceLocation.CODEC.validate(id -> TYPES.containsKey(id)
+    private static final Codec<ResourceLocation> TYPE_CODEC = ResourceLocation.CODEC.validate(id -> type(id) != null
             ? DataResult.success(id)
-            : DataResult.error(() -> "Unknown trait behavior '" + id + "'; known behaviors: " + TYPES.keySet()));
+            : DataResult.error(() -> "Unknown trait behavior '" + id + "'; known behaviors: " + ids()));
 
     /** See {@link TraitDefinition#CODEC}. */
-    static final Codec<TraitDefinition> CODEC = TYPE_CODEC.dispatch("behavior", TraitDefinition::behavior, TYPES::get);
+    static final Codec<TraitDefinition> CODEC = TYPE_CODEC.dispatch("behavior", TraitDefinition::behavior,
+            TraitBehaviors::type);
 
-    /** Every behaviour id a definition may name, in registration order. */
-    public static Set<ResourceLocation> ids() {
+    /**
+     * Wrapped {@link TraitRegistry} codecs, so an addon behaviour is wrapped once rather than on
+     * every file that names it. Only addon ids land here; the shipped ones are in {@link #TYPES}.
+     */
+    private static final Map<ResourceLocation, MapCodec<TraitDefinition>> REGISTERED = new ConcurrentHashMap<>();
+
+    /**
+     * The codec behind {@code id}: the shipped table first, then whatever a partner mod registered
+     * through {@link TraitRegistry#registerBehavior}, so a built-in id always wins.
+     */
+    @Nullable
+    private static MapCodec<TraitDefinition> type(ResourceLocation id) {
+        MapCodec<TraitDefinition> builtIn = TYPES.get(id);
+        if (builtIn != null) {
+            return builtIn;
+        }
+        MapCodec<? extends Trait> registered = TraitRegistry.behavior(id);
+        return registered == null ? null : REGISTERED.computeIfAbsent(id, key -> wrap(key, registered));
+    }
+
+    /** Just the shipped behaviour ids, for the built-in-wins collision warning. */
+    static Set<ResourceLocation> builtInIds() {
         return TYPES.keySet();
+    }
+
+    /** Every behaviour id a definition may name: the shipped ones first, then any an addon added. */
+    public static Set<ResourceLocation> ids() {
+        Set<ResourceLocation> registered = TraitRegistry.behaviorIds();
+        if (registered.isEmpty()) {
+            return TYPES.keySet();
+        }
+        Set<ResourceLocation> all = new LinkedHashSet<>(TYPES.keySet());
+        all.addAll(registered);
+        return all;
     }
 
     private static <T extends Trait> void register(String name, MapCodec<T> codec) {
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name);
-        TYPES.put(id, codec.xmap(trait -> new TraitDefinition(id, trait), TraitBehaviors::trait));
+        TYPES.put(id, wrap(id, codec));
+    }
+
+    /** A behaviour's own codec, carrying the id it was registered under. */
+    private static <T extends Trait> MapCodec<TraitDefinition> wrap(ResourceLocation id, MapCodec<T> codec) {
+        return codec.xmap(trait -> new TraitDefinition(id, trait), TraitBehaviors::trait);
     }
 
     private static <S extends CombatSeam> void seam(String name, MapCodec<S> seamCodec) {

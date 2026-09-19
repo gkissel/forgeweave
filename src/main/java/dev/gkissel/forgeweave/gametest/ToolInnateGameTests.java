@@ -24,7 +24,8 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
-import dev.gkissel.forgeweave.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatProviders;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 
@@ -32,7 +33,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
  * docs/SCOPE.md M3 issue #164's verification: one GameTest per M1 tool innate (pickaxe pierce, shovel
  * flatten, hatchet sunder), each assembled through a real Tool Station ({@link ToolAssembly}) so the
  * innate's attachment through {@code ForgeweaveInnates#collect} (registered as a
- * {@code CombatSeams.Provider} in {@code Forgeweave}, same idiom as materials' traits) is part of what
+ * {@code CombatProviders.Provider} in {@code Forgeweave}, same idiom as materials' traits) is part of what
  * is under test, not just the behavior class in isolation.
  *
  * <p>Magnitudes are the maintainer decision recorded on the issue (2026-08-12): pierce 1.0 flat
@@ -117,7 +118,7 @@ public class ToolInnateGameTests {
      *
      * <ul>
      *   <li>bonus damage vs blocking -- exercised directly on {@link ForgeweaveInnates#SUNDER}
-     *       ({@code CombatSeams.seams} is public for exactly this kind of assertion, per its javadoc),
+     *       ({@code CombatProviders.seams} is public for exactly this kind of assertion, per its javadoc),
      *       toggling the same target's blocking state, since a real blow against an actively blocking
      *       target has its damage absorbed by the shield block itself before it ever reaches the
      *       target's health -- the bonus has to be read off the seam's own adjustment, not off health

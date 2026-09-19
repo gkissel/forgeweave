@@ -22,7 +22,7 @@ import dev.gkissel.forgeweave.compat.mekanism.ForgeweaveMekanismCompat;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
-import dev.gkissel.forgeweave.tool.UpgradeHosts;
+import dev.gkissel.forgeweave.api.upgrade.UpgradeHosts;
 
 /**
  * The maintainer rule of 2026-09-18: a partner mod's upgrade that a part swap invalidates comes back

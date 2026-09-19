@@ -1,5 +1,8 @@
 package dev.gkissel.forgeweave.combat;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * Heals the attacker for a share of the damage just dealt, capped -- ADR-0004's M6 on-hit effect
  * library batch (issue #828) {@code lifesteal(fraction, cap)}, the reference instance "Vampiric".

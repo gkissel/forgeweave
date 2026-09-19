@@ -3,6 +3,9 @@ package dev.gkissel.forgeweave.combat;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectInstance;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * A landed hit temporarily attenuates healing the target receives -- ADR-0004's M6 on-hit effect
  * library batch (issue #828) {@code reduce_target_healing(fraction, duration)}, the reference

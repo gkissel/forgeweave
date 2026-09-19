@@ -4,6 +4,9 @@ import net.minecraft.core.Holder;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * A hit applies a {@link MobEffectInstance} to the target, optionally escalating the amplifier one
  * step deeper on every repeat landed hit instead of merely refreshing -- ADR-0004's M6 on-hit
