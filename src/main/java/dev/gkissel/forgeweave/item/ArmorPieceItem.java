@@ -16,6 +16,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -33,6 +34,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.client.StationText;
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisAffixes; // #970
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
+import dev.gkissel.forgeweave.compat.mekanism.modules.MekanismGearModules; // #994
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.material.MaterialDisplay;
@@ -182,6 +184,16 @@ public class ArmorPieceItem extends ArmorItem {
         if (level instanceof ServerLevel serverLevel && entity instanceof LivingEntity holder && !ToolItem.isBroken(stack)) {
             ForgeweaveTraits.inventoryTick(stack, serverLevel, holder);
         }
+        // #994: the same seam ToolItem#inventoryTick gives a Mekanism module, for the worn half --
+        // the free ICustomModule tick hooks (the gravitational modulating unit's own is one), and the
+        // jetpack, which needs both sides. Does nothing without Mekanism, without an
+        // atomic_matter_alloy part, or with the toggle off.
+        if (entity instanceof Player player && !ToolItem.isBroken(stack)) {
+            MekanismGearModules.tickModules(stack, player, !level.isClientSide);
+            if (stack == player.getItemBySlot(EquipmentSlot.CHEST)) {
+                MekanismGearModules.jetpackTick(stack, player, !level.isClientSide);
+            }
+        }
     }
 
     /**
@@ -222,7 +234,10 @@ public class ArmorPieceItem extends ArmorItem {
      */
     @Override
     public boolean canElytraFly(ItemStack stack, LivingEntity entity) {
-        return ForgeweaveModifiers.grantsElytraFlight(stack) && !ToolItem.isBroken(stack);
+        // #994: a powered Mekanism elytra unit is a second, independent grant of the same glide.
+        // Ored, not anded: two grants are no better than one, and neither takes the other away.
+        return (ForgeweaveModifiers.grantsElytraFlight(stack) || MekanismGearModules.grantsElytraFlight(stack))
+                && !ToolItem.isBroken(stack);
     }
 
     /**

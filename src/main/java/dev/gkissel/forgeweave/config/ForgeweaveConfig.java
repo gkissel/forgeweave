@@ -9,6 +9,7 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 import dev.gkissel.forgeweave.block.EnergizedHeat;
 import dev.gkissel.forgeweave.compat.mekanism.ForgeweaveMekanismCompat;
 import dev.gkissel.forgeweave.compat.mekanism.modules.MekanismGearModules;
+import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 
 /**
  * Forgeweave's gameplay config (docs/SCOPE.md M3.4-7 issue #276): the subset of upstream 1.12's
@@ -617,6 +618,21 @@ public final class ForgeweaveConfig {
     /** How long, in ticks, the nucleosynthesizer takes over one ingot (#993). */
     public static final ModConfigSpec.IntValue MEKANISM_NUCLEOSYNTHESIZING_DURATION;
 
+    /** FE one Mekanism teleportation jump costs (#994). */
+    public static final ModConfigSpec.IntValue MEKANISM_ENERGY_PER_TELEPORT;
+
+    /** FE a Mekanism jetpack or gravitational modulating unit spends per tick of flight (#994). */
+    public static final ModConfigSpec.IntValue MEKANISM_ENERGY_PER_FLIGHT_TICK;
+
+    /** How far, in blocks, a Mekanism teleportation unit moves the player (#994). */
+    public static final ModConfigSpec.IntValue MEKANISM_TELEPORT_MAX_DISTANCE;
+
+    /**
+     * The fraction of incoming radiation one level of {@code forgeweave:rayward} blocks (#994). Four
+     * levels at the default 0.25 come to exactly 1.0, which is the whole set shielding completely.
+     */
+    public static final ModConfigSpec.DoubleValue RADIATION_SHIELDING_PER_LEVEL;
+
     /** How much Forge Energy one energized tank's buffer holds (#972). */
     public static final ModConfigSpec.IntValue ENERGIZED_TANK_BUFFER;
 
@@ -749,6 +765,26 @@ public final class ForgeweaveConfig {
     /** @see #MEKANISM_NUCLEOSYNTHESIZING_DURATION */
     public static int mekanismNucleosynthesizingDuration() {
         return read(MEKANISM_NUCLEOSYNTHESIZING_DURATION);
+    }
+
+    /** @see #MEKANISM_ENERGY_PER_TELEPORT */
+    public static int mekanismEnergyPerTeleport() {
+        return read(MEKANISM_ENERGY_PER_TELEPORT);
+    }
+
+    /** @see #MEKANISM_ENERGY_PER_FLIGHT_TICK */
+    public static int mekanismEnergyPerFlightTick() {
+        return read(MEKANISM_ENERGY_PER_FLIGHT_TICK);
+    }
+
+    /** @see #MEKANISM_TELEPORT_MAX_DISTANCE */
+    public static int mekanismTeleportMaxDistance() {
+        return read(MEKANISM_TELEPORT_MAX_DISTANCE);
+    }
+
+    /** @see #RADIATION_SHIELDING_PER_LEVEL */
+    public static double radiationShieldingPerLevel() {
+        return read(RADIATION_SHIELDING_PER_LEVEL);
     }
 
     /**
@@ -1156,6 +1192,32 @@ public final class ForgeweaveConfig {
                 .comment("How long, in ticks, that craft takes. Mekanism's own longest is 1250.")
                 .defineInRange("mekanismNucleosynthesizingDuration",
                         ForgeweaveMekanismCompat.NUCLEOSYNTHESIZING_DURATION_DEFAULT, 1, 100_000);
+        // #994 (M8-10, D-M8-15): phase 2's own numbers, appended for the same key-order reason.
+        MEKANISM_ENERGY_PER_TELEPORT = builder
+                .comment("Forge Energy one jump of a Mekanism teleportation unit costs, paid out of the tool's",
+                        "own buffer. A buffer that cannot pay it leaves the right-click doing whatever the tool",
+                        "would have done anyway.")
+                .defineInRange("mekanismEnergyPerTeleport", MekanismGearModules.ENERGY_PER_TELEPORT_DEFAULT,
+                        0, Integer.MAX_VALUE);
+        MEKANISM_ENERGY_PER_FLIGHT_TICK = builder
+                .comment("Forge Energy a Mekanism jetpack or gravitational modulating unit spends per tick, paid",
+                        "out of the worn piece's own buffer. An empty buffer grounds the module rather than",
+                        "flying for free.")
+                .defineInRange("mekanismEnergyPerFlightTick",
+                        MekanismGearModules.ENERGY_PER_FLIGHT_TICK_DEFAULT, 0, Integer.MAX_VALUE);
+        MEKANISM_TELEPORT_MAX_DISTANCE = builder
+                .comment("How far, in blocks, a Mekanism teleportation unit will move the player. Mekanism's own",
+                        "tool reaches 10.")
+                .defineInRange("mekanismTeleportMaxDistance",
+                        MekanismGearModules.TELEPORT_MAX_DISTANCE_DEFAULT, 1, 256);
+        RADIATION_SHIELDING_PER_LEVEL = builder
+                .comment("The fraction of incoming radiation one level of the rayward modifier blocks. Four",
+                        "levels at the default 0.25 come to exactly 1.0, a piece that shields completely; the",
+                        "total is clamped there, so raising this only makes the earlier levels worth more.",
+                        "Rayward is a Forgeweave modifier and follows the modifiers content toggle, not",
+                        "mekanismModules -- without Mekanism installed nothing asks it for a number.")
+                .defineInRange("radiationShieldingPerLevel",
+                        ForgeweaveModifiers.RAYWARD_SHIELDING_PER_LEVEL_DEFAULT, 0.0D, 1.0D);
         // Issue #999 (D-M8-20). Appended for the same key-order reason the two above are.
         MYSTICAL_AGRICULTURE_AUGMENTS = builder
                 .comment("If true, Forgeweave works with Mystical Agriculture: the Track B ores and brimspar",

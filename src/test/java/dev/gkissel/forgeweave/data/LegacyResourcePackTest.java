@@ -62,6 +62,14 @@ class LegacyResourcePackTest {
     private static final List<String> FORGEWEAVE_ONLY_STEMS = List.of(
             "katana_", "scimitar_", "warmace_", "war_mace_", "curved_blade");
 
+    /**
+     * The eight form suffixes {@code scripts/generate_material_forms.py} writes, mirroring that
+     * script's {@code ALL_FORMS}. See {@link #legacyShipsNoMaterialFormSprites}.
+     */
+    private static final List<String> MATERIAL_FORM_SUFFIXES = List.of(
+            "_dust.png", "_small_dust.png", "_tiny_dust.png",
+            "_plate.png", "_double_plate.png", "_rod.png", "_gear.png", "_wire.png");
+
     private static Path projectRoot() {
         Path dir = Path.of("").toAbsolutePath();
         for (Path candidate = dir; candidate != null; candidate = candidate.getParent()) {
@@ -246,6 +254,37 @@ class LegacyResourcePackTest {
         }
         assertTrue(offenders.isEmpty(),
                 "Legacy pack files for Forgeweave-only tools (the pack is Tinkers'-native art only):\n"
+                        + String.join("\n", offenders));
+    }
+
+    /**
+     * Issue #1049: the material forms {@code scripts/generate_material_forms.py} writes (dust, small
+     * dust, tiny dust, plate, double plate, rod, gear, wire, one flat hue-recolor per material) are
+     * Forgeweave's own invention -- there is no Tinkers' plate/gear/wire family to derive from -- so
+     * they hit the same maintainer rule {@link #FORGEWEAVE_ONLY_STEMS} enforces for the Forgeweave-only
+     * tools: nothing Forgeweave made ever ships in the Legacy pack (2026-09-18). Checked by filename
+     * suffix under {@code textures/item/} (the flat, non-{@code derived/} path every form sprite writes
+     * to) rather than a fixed material list, so a newly added material is covered automatically; scoped
+     * to that one directory because {@code derived/item/} carries genuinely Tinkers'-derived parts whose
+     * names end the same way, such as {@code tough_tool_rod.png} and {@code large_plate.png}.
+     */
+    @Test
+    void legacyShipsNoMaterialFormSprites() throws IOException {
+        List<String> offenders = new ArrayList<>();
+        Path legacyItem = legacyTextures().resolve("item");
+        if (!Files.isDirectory(legacyItem)) {
+            return;
+        }
+        try (Stream<Path> files = Files.list(legacyItem)) {
+            for (Path file : files.filter(Files::isRegularFile).toList()) {
+                String name = file.getFileName().toString();
+                if (MATERIAL_FORM_SUFFIXES.stream().anyMatch(name::endsWith)) {
+                    offenders.add("item/" + name);
+                }
+            }
+        }
+        assertTrue(offenders.isEmpty(),
+                "Legacy pack files for material form sprites (Forgeweave's own invention, never Tinkers'-native):\n"
                         + String.join("\n", offenders));
     }
 

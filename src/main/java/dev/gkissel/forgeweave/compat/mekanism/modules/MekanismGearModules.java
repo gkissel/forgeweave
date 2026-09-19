@@ -8,9 +8,12 @@ import java.util.stream.Collectors;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.Level;
 
@@ -41,10 +44,8 @@ public final class MekanismGearModules {
 
     /** Where one of Mekanism's modules lands in Forgeweave, for {@link #MODULE_WIRING}. */
     public enum Wiring {
-        /** Phase 1 runs this module's effect through a Forgeweave hook. */
+        /** This module's effect runs through a Forgeweave hook. */
         WIRED,
-        /** Phase 2 (M8-10, issue #994) opens the interaction site this module needs. */
-        DEFERRED,
         /** Deliberately not wired at all, for the reason on the row. */
         UNWIRED
     }
@@ -67,11 +68,10 @@ public final class MekanismGearModules {
      * <p>The classification rule, applied once so no row is a judgement call:
      *
      * <ul>
-     *   <li>{@code WIRED} is exactly the phase 1 table in issue #993, plus the energy unit, which is
-     *       the buffer every other powered effect spends.
-     *   <li>{@code DEFERRED} is exactly the roster issue #994 names: teleportation, farming, shearing,
-     *       the jetpack, gravitational modulation and the elytra. Each needs a Forgeweave-side
-     *       interaction site phase 1 does not open.
+     *   <li>{@code WIRED} is phase 1's table from issue #993 (the energy unit, radiation shielding,
+     *       excavation escalation, silk touch, fortune, frost walker, blasting, vein mining) plus
+     *       phase 2's from issue #994: teleportation, farming, shearing, attack amplification, the
+     *       jetpack, gravitational modulation and the elytra. Nothing is deferred any more.
      *   <li>{@code UNWIRED} is everything else, and each row says which Mekanism subsystem it would
      *       drag in or which Forgeweave system it would replace. That is the same call issue #956 made
      *       for Draconic Evolution's arrow penetration and anti-gravity.
@@ -91,16 +91,19 @@ public final class MekanismGearModules {
 
             // MekaTool.
             new ModuleWiring("excavation_escalation_unit", Wiring.WIRED, "ToolItem.getDestroySpeed"),
-            new ModuleWiring("attack_amplification_unit", Wiring.DEFERRED,
-                    "the attack path is a Forgeweave-side site phase 1's table does not open"),
-            new ModuleWiring("farming_unit", Wiring.DEFERRED, "useOn, issue #994"),
-            new ModuleWiring("shearing_unit", Wiring.DEFERRED, "useOn, issue #994"),
+            new ModuleWiring("attack_amplification_unit", Wiring.WIRED,
+                    "ToolItem.attackDamage, added after the cutoff like a Draconic damage module"),
+            new ModuleWiring("farming_unit", Wiring.WIRED,
+                    "ToolItem.useOn, after every right-click the tool kind owns itself"),
+            new ModuleWiring("shearing_unit", Wiring.WIRED,
+                    "ToolItem.useOn and ToolItem.interactLivingEntity, after the scythe's own shear"),
             new ModuleWiring("silk_touch_unit", Wiring.WIRED, "ToolItem.getAllEnchantments"),
             new ModuleWiring("fortune_unit", Wiring.WIRED, "ToolItem.getAllEnchantments"),
             new ModuleWiring("blasting_unit", Wiring.WIRED, "AoeHarvest's own box, not a second block breaker"),
             new ModuleWiring("vein_mining_unit", Wiring.WIRED,
                     "ModuleVeinMiningUnit.findPositions, broken through AoeHarvest.breakEach"),
-            new ModuleWiring("teleportation_unit", Wiring.DEFERRED, "use, issue #994"),
+            new ModuleWiring("teleportation_unit", Wiring.WIRED,
+                    "ToolItem.use, when the tool's own innate action has nothing to do with the click"),
 
             // MekaSuit.
             new ModuleWiring("electrolytic_breathing_unit", Wiring.UNWIRED,
@@ -114,11 +117,13 @@ public final class MekanismGearModules {
                     "drives Mekanism's own client render and HUD"),
             new ModuleWiring("dosimeter_unit", Wiring.UNWIRED, "a Mekanism HUD readout"),
             new ModuleWiring("geiger_unit", Wiring.UNWIRED, "a Mekanism HUD readout"),
-            new ModuleWiring("jetpack_unit", Wiring.DEFERRED, "flight, issue #994"),
+            new ModuleWiring("jetpack_unit", Wiring.WIRED,
+                    "ArmorPieceItem.inventoryTick, running Mekanism's own IJetpackItem.handleJetpackMotion"),
             new ModuleWiring("charge_distribution_unit", Wiring.UNWIRED,
                     "moves energy between Mekanism's own gear slots; Forgeweave's buffer is per item"),
-            new ModuleWiring("gravitational_modulating_unit", Wiring.DEFERRED, "flight, issue #994"),
-            new ModuleWiring("elytra_unit", Wiring.DEFERRED, "flight, issue #994"),
+            new ModuleWiring("gravitational_modulating_unit", Wiring.WIRED,
+                    "CreativeFlightHandler grants the flight, ArmorPieceItem.inventoryTick pays for it"),
+            new ModuleWiring("elytra_unit", Wiring.WIRED, "ArmorPieceItem.canElytraFly"),
             new ModuleWiring("locomotive_boosting_unit", Wiring.UNWIRED,
                     "rewrites the player's own sprint speed and attack cooldown, which M4's armour "
                             + "attributes already own"),
@@ -188,6 +193,40 @@ public final class MekanismGearModules {
 
         /** See {@link MekanismGearModules#tickModules}. */
         default void tickModules(ItemStack stack, Player player, boolean serverSide) {}
+
+        /** See {@link MekanismGearModules#useOnBlock}. */
+        default InteractionResult useOnBlock(ItemStack stack, UseOnContext context) {
+            return InteractionResult.PASS;
+        }
+
+        /** See {@link MekanismGearModules#interactEntity}. */
+        default InteractionResult interactEntity(ItemStack stack, Player player, LivingEntity target,
+                InteractionHand hand) {
+            return InteractionResult.PASS;
+        }
+
+        /** See {@link MekanismGearModules#teleport}. */
+        default boolean teleport(ItemStack stack, Player player) {
+            return false;
+        }
+
+        /** See {@link MekanismGearModules#attackDamageBonus}. */
+        default float attackDamageBonus(ItemStack stack) {
+            return 0.0F;
+        }
+
+        /** See {@link MekanismGearModules#grantsElytraFlight}. */
+        default boolean grantsElytraFlight(ItemStack stack) {
+            return false;
+        }
+
+        /** See {@link MekanismGearModules#grantsCreativeFlight}. */
+        default boolean grantsCreativeFlight(ItemStack stack) {
+            return false;
+        }
+
+        /** See {@link MekanismGearModules#jetpackTick}. */
+        default void jetpackTick(ItemStack stack, Player player, boolean serverSide) {}
     }
 
     /**
@@ -359,6 +398,109 @@ public final class MekanismGearModules {
         if (installed != null) {
             installed.tickModules(stack, player, serverSide);
         }
+    }
+
+    // ------------------------------------------------------------------ phase 2 (issue #994, M8-10)
+
+    /**
+     * What an installed module wants to do with a right-click on a block -- the farming unit's till,
+     * flatten and strip, and the shearing unit's beehive and pumpkin. {@link InteractionResult#PASS}
+     * without Mekanism, without a module, or when the module has nothing to say about this block, in
+     * which case the caller carries on to whatever it would have done anyway.
+     *
+     * <p>Asked <em>after</em> every behaviour the tool owns itself ({@code ToolItem#useOn}), so a
+     * farming module never takes a block a Forgeweave tool kind already has a right-click for. That is
+     * the "a module only ever adds" rule at an interaction site rather than at a number.
+     */
+    public static InteractionResult useOnBlock(ItemStack stack, UseOnContext context) {
+        Bridge installed = bridge();
+        return installed == null ? InteractionResult.PASS : installed.useOnBlock(stack, context);
+    }
+
+    /**
+     * What an installed module wants to do with a right-click on a living entity -- the shearing
+     * unit's shear. {@link InteractionResult#PASS} without one, and asked after the scythe's and the
+     * kama's own shear for the same reason {@link #useOnBlock} is.
+     */
+    public static InteractionResult interactEntity(ItemStack stack, Player player, LivingEntity target,
+            InteractionHand hand) {
+        Bridge installed = bridge();
+        return installed == null
+                ? InteractionResult.PASS
+                : installed.interactEntity(stack, player, target, hand);
+    }
+
+    /**
+     * Runs an installed teleportation unit's jump: the player goes to whatever they are looking at,
+     * within {@link #teleportMaxDistance()} blocks, and the buffer pays {@link #energyPerTeleport()}.
+     * False when there is no module, no power, no Mekanism, or nothing in range worth landing on, in
+     * which case the tool's own right-click behaviour is untouched.
+     */
+    public static boolean teleport(ItemStack stack, Player player) {
+        Bridge installed = bridge();
+        return installed != null && installed.teleport(stack, player);
+    }
+
+    /**
+     * The attack damage an installed attack amplification unit adds, on top of everything the tool's
+     * own stats, traits and modifiers already worked out. 0 with no module or an empty buffer, never
+     * negative: like every other effect here it adds and never replaces.
+     */
+    public static float attackDamageBonus(ItemStack stack) {
+        Bridge installed = bridge();
+        return installed == null ? 0.0F : installed.attackDamageBonus(stack);
+    }
+
+    /** Whether a powered elytra unit on this worn piece lets it glide ({@code ArmorPieceItem#canElytraFly}). */
+    public static boolean grantsElytraFlight(ItemStack stack) {
+        Bridge installed = bridge();
+        return installed != null && installed.grantsElytraFlight(stack);
+    }
+
+    /**
+     * Whether a powered gravitational modulating unit on this worn chestplate grants creative-style
+     * flight ({@code CreativeFlightHandler}). Unlike Forgeweave's own {@code creative_flight}
+     * modifier, the module needs no full set: Mekanism's own unit only ever asks about the chestplate,
+     * and a module adds rather than taking a condition away.
+     */
+    public static boolean grantsCreativeFlight(ItemStack stack) {
+        Bridge installed = bridge();
+        return installed != null && installed.grantsCreativeFlight(stack);
+    }
+
+    /**
+     * Runs an installed jetpack unit for one tick of a worn chestplate. Does nothing without a module,
+     * without power, or on the ground.
+     */
+    public static void jetpackTick(ItemStack stack, Player player, boolean serverSide) {
+        Bridge installed = bridge();
+        if (installed != null) {
+            installed.jetpackTick(stack, player, serverSide);
+        }
+    }
+
+    /** {@link #energyPerTeleport()}'s own default: what one teleportation jump costs. */
+    public static final int ENERGY_PER_TELEPORT_DEFAULT = 1_000;
+
+    /** {@link #energyPerFlightTick()}'s own default: FE a jetpack or gravity module spends each flying tick. */
+    public static final int ENERGY_PER_FLIGHT_TICK_DEFAULT = 50;
+
+    /** {@link #teleportMaxDistance()}'s own default, in blocks -- Mekanism's own MekaTool teleport range. */
+    public static final int TELEPORT_MAX_DISTANCE_DEFAULT = 10;
+
+    /** FE one teleportation jump costs. */
+    public static int energyPerTeleport() {
+        return ForgeweaveConfig.mekanismEnergyPerTeleport();
+    }
+
+    /** FE a jetpack or gravitational modulating unit spends per tick of flight. */
+    public static int energyPerFlightTick() {
+        return ForgeweaveConfig.mekanismEnergyPerFlightTick();
+    }
+
+    /** How far, in blocks, a teleportation unit will move the player. */
+    public static int teleportMaxDistance() {
+        return ForgeweaveConfig.mekanismTeleportMaxDistance();
     }
 
     private MekanismGearModules() {}
