@@ -2,17 +2,20 @@ package dev.gkissel.forgeweave.block;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+
+import dev.gkissel.forgeweave.Forgeweave;
 
 /**
  * Detects the smeltery multiblock around a core (docs/SCOPE.md M2 issue #95), ported from upstream
@@ -156,7 +159,7 @@ public final class SmelteryScan {
         for (int x = west + 1; x < east; x++) {
             for (int z = north + 1; z < south; z++) {
                 BlockPos pos = new BlockPos(x, y, z);
-                if (!Valid.FLOOR.contains(level.getBlockState(pos).getBlock())) {
+                if (!isSearedBlock(level.getBlockState(pos))) {
                     return at(KEY_INVALID_FLOOR, pos);
                 }
             }
@@ -192,13 +195,14 @@ public final class SmelteryScan {
         List<BlockPos> io = new ArrayList<>();
         List<BlockPos> tanks = new ArrayList<>();
         for (BlockPos pos : walls) {
-            Block block = level.getBlockState(pos).getBlock();
+            BlockState state = level.getBlockState(pos);
+            Block block = state.getBlock();
             if (block instanceof SmelteryControllerBlock) {
                 // A second core would have its own structure state; only ours belongs in this wall.
                 if (!pos.equals(corePos)) {
                     return new Layer(at(KEY_INVALID_WALL, pos), List.of(), List.of());
                 }
-            } else if (!Valid.WALL.contains(block) && !Valid.ENERGIZED.contains(block)) {
+            } else if (!isWallBlock(state) && !state.is(ENERGIZED)) {
                 return new Layer(at(KEY_INVALID_WALL, pos), List.of(), List.of());
             } else if (claimedByAnotherCore(level, pos, corePos)) {
                 return new Layer(at(KEY_CLAIMED, pos), List.of(), List.of());
@@ -206,9 +210,9 @@ public final class SmelteryScan {
             // #972: an energized tank joins `tanks`, so it satisfies upstream's hasTank flag on its
             // own -- it is a wall tank, and a smeltery heated entirely by energy legitimately has no
             // liquid fuel tank in its walls to satisfy it with.
-            if (Valid.TANKS.contains(block) || Valid.ENERGIZED.contains(block)) {
+            if (isTankBlock(state) || state.is(ENERGIZED)) {
                 tanks.add(pos);
-            } else if (Valid.IO.contains(block)) {
+            } else if (isIoBlock(state)) {
                 io.add(pos);
             }
         }
@@ -273,27 +277,27 @@ public final class SmelteryScan {
     }
 
     /** The twelve plain seared blocks (upstream's {@code TinkerSmeltery.searedBlock}); shared with {@link SearedFurnaceScan}. */
-    static Set<Block> searedBlocks() {
-        return Valid.FLOOR;
+    static boolean isSearedBlock(BlockState state) {
+        return state.is(FLOOR);
     }
 
     /** The three tank blocks (upstream's {@code TinkerSmeltery.searedTank}); shared with {@link SearedFurnaceScan}. */
-    static Set<Block> tankBlocks() {
-        return Valid.TANKS;
+    static boolean isTankBlock(BlockState state) {
+        return state.is(TANKS);
     }
 
     /**
      * Every block that may stand in a smeltery wall (upstream's {@code TinkerSmeltery.validSmelteryBlocks}).
      * Upstream builds {@code validTinkerTankBlocks} from that very same builder -- "same blocks right
-     * now" -- so {@link SearedReservoirScan} reads this set rather than keeping a copy that could drift.
+     * now" -- so {@link SearedReservoirScan} reads this tag rather than keeping a copy that could drift.
      */
-    static Set<Block> wallBlocks() {
-        return Valid.WALL;
+    static boolean isWallBlock(BlockState state) {
+        return state.is(WALL);
     }
 
     /** The drain, duct and chute (upstream's {@code TinkerSmeltery.smelteryIO}); shared with {@link SearedReservoirScan}. */
-    static Set<Block> ioBlocks() {
-        return Valid.IO;
+    static boolean isIoBlock(BlockState state) {
+        return state.is(IO);
     }
 
     private static Result failure(Component message) {
@@ -305,63 +309,68 @@ public final class SmelteryScan {
     }
 
     /**
-     * Which blocks may play which role, upstream's {@code TinkerSmeltery.validSmelteryBlocks} plus
-     * the {@code isFloorBlock} override. Held in a nested class so the sets are built the first time
-     * a scan runs rather than when {@link SmelteryScan} is loaded -- the blocks do not exist until
-     * registration has run.
+     * Which blocks may play which role, expressed as block tags under {@code forgeweave:} rather
+     * than a fixed {@code Set.of} (issue #1067, part 3 of #1008's addon audit): a datapack or an
+     * addon can add its own wall, floor, tank or I/O block just by adding to the matching tag, the
+     * same way any datapack extends a vanilla tag. Datagen'd in {@link
+     * dev.gkissel.forgeweave.data.ForgeweaveBlockTagsProvider} with exactly the members the old
+     * {@code Set.of} collections held (upstream's {@code TinkerSmeltery.validSmelteryBlocks} plus
+     * the {@code isFloorBlock} override), so behavior is unchanged for a Forgeweave-only install.
+     * {@code TagKey.create} touches no registry, so unlike the {@code Set.of} version these need no
+     * lazy holder -- constants are enough.
      */
-    private static final class Valid {
-        static final Set<Block> TANKS = Set.of(
-                ForgeweaveBlocks.SEARED_TANK.get(),
-                ForgeweaveBlocks.SEARED_GAUGE.get(),
-                ForgeweaveBlocks.SEARED_WINDOW.get());
+    public static final TagKey<Block> TANKS = tag("smeltery/tanks");
 
-        static final Set<Block> FLOOR = Set.of(
-                ForgeweaveBlocks.SEARED_STONE.get(),
-                ForgeweaveBlocks.SEARED_COBBLESTONE.get(),
-                ForgeweaveBlocks.SEARED_PAVER.get(),
-                ForgeweaveBlocks.SEARED_BRICKS.get(),
-                ForgeweaveBlocks.SEARED_CRACKED_BRICKS.get(),
-                ForgeweaveBlocks.SEARED_FANCY_BRICKS.get(),
-                ForgeweaveBlocks.SEARED_SQUARE_BRICKS.get(),
-                ForgeweaveBlocks.SEARED_TRIANGLE_BRICKS.get(),
-                ForgeweaveBlocks.SEARED_SMALL_BRICKS.get(),
-                ForgeweaveBlocks.SEARED_ROAD.get(),
-                ForgeweaveBlocks.SEARED_TILE.get(),
-                ForgeweaveBlocks.SEARED_CREEPER.get());
+    /** The twelve plain seared blocks (upstream's {@code TinkerSmeltery.searedBlock}). */
+    public static final TagKey<Block> FLOOR = tag("smeltery/floor");
 
-        /**
-         * The blocks that re-expose something of the core's outside the walls, and which therefore
-         * get pointed back at it once a scan succeeds ({@link SmelteryIoBlockEntity}).
-         *
-         * <p>#277 deviation, flagged on the PR: the 1.20 clone tags its duct and chute into
-         * {@code SMELTERY_FLOOR} as well as {@code SMELTERY_WALL}. Forgeweave keeps all three I/O
-         * blocks wall-only, because the drain already is -- 1.12's {@code isFloorBlock} override
-         * accepts nothing but the plain seared blocks, and a floor that takes a duct but not a drain
-         * would be the odd rule out.
-         */
-        static final Set<Block> IO = Set.of(
-                ForgeweaveBlocks.SEARED_DRAIN.get(),
-                ForgeweaveBlocks.SEARED_DUCT.get(),
-                ForgeweaveBlocks.SEARED_CHUTE.get());
+    /**
+     * The blocks that re-expose something of the core's outside the walls, and which therefore get
+     * pointed back at it once a scan succeeds ({@link SmelteryIoBlockEntity}): the drain, duct and
+     * chute (upstream's {@code TinkerSmeltery.smelteryIO}).
+     *
+     * <p>#277 deviation, flagged on the PR: the 1.20 clone tags its duct and chute into
+     * {@code SMELTERY_FLOOR} as well as {@code SMELTERY_WALL}. Forgeweave keeps all three I/O blocks
+     * wall-only, because the drain already is -- 1.12's {@code isFloorBlock} override accepts
+     * nothing but the plain seared blocks, and a floor that takes a duct but not a drain would be
+     * the odd rule out.
+     */
+    public static final TagKey<Block> IO = tag("smeltery/io");
 
-        // Plain seared glass (issue #289): a valid wall block, upstream's validSmelteryBlocks
-        // membership, but never a floor block -- upstream's isFloorBlock override only ever accepts
-        // its plain seared blocks (this class's FLOOR set), excluding glass, tanks and the I/O blocks
-        // alike.
-        /**
-         * #972 (M8, D-M8-11): the energized tank, kept out of {@link #WALL} on purpose. {@link
-         * SmelteryScan#wallBlocks()} is read by {@link SearedReservoirScan} and {@link
-         * #TANKS} by {@link SearedFurnaceScan}, and a Forge-Energy heat block belongs in neither a
-         * reservoir nor a furnace -- it heats a smeltery. So it is accepted here, in the smeltery's
-         * own layer check, and nowhere else.
-         */
-        static final Set<Block> ENERGIZED = Set.of(ForgeweaveBlocks.ENERGIZED_TANK.get());
+    /**
+     * #972 (M8, D-M8-11): the energized tank, kept out of {@link #WALL} on purpose. {@link #WALL} is
+     * read by {@link SearedReservoirScan} and {@link #TANKS} by {@link SearedFurnaceScan}, and a
+     * Forge-Energy heat block belongs in neither a reservoir nor a furnace -- it heats a smeltery.
+     * So it is accepted here, in the smeltery's own layer check, and nowhere else.
+     */
+    public static final TagKey<Block> ENERGIZED = tag("smeltery/energized");
 
-        static final Set<Block> WALL = Stream.concat(
-                        Stream.concat(FLOOR.stream(), TANKS.stream()),
-                        Stream.concat(IO.stream(), Stream.of(ForgeweaveBlocks.SEARED_GLASS.get())))
-                .collect(Collectors.toUnmodifiableSet());
+    /**
+     * Every block that may stand in a smeltery wall (upstream's {@code TinkerSmeltery.validSmelteryBlocks}).
+     * Datagen'd as {@link #FLOOR} + {@link #TANKS} + {@link #IO} + plain seared glass (issue #289: a
+     * valid wall block, but never a floor block -- upstream's {@code isFloorBlock} override only
+     * ever accepts its plain seared blocks, excluding glass, tanks and the I/O blocks alike) + {@link
+     * #WALL_ADDON}. Upstream builds {@code validTinkerTankBlocks} from that very same builder --
+     * "same blocks right now" -- so {@link SearedReservoirScan} reads this tag rather than keeping a
+     * copy that could drift.
+     */
+    public static final TagKey<Block> WALL = tag("smeltery/wall");
+
+    /**
+     * A wall-only extension point {@link #WALL}'s own datagen references with {@code
+     * addOptionalTag}: no file ships here from {@code src/main/resources}, so a real datapack can
+     * add to it exactly as it could add to {@link #WALL} itself. It exists only because {@code
+     * src/gametest/resources/README.md}'s shadowing trap rules out proving tag-driven extension by
+     * adding a GameTest fixture at {@link #WALL}'s own path -- a file there would replace the
+     * shipped members rather than add to them, since the gametest and main resource trees fold into
+     * one pack for {@code runGameTestServer} instead of layering as two separate ones the way a
+     * player's datapack and this mod's own resources do. {@code SmelteryWallTagGameTests} is the one
+     * place that ships a member here.
+     */
+    public static final TagKey<Block> WALL_ADDON = tag("smeltery/wall_addon");
+
+    private static TagKey<Block> tag(String path) {
+        return TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path));
     }
 
     private SmelteryScan() {}

@@ -1,0 +1,12 @@
+{
+  "values": [
+    "#forgeweave:smeltery/floor",
+    "#forgeweave:smeltery/tanks",
+    "#forgeweave:smeltery/io",
+    "forgeweave:seared_glass",
+    {
+      "id": "#forgeweave:smeltery/wall_addon",
+      "required": false
+    }
+  ]
+}

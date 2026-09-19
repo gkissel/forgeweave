@@ -303,7 +303,7 @@ public final class ForgeweaveBlocks {
     // Plain seared glass (docs/SCOPE.md M3.3 issue #289): a wall-only smeltery block, upstream's
     // BlockSearedGlass (NOTICE.md). Upstream's block adds BlockConnectedTexture rendering and no
     // other behavior -- no BlockEntity, no multiblock role of its own beyond "valid wall, not floor"
-    // (SmelteryScan#Valid) -- so this is a plain non-opaque block, same searedProperties() as the
+    // (SmelteryScan#WALL) -- so this is a plain non-opaque block, same searedProperties() as the
     // rest of the family. The connected-texture rendering itself is left plain (PR #289 body); its
     // single texture is upstream's own "no neighbours" sprite (NOTICE.md).
     public static final DeferredBlock<TieredSearedBlock> SEARED_GLASS = BLOCKS.registerBlock("seared_glass",

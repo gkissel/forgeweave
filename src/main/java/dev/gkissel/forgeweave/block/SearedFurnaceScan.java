@@ -167,10 +167,10 @@ public final class SearedFurnaceScan {
                 BlockState state = level.getBlockState(pos);
                 boolean ring = x == west || x == east || z == north || z == south;
                 if (ring) {
-                    if (SmelteryScan.tankBlocks().contains(state.getBlock())) {
+                    if (SmelteryScan.isTankBlock(state)) {
                         tanks.add(pos);
                     }
-                } else if (ceiling ? !isCeilingBlock(state) : !SmelteryScan.searedBlocks().contains(state.getBlock())) {
+                } else if (ceiling ? !isCeilingBlock(state) : !SmelteryScan.isSearedBlock(state)) {
                     return Part.fail(at(ceiling ? KEY_INVALID_CEILING : KEY_INVALID_FLOOR, pos));
                 }
             }
@@ -212,10 +212,10 @@ public final class SearedFurnaceScan {
                 if (claimedByAnotherOwner(level, pos, corePos)) {
                     return Part.fail(at(KEY_CLAIMED, pos));
                 }
-                Block block = level.getBlockState(pos).getBlock();
-                if (xEdge && zEdge && SmelteryScan.tankBlocks().contains(block)) {
+                BlockState state = level.getBlockState(pos);
+                if (xEdge && zEdge && SmelteryScan.isTankBlock(state)) {
                     tanks.add(pos);
-                } else if (!SmelteryScan.searedBlocks().contains(block)) {
+                } else if (!SmelteryScan.isSearedBlock(state)) {
                     return Part.fail(at(KEY_INVALID_WALL, pos));
                 }
             }
@@ -229,7 +229,7 @@ public final class SearedFurnaceScan {
      */
     static boolean isCeilingBlock(BlockState state) {
         Block block = state.getBlock();
-        if (SmelteryScan.searedBlocks().contains(block)) {
+        if (SmelteryScan.isSearedBlock(state)) {
             return true;
         }
         if (!ForgeweaveBlocks.isSearedStairsOrSlab(block)) {
