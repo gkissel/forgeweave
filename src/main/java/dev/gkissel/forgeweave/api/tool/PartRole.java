@@ -6,7 +6,7 @@ package dev.gkissel.forgeweave.api.tool;
  *
  * <p>It is a mirror rather than the internal enum itself because this package is the only Forgeweave
  * code an addon compiles against, and it imports nothing but Minecraft, NeoForge and itself. The two
- * enums carry the same constant names and {@code ApiSurfaceTest} fails the build if they ever
+ * enums carry the same constant names and {@code ApiToolMirrorTest} fails the build if they ever
  * drift, so a new role reaches addons by being added here too.
  *
  * <p>The roles are the upstream 1.12 {@code PartMaterialType} set. A few read two blocks at once:

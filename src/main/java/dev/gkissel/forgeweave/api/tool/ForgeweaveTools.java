@@ -24,10 +24,16 @@ import net.minecraft.world.item.Item;
  *
  * <h2>The window</h2>
  *
- * <p>Register during your mod's construction, the phase in which a mod that depends on Forgeweave
- * runs after Forgeweave itself. The tables freeze the first time Forgeweave reads them, which is
- * during the registry events that follow; registering after that throws rather than being silently
- * dropped, and so does registering the same id twice.
+ * <p>Register during mod construction: from your mod's constructor, or from an
+ * {@code FMLConstructModEvent} listener. That is the same window {@code api.modifier} and
+ * {@code api.trait} keep, and a late or duplicate registration throws here as it does there rather
+ * than being silently dropped.
+ *
+ * <p>Those two close their window on a call from Forgeweave during common setup. This one closes
+ * the first time Forgeweave reads a table instead, because the Tool Station's table is built once
+ * and read from the registry events onward, well before common setup -- a window that outlived the
+ * table would accept a registration nothing would ever show. Mod construction is over by then
+ * either way, so an addon sees no difference.
  *
  * <h2>Art</h2>
  *
@@ -117,12 +123,13 @@ public final class ForgeweaveTools {
 
     private static void claim(ResourceLocation id, String what) {
         if (frozen) {
-            throw new IllegalStateException(id + ": too late to register a " + what
-                    + " with Forgeweave. Register during your mod's construction, before Forgeweave"
-                    + " first reads its tables.");
+            throw new IllegalStateException("Forgeweave's tool registration window has closed and '" + id
+                    + "' arrived too late; register during mod construction (your mod's constructor or an "
+                    + "FMLConstructModEvent listener).");
         }
         if (!IDS.add(id)) {
-            throw new IllegalArgumentException(id + ": a " + what + " is already registered under this id");
+            throw new IllegalArgumentException("Tool or part id '" + id + "' is already registered from Java; "
+                    + "pick an id in your own namespace.");
         }
     }
 
@@ -149,6 +156,14 @@ public final class ForgeweaveTools {
     /** Forgeweave-internal: installs the one item factory, once, while Forgeweave constructs itself. */
     public static synchronized void installItemFactory(ItemFactory factory) {
         itemFactory = factory;
+    }
+
+    /** Puts the window back where mod construction has it. For tests. */
+    static synchronized void resetForTests() {
+        TOOLS.clear();
+        PARTS.clear();
+        IDS.clear();
+        frozen = false;
     }
 
     private static synchronized ItemFactory factory() {

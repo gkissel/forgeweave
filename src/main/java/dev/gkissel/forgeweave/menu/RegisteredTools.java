@@ -26,7 +26,7 @@ import dev.gkissel.forgeweave.tool.ToolConstants;
  * cached because two tables have to agree on the identity of the entries they hold: a tab points at
  * the row the station assembles from, not at a copy of it.
  *
- * <p>The api's enums are name-for-name mirrors of the internal ones ({@code ApiSurfaceTest}
+ * <p>The api's enums are name-for-name mirrors of the internal ones ({@code ApiToolMirrorTest}
  * fails the build if they drift), which is what lets the mapping here be {@code valueOf} rather than
  * a switch that a new role could be left out of.
  */
