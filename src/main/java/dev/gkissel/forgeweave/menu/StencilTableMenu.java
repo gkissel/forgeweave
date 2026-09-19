@@ -1,6 +1,8 @@
 package dev.gkissel.forgeweave.menu;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 
@@ -16,8 +18,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.registries.DeferredItem;
 
+import dev.gkissel.forgeweave.api.tool.PartDefinition;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -64,8 +66,14 @@ public class StencilTableMenu extends StationMenu {
      *
      * <p>Issue #989/#1044 is the one exception: {@code PATTERN_WAR_MACE_HEAD} is deliberately not in
      * this list -- see the omission's own comment below.
+     *
+     * <p>Issue #1066 appends every pattern another mod registered through
+     * {@code api.tool.ForgeweaveTools} after the shipped ones, so no button a player has learned the
+     * position of moves. The element type widened from {@code DeferredItem} to plain
+     * {@link Supplier} in the same change, since an addon's pattern is held by whatever its own
+     * registry hands out.
      */
-    public static final List<DeferredItem<Item>> PATTERNS = List.of(
+    public static final List<Supplier<? extends Item>> PATTERNS = withRegistered(List.of(
             ForgeweaveItems.PATTERN_PICKAXE_HEAD,
             ForgeweaveItems.PATTERN_SHOVEL_HEAD,
             ForgeweaveItems.PATTERN_AXE_HEAD,
@@ -112,7 +120,17 @@ public class StencilTableMenu extends StationMenu {
             ForgeweaveItems.PATTERN_SHARPENING_KIT,
             // #605: upstream stencils the shard on the line right after the sharpening kit's
             // (TinkerTools#registerItems:154).
-            ForgeweaveItems.PATTERN_SHARD);
+            ForgeweaveItems.PATTERN_SHARD));
+
+    private static List<Supplier<? extends Item>> withRegistered(List<? extends Supplier<? extends Item>> builtIn) {
+        List<Supplier<? extends Item>> patterns = new ArrayList<>(builtIn);
+        for (PartDefinition part : RegisteredTools.parts()) {
+            if (part.pattern() != null) {
+                patterns.add(part.pattern());
+            }
+        }
+        return List.copyOf(patterns);
+    }
 
     private final Container container;
     private final ContainerLevelAccess access;

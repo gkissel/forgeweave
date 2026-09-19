@@ -182,7 +182,14 @@ public final class ToolAssemblyRecipes {
             // (parity audit 2026-08-18 T65, issue #496) -- every other field here is still identity.
             1.1f, 1.1f, 1.0f, 0.5f, 1.0f, 1.0f, false, false);
 
-    public static final List<Entry> ENTRIES = List.of(
+    /**
+     * The tools Forgeweave itself ships, in the order they have always been in. Kept as its own
+     * list since issue #1066, so that {@link #ENTRIES} can be this plus whatever an addon registered
+     * without a registered tool ever landing between two built-in rows -- and so that the checks
+     * which only make sense against Forgeweave's own roster, such as the generated Better Combat and
+     * Epic Fight coverage, have a roster to walk.
+     */
+    public static final List<Entry> BUILT_IN = List.of(
             new Entry(PICKAXE, ForgeweaveItems.TOOL_PICKAXE),
             new Entry(SHOVEL, ForgeweaveItems.TOOL_SHOVEL),
             new Entry(HATCHET, ForgeweaveItems.TOOL_HATCHET),
@@ -256,6 +263,19 @@ public final class ToolAssemblyRecipes {
             new Entry(ToolConstants.HEAVY_CHESTPLATE, ForgeweaveItems.ARMOR_HEAVY_CHESTPLATE),
             new Entry(ToolConstants.HEAVY_LEGGINGS, ForgeweaveItems.ARMOR_HEAVY_LEGGINGS),
             new Entry(ToolConstants.HEAVY_BOOTS, ForgeweaveItems.ARMOR_HEAVY_BOOTS));
+
+    /**
+     * Every tool the station can build: {@link #BUILT_IN} followed by everything another mod
+     * registered through {@code api.tool.ForgeweaveTools} (issue #1066). Reading this closes the
+     * registration window, which is why the table stays immutable and every caller of it still sees
+     * one fixed list.
+     */
+    public static final List<Entry> ENTRIES = RegisteredTools.appendAssemblies(BUILT_IN);
+
+    /** Whether {@code entry} is one of Forgeweave's own tools rather than a registered one. */
+    public static boolean isBuiltIn(Entry entry) {
+        return BUILT_IN.contains(entry);
+    }
 
     /**
      * Whether {@code stack} is something the station's head slot works <em>on</em> rather than
