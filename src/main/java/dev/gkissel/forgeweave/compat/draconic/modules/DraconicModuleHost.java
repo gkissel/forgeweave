@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.compat.draconic.modules;
 
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -14,6 +15,7 @@ import com.brandon3055.draconicevolution.api.capability.ModuleHost;
 import com.brandon3055.draconicevolution.api.modules.entities.ShieldControlEntity;
 import com.brandon3055.draconicevolution.api.modules.lib.ModuleEntity;
 import com.brandon3055.draconicevolution.api.modules.lib.ModuleHostImpl;
+import com.brandon3055.draconicevolution.api.modules.lib.StackModuleContext;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -37,6 +39,7 @@ import dev.gkissel.forgeweave.item.ArmorPieceItem;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.tool.ToolConstants;
+import dev.gkissel.forgeweave.tool.UpgradeHosts;
 
 /**
  * Forgeweave gear made of a fusion metal is a Draconic Evolution module host (issue #956,
@@ -92,6 +95,9 @@ public final class DraconicModuleHost implements DraconicModules.Bridge {
     public static void register(IEventBus modEventBus) {
         DraconicModules.install(INSTANCE);
         modEventBus.addListener(DraconicModuleHost::registerCapabilities);
+        // Issue #1033, maintainer rule 2026-09-18: a part swap that drops or shrinks a tool's module
+        // host gives back whatever it can no longer carry rather than losing or stranding it.
+        UpgradeHosts.register(DraconicModuleHost::reclaim);
     }
 
     /**
@@ -155,6 +161,78 @@ public final class DraconicModuleHost implements DraconicModules.Bridge {
                 providerName(stack),
                 false,
                 categories.toArray(ModuleCategory[]::new));
+    }
+
+    /**
+     * {@link UpgradeHosts.Host}: whatever {@code replacement} can no longer host, above the new tech
+     * level or outside the new grid, turned back into the modules' own items (issue #1033, maintainer
+     * rule 2026-09-18). Registered by {@link #register}, so it runs only with Draconic Evolution
+     * present, and reads {@code compat.draconicModules} itself rather than through {@link #newHost} --
+     * that toggle must make this method inert, not treat "off" as "every module is stranded".
+     *
+     * <p>{@code original} decides only whether there was ever anything to look at: if it never hosted
+     * modules at all ({@link #newHost} answers {@code null} for it), nothing could be installed and
+     * this returns empty without touching {@code replacement}. Everything installed is then read off
+     * {@code replacement} itself -- {@code result = toolStack.copy()} in {@code resolveExchange} carries
+     * Draconic Evolution's own module data components across the swap untouched, so a host shaped like
+     * the original but bound to the replacement's storage sees exactly what was installed before this
+     * exchange ran.
+     *
+     * <p><b>What "no longer fits" means.</b> A module that still fits keeps its stored grid position --
+     * this method never repacks the grid to make more of them fit. It comes back only if the
+     * replacement no longer hosts at all, if its own tech level ({@link
+     * com.brandon3055.draconicevolution.api.modules.Module#getModuleTechLevel}) is higher than the new
+     * host's, or if {@link ModuleEntity#isPosValid} says its stored position falls outside the new
+     * grid -- Draconic Evolution's own placement bounds check, not a Forgeweave-invented packing rule.
+     *
+     * <p><b>Energy.</b> {@code EnergyEntity}'s own stored charge only ever moves through Draconic
+     * Evolution's {@code IOPStorage} capability ({@code CapabilityOP.ITEM}), which {@link
+     * #registerCapabilities} never registers on Forgeweave gear (only {@code DECapabilities.Host.ITEM}
+     * is). So {@link StackModuleContext#getOpStorage} answers {@code null} here exactly as it would on
+     * a Forgeweave stack at every other call site, an energy module's own charge field is never written
+     * above zero in the first place, and a reclaimed one always comes back empty. The tool's own shared
+     * Forge Energy buffer ({@code EnergyBuffer}, what the module's capacity phase 1 actually adds to)
+     * belongs to the tool, not to any one module, and this method never touches it.
+     */
+    static List<ItemStack> reclaim(ItemStack original, ItemStack replacement) {
+        if (!ForgeweaveConfig.enabled(ForgeweaveConfig.DRACONIC_MODULES)) {
+            return List.of();
+        }
+        ModuleHostImpl installedView = newHost(original);
+        if (installedView == null) {
+            return List.of(); // original never hosted modules, so nothing could be installed on it
+        }
+        try (installedView) {
+            installedView.updateDataAccess(DataComponentAccessor.itemStack(replacement));
+            List<ModuleEntity<?>> installed = installedView.getModuleEntities();
+            if (installed.isEmpty()) {
+                return List.of();
+            }
+            try (ModuleHostImpl newShape = newHost(replacement)) {
+                List<ModuleEntity<?>> stranded =
+                        installed.stream().filter(entity -> !stillFits(entity, newShape)).toList();
+                if (stranded.isEmpty()) {
+                    return List.of();
+                }
+                StackModuleContext context = new StackModuleContext(replacement, null, null);
+                List<ItemStack> reclaimed = new ArrayList<>(stranded.size());
+                for (ModuleEntity<?> entity : stranded) {
+                    installedView.removeModule(entity, context);
+                    ItemStack moduleStack = new ItemStack(entity.getModule().getItem());
+                    entity.saveEntityToStack(moduleStack, context);
+                    reclaimed.add(moduleStack);
+                }
+                installedView.saveData();
+                return List.copyOf(reclaimed);
+            }
+        }
+    }
+
+    /** Whether {@code entity}'s tech level and stored grid position both still fit {@code newShape}. */
+    private static boolean stillFits(ModuleEntity<?> entity, @Nullable ModuleHostImpl newShape) {
+        return newShape != null
+                && entity.getModule().getModuleTechLevel().compareTo(newShape.getHostTechLevel()) <= 0
+                && entity.isPosValid(newShape.getGridWidth(), newShape.getGridHeight());
     }
 
     /**
