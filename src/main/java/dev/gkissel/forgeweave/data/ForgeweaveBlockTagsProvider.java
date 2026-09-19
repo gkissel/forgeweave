@@ -19,6 +19,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.SmelteryScan;
 import dev.gkissel.forgeweave.tool.VeinmineKey;
 import dev.gkissel.forgeweave.trackb.TrackBAlloy;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
@@ -273,6 +274,45 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
                 .add(ForgeweaveBlocks.BRIMSPAR_ORE.get()); // #903 -- vein-mining a vein of it is exactly as risky as it sounds
         tag(VeinmineKey.family("shovel")).addTag(BlockTags.DIRT).addTag(Tags.Blocks.GRAVELS).addTag(Tags.Blocks.SANDS)
                 .add(Blocks.CLAY, Blocks.SOUL_SAND, Blocks.SOUL_SOIL, Blocks.SNOW_BLOCK);
+
+        // #1067 (part 3 of #1008's addon audit): SmelteryScan reads these instead of a fixed
+        // Set.of, so a datapack or an addon can add its own wall, floor, tank or I/O block. Each
+        // tag ships exactly today's members, the old Set.of collections' own rosters, so behavior
+        // is unchanged for a Forgeweave-only install.
+        tag(SmelteryScan.TANKS)
+                .add(ForgeweaveBlocks.SEARED_TANK.get())
+                .add(ForgeweaveBlocks.SEARED_GAUGE.get())
+                .add(ForgeweaveBlocks.SEARED_WINDOW.get());
+        tag(SmelteryScan.FLOOR)
+                .add(ForgeweaveBlocks.SEARED_STONE.get())
+                .add(ForgeweaveBlocks.SEARED_COBBLESTONE.get())
+                .add(ForgeweaveBlocks.SEARED_PAVER.get())
+                .add(ForgeweaveBlocks.SEARED_BRICKS.get())
+                .add(ForgeweaveBlocks.SEARED_CRACKED_BRICKS.get())
+                .add(ForgeweaveBlocks.SEARED_FANCY_BRICKS.get())
+                .add(ForgeweaveBlocks.SEARED_SQUARE_BRICKS.get())
+                .add(ForgeweaveBlocks.SEARED_TRIANGLE_BRICKS.get())
+                .add(ForgeweaveBlocks.SEARED_SMALL_BRICKS.get())
+                .add(ForgeweaveBlocks.SEARED_ROAD.get())
+                .add(ForgeweaveBlocks.SEARED_TILE.get())
+                .add(ForgeweaveBlocks.SEARED_CREEPER.get());
+        tag(SmelteryScan.IO)
+                .add(ForgeweaveBlocks.SEARED_DRAIN.get())
+                .add(ForgeweaveBlocks.SEARED_DUCT.get())
+                .add(ForgeweaveBlocks.SEARED_CHUTE.get());
+        tag(SmelteryScan.ENERGIZED).add(ForgeweaveBlocks.ENERGIZED_TANK.get());
+        // WALL is FLOOR + TANKS + IO + seared glass, same union SmelteryScan.Valid.WALL used to
+        // build in Java (energized stays out on purpose, see SmelteryScan#ENERGIZED's javadoc),
+        // plus WALL_ADDON: an addOptionalTag reference to a tag nothing ships a file for here, kept
+        // only so SmelteryWallTagGameTests can prove tag-driven extension without hitting the
+        // gametest-resource shadowing trap a fixture at this tag's own path would (see
+        // SmelteryScan#WALL_ADDON and src/gametest/resources/README.md).
+        tag(SmelteryScan.WALL)
+                .addTag(SmelteryScan.FLOOR)
+                .addTag(SmelteryScan.TANKS)
+                .addTag(SmelteryScan.IO)
+                .add(ForgeweaveBlocks.SEARED_GLASS.get())
+                .addOptionalTag(SmelteryScan.WALL_ADDON);
     }
 
     private static TagKey<Block> cTag(String path) {

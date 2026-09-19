@@ -9,7 +9,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -31,7 +30,7 @@ import net.minecraft.world.level.block.state.BlockState;
  *   <li><b>Walls:</b> scanned upward from the floor until a layer fails. The interior must be air;
  *       every wall block and every corner column ({@code WALL} frame) takes upstream's
  *       {@code validTinkerTankBlocks}, which is {@code validSmelteryBlocks} itself
- *       ({@link SmelteryScan#wallBlocks()}) -- so glass, tanks and I/O blocks are all welcome
+ *       ({@link SmelteryScan#WALL}) -- so glass, tanks and I/O blocks are all welcome
  *       anywhere in the walls, corners included.
  *   <li><b>Ceiling:</b> over the interior footprint, any wall block <em>or</em> a bottom-half seared
  *       slab or stairs ({@code isCeilingBlock}); its outer ring is the {@code CEILING} frame, which
@@ -176,7 +175,7 @@ public final class SearedReservoirScan {
                 if (SmelteryScan.claimedByAnotherCore(level, pos, corePos)) {
                     return Part.fail(at(KEY_CLAIMED, pos));
                 }
-                record(io, tanks, pos, state.getBlock());
+                record(io, tanks, pos, state);
             }
         }
         return new Part(null, false, io, tanks);
@@ -210,44 +209,42 @@ public final class SearedReservoirScan {
                 if (pos.equals(corePos)) {
                     continue;
                 }
-                Block block = level.getBlockState(pos).getBlock();
-                if (!SmelteryScan.wallBlocks().contains(block)) {
+                BlockState state = level.getBlockState(pos);
+                if (!SmelteryScan.isWallBlock(state)) {
                     return Part.fail(at(KEY_INVALID_WALL, pos));
                 }
                 if (SmelteryScan.claimedByAnotherCore(level, pos, corePos)) {
                     return Part.fail(at(KEY_CLAIMED, pos));
                 }
-                record(io, tanks, pos, block);
+                record(io, tanks, pos, state);
             }
         }
         return new Part(null, false, io, tanks);
     }
 
-    private static void record(List<BlockPos> io, List<BlockPos> tanks, BlockPos pos, Block block) {
-        if (SmelteryScan.tankBlocks().contains(block)) {
+    private static void record(List<BlockPos> io, List<BlockPos> tanks, BlockPos pos, BlockState state) {
+        if (SmelteryScan.isTankBlock(state)) {
             tanks.add(pos);
-        } else if (SmelteryScan.ioBlocks().contains(block)) {
+        } else if (SmelteryScan.isIoBlock(state)) {
             io.add(pos);
         }
     }
 
     /** Upstream {@code validTinkerTankFloorBlocks}: a seared block, seared glass, or an I/O block -- never a tank. */
     static boolean isFloorBlock(BlockState state) {
-        Block block = state.getBlock();
-        return SmelteryScan.searedBlocks().contains(block)
-                || SmelteryScan.ioBlocks().contains(block)
-                || block == ForgeweaveBlocks.SEARED_GLASS.get();
+        return SmelteryScan.isSearedBlock(state)
+                || SmelteryScan.isIoBlock(state)
+                || state.is(ForgeweaveBlocks.SEARED_GLASS.get());
     }
 
     /** Upstream {@code isFrameBlock}'s fall-through for {@code FLOOR}: {@code searedBlock} or {@code smelteryIO}. */
     static boolean isFloorFrame(BlockState state) {
-        Block block = state.getBlock();
-        return SmelteryScan.searedBlocks().contains(block) || SmelteryScan.ioBlocks().contains(block);
+        return SmelteryScan.isSearedBlock(state) || SmelteryScan.isIoBlock(state);
     }
 
     /** Upstream {@code MultiblockTinkerTank#isCeilingBlock}: a bottom-half seared slab/stairs, or any wall block. */
     static boolean isCeilingBlock(BlockState state) {
-        return SearedFurnaceScan.isCeilingBlock(state) || SmelteryScan.wallBlocks().contains(state.getBlock());
+        return SearedFurnaceScan.isCeilingBlock(state) || SmelteryScan.isWallBlock(state);
     }
 
     /** Upstream {@code isFrameBlock}'s {@code CEILING} branch: a bottom-half seared slab/stairs, else the floor frame's rule. */
