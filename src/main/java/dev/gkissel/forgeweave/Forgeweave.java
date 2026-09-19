@@ -71,6 +71,7 @@ import dev.gkissel.forgeweave.modifier.EmbossingRecipe;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierDefinition; // #973
 import dev.gkissel.forgeweave.modifier.ModifierRecipe;
+import dev.gkissel.forgeweave.modifier.WorktableRecipe; // #1057
 import dev.gkissel.forgeweave.particle.ForgeweaveParticles; // #482
 import dev.gkissel.forgeweave.ponder.ForgeweavePonderPlugin;
 import dev.gkissel.forgeweave.recipe.AlloyRecipe; // #98
@@ -364,6 +365,9 @@ public class Forgeweave {
         // Modifier application recipes, same deal (ADR-0004): the client needs them so the Tool
         // Station screen can explain a rejection without a payload of its own.
         event.dataPackRegistry(ModifierRecipe.REGISTRY, ModifierRecipe.CODEC, ModifierRecipe.CODEC);
+        // #1057 -- what the Modifier Worktable can do to modifiers already on a tool. Synced for the
+        // same reason: the worktable screen works out its own button list from the loaded slots.
+        event.dataPackRegistry(WorktableRecipe.REGISTRY, WorktableRecipe.CODEC, WorktableRecipe.CODEC);
         // #100 -- casting recipes, same deal: the client needs them for JEI (#109) and for showing
         // what a casting block is currently making.
         event.dataPackRegistry(CastingRecipe.REGISTRY, CastingRecipe.CODEC, CastingRecipe.CODEC);

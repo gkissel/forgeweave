@@ -87,7 +87,10 @@ public record StationGroup(List<BlockPos> members, int selected) {
             List.of(ForgeweaveBlocks.PART_BUILDER),
             List.of(ForgeweaveBlocks.PART_CHEST),
             List.of(ForgeweaveBlocks.PATTERN_CHEST),
-            List.of(ForgeweaveBlocks.STENCIL_TABLE));
+            List.of(ForgeweaveBlocks.STENCIL_TABLE),
+            // #1057: the Modifier Worktable is 1.20's own station, so it has no 1.12 gui number to
+            // slot into the order above -- it goes last, after every 1.12 table.
+            List.of(ForgeweaveBlocks.MODIFIER_WORKTABLE));
 
     /** Upstream's {@code hasCraftingStation} key: the Crafting Station is {@link #KINDS}' first entry. */
     private static final int CRAFTING_STATION = 0;

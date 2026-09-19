@@ -84,6 +84,11 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         horizontalBlock(ForgeweaveBlocks.STENCIL_TABLE.get(), stencilTableModel);
         simpleBlockItem(ForgeweaveBlocks.STENCIL_TABLE.get(), stencilTableModel);
 
+        // The Modifier Worktable (issue #1057): a fixed stone table, so no retexture loader.
+        ModelFile modifierWorktableModel = models().getExistingFile(modLoc("block/modifier_worktable"));
+        horizontalBlock(ForgeweaveBlocks.MODIFIER_WORKTABLE.get(), modifierWorktableModel);
+        simpleBlockItem(ForgeweaveBlocks.MODIFIER_WORKTABLE.get(), modifierWorktableModel);
+
         // The Pattern Chest and Part Chest (docs/SCOPE.md M1 issue #66, reshaped by issue #342):
         // upstream 1.12's cabinet geometry, not a cube -- see chestBlock.
         chestBlock("pattern_chest", ForgeweaveBlocks.PATTERN_CHEST.get());

@@ -91,6 +91,17 @@ public final class ForgeweaveBlocks {
                     .strength(2.5F)
                     .sound(SoundType.WOOD)));
 
+    // The Modifier Worktable (issue #1057). A stone table, unlike every wood station above:
+    // upstream 1.20 builds it out of seared blocks and natural stone, so it takes a pickaxe and
+    // carries that generation's hardness rather than the wood tables' 2.5.
+    public static final DeferredBlock<ModifierWorktableBlock> MODIFIER_WORKTABLE = BLOCKS.register("modifier_worktable",
+            () -> new ModifierWorktableBlock(BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.STONE)
+                    .destroyTime(3.0F)
+                    .explosionResistance(9.0F)
+                    .sound(SoundType.STONE)
+                    .requiresCorrectToolForDrops()));
+
     public static final DeferredBlock<ChestBlock> PATTERN_CHEST = BLOCKS.register("pattern_chest",
             () -> new ChestBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.WOOD)

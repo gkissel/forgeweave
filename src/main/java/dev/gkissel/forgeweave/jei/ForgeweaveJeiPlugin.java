@@ -36,6 +36,7 @@ import dev.gkissel.forgeweave.client.CraftingStationScreen;
 import dev.gkissel.forgeweave.client.PartBuilderScreen;
 import dev.gkissel.forgeweave.client.SearedFurnaceScreen;
 import dev.gkissel.forgeweave.client.SmelteryScreen;
+import dev.gkissel.forgeweave.client.ModifierWorktableScreen; // #1057
 import dev.gkissel.forgeweave.client.StencilTableScreen;
 import dev.gkissel.forgeweave.recipe.RetexturedShapedRecipe;
 import dev.gkissel.forgeweave.client.ToolStationScreen;
@@ -49,6 +50,7 @@ import dev.gkissel.forgeweave.menu.PartBuilderMenu;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.modifier.EmbossingRecipe;
 import dev.gkissel.forgeweave.modifier.ModifierRecipe;
+import dev.gkissel.forgeweave.modifier.WorktableRecipe; // #1057
 import dev.gkissel.forgeweave.recipe.AlloyRecipe;
 import dev.gkissel.forgeweave.recipe.CoreTransformRecipe;
 import dev.gkissel.forgeweave.recipe.EntityMeltingRecipe;
@@ -168,6 +170,8 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
                         Component.translatable("jei.category.forgeweave.large_tool_assembly"),
                         new ItemStack(ForgeweaveItems.TOOL_FORGE.get())),
                 new RepairCategory(helper),
+                // #1057: the Modifier Worktable's two functions.
+                new WorktableCategory(helper),
                 // #109 -- smeltery/casting/modifier JEI categories (docs/SCOPE.md M2 issue #109).
                 new MeltingCategory(helper),
                 new AlloyingCategory(helper),
@@ -257,6 +261,11 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         registration.addRecipes(ModifierApplicationCategory.TYPE, ForgeweaveConfig.enabled(ForgeweaveConfig.MODIFIERS)
                 ? ModifierApplicationRecipes.build(currentModifierRecipes())
                 : List.of());
+        // #1057: the Modifier Worktable's own datapack registry, same per-session read, and gated by
+        // the same modifiers key -- taking a modifier off is one of the things `modifiers` covers.
+        registration.addRecipes(WorktableCategory.TYPE, ForgeweaveConfig.enabled(ForgeweaveConfig.MODIFIERS)
+                ? currentWorktableRecipes()
+                : List.of());
         // #165: embossing's own datapack registry, same read shape as the other four above --
         // and gated by the same modifiers key, since embossing is one of the things `modifiers`
         // covers (maintainer decision: everything that alters a tool at the station beyond repair
@@ -318,6 +327,8 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         // A shard always pays a part's cost exactly (SHARD_VALUE divides both HEAD_COST and
         // SMALL_PART_COST with no remainder), so it's as legitimate a "what can this craft" lookup
         // target as the station itself (issue #45's Part Crafting rework).
+        // #1057: the Modifier Worktable catalyses only its own two functions.
+        registration.addRecipeCatalyst(ForgeweaveItems.MODIFIER_WORKTABLE.get(), WorktableCategory.TYPE);
         registration.addRecipeCatalyst(ForgeweaveItems.SHARD.get(), PartCraftingCategory.TYPE);
         registration.addRecipeCatalyst(ForgeweaveItems.CRAFTING_STATION.get(), RecipeTypes.CRAFTING);
 
@@ -370,6 +381,7 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         registration.addGuiContainerHandler(PartBuilderScreen.class, new StationGuiHandler<>());
         registration.addGuiContainerHandler(ToolStationScreen.class, new StationGuiHandler<>());
         registration.addGuiContainerHandler(StencilTableScreen.class, new StationGuiHandler<>());
+        registration.addGuiContainerHandler(ModifierWorktableScreen.class, new StationGuiHandler<>()); // #1057
         // Issue #78: the chests have no chrome of their own, but they do get the station-group tab row.
         registration.addGuiContainerHandler(ChestScreen.class, new StationGuiHandler<>());
         registration.addGuiContainerHandler(SmelteryScreen.class, new SmelteryTankGuiHandler());
@@ -405,6 +417,7 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         registration.addRecipeTransferHandler(
                 new AssemblyTransferHandler(registration.getTransferHelper(), AssemblyCategory.LARGE_TYPE), AssemblyCategory.LARGE_TYPE);
         registration.addRecipeTransferHandler(new RepairTransferHandler(registration.getTransferHelper()), RepairCategory.TYPE);
+        registration.addRecipeTransferHandler(new WorktableTransferInfo()); // #1057
 
         // #109 -- modifier application transfer (docs/SCOPE.md M2 issue #109): melting and alloying
         // happen automatically inside the smeltery tank and casting has no menu at all (both
@@ -489,6 +502,17 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
             recipes.put(entry.getKey().location(), entry.getValue());
         }
         return recipes;
+    }
+
+    /** #1057: the worktable's functions, in registry order, each paired with its own key for JEI. */
+    private static List<WorktableDisplay> currentWorktableRecipes() {
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null) {
+            return List.of();
+        }
+        return level.registryAccess().registryOrThrow(WorktableRecipe.REGISTRY).entrySet().stream()
+                .map(entry -> new WorktableDisplay(entry.getKey().location(), entry.getValue()))
+                .toList();
     }
 
     private static Map<ResourceLocation, EmbossingRecipe> currentEmbossingRecipes() {

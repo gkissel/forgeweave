@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "R": {
+      "tag": "c:stones"
+    },
+    "S": {
+      "item": "forgeweave:seared_bricks"
+    }
+  },
+  "pattern": [
+    "SSS",
+    "R R",
+    "R R"
+  ],
+  "result": {
+    "count": 1,
+    "id": "forgeweave:modifier_worktable"
+  }
+}

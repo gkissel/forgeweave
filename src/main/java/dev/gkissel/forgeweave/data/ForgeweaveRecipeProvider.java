@@ -179,6 +179,19 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         // is "blank pattern + #STENCIL_TABLE" where that tag resolves to plankWood (NOTICE.md).
         retexturedTableRecipe(recipeOutput, ForgeweaveItems.STENCIL_TABLE.get(), ForgeweaveItems.PATTERN_BLANK.get(), Ingredient.of(ItemTags.PLANKS));
 
+        // Modifier Worktable (issue #1057): upstream 1.20's tables/modifier_worktable.json shape,
+        // seared blocks over four stone legs (NOTICE.md). Upstream keys the legs to its
+        // workstation_rock tag so the table takes the rock's own look; this block does not retexture
+        // (ModifierWorktableBlock), so the legs take neoforge's stones tag and nothing carries over.
+        ShapedRecipeBuilder.shaped(RecipeCategory.MISC, ForgeweaveItems.MODIFIER_WORKTABLE.get())
+                .pattern("SSS")
+                .pattern("R R")
+                .pattern("R R")
+                .define('S', ForgeweaveBlocks.SEARED_BRICKS.get())
+                .define('R', Tags.Items.STONES)
+                .unlockedBy("has_seared_bricks", has(ForgeweaveBlocks.SEARED_BRICKS.get()))
+                .save(recipeOutput);
+
         // 3 gravel -> 1 flint (parity audit T55, issue #486): upstream's recipes/common/flint.json,
         // gated by addFlintRecipe -- see GravelFlintRecipe's javadoc for why the gate is a match-time
         // config check here instead of upstream's load-time recipe condition.

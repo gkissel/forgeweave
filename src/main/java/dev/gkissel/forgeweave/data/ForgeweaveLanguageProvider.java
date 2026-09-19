@@ -81,6 +81,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addBlock(ForgeweaveBlocks.TOOL_FORGE, "Tool Forge");
         addBlock(ForgeweaveBlocks.CRAFTING_STATION, "Crafting Station");
         addBlock(ForgeweaveBlocks.STENCIL_TABLE, "Stencil Table");
+        addBlock(ForgeweaveBlocks.MODIFIER_WORKTABLE, "Modifier Worktable"); // #1057
         addBlock(ForgeweaveBlocks.PATTERN_CHEST, "Pattern Chest");
         addBlock(ForgeweaveBlocks.PART_CHEST, "Part Chest");
         addBlock(ForgeweaveBlocks.WOODEN_HOPPER, "Wooden Hopper"); // #822
@@ -808,6 +809,19 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.part_builder.useless_tool_part",
                 "This part cannot be used to craft any tool! Either the material %s is missing some "
                         + "information, or no tool uses a %s in its crafting.");
+
+        // The Modifier Worktable (issue #1057).
+        add("gui.forgeweave.worktable.info",
+                "Put a tool or an armor piece in the top slot and a wet sponge or a compass below it, "
+                        + "then pick one of the tool's modifiers. The sponge takes a level off it and "
+                        + "gives the slots back. The compass moves it up or down the list instead, and "
+                        + "is not used up.");
+        add("gui.forgeweave.worktable.no_modifiers", "Nothing on this tool can be taken off here.");
+        add("gui.forgeweave.worktable.not_enough_modifiers", "Sorting needs at least two modifiers.");
+        // The Draconic fusion case: ForgeweaveDataComponents#GRANTED_SLOTS is a bare count with no
+        // record of which modifier it came with, so no modifier can be priced on such a tool.
+        add("gui.forgeweave.worktable.granted_slots",
+                "This tool's slots were granted outside the station, so nothing can be taken off it here.");
 
         // Assembled tool tooltip stat labels (issue #54), ported from upstream 1.12's
         // stat.head.*.name entries (NOTICE.md).
@@ -1723,6 +1737,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // never appears as this one's catalyst, so the title says so up front.
         add("jei.category.forgeweave.large_tool_assembly", "Assembly (Tool Forge only)");
         add("jei.category.forgeweave.tool_repair", "Tool Repair");
+        // #1057: the Modifier Worktable's category, with a line per function since the two share it.
+        add("jei.category.forgeweave.modifier_worktable", "Modifier Worktable");
+        add("jei.category.forgeweave.modifier_worktable.remove", "Take a level off a modifier");
+        add("jei.category.forgeweave.modifier_worktable.sort", "Move a modifier up or down the list");
 
         // #109 -- smeltery/casting/modifier JEI categories (docs/SCOPE.md M2 issue #109).
         add("jei.category.forgeweave.melting", "Melting");
@@ -2688,6 +2706,18 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.modifiers.intro.title", "Modifiers");
         add("book.forgeweave.modifiers.intro.text",
                 "A finished tool is never truly finished. At the Tool Station or Tool Forge, sacrifice items to imbue a tool with modifiers. Each tool starts with a limited number of free slots, and some modifiers can be applied repeatedly for a stronger effect.\n\nThe pages that follow list every modifier known to this workshop.");
+        // #1057: the Modifier Worktable, the one station that works on modifiers already applied.
+        add("book.forgeweave.modifiers.worktable.title", "Modifier Worktable");
+        add("book.forgeweave.modifiers.worktable.text",
+                "Seared bricks on four stone legs build the Modifier Worktable. Where the Tool Station "
+                        + "adds modifiers, this table works on the ones a tool already carries.\n\n"
+                        + "A wet sponge takes one level off a modifier you pick and gives back the slots "
+                        + "that level held. What you spent applying it does not come back. The sponge comes "
+                        + "back dry, ready to be wetted again.\n\n"
+                        + "A compass moves a modifier one place along the tool's list, wrapping at the ends. "
+                        + "Put it in the upper slot to move the modifier down the list and in the lower slot "
+                        + "to move it up. The compass is never used up. Order matters where two modifiers "
+                        + "reach for the same number: the later one gets the last word.");
         // Issue #999 (D-M8-20): the augment path needs its own page because nothing else in the book
         // sends a player to another mod's station with Forgeweave gear in hand.
         add("book.forgeweave.modifiers.augments.title", "Augments");

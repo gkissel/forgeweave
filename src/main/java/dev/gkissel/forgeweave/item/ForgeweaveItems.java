@@ -543,6 +543,11 @@ public final class ForgeweaveItems {
     public static final DeferredItem<BlockItem> TOOL_FORGE = ITEMS.registerSimpleBlockItem("tool_forge", ForgeweaveBlocks.TOOL_FORGE);
     public static final DeferredItem<BlockItem> STENCIL_TABLE = ITEMS.registerSimpleBlockItem("stencil_table", ForgeweaveBlocks.STENCIL_TABLE);
 
+    // The Modifier Worktable (issue #1057): a plain block item -- a stone table carries no TEXTURE
+    // component, so none of the retextured-table item machinery applies to it.
+    public static final DeferredItem<BlockItem> MODIFIER_WORKTABLE =
+            ITEMS.registerSimpleBlockItem("modifier_worktable", ForgeweaveBlocks.MODIFIER_WORKTABLE);
+
     // The Pattern Chest and Part Chest (docs/SCOPE.md M1 issue #66): plain block items, not
     // retextured-table items -- neither chest carries a TEXTURE component (ChestBlock javadoc).
     public static final DeferredItem<BlockItem> PATTERN_CHEST = ITEMS.registerSimpleBlockItem("pattern_chest", ForgeweaveBlocks.PATTERN_CHEST);
