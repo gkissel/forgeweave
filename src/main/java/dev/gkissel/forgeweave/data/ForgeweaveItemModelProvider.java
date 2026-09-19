@@ -249,10 +249,13 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         // instead re-bakes the gold model with a colour multiplier at load time, NOTICE.md).
         ForgeweaveItems.CLAY_CASTS.forEach((cast, clay) -> singleLayerModel(clay, derivedItem("clay_" + cast)));
 
-        // Every assemblable tool, straight off the station's own table (ToolAssemblyRecipes.ENTRIES):
-        // one model layer per part, so a two-part M3 weapon gets two layers and a three-part one gets
-        // three, and no tool can be registered without a model or vice versa.
-        for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
+        // Every assemblable tool, straight off the station's own table: one model layer per part, so a
+        // two-part M3 weapon gets two layers and a three-part one gets three, and no tool can be
+        // registered without a model or vice versa. #1066 narrowed the walk to ToolAssemblyRecipes'
+        // built-in half -- a tool another mod registered ships its own art in its own namespace
+        // (ToolArt#layerTexture), and generating a Forgeweave model for it would claim art Forgeweave
+        // has no business owning.
+        for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.BUILT_IN) {
             // #679: a plate armor piece is the same maille-behind-plating layer stack (ToolArt#layers)
             // with the same broken-plating override, over the flat item/generated -- it is worn, not held.
             toolModel(entry.tool(), entry.constants().id(), ToolArt.layers(entry.constants().parts()),
