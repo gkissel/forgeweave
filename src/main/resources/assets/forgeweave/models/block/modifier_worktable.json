@@ -1,0 +1,73 @@
+{
+  "__comment": "The Modifier Worktable (issue #1057). Same table silhouette every Forgeweave station uses, with upstream 1.20's own worktable art on every face (NOTICE.md). Fixed rather than retextured: Forgeweave's retexture machinery is wood-keyed and this is a stone table -- see ModifierWorktableBlock.",
+  "parent": "minecraft:block/block",
+  "ambientocclusion": true,
+  "textures": {
+    "top": "forgeweave:derived/block/modifier_worktable_top",
+    "side": "forgeweave:derived/block/modifier_worktable_side",
+    "particle": "forgeweave:derived/block/modifier_worktable_top"
+  },
+  "elements": [
+    {
+      "__comment": "Table top plate",
+      "from": [0, 12, 0],
+      "to": [16, 16, 16],
+      "faces": {
+        "up": {"uv": [0, 0, 16, 16], "texture": "#top", "cullface": "up"},
+        "down": {"uv": [0, 0, 16, 16], "texture": "#top"},
+        "north": {"uv": [0, 0, 16, 4], "texture": "#side", "cullface": "north"},
+        "south": {"uv": [0, 0, 16, 4], "texture": "#side", "cullface": "south"},
+        "west": {"uv": [0, 0, 16, 4], "texture": "#side", "cullface": "west"},
+        "east": {"uv": [0, 0, 16, 4], "texture": "#side", "cullface": "east"}
+      }
+    },
+    {
+      "__comment": "Leg: -X -Z corner",
+      "from": [0, 0, 0],
+      "to": [4, 12, 4],
+      "faces": {
+        "down": {"uv": [0, 12, 4, 16], "texture": "#top", "cullface": "down"},
+        "north": {"uv": [12, 4, 16, 16], "texture": "#side", "cullface": "north"},
+        "south": {"uv": [12, 4, 16, 16], "texture": "#side"},
+        "west": {"uv": [0, 4, 4, 16], "texture": "#side", "cullface": "west"},
+        "east": {"uv": [0, 4, 4, 16], "texture": "#side"}
+      }
+    },
+    {
+      "__comment": "Leg: +X -Z corner",
+      "from": [12, 0, 0],
+      "to": [16, 12, 4],
+      "faces": {
+        "down": {"uv": [12, 12, 16, 16], "texture": "#top", "cullface": "down"},
+        "east": {"uv": [12, 4, 16, 16], "texture": "#side", "cullface": "east"},
+        "west": {"uv": [12, 4, 16, 16], "texture": "#side"},
+        "north": {"uv": [0, 4, 4, 16], "texture": "#side", "cullface": "north"},
+        "south": {"uv": [0, 4, 4, 16], "texture": "#side"}
+      }
+    },
+    {
+      "__comment": "Leg: +X +Z corner",
+      "from": [12, 0, 12],
+      "to": [16, 12, 16],
+      "faces": {
+        "down": {"uv": [12, 0, 16, 4], "texture": "#top", "cullface": "down"},
+        "south": {"uv": [12, 4, 16, 16], "texture": "#side", "cullface": "south"},
+        "north": {"uv": [12, 4, 16, 16], "texture": "#side"},
+        "east": {"uv": [0, 4, 4, 16], "texture": "#side", "cullface": "east"},
+        "west": {"uv": [0, 4, 4, 16], "texture": "#side"}
+      }
+    },
+    {
+      "__comment": "Leg: -X +Z corner",
+      "from": [0, 0, 12],
+      "to": [4, 12, 16],
+      "faces": {
+        "down": {"uv": [0, 0, 4, 4], "texture": "#top", "cullface": "down"},
+        "west": {"uv": [12, 4, 16, 16], "texture": "#side", "cullface": "west"},
+        "east": {"uv": [12, 4, 16, 16], "texture": "#side"},
+        "south": {"uv": [0, 4, 4, 16], "texture": "#side", "cullface": "south"},
+        "north": {"uv": [0, 4, 4, 16], "texture": "#side"}
+      }
+    }
+  ]
+}

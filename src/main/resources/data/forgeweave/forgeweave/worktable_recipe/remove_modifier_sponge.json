@@ -1,0 +1,11 @@
+{
+  "kind": "remove",
+  "input": {
+    "item": "minecraft:wet_sponge"
+  },
+  "leftovers": [
+    {
+      "id": "minecraft:sponge"
+    }
+  ]
+}

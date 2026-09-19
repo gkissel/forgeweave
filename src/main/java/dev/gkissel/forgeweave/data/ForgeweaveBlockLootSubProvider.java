@@ -66,6 +66,8 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
         add(ForgeweaveBlocks.TOOL_FORGE.get(), retexturedTableDrop(ForgeweaveBlocks.TOOL_FORGE.get()));
         add(ForgeweaveBlocks.CRAFTING_STATION.get(), retexturedTableDrop(ForgeweaveBlocks.CRAFTING_STATION.get()));
         add(ForgeweaveBlocks.STENCIL_TABLE.get(), retexturedTableDrop(ForgeweaveBlocks.STENCIL_TABLE.get()));
+        // #1057: the Modifier Worktable carries no TEXTURE component, so it drops plainly.
+        dropSelf(ForgeweaveBlocks.MODIFIER_WORKTABLE.get());
 
         // The Pattern Chest and Part Chest (issue #66) carry no TEXTURE component, but since issue
         // #478 (parity audit T47) they carry their contents: upstream's chestsKeepInventory, as the

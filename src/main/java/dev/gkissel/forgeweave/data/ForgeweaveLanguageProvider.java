@@ -81,6 +81,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addBlock(ForgeweaveBlocks.TOOL_FORGE, "Tool Forge");
         addBlock(ForgeweaveBlocks.CRAFTING_STATION, "Crafting Station");
         addBlock(ForgeweaveBlocks.STENCIL_TABLE, "Stencil Table");
+        addBlock(ForgeweaveBlocks.MODIFIER_WORKTABLE, "Modifier Worktable"); // #1057
         addBlock(ForgeweaveBlocks.PATTERN_CHEST, "Pattern Chest");
         addBlock(ForgeweaveBlocks.PART_CHEST, "Part Chest");
         addBlock(ForgeweaveBlocks.WOODEN_HOPPER, "Wooden Hopper"); // #822
@@ -808,6 +809,19 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.part_builder.useless_tool_part",
                 "This part cannot be used to craft any tool! Either the material %s is missing some "
                         + "information, or no tool uses a %s in its crafting.");
+
+        // The Modifier Worktable (issue #1057).
+        add("gui.forgeweave.worktable.info",
+                "Put a tool or an armor piece in the top slot and a wet sponge or a compass below it, "
+                        + "then pick one of the tool's modifiers. The sponge takes a level off it and "
+                        + "gives the slots back. The compass moves it up or down the list instead, and "
+                        + "is not used up.");
+        add("gui.forgeweave.worktable.no_modifiers", "Nothing on this tool can be taken off here.");
+        add("gui.forgeweave.worktable.not_enough_modifiers", "Sorting needs at least two modifiers.");
+        // The Draconic fusion case: ForgeweaveDataComponents#GRANTED_SLOTS is a bare count with no
+        // record of which modifier it came with, so no modifier can be priced on such a tool.
+        add("gui.forgeweave.worktable.granted_slots",
+                "This tool's slots were granted outside the station, so nothing can be taken off it here.");
 
         // Assembled tool tooltip stat labels (issue #54), ported from upstream 1.12's
         // stat.head.*.name entries (NOTICE.md).
