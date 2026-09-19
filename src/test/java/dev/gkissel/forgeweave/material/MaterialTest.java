@@ -196,7 +196,11 @@ class MaterialTest {
             "naga_scale", "arctic_fur", "alpha_yeti_fur", "carminite",
             "dragon_bone", "dragonsteel_fire", "dragonsteel_ice", "dragonsteel_lightning",
             "deathworm_chitin_yellow", "deathworm_chitin_white", "deathworm_chitin_red",
-            "troll_leather_mountain", "troll_leather_forest", "troll_leather_frost" })
+            "troll_leather_mountain", "troll_leather_forest", "troll_leather_frost",
+            // Issue #1058 (D-M8-24): Silent Gear, PneumaticCraft: Repressurized, Forbidden and
+            // Arcanus, The Aether and L_Ender's Cataclysm.
+            "crimson_steel", "azure_silver", "azure_electrum", "blaze_gold", "tyrian_steel",
+            "compressed_iron", "deorum", "zanite", "gravitite", "ambrosium", "ignitium", "cursium" })
     void shippedMaterialsParse(String name) {
         Material.CODEC.parse(ops, shipped(name)).getOrThrow();
     }
@@ -243,7 +247,12 @@ class MaterialTest {
             "naga_scale", "arctic_fur", "alpha_yeti_fur", "carminite",
             "dragon_bone", "dragonsteel_fire", "dragonsteel_ice", "dragonsteel_lightning",
             "deathworm_chitin_yellow", "deathworm_chitin_white", "deathworm_chitin_red",
-            "troll_leather_mountain", "troll_leather_forest", "troll_leather_frost" })
+            "troll_leather_mountain", "troll_leather_forest", "troll_leather_frost",
+            // Issue #1058 (D-M8-24): single item_exists each, verified against each mod's own
+            // 1.21.1 tree (SilentGearGameTests, PneumaticCraftGameTests, ForbiddenArcanusGameTests,
+            // AetherGameTests, CataclysmGameTests).
+            "crimson_steel", "azure_silver", "azure_electrum", "blaze_gold", "tyrian_steel",
+            "compressed_iron", "deorum", "zanite", "gravitite", "ambrosium", "ignitium", "cursium" })
     void conditionalMaterialsCarryAWellFormedConditionsBlockAndStillParse(String name) {
         JsonObject json = shipped(name).getAsJsonObject();
         assertTrue(json.has("neoforge:conditions"), name + " must carry a neoforge:conditions block (issue #826)");

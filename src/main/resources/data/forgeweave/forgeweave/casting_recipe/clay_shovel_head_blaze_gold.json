@@ -1,0 +1,21 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_shovel_head"
+  },
+  "fluid": "forgeweave:molten_blaze_gold",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:shovel_head",
+    "components": {
+      "forgeweave:material": "forgeweave:blaze_gold"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "silentgear:blaze_gold_ingot"
+    }
+  ]
+}

@@ -1285,6 +1285,21 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.troll_leather_mountain", "Troll Leather (Mountain)");
         add("material.forgeweave.troll_leather_forest", "Troll Leather (Forest)");
         add("material.forgeweave.troll_leather_frost", "Troll Leather (Frost)");
+        // Issue #1058 (D-M8-24): Track A presets for Silent Gear, PneumaticCraft: Repressurized,
+        // Forbidden and Arcanus, The Aether and L_Ender's Cataclysm. Names follow each mod's own
+        // registered material name.
+        add("material.forgeweave.crimson_steel", "Crimson Steel");
+        add("material.forgeweave.azure_silver", "Azure Silver");
+        add("material.forgeweave.azure_electrum", "Azure Electrum");
+        add("material.forgeweave.blaze_gold", "Blaze Gold");
+        add("material.forgeweave.tyrian_steel", "Tyrian Steel");
+        add("material.forgeweave.compressed_iron", "Compressed Iron");
+        add("material.forgeweave.deorum", "Deorum");
+        add("material.forgeweave.zanite", "Zanite");
+        add("material.forgeweave.gravitite", "Gravitite");
+        add("material.forgeweave.ambrosium", "Ambrosium");
+        add("material.forgeweave.ignitium", "Ignitium");
+        add("material.forgeweave.cursium", "Cursium");
 
         // Trait names and descriptions, keyed by trait id like materials are by material id -- traits
         // are Java behavior selected by data (ADR-0002), so nothing derives these keys for us. The
@@ -1857,6 +1872,17 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addFluid(ForgeweaveFluids.CYANITE, "Molten Cyanite");
         addFluid(ForgeweaveFluids.LUDICRITE, "Molten Ludicrite");
         addFluid(ForgeweaveFluids.URANINITE, "Molten Uraninite");
+        // Issue #1058 (D-M8-24): the nine ingot-shaped materials in the Silent Gear, PneumaticCraft:
+        // Repressurized, Forbidden and Arcanus and L_Ender's Cataclysm batch that melt and cast.
+        addFluid(ForgeweaveFluids.BLAZE_GOLD, "Molten Blaze Gold");
+        addFluid(ForgeweaveFluids.COMPRESSED_IRON, "Molten Compressed Iron");
+        addFluid(ForgeweaveFluids.AZURE_SILVER, "Molten Azure Silver");
+        addFluid(ForgeweaveFluids.CRIMSON_STEEL, "Molten Crimson Steel");
+        addFluid(ForgeweaveFluids.AZURE_ELECTRUM, "Molten Azure Electrum");
+        addFluid(ForgeweaveFluids.TYRIAN_STEEL, "Molten Tyrian Steel");
+        addFluid(ForgeweaveFluids.DEORUM, "Molten Deorum");
+        addFluid(ForgeweaveFluids.IGNITIUM, "Molten Ignitium");
+        addFluid(ForgeweaveFluids.CURSIUM, "Molten Cursium");
 
         addFluid(ForgeweaveFluids.FLAREALLOY, "Molten Flarealloy");
         addFluid(ForgeweaveFluids.DEEPALLOY, "Molten Deepalloy");
@@ -2434,6 +2460,35 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.troll_regeneration_forest.description", "Slowly repairs itself over time.");
         add("trait.forgeweave.troll_regeneration_frost.name", "Troll Regeneration");
         add("trait.forgeweave.troll_regeneration_frost.description", "Slowly repairs itself over time.");
+        // Issue #1058 (D-M8-24): Track A presets for Silent Gear, PneumaticCraft: Repressurized,
+        // Forbidden and Arcanus, The Aether and L_Ender's Cataclysm, each a datapack
+        // trait_definition over an existing TraitBehaviors class echoing that material's own
+        // identity in the source mod -- never a copy of its code.
+        add("trait.forgeweave.crimson_steel_temper.name", "Crimson Temper");
+        add("trait.forgeweave.crimson_steel_temper.description", "The wielder takes no damage from fire.");
+        add("trait.forgeweave.azure_silver_moonstep.name", "Moonstep");
+        add("trait.forgeweave.azure_silver_moonstep.description", "Jumps noticeably higher.");
+        add("trait.forgeweave.azure_electrum_swift.name", "Swift");
+        add("trait.forgeweave.azure_electrum_swift.description", "Moves faster while worn.");
+        add("trait.forgeweave.blaze_gold_cinder.name", "Cinder Brand");
+        add("trait.forgeweave.blaze_gold_cinder.description", "The wielder takes no damage from fire.");
+        add("trait.forgeweave.tyrian_steel_ward.name", "Tyrian Ward");
+        add("trait.forgeweave.tyrian_steel_ward.description",
+                "Once per cooldown, a killing blow spends durability to save the wielder instead.");
+        add("trait.forgeweave.compressed_iron_heft.name", "Compressed Heft");
+        add("trait.forgeweave.compressed_iron_heft.description", "Every hit deals at least a fixed amount of damage.");
+        add("trait.forgeweave.deorum_temper.name", "Deorum Temper");
+        add("trait.forgeweave.deorum_temper.description", "Toughens against repeated blows, resetting after a lull.");
+        add("trait.forgeweave.zanite_growth.name", "Zanite Growth");
+        add("trait.forgeweave.zanite_growth.description", "Mines faster the more worn the tool becomes.");
+        add("trait.forgeweave.gravitite_levity.name", "Gravitite Levity");
+        add("trait.forgeweave.gravitite_levity.description", "Flies faster while worn.");
+        add("trait.forgeweave.ambrosium_glow.name", "Ambrosium Glow");
+        add("trait.forgeweave.ambrosium_glow.description", "Being struck grants a short burst of regeneration.");
+        add("trait.forgeweave.ignitium_blaze.name", "Ignitium Blaze");
+        add("trait.forgeweave.ignitium_blaze.description", "The wielder takes no damage from fire.");
+        add("trait.forgeweave.cursium_blight.name", "Cursium Blight");
+        add("trait.forgeweave.cursium_blight.description", "A struck target's healing is weakened for a short time.");
         add("tooltip.forgeweave.energy", "Stored Energy");
         // #829 M6 utility/economy trait behavior library.
         add("trait.forgeweave.sunmend.name", "Sunmend");

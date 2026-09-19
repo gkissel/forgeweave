@@ -382,6 +382,27 @@ public final class ForgeweaveFluids {
     public static final MoltenMetal FERRICORE = register("ferricore", 0x8C5344, 924);
     public static final MoltenMetal BLAZEGOLD = register("blazegold", 0xE8871E, 1064);
     public static final MoltenMetal ECLIPSEALLOY = register("eclipsealloy", 0x1B2A4A, 1188);
+    // Issue #1058 (D-M8-24): the nine ingot-shaped materials in the Silent Gear, PneumaticCraft:
+    // Repressurized, Forbidden and Arcanus and L_Ender's Cataclysm batch -- each melts and casts, so
+    // each needs its own registered molten fluid the way every other cast_only compat metal above
+    // does. zanite, gravitite and ambrosium (The Aether) are Part Builder only, like celestigem, and
+    // get no fluid. Colors match each material's own JSON "color" (PaletteAuditTest); temperatures
+    // sit near their tier's existing compat-metal neighbours above (iron ~930-980, diamond
+    // ~1000-1140, netherite ~1150-1260) -- separate from each melting recipe's own explicit
+    // "temperature" field, which is what TrackAMeltingTemperatureTest checks.
+    // blaze_gold and compressed_iron went through two retuning passes each (PaletteAuditTest first
+    // caught them on molten_cinderforge/molten_titanium, then their first replacements on
+    // blazing_blood's owned yellow hue and molten_silicon); deorum needed one retune off
+    // molten_faultsteel. The other six cleared the floor on the first try.
+    public static final MoltenMetal BLAZE_GOLD = register("blaze_gold", 0xB56A2E, 945);
+    public static final MoltenMetal COMPRESSED_IRON = register("compressed_iron", 0x2E4C6B, 960);
+    public static final MoltenMetal AZURE_SILVER = register("azure_silver", 0xCBBAFF, 1060);
+    public static final MoltenMetal CRIMSON_STEEL = register("crimson_steel", 0xDC143C, 1230);
+    public static final MoltenMetal AZURE_ELECTRUM = register("azure_electrum", 0x4575E3, 1210);
+    public static final MoltenMetal TYRIAN_STEEL = register("tyrian_steel", 0xB01080, 1250);
+    public static final MoltenMetal DEORUM = register("deorum", 0xB8860B, 1220);
+    public static final MoltenMetal IGNITIUM = register("ignitium", 0xFF4500, 1260);
+    public static final MoltenMetal CURSIUM = register("cursium", 0x5B2C6F, 1240);
 
     private static final Map<String, MoltenMetal> COMPAT_METAL_FLUIDS = Map.ofEntries(
             Map.entry("aluminium", ALUMINIUM), Map.entry("bronze", BRONZE),
@@ -403,7 +424,18 @@ public final class ForgeweaveFluids {
             Map.entry("crystal_matrix", CRYSTAL_MATRIX), Map.entry("infinity", INFINITY),
             Map.entry("quartz_enriched_iron", QUARTZ_ENRICHED_IRON), Map.entry("silicon", SILICON),
             Map.entry("energised_steel", ENERGISED_STEEL), Map.entry("blutonium", BLUTONIUM),
-            Map.entry("cyanite", CYANITE), Map.entry("ludicrite", LUDICRITE), Map.entry("uraninite", URANINITE));
+            Map.entry("cyanite", CYANITE), Map.entry("ludicrite", LUDICRITE), Map.entry("uraninite", URANINITE),
+            // Issue #1058 (D-M8-24).
+            Map.entry("blaze_gold", BLAZE_GOLD), Map.entry("compressed_iron", COMPRESSED_IRON),
+            Map.entry("azure_silver", AZURE_SILVER), Map.entry("crimson_steel", CRIMSON_STEEL),
+            Map.entry("azure_electrum", AZURE_ELECTRUM), Map.entry("tyrian_steel", TYRIAN_STEEL),
+            Map.entry("deorum", DEORUM), Map.entry("ignitium", IGNITIUM), Map.entry("cursium", CURSIUM),
+            // Issue #1059 (D-M8-25), and the three Just Dire Things metals it repaired (#1031).
+            Map.entry("ironwood", IRONWOOD), Map.entry("steeleaf", STEELEAF), Map.entry("knightmetal", KNIGHTMETAL),
+            Map.entry("fiery", FIERY), Map.entry("dragon_bone", DRAGON_BONE),
+            Map.entry("dragonsteel_fire", DRAGONSTEEL_FIRE), Map.entry("dragonsteel_ice", DRAGONSTEEL_ICE),
+            Map.entry("dragonsteel_lightning", DRAGONSTEEL_LIGHTNING),
+            Map.entry("ferricore", FERRICORE), Map.entry("blazegold", BLAZEGOLD), Map.entry("eclipsealloy", ECLIPSEALLOY));
 
     /** A compat metal's molten fluid by material id (e.g. {@code "bronze"}), or {@code null} if unknown. */
     public static MoltenMetal compatMetalFluid(String id) {

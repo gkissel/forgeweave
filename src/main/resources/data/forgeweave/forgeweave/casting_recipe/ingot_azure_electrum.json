@@ -1,0 +1,17 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_azure_electrum",
+  "amount": 144,
+  "result": {
+    "id": "silentgear:azure_electrum_ingot"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "silentgear:azure_electrum_ingot"
+    }
+  ]
+}

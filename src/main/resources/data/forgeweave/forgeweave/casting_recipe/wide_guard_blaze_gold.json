@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_wide_guard"
+  },
+  "fluid": "forgeweave:molten_blaze_gold",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:wide_guard",
+    "components": {
+      "forgeweave:material": "forgeweave:blaze_gold"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "silentgear:blaze_gold_ingot"
+    }
+  ]
+}

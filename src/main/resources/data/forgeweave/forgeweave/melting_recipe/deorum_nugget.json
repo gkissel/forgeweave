@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:nuggets/deorum"
+  },
+  "fluid": "forgeweave:molten_deorum",
+  "amount": 16,
+  "temperature": 1600,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "forbidden_arcanus:deorum_ingot"
+    }
+  ]
+}

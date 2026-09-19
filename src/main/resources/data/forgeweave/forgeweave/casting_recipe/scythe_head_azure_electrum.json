@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_scythe_head"
+  },
+  "fluid": "forgeweave:molten_azure_electrum",
+  "amount": 1152,
+  "result": {
+    "id": "forgeweave:scythe_head",
+    "components": {
+      "forgeweave:material": "forgeweave:azure_electrum"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "silentgear:azure_electrum_ingot"
+    }
+  ]
+}

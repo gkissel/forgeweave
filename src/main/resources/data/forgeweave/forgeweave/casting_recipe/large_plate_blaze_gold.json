@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_large_plate"
+  },
+  "fluid": "forgeweave:molten_blaze_gold",
+  "amount": 1152,
+  "result": {
+    "id": "forgeweave:large_plate",
+    "components": {
+      "forgeweave:material": "forgeweave:blaze_gold"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "silentgear:blaze_gold_ingot"
+    }
+  ]
+}

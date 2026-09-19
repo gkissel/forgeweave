@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:ingots/crimson_steel"
+  },
+  "fluid": "forgeweave:molten_crimson_steel",
+  "amount": 144,
+  "temperature": 1600,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "silentgear:crimson_steel_ingot"
+    }
+  ]
+}

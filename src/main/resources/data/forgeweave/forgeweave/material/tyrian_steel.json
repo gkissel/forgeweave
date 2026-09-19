@@ -1,0 +1,44 @@
+{
+  "head": {
+    "durability": 980,
+    "mining_speed": 7.4,
+    "attack_damage": 7.6
+  },
+  "handle": {
+    "durability_modifier": 1.05,
+    "durability": 105
+  },
+  "extra_durability": 210,
+  "bow": {
+    "drawspeed": 0.42,
+    "range": 1.9,
+    "bonus_damage": 8.8
+  },
+  "plating": {
+    "helmet": { "durability": 400, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "chestplate": { "durability": 590, "armor": 8.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "leggings": { "durability": 552, "armor": 6.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "boots": { "durability": 479, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:tyrian_steel_ward"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/tyrian_steel" }, "value": 144 },
+    { "ingredient": { "tag": "c:storage_blocks/tyrian_steel" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/tyrian_steel"
+  },
+  "cast_only": true,
+  "enchantability": 14,
+  "color": "#B01080",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "silentgear:tyrian_steel_ingot"
+    }
+  ]
+}

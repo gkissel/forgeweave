@@ -1,0 +1,44 @@
+{
+  "head": {
+    "durability": 780,
+    "mining_speed": 8.0,
+    "attack_damage": 6.8
+  },
+  "handle": {
+    "durability_modifier": 0.95,
+    "durability": 88
+  },
+  "extra_durability": 150,
+  "bow": {
+    "drawspeed": 0.38,
+    "range": 2.0,
+    "bonus_damage": 8.2
+  },
+  "plating": {
+    "helmet": { "durability": 340, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "chestplate": { "durability": 500, "armor": 8.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "leggings": { "durability": 468, "armor": 6.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "boots": { "durability": 407, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:azure_electrum_swift"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/azure_electrum" }, "value": 144 },
+    { "ingredient": { "tag": "c:storage_blocks/azure_electrum" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/azure_electrum"
+  },
+  "cast_only": true,
+  "enchantability": 24,
+  "color": "#4575E3",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "silentgear:azure_electrum_ingot"
+    }
+  ]
+}

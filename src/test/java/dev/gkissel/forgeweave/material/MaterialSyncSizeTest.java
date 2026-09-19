@@ -150,8 +150,19 @@ class MaterialSyncSizeTest {
      * Raised to 150 KB (153,600 bytes), ~5.9 KB (4%) of headroom above the new measurement, the
      * same deliberately-tight step every earlier raise took -- a sibling batch (#1058) lands in the
      * same window and will need its own revisit on top of this one.
+     *
+     * <p>Issue #1058 (D-M8-24): twelve more Track A materials (Silent Gear, PneumaticCraft:
+     * Repressurized, Forbidden and Arcanus, The Aether, L_Ender's Cataclysm) take the 192-material
+     * roster to 144,504 bytes, 5,240 bytes over the 136 KB line. Raised to 145 KB (148,480 bytes),
+     * ~3.9 KB (2.7%) of headroom above the new measurement, the same deliberately-tight step as
+     * every raise above -- a sibling batch (#1059) is landing at the same time, so this leaves only
+     * its own real growth to account for rather than a speculative cushion.
+     *
+     * <p>#1059 and #1058 were measured on their own branches (150 KB and 145 KB). Merged, the roster
+     * syncs at 157,332 bytes, so the line sits at 160 KB (163,840 bytes), ~6.4 KB (4.1%) above that
+     * measurement.
      */
-    private static final int SYNC_BUDGET_BYTES = 150 * 1024;
+    private static final int SYNC_BUDGET_BYTES = 160 * 1024;
 
 
     private static RegistryOps<JsonElement> jsonOps;

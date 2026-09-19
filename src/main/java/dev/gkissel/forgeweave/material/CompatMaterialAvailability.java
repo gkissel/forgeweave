@@ -105,6 +105,19 @@ public final class CompatMaterialAvailability {
             // out of creative and JEI without Mekanism, and its melting and casting rows carry the
             // same item_exists gate.
             entry("atomic_matter_alloy", "mekanism:alloy_atomic"),
+            // Issue #1058 (D-M8-24): the nine ingot-shaped materials that own a Forgeweave-registered
+            // molten fluid and bucket, mirroring each one's own neoforge:conditions anchor item.
+            // zanite, gravitite and ambrosium (The Aether) are Part Builder only with no Forgeweave
+            // item of their own to hide, the same shape celestigem's own omission from this table sets.
+            entry("crimson_steel", "silentgear:crimson_steel_ingot"),
+            entry("azure_silver", "silentgear:azure_silver_ingot"),
+            entry("azure_electrum", "silentgear:azure_electrum_ingot"),
+            entry("blaze_gold", "silentgear:blaze_gold_ingot"),
+            entry("tyrian_steel", "silentgear:tyrian_steel_ingot"),
+            entry("compressed_iron", "pneumaticcraft:ingot_iron_compressed"),
+            entry("deorum", "forbidden_arcanus:deorum_ingot"),
+            entry("ignitium", "cataclysm:ignitium_ingot"),
+            entry("cursium", "cataclysm:cursium_ingot"),
             // #1059 (D-M8-25): Twilight Forest and Ice and Fire's eight melting materials, mirroring
             // each material JSON's own neoforge:conditions the same way every row above does.
             entry("ironwood", "twilightforest:ironwood_ingot"),

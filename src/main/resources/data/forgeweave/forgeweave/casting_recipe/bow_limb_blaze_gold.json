@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_bow_limb"
+  },
+  "fluid": "forgeweave:molten_blaze_gold",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:bow_limb",
+    "components": {
+      "forgeweave:material": "forgeweave:blaze_gold"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "silentgear:blaze_gold_ingot"
+    }
+  ]
+}

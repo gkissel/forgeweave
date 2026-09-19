@@ -110,6 +110,11 @@ class ArmorMaterialTest {
             Stream.of("blazing_crystal", "niotic_crystal", "spirited_crystal", "nitro_crystal"),
             // #1031 (D-M8-21): Just Dire Things' four tool tiers, same full plating + maille shape.
             Stream.of("ferricore", "blazegold", "celestigem", "eclipsealloy"),
+            // #1058 (D-M8-24): Silent Gear, PneumaticCraft: Repressurized, Forbidden and Arcanus,
+            // The Aether and L_Ender's Cataclysm, same full plating + maille shape as every other
+            // Track A preset batch.
+            Stream.of("crimson_steel", "azure_silver", "azure_electrum", "blaze_gold", "tyrian_steel",
+                    "compressed_iron", "deorum", "zanite", "gravitite", "ambrosium", "ignitium", "cursium"),
             // #997 (D-M8-18): Occultism's spirit attuned gem, same full plating + maille shape as the
             // rest of the gem/crystal-tier roster above.
             Stream.of("spirit_attuned_gem"),

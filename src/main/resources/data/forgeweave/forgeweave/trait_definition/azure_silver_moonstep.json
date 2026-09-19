@@ -1,0 +1,5 @@
+{
+  "behavior": "forgeweave:movement_bonus",
+  "kind": "jump_strength",
+  "magnitude": 0.5
+}

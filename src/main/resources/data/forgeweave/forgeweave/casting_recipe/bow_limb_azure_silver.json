@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_bow_limb"
+  },
+  "fluid": "forgeweave:molten_azure_silver",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:bow_limb",
+    "components": {
+      "forgeweave:material": "forgeweave:azure_silver"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "silentgear:azure_silver_ingot"
+    }
+  ]
+}
