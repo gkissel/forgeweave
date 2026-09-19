@@ -2397,10 +2397,21 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.dragonsteel_ice_calm.description", "Builds resistance to repeated hits from the same source.");
         add("trait.forgeweave.dragonsteel_lightning_surge.name", "Dragonsteel Lightning Surge");
         add("trait.forgeweave.dragonsteel_lightning_surge.description", "Deals bonus damage on a fully charged swing.");
-        add("trait.forgeweave.deathworm_venom.name", "Death Worm Venom");
-        add("trait.forgeweave.deathworm_venom.description", "Poisons whatever it strikes.");
-        add("trait.forgeweave.troll_regeneration.name", "Troll Regeneration");
-        add("trait.forgeweave.troll_regeneration.description", "Slowly repairs itself over time.");
+        // Issue #876's dedupe policy forbids one trait id claimed by more than one material, so each
+        // color/biome variant gets its own id over the identical behavior body rather than sharing
+        // one (MaterialTest#noTwoMaterialsShareANonExemptTraitId).
+        add("trait.forgeweave.deathworm_venom_yellow.name", "Death Worm Venom");
+        add("trait.forgeweave.deathworm_venom_yellow.description", "Poisons whatever it strikes.");
+        add("trait.forgeweave.deathworm_venom_white.name", "Death Worm Venom");
+        add("trait.forgeweave.deathworm_venom_white.description", "Poisons whatever it strikes.");
+        add("trait.forgeweave.deathworm_venom_red.name", "Death Worm Venom");
+        add("trait.forgeweave.deathworm_venom_red.description", "Poisons whatever it strikes.");
+        add("trait.forgeweave.troll_regeneration_mountain.name", "Troll Regeneration");
+        add("trait.forgeweave.troll_regeneration_mountain.description", "Slowly repairs itself over time.");
+        add("trait.forgeweave.troll_regeneration_forest.name", "Troll Regeneration");
+        add("trait.forgeweave.troll_regeneration_forest.description", "Slowly repairs itself over time.");
+        add("trait.forgeweave.troll_regeneration_frost.name", "Troll Regeneration");
+        add("trait.forgeweave.troll_regeneration_frost.description", "Slowly repairs itself over time.");
         add("tooltip.forgeweave.energy", "Stored Energy");
         // #829 M6 utility/economy trait behavior library.
         add("trait.forgeweave.sunmend.name", "Sunmend");

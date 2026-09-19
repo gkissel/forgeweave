@@ -95,7 +95,7 @@ Corrections to the issue's own expected list, all read in source:
 
 **Twilight Forest, 8 presets:** ironwood, steeleaf, knightmetal, fiery (all four melt, full tool + armor), naga scale, arctic fur, alpha yeti fur, carminite (all four Part Builder only -- no melting/casting rows, the same shape `blazing_crystal.json` already ships).
 
-**Ice and Fire, 10 new presets plus 1 dedupe:** dragon bone, dragonsteel fire, dragonsteel ice, dragonsteel lightning (all four melt, full tool + armor except dragon bone which has no armor material of its own), death worm chitin yellow/white/red and troll leather mountain/forest/frost (six Part Builder only, sharing one trait each across their three color/biome variants since their source stats are identical). Silver widens Forgeweave's existing `silver` material's `neoforge:conditions` with a fourth OR branch (`iceandfire:silver_ingot`), the same dedupe shape #1031 already used for Eternal Ores -- no new preset, no new material id.
+**Ice and Fire, 10 new presets plus 1 dedupe:** dragon bone, dragonsteel fire, dragonsteel ice, dragonsteel lightning (all four melt, full tool + armor except dragon bone which has no armor material of its own), death worm chitin yellow/white/red and troll leather mountain/forest/frost (six Part Builder only, identical stats across each trio of color/biome variants since the source mod gives them identical stats too -- each variant still gets its own trait id over the same behavior body, since issue #876's dedupe policy forbids one trait id claimed by more than one material). Silver widens Forgeweave's existing `silver` material's `neoforge:conditions` with a fourth OR branch (`iceandfire:silver_ingot`), the same dedupe shape #1031 already used for Eternal Ores -- no new preset, no new material id.
 
 Stats for every melting material sit inside the existing Track A envelope at their assigned harvest tier (iron: ~240-260/6.2-6.4/3.5-3.7, `ench` 12-14; diamond: ~480-560/6.5-7.5/5.0-5.8, `ench` 15-19; netherite: ~900-940/7.4-7.8/6.5-6.9, `ench` 14-18), read off the nearest-tier compat metals already shipped (ferricore/celestigem/blazegold/eclipsealloy), not off either mod's own raw numbers, which use a different unit scale entirely -- the same caveat the Just Dire Things batch recorded and this survey repeats rather than re-derives.
 
@@ -115,8 +115,8 @@ Every trait below reuses an existing `TraitBehaviors` class rather than inventin
 | Dragonsteel (fire) | `dragonsteel_fire_ward` | `damage_type_immunity` vs `minecraft:is_fire` | Matches the fire dragon's own element directly |
 | Dragonsteel (ice) | `dragonsteel_ice_calm` | `stacking_resistance` | An icy, composed defense against repeated effect stacking |
 | Dragonsteel (lightning) | `dragonsteel_lightning_surge` | `bonus_damage_vs` with `condition: full_charge` | A lightning strike lands hardest on a fully charged swing |
-| Death worm chitin (all 3) | `deathworm_venom` | `effect_on_hit` (poison) | Death worms are burrowing, poison-themed creatures in source; shared across all three colors since their stats are already identical |
-| Troll leather (all 3) | `troll_regeneration` | `self_repair_when` | Classic troll self-healing, shared across all three biome variants the same way |
+| Death worm chitin (yellow/white/red) | `deathworm_venom_yellow`/`_white`/`_red` | `effect_on_hit` (poison) | Death worms are burrowing, poison-themed creatures in source; one trait id per color over the same behavior body, since #876's dedupe policy forbids sharing one id across materials |
+| Troll leather (mountain/forest/frost) | `troll_regeneration_mountain`/`_forest`/`_frost` | `self_repair_when` | Classic troll self-healing, one trait id per biome variant the same way |
 
 ## Recommendations left for the maintainer
 

@@ -364,8 +364,8 @@ public final class ForgeweaveFluids {
     public static final MoltenMetal IRONWOOD = register("ironwood", 0x8A9B5E, 906);
     public static final MoltenMetal STEELEAF = register("steeleaf", 0x4E7A3D, 1046);
     public static final MoltenMetal KNIGHTMETAL = register("knightmetal", 0x7A8FA6, 1052);
-    public static final MoltenMetal FIERY = register("fiery", 0xD14A1E, 1158);
-    public static final MoltenMetal DRAGON_BONE = register("dragon_bone", 0xD8CBA8, 912);
+    public static final MoltenMetal FIERY = register("fiery", 0x861540, 1158);
+    public static final MoltenMetal DRAGON_BONE = register("dragon_bone", 0xE3D6A0, 912);
     public static final MoltenMetal DRAGONSTEEL_FIRE = register("dragonsteel_fire", 0xB23A1E, 1164);
     public static final MoltenMetal DRAGONSTEEL_ICE = register("dragonsteel_ice", 0x5FA8D3, 1170);
     public static final MoltenMetal DRAGONSTEEL_LIGHTNING = register("dragonsteel_lightning", 0x6A4C93, 1176);

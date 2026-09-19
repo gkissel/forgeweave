@@ -40,7 +40,7 @@
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
     "general": [
-      "forgeweave:deathworm_venom"
+      "forgeweave:deathworm_venom_red"
     ]
   },
   "crafting_items": [
