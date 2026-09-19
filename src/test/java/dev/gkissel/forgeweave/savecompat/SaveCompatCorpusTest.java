@@ -112,6 +112,20 @@ import dev.gkissel.forgeweave.material.Material;
  * else: a new persistent data component or a changed block-entity tag still adds a fixture in the
  * same PR. A future attachment whose shape is richer than a codec-generated map is worth revisiting
  * this for.
+ *
+ * <h2>What the corpus cannot cover: a tool from another mod</h2>
+ *
+ * <p>Issue #1066 let another mod register a tool, and a registered tool's stack is the one shape the
+ * corpus has no way to hold: {@code ItemStack.CODEC} needs the item in the registry, and the item
+ * belongs to a mod these plain JUnit tests do not load. The round trip is a GameTest instead
+ * ({@code RegisteredToolGameTests#aRegisteredToolAssemblesAndSurvivesASaveRoundTrip}), where the
+ * test addon is loaded and the stack comes out of a real Tool Station.
+ *
+ * <p>Nothing was added here for that issue because nothing it changed is serialized. It widened
+ * {@code ToolConstants.PartSlot#partId} from a path to a full {@code ResourceLocation}, and that
+ * field lives in a static table, not in a component: what a tool stores is still the material per
+ * slot, positionally. The whole corpus passing unchanged is the evidence for that, which is the
+ * other reason no fixture belongs here -- a new one would only restate it.
  */
 class SaveCompatCorpusTest {
 

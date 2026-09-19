@@ -66,6 +66,10 @@ Sizes are S (a day or less), M (a few days), L (a week or more of design plus co
 
 Items 1 to 4 and 8 are each small and independent. Items 5 to 7 carry the "a new tool from outside" goal and should land together: a tool that assembles but has no pattern to build its parts from, no station tab and no broken texture is not usable.
 
+**Status, 2026-09-19.** Items 1 to 3 shipped in [#1065](https://github.com/gkissel/forgeweave/issues/1065) and items 4 to 7 in [#1066](https://github.com/gkissel/forgeweave/issues/1066). Every row below that calls one of those tables closed is describing the tree on the audit date, not the tree today.
+
+A tool or a part from outside is registered in Java, through `dev.gkissel.forgeweave.api.tool.ForgeweaveTools`. It has to be Java: a tool needs an item and a model with one tinted layer per part, and a datapack can produce neither. The three rosters are now a shipped seed plus registered rows, `ToolStationTabs` lays a registered tool's slots out from its part count, and `ToolArt` resolves its layers at `<namespace>:item/<tool>_<layer>`. `src/gametest/java/dev/gkissel/forgeweave/gametest/addon/` is a worked example.
+
 ## Per extension point
 
 ### Materials and part stats

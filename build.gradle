@@ -31,6 +31,14 @@ sourceSets {
     gametest
 }
 
+// Issue #1066 gave the source set Java as well: the test addon that registers a tool and a part
+// through `dev.gkissel.forgeweave.api.tool`, proving the public entry point works from outside the
+// tables it feeds. It compiles against Minecraft, NeoForge and sourceSets.main, and rides the same
+// gameTestServer-only mod binding its resources already do.
+configurations {
+    gametestImplementation.extendsFrom implementation
+}
+
 repositories {
     // JUnit and its transitive dependencies for the unit test source set.
     mavenCentral()
@@ -119,6 +127,10 @@ neoForge {
 
     // This line is optional. Access Transformers are automatically detected
     // accessTransformers = project.files('src/main/resources/META-INF/accesstransformer.cfg')
+
+    // Minecraft and NeoForge for the GameTest-only source set's Java (issue #1066); its half of the
+    // classpath, sourceSets.main.output, is in the dependencies block below.
+    addModdingDependenciesTo sourceSets.gametest
 
     mods {
         // define mod <-> source bindings
@@ -233,6 +245,11 @@ dependencies {
     // For more info:
     // http://www.gradle.org/docs/current/userguide/artifact_dependencies_tutorial.html
     // http://www.gradle.org/docs/current/userguide/dependency_management.html
+
+    // The GameTest-only source set's Java compiles against the mod itself (issue #1066). Its test
+    // addon deliberately imports nothing below dev.gkissel.forgeweave.api.tool except the GameTest
+    // harness, which is the point: it is a stand-in for another mod's code.
+    gametestImplementation sourceSets.main.output
 
     // JEI (docs/SCOPE.md M1 issue #11): compileOnly so the mod compiles against JEI's API without
     // hard-requiring it (see neoforge.mods.toml's "optional" dependency entry), localRuntime so JEI

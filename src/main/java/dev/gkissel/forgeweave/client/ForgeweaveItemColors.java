@@ -4,6 +4,7 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FastColor;
 import net.minecraft.world.item.Item;
@@ -14,12 +15,10 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.model.DynamicFluidContainerModel;
-import net.neoforged.neoforge.registries.DeferredHolder;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
-import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
@@ -72,10 +71,14 @@ public final class ForgeweaveItemColors {
      * newest parts were never added to it. Derived, a new part item inherits its tint by being
      * registered, the same way {@link #tintedToolItems} already worked. Package-private so
      * {@code ItemColorCoverageTest} can pin the coverage.
+     *
+     * <p>Issue #1066 widened the walk from Forgeweave's own {@code DeferredRegister} to the item
+     * registry, which by the time colour handlers are registered holds every mod's items. A part
+     * another mod registered is a {@link PartItem} carrying a material like any other, and rendering
+     * it white was the last thing standing between a registered part and looking right.
      */
     static Item[] tintedPartItems() {
-        return ForgeweaveItems.ITEMS.getEntries().stream()
-                .<Item>map(DeferredHolder::get)
+        return BuiltInRegistries.ITEM.stream()
                 .filter(item -> item instanceof PartItem)
                 .toArray(Item[]::new);
     }

@@ -3,15 +3,12 @@ package dev.gkissel.forgeweave.jei;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
-import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.PartBuilderRecipes;
 
@@ -20,64 +17,21 @@ import dev.gkissel.forgeweave.menu.PartBuilderRecipes;
  * explicitly (5 part types x however many materials a modpack ships), unlike tool assembly's head x
  * binding x handle combinatorics (see {@link AssemblyRecipes}). The material input/change slots
  * within each recipe then cycle through every crafting-item option that material accepts (issue
- * #45), reusing {@code menu.PartBuilderRecipes}' own cost constants and {@code computeCost} math
- * rather than re-deriving them -- only the pattern/part wiring is re-declared here, since
- * {@code PartBuilderRecipes} keeps that association package-private to {@code menu}.
+ * #45), reusing {@code menu.PartBuilderRecipes}' own table, cost constants and {@code computeCost}
+ * math rather than re-deriving any of them.
+ *
+ * <p>Issue #1066 deleted the hand-copy of the pattern/part wiring that used to sit here. It existed
+ * only because {@code PartBuilderRecipes} kept that association package-private, and a copy of a
+ * table is a copy that drifts -- it also had no way to show a part another mod registered. JEI now
+ * reads the one table the station stamps from.
  */
 final class PartCraftingRecipes {
-    private record Entry(Supplier<? extends Item> pattern, Supplier<? extends PartItem> part, int cost) {}
-
-    private static final List<Entry> ENTRIES = List.of(
-            new Entry(ForgeweaveItems.PATTERN_PICKAXE_HEAD, ForgeweaveItems.PART_PICKAXE_HEAD, PartBuilderRecipes.HEAD_COST),
-            new Entry(ForgeweaveItems.PATTERN_SHOVEL_HEAD, ForgeweaveItems.PART_SHOVEL_HEAD, PartBuilderRecipes.HEAD_COST),
-            new Entry(ForgeweaveItems.PATTERN_AXE_HEAD, ForgeweaveItems.PART_AXE_HEAD, PartBuilderRecipes.HEAD_COST),
-            new Entry(ForgeweaveItems.PATTERN_TOOL_BINDING, ForgeweaveItems.PART_TOOL_BINDING, PartBuilderRecipes.SMALL_PART_COST),
-            new Entry(ForgeweaveItems.PATTERN_TOOL_HANDLE, ForgeweaveItems.PART_TOOL_HANDLE, PartBuilderRecipes.SMALL_PART_COST),
-
-            // M3 roster (docs/SCOPE.md issue #151) -- mirrors menu.PartBuilderRecipes#ENTRIES.
-            new Entry(ForgeweaveItems.PATTERN_SWORD_BLADE, ForgeweaveItems.PART_SWORD_BLADE, PartBuilderRecipes.HEAD_COST),
-            new Entry(ForgeweaveItems.PATTERN_WIDE_GUARD, ForgeweaveItems.PART_WIDE_GUARD, PartBuilderRecipes.SMALL_PART_COST),
-            new Entry(ForgeweaveItems.PATTERN_HAND_GUARD, ForgeweaveItems.PART_HAND_GUARD, PartBuilderRecipes.SMALL_PART_COST),
-            new Entry(ForgeweaveItems.PATTERN_CROSS_GUARD, ForgeweaveItems.PART_CROSS_GUARD, PartBuilderRecipes.SMALL_PART_COST),
-            new Entry(ForgeweaveItems.PATTERN_SIGN_PLATE, ForgeweaveItems.PART_SIGN_PLATE, PartBuilderRecipes.MEDIUM_PART_COST),
-            new Entry(ForgeweaveItems.PATTERN_PAN, ForgeweaveItems.PART_PAN, PartBuilderRecipes.MEDIUM_PART_COST),
-            new Entry(ForgeweaveItems.PATTERN_KNIFE_BLADE, ForgeweaveItems.PART_KNIFE_BLADE, PartBuilderRecipes.SMALL_PART_COST),
-            new Entry(ForgeweaveItems.PATTERN_LARGE_SWORD_BLADE, ForgeweaveItems.PART_LARGE_SWORD_BLADE, PartBuilderRecipes.LARGE_HEAD_COST),
-            new Entry(ForgeweaveItems.PATTERN_TOUGH_TOOL_ROD, ForgeweaveItems.PART_TOUGH_TOOL_ROD, PartBuilderRecipes.MEDIUM_PART_COST),
-            new Entry(ForgeweaveItems.PATTERN_TOUGH_BINDING, ForgeweaveItems.PART_TOUGH_BINDING, PartBuilderRecipes.MEDIUM_PART_COST),
-            new Entry(ForgeweaveItems.PATTERN_LARGE_PLATE, ForgeweaveItems.PART_LARGE_PLATE, PartBuilderRecipes.LARGE_HEAD_COST),
-            new Entry(ForgeweaveItems.PATTERN_HAMMER_HEAD, ForgeweaveItems.PART_HAMMER_HEAD, PartBuilderRecipes.LARGE_HEAD_COST),
-            new Entry(ForgeweaveItems.PATTERN_EXCAVATOR_HEAD, ForgeweaveItems.PART_EXCAVATOR_HEAD, PartBuilderRecipes.LARGE_HEAD_COST),
-            new Entry(ForgeweaveItems.PATTERN_SCYTHE_HEAD, ForgeweaveItems.PART_SCYTHE_HEAD, PartBuilderRecipes.LARGE_HEAD_COST),
-            new Entry(ForgeweaveItems.PATTERN_KAMA_HEAD, ForgeweaveItems.PART_KAMA_HEAD, PartBuilderRecipes.HEAD_COST),
-            new Entry(ForgeweaveItems.PATTERN_BROAD_AXE_HEAD, ForgeweaveItems.PART_BROAD_AXE_HEAD, PartBuilderRecipes.LARGE_HEAD_COST),
-            new Entry(ForgeweaveItems.PATTERN_VEIN_HAMMER_HEAD, ForgeweaveItems.PART_VEIN_HAMMER_HEAD, PartBuilderRecipes.LARGE_HEAD_COST),
-            // #1044: no row for the war mace head -- it is cast only, mirroring menu.PartBuilderRecipes#ENTRIES.
-            new Entry(ForgeweaveItems.PATTERN_CURVED_BLADE, ForgeweaveItems.PART_CURVED_BLADE, PartBuilderRecipes.HEAD_COST),
-            new Entry(ForgeweaveItems.PATTERN_KATANA_BLADE, ForgeweaveItems.PART_KATANA_BLADE, PartBuilderRecipes.MEDIUM_PART_COST),
-            // M3.5's bow parts (issue #393).
-            new Entry(ForgeweaveItems.PATTERN_BOW_LIMB, ForgeweaveItems.PART_BOW_LIMB, PartBuilderRecipes.MEDIUM_PART_COST),
-            new Entry(ForgeweaveItems.PATTERN_BOW_STRING, ForgeweaveItems.PART_BOW_STRING, PartBuilderRecipes.SMALL_PART_COST),
-            // #626's arrow parts, all VALUE_Ingot * 2 (TinkerTools.java:213-215).
-            new Entry(ForgeweaveItems.PATTERN_ARROW_HEAD, ForgeweaveItems.PART_ARROW_HEAD, PartBuilderRecipes.HEAD_COST),
-            new Entry(ForgeweaveItems.PATTERN_ARROW_SHAFT, ForgeweaveItems.PART_ARROW_SHAFT, PartBuilderRecipes.HEAD_COST),
-            new Entry(ForgeweaveItems.PATTERN_FLETCHING, ForgeweaveItems.PART_FLETCHING, PartBuilderRecipes.HEAD_COST),
-            // #677's armor parts, 1.20's per-piece plating costs.
-            new Entry(ForgeweaveItems.PATTERN_PLATING_HELMET, ForgeweaveItems.PART_PLATING_HELMET, PartBuilderRecipes.PLATING_HELMET_COST),
-            new Entry(ForgeweaveItems.PATTERN_PLATING_CHESTPLATE, ForgeweaveItems.PART_PLATING_CHESTPLATE, PartBuilderRecipes.PLATING_CHESTPLATE_COST),
-            new Entry(ForgeweaveItems.PATTERN_PLATING_LEGGINGS, ForgeweaveItems.PART_PLATING_LEGGINGS, PartBuilderRecipes.PLATING_LEGGINGS_COST),
-            new Entry(ForgeweaveItems.PATTERN_PLATING_BOOTS, ForgeweaveItems.PART_PLATING_BOOTS, PartBuilderRecipes.PLATING_BOOTS_COST),
-            new Entry(ForgeweaveItems.PATTERN_MAILLE, ForgeweaveItems.PART_MAILLE, PartBuilderRecipes.MAILLE_COST),
-            new Entry(ForgeweaveItems.PATTERN_SHARPENING_KIT, ForgeweaveItems.PART_SHARPENING_KIT, PartBuilderRecipes.HEAD_COST),
-            // #605: the shard, upstream's one sub-ingot part cost.
-            new Entry(ForgeweaveItems.PATTERN_SHARD, ForgeweaveItems.SHARD, PartBuilderRecipes.SHARD_VALUE));
-
     /** One crafting-item option a material accepts, and the value (upstream VALUE_* units) one of it pays off. */
     private record Option(ItemStack representative, int value) {}
 
     static List<PartCraftingRecipe> build(Map<ResourceLocation, Material> materials) {
         List<PartCraftingRecipe> recipes = new ArrayList<>();
-        for (Entry entry : ENTRIES) {
+        for (PartBuilderRecipes.Entry entry : PartBuilderRecipes.ENTRIES) {
             for (Map.Entry<ResourceLocation, Material> material : materials.entrySet()) {
                 // #435: and the same craftable gate (PartBuilderRecipes#craftableInPartBuilder) -- a
                 // cast-only material's crafting items are inert at the station until the config says

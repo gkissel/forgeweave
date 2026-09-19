@@ -1,6 +1,7 @@
 package dev.gkissel.forgeweave.client;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -17,7 +18,6 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
-import net.neoforged.neoforge.registries.DeferredItem;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
@@ -130,7 +130,7 @@ public class StencilTableScreen extends StationScreen<StencilTableMenu> implemen
     }
 
     private void renderPatternButtons(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        List<DeferredItem<Item>> patterns = StencilTableMenu.PATTERNS;
+        List<Supplier<? extends Item>> patterns = StencilTableMenu.PATTERNS;
         for (int i = 0; i < patterns.size(); i++) {
             int x = leftPos + buttonX(i);
             int y = topPos + buttonY(i);
@@ -162,7 +162,7 @@ public class StencilTableScreen extends StationScreen<StencilTableMenu> implemen
     @Override
     protected void renderTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         super.renderTooltip(guiGraphics, mouseX, mouseY);
-        List<DeferredItem<Item>> patterns = StencilTableMenu.PATTERNS;
+        List<Supplier<? extends Item>> patterns = StencilTableMenu.PATTERNS;
         for (int i = 0; i < patterns.size(); i++) {
             if (isHovering(buttonX(i), buttonY(i), BUTTON_SIZE, BUTTON_SIZE, mouseX, mouseY)) {
                 guiGraphics.renderTooltip(font, new ItemStack(patterns.get(i).get()), mouseX, mouseY);
@@ -173,7 +173,7 @@ public class StencilTableScreen extends StationScreen<StencilTableMenu> implemen
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        List<DeferredItem<Item>> patterns = StencilTableMenu.PATTERNS;
+        List<Supplier<? extends Item>> patterns = StencilTableMenu.PATTERNS;
         for (int i = 0; i < patterns.size(); i++) {
             if (isHovering(buttonX(i), buttonY(i), BUTTON_SIZE, BUTTON_SIZE, mouseX, mouseY)
                     && menu.clickMenuButton(minecraft.player, i)) {

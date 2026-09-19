@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.menu;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -14,6 +15,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
+import dev.gkissel.forgeweave.api.tool.PartDefinition;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -91,9 +93,16 @@ public final class PartBuilderRecipes {
     public static final int PLATING_BOOTS_COST = 2 * INGOT_VALUE;
     public static final int MAILLE_COST = 2 * INGOT_VALUE;
 
-    private record Entry(Supplier<? extends Item> pattern, Supplier<? extends PartItem> part, int cost) {}
+    /**
+     * One row of the table: the pattern that stamps a part, the part it stamps, and what one costs.
+     * Public since issue #1066 so the JEI plugin displays the table the station actually holds --
+     * registered parts included -- instead of the hand-copy it used to keep beside it. A part that
+     * is only ever cast has no row at all, which is what makes the war mace head unstampable and
+     * what a registered cast-only part inherits for free.
+     */
+    public record Entry(Supplier<? extends Item> pattern, Supplier<? extends PartItem> part, int cost) {}
 
-    private static final List<Entry> ENTRIES = List.of(
+    private static final List<Entry> BUILT_IN = List.of(
             new Entry(ForgeweaveItems.PATTERN_PICKAXE_HEAD, ForgeweaveItems.PART_PICKAXE_HEAD, HEAD_COST),
             new Entry(ForgeweaveItems.PATTERN_SHOVEL_HEAD, ForgeweaveItems.PART_SHOVEL_HEAD, HEAD_COST),
             new Entry(ForgeweaveItems.PATTERN_AXE_HEAD, ForgeweaveItems.PART_AXE_HEAD, HEAD_COST),
@@ -160,6 +169,23 @@ public final class PartBuilderRecipes {
             // sub-ingot cost, which is what makes shard change reachable from a plain ingot instead
             // of only from an oversized input (a log, a metal block).
             new Entry(ForgeweaveItems.PATTERN_SHARD, ForgeweaveItems.SHARD, SHARD_VALUE));
+
+    /**
+     * The whole table: {@link #BUILT_IN} followed by every part another mod registered through
+     * {@code api.tool.ForgeweaveTools} that has a pattern (issue #1066). Public so JEI advertises
+     * exactly what the station stamps.
+     */
+    public static final List<Entry> ENTRIES = withRegistered();
+
+    private static List<Entry> withRegistered() {
+        List<Entry> entries = new ArrayList<>(BUILT_IN);
+        for (PartDefinition part : RegisteredTools.parts()) {
+            if (part.pattern() != null) {
+                entries.add(new Entry(part.pattern(), () -> RegisteredTools.partItem(part), part.cost()));
+            }
+        }
+        return List.copyOf(entries);
+    }
 
     /**
      * Whether the pattern slot should accept this stack at all (the five part patterns only -- not

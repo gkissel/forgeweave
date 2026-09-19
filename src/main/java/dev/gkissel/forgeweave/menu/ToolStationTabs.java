@@ -190,7 +190,53 @@ public final class ToolStationTabs {
                 .orElseThrow(() -> new IllegalStateException(tool + " has no ToolAssemblyRecipes entry"));
     }
 
-    public static final List<Tab> TABS = List.of(
+    /**
+     * How far from the build area's origin a derived tab puts its slots, in GUI pixels. Sized so a
+     * ring of slots clears the origin and still fits the panel at the eight-slot ceiling below.
+     */
+    private static final int DERIVED_RADIUS = 20;
+
+    /**
+     * How many part slots a tab laid out by {@link #derived} can hold. The station's build area is
+     * about 64 pixels across, so a ring of more than eight 16-pixel slots would overlap. A tool
+     * registered with more parts than this is refused at class-init rather than drawn on top of
+     * itself.
+     */
+    private static final int MAX_DERIVED_SLOTS = 8;
+
+    /**
+     * A tab for a tool registered from outside (issue #1066), with its slots on a ring around the
+     * build area's origin instead of the hand-laid coordinates every built-in tool has. One slot
+     * sits at the top and the rest follow clockwise, so a three-part tool reads head-up the way the
+     * shipped tools do and slot order is still the tool's own part order.
+     *
+     * <p>Built-in tools never come through here. Their positions mirror upstream 1.12's own layouts
+     * and are pinned by {@code ToolStationTabsTest}; a derived ring would move every one of them.
+     */
+    private static Tab derived(ToolAssemblyRecipes.Entry entry) {
+        int count = entry.slotCount();
+        if (count > MAX_DERIVED_SLOTS) {
+            throw new IllegalStateException(entry.constants().id() + ": a registered tool takes at most "
+                    + MAX_DERIVED_SLOTS + " parts, got " + count);
+        }
+        List<Pos> slots = new ArrayList<>(count);
+        for (int i = 0; i < count; i++) {
+            double angle = 2 * Math.PI * i / count - Math.PI / 2;
+            slots.add(at((int) Math.round(Math.cos(angle) * DERIVED_RADIUS),
+                    (int) Math.round(Math.sin(angle) * DERIVED_RADIUS)));
+        }
+        return new Tab(null, List.of(entry), List.copyOf(slots));
+    }
+
+    private static List<Tab> withRegistered(List<Tab> builtIn) {
+        List<Tab> tabs = new ArrayList<>(builtIn);
+        for (ToolAssemblyRecipes.Entry entry : RegisteredTools.assemblies()) {
+            tabs.add(derived(entry));
+        }
+        return List.copyOf(tabs);
+    }
+
+    public static final List<Tab> TABS = withRegistered(List.of(
             new Tab("gui.forgeweave.tool_station.repair", List.of(),
                     List.of(at(0, 0), at(-18, 20), at(-22, -5), at(0, -23), at(22, -5), at(18, 20))),
             // pickaxe: head, binding, handle
@@ -286,7 +332,7 @@ public final class ToolStationTabs {
             family("gui.forgeweave.tool_station.heavy_armor",
                     List.of(ForgeweaveItems.ARMOR_HEAVY_HELMET, ForgeweaveItems.ARMOR_HEAVY_CHESTPLATE,
                             ForgeweaveItems.ARMOR_HEAVY_LEGGINGS, ForgeweaveItems.ARMOR_HEAVY_BOOTS),
-                    at(0, -16), at(-14, 10), at(14, 10)));
+                    at(0, -16), at(-14, 10), at(14, 10))));
 
     /** The repair tab, which is what a freshly opened station shows (as upstream's does). */
     public static final int REPAIR = 0;
