@@ -1573,6 +1573,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "capacity and mining speed; the nitro step is worth double the rest.");
         add("modifier.forgeweave.surgebound.extra", "Energy Capacity: +%s, Mining Speed: +%s");
 
+        // Issue #994 (M8-10): lead lining against radiation, four levels to a fully shielded piece.
+        add("modifier.forgeweave.rayward.name", "Rayward");
+        add("modifier.forgeweave.rayward.description",
+                "Lines the armor piece with lead. Each level blocks another quarter of the radiation "
+                        + "a mod that models it would deal, so four levels stop it entirely.");
+        add("modifier.forgeweave.rayward.extra", "Radiation Blocked: %s");
+
         add("modifier.forgeweave.wind_burst.name", "Wind Burst");
         add("modifier.forgeweave.wind_burst.description",
                 "Grants Wind Burst on the warmace. Each breeze rod raises it another level, up to III.");
@@ -2832,6 +2839,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Applied in crystal order: energized steel, then blazing, niotic, spirited, nitro crystal",
                 "Each level requires the one before it, and costs its own modifier slot",
                 "Five levels");
+        // Issue #994 (M8-10) -- Forgeweave original. The one page a player without Mekanism can still
+        // read and use: the modifier applies either way, and a mod that models radiation reads it.
+        modifierEffects("rayward",
+                "Blocks a quarter of incoming radiation per level",
+                "Four levels on one piece stop it entirely",
+                "Each level costs a lead ingot and a modifier slot",
+                "Fits any armor piece", "Four levels");
 
         // Issue #796: the built-in Legacy resource pack's display name (Options > Resource Packs).
         // Not an item/block/trait key family -- ForgeweaveResourcePacks#addPackFinders is the only

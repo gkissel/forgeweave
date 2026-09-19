@@ -16,10 +16,13 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
@@ -303,6 +306,42 @@ public final class MekanismModuleContainer implements MekanismGearModules.Bridge
     @Override
     public void tickModules(ItemStack stack, Player player, boolean serverSide) {
         MekanismModuleEffects.tickModules(stack, player, serverSide);
+    }
+
+    @Override
+    public InteractionResult useOnBlock(ItemStack stack, UseOnContext context) {
+        return MekanismModuleEffects.useOnBlock(stack, context);
+    }
+
+    @Override
+    public InteractionResult interactEntity(ItemStack stack, Player player, LivingEntity target,
+            InteractionHand hand) {
+        return MekanismModuleEffects.interactEntity(stack, player, target, hand);
+    }
+
+    @Override
+    public boolean teleport(ItemStack stack, Player player) {
+        return MekanismModuleEffects.teleport(stack, player);
+    }
+
+    @Override
+    public float attackDamageBonus(ItemStack stack) {
+        return MekanismModuleEffects.attackDamageBonus(stack);
+    }
+
+    @Override
+    public boolean grantsElytraFlight(ItemStack stack) {
+        return MekanismWornModules.grantsElytraFlight(stack);
+    }
+
+    @Override
+    public boolean grantsCreativeFlight(ItemStack stack) {
+        return MekanismWornModules.grantsCreativeFlight(stack);
+    }
+
+    @Override
+    public void jetpackTick(ItemStack stack, Player player, boolean serverSide) {
+        MekanismWornModules.jetpackTick(stack, player, serverSide);
     }
 
     private MekanismModuleContainer() {}
