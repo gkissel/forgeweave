@@ -1,0 +1,72 @@
+{
+  "head": {
+    "durability": 500,
+    "mining_speed": 7.3,
+    "attack_damage": 5.2
+  },
+  "handle": {
+    "durability_modifier": 0.95,
+    "durability": 68
+  },
+  "extra_durability": 52,
+  "bow": {
+    "drawspeed": 0.4,
+    "range": 1.9,
+    "bonus_damage": 6.6
+  },
+  "plating": {
+    "helmet": {
+      "durability": 296,
+      "armor": 3.0,
+      "toughness": 2.0
+    },
+    "chestplate": {
+      "durability": 432,
+      "armor": 8.0,
+      "toughness": 2.0
+    },
+    "leggings": {
+      "durability": 404,
+      "armor": 6.0,
+      "toughness": 2.0
+    },
+    "boots": {
+      "durability": 348,
+      "armor": 3.0,
+      "toughness": 2.0
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": [
+      "forgeweave:steeleaf_precision"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "tag": "c:ingots/steeleaf"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/steeleaf"
+      },
+      "value": 1296
+    }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/steeleaf"
+  },
+  "cast_only": true,
+  "enchantability": 18,
+  "color": "#4E7A3D",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "twilightforest:steeleaf_ingot"
+    }
+  ]
+}

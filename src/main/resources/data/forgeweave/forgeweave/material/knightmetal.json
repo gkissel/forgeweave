@@ -1,0 +1,72 @@
+{
+  "head": {
+    "durability": 540,
+    "mining_speed": 6.8,
+    "attack_damage": 5.6
+  },
+  "handle": {
+    "durability_modifier": 0.95,
+    "durability": 70
+  },
+  "extra_durability": 55,
+  "bow": {
+    "drawspeed": 0.43,
+    "range": 1.85,
+    "bonus_damage": 6.4
+  },
+  "plating": {
+    "helmet": {
+      "durability": 302,
+      "armor": 3.0,
+      "toughness": 2.0
+    },
+    "chestplate": {
+      "durability": 444,
+      "armor": 8.0,
+      "toughness": 2.0
+    },
+    "leggings": {
+      "durability": 414,
+      "armor": 6.0,
+      "toughness": 2.0
+    },
+    "boots": {
+      "durability": 358,
+      "armor": 3.0,
+      "toughness": 2.0
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": [
+      "forgeweave:knightmetal_breach"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "tag": "c:ingots/knightmetal"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/knightmetal"
+      },
+      "value": 1296
+    }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/knightmetal"
+  },
+  "cast_only": true,
+  "enchantability": 15,
+  "color": "#7A8FA6",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "twilightforest:knightmetal_ingot"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+{
+  "behavior": "forgeweave:bonus_damage_vs",
+  "condition": "full_charge",
+  "amount": 3.0
+}

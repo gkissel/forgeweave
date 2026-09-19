@@ -188,7 +188,15 @@ class MaterialTest {
             // path the Track B roster above uses.
             "atomic_matter_alloy",
             // Issue #1031 (D-M8-21): Just Dire Things' four tool tiers.
-            "ferricore", "blazegold", "celestigem", "eclipsealloy" })
+            "ferricore", "blazegold", "celestigem", "eclipsealloy",
+            // Issue #1059 (D-M8-25): Twilight Forest's four melting tiers plus four Part
+            // Builder-only materials, and Ice and Fire Community Edition's four melting tiers plus
+            // six Part Builder-only materials. Silver dedupes into the existing material above.
+            "ironwood", "steeleaf", "knightmetal", "fiery",
+            "naga_scale", "arctic_fur", "alpha_yeti_fur", "carminite",
+            "dragon_bone", "dragonsteel_fire", "dragonsteel_ice", "dragonsteel_lightning",
+            "deathworm_chitin_yellow", "deathworm_chitin_white", "deathworm_chitin_red",
+            "troll_leather_mountain", "troll_leather_forest", "troll_leather_frost" })
     void shippedMaterialsParse(String name) {
         Material.CODEC.parse(ops, shipped(name)).getOrThrow();
     }
@@ -227,7 +235,15 @@ class MaterialTest {
             "wyvern", "chaotic", "quartz_enriched_iron", "silicon", "energised_steel",
             // Issue #1031 (D-M8-21): Just Dire Things' four tool tiers, single item_exists each,
             // verified against Direwolf20-MC/JustDireThings@v1.5.7 (JustDireThingsGameTests).
-            "ferricore", "blazegold", "celestigem", "eclipsealloy" })
+            "ferricore", "blazegold", "celestigem", "eclipsealloy",
+            // Issue #1059 (D-M8-25): Twilight Forest and Ice and Fire Community Edition, single
+            // item_exists each, verified against TeamTwilight/twilightforest@1.21.1 and
+            // IAFEnvoy/IceAndFire-CE@1.21.1 (TwilightForestGameTests, IceAndFireGameTests).
+            "ironwood", "steeleaf", "knightmetal", "fiery",
+            "naga_scale", "arctic_fur", "alpha_yeti_fur", "carminite",
+            "dragon_bone", "dragonsteel_fire", "dragonsteel_ice", "dragonsteel_lightning",
+            "deathworm_chitin_yellow", "deathworm_chitin_white", "deathworm_chitin_red",
+            "troll_leather_mountain", "troll_leather_forest", "troll_leather_frost" })
     void conditionalMaterialsCarryAWellFormedConditionsBlockAndStillParse(String name) {
         JsonObject json = shipped(name).getAsJsonObject();
         assertTrue(json.has("neoforge:conditions"), name + " must carry a neoforge:conditions block (issue #826)");

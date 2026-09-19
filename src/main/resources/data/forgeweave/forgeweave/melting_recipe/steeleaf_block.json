@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:storage_blocks/steeleaf"
+  },
+  "fluid": "forgeweave:molten_steeleaf",
+  "amount": 1296,
+  "temperature": 1400,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "twilightforest:steeleaf_ingot"
+    }
+  ]
+}

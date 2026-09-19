@@ -1,0 +1,6 @@
+{
+  "behavior": "forgeweave:stacking_resistance",
+  "per_hit": 0.2,
+  "cap": 4,
+  "decay": 120
+}
