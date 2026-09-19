@@ -25,6 +25,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
+import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
@@ -332,6 +333,47 @@ public class PartExchangeGameTests {
                 "the tool must keep its modifiers, got " + ForgeweaveModifiers.of(swapped));
         helper.assertTrue(swapped.getDamageValue() == 3,
                 "the tool must keep its durability state, got " + swapped.getDamageValue());
+        helper.succeed();
+    }
+
+    /**
+     * Issue #1070: with {@code returnExchangedParts} off, a swap keeps upstream 1.12's own behaviour
+     * -- the displaced part is simply lost -- while everything else about the exchange (the tool's
+     * other parts, its modifiers, its damage state, the swap itself) is exactly as it is with the
+     * option on. {@code CompatToggleGameTests}' own reasoning for why the set/assert/restore happens
+     * inside one synchronous method applies here too: this flips a global config value and GameTests
+     * in a batch tick concurrently.
+     */
+    @GameTest(template = "empty")
+    public static void withReturnExchangedPartsOffTheDisplacedPartIsNotReturned(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+        pickaxe.set(DataComponents.DAMAGE, 3);
+        pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), modifiers("haste"));
+
+        ForgeweaveConfig.RETURN_EXCHANGED_PARTS.set(false);
+        try {
+            ItemStack swapped = take(helper, player,
+                    load(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(), pickaxe,
+                            ToolAssembly.part(ForgeweaveItems.PART_PICKAXE_HEAD.get(), "iron")));
+
+            helper.assertTrue(player.getInventory().items.stream()
+                            .noneMatch(stack -> stack.is(ForgeweaveItems.PART_PICKAXE_HEAD.get())),
+                    "no displaced head may come back while returnExchangedParts is off, got "
+                            + player.getInventory().items);
+            helper.assertTrue(IRON.equals(materialsOf(swapped).get(0)),
+                    "the swap itself must still happen, got " + materialsOf(swapped));
+            helper.assertTrue(material("wood").equals(materialsOf(swapped).get(1))
+                            && material("wood").equals(materialsOf(swapped).get(2)),
+                    "the tool must still keep its other parts, got " + materialsOf(swapped));
+            helper.assertTrue(modifiers("haste").equals(ForgeweaveModifiers.of(swapped)),
+                    "the tool must still keep its modifiers, got " + ForgeweaveModifiers.of(swapped));
+            helper.assertTrue(swapped.getDamageValue() == 3,
+                    "the tool must still keep its durability state, got " + swapped.getDamageValue());
+        } finally {
+            ForgeweaveConfig.RETURN_EXCHANGED_PARTS.set(true);
+        }
         helper.succeed();
     }
 

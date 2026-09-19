@@ -31,6 +31,7 @@ import net.minecraft.world.item.enchantment.ItemEnchantments;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.trait.Trait;
+import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.ArmorPieceItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -534,18 +535,21 @@ public final class ToolAssemblyRecipes {
      *       those carry over on the copy.
      *   <li><b>Large tools exchange at the Tool Forge only</b> -- a Forgeweave decision matching the
      *       assembly gate (issue #152); upstream's stations have no such split for exchanges.
-     *   <li><b>The displaced part comes back to the player (issue #813), a deliberate deviation.</b>
-     *       Neither pinned clone gives it back: 1.12's {@code tryReplaceToolParts} only overwrites the
-     *       material identifier in {@code materialList} and shrinks the new part's stack by one --
-     *       there is no code path anywhere in that method, {@code ContainerToolStation}, or its
-     *       {@code SlotToolStationOut}/{@code SlotToolStationIn} that ever reconstructs an
+     *   <li><b>The displaced part comes back to the player (issue #813), a deliberate deviation --
+     *       optionally.</b> Neither pinned clone gives it back: 1.12's {@code tryReplaceToolParts} only
+     *       overwrites the material identifier in {@code materialList} and shrinks the new part's stack
+     *       by one -- there is no code path anywhere in that method, {@code ContainerToolStation}, or
+     *       its {@code SlotToolStationOut}/{@code SlotToolStationIn} that ever reconstructs an
      *       {@code ItemStack} for the material being replaced. 1.20's rewritten equivalent
      *       ({@code MaterialSwappingRecipe#swapMaterial}) is the same: {@code copy.replaceMaterial}
      *       overwrites the slot and only the new part is shrunk. The issue's own acceptance test
      *       (a GameTest asserting the swap returns exactly the displaced part) is the maintainer
      *       decision this deviation rests on -- filed from a playtest expectation that turned out not
      *       to match either upstream generation's actual source, corrected here per this file's own
-     *       "ticket can be wrong, verify against the clone" standing instruction.
+     *       "ticket can be wrong, verify against the clone" standing instruction. Issue #1070 makes it
+     *       a choice: {@link ForgeweaveConfig#RETURN_EXCHANGED_PARTS} defaults to today's behaviour and,
+     *       set to {@code false}, restores upstream's -- the part is simply lost. An upgrade a
+     *       registered {@link UpgradeHosts} host reclaims is never subject to that option; see below.
      * </ul>
      */
     public static Optional<Exchange> resolveExchange(HolderLookup.Provider registries, ItemStack toolStack,
@@ -670,19 +674,26 @@ public final class ToolAssemblyRecipes {
         }
         // #813: one fresh part stack per swapped slot, carrying the material that slot held before
         // this exchange overwrote it in newIds above -- ids itself is never mutated, so it still
-        // reads as the pre-swap state here.
-        List<ItemStack> displacedParts = assigned.values().stream()
-                .map(slot -> {
-                    ItemStack part = new ItemStack(entry.part(slot));
-                    part.set(ForgeweaveDataComponents.MATERIAL.get(), ids.get(slot));
-                    return part;
-                })
-                .toList();
+        // reads as the pre-swap state here. #1070: gated on returnExchangedParts, off means the
+        // upstream 1.12 behaviour of simply losing it; kept a separate list from the host-reclaimed
+        // one below until the final concat so an upgrade a host reclaims is never at the mercy of
+        // this option.
+        List<ItemStack> displacedParts = ForgeweaveConfig.read(ForgeweaveConfig.RETURN_EXCHANGED_PARTS)
+                ? assigned.values().stream()
+                        .map(slot -> {
+                            ItemStack part = new ItemStack(entry.part(slot));
+                            part.set(ForgeweaveDataComponents.MATERIAL.get(), ids.get(slot));
+                            return part;
+                        })
+                        .toList()
+                : List.of();
         // Maintainer rule, 2026-09-18: a partner mod's upgrade that the new part set can no longer
         // carry comes back to the player as items rather than being lost or stranded. One ask, here,
         // where the swap is resolved; each compat package registers its own answer (UpgradeHosts).
         // Empty on a Forgeweave-only install and for a swap every host is happy with, so the common
-        // path keeps exactly the displacedParts list it already had.
+        // path keeps exactly the displacedParts list it already had. Computed unconditionally --
+        // #1070's returnExchangedParts gates only displacedParts above, never this: a hosted upgrade
+        // is never lost, whatever the option says.
         List<ItemStack> reclaimed = UpgradeHosts.reclaim(toolStack, result);
         List<ItemStack> returned = reclaimed.isEmpty()
                 ? displacedParts
