@@ -1,5 +1,19 @@
 {
   "values": [
-    "minecraft:cactus"
+    "minecraft:cactus",
+    "forgeweave:part_builder",
+    "forgeweave:tool_station",
+    "forgeweave:crafting_station",
+    "forgeweave:stencil_table",
+    "forgeweave:pattern_chest",
+    "forgeweave:part_chest",
+    "forgeweave:wooden_hopper",
+    "forgeweave:firewood",
+    "forgeweave:blue_slime_vine_end",
+    "forgeweave:blue_slime_vine_mid",
+    "forgeweave:blue_slime_vine",
+    "forgeweave:purple_slime_vine_end",
+    "forgeweave:purple_slime_vine_mid",
+    "forgeweave:purple_slime_vine"
   ]
 }
