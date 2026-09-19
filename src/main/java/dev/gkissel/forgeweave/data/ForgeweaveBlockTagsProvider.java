@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.data;
 
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import net.minecraft.core.HolderLookup;
@@ -19,6 +20,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.SlimeVineBlock;
 import dev.gkissel.forgeweave.tool.VeinmineKey;
 import dev.gkissel.forgeweave.trackb.TrackBAlloy;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
@@ -40,6 +42,10 @@ import dev.gkissel.forgeweave.trackb.TrackBOre;
  * either ({@code ForgeweaveModifiers#DIAMOND_TIER_CAP}).
  */
 public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
+
+    /** Every vanilla sound type a wooden block uses, so the axe sweep below needs no per-block list. */
+    private static final Set<SoundType> WOOD_SOUNDS = Set.of(SoundType.WOOD, SoundType.BAMBOO_WOOD,
+            SoundType.CHERRY_WOOD, SoundType.NETHER_WOOD, SoundType.HANGING_SIGN, SoundType.LADDER);
     public ForgeweaveBlockTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider, ExistingFileHelper existingFileHelper) {
         super(output, lookupProvider, Forgeweave.MODID, existingFileHelper);
     }
@@ -81,6 +87,25 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
         // the one member missing, so this adds only it rather than replacing the vanilla tag.
         tag(BlockTags.MINEABLE_WITH_AXE).add(Blocks.CACTUS);
 
+        // Maintainer report 2026-09-19 ("the crafting station does not break easily with an axe"):
+        // the same sweep the pickaxe tag above got, for wood. Every table, both chests, the wooden
+        // hopper and firewood sound like wood and were in no mineable tag at all, so they took
+        // vanilla's no-correct-tool penalty whatever the axe. Sound type again, so a new wooden block
+        // is covered on its own. Slime vines join by hand: vanilla's own vine is axe-mineable, and a
+        // vine's sound is not a wood one. BlockToolCoverageTest fails on a block left out of every
+        // mineable tag without being listed there as deliberately tool-less.
+        var axe = tag(BlockTags.MINEABLE_WITH_AXE);
+        for (DeferredHolder<Block, ? extends Block> entry : ForgeweaveBlocks.BLOCKS.getEntries()) {
+            Block block = entry.get();
+            SoundType sound = block.defaultBlockState().getSoundType();
+            if (block.defaultDestroyTime() > 0 && WOOD_SOUNDS.contains(sound)) {
+                axe.add(block);
+            }
+            if (block instanceof SlimeVineBlock) {
+                axe.add(block);
+            }
+        }
+
         // #339 -- upstream BlockSoil's setHarvestLevel("shovel", -1) applies to every one of its
         // types, so grout and both slimy muds take mineable/shovel (shovel = the correct, faster
         // tool). Level -1 means no minimum tier, hence no needs_*_tool tag alongside it.
@@ -91,7 +116,9 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
                 .add(ForgeweaveBlocks.SLIMY_MUD_BLUE.get())
                 // #429 -- the two remaining BlockSoil states, same setHarvestLevel("shovel", -1).
                 .add(ForgeweaveBlocks.GRAVEYARD_SOIL.get())
-                .add(ForgeweaveBlocks.CONSECRATED_SOIL.get());
+                .add(ForgeweaveBlocks.CONSECRATED_SOIL.get())
+                // Upstream BlockDecoGround (mud bricks): Material.GROUND, setHarvestLevel("shovel", -1).
+                .add(ForgeweaveBlocks.MUD_BRICK_BLOCK.get());
 
         // #449 (parity audit T18) -- the slime island's blocks. Upstream sets no harvest level on any
         // of them, so none takes a needs_*_tool tag; what they do take is the "correct, faster tool"
