@@ -128,7 +128,15 @@ class ArmorMaterialTest {
             // other Track A metal. Armour matters more than usual here -- the augment seam covers
             // armour as well as tools, so essence gear has to be buildable in the first place.
             Stream.of("inferium", "prudentium", "tertium", "imperium", "supremium",
-                    "awakened_supremium", "prosperity", "soulium", "insanium"))
+                    "awakened_supremium", "prosperity", "soulium", "insanium"),
+            // #1059 (D-M8-25): Twilight Forest's four melting tiers plus four Part Builder-only
+            // materials, and Ice and Fire's four melting tiers plus six Part Builder-only materials,
+            // same full plating + maille shape as every other Track A preset batch.
+            Stream.of("ironwood", "steeleaf", "knightmetal", "fiery",
+                    "naga_scale", "arctic_fur", "alpha_yeti_fur", "carminite",
+                    "dragon_bone", "dragonsteel_fire", "dragonsteel_ice", "dragonsteel_lightning",
+                    "deathworm_chitin_yellow", "deathworm_chitin_white", "deathworm_chitin_red",
+                    "troll_leather_mountain", "troll_leather_forest", "troll_leather_frost"))
             .flatMap(java.util.function.Function.identity())
             .collect(java.util.stream.Collectors.toSet());
 

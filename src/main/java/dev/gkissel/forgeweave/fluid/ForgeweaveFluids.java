@@ -354,6 +354,34 @@ public final class ForgeweaveFluids {
     public static final MoltenMetal LUDICRITE = register("ludicrite", 0xE066CC, 1328);
     public static final MoltenMetal URANINITE = register("uraninite", 0x7FA83B, 1222);
 
+    // Issue #1059 (D-M8-25): Twilight Forest and Ice and Fire's eight melting materials. Registered
+    // the same unconditional-in-Java way every compat metal above is (the NeoForge platform
+    // constraint this whole file lives under); CompatMaterialAvailability is what hides each
+    // fluid's bucket from creative and JEI when its backing mod is absent. Colors are each
+    // material's own Part Builder tint (see the shipped material JSON); temperatures continue the
+    // harvest-tier band the compat metals above already use (iron ~900-1030, diamond ~1040-1140,
+    // netherite ~1150-1330).
+    public static final MoltenMetal IRONWOOD = register("ironwood", 0x8A9B5E, 906);
+    public static final MoltenMetal STEELEAF = register("steeleaf", 0x4E7A3D, 1046);
+    public static final MoltenMetal KNIGHTMETAL = register("knightmetal", 0x7A8FA6, 1052);
+    public static final MoltenMetal FIERY = register("fiery", 0x861540, 1158);
+    public static final MoltenMetal DRAGON_BONE = register("dragon_bone", 0xE3D6A0, 912);
+    public static final MoltenMetal DRAGONSTEEL_FIRE = register("dragonsteel_fire", 0xB23A1E, 1164);
+    public static final MoltenMetal DRAGONSTEEL_ICE = register("dragonsteel_ice", 0x5FA8D3, 1170);
+    public static final MoltenMetal DRAGONSTEEL_LIGHTNING = register("dragonsteel_lightning", 0x6A4C93, 1176);
+
+    // Issue #1059 (D-M8-25, repairing #1031): ferricore, blazegold and eclipsealloy shipped with
+    // cast_only material JSON and melting/casting rows naming forgeweave:molten_ferricore,
+    // molten_blazegold and molten_eclipsealloy, but #1041 never registered those three fluids --
+    // Just Dire Things being absent from the build/test classpath meant the neoforge:conditions gate
+    // hid every one of those rows from GameTests, so nothing ever tried to decode the missing fluid
+    // and the gap went uncaught. Registered here the same unconditional-in-Java way every compat
+    // metal is; CompatMaterialAvailability hides each bucket when Just Dire Things is absent. Colors
+    // are each material's own Part Builder tint; temperatures continue the harvest-tier band above.
+    // celestigem carries no cast_only and gets no fluid -- it stays Part Builder only.
+    public static final MoltenMetal FERRICORE = register("ferricore", 0x8C5344, 924);
+    public static final MoltenMetal BLAZEGOLD = register("blazegold", 0xE8871E, 1064);
+    public static final MoltenMetal ECLIPSEALLOY = register("eclipsealloy", 0x1B2A4A, 1188);
     // Issue #1058 (D-M8-24): the nine ingot-shaped materials in the Silent Gear, PneumaticCraft:
     // Repressurized, Forbidden and Arcanus and L_Ender's Cataclysm batch -- each melts and casts, so
     // each needs its own registered molten fluid the way every other cast_only compat metal above
@@ -401,7 +429,13 @@ public final class ForgeweaveFluids {
             Map.entry("blaze_gold", BLAZE_GOLD), Map.entry("compressed_iron", COMPRESSED_IRON),
             Map.entry("azure_silver", AZURE_SILVER), Map.entry("crimson_steel", CRIMSON_STEEL),
             Map.entry("azure_electrum", AZURE_ELECTRUM), Map.entry("tyrian_steel", TYRIAN_STEEL),
-            Map.entry("deorum", DEORUM), Map.entry("ignitium", IGNITIUM), Map.entry("cursium", CURSIUM));
+            Map.entry("deorum", DEORUM), Map.entry("ignitium", IGNITIUM), Map.entry("cursium", CURSIUM),
+            // Issue #1059 (D-M8-25), and the three Just Dire Things metals it repaired (#1031).
+            Map.entry("ironwood", IRONWOOD), Map.entry("steeleaf", STEELEAF), Map.entry("knightmetal", KNIGHTMETAL),
+            Map.entry("fiery", FIERY), Map.entry("dragon_bone", DRAGON_BONE),
+            Map.entry("dragonsteel_fire", DRAGONSTEEL_FIRE), Map.entry("dragonsteel_ice", DRAGONSTEEL_ICE),
+            Map.entry("dragonsteel_lightning", DRAGONSTEEL_LIGHTNING),
+            Map.entry("ferricore", FERRICORE), Map.entry("blazegold", BLAZEGOLD), Map.entry("eclipsealloy", ECLIPSEALLOY));
 
     /** A compat metal's molten fluid by material id (e.g. {@code "bronze"}), or {@code null} if unknown. */
     public static MoltenMetal compatMetalFluid(String id) {

@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:ingots/knightmetal"
+  },
+  "fluid": "forgeweave:molten_knightmetal",
+  "amount": 144,
+  "temperature": 1400,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "twilightforest:knightmetal_ingot"
+    }
+  ]
+}

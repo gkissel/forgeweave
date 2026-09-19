@@ -1,0 +1,5 @@
+{
+  "behavior": "forgeweave:movement_bonus",
+  "kind": "step_height",
+  "magnitude": 0.5
+}

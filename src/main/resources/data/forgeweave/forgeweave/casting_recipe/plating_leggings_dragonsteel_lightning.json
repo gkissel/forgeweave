@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_plating_leggings"
+  },
+  "fluid": "forgeweave:molten_dragonsteel_lightning",
+  "amount": 720,
+  "result": {
+    "id": "forgeweave:plating_leggings",
+    "components": {
+      "forgeweave:material": "forgeweave:dragonsteel_lightning"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "iceandfire:dragonsteel_lightning_ingot"
+    }
+  ]
+}

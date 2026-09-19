@@ -1,0 +1,18 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_ingot"
+  },
+  "fluid": "forgeweave:molten_knightmetal",
+  "amount": 144,
+  "result": {
+    "id": "twilightforest:knightmetal_ingot"
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "twilightforest:knightmetal_ingot"
+    }
+  ]
+}

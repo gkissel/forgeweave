@@ -1,0 +1,65 @@
+{
+  "head": {
+    "durability": 500,
+    "mining_speed": 6.6,
+    "attack_damage": 5.1
+  },
+  "handle": {
+    "durability_modifier": 0.95,
+    "durability": 69
+  },
+  "extra_durability": 51,
+  "bow": {
+    "drawspeed": 0.41,
+    "range": 1.88,
+    "bonus_damage": 6.55
+  },
+  "plating": {
+    "helmet": {
+      "durability": 298,
+      "armor": 3.0,
+      "toughness": 2.0
+    },
+    "chestplate": {
+      "durability": 436,
+      "armor": 8.0,
+      "toughness": 2.0
+    },
+    "leggings": {
+      "durability": 406,
+      "armor": 6.0,
+      "toughness": 2.0
+    },
+    "boots": {
+      "durability": 352,
+      "armor": 3.0,
+      "toughness": 2.0
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": [
+      "forgeweave:arctic_insulation"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "twilightforest:arctic_fur"
+      },
+      "value": 144
+    }
+  ],
+  "repair_item": {
+    "item": "twilightforest:arctic_fur"
+  },
+  "enchantability": 17,
+  "color": "#DCEEF5",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "twilightforest:arctic_fur"
+    }
+  ]
+}

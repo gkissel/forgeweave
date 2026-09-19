@@ -1,0 +1,65 @@
+{
+  "head": {
+    "durability": 510,
+    "mining_speed": 6.6,
+    "attack_damage": 5.2
+  },
+  "handle": {
+    "durability_modifier": 0.95,
+    "durability": 69
+  },
+  "extra_durability": 51,
+  "bow": {
+    "drawspeed": 0.42,
+    "range": 1.86,
+    "bonus_damage": 6.5
+  },
+  "plating": {
+    "helmet": {
+      "durability": 298,
+      "armor": 3.0,
+      "toughness": 2.0
+    },
+    "chestplate": {
+      "durability": 438,
+      "armor": 8.0,
+      "toughness": 2.0
+    },
+    "leggings": {
+      "durability": 408,
+      "armor": 6.0,
+      "toughness": 2.0
+    },
+    "boots": {
+      "durability": 354,
+      "armor": 3.0,
+      "toughness": 2.0
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": [
+      "forgeweave:deathworm_venom_white"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "iceandfire:deathworm_chitin_white"
+      },
+      "value": 144
+    }
+  ],
+  "repair_item": {
+    "item": "iceandfire:deathworm_chitin_white"
+  },
+  "enchantability": 15,
+  "color": "#E8E4D0",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "iceandfire:deathworm_chitin_white"
+    }
+  ]
+}

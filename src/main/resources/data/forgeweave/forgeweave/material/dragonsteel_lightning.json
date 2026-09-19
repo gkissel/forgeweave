@@ -1,0 +1,76 @@
+{
+  "head": {
+    "durability": 910,
+    "mining_speed": 7.8,
+    "attack_damage": 6.7
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 111
+  },
+  "extra_durability": 192,
+  "bow": {
+    "drawspeed": 0.39,
+    "range": 2.02,
+    "bonus_damage": 8.95
+  },
+  "plating": {
+    "helmet": {
+      "durability": 377,
+      "armor": 3.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
+    },
+    "chestplate": {
+      "durability": 554,
+      "armor": 8.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
+    },
+    "leggings": {
+      "durability": 518,
+      "armor": 6.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
+    },
+    "boots": {
+      "durability": 450,
+      "armor": 3.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": [
+      "forgeweave:dragonsteel_lightning_surge"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "iceandfire:dragonsteel_lightning_ingot"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "item": "iceandfire:dragonsteel_lightning_block"
+      },
+      "value": 1296
+    }
+  ],
+  "repair_item": {
+    "item": "iceandfire:dragonsteel_lightning_ingot"
+  },
+  "cast_only": true,
+  "enchantability": 18,
+  "color": "#6A4C93",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "iceandfire:dragonsteel_lightning_ingot"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:storage_blocks/ironwood"
+  },
+  "fluid": "forgeweave:molten_ironwood",
+  "amount": 1296,
+  "temperature": 1200,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "twilightforest:ironwood_ingot"
+    }
+  ]
+}

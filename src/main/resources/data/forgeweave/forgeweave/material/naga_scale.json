@@ -1,0 +1,61 @@
+{
+  "head": {
+    "durability": 250,
+    "mining_speed": 6.0,
+    "attack_damage": 3.4
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 34
+  },
+  "extra_durability": 78,
+  "bow": {
+    "drawspeed": 0.57,
+    "range": 1.32,
+    "bonus_damage": 3.9
+  },
+  "plating": {
+    "helmet": {
+      "durability": 170,
+      "armor": 2.0
+    },
+    "chestplate": {
+      "durability": 246,
+      "armor": 5.0
+    },
+    "leggings": {
+      "durability": 230,
+      "armor": 4.0
+    },
+    "boots": {
+      "durability": 198,
+      "armor": 2.0
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
+  "traits": {
+    "general": [
+      "forgeweave:naga_ward"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "twilightforest:naga_scale"
+      },
+      "value": 144
+    }
+  ],
+  "repair_item": {
+    "item": "twilightforest:naga_scale"
+  },
+  "enchantability": 13,
+  "color": "#5C7A3D",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "twilightforest:naga_scale"
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "head": {
+    "durability": 560,
+    "mining_speed": 6.9,
+    "attack_damage": 5.8
+  },
+  "handle": {
+    "durability_modifier": 0.95,
+    "durability": 71
+  },
+  "extra_durability": 53,
+  "bow": {
+    "drawspeed": 0.43,
+    "range": 1.82,
+    "bonus_damage": 6.45
+  },
+  "plating": {
+    "helmet": {
+      "durability": 304,
+      "armor": 3.0,
+      "toughness": 2.0
+    },
+    "chestplate": {
+      "durability": 446,
+      "armor": 8.0,
+      "toughness": 2.0
+    },
+    "leggings": {
+      "durability": 416,
+      "armor": 6.0,
+      "toughness": 2.0
+    },
+    "boots": {
+      "durability": 360,
+      "armor": 3.0,
+      "toughness": 2.0
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": [
+      "forgeweave:alpha_yeti_resilience"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "twilightforest:alpha_yeti_fur"
+      },
+      "value": 144
+    }
+  ],
+  "repair_item": {
+    "item": "twilightforest:alpha_yeti_fur"
+  },
+  "enchantability": 19,
+  "color": "#C9D6DC",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "twilightforest:alpha_yeti_fur"
+    }
+  ]
+}

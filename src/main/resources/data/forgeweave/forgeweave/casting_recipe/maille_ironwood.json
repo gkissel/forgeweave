@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_maille"
+  },
+  "fluid": "forgeweave:molten_ironwood",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:maille",
+    "components": {
+      "forgeweave:material": "forgeweave:ironwood"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "twilightforest:ironwood_ingot"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_fiery",
+  "amount": 144,
+  "result": {
+    "id": "twilightforest:fiery_ingot"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "twilightforest:fiery_ingot"
+    }
+  ]
+}

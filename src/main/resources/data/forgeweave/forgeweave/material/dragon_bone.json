@@ -1,0 +1,62 @@
+{
+  "head": {
+    "durability": 260,
+    "mining_speed": 6.4,
+    "attack_damage": 3.7
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 36
+  },
+  "extra_durability": 82,
+  "bow": {
+    "drawspeed": 0.56,
+    "range": 1.35,
+    "bonus_damage": 4.1
+  },
+  "plating": {
+    "helmet": {
+      "durability": 178,
+      "armor": 2.0
+    },
+    "chestplate": {
+      "durability": 258,
+      "armor": 5.0
+    },
+    "leggings": {
+      "durability": 242,
+      "armor": 4.0
+    },
+    "boots": {
+      "durability": 210,
+      "armor": 2.0
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
+  "traits": {
+    "general": [
+      "forgeweave:dragonbone_edge"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "iceandfire:dragonbone"
+      },
+      "value": 144
+    }
+  ],
+  "repair_item": {
+    "item": "iceandfire:dragonbone"
+  },
+  "cast_only": true,
+  "enchantability": 14,
+  "color": "#E3D6A0",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "iceandfire:dragonbone"
+    }
+  ]
+}
