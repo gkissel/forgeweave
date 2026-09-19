@@ -723,8 +723,11 @@ public class ToolItem extends Item {
         // the module.
         // #969: an Apotheosis attack-damage gem adds on top too, after the cutoff for the same
         // reason a Draconic damage module's points are. 0 without Apotheosis or without sockets.
+        // #994: a Mekanism attack amplification module adds after the cutoff for the same reason a
+        // Draconic damage module does. 0 without Mekanism, the metal, the module or the power.
         return cutoffDamage(damage) + DraconicModules.attackDamageBonus(stack)
-                + ApotheosisSockets.attackDamageBonus(stack);
+                + ApotheosisSockets.attackDamageBonus(stack)
+                + MekanismGearModules.attackDamageBonus(stack);
     }
 
     /**
@@ -1224,8 +1227,15 @@ public class ToolItem extends Item {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         ToolUseAction action = useAction();
-        if (action == null || isBroken(stack)) {
+        if (isBroken(stack)) {
             return InteractionResultHolder.pass(stack);
+        }
+        if (action == null) {
+            // #994: a Mekanism teleportation module gets the click a tool kind has no innate use for.
+            // Only there, so a longsword's leap charge is never replaced by a jump -- a module adds.
+            return MekanismGearModules.teleport(stack, player)
+                    ? InteractionResultHolder.success(stack)
+                    : InteractionResultHolder.pass(stack);
         }
         InteractionResultHolder<ItemStack> instant = action.onUse(stack, level, player, hand);
         if (instant != null) {
@@ -1261,20 +1271,36 @@ public class ToolItem extends Item {
         if (isBroken(context.getItemInHand())) {
             return super.useOn(context);
         }
+        // #994: each of the three falls through on PASS rather than returning it, so a module gets
+        // the click none of them wanted. super.useOn is Item#useOn, which answers PASS itself, so
+        // the fall-through changes nothing for a tool with no module installed.
         if (aoeShape == AoeHarvest.Shape.CUBE_3X3X3) {
-            return CropHarvest.harvestAround(context);
-        }
-        if (abilities.contains(ItemAbilities.SHOVEL_FLATTEN)) {
-            return ShovelPath.flattenAt(context, aoeShape);
-        }
-        if (abilities.contains(ItemAbilities.AXE_STRIP)) {
-            return AxeStrip.transformAt(context, aoeShape);
+            InteractionResult harvest = CropHarvest.harvestAround(context);
+            if (harvest != InteractionResult.PASS) {
+                return harvest;
+            }
+        } else if (abilities.contains(ItemAbilities.SHOVEL_FLATTEN)) {
+            InteractionResult path = ShovelPath.flattenAt(context, aoeShape);
+            if (path != InteractionResult.PASS) {
+                return path;
+            }
+        } else if (abilities.contains(ItemAbilities.AXE_STRIP)) {
+            InteractionResult strip = AxeStrip.transformAt(context, aoeShape);
+            if (strip != InteractionResult.PASS) {
+                return strip;
+            }
         }
         // Issue #829: a trait-driven right-click (fertilize_on_use) only for tool kinds with no
         // dedicated behavior of their own above -- see Trait#useOnBlock's javadoc for the ordering.
         InteractionResult traitResult = ForgeweaveTraits.useOnBlock(context.getItemInHand(), context);
         if (traitResult != InteractionResult.PASS) {
             return traitResult;
+        }
+        // #994: a Mekanism farming or shearing module, last, so it only ever fills in where the tool
+        // itself had nothing to say about the block.
+        InteractionResult moduleResult = MekanismGearModules.useOnBlock(context.getItemInHand(), context);
+        if (moduleResult != InteractionResult.PASS) {
+            return moduleResult;
         }
         return super.useOn(context);
     }
@@ -1290,8 +1316,16 @@ public class ToolItem extends Item {
     @Override
     public InteractionResult interactLivingEntity(ItemStack stack, Player player, LivingEntity target,
             InteractionHand hand) {
-        return aoeShape == AoeHarvest.Shape.CUBE_3X3X3
-                ? EntityShear.shearAround(stack, player, target, hand)
+        if (aoeShape == AoeHarvest.Shape.CUBE_3X3X3) {
+            InteractionResult shear = EntityShear.shearAround(stack, player, target, hand);
+            if (shear != InteractionResult.PASS) {
+                return shear;
+            }
+        }
+        // #994: a Mekanism shearing module, after the scythe's own shear, so it only ever adds.
+        InteractionResult moduleResult = MekanismGearModules.interactEntity(stack, player, target, hand);
+        return moduleResult != InteractionResult.PASS
+                ? moduleResult
                 : super.interactLivingEntity(stack, player, target, hand);
     }
 

@@ -1,0 +1,26 @@
+{
+  "type": "mekanism:purifying",
+  "chemical_input": {
+    "amount": 1,
+    "chemical": "mekanism:oxygen"
+  },
+  "item_input": {
+    "count": 1,
+    "tag": "c:ores/hardcinder"
+  },
+  "output": {
+    "count": 3,
+    "id": "forgeweave:hardcinder_clump"
+  },
+  "per_tick_usage": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "mekanism"
+    },
+    {
+      "type": "forgeweave:compat_toggle",
+      "toggle": "mekanismModules"
+    }
+  ]
+}

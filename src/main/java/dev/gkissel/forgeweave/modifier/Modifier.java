@@ -219,6 +219,19 @@ public interface Modifier {
     }
 
     /**
+     * The fraction of incoming radiation the piece carrying this modifier blocks, 0 to 1 (issue #994,
+     * M8-10: {@code forgeweave:rayward}). Summed across the piece's modifiers by
+     * {@link ForgeweaveModifiers#radiationShielding} and clamped there, and read by whatever mod
+     * actually models radiation -- Mekanism's {@code IRadiationShielding} capability is the one
+     * reader today. A Forgeweave-only install computes the same number and nothing asks for it.
+     *
+     * @param level accumulated application units (see {@link ModifierEntry#level})
+     */
+    default double radiationShielding(int level) {
+        return 0.0D;
+    }
+
+    /**
      * Whether the tool carrying this modifier survives fire and lava as a dropped item -- vanilla's
      * {@code minecraft:fire_resistant} component, baked onto the stack by {@code ModifierApplication}
      * the way {@code max_damage} is. The clone's {@code VolatileFlagModule(INDESTRUCTIBLE_ENTITY)}

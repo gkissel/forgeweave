@@ -39,6 +39,13 @@ Minecraft install or a client jar at all.
     `clock_00` .. `clock_63`.)
   * **Wire** <- `wire.png`, seeded from vanilla `string`, a tangle of thin strands that recolors into
     a coil of wire.
+  * **Clump** (#994) <- `clump.png`, seeded from vanilla `clay_ball`, vanilla's one lumpy round
+    handful of material.
+  * **Dirty dust** (#994) <- `dirty_dust.png`, seeded from vanilla `gunpowder`, a coarser and darker
+    pile than glowstone dust, so the dirty form reads as a step behind the clean one at a glance in
+    the inventory.
+  * **Shard** (#994) <- `shard.png`, seeded from vanilla `prismarine_shard`, which is literally
+    vanilla's shard silhouette.
 
 **Replacing a template.** Overwrite the form's own file under `scripts/templates/material_forms/`
 and rerun this script; every material regenerates from it. `small_dust.png`/`tiny_dust.png` and
@@ -92,6 +99,13 @@ DUSTS = ["dust", "small_dust", "tiny_dust"]
 PLATE_FAMILY = ["plate", "double_plate", "rod", "gear", "wire"]
 ALL_FORMS = DUSTS + PLATE_FAMILY
 
+# Issue #994's three Mekanism ore-chain intermediates. Mirrors MaterialForm.ORE_CHAIN, and goes to
+# the Track B ores alone -- an ore block is the only thing those chains start from.
+ORE_CHAIN = ["clump", "dirty_dust", "shard"]
+
+# Every form with a checked-in template under TEMPLATE_DIR.
+TEMPLATE_FORMS = ALL_FORMS + ORE_CHAIN
+
 # mB a form melts into, keyed by form. A form absent here has no melting row (the plate family).
 MELT_AMOUNTS = {"dust": VALUE_INGOT, "small_dust": VALUE_SMALL_DUST, "tiny_dust": VALUE_NUGGET}
 
@@ -126,16 +140,19 @@ GEM_IDS = {mat_id for mat_id, _color in GEM_MATERIALS}
 def materials() -> list[tuple[str, int, list[str]]]:
     """(id, color, forms) for every material that gets forms -- the mirror of MaterialForms.ALL."""
     rows = []
+    ore_ids = {mat_id for mat_id, _color, _host in ORES}
     for mat_id, color, _host in ORES:
         if mat_id in GEM_IDS:
             continue
-        rows.append((mat_id, color, ALL_FORMS))
+        rows.append((mat_id, color, ALL_FORMS + ORE_CHAIN))
     for mat_id, color in ALLOYS:
         rows.append((mat_id, color, ALL_FORMS))
     for mat_id, color in OWN_ITEM_METALS:
         rows.append((mat_id, color, ALL_FORMS))
     for mat_id, color in GEM_MATERIALS:
-        rows.append((mat_id, color, DUSTS))
+        # #994: fulmenite is a Track B ore as well as a gem-type material, so it gets the ore chain
+        # on top of its three dusts; brimspar has no ore block on the Track B roster.
+        rows.append((mat_id, color, DUSTS + ORE_CHAIN if mat_id in ore_ids else DUSTS))
     return rows
 
 
@@ -145,7 +162,7 @@ def donors() -> dict[str, Image.Image]:
     scaling/offset the pre-#1049 script used to compute at generation time (small_dust/tiny_dust's
     downscale, double_plate's offset stack), so this is a plain load with no per-form transform left.
     """
-    return {form: Image.open(TEMPLATE_DIR / f"{form}.png").convert("RGBA") for form in ALL_FORMS}
+    return {form: Image.open(TEMPLATE_DIR / f"{form}.png").convert("RGBA") for form in TEMPLATE_FORMS}
 
 
 def write_sprites() -> None:

@@ -17,6 +17,10 @@ import java.util.List;
  * plate family output-only, so Forgeweave ships nothing that consumes a plate, rod, gear or wire,
  * melting included. The three dust amounts follow the existing per-form ladder -- a dust melts as
  * its ingot, a small dust as a third of one, a tiny dust as a nugget.
+ *
+ * <p>Issue #994 (M8-10) adds three more, {@link #ORE_CHAIN}: the clump, dirty dust and shard a
+ * Mekanism ore chain passes an ore through. They go to the Track B ores alone and melt nowhere --
+ * see that field's own javadoc.
  */
 public enum MaterialForm {
     DUST("dust", "dusts", "%s Dust", 144),
@@ -26,7 +30,10 @@ public enum MaterialForm {
     DOUBLE_PLATE("double_plate", "double_plates", "%s Double Plate", 0),
     ROD("rod", "rods", "%s Rod", 0),
     GEAR("gear", "gears", "%s Gear", 0),
-    WIRE("wire", "wires", "%s Wire", 0);
+    WIRE("wire", "wires", "%s Wire", 0),
+    CLUMP("clump", "clumps", "%s Clump", 0),
+    DIRTY_DUST("dirty_dust", "dirty_dusts", "Dirty %s Dust", 0),
+    SHARD("shard", "shards", "%s Shard", 0);
 
     /** The three dusts, the only forms a gem-type material gets (D-M8-6: brimspar and fulmenite). */
     public static final List<MaterialForm> DUSTS = List.of(DUST, SMALL_DUST, TINY_DUST);
@@ -37,6 +44,20 @@ public enum MaterialForm {
     /** Every form, dusts first -- what a material with an ingot gets in full. */
     public static final List<MaterialForm> ALL = List.of(DUST, SMALL_DUST, TINY_DUST, PLATE, DOUBLE_PLATE,
             ROD, GEAR, WIRE);
+
+    /**
+     * The three intermediates a Mekanism ore chain wants on top of the dust (issue #994, M8-10): a
+     * clump out of the Purification Chamber, a dirty dust out of the Crusher, a shard out of the
+     * Chemical Injection Chamber. Only the Track B <em>ores</em> get them, because an ore is the only
+     * thing those three chains start from.
+     *
+     * <p>No crystal, and no melting row on any of the three. The 5x chain's crystal comes out of the
+     * Chemical Crystallizer, which is fed by a slurry -- a chemical form of the metal, and D-M8-6's
+     * own non-goal ("no liquid or gas forms of Forgeweave materials"). Each of these three is a step
+     * on the way back to a dust and nothing else consumes them, so the chain itself is the route home
+     * and a smeltery shortcut would only let a player skip the machines they built.
+     */
+    public static final List<MaterialForm> ORE_CHAIN = List.of(CLUMP, DIRTY_DUST, SHARD);
 
     private final String suffix;
     private final String tagFamily;

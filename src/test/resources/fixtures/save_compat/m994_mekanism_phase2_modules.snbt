@@ -1,0 +1,99 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:atomic_matter_alloy",
+                handle: "forgeweave:atomic_matter_alloy",
+                head: "forgeweave:atomic_matter_alloy"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 9.35f,
+                durability: 1905,
+                mining_speed: 9.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:infused"
+            ],
+            "forgeweave:energy": 33000,
+            "minecraft:custom_data": {
+                "mekanism:module_container": {
+                    modules: [
+                        {
+                            installed: 1,
+                            enabled: 1b,
+                            type: "mekanism:teleportation_unit"
+                        },
+                        {
+                            installed: 1,
+                            enabled: 1b,
+                            type: "mekanism:farming_unit"
+                        },
+                        {
+                            installed: 1,
+                            enabled: 0b,
+                            type: "mekanism:shearing_unit"
+                        },
+                        {
+                            installed: 4,
+                            enabled: 1b,
+                            type: "mekanism:attack_amplification_unit"
+                        }
+                    ]
+                }
+            },
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 1905
+        },
+        id: "forgeweave:pickaxe"
+    },
+    nbt: {
+        components: {
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:atomic_matter_alloy",
+                handle: "forgeweave:atomic_matter_alloy",
+                head: "forgeweave:atomic_matter_alloy"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 9.35f,
+                durability: 1905,
+                mining_speed: 9.0f
+            },
+            "forgeweave:traits": [
+                "forgeweave:infused"
+            ],
+            "forgeweave:energy": 33000,
+            "minecraft:custom_data": {
+                "mekanism:module_container": {
+                    modules: [
+                        {
+                            installed: 1,
+                            enabled: 1b,
+                            type: "mekanism:teleportation_unit"
+                        },
+                        {
+                            installed: 1,
+                            enabled: 1b,
+                            type: "mekanism:farming_unit"
+                        },
+                        {
+                            installed: 1,
+                            enabled: 0b,
+                            type: "mekanism:shearing_unit"
+                        },
+                        {
+                            installed: 4,
+                            enabled: 1b,
+                            type: "mekanism:attack_amplification_unit"
+                        }
+                    ]
+                }
+            },
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 1905
+        },
+        count: 1,
+        id: "forgeweave:pickaxe"
+    },
+    what: "#994 (M8-10): the phase 2 half of m8_mekanism_modules.snbt -- the same atomic_matter_alloy pickaxe, carrying the four modules this issue wired to a Forgeweave interaction site instead of phase 1's mining set. What it pins is the same rule: Forgeweave's decode neither drops the foreign half nor lets it displace its own. The module block sits under minecraft:custom_data rather than on Mekanism's real component type for m8_mekanism_modules' own reason, and the shearing unit is switched off on purpose so the enabled flag is carried through both ways."
+}

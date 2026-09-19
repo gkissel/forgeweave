@@ -24,8 +24,9 @@ import dev.gkissel.forgeweave.compat.mekanism.modules.MekanismGearModules.Wiring
 /**
  * Issue #993's "the module-to-hook mapping table is total" gate:
  * {@link MekanismGearModules#MODULE_WIRING} must account for every module Mekanism registers, as
- * wired, deferred to M8-10, or deliberately unwired with a reason. Nothing falls through silently, and
- * a Mekanism update that adds a module fails this test rather than quietly dropping an effect.
+ * wired or as deliberately unwired with a reason. Nothing falls through silently, and a Mekanism
+ * update that adds a module fails this test rather than quietly dropping an effect. Issue #994 closed
+ * the third case: no row is deferred any more.
  *
  * <p>The roster is read off {@code MekanismModules}' own declared fields rather than off a registry,
  * because {@code Class#getDeclaredFields} does not run a static initialiser: no {@code DeferredRegister}
@@ -103,15 +104,26 @@ class MekanismModuleWiringTest {
     }
 
     @Test
-    void phaseTwoDefersExactlyTheRosterIssue994Names() {
-        List<String> deferred = MekanismGearModules.MODULE_WIRING.stream()
-                .filter(row -> row.wiring() == Wiring.DEFERRED)
+    void phaseTwoWiresTheEffectsIssue994Names() {
+        // Issue #994's own roster, plus the attack path phase 1's table left open. Every one of these
+        // was DEFERRED before M8-10 and is wired now.
+        for (String id : List.of("attack_amplification_unit", "elytra_unit", "farming_unit",
+                "gravitational_modulating_unit", "jetpack_unit", "shearing_unit", "teleportation_unit")) {
+            ModuleWiring row = MekanismGearModules.WIRING_BY_ID.get(id);
+            assertEquals(Wiring.WIRED, row == null ? null : row.wiring(), id + " is a phase 2 effect");
+        }
+    }
+
+    @Test
+    void nothingIsDeferredAnyMore() {
+        // Issue #994's "no module is left marked deferred" gate. The enum no longer has a DEFERRED
+        // constant at all, so this reads the note text instead: a row that still says "issue #994" or
+        // "phase 2" is a row somebody forgot to move.
+        List<String> pending = MekanismGearModules.MODULE_WIRING.stream()
+                .filter(row -> row.note().contains("#994") || row.note().toLowerCase(Locale.ROOT)
+                        .contains("phase 2"))
                 .map(ModuleWiring::id)
-                .sorted()
                 .toList();
-        assertEquals(List.of("attack_amplification_unit", "elytra_unit", "farming_unit",
-                "gravitational_modulating_unit", "jetpack_unit", "shearing_unit", "teleportation_unit"),
-                deferred,
-                "the deferred set is issue #994's roster plus the attack path phase 1 does not open");
+        assertTrue(pending.isEmpty(), "these rows still defer to phase 2:\n" + String.join("\n", pending));
     }
 }

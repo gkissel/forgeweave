@@ -50,7 +50,10 @@ class ArmorModifiersTest {
             // #737 (epic #730 slice 2): chestplate-only (any weight since #1005), so also armorOnly.
             id("elytra_flight"), id("creative_flight"),
             // #1007: helmet-only (heavy or light), so also armorOnly.
-            id("goggles"));
+            id("goggles"),
+            // #994 (M8-10): any armour piece, no slot narrowing -- radiation is not a thing one slot
+            // blocks and another does not.
+            id("rayward"));
 
     private static ResourceLocation id(String path) {
         return ResourceLocation.fromNamespaceAndPath("forgeweave", path);

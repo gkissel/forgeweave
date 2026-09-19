@@ -1,0 +1,21 @@
+{
+  "type": "mekanism:enriching",
+  "input": {
+    "count": 1,
+    "tag": "c:ores/hollowstone"
+  },
+  "output": {
+    "count": 2,
+    "id": "forgeweave:hollowstone_dust"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "mekanism"
+    },
+    {
+      "type": "forgeweave:compat_toggle",
+      "toggle": "mekanismModules"
+    }
+  ]
+}
