@@ -2,7 +2,7 @@
 
 Build: `forgeweave-0.6.0-beta.1.jar` (Release `mc1.21.1-v0.6.0-beta.1`), MC 1.21.1 + NeoForge, servidor dedicado, mundo novo, sem cheats. "!" = parcial. ⚠ = só dá para conferir em cliente; nenhum agente viu isso rodando.
 
-Esta é a tag de fechamento do M8 (deep compat). **Nenhuma das integrações foi vista com o mod parceiro instalado**: nenhum deles entra no classpath de build ou de teste (JC-B), então tudo que está aqui foi lido no código-fonte do parceiro, nunca executado junto. É por isso que o checklist é tão longo: ele é a única verificação que essas integrações vão receber antes de sair.
+Esta é a tag de fechamento do M8 (deep compat). Nenhuma das integrações foi vista com o mod parceiro instalado: nenhum deles entra no classpath de build ou de teste (JC-B), então tudo que está aqui foi lido no código-fonte do parceiro, nunca executado junto. É por isso que o checklist é tão longo: ele é a única verificação que essas integrações vão receber antes de sair.
 
 Os blocos estão na ordem do risco, do mais provável de quebrar para o menos. Blocos A a N precisam do mod parceiro instalado; O a Q rodam sem nenhum deles. O bloco R é o teste de aceitação do M8 escrito em `docs/SCOPE.md` e precisa do pack completo. Defeitos viram issues `needs-triage`.
 
@@ -25,9 +25,9 @@ A integração troca a classe com que o item registra. É a forma que mais come 
 8. [ ] Plantar uma semente de resonite em farmland de supremium sobre um bloco de resonite e colher a essência. Repetir para um dos materiais-combustível.
 9. [ ] Uma semente crafta, e os sprites gerados parecem o material em vez de template cinza.
 10. [ ] Os nove presets aparecem como materiais; um lingote de essência é aceito no Part Builder e como item de reparo. Insanium só aparece com o Mystical Agradditions junto.
-11. [ ] `mysticalAgricultureAugments = false` com o mod instalado: a Tinkering Table não oferece slot de augment, e uma peça que já carrega augments mantém todos. **Não precisa reiniciar**: a leitura é em runtime (#1036 mudou isso; o texto antigo da issue #975 dizia o contrário).
+11. [ ] `mysticalAgricultureAugments = false` com o mod instalado: a Tinkering Table não oferece slot de augment, e uma peça que já carrega augments mantém todos. Não precisa reiniciar: a leitura é em runtime (#1036). A issue #975 pede um reinício aqui e está desatualizada.
 12. [ ] Ligar de volta sem reiniciar: o augment volta a funcionar na mesma peça, sem reload.
-13. [ ] Toda ferramenta do Forgeweave é aceita no tier 5 com um slot de augment, e nove formas de ferramenta não são augmentáveis. Conferir se isso incomoda na prática — é limitação da interface `ITinkerable`, que não carrega tier por stack (decisão do mantenedor de 2026-09-18: sem mixin por enquanto).
+13. [ ] Toda ferramenta do Forgeweave é aceita no tier 5 com um slot de augment, e nove formas de ferramenta não são augmentáveis. Conferir se isso incomoda na prática. É limitação da interface `ITinkerable`, que não carrega tier por stack (decisão do mantenedor de 2026-09-18: sem mixin por enquanto).
 
 ## C. Mekanism, fases 1 e 2 (#1040, #1060)
 
@@ -42,8 +42,8 @@ A integração troca a classe com que o item registra. É a forma que mais come 
 22. [ ] Attack amplification sobe o dano e aparece no tooltip.
 23. [ ] Elytra: a unidade do Mekanism no chestplate plana, o modifier `elytra_flight` também, e os dois juntos se comportam como um só.
 24. [ ] Modulação gravitacional dá voo só com o chestplate e gasta `mekanismEnergyPerFlightTick`.
-25. [ ] Jetpack: sobe com o pulo segurado, paira no modo hover, e para com o buffer vazio. **Confirmar a regra de energia**: hoje ele cobra energia sempre que o portador está no ar com o módulo ligado, não só quando está propulsionando.
-26. [ ] As quatro cadeias de minério rodam nos onze minérios Track B: Enrichment Chamber (2x), Purification Chamber (3x), Chemical Injection Chamber (4x) e Crusher. **Não existe 5x nem forma de cristal** (#1060 explica por quê); o texto antigo da issue #975 dizia "2x até 5x".
+25. [ ] Jetpack: sobe com o pulo segurado, paira no modo hover, e para com o buffer vazio. Confirmar a regra de energia: hoje ele cobra energia sempre que o portador está no ar com o módulo ligado, não só quando está propulsionando.
+26. [ ] As quatro cadeias de minério rodam nos onze minérios Track B: Enrichment Chamber (2x), Purification Chamber (3x), Chemical Injection Chamber (4x) e Crusher. Não existe 5x nem forma de cristal, e #1060 explica por quê. A issue #975 pede "2x até 5x" e está desatualizada.
 27. [ ] O JEI mostra os seis passos de cada minério.
 28. [ ] `rayward` aplica no Tool Station a partir de um lingote de chumbo; no nível IV a armadura corta radiação por completo e no nível II pela metade.
 29. [ ] Trocar a cabeça de metal de uma ferramenta com módulos instalados devolve os itens dos módulos ao jogador e não deixa nenhum na ferramenta (#1040).
@@ -67,7 +67,7 @@ A integração troca a classe com que o item registra. É a forma que mais come 
 41. [ ] Um crusher spirit de cada rank mói os minérios que o `min_tier` dele permite e recusa os acima. Em particular, um Foliot Crusher não toca em resonite.
 42. [ ] Um mining spirit devolve minérios Track B nas taxas da tabela de peso: fulmenite comum, resonite muito raro.
 43. [ ] Os quatro rituais: o pentáculo valida, as tigelas aceitam gem e essência, uma ferramenta montada do Forgeweave na Golden Sacrificial Bowl é aceita, e a ferramenta que cai carrega o modifier no nível listado com os slots gastos.
-44. [ ] **Uma ferramenta sem slot livre é recusada, não consumida.** É o único caminho em que um bug comeria a ferramenta; confira antes de gastar uma boa.
+44. [ ] Uma ferramenta sem slot livre é recusada, não consumida. É o único caminho em que um bug comeria a ferramenta; confira antes de gastar uma boa.
 45. [ ] ⚠ As quatro linhas na categoria de ritual do JEI do Occultism, e se `ritual_dummy` e `result` lêem bem no layout dele.
 46. [ ] `spirit_attuned_gem` no Part Builder e no manual de materiais, e `silver` presente num pack com Occultism e sem Immersive Engineering.
 47. [ ] `occultismRituals = false`: os rituais somem e uma ferramenta que já ganhou um modifier por ritual mantém o modifier funcionando.
@@ -90,10 +90,10 @@ A integração troca a classe com que o item registra. É a forma que mais come 
 
 ## H. Just Dire Things e Eternal Ores (#1039, #1041, #1062)
 
-58. [ ] Just Dire Things: os quatro materiais aparecem no Tool Station e no Part Builder. Os três tiers em forma de lingote (`ferricore`, `blazegold`, `eclipsealloy`) fundem e são vazados do fluido molten na smeltery — são `cast_only`, então vazar é o caminho normal deles. `celestigem` crafta direto no Part Builder a partir da gema bruta, porque não tem fluido.
+58. [ ] Just Dire Things: os quatro materiais aparecem no Tool Station e no Part Builder. Os três tiers em forma de lingote (`ferricore`, `blazegold`, `eclipsealloy`) fundem e são vazados do fluido molten na smeltery. São `cast_only`, então vazar é o caminho normal deles. `celestigem` crafta direto no Part Builder a partir da gema bruta, porque não tem fluido.
 59. [ ] Uma ferramenta ou peça de armadura de cada um mostra a linha de trait esperada (pisada firme, imunidade a fogo, o buffer de energia, ou energia mais a proteção contra morte do `eclipsealloy`).
-60. [ ] **Defeito conhecido**: os três baldes de fluido do Just Dire Things aparecem na aba criativa e no JEI mesmo sem o mod instalado. É lacuna deliberada de #1062; confirmar que continua sendo só isso e que nada mais vaza.
-61. [ ] **Upgrades do Just Dire Things não alcançam equipamento do Forgeweave** (D-M8-22, bloqueio no mod de origem). Pôr uma picareta do Forgeweave no slot base de uma smithing table e qualquer upgrade do Just Dire Things no slot de adição: o slot de resultado fica vazio. Repetir com um capacete e `upgrade_nightvision`. Conferir que as ferramentas do próprio Just Dire Things continuam aceitando os upgrades dela normalmente, e que nenhum dos dois mods loga nada sobre o outro.
+60. [ ] Defeito conhecido: os três baldes de fluido do Just Dire Things aparecem na aba criativa e no JEI mesmo sem o mod instalado. É lacuna deliberada de #1062; confirmar que continua sendo só isso e que nada mais vaza.
+61. [ ] Upgrades do Just Dire Things não alcançam equipamento do Forgeweave (D-M8-22, bloqueio no mod de origem). Pôr uma picareta do Forgeweave no slot base de uma smithing table e qualquer upgrade do Just Dire Things no slot de adição: o slot de resultado fica vazio. Repetir com um capacete e `upgrade_nightvision`. Conferir que as ferramentas do próprio Just Dire Things continuam aceitando os upgrades dela normalmente, e que nenhum dos dois mods loga nada sobre o outro.
 62. [ ] Eternal Ores sozinho (sem Mekanism, Immersive Engineering, Modern Industrialization, BigReactors, Powah, RefinedStorage nem Occultism): os 19 materiais de dedupe registram, fundem do lingote ou do material bruto do próprio Eternal Ores, voltam a lingote vazados, e uma ferramenta ou armadura monta e repara.
 63. [ ] Eternal Ores junto de um dos provedores originais (Mekanism e Eternal Ores dando `tin`, por exemplo): material único, sem entrada duplicada no JEI nem na aba criativa, e o lingote de qualquer um dos dois funciona.
 
@@ -118,7 +118,7 @@ A integração troca a classe com que o item registra. É a forma que mais come 
 
 ## K. EMI (#1009, #1030, issue #971 aberta)
 
-77. [ ] ⚠ Desinstalar o JEI, instalar só o EMI, e abrir: as 14 categorias de receita do Forgeweave renderizam e cada transfer handler ainda preenche a estação. **Nenhum plugin nativo foi escrito**: a ponte de plugin JEI do EMI carrega tudo (spike de #1009), e esta linha é a confirmação em cliente que falta para fechar a #971. A lista das 14 categorias está no PR #1009.
+77. [ ] ⚠ Desinstalar o JEI, instalar só o EMI, e abrir: as 14 categorias de receita do Forgeweave renderizam e cada transfer handler ainda preenche a estação. Nenhum plugin nativo foi escrito: a ponte de plugin JEI do EMI carrega tudo (spike de #1009), e esta linha é a confirmação em cliente que falta para fechar a #971. A lista das 14 categorias está no PR #1009.
 78. [ ] ⚠ A categoria Entity Melting pela ponte: a entidade fica centrada na abertura e não é cortada, `1.0` não encosta no coração, o slot de combustível cicla os combustíveis, e o tooltip de fluido lê bem. Foi o defeito que o screenshot do mantenedor pegou, corrigido em #1030.
 
 ## L. Jade e WTHIT (#1016)
@@ -145,18 +145,18 @@ A integração troca a classe com que o item registra. É a forma que mais come 
 89. [ ] ⚠ Worktable, JEI e livro: a categoria desenha os quatro slots e o título por função, o botão [+] enche o primeiro slot de reagente, e a página do Modifier Worktable abre em Modifiers no livro.
 90. [ ] ⚠ Preview no armor stand (#1053): arrastar o boneco gira suave, mantém o yaw depois de um resize, e para de girar quando o botão é solto fora da caixa. O anel tem tooltip no hover. Abrir a estação com um baú ao lado: o preview some e dá lugar ao painel lateral. Conferir com uma peça pesada no Tool Forge, que as abas de armadura leve não cobrem. Com uma janela estreita, o JEI não invade o boneco.
 91. [ ] ⚠ Seta e slot de saída na posição do 1.20 (#1053): comparar Tool Station e Tool Forge com os screenshots que vieram na issue.
-92. [ ] ⚠ Tela do tanque energizado (#1026): o layout, o medidor, a barra e o botão de overdrive. **O overdrive agora é botão na tela**, não mais clique com a mão vazia no bloco (mudou desde a beta.16). Ligado, dobra o custo e a velocidade. O espaçamento e as cores nunca foram vistos rodando.
+92. [ ] ⚠ Tela do tanque energizado (#1026): o layout, o medidor, a barra e o botão de overdrive. O overdrive é botão na tela, não mais clique com a mão vazia no bloco. Ligado, dobra o custo e a velocidade. O espaçamento e as cores nunca foram vistos rodando.
 93. [ ] Tanque energizado, comportamento: amostra de combustível por balde, carga FE por cabo, a smeltery derrete na temperatura da amostra. Buffer vazio não derrete nada. Dois tanques com amostras diferentes: só o mais quente gasta energia. `energizedTank = false` deixa o bloco dormente e devolve amostra e buffer intactos ao religar.
 94. [ ] Cast da cabeça do warmace (#1052, #1055): a cabeça é **só vazada**, não sai mais do Part Builder por pattern. O cast é feito vazando ouro sobre um Heavy Core, e **o Heavy Core volta**, no slot de saída. Vale para o cast de ouro e para o clay cast.
 95. [ ] Formas de material (#1019): cada metal com lingote tem nugget, bloco, dust, small dust, tiny dust, plate, double plate, rod, gear e wire; brimspar e fulmenite só têm os três dusts. Crafts: 2 lingotes → 1 plate; 2x2 plates → double plate; 2 lingotes na vertical → 2 rods; 4 lingotes em cruz → 1 gear; 3 nuggets → 1 wire. Escada de dusts ida e volta. Dust derrete como o lingote, small dust como um terço, tiny dust como nugget; dust de outro mod com a mesma tag `c:dusts/<id>` também derrete.
 96. [ ] ⚠ Sprites 16x16 das formas de material: nenhum roxo de textura faltando, tint coerente com o material. Os oito templates agora são arquivos em `scripts/templates/material_forms/` e os sprites gerados são byte-idênticos aos de antes (#1056).
 97. [ ] Modifiers definidos por datapack (#1035): um `forgeweave:modifier_definition` de um pack registra, aplica e aparece no tooltip. `modifierDefinitions = false`: o id do pack resolve para nada e a ferramenta que o carrega continua carregando.
 98. [ ] ⚠ Um modifier de pack aparece no JEI e no livro do guia com o nome dele, não com uma chave de lang crua. Cliente dedicado ligado a servidor dedicado, para exercitar o caminho de sync do registro.
-99. [ ] **Migração de config** (#1016): abrir o mundo com um `config/forgeweave-server.toml` plano de uma build antiga, de um pack real e não sintético. Os valores são divididos entre `general-server.toml`, `content-server.toml`, `compat-server.toml` e `worldgen-server.toml` em `config/forgeweave/`, nada que o pack tinha ajustado volta ao padrão, e o arquivo antigo vira `forgeweave-server.toml.migrated`.
+99. [ ] Migração de config (#1016): abrir o mundo com um `config/forgeweave-server.toml` plano de uma build antiga, de um pack real e não sintético. Os valores são divididos entre `general-server.toml`, `content-server.toml`, `compat-server.toml` e `worldgen-server.toml` em `config/forgeweave/`, nada que o pack tinha ajustado volta ao padrão, e o arquivo antigo vira `forgeweave-server.toml.migrated`.
 
 ## P. Forgeweave sozinho, sem nenhum mod parceiro
 
-100. [ ] Mundo novo, sem nenhum dos mods integrados: nenhuma receita fantasma, nenhuma textura faltando, nenhum ruído no log — nem na entrada do mundo, nem ao abrir a aba criativa, nem ao abrir o JEI.
+100. [ ] Mundo novo, sem nenhum dos mods integrados: nenhuma receita fantasma, nenhuma textura faltando, nenhum ruído no log, nem na entrada do mundo, nem ao abrir a aba criativa, nem ao abrir o JEI.
 101. [ ] A exceção conhecida são os três baldes do Just Dire Things do item 60. Qualquer outra coisa que apareça sem o mod dono é defeito.
 102. [ ] ⚠ Sem mundo carregado, no menu principal, o JEI ou outro mod que liste receitas não derruba o jogo, e um reload de recursos (F3+T) não dispara `Cannot get config value before config is loaded` (#1024).
 103. [ ] Um mundo da `mc1.21.1-v0.5.0-beta.16` carrega inteiro: ferramentas, armadura vestida, níveis do M7, overslime e o inventário das estações, tudo intacto.
@@ -190,17 +190,17 @@ Mundo 1.21.1 novo, servidor dedicado, sem cheats, com Apotheosis, EMI, Mekanism,
 
 ## Decisões pendentes
 
-- **Proporções de craft da família de placas** (item 95): foram escolha do agente, de propósito mais caras que uma prensa. O wire sai mais barato à mão (3 nuggets) do que pela metal press do Immersive Engineering. Confirmar ou trocar.
-- **Regra de energia do jetpack do Mekanism** (item 25): hoje cobra sempre que o portador está no ar com o módulo ligado, não só ao propulsionar. Confirmar.
-- **Limitação de tier do Mystical Agriculture** (item 13): `ITinkerable` não carrega tier por stack, então toda ferramenta do Forgeweave entra no tier 5 com um slot de augment, e nove formas de ferramenta não são augmentáveis. O mantenedor decidiu em 2026-09-18 que não haverá mixin por enquanto; reabrir se incomodar em jogo.
-- **O toggle do Elementarium é exceção à D-M8-5** (item 3): a regra diz que preset de material não ganha toggle, e este ganhou porque o gerador lê famílias de tag contra as quais não compila. Confirmar a exceção ou tirar o toggle.
-- **`#forgeweave:large_tools` deixou de ser só de ferramentas**: as peças de armadura pesada entraram na tag. Confirmar o nome ou renomear a tag.
-- **Templates das formas de material em escala de cinza** (#1056): a issue sugeria templates dessaturados, mas o algoritmo de recolor escala a saturação de cada pixel em relação à média do doador, e um doador cinza não tem saturação para escalar (48 de 48 saídas mudaram no teste). Os templates ficaram coloridos. Confirmar.
-- **Reagente do `socketed`**: o Sigil of Socketing é o item certo?
-- **Tag de fluido por metal** (`c:molten_<id>`), sem uma tag-mãe `c:molten_metals`: não havia convenção no ecossistema 1.21.1 quando isso foi escrito.
-- **Os três baldes do Just Dire Things na aba criativa sem o mod** (item 60): lacuna deliberada de #1062. Aceitar como defeito conhecido desta tag ou corrigir antes de sair.
-- **Occultism, `type` aninhado** dentro de um `result` de crushing ou miner: o `00_readme.md` do Occultism omite, o codec de dispatch parece exigir. O gerador sempre escreve, então isso só afeta um autor de pack que siga o exemplo.
-- **Escada de stats dos presets do Mystical Agriculture**: desenho do próprio PR #1036, calibrado contra resonite e nitro_crystal, não contra nada upstream.
-- **#971 (EMI)** continua aberta à espera do item 77 num cliente.
-- **#1032 (upgrades do Just Dire Things)** está bloqueada no mod de origem. Se ele ganhar a tag ou o registro que falta, reabrir em vez de abrir issue nova: a pesquisa e as três respostas já estão na D-M8-22.
-- **As oito perguntas de superfície de addon de #1061**, todas com recomendação escrita em `docs/research/addon-surface-audit.md`: (1) "ferramenta nova de fora" é registrada em Java ou definida por datapack; (2) `TraitBehaviors` e `ModifierBehaviors` abrem para Java ou a biblioteca é o teto; (3) um trait registrado em Java continua atrás de `compat.kubejsTraits`; (4) um pacote de API com subpacotes ou vários no topo; (5) o addon de teste é publicado ou fica no shape `gametest`; (6) o orçamento de 136 KB de sync de material vira preocupação de runtime; (7) o livro abre para addons ou é documentado como fechado; (8) o que a ADR de estabilidade promete e a partir de qual versão.
+- Proporções de craft da família de placas (item 95): foram escolha do agente, de propósito mais caras que uma prensa. O wire sai mais barato à mão (3 nuggets) do que pela metal press do Immersive Engineering. Confirmar ou trocar.
+- Regra de energia do jetpack do Mekanism (item 25): hoje cobra sempre que o portador está no ar com o módulo ligado, não só ao propulsionar. Confirmar.
+- Limitação de tier do Mystical Agriculture (item 13): `ITinkerable` não carrega tier por stack, então toda ferramenta do Forgeweave entra no tier 5 com um slot de augment, e nove formas de ferramenta não são augmentáveis. O mantenedor decidiu em 2026-09-18 que não haverá mixin por enquanto; reabrir se incomodar em jogo.
+- O toggle do Elementarium é exceção à D-M8-5 (item 3): a regra diz que preset de material não ganha toggle, e este ganhou porque o gerador lê famílias de tag contra as quais não compila. Confirmar a exceção ou tirar o toggle.
+- `#forgeweave:large_tools` deixou de ser só de ferramentas: as peças de armadura pesada entraram na tag. Confirmar o nome ou renomear a tag.
+- Templates das formas de material em escala de cinza (#1056): a issue sugeria templates dessaturados, mas o algoritmo de recolor escala a saturação de cada pixel em relação à média do doador, e um doador cinza não tem saturação para escalar (48 de 48 saídas mudaram no teste). Os templates ficaram coloridos. Confirmar.
+- Reagente do `socketed`: o Sigil of Socketing é o item certo?
+- Tag de fluido por metal (`c:molten_<id>`), sem uma tag-mãe `c:molten_metals`: não havia convenção no ecossistema 1.21.1 quando isso foi escrito.
+- Os três baldes do Just Dire Things na aba criativa sem o mod (item 60): lacuna deliberada de #1062. Aceitar como defeito conhecido desta tag ou corrigir antes de sair.
+- Occultism, `type` aninhado dentro de um `result` de crushing ou miner: o `00_readme.md` do Occultism omite, o codec de dispatch parece exigir. O gerador sempre escreve, então isso só afeta um autor de pack que siga o exemplo.
+- Escada de stats dos presets do Mystical Agriculture: desenho do próprio PR #1036, calibrado contra resonite e nitro_crystal, não contra nada upstream.
+- #971 (EMI) continua aberta à espera do item 77 num cliente.
+- #1032 (upgrades do Just Dire Things) está bloqueada no mod de origem. Se ele ganhar a tag ou o registro que falta, reabrir em vez de abrir issue nova: a pesquisa e as três respostas já estão na D-M8-22.
+- As oito perguntas de superfície de addon de #1061, todas com recomendação escrita em `docs/research/addon-surface-audit.md`: (1) "ferramenta nova de fora" é registrada em Java ou definida por datapack; (2) `TraitBehaviors` e `ModifierBehaviors` abrem para Java ou a biblioteca é o teto; (3) um trait registrado em Java continua atrás de `compat.kubejsTraits`; (4) um pacote de API com subpacotes ou vários no topo; (5) o addon de teste é publicado ou fica no shape `gametest`; (6) o orçamento de 136 KB de sync de material vira preocupação de runtime; (7) o livro abre para addons ou é documentado como fechado; (8) o que a ADR de estabilidade promete e a partir de qual versão.
