@@ -2,6 +2,8 @@
 
 Vocabulary in [CONTEXT.md](../CONTEXT.md). Platform and architecture decisions in [docs/adr/](adr/). Branch/tag/release mechanics in [releasing.md](releasing.md).
 
+Each milestone section below records what was decided at the time it was planned. Where a later milestone section or the shipped code disagrees with an earlier one, the later section or the code wins — earlier text stays as the historical record, marked resolved rather than deleted (issue #1068).
+
 ## Milestone 1 — first playable: modular tools, no smeltery
 
 Target: Minecraft 1.21.1 / NeoForge 21.1 / Java 21 (ADR-0001).
