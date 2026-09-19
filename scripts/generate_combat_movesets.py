@@ -74,8 +74,8 @@ WEAPON_MOVESETS = [
      "exact match: Better Combat names the preset katana outright, Epic Fight's uchigatana is literally its katana-style type"),
     ("cleaver", "claymore", "greatsword",
      "a big blade with an extra plate riveted on and a tough handle reads as a heavy two-handed sword on both mods"),
-    ("warmace", "vanilla_mace", "axe",
-     "WarmaceItem's hurtEnemy/postHurtEnemy delegate straight to vanilla's MaceItem, so Better Combat's vanilla_mace preset (built for that exact vanilla item) is an exact behavioral match. Epic Fight ships no capability for vanilla's own mace at all (no weapons/mace.json, no mace item_keyword regex, no MaceItem case in CommonItemCapabilityProvider#registerWeaponTypesByClass) -- confirmed from its real source, not assumed -- and its fist type is bare-knuckle punching (EpicFightMovesets#GLOVE), not a held-weapon swing, so it is the wrong animation for a two-handed smash weapon regardless of the 'blunt impact' theme. axe is the closest built-in animation match: its AXE_1H moveset is a real one-handed overhead/chopping combo (AXE_AUTO1/2, AXE_DASH, AXE_AIRSLASH), the same moveset Epic Fight's own pickaxe and shovel types already borrow by parenting axe"),
+    ("warmace", "vanilla_mace", None,
+     "WarmaceItem's hurtEnemy/postHurtEnemy delegate straight to vanilla's MaceItem, so Better Combat's vanilla_mace preset (built for that exact vanilla item) is an exact behavioral match. Epic Fight ships no capability for vanilla's own mace at all (no weapons/mace.json, no mace item_keyword regex, no MaceItem case in CommonItemCapabilityProvider#registerWeaponTypesByClass, checked at 21.15.6-mc1.21.1-neoforge), and the maintainer decided on 2026-09-18 that the war mace behaves exactly like vanilla's mace under both mods, so it gets no Epic Fight file either. It stays the first candidate for a Forgeweave-owned move set"),
     ("battlesign", "staff", "axe",
      "a flat implement on a handle whose innate blocks and reflects. Epic Fight's shield type looked like a thematic match, but its own SHIELD moveset carries no addComboAttacks at all (only BLOCK/BLOCK_SHIELD pose modifiers), confirmed from EpicFightMovesets.java -- a main-hand item given that type could not attack. axe's real one-handed swing is the closest held-weapon animation available; the blocking/reflecting behavior stays Forgeweave's own DEFLECT innate through CombatSeams, off Epic Fight entirely. Better Combat has no shield-shaped preset either, so staff (its closest pole-mounted guard implement) stands in there"),
     ("frying_pan", "hammer", "axe",
@@ -133,10 +133,17 @@ def weapon_files() -> int:
     count = 0
     for item_id, bc_preset, ef_type, _reasoning in WEAPON_MOVESETS:
         assert bc_preset in BC_PRESETS, f"{item_id}: {bc_preset!r} is not a confirmed Better Combat preset"
-        assert ef_type in EF_TYPES, f"{item_id}: {ef_type!r} is not a confirmed Epic Fight weapon type"
+        assert ef_type is None or ef_type in EF_TYPES, f"{item_id}: {ef_type!r} is not a confirmed Epic Fight weapon type"
         write_json(BC_DIR / f"{item_id}.json", {"parent": f"bettercombat:{bc_preset}"})
-        write_json(EF_WEAPON_DIR / f"{item_id}.json", {"type": f"epicfight:{ef_type}"})
-        count += 2
+        count += 1
+        ef_file = EF_WEAPON_DIR / f"{item_id}.json"
+        if ef_type is None:
+            # Vanilla parity (maintainer decision, 2026-09-18): no Epic Fight capability at all, the
+            # same as the vanilla item this one delegates to.
+            ef_file.unlink(missing_ok=True)
+            continue
+        write_json(ef_file, {"type": f"epicfight:{ef_type}"})
+        count += 1
     return count
 
 
