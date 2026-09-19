@@ -26,10 +26,11 @@
     "general": ["forgeweave:voidtouched"]
   },
   "crafting_items": [
+    { "ingredient": { "item": "actuallyadditions:void_crystal" }, "value": 144 },
     { "ingredient": { "tag": "c:storage_blocks/void_crystal" }, "value": 1296 }
   ],
   "repair_item": {
-    "tag": "c:storage_blocks/void_crystal"
+    "item": "actuallyadditions:void_crystal"
   },
   "enchantability": 16,
   "color": "#241933",

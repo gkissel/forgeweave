@@ -1,0 +1,6 @@
+{
+  "behavior": "forgeweave:effect_on_hit",
+  "effect": "minecraft:glowing",
+  "duration": 200,
+  "amplifier": 0
+}

@@ -1,0 +1,6 @@
+{
+  "behavior": "forgeweave:damage_scales_with",
+  "source": "target_max_health",
+  "coefficient": 0.06,
+  "cap": 6.0
+}

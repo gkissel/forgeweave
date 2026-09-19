@@ -26,10 +26,11 @@
     "general": ["forgeweave:stormglass"]
   },
   "crafting_items": [
+    { "ingredient": { "item": "actuallyadditions:palis_crystal" }, "value": 144 },
     { "ingredient": { "tag": "c:storage_blocks/palis_crystal" }, "value": 1296 }
   ],
   "repair_item": {
-    "tag": "c:storage_blocks/palis_crystal"
+    "item": "actuallyadditions:palis_crystal"
   },
   "enchantability": 16,
   "color": "#3B6FC2",
