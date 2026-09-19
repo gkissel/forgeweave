@@ -655,6 +655,19 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "to restore durability. A repaired tool keeps its parts, its stats and its traits. "
                         + "The same slots take modifier reagents: a tool has three modifier slots, and levelling "
                         + "a modifier up stays inside the slot it already occupies.");
+        // #1081: the two armor tabs. One button each now, because the plating in the first slot is
+        // what says which of the four pieces comes out, the way upstream 1.20's single plate_armor
+        // station layout works.
+        add("gui.forgeweave.tool_station.armor", "Armor");
+        add("gui.forgeweave.tool_station.armor.description",
+                "Set a plating in the upper slot and maille in the lower one. The plating decides which "
+                        + "piece you get: a helmet plating builds a helmet, a chest plating a chestplate, and "
+                        + "so on down. The plating sets every stat and the maille brings its material's traits.");
+        add("gui.forgeweave.tool_station.heavy_armor", "Heavy armor");
+        add("gui.forgeweave.tool_station.heavy_armor.description",
+                "The same plating and maille with a large plate behind them, which is what makes the piece "
+                        + "heavy. The plating decides which piece you get. Heavy armor is armored 1.4x as well "
+                        + "as the light set and slows you down for it, and it only builds at a Tool Forge.");
         add("gui.forgeweave.tool_station.components", "Components");
         add("gui.forgeweave.tool_station.materials", "Materials");
         add("gui.forgeweave.tool_station.traits", "Traits");
