@@ -51,24 +51,25 @@ public class RaywardGameTests {
         helper.assertTrue(recipe != null, "the rayward recipe should ship unconditionally, Mekanism or not");
         helper.assertValueEqual(recipe.modifier(), ForgeweaveModifiers.RAYWARD_ID, "recipe modifier");
         helper.assertValueEqual(recipe.maxLevel(), ForgeweaveModifiers.RAYWARD_MAX_LEVEL, "recipe max level");
-        // The reagent is the c:ingots/lead tag, which nothing on this classpath fills, so the
-        // ingredient resolves to no items at all here. That is the assertion: a lead-less install
-        // ships the recipe and simply cannot complete it. RaywardTest pins the tag by name.
-        helper.assertTrue(recipe.reagent().isEmpty(),
-                "with nothing filling c:ingots/lead the reagent should match no item on this server");
+        // The reagent is the c:ingots/lead tag, which nothing on this classpath fills, so nothing in
+        // this server's item registry completes the recipe. RaywardTest pins the tag by name.
+        helper.assertTrue(!recipe.matches(new ItemStack(Items.IRON_INGOT)),
+                "the reagent should be lead, not any ingot the station happens to hold");
         helper.succeed();
     }
 
     /**
-     * Four applications, one level each, through the real {@link ModifierApplication#apply} pipeline:
-     * the level climbs one at a time, each level costs exactly one more modifier slot, and the
-     * shielding the level computes to reaches exactly 100% on the fourth and no further.
+     * One level, one ingot, one modifier slot, through the real {@link ModifierApplication#apply}
+     * pipeline. That price is what makes the fourth level cost something a player has to earn: a
+     * plain piece has {@link ForgeweaveModifiers#DEFAULT_SLOTS} slots, so it reaches level III and
+     * stops, and the fourth needs a slot from somewhere else (tool levelling, {@code extra_slot}).
+     * Full shielding is deliberately not free.
      */
     @GameTest(template = "empty")
     public static void raywardCostsOneSlotAndOneIngotPerLevelUpToFullShielding(GameTestHelper helper) {
         ItemStack piece = chestplate();
         ModifierRecipe recipe = recipe(ForgeweaveModifiers.RAYWARD_MAX_LEVEL, Items.IRON_INGOT);
-        for (int level = 1; level <= ForgeweaveModifiers.RAYWARD_MAX_LEVEL; level++) {
+        for (int level = 1; level <= ForgeweaveModifiers.DEFAULT_SLOTS; level++) {
             var applied = ModifierApplication.apply(recipe, piece, 1, 0);
             helper.assertTrue(!applied.output().isEmpty(), "level " + level + " should be accepted");
             piece = applied.output();
@@ -77,12 +78,23 @@ public class RaywardGameTests {
             helper.assertValueEqual(ForgeweaveModifiers.RAYWARD.occupiedSlots(level), level,
                     "slots occupied at level " + level);
         }
+        helper.assertTrue(ModifierApplication.apply(recipe, piece, 1, 0).output().isEmpty(),
+                "the fourth level should be refused on a piece with no slot left for it");
+
+        // One more slot from anywhere buys the last quarter.
+        piece.set(ForgeweaveDataComponents.GRANTED_SLOTS.get(), 1);
+        var fourth = ModifierApplication.apply(recipe, piece, 1, 0);
+        helper.assertTrue(!fourth.output().isEmpty(), "the fourth level should be accepted once a slot is free");
+        piece = fourth.output();
+        helper.assertValueEqual(ForgeweaveModifiers.entry(piece, ForgeweaveModifiers.RAYWARD_ID).level(),
+                ForgeweaveModifiers.RAYWARD_MAX_LEVEL, "level after the fourth application");
         helper.assertValueEqual(ForgeweaveModifiers.radiationShielding(piece), 1.0D,
                 "four levels should shield completely");
 
-        // A fifth is refused: the recipe's own cap, not a clamp hiding a spent slot.
+        // A fifth is refused by the recipe's own cap, not by a clamp hiding a spent slot.
+        piece.set(ForgeweaveDataComponents.GRANTED_SLOTS.get(), 4);
         helper.assertTrue(ModifierApplication.apply(recipe, piece, 1, 0).output().isEmpty(),
-                "a fifth level should be refused by the recipe's max_level");
+                "a fifth level should be refused by max_level even with slots to spare");
         helper.succeed();
     }
 
