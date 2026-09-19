@@ -26,10 +26,11 @@
     "general": ["forgeweave:verdant_ward"]
   },
   "crafting_items": [
+    { "ingredient": { "item": "actuallyadditions:emeradic_crystal" }, "value": 144 },
     { "ingredient": { "tag": "c:storage_blocks/emeradic_crystal" }, "value": 1296 }
   ],
   "repair_item": {
-    "tag": "c:storage_blocks/emeradic_crystal"
+    "item": "actuallyadditions:emeradic_crystal"
   },
   "enchantability": 16,
   "color": "#3FBF6B",

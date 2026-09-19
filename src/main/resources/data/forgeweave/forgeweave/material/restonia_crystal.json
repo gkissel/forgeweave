@@ -26,10 +26,11 @@
     "general": ["forgeweave:bloodgem"]
   },
   "crafting_items": [
+    { "ingredient": { "item": "actuallyadditions:restonia_crystal" }, "value": 144 },
     { "ingredient": { "tag": "c:storage_blocks/restonia_crystal" }, "value": 1296 }
   ],
   "repair_item": {
-    "tag": "c:storage_blocks/restonia_crystal"
+    "item": "actuallyadditions:restonia_crystal"
   },
   "enchantability": 16,
   "color": "#C23B3B",

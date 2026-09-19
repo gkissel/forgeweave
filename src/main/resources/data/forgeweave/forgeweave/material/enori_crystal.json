@@ -26,10 +26,11 @@
     "general": ["forgeweave:luminous"]
   },
   "crafting_items": [
+    { "ingredient": { "item": "actuallyadditions:enori_crystal" }, "value": 144 },
     { "ingredient": { "tag": "c:storage_blocks/enori_crystal" }, "value": 1296 }
   ],
   "repair_item": {
-    "tag": "c:storage_blocks/enori_crystal"
+    "item": "actuallyadditions:enori_crystal"
   },
   "enchantability": 16,
   "color": "#EDEDED",

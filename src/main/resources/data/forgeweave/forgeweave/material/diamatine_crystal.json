@@ -26,10 +26,11 @@
     "general": ["forgeweave:radiant_edge", "forgeweave:surging"]
   },
   "crafting_items": [
+    { "ingredient": { "item": "actuallyadditions:diamatine_crystal" }, "value": 144 },
     { "ingredient": { "tag": "c:storage_blocks/diamatine_crystal" }, "value": 1296 }
   ],
   "repair_item": {
-    "tag": "c:storage_blocks/diamatine_crystal"
+    "item": "actuallyadditions:diamatine_crystal"
   },
   "enchantability": 16,
   "color": "#7FD9E8",

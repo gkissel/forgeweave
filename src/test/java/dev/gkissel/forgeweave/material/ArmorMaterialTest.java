@@ -136,7 +136,11 @@ class ArmorMaterialTest {
                     "naga_scale", "arctic_fur", "alpha_yeti_fur", "carminite",
                     "dragon_bone", "dragonsteel_fire", "dragonsteel_ice", "dragonsteel_lightning",
                     "deathworm_chitin_yellow", "deathworm_chitin_white", "deathworm_chitin_red",
-                    "troll_leather_mountain", "troll_leather_forest", "troll_leather_frost"))
+                    "troll_leather_mountain", "troll_leather_forest", "troll_leather_frost"),
+            // #1069 (D-M8-26): Actually Additions' six empowered crystals, same full plating +
+            // maille shape as #837's own plain-crystal roster above.
+            Stream.of("empowered_restonia_crystal", "empowered_palis_crystal", "empowered_diamatine_crystal",
+                    "empowered_void_crystal", "empowered_emeradic_crystal", "empowered_enori_crystal"))
             .flatMap(java.util.function.Function.identity())
             .collect(java.util.stream.Collectors.toSet());
 

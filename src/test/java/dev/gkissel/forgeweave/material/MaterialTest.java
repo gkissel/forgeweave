@@ -200,7 +200,11 @@ class MaterialTest {
             // Issue #1058 (D-M8-24): Silent Gear, PneumaticCraft: Repressurized, Forbidden and
             // Arcanus, The Aether and L_Ender's Cataclysm.
             "crimson_steel", "azure_silver", "azure_electrum", "blaze_gold", "tyrian_steel",
-            "compressed_iron", "deorum", "zanite", "gravitite", "ambrosium", "ignitium", "cursium" })
+            "compressed_iron", "deorum", "zanite", "gravitite", "ambrosium", "ignitium", "cursium",
+            // Issue #1069 (D-M8-26): Actually Additions' six empowered crystals, joining #837
+            // batch 5's plain-crystal roster.
+            "empowered_restonia_crystal", "empowered_palis_crystal", "empowered_diamatine_crystal",
+            "empowered_void_crystal", "empowered_emeradic_crystal", "empowered_enori_crystal" })
     void shippedMaterialsParse(String name) {
         Material.CODEC.parse(ops, shipped(name)).getOrThrow();
     }
@@ -252,7 +256,11 @@ class MaterialTest {
             // 1.21.1 tree (SilentGearGameTests, PneumaticCraftGameTests, ForbiddenArcanusGameTests,
             // AetherGameTests, CataclysmGameTests).
             "crimson_steel", "azure_silver", "azure_electrum", "blaze_gold", "tyrian_steel",
-            "compressed_iron", "deorum", "zanite", "gravitite", "ambrosium", "ignitium", "cursium" })
+            "compressed_iron", "deorum", "zanite", "gravitite", "ambrosium", "ignitium", "cursium",
+            // Issue #1069 (D-M8-26): single item_exists each, verified against the shipped
+            // actuallyadditions-1.3.24+mc1.21.1.jar (EmpoweredCrystalsGameTests).
+            "empowered_restonia_crystal", "empowered_palis_crystal", "empowered_diamatine_crystal",
+            "empowered_void_crystal", "empowered_emeradic_crystal", "empowered_enori_crystal" })
     void conditionalMaterialsCarryAWellFormedConditionsBlockAndStillParse(String name) {
         JsonObject json = shipped(name).getAsJsonObject();
         assertTrue(json.has("neoforge:conditions"), name + " must carry a neoforge:conditions block (issue #826)");
@@ -346,6 +354,12 @@ class MaterialTest {
             "restonia_crystal,diamond", "palis_crystal,diamond", "diamatine_crystal,diamond",
             "void_crystal,diamond", "emeradic_crystal,diamond", "enori_crystal,diamond",
             "uraninite,diamond",
+            // Issue #1069 (D-M8-26): the six empowered crystals, one rung above their plain
+            // counterparts (netherite) -- Forgeweave's own placement, no rung above resonite
+            // (D-M8-10); the jar ships no decompilable ToolMaterial/Tier class for any crystal color.
+            "empowered_restonia_crystal,netherite", "empowered_palis_crystal,netherite",
+            "empowered_diamatine_crystal,netherite", "empowered_void_crystal,netherite",
+            "empowered_emeradic_crystal,netherite", "empowered_enori_crystal,netherite",
             "psimetal,iron", "psigem,diamond", "ivory_psimetal,diamond", "ebony_psimetal,diamond",
             "pink_slime,diamond",
             "cyanite,diamond", "blutonium,diamond", "ludicrite,netherite",
@@ -826,6 +840,10 @@ class MaterialTest {
             // sky_stone/hdpe, which are not in this parametrized list at all (never were).
             "black_quartz", "restonia_crystal", "palis_crystal", "diamatine_crystal", "void_crystal",
             "emeradic_crystal", "enori_crystal", "psigem",
+            // Issue #1069 (D-M8-26): the six empowered crystals join the same "crystals do not
+            // melt" exclusion -- no melting_recipe, no casting_recipe, no ForgeweaveFluids entry.
+            "empowered_restonia_crystal", "empowered_palis_crystal", "empowered_diamatine_crystal",
+            "empowered_void_crystal", "empowered_emeradic_crystal", "empowered_enori_crystal",
             // #953 (maintainer directive): the three Draconic Evolution core materials are Part
             // Builder only. A core is a machine part, not an ingot -- there is nothing to pour it
             // into and nothing to pour out of it -- so they lost the fluid, the melting recipe, the
@@ -979,6 +997,55 @@ class MaterialTest {
                 name + " must carry forgeweave:" + expectedTrait + " (issue #876), got " + material.traits().general());
         assertFalse(material.traits().general().contains(pristine),
                 name + " must no longer carry forgeweave:pristine -- that id now belongs to emerald alone (issue #876)");
+    }
+
+    /**
+     * Issue #1069 (D-M8-26): every Actually Additions material -- the seven #837 already ships plus
+     * this issue's six empowered crystals -- must be buildable at the Part Builder from its own raw
+     * item, not only from its storage block. #837 batch 5 found no {@code c:gems/*} tag exists for
+     * any of the six plain crystals and stopped at the {@code c:storage_blocks/*} tag alone; issue
+     * #872 unblocked concrete item ids in {@code crafting_items}/{@code repair_item} after batch 5
+     * shipped, and nobody revisited these six to use it -- a single restonia crystal (or any of its
+     * five siblings) could not build a part on its own, only a compacted block of nine could. This
+     * test pins the fix down for all thirteen: each material's {@code crafting_items} must contain a
+     * row keyed on the mod's own raw item id, and {@code repair_item} must key on that same id rather
+     * than the block.
+     */
+    @ParameterizedTest
+    @CsvSource({
+            "restonia_crystal,actuallyadditions:restonia_crystal",
+            "palis_crystal,actuallyadditions:palis_crystal",
+            "diamatine_crystal,actuallyadditions:diamatine_crystal",
+            "void_crystal,actuallyadditions:void_crystal",
+            "emeradic_crystal,actuallyadditions:emeradic_crystal",
+            "enori_crystal,actuallyadditions:enori_crystal",
+            "empowered_restonia_crystal,actuallyadditions:empowered_restonia_crystal",
+            "empowered_palis_crystal,actuallyadditions:empowered_palis_crystal",
+            "empowered_diamatine_crystal,actuallyadditions:empowered_diamatine_crystal",
+            "empowered_void_crystal,actuallyadditions:empowered_void_crystal",
+            "empowered_emeradic_crystal,actuallyadditions:empowered_emeradic_crystal",
+            "empowered_enori_crystal,actuallyadditions:empowered_enori_crystal",
+    })
+    void actuallyAdditionsMaterialsBuildFromTheirOwnRawItem(String name, String expectedItem) {
+        JsonObject json = shipped(name).getAsJsonObject();
+
+        assertEquals(expectedItem, json.getAsJsonObject("repair_item").get("item").getAsString(),
+                name + "'s repair_item must key on its own raw item, not the storage block");
+
+        boolean hasRawItemRow = false;
+        for (JsonElement item : json.getAsJsonArray("crafting_items")) {
+            JsonObject ingredient = item.getAsJsonObject().getAsJsonObject("ingredient");
+            if (ingredient.has("item") && expectedItem.equals(ingredient.get("item").getAsString())) {
+                assertEquals(PartBuilderRecipes.INGOT_VALUE, item.getAsJsonObject().get("value").getAsInt(),
+                        name + "'s raw item row must be worth one ingot (144), matching black_quartz's gem row");
+                hasRawItemRow = true;
+            }
+        }
+        assertTrue(hasRawItemRow, name + " must list " + expectedItem + " directly in crafting_items "
+                + "(issue #1069), not only its storage block");
+
+        // Still parses cleanly through the real codec, matching #shippedMaterialsParse.
+        Material.CODEC.parse(ops, json).getOrThrow();
     }
 
     /**
