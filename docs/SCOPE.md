@@ -74,7 +74,7 @@ All melting, alloying, casting, and modifier recipes are visible in JEI. The adv
 | Items | seared brick, casts (ingot, nugget, 5 part casts), raw/ingot/nugget forms for new metals, modifier reagents (silky jewel, reinforced plate, mending moss, extra-slot items per clone) |
 | Modifiers (15) | haste, luck, sharpness, diamond, emerald, reinforced, mending moss, silky, soulbound, extra-slot (parity, clone constants) + Searing (magma cream, auto-smelt), Magnetic (ender pearl, drops to inventory), Aquadynamic (turtle scute, full speed underwater), Resonant (echo shard, bonus XP), Far Reach (amethyst, +1 interaction range/level ×2) — modern-vanilla additions, numbers ours, deviation recorded |
 | Traits (~8 new Java) | magnetic (2 lvl), momentum, lightweight, stonebound, petramor, insatiable, coldblooded, established |
-| World gen | cobalt + ardite nether ore (datapack features). Slime islands and End content: explicit non-goal until the world-content milestone is scoped at M6 planning |
+| World gen | cobalt + ardite nether ore (datapack features). ~~Slime islands~~ and End content: explicit non-goal until the world-content milestone is scoped at M6 planning. **Shipped**: slime islands and magma slime islands generate (`worldgen/SlimeIslandStructure`, `worldgen/MagmaSlimeIslandStructure`; issues #629/#632 and #450/#637). End content remains a non-goal |
 | UI | smeltery controller GUI (contents/fuel, clone parity), casting flow, modifier application at Tool Station |
 | Schema | material JSON gains per-part trait lists (M1's 4 materials migrated); melting recipes carry base yield + required temperature; smeltery fuels and alloy recipes are datapack JSON |
 | Integration | JEI categories: melting, alloying, casting table, casting basin, modifier application; Ponder soft dependency (scenes when present, one-time chat hint when absent) |
@@ -87,7 +87,7 @@ Smeltery multiblock ported from the 1.12 clone: rectangular interiors 1×1 to 9�
 
 ### Non-goals for M2
 
-End/Ancient cores, End ore, slime islands (world-content milestone, scoped at M6 planning) · sand casts (revisit on playtest feedback) · per-smeltery alloy on/off toggle (deferred backlog) · electric/tiered heater (M8) · combat modifiers (smite, bane, fiery, necrotic, knockback, shulking, webbed, beheading) and embossing (M3) · GuideME in-game guide, EMI (M8) · tool forge / large tools (M3).
+End/Ancient cores, End ore, ~~slime islands~~ (world-content milestone, scoped at M6 planning; **shipped**, see the World gen row above) · sand casts (revisit on playtest feedback) · per-smeltery alloy on/off toggle (deferred backlog) · electric/tiered heater (M8) · ~~combat modifiers (smite, bane, fiery, necrotic, knockback, shulking, webbed, beheading) and embossing (M3)~~ **shipped in M3**: combat modifiers batch 1 — smite, bane, fiery, necrotic (issue #162, PR #178), batch 2 — knockback, shulking, webbed (issue #163, PR #177), beheading (issue #158, PR #197), embossing (issue #154, PR #175) · GuideME in-game guide, EMI (M8) · tool forge / large tools (M3).
 
 ### CI and release gates
 
@@ -246,7 +246,7 @@ Material datapack batches per ADR-0002 (a material without a new trait is one JS
 
 ### Non-goals for M3.2
 
-Forgeweave ores or worldgen for lead/silver/tin (tag-gated only) · slime islands, purple slime, blue slime spawns (world-content milestone; blue slime crystal gets a crafting recipe instead) · bowstring/arrow-shaft/fletching material stats (M3.5) · alubrass as a tool material · modern-branch materials needing mod-only items (slimesteel, queens slime, cinderslime, hepatizon, blazing bone, necrotic bone, venombone, seared/scorched stone, slimewood, whitestone) · Twilight Forest compat materials · mod-compat metals beyond the four tag-gated ones (M8) · bow stat axes (M3.5).
+Forgeweave ores or worldgen for lead/silver/tin (tag-gated only) · ~~slime islands~~, purple slime and blue slime mob spawns (world-content milestone; blue slime crystal gets a crafting recipe instead). **Slime islands shipped** (`worldgen/SlimeIslandStructure`, issues #629/#632 and #450/#637); purple/blue slime mob spawns remain a non-goal · bowstring/arrow-shaft/fletching material stats (M3.5) · alubrass as a tool material · modern-branch materials needing mod-only items — slimesteel, cinderslime, blazing bone, venombone, scorched stone, whitestone still hold. ~~queens slime, hepatizon, necrotic bone, seared stone, slimewood~~ **shipped at M6** (issue #843, closes #180; see § Milestone sources' M6 row) · ~~Twilight Forest compat materials~~ **shipped in M8**: ironwood, steeleaf, knightmetal, fiery and four more as Track A presets (issue #1059, PR #1062, D-M8-25) · mod-compat metals beyond the four tag-gated ones (M8) · bow stat axes (M3.5).
 
 ### CI and release gates
 
@@ -996,7 +996,7 @@ No milestone-specific CI infrastructure beyond that.
 - ~~Shape of Apotheosis integration: vanilla-enchanting flag interplay vs. gem sockets as Modifiers (revisit at M8, seam exists via `allowVanillaEnchanting` and the Modifier system).~~ **Answered at M8 planning (D-M8-1, 2026-09-04)**: both, not either. Gem sockets are the `socketed` modifier, Forgeweave gear is affix-eligible, and enchanting runs through the existing flag. See § Milestone 8.
 - Which additional 1.12.2 addons beyond TAIGA and Tool Leveling to mine for inspiration.
 - ~~EMI support vs. JEI-only long-term (revisit at M8).~~ **Answered at M8 planning (D-M8-2, 2026-09-04)**: spike EMI's JEI-plugin bridge across all 13 categories first, then write a native plugin only for the categories the bridge fails. See § Milestone 8.
-- **World-content milestone** (candidate; scoped at M6 planning, epic #824): the End Core and Deep Core smeltery tiers and generic blood melting move into M6 itself (#844, #845), settling the part of this open question M6 planning could answer. A new End ore and slime islands remain unscoped and stay an explicit non-goal everywhere until a future milestone picks them up.
+- **World-content milestone** (candidate; scoped at M6 planning, epic #824): the End Core and Deep Core smeltery tiers and generic blood melting move into M6 itself (#844, #845), settling the part of this open question M6 planning could answer. ~~A new End ore and slime islands remain unscoped and stay an explicit non-goal everywhere~~ **slime islands shipped** (`worldgen/SlimeIslandStructure`, `worldgen/MagmaSlimeIslandStructure`; issues #629/#632 and #450/#637) — a new End ore, End content, and the remaining island variants (sky, ocean sky, clay) stay unscoped and non-goals until a future milestone picks them up.
 - ~~**In-game guide**: JEI + advancements + Ponder scenes carried discovery through M2 to M7, and the in-game book carries it from M4 on. Revisited at M8.~~ **Answered at M8 (maintainer, 2026-09-18, [#974](https://github.com/gkissel/forgeweave/issues/974))**: the book stays and GuideME is a non-goal. See § Milestone 8's non-goals.
 
 ## Deferred backlog (decided, awaiting a milestone)
