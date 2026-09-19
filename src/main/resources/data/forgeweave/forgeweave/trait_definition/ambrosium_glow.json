@@ -1,0 +1,6 @@
+{
+  "behavior": "forgeweave:effect_on_hurt",
+  "effect": "minecraft:regeneration",
+  "duration": 100,
+  "amplifier": 0
+}

@@ -1,0 +1,4 @@
+{
+  "behavior": "forgeweave:damage_floor",
+  "minimum_hearts": 1.0
+}

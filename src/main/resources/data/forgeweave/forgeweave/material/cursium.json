@@ -1,0 +1,44 @@
+{
+  "head": {
+    "durability": 880,
+    "mining_speed": 7.4,
+    "attack_damage": 6.5
+  },
+  "handle": {
+    "durability_modifier": 0.98,
+    "durability": 98
+  },
+  "extra_durability": 185,
+  "bow": {
+    "drawspeed": 0.4,
+    "range": 1.92,
+    "bonus_damage": 8.1
+  },
+  "plating": {
+    "helmet": { "durability": 365, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "chestplate": { "durability": 538, "armor": 8.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "leggings": { "durability": 504, "armor": 6.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "boots": { "durability": 437, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:cursium_blight"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "cataclysm:cursium_ingot" }, "value": 144 },
+    { "ingredient": { "item": "cataclysm:cursium_block" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "item": "cataclysm:cursium_ingot"
+  },
+  "cast_only": true,
+  "enchantability": 15,
+  "color": "#5B2C6F",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "cataclysm:cursium_ingot"
+    }
+  ]
+}

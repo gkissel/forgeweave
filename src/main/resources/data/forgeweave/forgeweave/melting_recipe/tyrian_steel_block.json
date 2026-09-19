@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:storage_blocks/tyrian_steel"
+  },
+  "fluid": "forgeweave:molten_tyrian_steel",
+  "amount": 1296,
+  "temperature": 1600,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "silentgear:tyrian_steel_ingot"
+    }
+  ]
+}

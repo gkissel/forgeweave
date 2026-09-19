@@ -1,0 +1,43 @@
+{
+  "head": {
+    "durability": 270,
+    "mining_speed": 6.8,
+    "attack_damage": 4.0
+  },
+  "handle": {
+    "durability_modifier": 0.88,
+    "durability": 52
+  },
+  "extra_durability": 42,
+  "bow": {
+    "drawspeed": 0.44,
+    "range": 1.7,
+    "bonus_damage": 6.4
+  },
+  "plating": {
+    "helmet": { "durability": 225, "armor": 3.0, "toughness": 1.0 },
+    "chestplate": { "durability": 330, "armor": 7.0, "toughness": 1.0 },
+    "leggings": { "durability": 310, "armor": 6.0, "toughness": 1.0 },
+    "boots": { "durability": 268, "armor": 3.0, "toughness": 1.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
+  "traits": {
+    "general": ["forgeweave:zanite_growth"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "aether:zanite_gemstone" }, "value": 144 },
+    { "ingredient": { "item": "aether:zanite_block" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "item": "aether:zanite_gemstone"
+  },
+  "enchantability": 15,
+  "color": "#2FBFA0",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "aether:zanite_gemstone"
+    }
+  ]
+}

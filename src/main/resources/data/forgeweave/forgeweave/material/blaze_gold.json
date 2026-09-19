@@ -1,0 +1,44 @@
+{
+  "head": {
+    "durability": 260,
+    "mining_speed": 6.6,
+    "attack_damage": 3.8
+  },
+  "handle": {
+    "durability_modifier": 0.9,
+    "durability": 55
+  },
+  "extra_durability": 45,
+  "bow": {
+    "drawspeed": 0.42,
+    "range": 1.65,
+    "bonus_damage": 6.2
+  },
+  "plating": {
+    "helmet": { "durability": 230, "armor": 3.0, "toughness": 1.0 },
+    "chestplate": { "durability": 340, "armor": 7.0, "toughness": 1.0 },
+    "leggings": { "durability": 318, "armor": 6.0, "toughness": 1.0 },
+    "boots": { "durability": 276, "armor": 3.0, "toughness": 1.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
+  "traits": {
+    "general": ["forgeweave:blaze_gold_cinder"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/blaze_gold" }, "value": 144 },
+    { "ingredient": { "tag": "c:storage_blocks/blaze_gold" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/blaze_gold"
+  },
+  "cast_only": true,
+  "enchantability": 20,
+  "color": "#DD8500",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "silentgear:blaze_gold_ingot"
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "head": {
+    "durability": 900,
+    "mining_speed": 7.8,
+    "attack_damage": 6.4
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 100
+  },
+  "extra_durability": 190,
+  "bow": {
+    "drawspeed": 0.4,
+    "range": 1.95,
+    "bonus_damage": 8.0
+  },
+  "plating": {
+    "helmet": { "durability": 375, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "chestplate": { "durability": 552, "armor": 8.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "leggings": { "durability": 517, "armor": 6.0, "toughness": 3.0, "knockback_resistance": 0.1 },
+    "boots": { "durability": 449, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": ["forgeweave:deorum_temper"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/deorum" }, "value": 144 },
+    { "ingredient": { "tag": "c:storage_blocks/deorum" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/deorum"
+  },
+  "cast_only": true,
+  "enchantability": 20,
+  "color": "#8A6E3D",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "forbidden_arcanus:deorum_ingot"
+    }
+  ]
+}

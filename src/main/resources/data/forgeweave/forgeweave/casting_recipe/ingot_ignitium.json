@@ -1,0 +1,17 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_ignitium",
+  "amount": 144,
+  "result": {
+    "id": "cataclysm:ignitium_ingot"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "cataclysm:ignitium_ingot"
+    }
+  ]
+}

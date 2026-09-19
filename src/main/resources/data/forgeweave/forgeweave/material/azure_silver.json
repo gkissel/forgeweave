@@ -1,0 +1,45 @@
+{
+  "head": {
+    "durability": 560,
+    "mining_speed": 7.2,
+    "attack_damage": 5.2
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 70
+  },
+  "extra_durability": 60,
+  "bow": {
+    "drawspeed": 0.42,
+    "range": 1.8,
+    "bonus_damage": 6.8
+  },
+  "plating": {
+    "helmet": { "durability": 290, "armor": 3.0, "toughness": 2.0 },
+    "chestplate": { "durability": 425, "armor": 8.0, "toughness": 2.0 },
+    "leggings": { "durability": 398, "armor": 6.0, "toughness": 2.0 },
+    "boots": { "durability": 345, "armor": 3.0, "toughness": 2.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": ["forgeweave:azure_silver_moonstep"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/azure_silver" }, "value": 144 },
+    { "ingredient": { "tag": "c:raw_materials/azure_silver" }, "value": 144 },
+    { "ingredient": { "tag": "c:storage_blocks/azure_silver" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/azure_silver"
+  },
+  "cast_only": true,
+  "enchantability": 26,
+  "color": "#CBBAFF",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "silentgear:azure_silver_ingot"
+    }
+  ]
+}

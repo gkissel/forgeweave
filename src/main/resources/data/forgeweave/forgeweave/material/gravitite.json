@@ -1,0 +1,42 @@
+{
+  "head": {
+    "durability": 620,
+    "mining_speed": 6.8,
+    "attack_damage": 4.8
+  },
+  "handle": {
+    "durability_modifier": 1.05,
+    "durability": 75
+  },
+  "extra_durability": 65,
+  "bow": {
+    "drawspeed": 0.4,
+    "range": 1.9,
+    "bonus_damage": 6.2
+  },
+  "plating": {
+    "helmet": { "durability": 310, "armor": 3.0, "toughness": 2.0 },
+    "chestplate": { "durability": 455, "armor": 8.0, "toughness": 2.0 },
+    "leggings": { "durability": 426, "armor": 6.0, "toughness": 2.0 },
+    "boots": { "durability": 369, "armor": 3.0, "toughness": 2.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": ["forgeweave:gravitite_levity"]
+  },
+  "crafting_items": [
+    { "ingredient": { "item": "aether:enchanted_gravitite" }, "value": 144 }
+  ],
+  "repair_item": {
+    "item": "aether:enchanted_gravitite"
+  },
+  "enchantability": 12,
+  "color": "#C9C9E8",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "aether:enchanted_gravitite"
+    }
+  ]
+}

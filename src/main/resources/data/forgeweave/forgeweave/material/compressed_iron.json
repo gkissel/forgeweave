@@ -1,0 +1,44 @@
+{
+  "head": {
+    "durability": 280,
+    "mining_speed": 6.4,
+    "attack_damage": 3.6
+  },
+  "handle": {
+    "durability_modifier": 0.95,
+    "durability": 58
+  },
+  "extra_durability": 48,
+  "bow": {
+    "drawspeed": 0.4,
+    "range": 1.6,
+    "bonus_damage": 5.8
+  },
+  "plating": {
+    "helmet": { "durability": 245, "armor": 3.0, "toughness": 1.0 },
+    "chestplate": { "durability": 360, "armor": 7.0, "toughness": 1.0 },
+    "leggings": { "durability": 338, "armor": 6.0, "toughness": 1.0 },
+    "boots": { "durability": 292, "armor": 3.0, "toughness": 1.0 }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
+  "traits": {
+    "general": ["forgeweave:compressed_iron_heft"]
+  },
+  "crafting_items": [
+    { "ingredient": { "tag": "c:ingots/compressed_iron" }, "value": 144 },
+    { "ingredient": { "tag": "c:storage_blocks/compressed_iron" }, "value": 1296 }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/compressed_iron"
+  },
+  "cast_only": true,
+  "enchantability": 11,
+  "color": "#8C8C99",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "pneumaticcraft:ingot_iron_compressed"
+    }
+  ]
+}

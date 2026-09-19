@@ -188,7 +188,11 @@ class MaterialTest {
             // path the Track B roster above uses.
             "atomic_matter_alloy",
             // Issue #1031 (D-M8-21): Just Dire Things' four tool tiers.
-            "ferricore", "blazegold", "celestigem", "eclipsealloy" })
+            "ferricore", "blazegold", "celestigem", "eclipsealloy",
+            // Issue #1058 (D-M8-24): Silent Gear, PneumaticCraft: Repressurized, Forbidden and
+            // Arcanus, The Aether and L_Ender's Cataclysm.
+            "crimson_steel", "azure_silver", "azure_electrum", "blaze_gold", "tyrian_steel",
+            "compressed_iron", "deorum", "zanite", "gravitite", "ambrosium", "ignitium", "cursium" })
     void shippedMaterialsParse(String name) {
         Material.CODEC.parse(ops, shipped(name)).getOrThrow();
     }
@@ -227,7 +231,12 @@ class MaterialTest {
             "wyvern", "chaotic", "quartz_enriched_iron", "silicon", "energised_steel",
             // Issue #1031 (D-M8-21): Just Dire Things' four tool tiers, single item_exists each,
             // verified against Direwolf20-MC/JustDireThings@v1.5.7 (JustDireThingsGameTests).
-            "ferricore", "blazegold", "celestigem", "eclipsealloy" })
+            "ferricore", "blazegold", "celestigem", "eclipsealloy",
+            // Issue #1058 (D-M8-24): single item_exists each, verified against each mod's own
+            // 1.21.1 tree (SilentGearGameTests, PneumaticCraftGameTests, ForbiddenArcanusGameTests,
+            // AetherGameTests, CataclysmGameTests).
+            "crimson_steel", "azure_silver", "azure_electrum", "blaze_gold", "tyrian_steel",
+            "compressed_iron", "deorum", "zanite", "gravitite", "ambrosium", "ignitium", "cursium" })
     void conditionalMaterialsCarryAWellFormedConditionsBlockAndStillParse(String name) {
         JsonObject json = shipped(name).getAsJsonObject();
         assertTrue(json.has("neoforge:conditions"), name + " must carry a neoforge:conditions block (issue #826)");
