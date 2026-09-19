@@ -254,6 +254,23 @@ public final class ForgeweaveConfig {
     public static final ModConfigSpec.BooleanValue MODIFIERS;
 
     /**
+     * Issue #1070: whether a part exchange at the Tool Station or Tool Forge hands the displaced
+     * part back to the player. Default {@code true}, which is the behaviour issue #813 added and
+     * every existing world already has; {@code false} is upstream 1.12's own behaviour, where {@code
+     * ToolBuilder#tryReplaceToolParts} never reconstructs an {@code ItemStack} for the part it
+     * overwrites, so it is simply lost.
+     *
+     * <p>Covers only the plain displaced part. An upgrade a registered {@code tool.UpgradeHosts} host
+     * reclaims (a Mekanism module, a Draconic module) joins the same {@code displacedParts} list but
+     * is never subject to this option: the maintainer's rule that a hosted upgrade is never lost
+     * stands on its own, so {@link dev.gkissel.forgeweave.menu.ToolAssemblyRecipes#resolveExchange}
+     * keeps the two lists apart until the final hand-back.
+     *
+     * @see dev.gkissel.forgeweave.menu.ToolAssemblyRecipes#resolveExchange
+     */
+    public static final ModConfigSpec.BooleanValue RETURN_EXCHANGED_PARTS;
+
+    /**
      * Tool and armor leveling (docs/SCOPE.md M7, D-M7-3; issue #918), a port of Tinkers' Tool
      * Leveling. Off means the mechanic is fully inert -- no XP accrues on any path, and M7-5's
      * tooltip lines, chat line and chime stay silent. It does <b>not</b> revoke levels: a slot a
@@ -945,6 +962,13 @@ public final class ForgeweaveConfig {
                         "Station. Repair and part exchange are unaffected, and anything already on a tool keeps",
                         "working either way -- only applying a new one is refused.")
                 .define("modifiers", true);
+        RETURN_EXCHANGED_PARTS = builder
+                .comment("If true, a part exchange at the Tool Station or Tool Forge hands the part it displaced",
+                        "back to the player. This is the default and matches every existing world. Set to false",
+                        "for upstream 1.12's own behaviour, where the displaced part is simply lost. Either way,",
+                        "an upgrade a partner mod's module container had to give up because the new part set",
+                        "can no longer carry it is unaffected and always comes back.")
+                .define("returnExchangedParts", true);
         // M7 (issue #918). The three numbers are not content-family toggles, but a pack operator
         // reaches for them alongside toolLeveling, so they sit beside it rather than opening a new
         // section for three values -- the same call meltSpeedMultiplier made above.
