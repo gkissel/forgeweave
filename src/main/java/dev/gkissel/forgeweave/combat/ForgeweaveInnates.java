@@ -44,6 +44,7 @@ import net.minecraft.world.phys.Vec3;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.combat.CombatDefense;
 import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatProviders;
 import dev.gkissel.forgeweave.api.combat.CombatSeam;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
@@ -59,7 +60,7 @@ import dev.gkissel.forgeweave.particle.ForgeweaveParticles;
  * Every tool's combat innate (maintainer directive 2026-08-12: every tool carries one) -- the M1
  * retrofit's pickaxe pierce, shovel flatten and hatchet sunder (docs/SCOPE.md M3 issue #164), plus
  * the five large harvest tools' riders (issue #157). Attached the same way materials' traits are
- * ({@code ForgeweaveTraits#COMBAT_SEAM}): one {@link CombatSeams.Provider}, registered once in
+ * ({@code ForgeweaveTraits#COMBAT_SEAM}): one {@link CombatProviders.Provider}, registered once in
  * {@code Forgeweave}, keyed on which tool {@code Item} the stack actually is rather than on any data
  * the stack carries -- these are fixed per-tool-type behavior, not per-material like traits.
  *
@@ -84,7 +85,7 @@ import dev.gkissel.forgeweave.particle.ForgeweaveParticles;
  *   <li>a {@link ToolUseAction} for the ones whose trigger is the right-click button.
  * </ul>
  *
- * <p>{@code Forgeweave} registers one {@link CombatSeams.Provider} for the whole class, and
+ * <p>{@code Forgeweave} registers one {@link CombatProviders.Provider} for the whole class, and
  * {@code ToolItem} forwards vanilla's four item-use methods to the use action. No innate subscribes
  * to an event or subclasses a tool -- ADR-0005 decision 3. (Sunder's shield-disable half is not a
  * seam at all -- see {@code ToolItem#canDisableShield}'s javadoc.)

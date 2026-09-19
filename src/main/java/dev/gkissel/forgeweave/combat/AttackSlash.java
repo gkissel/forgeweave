@@ -6,6 +6,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatProviders;
 import dev.gkissel.forgeweave.api.combat.CombatSeam;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.particle.ForgeweaveParticles;
@@ -26,7 +27,7 @@ import dev.gkissel.forgeweave.particle.ForgeweaveParticles;
  * innate. It carries no tooltip line, no magnitude a player can build for, and no relationship to
  * the tool's actual behaviour -- four of these seven weapons already carry an unrelated innate seam,
  * and hanging a cosmetic on those would make the innate table read as if it owned them. One
- * {@link CombatSeams.Provider}, registered in {@code Forgeweave} alongside the others, keeps the two
+ * {@link CombatProviders.Provider}, registered in {@code Forgeweave} alongside the others, keeps the two
  * concerns apart at the cost of one registration line.
  *
  * <p>ponytail: an if/else chain over the seven items, exactly like {@code ForgeweaveInnates#collect}
@@ -65,7 +66,7 @@ public record AttackSlash(ForgeweaveParticles.Slash slash, double heightFactor) 
         }
     }
 
-    /** Registered as a {@link CombatSeams.Provider} in {@code Forgeweave}. */
+    /** Registered as a {@link CombatProviders.Provider} in {@code Forgeweave}. */
     public static void collect(ItemStack weapon, Consumer<CombatSeam> out) {
         if (weapon.is(ForgeweaveItems.TOOL_CLEAVER.get())) {
             out.accept(CLEAVER);

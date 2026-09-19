@@ -27,6 +27,7 @@ import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 
 import dev.gkissel.forgeweave.api.combat.CombatDefense;
+import dev.gkissel.forgeweave.api.combat.CombatProviders;
 import dev.gkissel.forgeweave.api.combat.CombatHit;
 import dev.gkissel.forgeweave.api.combat.CombatSeam;
 import dev.gkissel.forgeweave.api.combat.DefendedBlow;
@@ -71,7 +72,7 @@ import dev.gkissel.forgeweave.tool.DamageXpLedger;
  *
  * <h2>Who attaches</h2>
  *
- * <p>A {@link Provider} maps a weapon stack to the seams that apply to <em>that</em> tool: one
+ * <p>A {@link CombatProviders.Provider} maps a weapon stack to the seams that apply to <em>that</em> tool: one
  * provider per source of combat behavior (materials' traits today; per-tool innates and combat
  * modifiers as M3 lands them), registered once at mod construction in {@code Forgeweave} so the
  * order they run in is visible in one place. Resolution happens per hit, off the stack's own
@@ -83,34 +84,6 @@ import dev.gkissel.forgeweave.tool.DamageXpLedger;
  * Add the machinery when a shipped behavior needs it.
  */
 public final class CombatSeams {
-
-    /**
-     * Supplies the seams that apply to one weapon stack. Called on every hit, so an implementation
-     * should read the stack's components and hand back seams rather than do real work itself.
-     */
-    @FunctionalInterface
-    public interface Provider {
-        void collect(ItemStack weapon, Consumer<CombatSeam> out);
-    }
-
-    private static final List<Provider> PROVIDERS = new ArrayList<>();
-
-    /** Registers a source of combat behavior. Call order is hook order; see the class javadoc. */
-    public static void register(Provider provider) {
-        PROVIDERS.add(provider);
-    }
-
-    /**
-     * The seams that apply to {@code weapon}, in registration order, or an empty list if none do.
-     * Public so a GameTest can assert what a given tool resolves to without staging a real blow.
-     */
-    public static List<CombatSeam> seams(ItemStack weapon) {
-        List<CombatSeam> seams = new ArrayList<>();
-        for (Provider provider : PROVIDERS) {
-            provider.collect(weapon, seams::add);
-        }
-        return seams;
-    }
 
     /**
      * Registered on the game event bus in {@code Forgeweave}. See the class javadoc's table. Runs
@@ -128,7 +101,7 @@ public final class CombatSeams {
         if (hit == null) {
             return;
         }
-        List<CombatSeam> seams = seams(hit.weapon());
+        List<CombatSeam> seams = CombatProviders.seams(hit.weapon());
         if (seams.isEmpty()) {
             return;
         }
@@ -156,7 +129,7 @@ public final class CombatSeams {
         // Both hands since issue #460, main hand first, upstream's own order and its own
         // "stop once something cancelled the blow" (TraitEvents' `if(!event.isCanceled())` per tool).
         for (CombatDefense defense : defenses(event.getSource(), event.getEntity())) {
-            List<CombatSeam> seams = seams(defense.tool());
+            List<CombatSeam> seams = CombatProviders.seams(defense.tool());
             if (seams.isEmpty()) {
                 continue;
             }
@@ -195,7 +168,7 @@ public final class CombatSeams {
         // #729: held tools first -- the clone's EquipmentContext#iterateTools walks every equipment
         // slot, hands included, so a protection on a held sword counts like one on a worn piece.
         for (CombatDefense defense : defenses(event.getSource(), defender)) {
-            List<CombatSeam> seams = seams(defense.tool());
+            List<CombatSeam> seams = CombatProviders.seams(defense.tool());
             if (seams.isEmpty()) {
                 continue;
             }
@@ -222,7 +195,7 @@ public final class CombatSeams {
             float damageBefore = blow.damage();
             float protectionBefore = blow.protection();
             float flatBefore = blow.flatReduction();
-            List<CombatSeam> seams = seams(piece);
+            List<CombatSeam> seams = CombatProviders.seams(piece);
             if (!seams.isEmpty()) {
                 CombatDefense defense = new CombatDefense(level, piece, defender, attacker, event.getSource(), false, false);
                 for (CombatSeam seam : seams) {
@@ -365,7 +338,7 @@ public final class CombatSeams {
         // for. dispatchingOnHit marks those pushes as none of onKnockback's business while they happen.
         dispatchingOnHit = true;
         try {
-            for (CombatSeam seam : seams(hit.weapon())) {
+            for (CombatSeam seam : CombatProviders.seams(hit.weapon())) {
                 seam.onHit(hit, event.getNewDamage());
             }
         } finally {
@@ -399,7 +372,7 @@ public final class CombatSeams {
         }
         pendingKnockbackHit = null; // consumed: a later, unrelated push must not match this hit again
         float strength = event.getStrength();
-        for (CombatSeam seam : seams(hit.weapon())) {
+        for (CombatSeam seam : CombatProviders.seams(hit.weapon())) {
             strength = seam.knockback(hit, strength);
         }
         if (strength != event.getStrength()) {
@@ -417,7 +390,7 @@ public final class CombatSeams {
         if (hit == null) {
             return;
         }
-        for (CombatSeam seam : seams(hit.weapon())) {
+        for (CombatSeam seam : CombatProviders.seams(hit.weapon())) {
             seam.postKill(hit);
         }
     }

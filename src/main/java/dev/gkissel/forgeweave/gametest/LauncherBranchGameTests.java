@@ -27,6 +27,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.api.combat.CombatProviders;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
 import dev.gkissel.forgeweave.api.combat.CombatHit;
 import dev.gkissel.forgeweave.api.combat.CombatSeam;
@@ -402,7 +403,7 @@ public class LauncherBranchGameTests {
         void arm() {
             if (!registered) {
                 registered = true;
-                CombatSeams.register((weapon, out) -> {
+                CombatProviders.register((weapon, out) -> {
                     if (armed) {
                         out.accept(this);
                     }

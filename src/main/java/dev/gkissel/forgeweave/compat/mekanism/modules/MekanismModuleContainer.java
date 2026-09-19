@@ -32,6 +32,7 @@ import net.neoforged.fml.event.lifecycle.InterModEnqueueEvent;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.event.ModifyDefaultComponentsEvent;
 
+import dev.gkissel.forgeweave.api.combat.CombatProviders;
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.compat.mekanism.ForgeweaveMekanismCompat;
 import dev.gkissel.forgeweave.item.ArmorPieceItem;
@@ -105,7 +106,7 @@ public final class MekanismModuleContainer implements MekanismGearModules.Bridge
         modEventBus.addListener(MekanismModuleContainer::registerCapabilities);
         // The absorption seam names no mekanism type; it reads the ratio and the cost back across the
         // MekanismGearModules seam, so it is registered here only because this is where the guard is.
-        CombatSeams.register(MekanismAbsorption.INSTANCE);
+        CombatProviders.register(MekanismAbsorption.INSTANCE);
         // Maintainer rule, 2026-09-18: a part swap that stops the tool being a container gives the
         // modules back rather than losing or stranding them.
         UpgradeHosts.register(MekanismModuleContainer::reclaimModules);

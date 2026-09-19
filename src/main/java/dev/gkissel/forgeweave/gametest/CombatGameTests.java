@@ -26,6 +26,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.api.combat.CombatProviders;
 import dev.gkissel.forgeweave.combat.BleedEffect;
 import dev.gkissel.forgeweave.combat.BonusDamageFraction;
 import dev.gkissel.forgeweave.api.combat.CombatHit;
@@ -327,7 +328,7 @@ public class CombatGameTests {
     }
 
     /**
-     * The synthetic consumer. Registered as a {@link CombatSeams.Provider} once and handed out only
+     * The synthetic consumer. Registered as a {@link CombatProviders.Provider} once and handed out only
      * while {@link #armed}, so it never rides a real player's hit outside this test -- the gametest
      * package ships in the jar (see {@code build.gradle}'s jar excludes for the datapack half).
      *
@@ -345,7 +346,7 @@ public class CombatGameTests {
         void arm() {
             if (!registered) {
                 registered = true;
-                CombatSeams.register((weapon, out) -> {
+                CombatProviders.register((weapon, out) -> {
                     if (armed) {
                         out.accept(this);
                     }
@@ -394,7 +395,7 @@ public class CombatGameTests {
         void arm() {
             if (!registered) {
                 registered = true;
-                CombatSeams.register((weapon, out) -> {
+                CombatProviders.register((weapon, out) -> {
                     if (armed) {
                         out.accept(seam);
                     }

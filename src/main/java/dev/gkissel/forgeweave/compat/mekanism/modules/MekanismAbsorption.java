@@ -5,6 +5,7 @@ import java.util.function.Consumer;
 import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.api.combat.CombatDefense;
+import dev.gkissel.forgeweave.api.combat.CombatProviders;
 import dev.gkissel.forgeweave.api.combat.CombatSeam;
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.api.combat.DefendedBlow;
@@ -32,7 +33,7 @@ import dev.gkissel.forgeweave.trait.EnergyBuffer;
  *       call issue #956 recorded for every powered Draconic module.
  * </ul>
  */
-public final class MekanismAbsorption implements CombatSeam, CombatSeams.Provider {
+public final class MekanismAbsorption implements CombatSeam, CombatProviders.Provider {
 
     /** Stateless; one instance, registered from {@link MekanismModuleContainer#register}. */
     public static final MekanismAbsorption INSTANCE = new MekanismAbsorption();

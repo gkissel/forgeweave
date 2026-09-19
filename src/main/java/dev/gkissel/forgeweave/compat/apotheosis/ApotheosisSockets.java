@@ -20,6 +20,7 @@ import net.minecraft.world.item.component.ItemContainerContents;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.combat.CombatDefense;
 import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatProviders;
 import dev.gkissel.forgeweave.api.combat.CombatSeam;
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.api.combat.DefendedBlow;
@@ -410,7 +411,7 @@ public final class ApotheosisSockets {
      * {@code Forgeweave} next to the trait and modifier providers. One provider for the whole socket
      * list, same reasoning as those two: a stack with no sockets costs one component read and stops.
      */
-    public static final CombatSeams.Provider COMBAT_SEAMS = (weapon, out) -> {
+    public static final CombatProviders.Provider COMBAT_SEAMS = (weapon, out) -> {
         if (bridge != null && socketCount(weapon) > 0) {
             out.accept(GEM_SEAM);
         }

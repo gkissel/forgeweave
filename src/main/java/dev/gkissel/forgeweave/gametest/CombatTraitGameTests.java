@@ -42,6 +42,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.api.combat.CombatProviders;
 import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.combat.BleedEffect;
 import dev.gkissel.forgeweave.api.combat.CombatDefense;
@@ -1078,7 +1079,7 @@ public class CombatTraitGameTests {
         CombatHit hit = new CombatHit(helper.getLevel(), weapon, attacker, target,
                 helper.getLevel().damageSources().playerAttack(attacker));
         float result = damage;
-        for (CombatSeam seam : CombatSeams.seams(weapon)) {
+        for (CombatSeam seam : CombatProviders.seams(weapon)) {
             result = seam.preHit(hit, damage, result);
         }
         return result;
@@ -1094,7 +1095,7 @@ public class CombatTraitGameTests {
         CombatHit hit = new CombatHit(helper.getLevel(), weapon, attacker, target,
                 helper.getLevel().damageSources().playerAttack(attacker), attackStrengthScale);
         float result = damage;
-        for (CombatSeam seam : CombatSeams.seams(weapon)) {
+        for (CombatSeam seam : CombatProviders.seams(weapon)) {
             result = seam.preHit(hit, damage, result);
         }
         return result;
@@ -1106,7 +1107,7 @@ public class CombatTraitGameTests {
         CombatHit hit = new CombatHit(helper.getLevel(), weapon, attacker, target,
                 helper.getLevel().damageSources().playerAttack(attacker), 1.0F, critMultiplier);
         float result = damage;
-        for (CombatSeam seam : CombatSeams.seams(weapon)) {
+        for (CombatSeam seam : CombatProviders.seams(weapon)) {
             result = seam.preHit(hit, damage, result);
         }
         return result;
@@ -1178,7 +1179,7 @@ public class CombatTraitGameTests {
             float attackStrengthScale) {
         CombatHit hit = new CombatHit(helper.getLevel(), weapon, attacker, target,
                 helper.getLevel().damageSources().playerAttack(attacker), attackStrengthScale);
-        for (CombatSeam seam : CombatSeams.seams(weapon)) {
+        for (CombatSeam seam : CombatProviders.seams(weapon)) {
             seam.onHit(hit, 1.0F);
         }
     }
@@ -1187,7 +1188,7 @@ public class CombatTraitGameTests {
     private static void onHit(GameTestHelper helper, Player attacker, ItemStack weapon, LivingEntity target) {
         CombatHit hit = new CombatHit(helper.getLevel(), weapon, attacker, target,
                 helper.getLevel().damageSources().playerAttack(attacker));
-        for (CombatSeam seam : CombatSeams.seams(weapon)) {
+        for (CombatSeam seam : CombatProviders.seams(weapon)) {
             seam.onHit(hit, 1.0F);
         }
     }

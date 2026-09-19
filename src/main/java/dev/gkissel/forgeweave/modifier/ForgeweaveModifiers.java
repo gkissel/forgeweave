@@ -56,7 +56,9 @@ import net.neoforged.neoforge.event.entity.player.PlayerXpEvent;
 import net.neoforged.neoforge.event.level.BlockDropsEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.api.combat.CombatProviders;
 import dev.gkissel.forgeweave.api.modifier.Modifier;
+import dev.gkissel.forgeweave.api.modifier.ModifierRegistry;
 import dev.gkissel.forgeweave.combat.BonusDamageVsSeam;
 import dev.gkissel.forgeweave.api.combat.CombatHit;
 import dev.gkissel.forgeweave.api.combat.CombatSeam;
@@ -1123,7 +1125,7 @@ public final class ForgeweaveModifiers {
      * it keeps modifiers running in {@link #of}'s order and a hit with no combat modifier allocates
      * nothing beyond the (already-required) entry list walk.
      */
-    public static final CombatSeams.Provider COMBAT_SEAMS = (weapon, out) -> {
+    public static final CombatProviders.Provider COMBAT_SEAMS = (weapon, out) -> {
         for (ModifierEntry entry : of(weapon)) {
             Modifier modifier = get(entry.id());
             if (modifier != null) {
@@ -1887,11 +1889,36 @@ public final class ForgeweaveModifiers {
         if (modifier == null) {
             modifier = datapackModifier(id); // #973: the second source, below.
         }
+        if (modifier == null) {
+            modifier = ModifierRegistry.modifier(id); // #1065: a partner mod's, ungated.
+        }
         if (modifier == null && WARNED_UNKNOWN.add(id)) {
             LOGGER.warn("Unknown modifier '{}' on a tool; keeping it as inert data so it works again if a "
                     + "later version implements it (ADR-0004).", id);
         }
         return modifier;
+    }
+
+    /**
+     * Shuts the {@link ModifierRegistry} window, called once from {@code Forgeweave}'s common setup,
+     * by which point every mod constructor has run. Logs the ids a partner mod claimed that
+     * Forgeweave already owns: those registrations are ignored and the built-in behavior wins, the
+     * rule a {@code modifier_definition} has followed since #973.
+     */
+    public static void closeApiRegistration() {
+        ModifierRegistry.closeRegistration();
+        for (ResourceLocation id : ModifierRegistry.modifierIds()) {
+            if (REGISTRY.containsKey(id)) {
+                LOGGER.warn("A mod registered modifier '{}', which is a built-in Forgeweave modifier; the built-in "
+                        + "behavior wins and the registration is ignored (issue #1065).", id);
+            }
+        }
+        for (ResourceLocation id : ModifierRegistry.behaviorIds()) {
+            if (ModifierBehaviors.builtInIds().contains(id)) {
+                LOGGER.warn("A mod registered modifier behavior '{}', which is a built-in Forgeweave behavior; the "
+                        + "built-in wins and the registration is ignored (issue #1065).", id);
+            }
+        }
     }
 
     // ---------------------------------------------------------------- the datapack source

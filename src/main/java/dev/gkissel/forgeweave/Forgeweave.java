@@ -1,5 +1,9 @@
 package dev.gkissel.forgeweave;
 
+import java.util.Optional;
+
+import io.netty.buffer.Unpooled;
+
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
@@ -20,9 +24,15 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 
 import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.RegistryOps;
 
 import dev.gkissel.forgeweave.advancement.ForgeweaveCriteriaTriggers;
 import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatProviders;
 import dev.gkissel.forgeweave.api.combat.CombatSeam;
 import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.api.trait.Trait;
@@ -208,20 +218,20 @@ public class Forgeweave {
         // runs them in is visible in one place. Materials' traits are first (COMBAT_SEAM's damage
         // fold plus, since #229, each trait's own seams -- see collectCombatSeams); M3's per-tool
         // innates and combat modifiers add theirs below as they land.
-        CombatSeams.register(ForgeweaveTraits::collectCombatSeams);
+        CombatProviders.register(ForgeweaveTraits::collectCombatSeams);
         // #162/#163 -- combat modifiers batches 1 and 2 (smite, bane of arthropods, fiery, necrotic;
         // knockback, shulking, webbed): one shared provider walking the modifier list and consuming
         // each entry's Modifier#combatSeam, the modifier-side counterpart to ForgeweaveTraits#COMBAT_SEAM
         // just above.
-        CombatSeams.register(ForgeweaveModifiers.COMBAT_SEAMS);
+        CombatProviders.register(ForgeweaveModifiers.COMBAT_SEAMS);
         // #164/#155 -- per-tool innates: M1's retrofit (pickaxe pierce, shovel flatten, hatchet
         // sunder) plus every M3 tool's own, one provider for both (ForgeweaveInnates). After traits,
         // so a trait that scales a blow scales the blow the tool was always going to land rather than
         // the innate's bonus on top of it.
-        CombatSeams.register(ForgeweaveInnates::collect);
+        CombatProviders.register(ForgeweaveInnates::collect);
         // #584 -- the arc a fully-charged swing draws in front of the player, for the seven weapons
         // upstream spawns one from. Cosmetic only, and deliberately not an innate: see AttackSlash.
-        CombatSeams.register(AttackSlash::collect);
+        CombatProviders.register(AttackSlash::collect);
         // #159 -- the charge a swing was made with, captured before Player#attack zeroes it; the
         // battleaxe's full-charge-only sweep and every later charged innate read it off CombatHit.
         NeoForge.EVENT_BUS.addListener(CombatSeams::onPlayerAttack);
@@ -231,16 +241,16 @@ public class Forgeweave {
         // #158 -- beheading: a provider of its own rather than a Modifier#combatSeam, because the level
         // it rolls on is the cleaver's innate plus the applied modifier summed into one roll, and a
         // per-entry seam sees neither the innate nor an unmodified cleaver. See Beheading.
-        CombatSeams.register(Beheading::collect);
+        CombatProviders.register(Beheading::collect);
         // M7-3 (issue #920, docs/SCOPE.md D-M7-6) -- ranged XP on projectile impact, off the same
         // onHit moment that already resolves a projectile's live launcher stack (#416).
-        CombatSeams.register(RangedXpSeam::collect);
+        CombatProviders.register(RangedXpSeam::collect);
         // M7-3 (issue #920, docs/SCOPE.md D-M7-10) -- blocking XP to the tool actively blocking with.
-        CombatSeams.register(BlockingXpSeam::collect);
+        CombatProviders.register(BlockingXpSeam::collect);
         // #969 (docs/SCOPE.md M8, D-M8-1) -- Apotheosis gems in sockets: their protection, their
         // damage reduction and their post-hit effects, on the same pipeline the traits and modifiers
         // use. Inert with no Apotheosis, since nothing installs the bridge behind it then.
-        CombatSeams.register(ApotheosisSockets.COMBAT_SEAMS);
+        CombatProviders.register(ApotheosisSockets.COMBAT_SEAMS);
         // #157 -- area mining (hammer/excavator 3x3, lumber axe tree fell, scythe 3x3x3, vein hammer
         // vein). NeoForge 1.21 dropped the per-item onBlockStartBreak hook upstream 1.12 uses, so
         // this is the one break event every player break goes through -- see AoeHarvest.
@@ -359,8 +369,32 @@ public class Forgeweave {
 
     private void onServerStarted(final ServerStartedEvent event) {
         // Datapack authors need to see whether their material JSON was picked up (ADR-0002).
-        Registry<Material> materials = event.getServer().registryAccess().registryOrThrow(Material.REGISTRY);
+        RegistryAccess.Frozen registries = event.getServer().registryAccess();
+        Registry<Material> materials = registries.registryOrThrow(Material.REGISTRY);
         LOGGER.info("Loaded {} materials: {}", materials.size(), materials.keySet());
+        logMaterialSyncSize(registries, materials);
+    }
+
+    /**
+     * The real size of the material registry sync, addons included (issue #1065, audit question 6).
+     * {@code MaterialSyncSizeTest} budgets the shipped roster, but it walks Forgeweave's own data
+     * folder and cannot see a pack's or an addon's materials. This encodes what actually goes out to
+     * a joining client, so a pack author running six addons reads the number here rather than
+     * discovering it as a login timeout.
+     */
+    private static void logMaterialSyncSize(RegistryAccess.Frozen registries, Registry<Material> materials) {
+        RegistryOps<Tag> ops = registries.createSerializationContext(NbtOps.INSTANCE);
+        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+        int encoded = 0;
+        for (Material material : materials) {
+            Optional<Tag> nbt = Material.CODEC.encodeStart(ops, material).result();
+            if (nbt.isPresent()) {
+                buf.writeNbt(nbt.get());
+                encoded++;
+            }
+        }
+        LOGGER.info("Material registry sync payload: {} of {} materials encode to {} bytes", encoded,
+                materials.size(), buf.readableBytes());
     }
 
     private void registerDataPackRegistries(final DataPackRegistryEvent.NewRegistry event) {
@@ -412,6 +446,11 @@ public class Forgeweave {
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
+        // #1065: the addon registration window. Every mod constructor has run by now, so anything
+        // arriving later would register into a table nothing reads again; both calls make that a
+        // loud failure and log any id a mod claimed that Forgeweave already owns.
+        ForgeweaveTraits.closeApiRegistration();
+        ForgeweaveModifiers.closeApiRegistration();
         LOGGER.info("Forgeweave common setup complete");
     }
 }

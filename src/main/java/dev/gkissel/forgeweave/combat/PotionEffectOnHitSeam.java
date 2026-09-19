@@ -5,6 +5,7 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 
 import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatProviders;
 import dev.gkissel.forgeweave.api.combat.CombatSeam;
 
 /**
@@ -12,7 +13,7 @@ import dev.gkissel.forgeweave.api.combat.CombatSeam;
  * slowness (docs/SCOPE.md M3, issue #163), one class instantiated for each rather than a bespoke
  * seam per modifier. This is literally the {@code potion_effect_on_hit} entry ADR-0004's M6
  * parameterized behavior library names as an example: {@code effect}, {@code amplifier} and
- * {@code durationTicks} are its only fields, baked in by whichever {@link CombatSeams.Provider}
+ * {@code durationTicks} are its only fields, baked in by whichever {@link CombatProviders.Provider}
  * constructs it from a modifier's level.
  *
  * @param effect the potion effect to add

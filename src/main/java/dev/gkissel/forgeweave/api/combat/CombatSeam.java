@@ -16,7 +16,7 @@ import dev.gkissel.forgeweave.api.trait.Trait;
  * of Java. That means an implementation takes its magnitudes as fields and reads everything else
  * from {@link CombatHit} -- never from a specific {@code ToolItem} subclass, and never from static
  * state that ties it to one tool. Whether a seam applies to a given tool at all is decided by the
- * {@link CombatSeams.Provider} that produced it, not by the seam itself.
+ * {@link CombatProviders.Provider} that produced it, not by the seam itself.
  *
  * <p>ponytail: four hooks -- the three moments ADR-0005 names plus {@link #knockback}, added when
  * issue #465/T34 needed one. Upstream 1.12's {@code ITrait} exposes a dozen combat-adjacent hooks;

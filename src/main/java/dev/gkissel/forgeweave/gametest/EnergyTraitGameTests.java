@@ -27,6 +27,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatProviders;
 import dev.gkissel.forgeweave.api.combat.CombatSeam;
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
@@ -179,7 +180,7 @@ public class EnergyTraitGameTests {
 
         CombatHit hit = new CombatHit(helper.getLevel(), hatchet, player, target,
                 helper.getLevel().damageSources().playerAttack(player));
-        for (CombatSeam seam : CombatSeams.seams(hatchet)) {
+        for (CombatSeam seam : CombatProviders.seams(hatchet)) {
             seam.onHit(hit, 4.0F);
         }
 

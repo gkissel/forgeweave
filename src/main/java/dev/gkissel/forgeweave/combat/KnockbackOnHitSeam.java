@@ -4,6 +4,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 
 import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatProviders;
 import dev.gkissel.forgeweave.api.combat.CombatSeam;
 
 /**
@@ -11,7 +12,7 @@ import dev.gkissel.forgeweave.api.combat.CombatSeam;
  * (ADR-0005 decision 1 leaves cooldown, crits and knockback to the game) -- the knockback combat
  * modifier's shape (docs/SCOPE.md M3, issue #163). A candidate for ADR-0004's M6 parameterized
  * behavior library: {@code magnitude} is this seam's only field, baked in by whichever
- * {@link CombatSeams.Provider} constructs it from a modifier's level, so a JSON-configured generic
+ * {@link CombatProviders.Provider} constructs it from a modifier's level, so a JSON-configured generic
  * "knockback_on_hit" behavior could produce the same seam without this class changing.
  *
  * <p>Direction mirrors vanilla's own bonus-knockback push (the one the {@code
