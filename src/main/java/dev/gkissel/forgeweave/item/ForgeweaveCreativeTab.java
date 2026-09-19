@@ -393,7 +393,9 @@ public final class ForgeweaveCreativeTab {
         output.accept(ForgeweaveItems.PATTERN_KAMA_HEAD.get());
         output.accept(ForgeweaveItems.PATTERN_BROAD_AXE_HEAD.get());
         output.accept(ForgeweaveItems.PATTERN_VEIN_HAMMER_HEAD.get());
-        output.accept(ForgeweaveItems.PATTERN_WAR_MACE_HEAD.get());
+        // #1044: no PATTERN_WAR_MACE_HEAD entry here any more -- it is cast only now, unobtainable
+        // and hidden from the creative tab, though it stays registered so an old world's item stack
+        // still resolves (see ForgeweaveItems and WarMaceHeadCastGameTests' save-compat test).
         output.accept(ForgeweaveItems.PATTERN_CURVED_BLADE.get());
         output.accept(ForgeweaveItems.PATTERN_KATANA_BLADE.get());
         output.accept(ForgeweaveItems.PATTERN_BOW_LIMB.get());

@@ -113,9 +113,23 @@ public class ToolStationMenu extends StationMenu {
      */
     public static final int INPUT_SLOTS = 6;
 
-    /** Upstream's own output-slot spot in {@code ContainerToolStation} ({@code SlotToolStationOut}). */
-    private static final int OUTPUT_X = 124;
-    private static final int OUTPUT_Y = 38;
+    /**
+     * Where the output slot sits, and with it the panel arrow that points at it (issue #1043).
+     *
+     * <p>Upstream 1.12 {@code ContainerToolStation} puts its {@code SlotToolStationOut} at
+     * {@code (124, 38)} and bakes the arrow into {@code toolstation.png} to its left. Upstream 1.20
+     * moved both ten pixels left -- {@code TinkerStationContainerMenu}'s {@code LazyResultSlot} is at
+     * {@code (114, 38)} and its own {@code tinker.png} carries the arrow and the 26x26 well at the
+     * matching x -- to clear the armor and offhand slots it added down the panel's right edge. The
+     * height never moved: both generations put the slot on row 38 with the arrow spanning y 38 to 52.
+     *
+     * <p>The maintainer asked for 1.20's placement (issue #1043), so the slot is 114 here and the
+     * derived sheet's arrow and well were shifted the same ten pixels; that strip is now pixel-for-
+     * pixel 1.20's own (NOTICE.md). Fixed for every tab, as it is upstream: no layout moves it,
+     * whatever number of input slots the selected tool has.
+     */
+    public static final int OUTPUT_X = 114;
+    public static final int OUTPUT_Y = 38;
 
     /** Vanilla's rename cap, and the same order of magnitude as upstream's 40-character field. */
     private static final int MAX_NAME_LENGTH = 50;

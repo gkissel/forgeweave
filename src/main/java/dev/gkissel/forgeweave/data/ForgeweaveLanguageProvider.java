@@ -660,6 +660,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // #733: the selection grid's page arrows, upstream 1.20's button.tconstruct.previous_page/next_page fallbacks.
         add("gui.forgeweave.tool_station.previous_page", "<");
         add("gui.forgeweave.tool_station.next_page", ">");
+        // #1043: hover text on the ring under the armor stand preview, which upstream leaves bare.
+        add("gui.forgeweave.tool_station.rotate_preview", "Drag to turn");
         // #152: why a large tool refuses to assemble at a Tool Station. #1006 puts the heavy armor
         // set behind the same gate, so the wording covers a heavy plating as well as a hammer head.
         add("gui.forgeweave.tool_station.needs_forge", "This is too large to assemble here. Build it at a Tool Forge.");
