@@ -95,12 +95,14 @@ import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.jei.JeiScreenshotHarness;
+import dev.gkissel.forgeweave.menu.ModifierWorktableMenu; // #1057
 import dev.gkissel.forgeweave.menu.PartBuilderMenu;
 import dev.gkissel.forgeweave.menu.SmelteryMenu;
 import dev.gkissel.forgeweave.menu.StencilTableMenu;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
 import dev.gkissel.forgeweave.menu.ToolStationTabs;
+import dev.gkissel.forgeweave.modifier.ModifierApplication; // #1057
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ToolArt;
 import dev.gkissel.forgeweave.tool.ToolConstants;
@@ -273,7 +275,14 @@ public final class ScreenshotHarness {
             new HarnessScreen("smeltery_empty", ForgeweaveBlocks.STANDARD_CORE, ScreenshotHarness::buildEmptySmeltery),
             // #408: the other end of the melt grid's sizing -- a smeltery with more rows than the
             // grid can show, so the capture is the one that proves the cap and the slider.
-            new HarnessScreen("smeltery_large", ForgeweaveBlocks.STANDARD_CORE, ScreenshotHarness::buildLargeSmeltery));
+            new HarnessScreen("smeltery_large", ForgeweaveBlocks.STANDARD_CORE, ScreenshotHarness::buildLargeSmeltery),
+            // #1057: the Modifier Worktable mid-removal -- a two-modifier pickaxe and a wet sponge
+            // loaded, the first modifier picked. That is the one state where every part of the screen
+            // is doing something at once: the button grid with a selection on it, the result slot
+            // filled, both info panels describing the tool that is about to come out, and the armor
+            // stand holding it.
+            new HarnessScreen("modifier_worktable", ForgeweaveBlocks.MODIFIER_WORKTABLE,
+                    (level, pos) -> {}, ScreenshotHarness::prepareWorktableRemoval));
 
     /**
      * The #182 casting row sits well out in -X, the one direction nothing else in this harness uses
@@ -2507,6 +2516,29 @@ public final class ScreenshotHarness {
             part.set(ForgeweaveDataComponents.MATERIAL.get(), material("iron"));
             station.container().setItem(i, part);
         }
+    }
+
+    /**
+     * #1057: loads the Modifier Worktable with a modified pickaxe and a wet sponge and picks the
+     * first modifier, so the capture shows the table actually doing something. Done after the menu
+     * opens rather than in {@code prepare} because building the tool wants the player's registries.
+     */
+    private static void prepareWorktableRemoval(ServerPlayer player) {
+        if (!(player.containerMenu instanceof ModifierWorktableMenu menu)) {
+            return;
+        }
+        ItemStack pickaxe = assembleForDisplay(player, ForgeweaveItems.TOOL_PICKAXE.get());
+        if (pickaxe.isEmpty()) {
+            return;
+        }
+        pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(
+                new ModifierEntry(material("haste"), 60), new ModifierEntry(material("silky"), 1)));
+        ModifierApplication.rebake(pickaxe);
+        menu.getSlot(ModifierWorktableMenu.TOOL_SLOT).set(pickaxe);
+        menu.getSlot(ModifierWorktableMenu.INPUT_START).set(new ItemStack(Items.WET_SPONGE));
+        menu.broadcastChanges();
+        menu.clickMenuButton(player, 0);
+        menu.broadcastChanges();
     }
 
     /** Selects the roster's last tab, so the screen opens on the grid's last page (#733). */

@@ -2564,6 +2564,18 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.modifiers.intro.title", "Modifiers");
         add("book.forgeweave.modifiers.intro.text",
                 "A finished tool is never truly finished. At the Tool Station or Tool Forge, sacrifice items to imbue a tool with modifiers. Each tool starts with a limited number of free slots, and some modifiers can be applied repeatedly for a stronger effect.\n\nThe pages that follow list every modifier known to this workshop.");
+        // #1057: the Modifier Worktable, the one station that works on modifiers already applied.
+        add("book.forgeweave.modifiers.worktable.title", "Modifier Worktable");
+        add("book.forgeweave.modifiers.worktable.text",
+                "Seared bricks on four stone legs build the Modifier Worktable. Where the Tool Station "
+                        + "adds modifiers, this table works on the ones a tool already carries.\n\n"
+                        + "A wet sponge takes one level off a modifier you pick and gives back the slots "
+                        + "that level held. What you spent applying it does not come back. The sponge comes "
+                        + "back dry, ready to be wetted again.\n\n"
+                        + "A compass moves a modifier one place along the tool's list, wrapping at the ends. "
+                        + "Put it in the upper slot to move the modifier down the list and in the lower slot "
+                        + "to move it up. The compass is never used up. Order matters where two modifiers "
+                        + "reach for the same number: the later one gets the last word.");
         // Issue #999 (D-M8-20): the augment path needs its own page because nothing else in the book
         // sends a player to another mod's station with Forgeweave gear in hand.
         add("book.forgeweave.modifiers.augments.title", "Augments");
