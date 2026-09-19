@@ -78,6 +78,8 @@ ALLOYS = [
     ("emberweld", 0xFF5A4A),
     ("starweld", 0x2832D2),
     ("voidweld", 0x8A2BE2),
+    # #993 -- atomic matter alloy, the Mekanism-side sibling of the four welds above.
+    ("atomic_matter_alloy", 0x3CA4FC),
 ]
 
 # Recorded template-assignment table (issue #888), reproducible by re-running the imported _derive_*

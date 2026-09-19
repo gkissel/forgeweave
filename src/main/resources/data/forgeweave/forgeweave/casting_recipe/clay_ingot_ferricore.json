@@ -1,0 +1,18 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_ingot"
+  },
+  "fluid": "forgeweave:molten_ferricore",
+  "amount": 144,
+  "result": {
+    "id": "mekanism:ingot_tin"
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "justdirethings:ferricore_ingot"
+    }
+  ]
+}

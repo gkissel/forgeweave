@@ -1,0 +1,5 @@
+{
+  "behavior": "forgeweave:death_save",
+  "cooldown": 24000,
+  "cost": 100
+}

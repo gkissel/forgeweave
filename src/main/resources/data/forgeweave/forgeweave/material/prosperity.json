@@ -1,0 +1,58 @@
+{
+  "head": {
+    "durability": 300,
+    "mining_speed": 6.0,
+    "attack_damage": 3.0
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 35
+  },
+  "extra_durability": 80,
+  "bow": {
+    "drawspeed": 0.66,
+    "range": 1.2,
+    "bonus_damage": 2.8
+  },
+  "plating": {
+    "helmet": {
+      "durability": 126,
+      "armor": 2.0
+    },
+    "chestplate": {
+      "durability": 183,
+      "armor": 5.0
+    },
+    "leggings": {
+      "durability": 173,
+      "armor": 4.0
+    },
+    "boots": {
+      "durability": 150,
+      "armor": 2.0
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
+  "traits": {},
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "mysticalagriculture:prosperity_ingot"
+      },
+      "value": 144
+    }
+  ],
+  "repair_item": {
+    "item": "mysticalagriculture:prosperity_ingot"
+  },
+  "cast_only": true,
+  "enchantability": 14,
+  "color": "#C9E265",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mysticalagriculture:prosperity_ingot"
+    }
+  ]
+}

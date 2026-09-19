@@ -13,12 +13,13 @@ import dev.gkissel.forgeweave.trackb.TrackBOre;
  * code change, which is what the roster-walking test in {@code MaterialFormsTest} pins.
  *
  * <p>D-M8-6's rule is "every material with an ingot gets the full form set". Rather than spell the
- * roster out, {@link #ALL} walks {@link TrackBOre#ALL} and {@link TrackBAlloy#ALL} -- 36 materials
- * with an ingot between them, 11 ores and 25 alloys (the 25 include the four Draconic fusion welds,
- * which live on the alloy roster because "a Forgeweave metal with an ingot, a nugget, a storage block
- * and a molten fluid, and no ore" is exactly their shape; see {@code TrackBAlloy}'s own javadoc). The
- * planning session that wrote D-M8-6 had counted 30; the roster is the source of truth and all 36 get
- * the forms (maintainer confirm, 2026-09-18). {@link #OWN_ITEM_METALS} is the other half of D-M8-6:
+ * roster out, {@link #ALL} walks {@link TrackBOre#ALL} and {@link TrackBAlloy#ALL} -- 37 materials
+ * with an ingot between them, 11 ores and 26 alloys (the 26 include the four Draconic fusion welds
+ * and #993's atomic matter alloy, which live on the alloy roster because "a Forgeweave metal with an
+ * ingot, a nugget, a storage block and a molten fluid, and no ore" is exactly their shape; see
+ * {@code TrackBAlloy}'s own javadoc). The planning session that wrote D-M8-6 had counted 30; the
+ * roster is the source of truth and all of them get the forms (maintainer confirm, 2026-09-18).
+ * {@link #OWN_ITEM_METALS} is the other half of D-M8-6:
  * the ten Forgeweave metals that own an ingot item outside the Track B rosters.
  *
  * <p>Gem-type materials get {@link MaterialForm#DUSTS} and nothing else: brimspar, which has no ingot

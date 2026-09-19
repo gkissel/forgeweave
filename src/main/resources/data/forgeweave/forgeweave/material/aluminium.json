@@ -67,8 +67,17 @@
   "color": "#C6C7C8",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "immersiveengineering:ingot_aluminum"
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "immersiveengineering:ingot_aluminum"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:aluminum_ingot"
+        }
+      ]
     }
   ]
 }

@@ -64,6 +64,12 @@ ALLOYS = {
     "emberweld": [{"type": "neoforge:item_exists", "item": "draconicevolution:wyvern_core"}],
     "starweld": [{"type": "neoforge:item_exists", "item": "draconicevolution:awakened_core"}],
     "voidweld": [{"type": "neoforge:item_exists", "item": "draconicevolution:chaotic_core"}],
+    # Issue #993: atomic matter alloy, the same treatment one mod over. It gets no alloy_recipe row
+    # either -- a nucleosynthesis run on Mekanism's own Antiprotonic Nucleosynthesizer is the only
+    # thing that makes the ingot, and melting it back down and recasting it is the only loop the
+    # smeltery closes. Its material JSON deliberately carries no condition (see TrackBAlloy), but
+    # these recipes do: a melting or casting row keyed on an absent mod's item is a broken recipe.
+    "atomic_matter_alloy": [{"type": "neoforge:item_exists", "item": "mekanism:alloy_atomic"}],
 }
 
 VALUE_NUGGET = 16

@@ -13,8 +13,17 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "refinedstorage:silicon"
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "refinedstorage:silicon"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:silicon_ingot"
+        }
+      ]
     }
   ]
 }

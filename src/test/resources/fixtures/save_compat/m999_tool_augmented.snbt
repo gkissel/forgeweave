@@ -1,0 +1,69 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:reinforced",
+                    level: 2
+                }
+            ],
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:supremium",
+                handle: "forgeweave:supremium",
+                head: "forgeweave:supremium"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 6.4f,
+                durability: 960,
+                mining_speed: 8.6f
+            },
+            "forgeweave:traits": [],
+            "minecraft:custom_data": {
+                "mysticalagriculture:equipped_augments": [
+                    {
+                        id: "mysticalagriculture:mining_aoe_1",
+                        slot: 0
+                    }
+                ]
+            },
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 960
+        },
+        id: "forgeweave:pickaxe"
+    },
+    nbt: {
+        components: {
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:reinforced",
+                    level: 2
+                }
+            ],
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:supremium",
+                handle: "forgeweave:supremium",
+                head: "forgeweave:supremium"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 6.4f,
+                durability: 960,
+                mining_speed: 8.6f
+            },
+            "forgeweave:traits": [],
+            "minecraft:custom_data": {
+                "mysticalagriculture:equipped_augments": [
+                    {
+                        id: "mysticalagriculture:mining_aoe_1",
+                        slot: 0
+                    }
+                ]
+            },
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 960
+        },
+        count: 1,
+        id: "forgeweave:pickaxe"
+    },
+    what: "#999 (D-M8-20): an all-supremium pickaxe carrying a Forgeweave modifier and a Mystical Agriculture augment at the same time, decoding without losing either. The augment rides in minecraft:custom_data rather than on the real mysticalagriculture:equipped_augments component, for the reason m8_socketed.snbt gives for using minecraft:diamond instead of an Apotheosis gem: no unit-test registry holds a Mystical Agriculture component type, and an unregistered component id fails the decode outright rather than round-tripping. The inner key and the (id, slot) pair are Mystical Agriculture's own -- AugmentComponent is a record of exactly those two fields, and the list lives under mysticalagriculture:equipped_augments -- so the shape this pins is the real one even though the outer component is a stand-in. What matters here is that Forgeweave's own decode does not eat a foreign component sitting beside its own: the item class changing across a config flip is exactly the shape that loses components when it goes wrong, which is why this fixture is in this PR rather than deferred to #975. Forgeweave never writes or migrates the augment list -- that is Mystical Agriculture's data, the rule JC-D set for Apotheosis affixes."
+}

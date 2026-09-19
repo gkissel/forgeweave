@@ -1,0 +1,17 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_eclipsealloy",
+  "amount": 144,
+  "result": {
+    "id": "justdirethings:eclipsealloy_ingot"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "justdirethings:eclipsealloy_ingot"
+    }
+  ]
+}

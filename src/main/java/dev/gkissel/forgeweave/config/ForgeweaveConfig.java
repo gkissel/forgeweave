@@ -7,6 +7,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.common.ModConfigSpec;
 
 import dev.gkissel.forgeweave.block.EnergizedHeat;
+import dev.gkissel.forgeweave.compat.mekanism.ForgeweaveMekanismCompat;
+import dev.gkissel.forgeweave.compat.mekanism.modules.MekanismGearModules;
 
 /**
  * Forgeweave's gameplay config (docs/SCOPE.md M3.4-7 issue #276): the subset of upstream 1.12's
@@ -484,6 +486,25 @@ public final class ForgeweaveConfig {
      */
     public static final ModConfigSpec.BooleanValue MODIFIER_DEFINITIONS;
 
+    /**
+     * Issue #999 (D-M8-20). Covers the Mystical Agriculture crop registrations and the augment seam
+     * that makes Forgeweave gear {@code ITinkerable}, never the Mystical Agriculture material
+     * presets: D-M8-5 is explicit that Track A presets are never toggled, so prosperity, soulium,
+     * the essence ladder and insanium stay active whenever their own item exists.
+     *
+     * <p>Read at the point the integration answers, like every other flag here, even though what the
+     * integration does is decide a class: {@code compat.CompatItems} branches on whether Mystical
+     * Agriculture is <em>installed</em>, which is a load-time fact a {@code SERVER} spec cannot
+     * contribute to (#1024), and this flag then zeroes the augment slot count and the tinkerable tier
+     * the registered item reports. Off is therefore inert and needs no restart: nothing can be
+     * installed, nothing installed grants anything, and Mystical Agriculture's own augment component
+     * stays exactly where it is -- Forgeweave neither copies nor migrates that data, the rule JC-D set
+     * for Apotheosis affixes.
+     *
+     * @see #DRACONIC_FUSION
+     */
+    public static final ModConfigSpec.BooleanValue MYSTICAL_AGRICULTURE_AUGMENTS;
+
     /** Upstream {@code genCobalt}: cobalt ore generates in the Nether. */
     public static final ModConfigSpec.BooleanValue GEN_COBALT;
     /** Upstream {@code cobaltRate}: approximate cobalt veins per Nether chunk. */
@@ -560,6 +581,41 @@ public final class ForgeweaveConfig {
      * tool keeps its enchantments and keeps applying them.
      */
     public static final ModConfigSpec.BooleanValue APOTHEOSIS_ENCHANTING;
+
+    /**
+     * Mekanism module containers on Forgeweave gear (D-M8-5; issue #993), read through
+     * {@code MekanismGearModules.modulesEnabled()} and nowhere else. Off makes the container inert,
+     * never absent: every module effect answers its neutral value, the radiation shielding capability
+     * answers nothing, and the module screen stops opening because the capability provider answers
+     * null. Two things it deliberately cannot reach, both committed before a server config exists:
+     * the module container's default data component, added on
+     * {@code ModifyDefaultComponentsEvent}, and the inter-mod message that tells Mekanism which items
+     * accept which module roster. Neither is visible on a tool nobody takes to a Modification Station,
+     * and nothing stored is ever touched -- a tool carrying installed modules keeps Mekanism's own
+     * component untouched and starts working again the moment the toggle returns, which is D-M7-3's
+     * rule applied to compat. The {@code atomic_matter_alloy} material itself is not toggled at all:
+     * D-M8-5 exempts materials, because a preset that vanishes takes a metal out of a world built
+     * with it.
+     */
+    public static final ModConfigSpec.BooleanValue MEKANISM_MODULES;
+
+    /** FE one block break costs while a powered Mekanism mining module is installed (#993). */
+    public static final ModConfigSpec.IntValue MEKANISM_ENERGY_PER_BLOCK;
+
+    /** FE the MekaSuit absorption modules spend per point of damage they take off a blow (#993). */
+    public static final ModConfigSpec.IntValue MEKANISM_ENERGY_PER_ABSORBED_POINT;
+
+    /** How many blocks one Mekanism vein mining swing breaks at most (#993). */
+    public static final ModConfigSpec.IntValue MEKANISM_VEIN_MINING_MAX_BLOCKS;
+
+    /** How many of Mekanism's own atomic alloys one {@code atomic_matter_alloy} ingot takes (#993). */
+    public static final ModConfigSpec.IntValue MEKANISM_NUCLEOSYNTHESIZING_ALLOY_COUNT;
+
+    /** How much antimatter, in mB, one {@code atomic_matter_alloy} ingot takes (#993). */
+    public static final ModConfigSpec.IntValue MEKANISM_NUCLEOSYNTHESIZING_ANTIMATTER;
+
+    /** How long, in ticks, the nucleosynthesizer takes over one ingot (#993). */
+    public static final ModConfigSpec.IntValue MEKANISM_NUCLEOSYNTHESIZING_DURATION;
 
     /** How much Forge Energy one energized tank's buffer holds (#972). */
     public static final ModConfigSpec.IntValue ENERGIZED_TANK_BUFFER;
@@ -663,6 +719,36 @@ public final class ForgeweaveConfig {
      */
     public static <T> T read(ModConfigSpec.ConfigValue<T> value) {
         return loaded() ? value.get() : value.getDefault();
+    }
+
+    /** @see #MEKANISM_ENERGY_PER_BLOCK */
+    public static int mekanismEnergyPerBlock() {
+        return read(MEKANISM_ENERGY_PER_BLOCK);
+    }
+
+    /** @see #MEKANISM_ENERGY_PER_ABSORBED_POINT */
+    public static int mekanismEnergyPerAbsorbedPoint() {
+        return read(MEKANISM_ENERGY_PER_ABSORBED_POINT);
+    }
+
+    /** @see #MEKANISM_VEIN_MINING_MAX_BLOCKS */
+    public static int mekanismVeinMiningMaxBlocks() {
+        return read(MEKANISM_VEIN_MINING_MAX_BLOCKS);
+    }
+
+    /** @see #MEKANISM_NUCLEOSYNTHESIZING_ALLOY_COUNT */
+    public static int mekanismNucleosynthesizingAlloyCount() {
+        return read(MEKANISM_NUCLEOSYNTHESIZING_ALLOY_COUNT);
+    }
+
+    /** @see #MEKANISM_NUCLEOSYNTHESIZING_ANTIMATTER */
+    public static int mekanismNucleosynthesizingAntimatter() {
+        return read(MEKANISM_NUCLEOSYNTHESIZING_ANTIMATTER);
+    }
+
+    /** @see #MEKANISM_NUCLEOSYNTHESIZING_DURATION */
+    public static int mekanismNucleosynthesizingDuration() {
+        return read(MEKANISM_NUCLEOSYNTHESIZING_DURATION);
     }
 
     /**
@@ -1025,6 +1111,67 @@ public final class ForgeweaveConfig {
                         "toggled) these are generated rather than authored, so this is the way out of a",
                         "bad interpolation that is not hand-editing generated JSON.")
                 .define("elementariumMaterials", true);
+        // #993 (M8-9, D-M8-5, D-M8-15): the Mekanism module container's own toggle and its numbers.
+        // Appended rather than grouped, so a compat-server.toml written by an earlier build keeps the
+        // key order it already has. Read through MekanismGearModules and the named helpers above.
+        MEKANISM_MODULES = builder
+                .comment("If true, Forgeweave gear carrying an atomic_matter_alloy part is a Mekanism module",
+                        "container: its Modification Station installs MekaTool and MekaSuit modules into it and",
+                        "Forgeweave's own hooks run their effects. Off makes the container inert rather than",
+                        "absent -- every effect goes neutral and the module screen stops opening, but a tool that",
+                        "already carries installed modules keeps Mekanism's own component untouched and works",
+                        "again the moment this returns. The atomic_matter_alloy material itself is never toggled.",
+                        "Has no effect at all without Mekanism installed.")
+                .define("mekanismModules", true);
+        MEKANISM_ENERGY_PER_BLOCK = builder
+                .comment("Forge Energy one block break costs while a Mekanism excavation, blasting or vein mining",
+                        "module is installed and switched on. Paid out of the tool's own buffer, per block, so an",
+                        "area swing costs one block's price for each block it takes. A buffer that cannot pay it",
+                        "leaves the module doing nothing rather than working for free.")
+                .defineInRange("mekanismEnergyPerBlock", MekanismGearModules.ENERGY_PER_BLOCK_DEFAULT,
+                        0, Integer.MAX_VALUE);
+        MEKANISM_ENERGY_PER_ABSORBED_POINT = builder
+                .comment("Forge Energy a worn piece spends per point of damage its Mekanism absorption modules",
+                        "take off an incoming blow. An absorption the buffer cannot pay for in full does not",
+                        "happen at all, rather than happening at a discount.")
+                .defineInRange("mekanismEnergyPerAbsorbedPoint",
+                        MekanismGearModules.ENERGY_PER_ABSORBED_POINT_DEFAULT, 0, Integer.MAX_VALUE);
+        MEKANISM_VEIN_MINING_MAX_BLOCKS = builder
+                .comment("How many extra blocks one Mekanism vein mining swing breaks at most. A second bound on",
+                        "top of Mekanism's own traversal limit, so a generous Mekanism config cannot stall a tick.")
+                .defineInRange("mekanismVeinMiningMaxBlocks", MekanismGearModules.VEIN_MINING_MAX_BLOCKS_DEFAULT,
+                        0, 4096);
+        MEKANISM_NUCLEOSYNTHESIZING_ALLOY_COUNT = builder
+                .comment("How many of Mekanism's own atomic alloys the Antiprotonic Nucleosynthesizer turns into",
+                        "one atomic_matter_alloy ingot. Baked into the generated recipe, so changing it needs a",
+                        "datagen run rather than a reload.")
+                .defineInRange("mekanismNucleosynthesizingAlloyCount",
+                        ForgeweaveMekanismCompat.NUCLEOSYNTHESIZING_ALLOY_COUNT_DEFAULT, 1, 64);
+        MEKANISM_NUCLEOSYNTHESIZING_ANTIMATTER = builder
+                .comment("How much antimatter, in mB, that craft spends. Mekanism's own hardest nucleosynthesizing",
+                        "recipe spends 5.")
+                .defineInRange("mekanismNucleosynthesizingAntimatter",
+                        ForgeweaveMekanismCompat.NUCLEOSYNTHESIZING_ANTIMATTER_DEFAULT, 1, 10_000);
+        MEKANISM_NUCLEOSYNTHESIZING_DURATION = builder
+                .comment("How long, in ticks, that craft takes. Mekanism's own longest is 1250.")
+                .defineInRange("mekanismNucleosynthesizingDuration",
+                        ForgeweaveMekanismCompat.NUCLEOSYNTHESIZING_DURATION_DEFAULT, 1, 100_000);
+        // Issue #999 (D-M8-20). Appended for the same key-order reason the two above are.
+        MYSTICAL_AGRICULTURE_AUGMENTS = builder
+                .comment("If true, Forgeweave works with Mystical Agriculture: the Track B ores and brimspar",
+                        "get resource crops, and gear built from a Mystical Agriculture essence metal is",
+                        "accepted by Mystical Agriculture's own Tinkering Table so augments can be installed.",
+                        "",
+                        "Off makes the augment seam inert rather than absent: a Forgeweave tool still goes into",
+                        "the Tinkering Table's first slot, but it offers no augment slot, so nothing can be",
+                        "installed and nothing already installed does anything. Augment data is Mystical",
+                        "Agriculture's own and Forgeweave neither copies nor clears it, so a stack that already",
+                        "carries some keeps it and works again the moment this comes back. No restart needed.",
+                        "",
+                        "Whether the crops exist is decided when registries freeze, so adding or removing",
+                        "Mystical Agriculture itself needs a restart -- installing a mod always does. The",
+                        "material presets are unaffected either way: they are never toggled.")
+                .define("mysticalAgricultureAugments", true);
         builder.pop();
         COMPAT_SPEC = builder.build();
 

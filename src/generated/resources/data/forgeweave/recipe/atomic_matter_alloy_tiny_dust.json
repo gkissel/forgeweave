@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "tag": "c:small_dusts/atomic_matter_alloy"
+    }
+  ],
+  "result": {
+    "count": 3,
+    "id": "forgeweave:atomic_matter_alloy_tiny_dust"
+  }
+}

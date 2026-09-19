@@ -173,12 +173,50 @@ Forgeweave brings modular tool building, material traits, modifiers, melting, al
 #
 # BOTH sides: the ritual is a server-side craft, the rows are datapack entries the client needs for
 # JEI, and Occultism's own ritual category draws them client side.
-#
-# The lower bound is the version this integration was written against. The range is left open at the
-# top rather than pinned to a maximum this ticket cannot test against.
+
 [[dependencies.${mod_id}]]
     modId="occultism"
     type="optional"
     versionRange="[1.205.0,)"
     ordering="AFTER"
+    side="BOTH"
+
+# Mekanism compat (issue #993, docs/SCOPE.md M8, D-M8-15) is optional: without it the
+# atomic_matter_alloy material still exists and still assembles into tools, but its nucleosynthesizing
+# recipe is dropped by its own `neoforge:conditions` mod_loaded gate, so the metal is unobtainable, and
+# nothing on a Forgeweave tool answers as a module container. With it, gear carrying an
+# atomic_matter_alloy part is a Mekanism module container: the Modification Station installs MekaTool
+# and MekaSuit modules into it and Forgeweave's own hooks run their effects
+# (dev.gkissel.forgeweave.compat.mekanism). BOTH sides: installing a module is a server-side machine
+# craft, the recipe is a datapack row the client needs for JEI, and the module screen is drawn client
+# side, so neither side alone is enough.
+#
+# Ordering AFTER because the module container's default data component is Mekanism's own, so its
+# registries have to exist before Forgeweave's items are built.
+#
+# The lower bound is the version this integration was written against. The range is left open at the
+# top rather than pinned to a maximum this ticket cannot test against.
+[[dependencies.${mod_id}]]
+    modId="mekanism"
+    type="optional"
+    versionRange="[10.7.19,)"
+    ordering="AFTER"
+    side="BOTH"
+
+# Mystical Agriculture compat (issue #999, docs/SCOPE.md D-M8-20) is optional: without it the mod is
+# unchanged, the material presets are dropped by their own `neoforge:conditions` item_exists gate, and
+# nothing registers a crop. With it, the Track B ores and brimspar get resource crops and Forgeweave
+# gear is accepted by Mystical Agriculture's Tinkering Table
+# (dev.gkissel.forgeweave.compat.mysticalagriculture). Cucumber is Mystical Agriculture's own required
+# library, so it arrives with it and needs no entry of its own.
+#
+# BOTH sides: crops are registry blocks and items the client has to know about, and the tinkering
+# screen is drawn client side. ordering="BEFORE" rather than AFTER, unlike every entry above: Mystical
+# Agriculture's plugin scan runs during its own registry events, so Forgeweave has to have registered
+# the crux blocks a crop points at by then.
+[[dependencies.${mod_id}]]
+    modId="mysticalagriculture"
+    type="optional"
+    versionRange="[8.0.28,)"
+    ordering="BEFORE"
     side="BOTH"
