@@ -118,6 +118,37 @@ public class UpgradeReclaimGameTests {
     }
 
     /**
+     * Issue #1070: {@code returnExchangedParts} covers only the plain displaced part. A registered
+     * host's reclaimed items come back whatever that option says, because the maintainer's "hosted
+     * upgrades are never lost" rule (2026-09-18) stands on its own -- {@code ToolAssemblyRecipes
+     * #resolveExchange} keeps the two lists apart until the final hand-back for exactly this reason.
+     */
+    @GameTest(template = "empty")
+    public static void returnExchangedPartsOffStillReturnsAHostsReclaimedItems(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, POS, "stone", "wood", "wood");
+
+        UpgradeHosts.register((original, replacement) -> List.of(upgrade(3)));
+        ForgeweaveConfig.RETURN_EXCHANGED_PARTS.set(false);
+        try {
+            ItemStack swapped = swapHead(helper, player, pickaxe, "iron");
+            helper.assertTrue(swapped.is(ForgeweaveItems.TOOL_PICKAXE.get()),
+                    "the swap itself must still happen, got " + swapped);
+            helper.assertTrue(player.getInventory().countItem(Items.NETHER_STAR) == 3,
+                    "a host's reclaimed items must come back whatever returnExchangedParts says, found "
+                            + player.getInventory().countItem(Items.NETHER_STAR));
+            helper.assertTrue(player.getInventory().items.stream()
+                            .noneMatch(stack -> stack.is(ForgeweaveItems.PART_PICKAXE_HEAD.get())),
+                    "the plain displaced head must not come back while the option is off, got "
+                            + player.getInventory().items);
+        } finally {
+            ForgeweaveConfig.RETURN_EXCHANGED_PARTS.set(true);
+            UpgradeHosts.clear();
+        }
+        helper.succeed();
+    }
+
+    /**
      * Off is inert, not destructive: the Mekanism host answers nothing while {@code mekanismModules} is
      * off, so a part swap in that state strips no module and hands nothing back. Asserted through the
      * seam rather than through the host itself, which cannot be classloaded on this run.
