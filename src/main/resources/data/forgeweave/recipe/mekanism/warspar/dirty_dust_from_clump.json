@@ -1,0 +1,21 @@
+{
+  "type": "mekanism:crushing",
+  "input": {
+    "count": 1,
+    "tag": "c:clumps/warspar"
+  },
+  "output": {
+    "count": 1,
+    "id": "forgeweave:warspar_dirty_dust"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "mekanism"
+    },
+    {
+      "type": "forgeweave:compat_toggle",
+      "toggle": "mekanismModules"
+    }
+  ]
+}

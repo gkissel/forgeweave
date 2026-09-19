@@ -31,6 +31,10 @@ has exactly one sensible vanilla template, so the donor is fixed per form rather
     is the gear read. (`clock` would be the other round candidate, but vanilla's clock is animated --
     there is no `item/clock.png` to diff against, only `clock_00` .. `clock_63`.)
   * **Wire** <- `string`, a tangle of thin strands that recolors into a coil of wire.
+  * **Clump** (#994) <- `clay_ball`, vanilla's one lumpy round handful of material.
+  * **Dirty dust** (#994) <- `gunpowder`, a coarser and darker pile than glowstone dust, so the
+    dirty form reads as a step behind the clean one at a glance in the inventory.
+  * **Shard** (#994) <- `prismarine_shard`, which is literally vanilla's shard silhouette.
 
 Provenance: vanilla-derived, like both scripts it builds on, so no NOTICE.md row -- see
 generate_track_b_ore_textures.py's own Provenance note for the full reasoning. Vanilla textures are
@@ -77,6 +81,10 @@ DUSTS = ["dust", "small_dust", "tiny_dust"]
 PLATE_FAMILY = ["plate", "double_plate", "rod", "gear", "wire"]
 ALL_FORMS = DUSTS + PLATE_FAMILY
 
+# Issue #994's three Mekanism ore-chain intermediates. Mirrors MaterialForm.ORE_CHAIN, and goes to
+# the Track B ores alone -- an ore block is the only thing those chains start from.
+ORE_CHAIN = ["clump", "dirty_dust", "shard"]
+
 # mB a form melts into, keyed by form. A form absent here has no melting row (the plate family).
 MELT_AMOUNTS = {"dust": VALUE_INGOT, "small_dust": VALUE_SMALL_DUST, "tiny_dust": VALUE_NUGGET}
 
@@ -111,16 +119,19 @@ GEM_IDS = {mat_id for mat_id, _color in GEM_MATERIALS}
 def materials() -> list[tuple[str, int, list[str]]]:
     """(id, color, forms) for every material that gets forms -- the mirror of MaterialForms.ALL."""
     rows = []
+    ore_ids = {mat_id for mat_id, _color, _host in ORES}
     for mat_id, color, _host in ORES:
         if mat_id in GEM_IDS:
             continue
-        rows.append((mat_id, color, ALL_FORMS))
+        rows.append((mat_id, color, ALL_FORMS + ORE_CHAIN))
     for mat_id, color in ALLOYS:
         rows.append((mat_id, color, ALL_FORMS))
     for mat_id, color in OWN_ITEM_METALS:
         rows.append((mat_id, color, ALL_FORMS))
     for mat_id, color in GEM_MATERIALS:
-        rows.append((mat_id, color, DUSTS))
+        # #994: fulmenite is a Track B ore as well as a gem-type material, so it gets the ore chain
+        # on top of its three dusts; brimspar has no ore block of its own on the Track B roster.
+        rows.append((mat_id, color, DUSTS + ORE_CHAIN if mat_id in ore_ids else DUSTS))
     return rows
 
 
@@ -160,6 +171,9 @@ def donors(assets: VanillaAssets) -> dict[str, Image.Image]:
         "rod": assets.item("blaze_rod"),
         "gear": assets.item("nether_star"),
         "wire": assets.item("string"),
+        "clump": assets.item("clay_ball"),
+        "dirty_dust": assets.item("gunpowder"),
+        "shard": assets.item("prismarine_shard"),
     }
 
 
