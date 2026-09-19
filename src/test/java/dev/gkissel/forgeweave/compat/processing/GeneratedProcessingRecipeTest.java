@@ -155,7 +155,10 @@ class GeneratedProcessingRecipeTest {
         List<ModFolder> mods = List.of(
                 new ModFolder("create", "create"),
                 new ModFolder("immersive_engineering", "immersiveengineering"),
-                new ModFolder("enderio", "enderio"));
+                new ModFolder("enderio", "enderio"),
+                // #994 (M8-10): the Mekanism ore chains, written by the same script into the same
+                // shape, so they get the same parse, condition, lang and tag sweep for free.
+                new ModFolder("mekanism", "mekanism"));
 
         JsonObject lang = parse(LANG);
         int checked = 0;
@@ -185,10 +188,55 @@ class GeneratedProcessingRecipeTest {
                 checked++;
             }
         }
-        assertTrue(checked == 135, "expected 135 generated recipe files (4 alloys x 3 mods + 11 ores x 3 "
-                + "mods + 45 plate materials x 2 mods), found " + checked);
+        assertTrue(checked == 201, "expected 201 generated recipe files (4 alloys x 3 mods + 11 ores x 3 "
+                + "mods + 45 plate materials x 2 mods + 11 ores x 6 Mekanism chain steps), found " + checked);
         if (!failures.isEmpty()) {
             fail(String.join("\n", failures));
+        }
+    }
+
+    /**
+     * Issue #994's own gate: the chain is total over the eleven Track B ores, every step is one of the
+     * four Mekanism recipe types the issue names, and every form a step outputs is a real Forgeweave
+     * item backed by its own {@code c:} tag. A step naming a form nobody registered fails here rather
+     * than shipping a recipe whose output does not exist.
+     *
+     * <p>The rows this pins, per ore: {@code ore -> 2 dust} (enriching), {@code ore -> 3 clump}
+     * (purifying), {@code ore -> 4 shard} (injecting), then {@code shard -> clump} (purifying),
+     * {@code clump -> dirty dust} (crushing) and {@code dirty dust -> dust} (enriching) back down.
+     * There is no 5x chain: it would need a slurry, a chemical form of a Forgeweave metal, which
+     * D-M8-6 rules out.
+     */
+    @Test
+    void theMekanismOreChainIsTotalOverTheTrackBOresAndNamesOnlyRegisteredForms() throws IOException {
+        record Step(String file, String type, int count, String form) {}
+        List<Step> expected = List.of(
+                new Step("dust_from_ore", "mekanism:enriching", 2, "dust"),
+                new Step("clump_from_ore", "mekanism:purifying", 3, "clump"),
+                new Step("shard_from_ore", "mekanism:injecting", 4, "shard"),
+                new Step("clump_from_shard", "mekanism:purifying", 1, "clump"),
+                new Step("dirty_dust_from_clump", "mekanism:crushing", 1, "dirty_dust"),
+                new Step("dust_from_dirty_dust", "mekanism:enriching", 1, "dust"));
+
+        JsonObject lang = parse(LANG);
+        for (TrackBOre ore : TrackBOre.ALL) {
+            for (Step step : expected) {
+                Path file = RECIPE_DIR.resolve("mekanism/" + ore.id() + "/" + step.file() + ".json");
+                assertTrue(Files.isRegularFile(file), "missing chain step " + file);
+                JsonObject root = parse(file);
+                assertTrue(step.type().equals(root.get("type").getAsString()),
+                        file + ": expected " + step.type() + ", found " + root.get("type").getAsString());
+
+                JsonObject output = root.getAsJsonObject("output");
+                String itemId = "forgeweave:" + ore.id() + "_" + step.form();
+                assertTrue(itemId.equals(output.get("id").getAsString()),
+                        file + ": expected output " + itemId + ", found " + output.get("id").getAsString());
+                assertTrue(output.get("count").getAsInt() == step.count(),
+                        file + ": expected " + step.count() + " of " + itemId);
+                assertLangKeyExists(file, lang, itemId);
+                // The output form's own c: tag, which is what the next step in the chain consumes.
+                assertIngredientTagBacked(file, "c:" + step.form() + "s/" + ore.id());
+            }
         }
     }
 
