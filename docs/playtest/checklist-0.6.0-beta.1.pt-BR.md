@@ -190,7 +190,7 @@ Mundo 1.21.1 novo, servidor dedicado, sem cheats, com Apotheosis, EMI, Mekanism,
 
 ## Decisões pendentes
 
-- Proporções de craft da família de placas (item 95): foram escolha do agente, de propósito mais caras que uma prensa. O wire sai mais barato à mão (3 nuggets) do que pela metal press do Immersive Engineering. Confirmar ou trocar.
+- Decidido em 2026-09-18: as proporções de craft da família de placas (item 95) ficam como estão, inclusive o wire a 3 nuggets.
 - Regra de energia do jetpack do Mekanism (item 25): hoje cobra sempre que o portador está no ar com o módulo ligado, não só ao propulsionar. Confirmar.
 - Limitação de tier do Mystical Agriculture (item 13): `ITinkerable` não carrega tier por stack, então toda ferramenta do Forgeweave entra no tier 5 com um slot de augment, e nove formas de ferramenta não são augmentáveis. O mantenedor decidiu em 2026-09-18 que não haverá mixin por enquanto; reabrir se incomodar em jogo.
 - O toggle do Elementarium é exceção à D-M8-5 (item 3): a regra diz que preset de material não ganha toggle, e este ganhou porque o gerador lê famílias de tag contra as quais não compila. Confirmar a exceção ou tirar o toggle.
@@ -203,4 +203,4 @@ Mundo 1.21.1 novo, servidor dedicado, sem cheats, com Apotheosis, EMI, Mekanism,
 - Escada de stats dos presets do Mystical Agriculture: desenho do próprio PR #1036, calibrado contra resonite e nitro_crystal, não contra nada upstream.
 - #971 (EMI) continua aberta à espera do item 77 num cliente.
 - #1032 (upgrades do Just Dire Things) está bloqueada no mod de origem. Se ele ganhar a tag ou o registro que falta, reabrir em vez de abrir issue nova: a pesquisa e as três respostas já estão na D-M8-22.
-- As oito perguntas de superfície de addon de #1061, todas com recomendação escrita em `docs/research/addon-surface-audit.md`: (1) "ferramenta nova de fora" é registrada em Java ou definida por datapack; (2) `TraitBehaviors` e `ModifierBehaviors` abrem para Java ou a biblioteca é o teto; (3) um trait registrado em Java continua atrás de `compat.kubejsTraits`; (4) um pacote de API com subpacotes ou vários no topo; (5) o addon de teste é publicado ou fica no shape `gametest`; (6) o orçamento de 136 KB de sync de material vira preocupação de runtime; (7) o livro abre para addons ou é documentado como fechado; (8) o que a ADR de estabilidade promete e a partir de qual versão.
+- Decidido em 2026-09-18: as oito perguntas de superfície de addon de #1061 seguem as recomendações de `docs/research/addon-surface-audit.md`. A implementação está em #1065, #1066 e #1067 e só entra nesta tag se já estiver no master no corte.
