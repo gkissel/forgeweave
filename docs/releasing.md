@@ -116,6 +116,24 @@ Leveling, the `sounds/chime.ogg` asset included.
 - **Load a world with leveled tools under `toolLeveling = false`**: nothing breaks, no earned slot is
   lost, and the modifiers spent into those slots still work.
 
+## Release-checklist: integrated mods (from M8)
+
+From the M8 gate (SCOPE.md § "Milestone 8 — deep compat", "CI and release gates"), every release from
+`0.6.0-beta.1` on runs the manual pass with each integrated mod present, one block per mod. The full
+set is `docs/playtest/checklist-0.6.0-beta.1.pt-BR.md`; a later release's checklist carries whichever
+of its blocks the release touched, plus these three, which are standing:
+
+- **Forgeweave alone**, with none of the integrated mods installed: no ghost recipes, no missing
+  textures, no log noise in the world, the creative tab or JEI.
+- **Every `compat` toggle off**, on a world holding gear that carries socket, affix, module, fusion,
+  `surgebound`, ritual and augment state: the mod starts, the world loads, and every one of those
+  stays inert rather than broken. Toggles back on, everything works again with nothing lost.
+- **The acceptance playthrough** from SCOPE.md's M8 section, on a fresh dedicated server with the
+  integrated mods installed and no cheats.
+
+None of the integrated mods is on the build or test classpath (JC-B), so no automated test ever sees
+one. These lines are the only check those integrations get.
+
 ## Publishing
 
 From the branch or commit being released:

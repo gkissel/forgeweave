@@ -145,14 +145,18 @@ class SaveCompatCorpusTest {
         assertNotNull(dir, "the corpus directory is missing from the test resources");
         try (Stream<Path> files = Files.list(Path.of(dir.toURI()))) {
             List<Path> snbt = files.filter(path -> path.toString().endsWith(".snbt")).sorted().toList();
-            assertTrue(snbt.size() >= 67,
+            assertTrue(snbt.size() >= 72,
                     "the M2 four, #101's tank, #154's embossment, #160's ramp, #167's audit five, "
                             + "M3.2's two component states, #248's seven-slot station, #237's "
                             + "audit two (new-roster tool, new-fluid smeltery), #305's Pattern "
                             + "Chest inventory and every format each later milestone added, up to "
-                            + "M7's leveled tool and leveled chestplate (#925) and M8's energized "
-                            + "tank (#972), pack-defined modifier (#973) and M8-9's module-carrying "
-                            + "tool (#993); something dropped fixtures");
+                            + "M7's leveled tool and leveled chestplate (#925) and all of M8's: the "
+                            + "energized tank (#972), the pack-defined modifier (#973), the "
+                            + "socketed and affixed tools (#969, #970), the module-carrying tool "
+                            + "(#993), phase 2's modules and rayward armor (#994), surgebound "
+                            + "(#996), the ritual-bound tool (#997) and the augmented tool (#999). "
+                            + "#975 audited the set against every M8 child and raised this floor to "
+                            + "the real count; something dropped fixtures");
             return snbt.stream();
         }
     }
