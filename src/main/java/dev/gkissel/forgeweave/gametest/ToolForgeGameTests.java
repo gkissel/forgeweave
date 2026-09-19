@@ -132,12 +132,14 @@ public class ToolForgeGameTests {
      */
     @GameTest(template = "empty")
     public static void exactlyFifteenEntriesAreForgeOnly(GameTestHelper helper) {
-        long large = ToolAssemblyRecipes.ENTRIES.stream().filter(ToolAssemblyRecipes::isLargeTool).count();
+        // #1066: the built-in half, because this is a count of what Forgeweave itself ships. A tool
+        // another mod registers is that mod's roster to keep, and the GameTest addon registers one.
+        long large = ToolAssemblyRecipes.BUILT_IN.stream().filter(ToolAssemblyRecipes::isLargeTool).count();
 
         helper.assertTrue(large == FORGE_ONLY_ENTRIES,
                 "#forgeweave:large_tools tags exactly the Tool Forge tier's " + FORGE_ONLY_ENTRIES
                         + " entries, counted " + large);
-        helper.assertTrue(ToolAssemblyRecipes.ENTRIES.size() - large == 19,
+        helper.assertTrue(ToolAssemblyRecipes.BUILT_IN.size() - large == 19,
                 "the Tool Station's own tab row is the other nineteen (M3.5 #394 added the shortbow, "
                         + "#678 the four light armor pieces and #653 the arrow; #395's longbow and "
                         + "crossbow, #448's shuriken and #735's four heavy pieces are forge-only)");

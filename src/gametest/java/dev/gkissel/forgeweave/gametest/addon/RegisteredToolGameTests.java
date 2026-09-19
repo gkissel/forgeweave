@@ -100,14 +100,16 @@ public class RegisteredToolGameTests {
         menu.getSlot(PartBuilderMenu.PATTERN_SLOT).set(new ItemStack(GameTestAddon.PATTERN.get()));
         ItemStack shards = new ItemStack(ForgeweaveItems.SHARD.get(),
                 GameTestAddon.BLADE_COST / PartBuilderRecipes.SHARD_VALUE);
-        shards.set(ForgeweaveDataComponents.MATERIAL.get(), IRON);
+        // Wood, not iron: a metal is cast at the Smeltery, never stamped, and that gate is the
+        // station's own -- a registered part inherits it like any other.
+        shards.set(ForgeweaveDataComponents.MATERIAL.get(), WOOD);
         menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).set(shards);
         menu.broadcastChanges();
 
         ItemStack output = menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem();
         helper.assertTrue(output.is(GameTestAddon.BLADE.get()),
                 "expected the registered part, got " + output);
-        helper.assertTrue(IRON.equals(output.get(ForgeweaveDataComponents.MATERIAL.get())),
+        helper.assertTrue(WOOD.equals(output.get(ForgeweaveDataComponents.MATERIAL.get())),
                 "expected the part to carry the material it was stamped from, got "
                         + output.get(ForgeweaveDataComponents.MATERIAL.get()));
 
