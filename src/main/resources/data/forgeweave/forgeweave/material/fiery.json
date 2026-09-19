@@ -1,0 +1,76 @@
+{
+  "head": {
+    "durability": 920,
+    "mining_speed": 7.5,
+    "attack_damage": 6.9
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 112
+  },
+  "extra_durability": 195,
+  "bow": {
+    "drawspeed": 0.41,
+    "range": 1.98,
+    "bonus_damage": 8.8
+  },
+  "plating": {
+    "helmet": {
+      "durability": 378,
+      "armor": 3.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
+    },
+    "chestplate": {
+      "durability": 556,
+      "armor": 8.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
+    },
+    "leggings": {
+      "durability": 520,
+      "armor": 6.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
+    },
+    "boots": {
+      "durability": 452,
+      "armor": 3.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": [
+      "forgeweave:fiery_ember"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "tag": "c:ingots/fiery"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/fiery"
+      },
+      "value": 1296
+    }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/fiery"
+  },
+  "cast_only": true,
+  "enchantability": 16,
+  "color": "#D14A1E",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "twilightforest:fiery_ingot"
+    }
+  ]
+}

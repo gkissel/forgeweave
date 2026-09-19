@@ -1264,6 +1264,28 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.celestigem", "Celestigem");
         add("material.forgeweave.eclipsealloy", "Eclipse Alloy");
 
+        // Issue #1059 (D-M8-25): Twilight Forest's four melting tiers plus four Part Builder-only
+        // materials, and Ice and Fire Community Edition's melting and Part Builder-only rosters.
+        // Silver dedupes into the existing material above rather than adding a name here.
+        add("material.forgeweave.ironwood", "Ironwood");
+        add("material.forgeweave.steeleaf", "Steeleaf");
+        add("material.forgeweave.knightmetal", "Knightmetal");
+        add("material.forgeweave.fiery", "Fiery");
+        add("material.forgeweave.naga_scale", "Naga Scale");
+        add("material.forgeweave.arctic_fur", "Arctic Fur");
+        add("material.forgeweave.alpha_yeti_fur", "Alpha Yeti Fur");
+        add("material.forgeweave.carminite", "Carminite");
+        add("material.forgeweave.dragon_bone", "Dragon Bone");
+        add("material.forgeweave.dragonsteel_fire", "Dragonsteel (Fire)");
+        add("material.forgeweave.dragonsteel_ice", "Dragonsteel (Ice)");
+        add("material.forgeweave.dragonsteel_lightning", "Dragonsteel (Lightning)");
+        add("material.forgeweave.deathworm_chitin_yellow", "Death Worm Chitin (Yellow)");
+        add("material.forgeweave.deathworm_chitin_white", "Death Worm Chitin (White)");
+        add("material.forgeweave.deathworm_chitin_red", "Death Worm Chitin (Red)");
+        add("material.forgeweave.troll_leather_mountain", "Troll Leather (Mountain)");
+        add("material.forgeweave.troll_leather_forest", "Troll Leather (Forest)");
+        add("material.forgeweave.troll_leather_frost", "Troll Leather (Frost)");
+
         // Trait names and descriptions, keyed by trait id like materials are by material id -- traits
         // are Java behavior selected by data (ADR-0002), so nothing derives these keys for us. The
         // tool info panel (issue #47) is what will display them; wording follows upstream 1.12's
@@ -2347,6 +2369,38 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.eclipsealloy_ward.name", "Eclipse Ward");
         add("trait.forgeweave.eclipsealloy_ward.description",
                 "Once per cooldown, a killing blow spends durability to save the wielder instead.");
+        // Issue #1059 (D-M8-25): Twilight Forest and Ice and Fire's fourteen material traits, each a
+        // datapack trait_definition over an existing TraitBehaviors class echoing that material's own
+        // identity in its source mod. See docs/research/twilight-forest-and-ice-and-fire.md for the
+        // per-material reasoning.
+        add("trait.forgeweave.ironwood_footing.name", "Ironwood Footing");
+        add("trait.forgeweave.ironwood_footing.description", "Steps up a full block without jumping.");
+        add("trait.forgeweave.steeleaf_precision.name", "Steeleaf Precision");
+        add("trait.forgeweave.steeleaf_precision.description", "Critical hits strike harder.");
+        add("trait.forgeweave.knightmetal_breach.name", "Knightmetal Breach");
+        add("trait.forgeweave.knightmetal_breach.description", "Deals bonus damage to armored targets.");
+        add("trait.forgeweave.fiery_ember.name", "Fiery Ember");
+        add("trait.forgeweave.fiery_ember.description", "The wielder takes no damage from fire.");
+        add("trait.forgeweave.naga_ward.name", "Naga Ward");
+        add("trait.forgeweave.naga_ward.description", "Never takes less than a floor amount of damage per hit.");
+        add("trait.forgeweave.arctic_insulation.name", "Arctic Insulation");
+        add("trait.forgeweave.arctic_insulation.description", "Builds resistance to repeated hits from the same source.");
+        add("trait.forgeweave.alpha_yeti_resilience.name", "Alpha Yeti Resilience");
+        add("trait.forgeweave.alpha_yeti_resilience.description", "Grants a brief window of extra invulnerability after being hit.");
+        add("trait.forgeweave.carminite_flicker.name", "Carminite Flicker");
+        add("trait.forgeweave.carminite_flicker.description", "A chance to avoid an incoming hit entirely.");
+        add("trait.forgeweave.dragonbone_edge.name", "Dragonbone Edge");
+        add("trait.forgeweave.dragonbone_edge.description", "Critical hits strike harder.");
+        add("trait.forgeweave.dragonsteel_fire_ward.name", "Dragonsteel Fire Ward");
+        add("trait.forgeweave.dragonsteel_fire_ward.description", "The wielder takes no damage from fire.");
+        add("trait.forgeweave.dragonsteel_ice_calm.name", "Dragonsteel Ice Calm");
+        add("trait.forgeweave.dragonsteel_ice_calm.description", "Builds resistance to repeated hits from the same source.");
+        add("trait.forgeweave.dragonsteel_lightning_surge.name", "Dragonsteel Lightning Surge");
+        add("trait.forgeweave.dragonsteel_lightning_surge.description", "Deals bonus damage on a fully charged swing.");
+        add("trait.forgeweave.deathworm_venom.name", "Death Worm Venom");
+        add("trait.forgeweave.deathworm_venom.description", "Poisons whatever it strikes.");
+        add("trait.forgeweave.troll_regeneration.name", "Troll Regeneration");
+        add("trait.forgeweave.troll_regeneration.description", "Slowly repairs itself over time.");
         add("tooltip.forgeweave.energy", "Stored Energy");
         // #829 M6 utility/economy trait behavior library.
         add("trait.forgeweave.sunmend.name", "Sunmend");

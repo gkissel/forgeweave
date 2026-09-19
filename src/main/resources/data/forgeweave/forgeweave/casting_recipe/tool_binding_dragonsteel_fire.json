@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_tool_binding"
+  },
+  "fluid": "forgeweave:molten_dragonsteel_fire",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:tool_binding",
+    "components": {
+      "forgeweave:material": "forgeweave:dragonsteel_fire"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "iceandfire:dragonsteel_fire_ingot"
+    }
+  ]
+}

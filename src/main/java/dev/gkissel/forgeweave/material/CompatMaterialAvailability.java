@@ -58,7 +58,10 @@ public final class CompatMaterialAvailability {
             entry("refined_obsidian", "mekanism:ingot_refined_obsidian"),
             // #997 (D-M8-18): Occultism ships its own silver ingot in `c:ingots/silver`, so the
             // preset's gate is an `neoforge:or` across both providers rather than IE alone.
-            entry("silver", "immersiveengineering:ingot_silver", "occultism:silver_ingot"),
+            // #1059 (D-M8-25): IceAndFire Community Edition ships its own silver ingot, tagged
+            // c:ingots/silver exactly like Immersive Engineering and Occultism's, so this preset's
+            // gate widens to a third provider rather than becoming a second material.
+            entry("silver", "immersiveengineering:ingot_silver", "occultism:silver_ingot", "iceandfire:silver_ingot"),
             entry("soularium", "enderio:soularium_ingot"),
             entry("tin", "mekanism:ingot_tin"),
             entry("titanium", "modern_industrialization:titanium_ingot"),
@@ -101,7 +104,17 @@ public final class CompatMaterialAvailability {
             // comment has the reasoning). This row is what still keeps its ingot, nugget and block
             // out of creative and JEI without Mekanism, and its melting and casting rows carry the
             // same item_exists gate.
-            entry("atomic_matter_alloy", "mekanism:alloy_atomic"));
+            entry("atomic_matter_alloy", "mekanism:alloy_atomic"),
+            // #1059 (D-M8-25): Twilight Forest and Ice and Fire's eight melting materials, mirroring
+            // each material JSON's own neoforge:conditions the same way every row above does.
+            entry("ironwood", "twilightforest:ironwood_ingot"),
+            entry("steeleaf", "twilightforest:steeleaf_ingot"),
+            entry("knightmetal", "twilightforest:knightmetal_ingot"),
+            entry("fiery", "twilightforest:fiery_ingot"),
+            entry("dragon_bone", "iceandfire:dragonbone"),
+            entry("dragonsteel_fire", "iceandfire:dragonsteel_fire_ingot"),
+            entry("dragonsteel_ice", "iceandfire:dragonsteel_ice_ingot"),
+            entry("dragonsteel_lightning", "iceandfire:dragonsteel_lightning_ingot"));
 
     // The three PlusTiC-inspiration alloys (issue #873 deliverable 4): condition is the AND of their
     // compat inputs' own providers (native inputs -- iron, obsidian, glass -- need no entry).

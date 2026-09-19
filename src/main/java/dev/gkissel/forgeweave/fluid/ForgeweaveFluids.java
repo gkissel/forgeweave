@@ -354,6 +354,22 @@ public final class ForgeweaveFluids {
     public static final MoltenMetal LUDICRITE = register("ludicrite", 0xE066CC, 1328);
     public static final MoltenMetal URANINITE = register("uraninite", 0x7FA83B, 1222);
 
+    // Issue #1059 (D-M8-25): Twilight Forest and Ice and Fire's eight melting materials. Registered
+    // the same unconditional-in-Java way every compat metal above is (the NeoForge platform
+    // constraint this whole file lives under); CompatMaterialAvailability is what hides each
+    // fluid's bucket from creative and JEI when its backing mod is absent. Colors are each
+    // material's own Part Builder tint (see the shipped material JSON); temperatures continue the
+    // harvest-tier band the compat metals above already use (iron ~900-1030, diamond ~1040-1140,
+    // netherite ~1150-1330).
+    public static final MoltenMetal IRONWOOD = register("ironwood", 0x8A9B5E, 906);
+    public static final MoltenMetal STEELEAF = register("steeleaf", 0x4E7A3D, 1046);
+    public static final MoltenMetal KNIGHTMETAL = register("knightmetal", 0x7A8FA6, 1052);
+    public static final MoltenMetal FIERY = register("fiery", 0xD14A1E, 1158);
+    public static final MoltenMetal DRAGON_BONE = register("dragon_bone", 0xD8CBA8, 912);
+    public static final MoltenMetal DRAGONSTEEL_FIRE = register("dragonsteel_fire", 0xB23A1E, 1164);
+    public static final MoltenMetal DRAGONSTEEL_ICE = register("dragonsteel_ice", 0x5FA8D3, 1170);
+    public static final MoltenMetal DRAGONSTEEL_LIGHTNING = register("dragonsteel_lightning", 0x6A4C93, 1176);
+
     private static final Map<String, MoltenMetal> COMPAT_METAL_FLUIDS = Map.ofEntries(
             Map.entry("aluminium", ALUMINIUM), Map.entry("bronze", BRONZE),
             Map.entry("conductive_alloy", CONDUCTIVE_ALLOY), Map.entry("constantan", CONSTANTAN),

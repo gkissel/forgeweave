@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_knife_blade"
+  },
+  "fluid": "forgeweave:molten_dragon_bone",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:knife_blade",
+    "components": {
+      "forgeweave:material": "forgeweave:dragon_bone"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "iceandfire:dragonbone"
+    }
+  ]
+}

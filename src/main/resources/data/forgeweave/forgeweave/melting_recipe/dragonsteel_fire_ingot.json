@@ -1,0 +1,14 @@
+{
+  "input": {
+    "item": "iceandfire:dragonsteel_fire_ingot"
+  },
+  "fluid": "forgeweave:molten_dragonsteel_fire",
+  "amount": 144,
+  "temperature": 1600,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "iceandfire:dragonsteel_fire_ingot"
+    }
+  ]
+}

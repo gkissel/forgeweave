@@ -1,0 +1,65 @@
+{
+  "head": {
+    "durability": 530,
+    "mining_speed": 6.4,
+    "attack_damage": 5.0
+  },
+  "handle": {
+    "durability_modifier": 0.95,
+    "durability": 70
+  },
+  "extra_durability": 50,
+  "bow": {
+    "drawspeed": 0.43,
+    "range": 1.83,
+    "bonus_damage": 6.4
+  },
+  "plating": {
+    "helmet": {
+      "durability": 302,
+      "armor": 3.0,
+      "toughness": 2.0
+    },
+    "chestplate": {
+      "durability": 442,
+      "armor": 8.0,
+      "toughness": 2.0
+    },
+    "leggings": {
+      "durability": 412,
+      "armor": 6.0,
+      "toughness": 2.0
+    },
+    "boots": {
+      "durability": 358,
+      "armor": 3.0,
+      "toughness": 2.0
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": [
+      "forgeweave:troll_regeneration"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "iceandfire:troll_leather_forest"
+      },
+      "value": 144
+    }
+  ],
+  "repair_item": {
+    "item": "iceandfire:troll_leather_forest"
+  },
+  "enchantability": 14,
+  "color": "#4A5C3A",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "iceandfire:troll_leather_forest"
+    }
+  ]
+}
