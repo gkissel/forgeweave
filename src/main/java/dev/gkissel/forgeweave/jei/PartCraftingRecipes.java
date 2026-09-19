@@ -52,7 +52,7 @@ final class PartCraftingRecipes {
             new Entry(ForgeweaveItems.PATTERN_KAMA_HEAD, ForgeweaveItems.PART_KAMA_HEAD, PartBuilderRecipes.HEAD_COST),
             new Entry(ForgeweaveItems.PATTERN_BROAD_AXE_HEAD, ForgeweaveItems.PART_BROAD_AXE_HEAD, PartBuilderRecipes.LARGE_HEAD_COST),
             new Entry(ForgeweaveItems.PATTERN_VEIN_HAMMER_HEAD, ForgeweaveItems.PART_VEIN_HAMMER_HEAD, PartBuilderRecipes.LARGE_HEAD_COST),
-            new Entry(ForgeweaveItems.PATTERN_WAR_MACE_HEAD, ForgeweaveItems.PART_WAR_MACE_HEAD, PartBuilderRecipes.LARGE_HEAD_COST),
+            // #1044: no row for the war mace head -- it is cast only, mirroring menu.PartBuilderRecipes#ENTRIES.
             new Entry(ForgeweaveItems.PATTERN_CURVED_BLADE, ForgeweaveItems.PART_CURVED_BLADE, PartBuilderRecipes.HEAD_COST),
             new Entry(ForgeweaveItems.PATTERN_KATANA_BLADE, ForgeweaveItems.PART_KATANA_BLADE, PartBuilderRecipes.MEDIUM_PART_COST),
             // M3.5's bow parts (issue #393).
