@@ -66,6 +66,7 @@ import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.loot.AssembleTool; // #970
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
+import dev.gkissel.forgeweave.menu.RegisteredTools;
 import dev.gkissel.forgeweave.menu.RenameStationItemPayload;
 import dev.gkissel.forgeweave.modifier.EmbossingRecipe;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
@@ -100,6 +101,10 @@ public class Forgeweave {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     public Forgeweave(IEventBus modEventBus, ModContainer modContainer) {
+        // #1066: first line on purpose. A mod that depends on Forgeweave is constructed after this
+        // one, and registering a tool is the first thing such a mod does, so the factory that builds
+        // its item classes has to be in place before anything else here can throw.
+        RegisteredTools.installItemFactory();
         ForgeweaveDataComponents.DATA_COMPONENTS.register(modEventBus);
         // #919 -- the melee damage ledger M7 pays tool XP out of, an attachment on every
         // damaged LivingEntity. See DamageXpLedger.

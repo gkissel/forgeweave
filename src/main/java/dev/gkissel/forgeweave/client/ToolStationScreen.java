@@ -578,16 +578,18 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
 
     /** As above with one 0xRRGGBB per layer, in {@link ToolArt#layers} order. */
     private static void renderToolLayers(GuiGraphics graphics, Tab tab, int x, int y, List<Integer> colors) {
-        String path = BuiltInRegistries.ITEM.getKey(tab.tool()).getPath();
+        // #1066: the entry's own id, not the item's path -- a tool registered from another mod
+        // carries its namespace here, which is what routes its layers to its own art.
+        String path = tab.entry().constants().id();
         // One layer per part, which is how every tool's model is built (ToolArt): a two-part weapon
         // (battlesign, frying pan, dagger -- issue #155) simply has no binding layer to draw.
         List<String> layers = ToolArt.layers(tab.entry().constants().parts());
         for (int layer = 0; layer < layers.size(); layer++) {
             int color = colors.get(layer);
             graphics.setColor((color >> 16 & 0xFF) / 255.0F, (color >> 8 & 0xFF) / 255.0F, (color & 0xFF) / 255.0F, 1.0F);
+            ResourceLocation texture = ToolArt.layerTexture(path, layers.get(layer));
             graphics.blit(
-                    ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID,
-                            "textures/" + ToolArt.layer(path, layers.get(layer)) + ".png"),
+                    texture.withPath(file -> "textures/" + file + ".png"),
                     x, y, 0, 0, 16, 16, 16, 16);
         }
         graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);

@@ -8,6 +8,10 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.resources.ResourceLocation;
+
+import dev.gkissel.forgeweave.Forgeweave;
+
 /**
  * Where an assembled tool's layer art lives, and in what order the layers stack. One place, because
  * three unrelated callers have to agree on it: {@code ForgeweaveItemModelProvider} writes the item
@@ -151,6 +155,29 @@ public final class ToolArt {
     }
 
     /**
+     * The full texture id of one layer, which is what a caller blitting the file by hand needs
+     * (issue #1066). Forgeweave's own tools keep every path they had: the two-tree split
+     * {@link #layer} makes between authored and ported art is Forgeweave's own bookkeeping and means
+     * nothing outside it.
+     *
+     * <p>A tool registered from another mod carries a namespaced id, and its layers resolve by
+     * convention instead: {@code <namespace>:item/<tool>_<layer>}, with {@code _broken} appended for
+     * the damaged variant. So an addon ships its art at predictable paths and needs no entry in any
+     * table here.
+     */
+    public static ResourceLocation layerTexture(String tool, String layer) {
+        int colon = tool.indexOf(':');
+        if (colon < 0) {
+            return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, layer(tool, layer));
+        }
+        return ResourceLocation.fromNamespaceAndPath(tool.substring(0, colon),
+                CONVENTION_PREFIX + tool.substring(colon + 1) + "_" + layer);
+    }
+
+    /** Where a registered tool's layers live inside its own namespace; see {@link #layerTexture}. */
+    private static final String CONVENTION_PREFIX = "item/";
+
+    /**
      * The tool whose art {@code tool} draws: itself, except a heavy armor piece (#735) shares its
      * plate piece's sprites until M9's designer art gives it its own -- then this alias goes.
      */
@@ -216,9 +243,18 @@ public final class ToolArt {
     /**
      * The layer name {@code tool} draws broken art for, or {@code null} if it has none; see
      * {@link #BROKEN_LAYERS}.
+     *
+     * <p>A tool registered from another mod (issue #1066) is not in that table and never will be, so
+     * it falls back to the rule the table itself overwhelmingly follows: a tool breaks its head. A
+     * registered tool with no head layer -- an all-limb shape, say -- draws no broken art, the same
+     * answer an unlisted built-in gets.
      */
     public static String brokenLayer(String tool) {
-        return BROKEN_LAYERS.get(baseTool(tool));
+        String listed = BROKEN_LAYERS.get(baseTool(tool));
+        if (listed == null && tool.indexOf(':') >= 0) {
+            return ROLE_LAYERS.get(ToolConstants.Role.HEAD);
+        }
+        return listed;
     }
 
     /** The texture path of a layer's broken variant -- {@link #layer} with a {@code _broken} suffix. */
