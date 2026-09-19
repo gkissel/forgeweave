@@ -67,7 +67,12 @@ public abstract class StationScreen<T extends StationMenu> extends AbstractConta
     private static final String TAB_SPRITE = "container/creative_inventory/tab_top_";
     private static final int TAB_WIDTH = 26;
     private static final int TAB_HEIGHT = 32;
-    /** Vanilla's own column pitch; six tabs (the most a group can have) span 139px of the 176px panel. */
+    /**
+     * Vanilla's own column pitch. Six tabs span 139px of the 176px panel; issue #1057's seventh
+     * station kind takes the full row 16px past the panel's right edge, which is cosmetic only --
+     * nothing but the tab sprites themselves lives out there, and {@link #extraGuiAreas} reports the
+     * whole row to JEI either way.
+     */
     private static final int TAB_PITCH = 27;
     /** Upstream {@code GuiTinkerTabs#updatePosition}: {@code tabs.setPosition(guiLeft + 4, ...)}. */
     private static final int TAB_X = 4;

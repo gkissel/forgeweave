@@ -41,6 +41,12 @@ public final class ForgeweaveBlockEntities {
                     .of(StencilTableBlockEntity::new, ForgeweaveBlocks.STENCIL_TABLE.get())
                     .build(null));
 
+    /** The Modifier Worktable (issue #1057): tool slot plus upstream 1.20's two reagent slots. */
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ModifierWorktableBlockEntity>>
+            MODIFIER_WORKTABLE = BLOCK_ENTITIES.register("modifier_worktable", () -> BlockEntityType.Builder
+                    .of(ModifierWorktableBlockEntity::new, ForgeweaveBlocks.MODIFIER_WORKTABLE.get())
+                    .build(null));
+
     // docs/SCOPE.md M1 issue #66. Two BlockEntityType registrations sharing one ChestBlockEntity
     // class (see ChestKind's javadoc for why): each factory bakes in which ChestKind it builds.
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ChestBlockEntity>> PATTERN_CHEST =

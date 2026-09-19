@@ -33,6 +33,10 @@ public final class ForgeweaveMenus {
 
     // The Pattern Chest and Part Chest (docs/SCOPE.md M1 issue #66): each registration bakes in its
     // ChestKind so the client-side ChestMenu constructor doesn't need to read it from the packet.
+    /** The Modifier Worktable (issue #1057). */
+    public static final DeferredHolder<MenuType<?>, MenuType<ModifierWorktableMenu>> MODIFIER_WORKTABLE =
+            MENUS.register("modifier_worktable", () -> IMenuTypeExtension.create(ModifierWorktableMenu::new));
+
     public static final DeferredHolder<MenuType<?>, MenuType<ChestMenu>> PATTERN_CHEST =
             MENUS.register("pattern_chest", () -> IMenuTypeExtension.create(
                     (windowId, inventory, buf) -> new ChestMenu(ChestKind.PATTERN, windowId, inventory, StationGroup.STREAM_CODEC.decode(buf))));
