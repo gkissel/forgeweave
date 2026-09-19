@@ -3,7 +3,12 @@ package dev.gkissel.forgeweave.menu;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import net.minecraft.SharedConstants;
+import net.minecraft.server.Bootstrap;
+import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.tool.ToolConstants;
 
@@ -23,13 +28,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class ToolStationTabsTest {
 
+    @BeforeAll
+    static void bootstrapMinecraft() {
+        SharedConstants.tryDetectVersion();
+        Bootstrap.bootStrap();
+    }
+
     @Test
     void everyAssemblableToolHasExactlyOneTab() {
         List<ToolAssemblyRecipes.Entry> tabbed = new ArrayList<>();
         for (ToolStationTabs.Tab tab : ToolStationTabs.TABS) {
-            if (!tab.isRepair()) {
-                tabbed.add(tab.entry());
-            }
+            // Since issue #1081 a tab can build a family: the two armor tabs list four pieces each.
+            tabbed.addAll(tab.entries());
         }
 
         assertEquals(ToolAssemblyRecipes.ENTRIES.size(), tabbed.size(),
@@ -98,14 +108,80 @@ class ToolStationTabsTest {
             if (entry.constants().category() != ToolConstants.Category.ARMOR) {
                 continue;
             }
-            assertTrue(tabs.stream().anyMatch(index -> ToolStationTabs.get(index).entry() == entry),
+            assertTrue(tabs.stream().anyMatch(index -> ToolStationTabs.get(index).entries().contains(entry)),
                     () -> entry.constants().id() + " must have a build tab");
+        }
+    }
+
+    /**
+     * Issue #1081: the eight armor buttons became two, one per set, and nothing else on the sidebar
+     * moved. Both halves are asserted here -- the armor count, and that every other tab is still the
+     * one-tool tab it was, in the order it was in.
+     */
+    @Test
+    void theSidebarHasTwoArmorTabsAndLeavesEveryOtherOneWhereItWas() {
+        List<String> nonArmor = new ArrayList<>();
+        List<ToolStationTabs.Tab> armor = new ArrayList<>();
+        for (ToolStationTabs.Tab tab : ToolStationTabs.TABS) {
+            if (!tab.isRepair() && tab.entry().constants().category() == ToolConstants.Category.ARMOR) {
+                armor.add(tab);
+                continue;
+            }
+            assertEquals(tab.isRepair() ? 0 : 1, tab.entries().size(),
+                    "only the armor tabs build more than one item");
+            nonArmor.add(tab.isRepair() ? "repair" : tab.entry().constants().id());
+        }
+
+        assertEquals(2, armor.size(), "one Armor button and one Heavy armor button, and no others");
+        assertEquals(List.of("repair", "pickaxe", "shovel", "hatchet", "broadsword", "longsword", "rapier",
+                        "battlesign", "frying_pan", "dagger", "warmace", "mattock", "kama", "battleaxe",
+                        "scimitar", "katana", "cleaver", "hammer", "excavator", "lumberaxe", "scythe",
+                        "vein_hammer", "shortbow", "longbow", "crossbow", "shuriken", "arrow"),
+                nonArmor, "every non-armor tab keeps its place and its order");
+
+        for (ToolStationTabs.Tab tab : armor) {
+            assertEquals(4, tab.entries().size(), "one tab per set, four pieces on it");
+        }
+    }
+
+    /**
+     * Issue #1081: the light armor tab's two slots are upstream 1.20's own, from its single
+     * {@code plate_armor} station layout -- plating (33, 29), maille (33, 53). The heavy tab has no
+     * upstream counterpart and keeps the triangle issue #735 gave it, large plate included.
+     */
+    @Test
+    void theArmorTabsSitAtTheirUpstreamPositions() {
+        ToolStationTabs.Tab armor = tabFor("helmet");
+        assertEquals(List.of(new ToolStationTabs.Pos(33, 29), new ToolStationTabs.Pos(33, 53)), armor.slots(),
+                "plating then maille, StationSlotLayoutProvider#plateArmor verbatim");
+
+        ToolStationTabs.Tab heavy = tabFor("heavy_helmet");
+        assertEquals(List.of(new ToolStationTabs.Pos(33, 26), new ToolStationTabs.Pos(19, 52),
+                new ToolStationTabs.Pos(47, 52)), heavy.slots(),
+                "plating, maille, large plate -- unchanged since #735");
+    }
+
+    /** The plating in the first slot is what picks the piece, on either armor tab. */
+    @Test
+    void theArmorTabsResolveEveryPieceFromItsPlating() {
+        for (String set : List.of("helmet", "heavy_helmet")) {
+            ToolStationTabs.Tab tab = tabFor(set);
+            for (ToolAssemblyRecipes.Entry entry : tab.entries()) {
+                ItemStack plating = new ItemStack(entry.part(0));
+                assertEquals(entry, tab.resolve(plating),
+                        () -> entry.constants().id() + " must be what its own plating builds");
+                assertTrue(tab.acceptsPart(0, plating),
+                        () -> "the plating slot must take " + entry.constants().id() + "'s plating");
+            }
+            assertEquals(tab.entry(), tab.resolve(ItemStack.EMPTY),
+                    "an empty plating slot falls back to the family's first piece");
         }
     }
 
     private static ToolStationTabs.Tab tabFor(String toolId) {
         for (ToolStationTabs.Tab tab : ToolStationTabs.TABS) {
-            if (!tab.isRepair() && tab.entry().constants().id().equals(toolId)) {
+            if (!tab.isRepair() && tab.entries().stream()
+                    .anyMatch(entry -> entry.constants().id().equals(toolId))) {
                 return tab;
             }
         }

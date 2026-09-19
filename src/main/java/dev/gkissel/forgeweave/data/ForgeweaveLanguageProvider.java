@@ -2677,8 +2677,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.intro.tool_station.text",
                 "A blank pattern over a crafting table makes the Tool Station, the heart of the "
                         + "workshop. Pick a tool from its sidebar, set the parts, and read the finished "
-                        + "stats before you build. Armor is on that same sidebar: the helmet, "
-                        + "chestplate, leggings and boots are built here from plating and maille.\n\n"
+                        + "stats before you build. Armor is on that same sidebar, under one Armor "
+                        + "button: set a plating and a maille, and the plating you chose is what "
+                        + "decides whether you get a helmet, a chestplate, leggings or boots.\n\n"
                         + "The station also repairs, renames, and applies modifiers, to armor as much "
                         + "as to tools; the Modifiers chapter covers those.");
         add("book.forgeweave.intro.tool_forge.title", "Tool Forge");
@@ -2699,7 +2700,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "materials you choose. Every piece has a limited number of modifier slots and "
                         + "carries its materials' traits.\n\nThe four light pieces build at the Tool "
                         + "Station or the Tool Forge; the heavy set needs the forge, the way the large "
-                        + "tools do.\n\nUnlike a tool, armor does nothing in the hand: its stats, traits "
+                        + "tools do. Each set has one button on the sidebar, and the plating you set in "
+                        + "it is what says which of the four pieces you are building.\n\nUnlike a tool, "
+                        + "armor does nothing in the hand: its stats, traits "
                         + "and modifiers only work while it is worn.");
         add("book.forgeweave.armor.parts.title", "Plating and Maille");
         add("book.forgeweave.armor.parts.text",

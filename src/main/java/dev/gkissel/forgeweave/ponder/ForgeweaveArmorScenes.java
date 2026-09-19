@@ -58,7 +58,7 @@ public final class ForgeweaveArmorScenes {
         scene.idle(10);
         scene.overlay().showText(70)
                 .attachKeyFrame()
-                .text("Armor is assembled at the Tool Station, beside the tools")
+                .text("Armor is assembled at the Tool Station, beside the tools, under one Armor button")
                 .pointAt(util.vector().topOf(STATION))
                 .placeNearTarget();
         scene.idle(80);
@@ -70,7 +70,7 @@ public final class ForgeweaveArmorScenes {
         scene.idle(10);
         scene.overlay().showText(70)
                 .attachKeyFrame()
-                .text("Each piece takes a plating shaped for it, which sets all of its stats")
+                .text("The plating you set in it picks the piece, and sets all of its stats")
                 .pointAt(util.vector().blockSurface(STATION, Direction.SOUTH))
                 .placeNearTarget();
         scene.idle(80);
