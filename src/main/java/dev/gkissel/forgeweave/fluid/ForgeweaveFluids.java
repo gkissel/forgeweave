@@ -370,6 +370,19 @@ public final class ForgeweaveFluids {
     public static final MoltenMetal DRAGONSTEEL_ICE = register("dragonsteel_ice", 0x5FA8D3, 1170);
     public static final MoltenMetal DRAGONSTEEL_LIGHTNING = register("dragonsteel_lightning", 0x6A4C93, 1176);
 
+    // Issue #1059 (D-M8-25, repairing #1031): ferricore, blazegold and eclipsealloy shipped with
+    // cast_only material JSON and melting/casting rows naming forgeweave:molten_ferricore,
+    // molten_blazegold and molten_eclipsealloy, but #1041 never registered those three fluids --
+    // Just Dire Things being absent from the build/test classpath meant the neoforge:conditions gate
+    // hid every one of those rows from GameTests, so nothing ever tried to decode the missing fluid
+    // and the gap went uncaught. Registered here the same unconditional-in-Java way every compat
+    // metal is; CompatMaterialAvailability hides each bucket when Just Dire Things is absent. Colors
+    // are each material's own Part Builder tint; temperatures continue the harvest-tier band above.
+    // celestigem carries no cast_only and gets no fluid -- it stays Part Builder only.
+    public static final MoltenMetal FERRICORE = register("ferricore", 0x8C5344, 924);
+    public static final MoltenMetal BLAZEGOLD = register("blazegold", 0xE8871E, 1064);
+    public static final MoltenMetal ECLIPSEALLOY = register("eclipsealloy", 0x1B2A4A, 1188);
+
     private static final Map<String, MoltenMetal> COMPAT_METAL_FLUIDS = Map.ofEntries(
             Map.entry("aluminium", ALUMINIUM), Map.entry("bronze", BRONZE),
             Map.entry("conductive_alloy", CONDUCTIVE_ALLOY), Map.entry("constantan", CONSTANTAN),

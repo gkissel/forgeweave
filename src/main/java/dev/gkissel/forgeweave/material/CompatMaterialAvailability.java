@@ -116,6 +116,18 @@ public final class CompatMaterialAvailability {
             entry("dragonsteel_ice", "iceandfire:dragonsteel_ice_ingot"),
             entry("dragonsteel_lightning", "iceandfire:dragonsteel_lightning_ingot"));
 
+    // Deliberately absent from ANY_OF above (issue #1059, repairing #1031): ferricore, blazegold and
+    // eclipsealloy now have a registered fluid and bucket (ForgeweaveFluids), but this class cannot
+    // mirror their neoforge:conditions the way every other row does. Just Dire Things' upgrade-state
+    // isolation scan (D-M8-22, dev.gkissel.forgeweave.compat's sibling package for that mod) rejects
+    // its own namespace anywhere outside that one package, including in an item id string used only
+    // to check whether a bucket should be hidden -- so no condition item for these three can be
+    // written here. Their buckets are therefore not hidden from creative/JEI when that mod is absent,
+    // unlike every other compat metal; the fluid, melting and casting rows stay correctly
+    // existence-gated in JSON regardless, which is the part that actually matters for #1041's bug
+    // (nothing could be made from them at all). celestigem is unaffected either way -- no cast_only,
+    // no fluid.
+
     // The three PlusTiC-inspiration alloys (issue #873 deliverable 4): condition is the AND of their
     // compat inputs' own providers (native inputs -- iron, obsidian, glass -- need no entry).
     private static final Map<String, List<ResourceLocation>> ALL_OF = Map.of(

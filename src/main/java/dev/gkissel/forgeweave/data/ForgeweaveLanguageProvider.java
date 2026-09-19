@@ -1901,6 +1901,21 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addFluid(ForgeweaveFluids.MAGMA_CREAM, "Molten Magma Cream");
         addFluid(ForgeweaveFluids.QUARTZ, "Molten Quartz");
 
+        // Issue #1059 (D-M8-25): Twilight Forest and Ice and Fire's eight melting materials, plus
+        // (repairing #1031) ferricore, blazegold and eclipsealloy, which #1041 registered as
+        // cast_only material JSON but never gave a fluid or a bucket name.
+        addFluid(ForgeweaveFluids.IRONWOOD, "Molten Ironwood");
+        addFluid(ForgeweaveFluids.STEELEAF, "Molten Steeleaf");
+        addFluid(ForgeweaveFluids.KNIGHTMETAL, "Molten Knightmetal");
+        addFluid(ForgeweaveFluids.FIERY, "Molten Fiery");
+        addFluid(ForgeweaveFluids.DRAGON_BONE, "Molten Dragon Bone");
+        addFluid(ForgeweaveFluids.DRAGONSTEEL_FIRE, "Molten Dragonsteel (Fire)");
+        addFluid(ForgeweaveFluids.DRAGONSTEEL_ICE, "Molten Dragonsteel (Ice)");
+        addFluid(ForgeweaveFluids.DRAGONSTEEL_LIGHTNING, "Molten Dragonsteel (Lightning)");
+        addFluid(ForgeweaveFluids.FERRICORE, "Molten Ferricore");
+        addFluid(ForgeweaveFluids.BLAZEGOLD, "Molten Blazegold");
+        addFluid(ForgeweaveFluids.ECLIPSEALLOY, "Molten Eclipse Alloy");
+
         // #100 -- casting (docs/SCOPE.md M2 issue #100). Names follow upstream 1.12's
         // tile.casting.{table,basin}.name / tile.faucet.name and its cast item names.
         addBlock(ForgeweaveBlocks.CASTING_TABLE, "Casting Table");
