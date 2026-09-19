@@ -3,8 +3,9 @@ package dev.gkissel.forgeweave.trait;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.damagesource.DamageType;
 
-import dev.gkissel.forgeweave.combat.CombatDefense;
-import dev.gkissel.forgeweave.combat.DefendedBlow;
+import dev.gkissel.forgeweave.api.combat.CombatDefense;
+import dev.gkissel.forgeweave.api.combat.DefendedBlow;
+import dev.gkissel.forgeweave.api.trait.Trait;
 
 /**
  * Blows of a named damage type simply do not land -- the M6 armor library's

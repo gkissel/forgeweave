@@ -3,6 +3,9 @@ package dev.gkissel.forgeweave.combat;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * Extra knockback on a landed hit, on top of whatever vanilla's own attack math already applied
  * (ADR-0005 decision 1 leaves cooldown, crits and knockback to the game) -- the knockback combat

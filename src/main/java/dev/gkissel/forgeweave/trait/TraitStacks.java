@@ -8,6 +8,8 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
+import dev.gkissel.forgeweave.api.trait.Trait;
+
 /**
  * Transient per-tool combo state for traits that build up and decay like upstream 1.12's hidden
  * potion effects ({@code TraitMomentum}, {@code TraitInsatiable}, {@code TraitMagnetic}) but have no

@@ -29,8 +29,9 @@ import net.minecraft.world.level.block.FallingBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.api.trait.Trait;
 import dev.gkissel.forgeweave.combat.ChainArc;
-import dev.gkissel.forgeweave.combat.CombatSeam;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
 import dev.gkissel.forgeweave.combat.ConditionalSeam;
 import dev.gkissel.forgeweave.combat.CritMultiplierBonus;
 import dev.gkissel.forgeweave.combat.DamageScalesWith;

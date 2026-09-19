@@ -22,6 +22,10 @@ import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 import net.minecraft.core.Registry;
 
 import dev.gkissel.forgeweave.advancement.ForgeweaveCriteriaTriggers;
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+import dev.gkissel.forgeweave.api.modifier.Modifier;
+import dev.gkissel.forgeweave.api.trait.Trait;
 import dev.gkissel.forgeweave.block.CastingBlockEntity;
 import dev.gkissel.forgeweave.block.ChestBlockEntity;
 import dev.gkissel.forgeweave.block.ForgeweaveBlockEntities;

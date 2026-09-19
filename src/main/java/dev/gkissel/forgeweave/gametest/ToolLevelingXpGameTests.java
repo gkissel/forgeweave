@@ -29,7 +29,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.combat.BlockingXpSeam;
-import dev.gkissel.forgeweave.combat.CombatDefense;
+import dev.gkissel.forgeweave.api.combat.CombatDefense;
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.BowItem;

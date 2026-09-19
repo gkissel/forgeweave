@@ -1,7 +1,8 @@
 package dev.gkissel.forgeweave.trait;
 
-import dev.gkissel.forgeweave.combat.CombatDefense;
-import dev.gkissel.forgeweave.combat.DefendedBlow;
+import dev.gkissel.forgeweave.api.combat.CombatDefense;
+import dev.gkissel.forgeweave.api.combat.DefendedBlow;
+import dev.gkissel.forgeweave.api.trait.Trait;
 
 /**
  * A worn piece refuses to let the blow it is settling fall below a floor -- the M6 armor library's

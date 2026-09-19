@@ -19,7 +19,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.combat.AttackSlash;
-import dev.gkissel.forgeweave.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatHit;
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 

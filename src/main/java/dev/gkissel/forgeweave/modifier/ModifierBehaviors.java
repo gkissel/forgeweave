@@ -19,6 +19,7 @@ import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.effect.MobEffect;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.modifier.ModifierLibrary.Application;
 import dev.gkissel.forgeweave.modifier.ModifierLibrary.AoeExpansion;
 import dev.gkissel.forgeweave.modifier.ModifierLibrary.Attribute;

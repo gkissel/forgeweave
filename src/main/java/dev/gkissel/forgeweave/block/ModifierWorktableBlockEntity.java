@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import net.neoforged.neoforge.items.IItemHandler;
 
+import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.menu.ModifierWorktableMenu;
 import dev.gkissel.forgeweave.menu.StationGroup;
 import dev.gkissel.forgeweave.modifier.Worktable;

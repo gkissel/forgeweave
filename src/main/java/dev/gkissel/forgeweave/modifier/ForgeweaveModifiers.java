@@ -56,9 +56,10 @@ import net.neoforged.neoforge.event.entity.player.PlayerXpEvent;
 import net.neoforged.neoforge.event.level.BlockDropsEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.combat.BonusDamageVsSeam;
-import dev.gkissel.forgeweave.combat.CombatHit;
-import dev.gkissel.forgeweave.combat.CombatSeam;
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.combat.IgniteOnHitSeam;
 import dev.gkissel.forgeweave.combat.KnockbackOnHitSeam;
@@ -77,7 +78,7 @@ import dev.gkissel.forgeweave.tool.ToolLevel;
 import dev.gkissel.forgeweave.tool.ToolStats;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
-import dev.gkissel.forgeweave.trait.Trait;
+import dev.gkissel.forgeweave.api.trait.Trait;
 
 /**
  * The modifier ids Forgeweave ships, the behavior behind each, and the slot accounting the Tool

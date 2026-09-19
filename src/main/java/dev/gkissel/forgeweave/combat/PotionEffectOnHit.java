@@ -4,6 +4,9 @@ import net.minecraft.core.Holder;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * A hit applies a {@link MobEffectInstance} to the target -- ADR-0004's M6 parameterized-behavior-
  * library candidate {@code potion_effect_on_hit}. Forgeweave's M1 shovel retrofit ("flatten",

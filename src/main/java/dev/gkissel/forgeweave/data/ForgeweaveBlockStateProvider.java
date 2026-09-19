@@ -26,6 +26,7 @@ import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.block.ConnectedGlassBlock;
 import dev.gkissel.forgeweave.block.EnergizedTankBlock;
 import dev.gkissel.forgeweave.block.FaucetBlock;

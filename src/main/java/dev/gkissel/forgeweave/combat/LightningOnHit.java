@@ -5,6 +5,9 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.LivingEntity;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * A landed hit calls down a real lightning bolt on the target -- ADR-0004's M6 on-hit effect library
  * batch (issue #828) {@code lightning_on_hit(condition)}, the reference instance "Thundergod's

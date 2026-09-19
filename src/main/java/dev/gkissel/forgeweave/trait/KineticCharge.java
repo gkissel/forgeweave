@@ -1,7 +1,8 @@
 package dev.gkissel.forgeweave.trait;
 
-import dev.gkissel.forgeweave.combat.CombatHit;
-import dev.gkissel.forgeweave.combat.CombatSeam;
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+import dev.gkissel.forgeweave.api.trait.Trait;
 
 /**
  * {@code kinetic_charge(fractionOfDamage)}: converts damage dealt into stored energy (issue #830

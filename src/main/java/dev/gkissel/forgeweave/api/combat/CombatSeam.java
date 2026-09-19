@@ -1,4 +1,7 @@
-package dev.gkissel.forgeweave.combat;
+package dev.gkissel.forgeweave.api.combat;
+
+import dev.gkissel.forgeweave.api.modifier.Modifier;
+import dev.gkissel.forgeweave.api.trait.Trait;
 
 /**
  * One combat behavior attached to a blow struck with a Forgeweave tool. ADR-0005 decision 3: this is

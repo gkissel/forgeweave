@@ -4,6 +4,9 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * A hit's bonus damage is {@code coefficient} times some quantity of the blow, clamped to
  * {@code [-cap, cap]} -- ADR-0004's M6 damage-scaling library batch (issue #827) collapsing the

@@ -3,6 +3,9 @@ package dev.gkissel.forgeweave.combat;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * The mattock's combat rider (docs/SCOPE.md M3 issue #156, maintainer decision 2026-08-12 on the
  * issue): a per-hit chance of a strong knockback, on top of whatever vanilla knockback the hit

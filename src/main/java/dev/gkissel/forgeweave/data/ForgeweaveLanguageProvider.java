@@ -12,6 +12,8 @@ import net.createmod.ponder.foundation.PonderIndex;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.api.modifier.Modifier;
+import dev.gkissel.forgeweave.api.trait.Trait;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 // Issue #999: the crop roster, whose own class names no Mystical Agriculture type -- see its javadoc.
 import dev.gkissel.forgeweave.compat.mysticalagriculture.ForgeweaveCrop;

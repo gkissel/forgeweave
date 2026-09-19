@@ -17,6 +17,8 @@ import net.minecraft.SharedConstants;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.Bootstrap;
 
+import dev.gkissel.forgeweave.api.modifier.Modifier;
+
 /**
  * Issue #994 (M8-10): {@code rayward}'s shielding curve, the one number the modifier exists to
  * produce. Four levels of it come to exactly 1.0 -- a fully shielded piece -- and no amount of

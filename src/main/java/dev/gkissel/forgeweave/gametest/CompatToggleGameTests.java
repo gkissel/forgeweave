@@ -28,7 +28,7 @@ import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.MiningLevel;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
-import dev.gkissel.forgeweave.trait.Trait;
+import dev.gkissel.forgeweave.api.trait.Trait;
 
 /**
  * The {@code compat} toggles this PR owns (D-M8-5), switched off and back on: the four issue #968

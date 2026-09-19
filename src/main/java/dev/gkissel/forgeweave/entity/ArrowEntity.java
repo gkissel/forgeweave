@@ -16,6 +16,7 @@ import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.neoforge.entity.IEntityWithComplexSpawn;
 
+import dev.gkissel.forgeweave.api.trait.Trait;
 import dev.gkissel.forgeweave.item.AmmoToolItem;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
@@ -124,7 +125,7 @@ public class ArrowEntity extends net.minecraft.world.entity.projectile.AbstractA
         return flatDamage;
     }
 
-    private boolean hasTrait(dev.gkissel.forgeweave.trait.Trait trait) {
+    private boolean hasTrait(dev.gkissel.forgeweave.api.trait.Trait trait) {
         return ForgeweaveTraits.has(getPickupItemStackOrigin(), trait);
     }
 

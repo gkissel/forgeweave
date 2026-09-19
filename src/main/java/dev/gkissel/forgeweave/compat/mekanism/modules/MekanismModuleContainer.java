@@ -36,7 +36,7 @@ import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.compat.mekanism.ForgeweaveMekanismCompat;
 import dev.gkissel.forgeweave.item.ArmorPieceItem;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
-import dev.gkissel.forgeweave.tool.UpgradeHosts;
+import dev.gkissel.forgeweave.api.upgrade.UpgradeHosts;
 
 /**
  * Forgeweave gear made of {@code atomic_matter_alloy} is a Mekanism module container (issue #993,

@@ -2,6 +2,9 @@ package dev.gkissel.forgeweave.combat;
 
 import net.minecraft.world.entity.LivingEntity;
 
+import dev.gkissel.forgeweave.api.combat.CombatDefense;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * Whoever hits the tool's holder catches fire -- flammable's offensive-by-retaliation half (issue
  * #229), ported from upstream 1.12's {@code TraitFlammable}: {@code attacker.setFire(3)} both while

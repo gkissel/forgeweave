@@ -1,5 +1,8 @@
 package dev.gkissel.forgeweave.combat;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * A hit deals {@code amount} of extra damage that skips armor, resistance and absorption entirely --
  * ADR-0004's M6 parameterized-behavior-library candidate {@code flat_armor_piercing_damage}.

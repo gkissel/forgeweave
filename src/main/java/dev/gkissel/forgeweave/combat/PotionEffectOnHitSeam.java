@@ -4,6 +4,9 @@ import net.minecraft.core.Holder;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * Applies a potion effect to the target on a landed hit -- shulking's levitation and webbed's
  * slowness (docs/SCOPE.md M3, issue #163), one class instantiated for each rather than a bespoke

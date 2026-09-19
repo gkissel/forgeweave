@@ -4,6 +4,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 
+import dev.gkissel.forgeweave.api.trait.Trait;
+
 /**
  * {@code solar_recharge(ratePerTick)}: refills the tool's energy buffer while its holder stands in
  * daylight (issue #830 deliverable 3) -- the reference pool's "Photovoltaic" idea (design pool

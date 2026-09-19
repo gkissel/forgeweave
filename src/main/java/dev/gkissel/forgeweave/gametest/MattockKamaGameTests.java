@@ -24,6 +24,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.api.combat.CombatHit;
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.combat.HeftSeam;
 import dev.gkissel.forgeweave.combat.ReapSeam;
@@ -111,8 +112,8 @@ public class MattockKamaGameTests {
         var attacker = helper.spawn(EntityType.PIG, new BlockPos(1, 1, 1));
         var target = helper.spawn(EntityType.PIG, new BlockPos(2, 1, 1));
         DamageSource source = helper.getLevel().damageSources().mobAttack(attacker);
-        dev.gkissel.forgeweave.combat.CombatHit hit =
-                new dev.gkissel.forgeweave.combat.CombatHit(helper.getLevel(), mattock, attacker, target, source);
+        dev.gkissel.forgeweave.api.combat.CombatHit hit =
+                new dev.gkissel.forgeweave.api.combat.CombatHit(helper.getLevel(), mattock, attacker, target, source);
 
         double before = target.getDeltaMovement().horizontalDistanceSqr();
         new HeftSeam(1.0F).onHit(hit, 1.0F);

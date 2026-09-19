@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.trait;
 
+import dev.gkissel.forgeweave.api.trait.Trait;
+
 /**
  * {@code extra_modifier_slots(count)}: the tool carrying this trait gets {@code count} more
  * modifier slots -- the M6 library shape issue #829 generalized paper's {@code writable} /

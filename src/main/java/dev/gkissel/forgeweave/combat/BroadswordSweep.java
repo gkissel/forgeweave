@@ -9,6 +9,9 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * The broadsword's sweep-on-hit, ported whole from upstream 1.12 {@code
  * tools/melee/item/BroadSword.java#dealDamage} (NOTICE.md, lines 44-74) -- the behavior issue #303's

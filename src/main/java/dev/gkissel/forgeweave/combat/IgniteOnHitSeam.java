@@ -2,6 +2,8 @@ package dev.gkissel.forgeweave.combat;
 
 import net.minecraft.world.entity.LivingEntity;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
 import dev.gkissel.forgeweave.particle.ForgeweaveParticles;
 
 /**

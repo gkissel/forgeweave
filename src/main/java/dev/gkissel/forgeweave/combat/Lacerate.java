@@ -5,6 +5,9 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * "Applies a stacking damage-over-time on hit" -- the scimitar's innate (docs/SCOPE.md M3 combat
  * innates table; magnitudes decided by the maintainer on issue #159: 1 damage/second for 4 seconds

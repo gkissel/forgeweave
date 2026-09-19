@@ -1,5 +1,8 @@
 package dev.gkissel.forgeweave.combat;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * Upstream's per-tool knockback multiplier (issue #465/T34, upstream {@code ToolCore#knockback()}):
  * scales the flat push vanilla applies to every landed hit by a flat factor, the way the pinned 1.12

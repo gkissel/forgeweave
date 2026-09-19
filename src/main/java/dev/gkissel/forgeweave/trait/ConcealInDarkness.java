@@ -3,6 +3,8 @@ package dev.gkissel.forgeweave.trait;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 
+import dev.gkissel.forgeweave.api.trait.Trait;
+
 /**
  * Mobs notice the wearer less in the dark -- the M6 armor library's
  * {@code conceal_in_darkness(lightThreshold)} (issue #831).

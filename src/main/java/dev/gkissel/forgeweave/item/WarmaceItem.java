@@ -13,6 +13,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.MaceItem;
 import net.minecraft.world.level.block.Block;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 

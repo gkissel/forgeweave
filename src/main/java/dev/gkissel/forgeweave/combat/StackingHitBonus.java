@@ -4,6 +4,9 @@ import net.minecraft.core.Holder;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+
 /**
  * Repeated hits mark the target and each mark deepens the next hit -- splintering, bone's head
  * trait (issue #229), ported from upstream 1.12's {@code TraitSplintering}: the damage hook adds

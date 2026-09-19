@@ -1,6 +1,7 @@
 package dev.gkissel.forgeweave.trait;
 
-import dev.gkissel.forgeweave.combat.CombatDefense;
+import dev.gkissel.forgeweave.api.combat.CombatHit;
+import dev.gkissel.forgeweave.api.combat.CombatDefense;
 import dev.gkissel.forgeweave.combat.HitCondition;
 
 /**
