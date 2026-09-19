@@ -111,10 +111,12 @@ public final class ToolStationTabs {
 
         /**
          * The piece this tab stands for while nothing has picked one yet: its only entry on a plain
-         * build tab, the first of the family on an armor tab.
+         * build tab, the first of the family on an armor tab, {@code null} on the repair tab -- which
+         * is the contract this had while it was a record component holding one nullable entry.
          */
+        @Nullable
         public ToolAssemblyRecipes.Entry entry() {
-            return entries.get(0);
+            return entries.isEmpty() ? null : entries.get(0);
         }
 
         public Item tool() {
