@@ -1718,6 +1718,77 @@ public final class ForgeweaveModifiers {
         }
     };
 
+    // ---------------------------------------------------------------- issue #994 (M8-10): rayward
+
+    /** Exposed so tests and the tooltip can name the modifier without spelling the id twice. */
+    public static final ResourceLocation RAYWARD_ID = id("rayward");
+
+    /**
+     * {@link ForgeweaveConfig#radiationShieldingPerLevel()}'s own default. Four levels of it come to
+     * exactly 1.0, which is the point: a full set of four-level armour blocks radiation completely.
+     * A literal so {@code ForgeweaveConfig}'s own static initialiser can read it as a compile-time
+     * constant, with no class-init cycle between the two.
+     */
+    public static final double RAYWARD_SHIELDING_PER_LEVEL_DEFAULT = 0.25D;
+
+    /** Rayward's cap: four levels, one for each quarter of the shielding. */
+    public static final int RAYWARD_MAX_LEVEL = 4;
+
+    /**
+     * Lead ingot ({@code c:ingots/lead}), four levels, one modifier slot and one ingot a level. Each
+     * level lines the piece against a quarter of the radiation a mod that models it would do, so a
+     * full set at level IV shields completely.
+     *
+     * <p>Forgeweave's own modifier rather than a Mekanism one, in name and in gating alike: it rides
+     * the {@code modifiers} content toggle like every other modifier, not {@code mekanismModules},
+     * which covers the module container and the ore chains. The reason is what the modifier is for --
+     * radiation is a hazard a player meets long before they can build {@code atomic_matter_alloy},
+     * and the metal's own 100% shielding (D-M8-15) is the late answer to the same problem. Without
+     * Mekanism installed rayward still applies, still costs its slots, and simply has nothing asking
+     * it for a number.
+     *
+     * <p>Any armour piece, no slot narrowing: radiation is not a thing a helmet blocks and boots do
+     * not, and a player who wants a whole shielded set has to pay four slots on each of four pieces.
+     */
+    public static final Modifier RAYWARD = new Modifier() {
+        @Override
+        public boolean armorOnly() {
+            return true;
+        }
+
+        @Override
+        public double radiationShielding(int level) {
+            return raywardShielding(level);
+        }
+    };
+
+    /**
+     * The fraction of radiation {@code level} levels of rayward block, clamped at 1. Kept as a static
+     * method rather than an instance one on the anonymous {@link Modifier} so the tooltip line and
+     * the modifier hook share one curve -- the same split {@link #surgeboundCapacityFraction} uses.
+     */
+    public static double raywardShielding(int level) {
+        if (level <= 0) {
+            return 0.0D;
+        }
+        return Math.min(1.0D, level * ForgeweaveConfig.radiationShieldingPerLevel());
+    }
+
+    /**
+     * The fraction of incoming radiation a worn piece's modifiers block, 0 to 1 -- rayward's
+     * contribution today. Clamped at 1, so no amount of stacking ever shields more than completely.
+     */
+    public static double radiationShielding(ItemStack stack) {
+        double shielding = 0.0D;
+        for (ModifierEntry entry : of(stack)) {
+            Modifier modifier = get(entry.id());
+            if (modifier != null) {
+                shielding += modifier.radiationShielding(entry.level());
+            }
+        }
+        return Math.min(1.0D, shielding);
+    }
+
     private static final Map<ResourceLocation, Modifier> REGISTRY = Map.ofEntries(
             Map.entry(id("fire_protection"), FIRE_PROTECTION),
             Map.entry(id("blast_protection"), BLAST_PROTECTION),
@@ -1764,7 +1835,8 @@ public final class ForgeweaveModifiers {
             // not -- the behavior class names no type from that mod, and an id registered with
             // nothing to hold reads the same as any modifier whose reagent a pack has removed.
             Map.entry(ApotheosisSockets.SOCKETED_ID, ApotheosisSockets.SOCKETED),
-            Map.entry(SURGEBOUND_ID, SURGEBOUND));
+            Map.entry(SURGEBOUND_ID, SURGEBOUND),
+            Map.entry(RAYWARD_ID, RAYWARD));
 
     /**
      * docs/SCOPE.md's "8 combat modifiers" (M3 acceptance test 4): the #162/#163 batches' seven
@@ -2007,7 +2079,7 @@ public final class ForgeweaveModifiers {
      */
     public static Set<ResourceLocation> extraInfoIds() {
         return Set.of(HASTE_ID, SMITE_ID, BANE_ID, FIERY_ID, NECROTIC_ID, REINFORCED_ID, SHULKING_ID,
-                MENDING_MOSS_ID, BLASTING_ID, SURGEBOUND_ID);
+                MENDING_MOSS_ID, BLASTING_ID, SURGEBOUND_ID, RAYWARD_ID);
     }
 
     /**
@@ -2082,6 +2154,11 @@ public final class ForgeweaveModifiers {
             return List.of(Component.translatable(key,
                     StationText.formatPercent(surgeboundCapacityFraction(level)),
                     StationText.formatPercent(surgeboundSpeedFraction(level))));
+        }
+        if (RAYWARD_ID.equals(id)) {
+            // Issue #994: how much radiation this level's lining blocks.
+            return List.of(Component.translatable(key,
+                    StationText.formatPercent((float) raywardShielding(level))));
         }
         if (ApotheosisSockets.SOCKETED_ID.equals(id)) {
             // #969: one line per socket, naming the gem in it. Not in extraInfoIds() because these
@@ -2192,7 +2269,9 @@ public final class ForgeweaveModifiers {
             // #969: no upstream class and no clone row; Apotheosis' own gem-socket purple.
             Map.entry(ApotheosisSockets.SOCKETED_ID, TextColor.fromRgb(0xAA5EE0)),
             // Issue #996: Powah's own energized-teal, no upstream class to take a colour from.
-            Map.entry(SURGEBOUND_ID, TextColor.fromRgb(0x2FE6B8)));
+            Map.entry(SURGEBOUND_ID, TextColor.fromRgb(0x2FE6B8)),
+            // Issue #994: lead's own dull blue-grey, the metal the modifier is lined with.
+            Map.entry(RAYWARD_ID, TextColor.fromRgb(0x7B8B9E)));
 
     /**
      * The tool's stats with its modifiers applied, or {@code null} if it has no stat block at all.

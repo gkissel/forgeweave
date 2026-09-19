@@ -212,6 +212,75 @@ def enderio_sag_milling_recipes() -> int:
     return count
 
 
+# Issue #994 (M8-10, D-M8-15): Mekanism's own ore chains for the eleven Track B ores. The chemicals
+# are Mekanism's own, read off its shipped rows (data/mekanism/recipe/processing/lead/*) rather than
+# retyped from the wiki, and so are the multipliers: 2x enriching, 3x purifying, 4x injecting, then
+# the shard -> clump -> dirty dust -> dust walk back down at 1:1.
+#
+# No 5x chain. That one starts at the Chemical Dissolution Chamber, which turns the ore into a
+# *slurry* and washes and crystallizes it -- a chemical form of a Forgeweave metal, which D-M8-6
+# names as a non-goal ("no liquid or gas forms of Forgeweave materials"). So the chains stop at the
+# four the issue names, and no crystal form is registered. See MaterialForm.ORE_CHAIN.
+MEKANISM_OXYGEN = "mekanism:oxygen"
+MEKANISM_HYDROGEN_CHLORIDE = "mekanism:hydrogen_chloride"
+
+
+def mekanism_ore_chain_recipes() -> int:
+    """Six rows per ore: the three chain heads, and the three steps back down to a dust."""
+    count = 0
+    for ore_id in TRACK_B_ORES:
+        for name, recipe in mekanism_chain_rows(ore_id):
+            recipe["neoforge:conditions"] = conditions("mekanism", "mekanismModules")
+            write_json(RECIPE_DIR / "mekanism" / ore_id / f"{name}.json", recipe)
+            count += 1
+    return count
+
+
+def mekanism_chain_rows(ore_id: str) -> list:
+    ore = {"count": 1, "tag": f"c:ores/{ore_id}"}
+    return [
+        ("dust_from_ore", enriching(ore, form_output(ore_id, "dust", 2))),
+        ("clump_from_ore", purifying(ore, MEKANISM_OXYGEN, form_output(ore_id, "clump", 3))),
+        ("shard_from_ore", injecting(ore, MEKANISM_HYDROGEN_CHLORIDE, form_output(ore_id, "shard", 4))),
+        ("clump_from_shard", purifying({"count": 1, "tag": f"c:shards/{ore_id}"}, MEKANISM_OXYGEN,
+                                       form_output(ore_id, "clump", 1))),
+        ("dirty_dust_from_clump", crushing({"count": 1, "tag": f"c:clumps/{ore_id}"},
+                                           form_output(ore_id, "dirty_dust", 1))),
+        ("dust_from_dirty_dust", enriching({"count": 1, "tag": f"c:dirty_dusts/{ore_id}"},
+                                           form_output(ore_id, "dust", 1))),
+    ]
+
+
+def form_output(ore_id: str, form: str, count: int) -> dict:
+    return {"count": count, "id": f"forgeweave:{ore_id}_{form}"}
+
+
+def enriching(item_input: dict, output: dict) -> dict:
+    return {"type": "mekanism:enriching", "input": item_input, "output": output}
+
+
+def crushing(item_input: dict, output: dict) -> dict:
+    return {"type": "mekanism:crushing", "input": item_input, "output": output}
+
+
+def purifying(item_input: dict, chemical: str, output: dict) -> dict:
+    return chemical_recipe("mekanism:purifying", item_input, chemical, output)
+
+
+def injecting(item_input: dict, chemical: str, output: dict) -> dict:
+    return chemical_recipe("mekanism:injecting", item_input, chemical, output)
+
+
+def chemical_recipe(recipe_type: str, item_input: dict, chemical: str, output: dict) -> dict:
+    return {
+        "type": recipe_type,
+        "chemical_input": {"amount": 1, "chemical": chemical},
+        "item_input": item_input,
+        "output": output,
+        "per_tick_usage": True,
+    }
+
+
 def powah_heat_source_data_map() -> int:
     values = {}
     for fluid_id, temperature in POWAH_HEAT_SOURCES:
@@ -233,6 +302,7 @@ def main() -> None:
     total += ie_metal_press_recipes()
     total += enderio_alloy_smelting_recipes()
     total += enderio_sag_milling_recipes()
+    total += mekanism_ore_chain_recipes()
     print(f"wrote {total} recipe files")
     print(f"wrote {powah_heat_source_data_map()} Powah heat_source entries")
 

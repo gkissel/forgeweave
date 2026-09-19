@@ -14,6 +14,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import com.google.gson.JsonElement;
@@ -97,7 +98,12 @@ class MaterialFormsTest {
     void gemTypeMaterialsGetTheThreeDustsAndNoPlateFamily() {
         for (String id : List.of("brimspar", "fulmenite")) {
             MaterialForms.FormedMaterial material = material(id);
-            assertEquals(MaterialForm.DUSTS, material.forms(), id + " should get dusts only");
+            // #994: fulmenite is a Track B ore as well, so it also gets the three ore-chain forms;
+            // brimspar has no ore block on that roster and gets the dusts alone.
+            List<MaterialForm> expected = id.equals("fulmenite")
+                    ? Stream.concat(MaterialForm.DUSTS.stream(), MaterialForm.ORE_CHAIN.stream()).toList()
+                    : MaterialForm.DUSTS;
+            assertEquals(expected, material.forms(), id + " should get dusts, and the ore chain only if it has an ore");
             for (MaterialForm form : MaterialForm.PLATE_FAMILY) {
                 assertNull(ForgeweaveItems.materialForm(id, form),
                         id + " must not register a " + form.name().toLowerCase(java.util.Locale.ROOT));
@@ -161,14 +167,17 @@ class MaterialFormsTest {
             }
         }
 
-        assertEquals(374, forms, "46 materials with an ingot x 8 forms, plus two gem materials x 3 dusts");
+        assertEquals(407, forms, "46 materials with an ingot x 8 forms, plus two gem materials x 3 dusts, "
+                + "plus #994's 11 Track B ores x 3 ore-chain forms");
         assertTrue(problems.isEmpty(), "material forms missing their wiring:\n" + String.join("\n", problems));
     }
 
     @Test
     void everyMaterialFormIsInItsConventionTagAndTheFamilyParentNamesIt() throws IOException {
         List<String> problems = new ArrayList<>();
-        for (MaterialForm form : MaterialForm.ALL) {
+        // values(), not ALL: #994's three ore-chain forms need the same c: treatment, and a form
+        // added to the enum without a tag should fail here rather than ship untagged.
+        for (MaterialForm form : MaterialForm.values()) {
             Set<String> parent = tagValues(ITEM_TAG_DIR + "/" + form.tagFamily() + ".json");
             for (MaterialForms.FormedMaterial material : MaterialForms.ALL) {
                 if (!material.forms().contains(form)) {

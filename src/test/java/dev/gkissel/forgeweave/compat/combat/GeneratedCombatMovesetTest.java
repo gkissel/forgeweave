@@ -63,6 +63,12 @@ class GeneratedCombatMovesetTest {
     /** Deliberately excluded: neither is ever swung in melee (see the generator script's own javadoc). */
     private static final Set<String> EXPECTED_AMMO_IDS = Set.of("shuriken", "arrow");
 
+    /**
+     * Vanilla parity (maintainer decision, 2026-09-18): Epic Fight ships no capability for vanilla's
+     * mace, the war mace delegates to that item, so it must have no Epic Fight weapons file either.
+     */
+    private static final Set<String> NO_EPIC_FIGHT_FILE = Set.of("warmace");
+
     @BeforeAll
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
@@ -130,6 +136,10 @@ class GeneratedCombatMovesetTest {
             assertTrue(BC_PRESETS.contains(bcPreset), id + ": " + bcPreset + " is not a confirmed Better Combat preset");
 
             Path efFile = EF_WEAPON_DIR.resolve(id + ".json");
+            if (NO_EPIC_FIGHT_FILE.contains(id)) {
+                assertFalse(Files.isRegularFile(efFile), id + ": must fight like vanilla's mace under Epic Fight, with no capability file");
+                continue;
+            }
             assertTrue(Files.isRegularFile(efFile), "missing Epic Fight capabilities/weapons file for " + id);
             JsonObject ef = parse(efFile);
             assertTrue(ef.has("type"), id + ": capabilities/weapons file has no \"type\"");
@@ -171,7 +181,9 @@ class GeneratedCombatMovesetTest {
 
         // No orphan file for an id the registry doesn't know (a removed tool, a typo'd filename).
         assertEquals(weaponIds, idsInDir(BC_DIR), "weapon_attributes directory has files with no matching registered tool");
-        assertEquals(weaponIds, idsInDir(EF_WEAPON_DIR), "capabilities/weapons directory has files with no matching registered tool");
+        Set<String> epicFightIds = new java.util.TreeSet<>(weaponIds);
+        epicFightIds.removeAll(NO_EPIC_FIGHT_FILE);
+        assertEquals(epicFightIds, idsInDir(EF_WEAPON_DIR), "capabilities/weapons directory has files with no matching registered tool");
         assertEquals(armorIds, idsInDir(EF_ARMOR_DIR), "capabilities/armors directory has files with no matching registered armor piece");
     }
 }

@@ -10,6 +10,7 @@ import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 
+import dev.gkissel.forgeweave.compat.mekanism.modules.MekanismGearModules; // #994
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 
 /**
@@ -52,6 +53,19 @@ public final class CreativeFlightHandler {
         return ForgeweaveModifiers.grantsCreativeFlight(player.getItemBySlot(EquipmentSlot.CHEST));
     }
 
+    /**
+     * Issue #994: a powered Mekanism gravitational modulating unit on an unbroken Forgeweave
+     * chestplate, which is all Mekanism's own unit ever asks for -- it never looks at the other three
+     * slots. A second, independent grant beside {@link #wearsFullCreativeFlightSet}: installing the
+     * module never costs a player the set rule they already met, and meeting the set rule never makes
+     * the module's condition stricter. False on every install without Mekanism.
+     */
+    private static boolean wearsGravityModule(Player player) {
+        ItemStack chest = player.getItemBySlot(EquipmentSlot.CHEST);
+        return chest.getItem() instanceof ArmorPieceItem && !ToolItem.isBroken(chest)
+                && MekanismGearModules.grantsCreativeFlight(chest);
+    }
+
     public static void onPlayerTickPost(PlayerTickEvent.Post event) {
         Player player = event.getEntity();
         if (player.isCreative() || player.isSpectator()) {
@@ -59,7 +73,7 @@ public final class CreativeFlightHandler {
             GRANTED.remove(player);
             return;
         }
-        boolean eligible = wearsFullCreativeFlightSet(player);
+        boolean eligible = wearsFullCreativeFlightSet(player) || wearsGravityModule(player);
         boolean granted = GRANTED.contains(player);
         if (eligible && !granted) {
             GRANTED.add(player);

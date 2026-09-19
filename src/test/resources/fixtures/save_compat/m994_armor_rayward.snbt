@@ -1,0 +1,69 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:armor_stats": {
+                armor: 7.0f,
+                durability: 240,
+                knockback_resistance: 0.0f,
+                toughness: 0.0f
+            },
+            "forgeweave:enchantability": 14,
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:rayward",
+                    level: 4
+                }
+            ],
+            "forgeweave:tool_materials": {
+                head: "forgeweave:iron",
+                parts: [
+                    "forgeweave:iron",
+                    "forgeweave:iron",
+                    "forgeweave:iron"
+                ]
+            },
+            "forgeweave:traits": [
+                "forgeweave:projectile_protection",
+                "forgeweave:magnetic"
+            ],
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 240
+        },
+        id: "forgeweave:heavy_chestplate"
+    },
+    nbt: {
+        components: {
+            "forgeweave:armor_stats": {
+                armor: 7.0f,
+                durability: 240,
+                knockback_resistance: 0.0f,
+                toughness: 0.0f
+            },
+            "forgeweave:enchantability": 14,
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:rayward",
+                    level: 4
+                }
+            ],
+            "forgeweave:tool_materials": {
+                head: "forgeweave:iron",
+                parts: [
+                    "forgeweave:iron",
+                    "forgeweave:iron",
+                    "forgeweave:iron"
+                ]
+            },
+            "forgeweave:traits": [
+                "forgeweave:projectile_protection",
+                "forgeweave:magnetic"
+            ],
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 240
+        },
+        count: 1,
+        id: "forgeweave:heavy_chestplate"
+    },
+    what: "#994 (M8-10): an iron heavy chestplate carrying rayward at level IV, the fully shielded rung. Rayward stores nothing but its id and level, like every other modifier (ADR-0004 item 2), so the shielding percentage itself is recomputed from config on every read and retuning radiationShieldingPerLevel later cannot desync this fixture. The piece is plain iron on purpose: rayward is a Forgeweave modifier that any armour can take, with no atomic_matter_alloy part and nothing from Mekanism stored on it."
+}

@@ -11,21 +11,32 @@ import it.unimi.dsi.fastutil.objects.Reference2BooleanOpenHashMap;
 import mekanism.api.gear.ICustomModule;
 import mekanism.api.gear.IModule;
 import mekanism.api.gear.IModuleContainer;
+import mekanism.common.content.gear.mekatool.ModuleAttackAmplificationUnit;
 import mekanism.common.content.gear.mekatool.ModuleBlastingUnit;
 import mekanism.common.content.gear.mekatool.ModuleExcavationEscalationUnit;
+import mekanism.common.content.gear.mekatool.ModuleTeleportationUnit;
 import mekanism.common.content.gear.mekatool.ModuleVeinMiningUnit;
 import mekanism.common.registries.MekanismModules;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
+import net.minecraft.world.phys.Vec3;
 
 import dev.gkissel.forgeweave.compat.mekanism.ForgeweaveMekanismCompat;
+import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.trait.EnergyBuffer;
 
 /**
@@ -227,10 +238,16 @@ public final class MekanismModuleEffects {
      * puts the shielding on the metal, and phase 2's partial modifier is what covers ordinary armour.
      */
     public static double radiationShielding(ItemStack stack) {
-        if (!MekanismGearModules.modulesEnabled() || !ForgeweaveMekanismCompat.isContainerStack(stack)) {
-            return 0.0D;
+        boolean plated = MekanismGearModules.modulesEnabled()
+                && ForgeweaveMekanismCompat.isContainerStack(stack);
+        if (plated) {
+            return 1.0D;
         }
-        return 1.0D;
+        // #994: the rayward modifier's own contribution, the answer for armour a player can build
+        // long before the metal. Outside the mekanismModules gate deliberately: that toggle covers
+        // the module container and the ore chains, and rayward is a Forgeweave modifier that rides
+        // the modifiers content toggle like every other one. See ForgeweaveModifiers#RAYWARD.
+        return ForgeweaveModifiers.radiationShielding(stack);
     }
 
     /**
@@ -277,6 +294,129 @@ public final class MekanismModuleEffects {
                 ? 0L
                 : module.getEnergyContainer(stack).getMaxEnergy();
         return (int) Math.min(capacity, Integer.MAX_VALUE);
+    }
+
+    // ------------------------------------------------------------------ phase 2 (issue #994, M8-10)
+
+    /**
+     * Mekanism's own {@code ICustomModule#onItemUse}, run from Forgeweave's {@code ToolItem#useOn}:
+     * the farming unit's till, flatten and strip, and the shearing unit's beehive and pumpkin. The
+     * same delegation shape phase 1 gave {@link #tickModules} -- the interaction site is Forgeweave's,
+     * the behaviour behind it is the module's own, so a Mekanism update that retunes a farming radius
+     * lands here with no change.
+     *
+     * <p>Stops at the first module that consumes the click, the way Mekanism's own tool does.
+     */
+    public static InteractionResult useOnBlock(ItemStack stack, UseOnContext context) {
+        IModuleContainer container = MekanismModuleContainer.containerFor(stack);
+        if (container == null) {
+            return InteractionResult.PASS;
+        }
+        for (IModule<?> module : container.modules()) {
+            if (!module.isEnabled()) {
+                continue;
+            }
+            InteractionResult result = onItemUse(module, context);
+            if (result != InteractionResult.PASS) {
+                return result;
+            }
+        }
+        return InteractionResult.PASS;
+    }
+
+    private static <MODULE extends ICustomModule<MODULE>> InteractionResult onItemUse(IModule<MODULE> module,
+            UseOnContext context) {
+        return module.getCustomInstance().onItemUse(module, context);
+    }
+
+    /**
+     * Mekanism's own {@code ICustomModule#onInteract}, run from
+     * {@code ToolItem#interactLivingEntity}: the shearing unit's shear. Same delegation and same
+     * first-one-wins order as {@link #useOnBlock}.
+     */
+    public static InteractionResult interactEntity(ItemStack stack, Player player, LivingEntity target,
+            InteractionHand hand) {
+        IModuleContainer container = MekanismModuleContainer.containerFor(stack);
+        if (container == null) {
+            return InteractionResult.PASS;
+        }
+        for (IModule<?> module : container.modules()) {
+            if (!module.isEnabled()) {
+                continue;
+            }
+            InteractionResult result = onInteract(module, player, target, hand, container, stack);
+            if (result != InteractionResult.PASS) {
+                return result;
+            }
+        }
+        return InteractionResult.PASS;
+    }
+
+    private static <MODULE extends ICustomModule<MODULE>> InteractionResult onInteract(IModule<MODULE> module,
+            Player player, LivingEntity target, InteractionHand hand, IModuleContainer container,
+            ItemStack stack) {
+        return module.getCustomInstance().onInteract(module, player, target, hand, container, stack);
+    }
+
+    /**
+     * The teleportation unit's jump. Mekanism puts this one in its own tool's {@code use} rather than
+     * behind an {@code ICustomModule} hook, so unlike farming and shearing it is replicated here
+     * instead of delegated: ray-trace the player's own look vector out to
+     * {@link MekanismGearModules#teleportMaxDistance()}, land them on top of whatever it hits, and
+     * charge the buffer. {@code requiresBlockTarget()} is the module's own setting for whether a jump
+     * into open air is allowed at all.
+     *
+     * <p>Server side only, and never through a block: the destination is the face the ray hit, which
+     * is always the near side of a solid block or a spot in open air. False when anything is missing
+     * -- no module, no power, nothing in range -- and the tool's own right-click is then untouched.
+     */
+    public static boolean teleport(ItemStack stack, Player player) {
+        IModuleContainer container = MekanismModuleContainer.containerFor(stack);
+        int cost = MekanismGearModules.energyPerTeleport();
+        if (container == null || player.level().isClientSide() || EnergyBuffer.stored(stack) < cost) {
+            return false;
+        }
+        IModule<ModuleTeleportationUnit> module = container.getIfEnabled(MekanismModules.TELEPORTATION_UNIT);
+        if (module == null) {
+            return false;
+        }
+        int range = MekanismGearModules.teleportMaxDistance();
+        Vec3 eye = player.getEyePosition();
+        Vec3 reach = eye.add(player.getLookAngle().scale(range));
+        BlockHitResult hit = player.level().clip(new ClipContext(eye, reach, ClipContext.Block.COLLIDER,
+                ClipContext.Fluid.NONE, player));
+        Vec3 destination;
+        if (hit.getType() == HitResult.Type.BLOCK) {
+            BlockPos above = hit.getBlockPos().above();
+            destination = new Vec3(above.getX() + 0.5D, above.getY(), above.getZ() + 0.5D);
+        } else if (module.getCustomInstance().requiresBlockTarget()) {
+            return false;
+        } else {
+            destination = reach;
+        }
+        EnergyBuffer.extract(stack, cost, false);
+        player.teleportTo(destination.x, destination.y, destination.z);
+        player.resetFallDistance();
+        player.level().playSound(null, destination.x, destination.y, destination.z,
+                SoundEvents.ENDERMAN_TELEPORT, player.getSoundSource(), 1.0F, 1.0F);
+        return true;
+    }
+
+    /**
+     * What an attack amplification unit adds to the tool's attack damage. Added on top of Forgeweave's
+     * own number and after its cutoff curve, the same call issue #956 made for a Draconic damage
+     * module -- the curve exists to bound Forgeweave's own modifier stacking, and running a module's
+     * points through it would quietly eat most of them. 0 with no module or a buffer too empty to
+     * swing one.
+     */
+    public static float attackDamageBonus(ItemStack stack) {
+        IModuleContainer container = MekanismModuleContainer.containerFor(stack);
+        if (container == null || EnergyBuffer.stored(stack) < MekanismGearModules.energyPerBlock()) {
+            return 0.0F;
+        }
+        IModule<ModuleAttackAmplificationUnit> module =
+                container.getIfEnabled(MekanismModules.ATTACK_AMPLIFICATION_UNIT);
+        return module == null ? 0.0F : module.getCustomInstance().getDamage();
     }
 
     private MekanismModuleEffects() {}
