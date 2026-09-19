@@ -10,6 +10,7 @@ import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
@@ -262,6 +263,18 @@ public class ModifierWorktableScreen extends StationScreen<ModifierWorktableMenu
     @Override
     protected void renderTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
         super.renderTooltip(graphics, mouseX, mouseY);
+        // The rows StationText builds carry SHOW_TEXT hover events (issue #376), so both panels are
+        // asked which style sits under the cursor and vanilla renders whatever it carries.
+        Style hovered = InfoPanel.hoveredStyle(font, panelX(), panelY(), InfoPanel.WIDTH, InfoPanel.HEIGHT,
+                toolCaption != null, toolLines, toolScroll, mouseX, mouseY);
+        if (hovered == null) {
+            hovered = InfoPanel.hoveredStyle(font, panelX(), modifierPanelY(), InfoPanel.WIDTH, InfoPanel.HEIGHT,
+                    modifierCaption != null, modifierLines, modifierScroll, mouseX, mouseY);
+        }
+        if (hovered != null) {
+            graphics.renderComponentHoverEffect(font, hovered, mouseX, mouseY);
+            return;
+        }
         int index = buttonAt(mouseX, mouseY);
         if (index >= 0) {
             List<ModifierEntry> options = menu.options();
