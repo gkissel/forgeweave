@@ -30,6 +30,10 @@ import dev.gkissel.forgeweave.trackb.TrackBOre;
  *
  * <p>Track A materials (other mods' metals, {@code ForgeweaveFluids#compatMetalFluid}) are
  * deliberately absent: D-M8-6 leaves their item forms to the mods that own them.
+ *
+ * <p>Issue #994 (M8-10) gives the eleven Track B ores {@link MaterialForm#ORE_CHAIN} on top of
+ * whatever they already had: the clump, dirty dust and shard the Mekanism ore chains pass an ore
+ * through. Nothing else gets them, because nothing else has an ore block for a chain to start from.
  */
 public final class MaterialForms {
 
@@ -73,8 +77,14 @@ public final class MaterialForms {
         List<FormedMaterial> materials = new ArrayList<>();
         for (TrackBOre ore : TrackBOre.ALL) {
             // #929 -- a crystal-dropping ore is gem-type for D-M8-6's purposes: dusts only.
-            materials.add(new FormedMaterial(ore.id(), ore.displayName(),
-                    ore.dropsCrystal() ? MaterialForm.DUSTS : MaterialForm.ALL));
+            List<MaterialForm> base = ore.dropsCrystal() ? MaterialForm.DUSTS : MaterialForm.ALL;
+            // #994 -- plus the three Mekanism ore-chain intermediates, which every Track B ore gets
+            // because every one of them has an ore block for the chains to start from, fulmenite
+            // included (its block is still mined and still crushed; dropsCrystal only changes what
+            // falls out of it).
+            List<MaterialForm> forms = new ArrayList<>(base);
+            forms.addAll(MaterialForm.ORE_CHAIN);
+            materials.add(new FormedMaterial(ore.id(), ore.displayName(), List.copyOf(forms)));
         }
         for (TrackBAlloy alloy : TrackBAlloy.ALL) {
             materials.add(new FormedMaterial(alloy.id(), alloy.displayName(), MaterialForm.ALL));

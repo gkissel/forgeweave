@@ -1,0 +1,14 @@
+{
+  "input": {
+    "item": "iceandfire:dragonbone"
+  },
+  "fluid": "forgeweave:molten_dragon_bone",
+  "amount": 144,
+  "temperature": 1200,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "iceandfire:dragonbone"
+    }
+  ]
+}

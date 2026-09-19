@@ -276,6 +276,11 @@ public final class ScreenshotHarness {
             // #408: the other end of the melt grid's sizing -- a smeltery with more rows than the
             // grid can show, so the capture is the one that proves the cap and the slider.
             new HarnessScreen("smeltery_large", ForgeweaveBlocks.STANDARD_CORE, ScreenshotHarness::buildLargeSmeltery),
+            // Issue #1049 (designer-brief section 5): the energized tank's screen had no harness
+            // frame at all, so reviewing its one hand-drawn widget (the energy bar) meant building a
+            // tank in game. A single block like every M1 station -- EnergizedTankBlockEntity
+            // implements StationMenuHost the same way -- so no prepare/afterOpen step is needed.
+            new HarnessScreen("energized_tank", ForgeweaveBlocks.ENERGIZED_TANK),
             // #1057: the Modifier Worktable mid-removal -- a two-modifier pickaxe and a wet sponge
             // loaded, the first modifier picked. That is the one state where every part of the screen
             // is doing something at once: the button grid with a selection on it, the result slot

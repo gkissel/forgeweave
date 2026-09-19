@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:raw_materials/ironwood"
+  },
+  "fluid": "forgeweave:molten_ironwood",
+  "amount": 144,
+  "temperature": 1200,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "twilightforest:ironwood_ingot"
+    }
+  ]
+}
