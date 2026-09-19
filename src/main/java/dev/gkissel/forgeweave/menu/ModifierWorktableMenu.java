@@ -11,10 +11,12 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.neoforge.items.IItemHandler;
@@ -59,6 +61,19 @@ public class ModifierWorktableMenu extends StationMenu {
     private static final int INPUT_PITCH = 22;
     private static final int RESULT_X = 125;
     private static final int RESULT_Y = 42;
+    /**
+     * Upstream {@code ModifierWorktableContainerMenu} adds the player's armor and offhand slots
+     * "for convenience": the table works on armor, and reaching a worn piece otherwise means closing
+     * the screen. The panel art has their wells baked in, so leaving them out leaves five empty
+     * sockets on the screen. Coordinates are upstream's own.
+     */
+    private static final int ARMOR_X = 152;
+    private static final int ARMOR_Y = 16;
+    private static final int ARMOR_PITCH = 18;
+    private static final int OFFHAND_X = 132;
+    private static final int OFFHAND_Y = 70;
+    /** The four armor slots plus the offhand, all of them last so no index range below shifts. */
+    private static final int GEAR_SLOTS = 5;
 
     /** The side panel sits on the station's right; the button grid already owns the panel's left. */
     public static final int SIDE_PANEL_X = SideInventorySlots.rightSlotX(PANEL_WIDTH);
@@ -150,6 +165,25 @@ public class ModifierWorktableMenu extends StationMenu {
         for (int col = 0; col < 9; col++) {
             addSlot(new Slot(playerInventory, col, 8 + col * 18, HOTBAR_Y));
         }
+        // Added after the player inventory on purpose: every slot range in this class counts from
+        // the station's own slots forward, so hanging these off the end leaves all of them alone and
+        // keeps a shift-click from ever landing a stack in the player's armor.
+        for (ArmorItem.Type type : ArmorItem.Type.values()) {
+            EquipmentSlot equipment = type.getSlot();
+            addSlot(new Slot(playerInventory, equipment.getIndex(Inventory.INVENTORY_SIZE),
+                    ARMOR_X, ARMOR_Y + type.ordinal() * ARMOR_PITCH) {
+                @Override
+                public int getMaxStackSize() {
+                    return 1;
+                }
+
+                @Override
+                public boolean mayPlace(ItemStack stack) {
+                    return playerInventory.player.getEquipmentSlotForItem(stack) == equipment;
+                }
+            });
+        }
+        addSlot(new Slot(playerInventory, Inventory.SLOT_OFFHAND, OFFHAND_X, OFFHAND_Y));
     }
 
     public int sideInventoryLiveSlots() {
@@ -231,6 +265,11 @@ public class ModifierWorktableMenu extends StationMenu {
 
     private int sideInventoryEnd() {
         return CONTAINER_SLOTS + 1 + sideInventorySlotCount;
+    }
+
+    /** One past the player's own 36 inventory slots -- the gear slots after it are never a target. */
+    public int playerInventoryEnd() {
+        return slots.size() - GEAR_SLOTS;
     }
 
     @Override

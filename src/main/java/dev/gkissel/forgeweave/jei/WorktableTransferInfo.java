@@ -53,7 +53,7 @@ final class WorktableTransferInfo implements IRecipeTransferInfo<ModifierWorktab
     @Override
     public List<Slot> getInventorySlots(ModifierWorktableMenu container, WorktableDisplay recipe) {
         List<Slot> slots = new ArrayList<>();
-        for (int i = ModifierWorktableMenu.RESULT_SLOT + 1; i < container.slots.size(); i++) {
+        for (int i = ModifierWorktableMenu.RESULT_SLOT + 1; i < container.playerInventoryEnd(); i++) {
             slots.add(container.getSlot(i));
         }
         return slots;
