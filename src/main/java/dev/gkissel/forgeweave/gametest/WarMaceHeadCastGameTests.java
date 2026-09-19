@@ -92,9 +92,13 @@ public class WarMaceHeadCastGameTests {
         helper.succeed();
     }
 
-    /** The one route left: gold over a Heavy Core makes the cast, and the core is the price of it. */
+    /**
+     * The one route left: gold over a Heavy Core makes the cast. The core comes back (maintainer
+     * decision, 2026-09-18): the recipe does not consume it, so upstream's switchOutputs moves it to the
+     * output slot while the fresh cast takes the input slot.
+     */
     @GameTest(template = "empty", timeoutTicks = 400)
-    public static void pouringGoldOverAHeavyCoreCreatesTheCastAndConsumesTheCore(GameTestHelper helper) {
+    public static void pouringGoldOverAHeavyCoreCreatesTheCastAndReturnsTheCore(GameTestHelper helper) {
         CastingBlockEntity table = rig(helper, ForgeweaveFluids.GOLD.still().get());
         insert(helper, table, new ItemStack(Items.HEAVY_CORE));
         faucet(helper).activate();
@@ -102,7 +106,8 @@ public class WarMaceHeadCastGameTests {
         helper.succeedWhen(() -> {
             helper.assertTrue(table.input().is(ForgeweaveItems.CAST_WAR_MACE_HEAD.get()),
                     "expected the finished war mace head cast in the input slot, found " + table.input());
-            helper.assertTrue(table.output().isEmpty(), "the Heavy Core is consumed, so nothing lands in the output slot");
+            helper.assertTrue(table.output().is(Items.HEAVY_CORE),
+                    "expected the Heavy Core handed back in the output slot, found " + table.output());
             helper.assertTrue(table.tank().isEmpty(), "and the pour is spent");
         });
     }

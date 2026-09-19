@@ -28,7 +28,11 @@ public final class JeiScreenshotHarness {
             CastingTableCategory.TYPE, CastingBasinCategory.TYPE,
             ModifierApplicationCategory.TYPE, EmbossingCategory.TYPE,
             // #931
-            EntityMeltingCategory.TYPE);
+            EntityMeltingCategory.TYPE,
+            // Issue #1049 (designer-brief section 5/finding 7): the two Mekanism-era smeltery
+            // categories had no harness frame either; both TYPE fields are package-private, same
+            // package as this class, so no visibility change was needed to reach them.
+            SmelteryFuelCategory.TYPE, CoreTransformCategory.TYPE);
 
     private JeiScreenshotHarness() {}
 
