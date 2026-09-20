@@ -525,12 +525,18 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     private List<Component> componentLines(Tab tab) {
         List<Component> lines = new ArrayList<>(tab.slots().size());
         // #1081: on an armor tab the parts listed are the ones the plating already in the slot asks
-        // for, so "Chest Plating" replaces the family's placeholder the moment one goes in.
-        ToolAssemblyRecipes.Entry entry = tab.resolve(menu.getSlot(ToolStationMenu.HEAD_SLOT).getItem());
+        // for, so "Chest Plating" replaces the generic line the moment one goes in. Until then the
+        // plating line names no piece, because any of the four would do -- upstream's own
+        // pattern.tconstruct.plating, which its layout gives that shared slot.
+        ItemStack first = menu.getSlot(ToolStationMenu.HEAD_SLOT).getItem();
+        ToolAssemblyRecipes.Entry entry = tab.resolve(first);
         for (int i = 0; i < tab.slots().size(); i++) {
             Item part = entry.part(i);
             boolean satisfied = menu.getSlot(i).getItem().is(part);
-            Component name = Component.literal(" * ").append(new ItemStack(part).getHoverName());
+            Component partName = isFamily(tab) && i == ToolStationMenu.HEAD_SLOT && first.isEmpty()
+                    ? Component.translatable("gui.forgeweave.tool_station.plating")
+                    : new ItemStack(part).getHoverName();
+            Component name = Component.literal(" * ").append(partName);
             lines.add(satisfied ? name : name.copy().withStyle(ChatFormatting.RED));
         }
         return lines;

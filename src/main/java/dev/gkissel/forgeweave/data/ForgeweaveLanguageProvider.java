@@ -663,6 +663,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Set a plating in the upper slot and maille in the lower one. The plating decides which "
                         + "piece you get: a helmet plating builds a helmet, a chest plating a chestplate, and "
                         + "so on down. The plating sets every stat and the maille brings its material's traits.");
+        // What the components list calls the plating slot while it is empty and any of the four would
+        // do -- upstream's own pattern.tconstruct.plating, which its layout gives that shared slot.
+        add("gui.forgeweave.tool_station.plating", "Plating");
         add("gui.forgeweave.tool_station.heavy_armor", "Heavy armor");
         add("gui.forgeweave.tool_station.heavy_armor.description",
                 "The same plating and maille with a large plate behind them, which is what makes the piece "
