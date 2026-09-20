@@ -171,6 +171,32 @@ class TraitReachabilityTest {
     }
 
     /**
+     * A material may only name a trait id something implements. An id nothing implements is dropped
+     * by {@link ForgeweaveTraits#of} with a one-line warning in the server log, so the grant is
+     * silently inert and the station shows an untranslated key where the trait's name should be.
+     *
+     * <p>Issue #1092 found three: {@code seared_stone} named {@code searing} and
+     * {@code fire_protection} and {@code necrotic_bone} named {@code necrotic}, all three modifier
+     * ids rather than trait ids, copied over from the 1.20 clone's own material trait rows in #843
+     * without the matching {@code Trait}. They now exist.
+     */
+    @Test
+    void everyMaterialTraitIdResolvesToAnImplementation() throws IOException {
+        Set<ResourceLocation> implemented = allTraits().keySet();
+        List<String> unimplemented = new ArrayList<>();
+        for (MaterialFacts material : materials()) {
+            for (ResourceLocation id : material.grantedTraits().keySet()) {
+                if (!implemented.contains(id)) {
+                    unimplemented.add(material.name() + " grants " + id);
+                }
+            }
+        }
+        assertTrue(unimplemented.isEmpty(), "a material names a trait id nothing implements, so the grant does "
+                + "nothing and the station shows a raw lang key. Add the Trait, add a trait_definition, or drop "
+                + "the grant (issue #1092):\n  " + String.join("\n  ", unimplemented));
+    }
+
+    /**
      * The guard the issue asked for: every trait a shipped material names has a hook that can run on
      * at least one part kind that material actually builds.
      */
@@ -228,8 +254,9 @@ class TraitReachabilityTest {
         StringBuilder byMaterial = new StringBuilder("| Material | Builds | Trait | Granted on | Works |\n");
         byMaterial.append("| --- | --- | --- | --- | --- |\n");
         for (MaterialFacts material : materials()) {
-            String builds = (material.buildsTools() ? "tools" : "") + (material.buildsTools() && material.buildsArmor()
-                    ? " and armor" : material.buildsArmor() ? "armor" : "nothing");
+            String builds = material.buildsTools() && material.buildsArmor() ? "tools and armor"
+                    : material.buildsTools() ? "tools only"
+                    : material.buildsArmor() ? "armor only" : "nothing";
             for (Map.Entry<ResourceLocation, Set<Side>> granted : material.grantedTraits().entrySet()) {
                 Set<Side> reachable = EnumSet.noneOf(Side.class);
                 reachable.addAll(traitSides.getOrDefault(granted.getKey(), Set.of()));
