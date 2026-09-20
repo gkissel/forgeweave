@@ -2349,7 +2349,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.overgrowth.name", "Overgrowth");
         add("trait.forgeweave.overgrowth.description", "A 5% chance each second of regenerating one point of overslime.");
         add("trait.forgeweave.overlord.name", "Overlord");
-        add("trait.forgeweave.overlord.description", "Cuts the tool's durability by 15%.");
+        add("trait.forgeweave.overlord.description",
+                "Cuts the tool's durability by 15% and turns a tenth of what is left into overslime capacity.");
         add("trait.forgeweave.restore.name", "Restore");
         add("trait.forgeweave.restore.description",
                 "Has a 15% chance when hit to heal a portion of the damage taken, consuming durability.");

@@ -2740,7 +2740,7 @@
   "trait.forgeweave.overburdened.name": "Overburdened",
   "trait.forgeweave.overgrowth.description": "A 5% chance each second of regenerating one point of overslime.",
   "trait.forgeweave.overgrowth.name": "Overgrowth",
-  "trait.forgeweave.overlord.description": "Cuts the tool's durability by 15%.",
+  "trait.forgeweave.overlord.description": "Cuts the tool's durability by 15% and turns a tenth of what is left into overslime capacity.",
   "trait.forgeweave.overlord.name": "Overlord",
   "trait.forgeweave.overshield.description": "Consumes overslime to reduce all sources of damage.",
   "trait.forgeweave.overshield.name": "Overshield",

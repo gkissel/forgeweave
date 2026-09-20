@@ -210,6 +210,37 @@ public class M615MaterialGameTests {
         helper.succeed();
     }
 
+    /**
+     * Queen's slime -&gt; overlord, the other half (issue #1097): the tool also gets an overslime pool
+     * of a tenth of its durability, on top of the flat 50 its own overslime grant pays, and the
+     * pool is real -- durability loss is paid out of it first. The control is the same pickaxe
+     * without overlord: 50 capacity and no more.
+     */
+    @GameTest(template = "empty")
+    public static void overlordGrantsADurabilityScaledOverslimePool(GameTestHelper helper) {
+        ItemStack queensSlime = pickaxe(List.of(traitId("overlord"), traitId("overslime")), 1000, 6.0F, 2.0F);
+        ItemStack control = pickaxe(List.of(traitId("overslime")), 1000, 6.0F, 2.0F);
+
+        helper.assertTrue(ForgeweaveTraits.overslimeCapacity(queensSlime) == 150,
+                "50 flat plus a tenth of 1000 is 150, got " + ForgeweaveTraits.overslimeCapacity(queensSlime));
+        helper.assertTrue(ForgeweaveTraits.overslimeCapacity(control) == 50,
+                "without overlord the pool is the flat 50, got " + ForgeweaveTraits.overslimeCapacity(control));
+
+        // The extra capacity is spendable: overslime pays the wear before the tool does.
+        ForgeweaveTraits.setOverslime(queensSlime, 150);
+        helper.assertTrue(ForgeweaveTraits.overslime(queensSlime) == 150,
+                "the deeper pool fills past 50, got " + ForgeweaveTraits.overslime(queensSlime));
+        ForgeweaveTraits.setOverslime(control, 150);
+        helper.assertTrue(ForgeweaveTraits.overslime(control) == 50,
+                "the control clamps at 50, got " + ForgeweaveTraits.overslime(control));
+
+        queensSlime.hurtAndBreak(60, helper.makeMockPlayer(GameType.SURVIVAL), EquipmentSlot.MAINHAND);
+        helper.assertTrue(ForgeweaveTraits.overslime(queensSlime) == 90 && queensSlime.getDamageValue() == 0,
+                "60 wear comes off the pool: " + ForgeweaveTraits.overslime(queensSlime)
+                        + " left, damage " + queensSlime.getDamageValue());
+        helper.succeed();
+    }
+
     /** Necrotic bone -&gt; restore: a 15% chance on taking damage to heal 25% of it back, spending 1 durability. */
     @GameTest(template = "empty")
     public static void restoreHealsAPortionOfDamageTaken(GameTestHelper helper) {

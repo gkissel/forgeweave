@@ -2085,9 +2085,21 @@ public final class ForgeweaveTraits {
         return stack.getOrDefault(ForgeweaveDataComponents.OVERSLIME.get(), 0);
     }
 
-    /** {@code OverslimeModule#getCapacity}: {@link #OVERSLIME_CAPACITY} if the stack carries the trait, else 0. */
+    /**
+     * {@code OverslimeModule#getCapacity}: {@link #OVERSLIME_CAPACITY} if the stack carries
+     * {@link #OVERSLIME}, plus {@link #OVERLORD}'s durability-scaled share on top of it (issue
+     * #1097), else 0.
+     *
+     * <p>The two grants add, which is what upstream does: its {@code overslime.json} adds a flat 50
+     * to {@code OVERSLIME_STAT} and its {@code overlord.json} copies a share of durability into the
+     * same stat, and queen's slime carries both.
+     */
     public static int overslimeCapacity(ItemStack stack) {
-        return has(stack, OVERSLIME) ? OVERSLIME_CAPACITY : 0;
+        int capacity = has(stack, OVERSLIME) ? OVERSLIME_CAPACITY : 0;
+        if (has(stack, OVERLORD)) {
+            capacity += Math.max(0, Math.round(stack.getMaxDamage() * OVERLORD_OVERSLIME_FRACTION));
+        }
+        return capacity;
     }
 
     /** {@code PersistentDataCapacityBar#setAmount}: clamped to the capacity, removed at zero. */
@@ -2142,13 +2154,19 @@ public final class ForgeweaveTraits {
 
     /**
      * Queen's slime general trait (issue #843, closes #180). Upstream's {@code overlord.json} pairs
-     * a {@code stat_copy} (10% of durability into overslime capacity) with a {@code stat_boost}
-     * (-15% durability), both leveled. Forgeweave's material defaults are level 1 and there is no
-     * per-trait overslime-capacity-bonus hook ({@link Trait} only sums durability and energy this
-     * way, issue #830's precedent) -- adding one for this single user is not worth a new interface
-     * hook, so the capacity half folds into queen's slime's own {@link #OVERSLIME} grant (a flat
-     * {@link #OVERSLIME_CAPACITY} instead of a dynamic durability-scaled one) and only the durability
-     * trade survives as a distinct effect. Deviation flagged in the PR body.
+     * a {@code stat_copy} ({@code eachLevel(0.1)} of durability into {@code OVERSLIME_STAT}) with a
+     * {@code stat_boost} ({@code eachLevel(-0.15)} of durability), both leveled; a Forgeweave
+     * material default is level 1, so both halves land once.
+     *
+     * <p>Issue #1097 put the capacity half back. It needs no new {@link Trait} hook: overslime
+     * capacity is not a summed stat like durability or energy, it is read from the stack by
+     * {@link #overslimeCapacity}, so overlord is answered there the way {@link #OVERSLIME_FRIEND}
+     * and {@link #VINEWARDEN} are answered in {@link #overslimeArmorPenalty}. The pool is
+     * {@link #OVERLORD_OVERSLIME_FRACTION} of the assembled tool's durability, on top of whatever
+     * {@link #OVERSLIME} itself grants, and {@link #OVERSLIME} is still what spends it -- the same
+     * split upstream has, where {@code overlord.json} only copies the stat and the overslime
+     * modifier carries the {@code DurabilityShieldModule}. Queen's slime grants both, so its tools
+     * keep the pool they had and gain the durability-scaled part.
      */
     public static final Trait OVERLORD = new Trait() {
         @Override
@@ -2158,6 +2176,8 @@ public final class ForgeweaveTraits {
     };
 
     private static final float OVERLORD_DURABILITY_MULTIPLIER = 0.85F;
+    /** {@code overlord.json}'s {@code stat_copy} rate: a tenth of the tool's durability, per level. */
+    public static final float OVERLORD_OVERSLIME_FRACTION = 0.1F;
 
     /**
      * Necrotic bone plating/maille (issue #843, closes #180). Upstream's {@code RestoreLostHealthModule}
