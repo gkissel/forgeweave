@@ -23,7 +23,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:azure_silver_moonstep", "forgeweave:azure_silver_plunge"]
+    "general": ["forgeweave:azure_silver_plunge"],
+    "armor": ["forgeweave:azure_silver_moonstep"]
   },
   "crafting_items": [
     { "ingredient": { "tag": "c:ingots/azure_silver" }, "value": 144 },
