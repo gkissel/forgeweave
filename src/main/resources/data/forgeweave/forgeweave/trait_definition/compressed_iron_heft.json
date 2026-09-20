@@ -1,4 +1,4 @@
 {
-  "behavior": "forgeweave:damage_floor",
-  "minimum_hearts": 1.0
+  "behavior": "forgeweave:knockback_resistance",
+  "resistance": 0.1
 }

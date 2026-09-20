@@ -1,4 +1,6 @@
 {
-  "behavior": "forgeweave:damage_floor",
-  "minimum_hearts": 1.0
+  "behavior": "forgeweave:stacking_resistance",
+  "per_hit": 0.1,
+  "cap": 3,
+  "decay": 100
 }

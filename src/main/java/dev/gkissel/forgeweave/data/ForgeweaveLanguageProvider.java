@@ -2452,9 +2452,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // over an existing TraitBehaviors class echoing that tier's own identity in the source mod --
         // never a copy of its code. See trait_definition/ferricore_footing.json and siblings.
         add("trait.forgeweave.ferricore_footing.name", "Sure Footing");
-        add("trait.forgeweave.ferricore_footing.description", "Steps up a full block without jumping.");
+        add("trait.forgeweave.ferricore_footing.description", "Steps up a full block without jumping, while worn.");
         add("trait.forgeweave.blazegold_ember.name", "Blazegold Ember");
-        add("trait.forgeweave.blazegold_ember.description", "The wielder takes no damage from fire.");
+        add("trait.forgeweave.blazegold_ember.description", "The wearer takes no damage from fire.");
         add("trait.forgeweave.celestigem_charge.name", "Celestial Charge");
         add("trait.forgeweave.celestigem_charge.description", "Carries a Forge Energy buffer that is spent before durability.");
         add("trait.forgeweave.eclipsealloy_charge.name", "Eclipse Charge");
@@ -2462,23 +2462,23 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Carries a large Forge Energy buffer that is spent before durability.");
         add("trait.forgeweave.eclipsealloy_ward.name", "Eclipse Ward");
         add("trait.forgeweave.eclipsealloy_ward.description",
-                "Once per cooldown, a killing blow spends durability to save the wielder instead.");
+                "Once per cooldown, a killing blow spends the worn piece's durability to save the wearer instead.");
         // Issue #1059 (D-M8-25): Twilight Forest and Ice and Fire's fourteen material traits, each a
         // datapack trait_definition over an existing TraitBehaviors class echoing that material's own
         // identity in its source mod. See docs/research/twilight-forest-and-ice-and-fire.md for the
         // per-material reasoning.
         add("trait.forgeweave.ironwood_footing.name", "Ironwood Footing");
-        add("trait.forgeweave.ironwood_footing.description", "Steps up a full block without jumping.");
+        add("trait.forgeweave.ironwood_footing.description", "Steps up a full block without jumping, while worn.");
         add("trait.forgeweave.steeleaf_precision.name", "Steeleaf Precision");
         add("trait.forgeweave.steeleaf_precision.description", "Critical hits strike harder.");
         add("trait.forgeweave.knightmetal_breach.name", "Knightmetal Breach");
         add("trait.forgeweave.knightmetal_breach.description", "Deals bonus damage to armored targets.");
         add("trait.forgeweave.fiery_ember.name", "Fiery Ember");
-        add("trait.forgeweave.fiery_ember.description", "The wielder takes no damage from fire.");
+        add("trait.forgeweave.fiery_ember.description", "The wearer takes no damage from fire.");
         add("trait.forgeweave.naga_ward.name", "Naga Ward");
-        add("trait.forgeweave.naga_ward.description", "Never takes less than a floor amount of damage per hit.");
+        add("trait.forgeweave.naga_ward.description", "Scales harden as blows keep landing, easing off after a lull.");
         add("trait.forgeweave.arctic_insulation.name", "Arctic Insulation");
-        add("trait.forgeweave.arctic_insulation.description", "Builds resistance to repeated hits from the same source.");
+        add("trait.forgeweave.arctic_insulation.description", "Toughens against repeated blows, resetting after a lull.");
         add("trait.forgeweave.alpha_yeti_resilience.name", "Alpha Yeti Resilience");
         add("trait.forgeweave.alpha_yeti_resilience.description", "Grants a brief window of extra invulnerability after being hit.");
         add("trait.forgeweave.carminite_flicker.name", "Carminite Flicker");
@@ -2486,9 +2486,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.dragonbone_edge.name", "Dragonbone Edge");
         add("trait.forgeweave.dragonbone_edge.description", "Critical hits strike harder.");
         add("trait.forgeweave.dragonsteel_fire_ward.name", "Dragonsteel Fire Ward");
-        add("trait.forgeweave.dragonsteel_fire_ward.description", "The wielder takes no damage from fire.");
+        add("trait.forgeweave.dragonsteel_fire_ward.description", "The wearer takes no damage from fire.");
         add("trait.forgeweave.dragonsteel_ice_calm.name", "Dragonsteel Ice Calm");
-        add("trait.forgeweave.dragonsteel_ice_calm.description", "Builds resistance to repeated hits from the same source.");
+        add("trait.forgeweave.dragonsteel_ice_calm.description", "Toughens against repeated blows, resetting after a lull.");
         add("trait.forgeweave.dragonsteel_lightning_surge.name", "Dragonsteel Lightning Surge");
         add("trait.forgeweave.dragonsteel_lightning_surge.description", "Deals bonus damage on a fully charged swing.");
         // Issue #876's dedupe policy forbids one trait id claimed by more than one material, so each
@@ -2511,18 +2511,19 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // trait_definition over an existing TraitBehaviors class echoing that material's own
         // identity in the source mod -- never a copy of its code.
         add("trait.forgeweave.crimson_steel_temper.name", "Crimson Temper");
-        add("trait.forgeweave.crimson_steel_temper.description", "The wielder takes no damage from fire.");
+        add("trait.forgeweave.crimson_steel_temper.description", "The wearer takes no damage from fire.");
         add("trait.forgeweave.azure_silver_moonstep.name", "Moonstep");
-        add("trait.forgeweave.azure_silver_moonstep.description", "Jumps noticeably higher.");
+        add("trait.forgeweave.azure_silver_moonstep.description", "Jumps noticeably higher while worn.");
         add("trait.forgeweave.azure_electrum_swift.name", "Swift");
         add("trait.forgeweave.azure_electrum_swift.description", "Moves faster while worn.");
         add("trait.forgeweave.blaze_gold_cinder.name", "Cinder Brand");
-        add("trait.forgeweave.blaze_gold_cinder.description", "The wielder takes no damage from fire.");
+        add("trait.forgeweave.blaze_gold_cinder.description", "The wearer takes no damage from fire.");
         add("trait.forgeweave.tyrian_steel_ward.name", "Tyrian Ward");
         add("trait.forgeweave.tyrian_steel_ward.description",
-                "Once per cooldown, a killing blow spends durability to save the wielder instead.");
+                "Once per cooldown, a killing blow spends the worn piece's durability to save the wearer instead.");
         add("trait.forgeweave.compressed_iron_heft.name", "Compressed Heft");
-        add("trait.forgeweave.compressed_iron_heft.description", "Every hit deals at least a fixed amount of damage.");
+        add("trait.forgeweave.compressed_iron_heft.description", "Its weight keeps you planted: knockback moves you "
+                + "less while you hold it.");
         add("trait.forgeweave.deorum_temper.name", "Deorum Temper");
         add("trait.forgeweave.deorum_temper.description", "Toughens against repeated blows, resetting after a lull.");
         add("trait.forgeweave.zanite_growth.name", "Zanite Growth");
@@ -2532,7 +2533,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.ambrosium_glow.name", "Ambrosium Glow");
         add("trait.forgeweave.ambrosium_glow.description", "Being struck grants a short burst of regeneration.");
         add("trait.forgeweave.ignitium_blaze.name", "Ignitium Blaze");
-        add("trait.forgeweave.ignitium_blaze.description", "The wielder takes no damage from fire.");
+        add("trait.forgeweave.ignitium_blaze.description", "The wearer takes no damage from fire.");
         add("trait.forgeweave.cursium_blight.name", "Cursium Blight");
         add("trait.forgeweave.cursium_blight.description", "A struck target's healing is weakened for a short time.");
         // Issue #1069 (D-M8-26): the six empowered crystals' traits, each the plain crystal's own
@@ -2549,7 +2550,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.empowered_void_maw.name", "Empowered Maw");
         add("trait.forgeweave.empowered_void_maw.description", "A deeper void-forged edge.");
         add("trait.forgeweave.empowered_emeradic_bulwark.name", "Empowered Bulwark");
-        add("trait.forgeweave.empowered_emeradic_bulwark.description", "Never takes a hit below a fixed health floor.");
+        add("trait.forgeweave.empowered_emeradic_bulwark.description",
+                "A deeper crystal facet turns aside a blow's shove while you hold it.");
         add("trait.forgeweave.empowered_enori_radiance.name", "Empowered Radiance");
         add("trait.forgeweave.empowered_enori_radiance.description",
                 "A landed hit leaves the target glowing for longer.");
