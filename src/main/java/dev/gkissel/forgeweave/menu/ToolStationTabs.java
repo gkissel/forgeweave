@@ -74,6 +74,13 @@ import dev.gkissel.forgeweave.item.ToolItem;
  * selected tab doesn't use. Since issue #155 that count is per-tool on the build tabs too: three M3
  * weapons have no extra part, so their tabs list two positions where the M1 tools list three and the
  * repair tab lists six.
+ *
+ * <p>Since issue #1081 a tab is not always one tool either. The two armor tabs list four pieces each
+ * and the plating in the first slot is what picks one ({@link Tab#resolve}), which is how upstream
+ * 1.20 has always laid armor out: its
+ * {@code data/tconstruct/tinkering/station_layouts/plate_armor.json} is a single layout whose plating
+ * slot names all four platings and whose building recipe reads the piece off whichever went in. The
+ * eight pieces are still eight items with eight recipes; only the buttons collapsed.
  */
 public final class ToolStationTabs {
 
