@@ -36,7 +36,9 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.trait.Trait;
 import dev.gkissel.forgeweave.api.trait.TraitRegistry;
 import dev.gkissel.forgeweave.combat.ChainArc;
+import dev.gkissel.forgeweave.api.combat.CombatDefense;
 import dev.gkissel.forgeweave.api.combat.CombatSeam;
+import dev.gkissel.forgeweave.api.combat.DefendedBlow;
 import dev.gkissel.forgeweave.combat.ConditionalSeam;
 import dev.gkissel.forgeweave.combat.CritMultiplierBonus;
 import dev.gkissel.forgeweave.combat.DamageScalesWith;
@@ -46,6 +48,7 @@ import dev.gkissel.forgeweave.combat.FlatBonusDamage;
 import dev.gkissel.forgeweave.combat.HitCondition;
 import dev.gkissel.forgeweave.combat.Lifesteal;
 import dev.gkissel.forgeweave.combat.LightningOnHit;
+import dev.gkissel.forgeweave.combat.Protection;
 import dev.gkissel.forgeweave.combat.ReduceTargetHealing;
 import dev.gkissel.forgeweave.combat.ShortenInvulnerability;
 import dev.gkissel.forgeweave.combat.StripEffects;
@@ -132,6 +135,31 @@ public final class TraitBehaviors {
         public void afterBlockBreak(ItemStack stack, ServerLevel level, BlockState state, BlockPos pos,
                 LivingEntity breaker, boolean effective) {
             delegate.afterBlockBreak(stack, level, state, pos, breaker, effective);
+        }
+    }
+
+    /**
+     * {@code protection}: the datapack face of {@link Protection}, which until issue #1093 only six
+     * hardcoded traits could reach ({@code melee_protection} and its {@code *_protection} siblings).
+     * {@code damage_type} is a damage-type tag; leave it out for the clone's plain {@code protection},
+     * which covers every source vanilla's own Protection enchantment may touch. {@code amount} is the
+     * level-1 value, where {@code 1} blocks a twenty-fifth of the post-armor damage and the shipped
+     * traits pay 2.0 (projectile) to 2.5 (fire, blast).
+     *
+     * <p>Registered with {@code register}, not {@code seam}, for the reason the whole #831 armor
+     * batch is: a {@link ConditionalSeam} implements neither {@code onDefend} nor {@code incomingHit},
+     * so a gated defensive seam would silently never run.
+     */
+    public record ProtectionDefinition(Optional<TagKey<DamageType>> damageType, float amount, Protection delegate)
+            implements Trait {
+        static ProtectionDefinition of(Optional<TagKey<DamageType>> damageType, float amount) {
+            return new ProtectionDefinition(damageType, amount,
+                    damageType.map(tag -> Protection.against(tag, amount)).orElseGet(() -> Protection.of(amount)));
+        }
+
+        @Override
+        public void onDefend(CombatDefense defense, DefendedBlow blow) {
+            delegate.onDefend(defense, blow);
         }
     }
 
@@ -275,6 +303,10 @@ public final class TraitBehaviors {
                 enumCodec(StatScalesWithWear.Stat.class).fieldOf("stat").forGetter(StatScalesWithWear::stat),
                 Codec.FLOAT.fieldOf("coefficient").forGetter(StatScalesWithWear::coefficient))
                 .apply(instance, StatScalesWithWear::new)));
+        register("protection", RecordCodecBuilder.<ProtectionDefinition>mapCodec(instance -> instance.group(
+                DAMAGE_TYPE_TAG.optionalFieldOf("damage_type").forGetter(ProtectionDefinition::damageType),
+                ExtraCodecs.POSITIVE_FLOAT.fieldOf("amount").forGetter(ProtectionDefinition::amount))
+                .apply(instance, ProtectionDefinition::of)));
         register("damage_type_immunity", DAMAGE_TYPE_TAG.fieldOf("damage_type")
                 .xmap(DamageTypeImmunity::new, DamageTypeImmunity::damageType));
         register("vent_explosions", NON_NEGATIVE_FLOAT.fieldOf("knockback_factor")

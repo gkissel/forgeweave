@@ -122,8 +122,9 @@ class TraitReachabilityTest {
             Map.entry("autoSmelt", TOOL),
             // Depends on the seams it hands out; resolved through SEAM_HOOK_SIDES instead.
             Map.entry("combatSeams", Set.of()),
-            // ToolItem#getDefaultAttributeModifiers, main hand.
-            Map.entry("knockbackResistance", TOOL),
+            // ToolItem#getDefaultAttributeModifiers, main hand, and since #1093
+            // ForgeweaveTraits#armorAttributes pays a worn piece a quarter of the same value.
+            Map.entry("knockbackResistance", BOTH),
             // CombatSeams#armorPass walks held tools first (#729), then the four worn slots.
             Map.entry("onDefend", BOTH),
             Map.entry("armorAttributes", ARMOR),

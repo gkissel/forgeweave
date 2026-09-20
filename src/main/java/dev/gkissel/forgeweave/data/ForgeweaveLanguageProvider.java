@@ -2245,7 +2245,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.poisonous.name", "Poisonous");
         add("trait.forgeweave.poisonous.description", "Poisons enemies on hit.");
         add("trait.forgeweave.heavy.name", "Heavy");
-        add("trait.forgeweave.heavy.description", "Prevents knockback.");
+        add("trait.forgeweave.heavy.description", "Prevents knockback while held; a full worn set does the same.");
         add("trait.forgeweave.stiff.name", "Stiff");
         add("trait.forgeweave.stiff.description", "Blocking reduces the damage taken even more.");
         add("trait.forgeweave.sharp.name", "Sharp");
@@ -2533,7 +2533,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Once per cooldown, a killing blow spends the worn piece's durability to save the wearer instead.");
         add("trait.forgeweave.compressed_iron_heft.name", "Compressed Heft");
         add("trait.forgeweave.compressed_iron_heft.description", "Its weight keeps you planted: knockback moves you "
-                + "less while you hold it.");
+                + "less while you hold it, and a quarter as much again for every piece you wear.");
         add("trait.forgeweave.deorum_temper.name", "Deorum Temper");
         add("trait.forgeweave.deorum_temper.description", "Toughens against repeated blows, resetting after a lull.");
         add("trait.forgeweave.zanite_growth.name", "Zanite Growth");
@@ -2561,7 +2561,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.empowered_void_maw.description", "A deeper void-forged edge.");
         add("trait.forgeweave.empowered_emeradic_bulwark.name", "Empowered Bulwark");
         add("trait.forgeweave.empowered_emeradic_bulwark.description",
-                "A deeper crystal facet turns aside a blow's shove while you hold it.");
+                "A deeper crystal facet turns aside a blow's shove, held or worn.");
         add("trait.forgeweave.empowered_enori_radiance.name", "Empowered Radiance");
         add("trait.forgeweave.empowered_enori_radiance.description",
                 "A landed hit leaves the target glowing for longer.");
@@ -3087,7 +3087,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.radiant_edge.name", "Radiant Edge");
         add("trait.forgeweave.radiant_edge.description", "A fully-charged swing lands extra damage.");
         add("trait.forgeweave.verdant_ward.name", "Verdant Ward");
-        add("trait.forgeweave.verdant_ward.description", "A facet of crystal absorbs a blow's shove.");
+        add("trait.forgeweave.verdant_ward.description", "A facet of crystal absorbs a blow's shove, held or worn.");
         add("trait.forgeweave.luminous.name", "Luminous");
         add("trait.forgeweave.luminous.description", "A landed hit leaves the target glowing.");
         add("trait.forgeweave.stormglass.name", "Stormglass");
@@ -3111,7 +3111,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.corebound.name", "Corebound");
         add("trait.forgeweave.corebound.description", "Packs more mass into its durability pool.");
         add("trait.forgeweave.ballast.name", "Ballast");
-        add("trait.forgeweave.ballast.description", "Too heavy to be knocked far.");
+        add("trait.forgeweave.ballast.description", "Too heavy to be knocked far, held or worn.");
         add("trait.forgeweave.leadfoot.name", "Leadfoot");
         add("trait.forgeweave.leadfoot.description", "Dense enough to slow the wielder slightly.");
         add("trait.forgeweave.obsidian_heart.name", "Obsidian Heart");
@@ -3141,7 +3141,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.ashenbond.name", "Ashenbond");
         add("trait.forgeweave.ashenbond.description", "A slow daylight mend.");
         add("trait.forgeweave.prismward.name", "Prismward");
-        add("trait.forgeweave.prismward.description", "A crystalline ward softens a blow's shove.");
+        add("trait.forgeweave.prismward.description", "A crystalline ward softens a blow's shove, held or worn.");
         add("trait.forgeweave.shattermail.name", "Shattermail");
         add("trait.forgeweave.shattermail.description", "Bites a little deeper into armored targets.");
         add("trait.forgeweave.shieldbreaker.name", "Shieldbreaker");
@@ -3153,7 +3153,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.voidwoven.name", "Voidwoven");
         add("trait.forgeweave.voidwoven.description", "A dense dark-alloy edge.");
         add("trait.forgeweave.crystalline_ward.name", "Crystalline Ward");
-        add("trait.forgeweave.crystalline_ward.description", "An end-forged plate holds you steady against a blow's shove.");
+        add("trait.forgeweave.crystalline_ward.description",
+                "An end-forged plate holds you steady against a blow's shove, held or worn.");
         add("trait.forgeweave.quartzheart.name", "Quartzheart");
         add("trait.forgeweave.quartzheart.description", "Hits harder while the wielder is still healthy.");
         add("trait.forgeweave.batteredge.name", "Batteredge");
@@ -3169,13 +3170,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.smokehouse.name", "Smokehouse");
         add("trait.forgeweave.smokehouse.description", "A very slow smoked-meat self-mend.");
         add("trait.forgeweave.gravitic.name", "Gravitic");
-        add("trait.forgeweave.gravitic.description", "Leaden weight resists being knocked back.");
+        add("trait.forgeweave.gravitic.description", "Leaden weight resists being knocked back, held or worn.");
         add("trait.forgeweave.elektronbond.name", "Elektronbond");
         add("trait.forgeweave.elektronbond.description", "A keen magnesium-alloy edge.");
         add("trait.forgeweave.starforged.name", "Starforged");
         add("trait.forgeweave.starforged.description", "Sky stone takes a repair especially well.");
         add("trait.forgeweave.rubberize.name", "Rubberize");
-        add("trait.forgeweave.rubberize.description", "A bouncy slime soaks up a blow's shove.");
+        add("trait.forgeweave.rubberize.description", "A bouncy slime soaks up a blow's shove, held or worn.");
         add("trait.forgeweave.matrixbloom.name", "Matrixbloom");
         add("trait.forgeweave.matrixbloom.description", "A psionic weave that mends itself in daylight.");
         add("trait.forgeweave.wellspring.name", "Wellspring");
