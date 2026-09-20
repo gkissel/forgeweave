@@ -155,6 +155,40 @@ public class MaterialTraitCorrectionGameTests {
     }
 
     /**
+     * Issue #1097's raised {@code stacking_resistance} preset. {@code arctic_insulation} used to top
+     * out at 1.8% off a blow, far under the envelope of arctic fur's tier; it is 12% now, which is
+     * the whole point of a trait that says it toughens. The control is the same iron chestplate
+     * carrying no trait at all, whose blows never get cheaper however many land.
+     */
+    @GameTest(template = "empty")
+    public static void arcticInsulationReachesItsTiersProtection(GameTestHelper helper) {
+        DamageSource source = helper.getLevel().damageSources().generic();
+
+        Player control = wearing(helper);
+        float controlFirst = lost(control, source, BLOW);
+        float controlLast = controlFirst;
+        for (int i = 0; i < 3; i++) {
+            controlLast = lost(control, source, BLOW);
+        }
+        helper.assertTrue(Math.abs(controlLast - controlFirst) < 1e-4,
+                "an untraited piece must cost the same every blow, " + controlLast + " against " + controlFirst);
+
+        Player player = wearing(helper, "arctic_insulation");
+        float first = lost(player, source, BLOW);
+        float capped = first;
+        for (int i = 0; i < 3; i++) {
+            capped = lost(player, source, BLOW);
+        }
+        TraitStacks stacks = worn(player).get(ForgeweaveDataComponents.RESISTANCE_STACKS.get());
+        helper.assertTrue(stacks != null && stacks.level() == 3,
+                "four blows must leave the stacks at the cap of 3, got " + stacks);
+        // Three stacks at 1.0 protection each is 3/25 of the blow that arrives with them standing.
+        helper.assertTrue(capped < first && Math.abs(capped - first * 0.88F) < 0.2F,
+                "at the cap the blow must cost 12% less, " + capped + " against " + first);
+        helper.succeed();
+    }
+
+    /**
      * The negative that started #1091. {@code stormrind} cancels a lightning blow outright; none of
      * the three corrected traits may put any of it back. Worn beside {@code damage_floor} -- which
      * is what all three carried in 0.6.0-beta.2 -- each of them did.

@@ -429,7 +429,7 @@ ADR-0004 item 3, delivered for traits only (maintainer decision on #832; modifie
 | `effect_on_hurt` | `effect`, `duration`, `amplifier` `[0]` |
 | `amplify_incoming_healing` | `factor` |
 | `convert_damage_to_healing` | `damage_type` (damage type tag), `fraction` 0..1 |
-| `stacking_resistance` | `per_hit`, `cap`, `decay` (ticks) |
+| `stacking_resistance` | `per_hit`, `cap`, `decay` (ticks). The most a preset may take off a blow is `per_hit * cap / 25`, and since #1097 that maximum follows the material's tier: the hardcoded `bracingplate` (vibranium-allthemodium alloy) is the top at 18%, then `dragonsteel_ice_calm` 16% and `deorum_temper` 14% at netherite, `arctic_insulation` 12% at diamond and `naga_ward` 8% at iron. The three middle ones used to top out at 3.2%, 0.8% and 1.8%, which is where #1094 and #1092 flagged them |
 | `death_save` | `cooldown` (ticks), `cost` (durability) |
 | `invulnerability_window` | `ticks`, `condition` (a `DefenseCondition` name) `[any]` |
 | `evasion` | `chance` 0..1 |

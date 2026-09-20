@@ -2487,9 +2487,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.fiery_ember.name", "Fiery Ember");
         add("trait.forgeweave.fiery_ember.description", "The wearer takes no damage from fire.");
         add("trait.forgeweave.naga_ward.name", "Naga Ward");
-        add("trait.forgeweave.naga_ward.description", "Scales harden as blows keep landing, easing off after a lull.");
+        add("trait.forgeweave.naga_ward.description", "Scales harden as blows keep landing, up to 8% off a blow, easing off after a lull.");
         add("trait.forgeweave.arctic_insulation.name", "Arctic Insulation");
-        add("trait.forgeweave.arctic_insulation.description", "Toughens against repeated blows, resetting after a lull.");
+        add("trait.forgeweave.arctic_insulation.description", "Toughens against repeated blows, up to 12% off a blow, resetting after a lull.");
         add("trait.forgeweave.alpha_yeti_resilience.name", "Alpha Yeti Resilience");
         add("trait.forgeweave.alpha_yeti_resilience.description", "Grants a brief window of extra invulnerability after being hit.");
         add("trait.forgeweave.carminite_flicker.name", "Carminite Flicker");
@@ -2499,7 +2499,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.dragonsteel_fire_ward.name", "Dragonsteel Fire Ward");
         add("trait.forgeweave.dragonsteel_fire_ward.description", "The wearer takes no damage from fire.");
         add("trait.forgeweave.dragonsteel_ice_calm.name", "Dragonsteel Ice Calm");
-        add("trait.forgeweave.dragonsteel_ice_calm.description", "Toughens against repeated blows, resetting after a lull.");
+        add("trait.forgeweave.dragonsteel_ice_calm.description", "Toughens against repeated blows, up to 16% off a blow, resetting after a lull.");
         add("trait.forgeweave.dragonsteel_lightning_surge.name", "Dragonsteel Lightning Surge");
         add("trait.forgeweave.dragonsteel_lightning_surge.description", "Deals bonus damage on a fully charged swing.");
         // Issue #876's dedupe policy forbids one trait id claimed by more than one material, so each
@@ -2536,7 +2536,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.compressed_iron_heft.description", "Its weight keeps you planted: knockback moves you "
                 + "less while you hold it, and a quarter as much again for every piece you wear.");
         add("trait.forgeweave.deorum_temper.name", "Deorum Temper");
-        add("trait.forgeweave.deorum_temper.description", "Toughens against repeated blows, resetting after a lull.");
+        add("trait.forgeweave.deorum_temper.description", "Toughens against repeated blows, up to 14% off a blow, resetting after a lull.");
         add("trait.forgeweave.zanite_growth.name", "Zanite Growth");
         add("trait.forgeweave.zanite_growth.description", "Mines faster the more worn the tool becomes.");
         add("trait.forgeweave.gravitite_levity.name", "Gravitite Levity");
@@ -3222,7 +3222,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.emberdrink.name", "Emberdrink");
         add("trait.forgeweave.emberdrink.description", "Fire does not burn you; it feeds you.");
         add("trait.forgeweave.bracingplate.name", "Bracing Plate");
-        add("trait.forgeweave.bracingplate.description", "Protection builds with every blow taken, and lapses once they stop.");
+        add("trait.forgeweave.bracingplate.description", "Protection builds with every blow taken, up to 18% off a blow, and lapses once they stop.");
         add("trait.forgeweave.sapmend.name", "Sapmend");
         add("trait.forgeweave.sapmend.description", "Being wounded starts the wound closing.");
         add("trait.forgeweave.lastbreath.name", "Last Breath");
