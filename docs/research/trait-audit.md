@@ -113,7 +113,7 @@ mapping below is the core of every per-material answer. It is encoded as
 | `healingMultiplier` | `ForgeweaveTraits#onLivingHeal`, worn pieces only | no | yes |
 | `visibilityMultiplier` | `ForgeweaveTraits#onLivingVisibility`, worn pieces only | no | yes |
 | `stateLines` | `ToolTooltip`, for tools and armor alike | yes | yes |
-| `combatSeams` | resolved through the seam's own hooks, below | — | — |
+| `combatSeams` | resolved through the seam's own hooks, below | n/a | n/a |
 
 | `CombatSeam` hook | Driven from | Tool | Armor |
 | --- | --- | --- | --- |
@@ -124,7 +124,7 @@ mapping below is the core of every per-material answer. It is encoded as
 | `incomingHit` | `CombatSeams#defensePass`, the defender's two hands only | yes | no |
 | `onDefend` | `CombatSeams#armorPass`, hands then worn slots | yes | yes |
 
-**Two corrections to what was previously assumed.** `onDefend` is not worn-only: `armorPass` walks
+Two corrections to what the codebase previously assumed. `onDefend` is not worn-only: `armorPass` walks
 held tools first, so a defensive trait on a held sword counts like one on a worn piece (#729's own
 comment says so). And `durabilityDamage` is not tool-only: `ArmorPieceItem#damageItem` delegates
 straight into `ToolItem#damageKeepingItem`, so knightslime's `overslime` pool really does absorb an
@@ -150,7 +150,7 @@ datapack definitions. `build/trait-audit/traits.md` has the full generated table
 | text wrong | 10 | fixed here, table above |
 | cannot fire | 3 | fixed here, table above |
 | backwards | 0 | all four were datapack traits and #1094 fixed them |
-| magnitude off | 0 | — |
+| magnitude off | 0 | none |
 | needs a maintainer decision | 7 | listed below |
 
 The datapack rows are #1094's 52-row table and are not repeated. 190 shipped materials grant at least
@@ -161,32 +161,32 @@ one trait; 165 of them build both tools and armor, 25 build tools only, and none
 Seven things read oddly but are balance or design calls rather than defects, so nothing here was
 changed.
 
-1. **`featherfall` is a movement trait with a falling name.** `movementSpeedBonus() = 0.03`, described
+1. `featherfall` is a movement trait with a falling name. `movementSpeedBonus() = 0.03`, described
    as "a little extra spring in the step", which is a fair reading of a speed bonus. The name says
    fall damage. Either the name or the effect is the odd one out; both are original Forgeweave
    content from #876 with no upstream to appeal to.
-2. **`overlord` no longer says it grants overslime**, because it does not. Queen's slime grants
+2. `overlord` no longer says it grants overslime, because it does not. Queen's slime grants
    `overslime` separately, so the material still behaves as #843 intended and only the trait's own
    sentence changed. Whether `overlord` should carry a durability-scaled overslime pool of its own
    (the clone's `stat_copy`, which `Trait` has no hook for) is the open question its javadoc already
    flags.
-3. **The self-repair rates have no ladder.** Seven traits ride `self_repair_when` at 400, 500, 600,
+3. The self-repair rates have no ladder. Seven traits ride `self_repair_when` at 400, 500, 600,
    650, 700, 900 and 1000 ticks per point, and the numbers do not line up with the names or with each
    other: `smolderveil` was meant to beat `duskmend` and is slower, `ashenbond` was meant to mirror
    `sunmend` and is nearly twice as slow. The descriptions are now honest about direction, but the
    spread itself is a balance question.
-4. **The armor-only traits sit on `general` lists.** Ten traits reach the armor side only
+4. The armor-only traits sit on `general` lists. Ten traits reach the armor side only
    (`armorAttributes`, `healingMultiplier`, `visibilityMultiplier`); six of them are granted on
    materials' `general` lists, so they also land on those materials' tool parts and do nothing there.
    This is SCOPE.md D17's standing rule (a general trait attaches unfiltered; hooks that do not apply
    never fire), not a bug, but it is exactly the gap issue #1093 is meant to fill with companion
    traits, and the per-material table is its input.
-5. **`PROJECTILE_PROTECTION`'s knockback resistance is per piece, not a cross-piece maximum.** Its own
+5. `PROJECTILE_PROTECTION`'s knockback resistance is per piece rather than a cross-piece maximum. Its own
    javadoc records the deviation: four iron pieces give 0.2 where the clone gives 0.05. Unchanged.
-6. **`WARDED` follows the clone's formula rather than the clone's lang row.** The clone's text says
+6. `WARDED` follows the clone's formula rather than the clone's lang row. The clone's text says
    0.5 per level and its own `AdjustDamageModule` computes 1. Forgeweave ported the formula and says
    1. Unchanged; noted because the numbers disagree upstream, not here.
-7. **The three weak `stacking_resistance` presets #1094 flagged are still weak.** `deorum_temper`,
+7. The three weak `stacking_resistance` presets #1094 flagged are still weak. `deorum_temper`,
    `arctic_insulation` and `dragonsteel_ice_calm` top out at 0.8%, 1.8% and 3.2% off the post-armor
    blow where the hardcoded `bracingplate` reaches 18%. Carried forward from #1094 unchanged.
 
@@ -195,7 +195,7 @@ changed.
 `TraitReachabilityTest` is built on the trait and material registries, so four things are outside
 what it can see. Each is named in the test's own javadoc too.
 
-1. **Six traits override no `Trait` hook at all.** `breakable`, `endspeed`, `hovering` and
+1. Six traits override no `Trait` hook at all. `breakable`, `endspeed`, `hovering` and
    `splitting` are read by id from `ArrowEntity` and `BowItem` rather than through a hook;
    `overslime_friend` and `vinewarden` are read by id from `ForgeweaveTraits#overslimeArmorPenalty`.
    They are real behaviours on a side the hook surface does not describe (an in-flight projectile, an
@@ -203,17 +203,17 @@ what it can see. Each is named in the test's own javadoc too.
    pattern exists among modifiers: `fins`, `mending_moss`, `beheading`, `glowing`, `blasting` and
    `veinmine` all carry their behaviour outside the `Modifier` interface, keyed by id. Every one was
    checked by hand and every one is wired.
-2. **A parameterized behaviour class can override hooks on both sides and gate on a field.**
+2. A parameterized behaviour class can override hooks on both sides and gate on a field.
    `StatScalesWithWear` overrides `miningSpeed` and `onDefend` and picks between them on its `stat`
    parameter, so reflection reports `stonebound` (mining speed) as reaching the armor side and
    `battleworn` (protection) as reaching the tool side. Neither actually does. It is the only shipped
    class with that shape; a genuinely stranded trait built on it would pass the guard. Widening the
    guard would mean teaching it to read constructor parameters, which is a much larger surface than
    the one class it would cover today.
-3. **A reachable hook says nothing about a reachable condition.** `dusksnare` needs a night sky and a
+3. A reachable hook says nothing about a reachable condition. `dusksnare` needs a night sky and a
    badly wounded non-boss mob; `aridiculous` needs a hot biome. No registry knows whether a player
    will ever meet those, so "can it fire" here means "is there a code path", not "will it happen".
-4. **Script and partner-mod traits are not covered.** A KubeJS startup script's trait and a mod's
+4. Script and partner-mod traits are not covered. A KubeJS startup script's trait and a mod's
    `TraitRegistry` registration are not in either registry at test time.
 
 ## Per-trait table
@@ -473,7 +473,7 @@ lands on and the side it can actually work on. It is regenerated by the test rat
 because it changes whenever a material's JSON does. Issue #1093 reads it to find which materials
 carry a trait that only works on one of the two sides they build.
 
-Shape of the answer, as of this audit:
+The shape of the answer today:
 
 - 190 shipped materials grant at least one trait.
 - 165 build both tools and armor; 25 build tools only; none builds armor only.
