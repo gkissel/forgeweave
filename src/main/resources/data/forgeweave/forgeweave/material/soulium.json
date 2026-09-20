@@ -38,7 +38,10 @@
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
-  "traits": {},
+  "traits": {
+    "armor": ["forgeweave:magic_protection"],
+    "general": ["forgeweave:soulium_reap"]
+  },
   "crafting_items": [
     {
       "ingredient": {

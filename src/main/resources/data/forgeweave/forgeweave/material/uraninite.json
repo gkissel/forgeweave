@@ -34,7 +34,10 @@
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
-  "traits": {},
+  "traits": {
+    "armor": ["forgeweave:magic_protection"],
+    "general": ["forgeweave:uraninite_decay"]
+  },
   "crafting_items": [
     {
       "ingredient": {

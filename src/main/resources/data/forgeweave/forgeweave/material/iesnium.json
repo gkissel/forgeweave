@@ -42,7 +42,10 @@
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
-  "traits": {},
+  "traits": {
+    "armor": ["forgeweave:magic_protection"],
+    "general": ["forgeweave:iesnium_rite"]
+  },
   "crafting_items": [
     {
       "ingredient": {

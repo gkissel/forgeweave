@@ -38,7 +38,10 @@
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
-  "traits": {},
+  "traits": {
+    "armor": ["forgeweave:magic_protection"],
+    "general": ["forgeweave:prudentium_edge"]
+  },
   "crafting_items": [
     {
       "ingredient": {

@@ -34,7 +34,10 @@
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
-  "traits": {},
+  "traits": {
+    "armor": ["forgeweave:magic_protection"],
+    "general": ["forgeweave:blutonium_pulse"]
+  },
   "crafting_items": [
     {
       "ingredient": {

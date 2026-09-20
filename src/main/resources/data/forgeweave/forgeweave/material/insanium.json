@@ -42,7 +42,10 @@
   },
   "maille": true,
   "incorrect_for_tool": "forgeweave:incorrect_for_resonite_tool",
-  "traits": {},
+  "traits": {
+    "armor": ["forgeweave:magic_protection"],
+    "general": ["forgeweave:insanium_edge"]
+  },
   "crafting_items": [
     {
       "ingredient": {

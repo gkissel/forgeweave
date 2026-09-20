@@ -161,8 +161,18 @@ class MaterialSyncSizeTest {
      * <p>#1059 and #1058 were measured on their own branches (150 KB and 145 KB). Merged, the roster
      * syncs at 157,332 bytes, so the line sits at 160 KB (163,840 bytes), ~6.4 KB (4.1%) above that
      * measurement.
+     *
+     * <p>Issue #1093 is the first raise that adds no material at all. Giving every material a trait
+     * that works on each side it builds put a {@code traits} list on 102 of them -- an {@code armor}
+     * row on 83, a {@code general} row on the 19 that carried no trait -- and took the same
+     * 198-material roster from 157,332 bytes to 166,308, about 88 bytes each. The companions are
+     * already shared as widely as their themes allow (eleven ids cover 55 materials, and the
+     * {@code *_protection} family another 38), so what is left is one id per material and there is no
+     * cheaper encoding of it short of dropping the rule. Raised to 170 KB (174,080 bytes), ~7.6 KB
+     * (4.5%) of headroom above the new measurement, the same deliberately-tight step every earlier
+     * raise took.
      */
-    private static final int SYNC_BUDGET_BYTES = 160 * 1024;
+    private static final int SYNC_BUDGET_BYTES = 170 * 1024;
 
 
     private static RegistryOps<JsonElement> jsonOps;
