@@ -3323,6 +3323,50 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.magic_protection.name", "Magic Protection");
         add("trait.forgeweave.magic_protection.description",
                 "Protects against magic damage, 2.5 protection per piece worn.");
+
+        // #1097 -- the companions that replaced melee_protection and magic_protection where those
+        // two had become catch-alls. The essence ladder climbs on the armor side the way it climbs
+        // on the tool side; the reactor metals answer a blow with the radiation their blade carries;
+        // temperward is the flat plate that answers a flat edge. docs/research/trait-pairing.md.
+        add("trait.forgeweave.temperward.name", "Temperward");
+        add("trait.forgeweave.temperward.description",
+                "The worn side of a flat, keen edge: 1.5 protection against every blow, per piece worn.");
+        add("trait.forgeweave.inferium_ward.name", "Inferium Ward");
+        add("trait.forgeweave.inferium_ward.description",
+                "The first rung of the essence ladder worn: 0.75 protection against magic damage, per piece.");
+        add("trait.forgeweave.prudentium_ward.name", "Prudentium Ward");
+        add("trait.forgeweave.prudentium_ward.description",
+                "The second rung of the essence ladder worn: 1.25 protection against magic damage, per piece.");
+        add("trait.forgeweave.tertium_ward.name", "Tertium Ward");
+        add("trait.forgeweave.tertium_ward.description",
+                "The third rung of the essence ladder worn: 1.75 protection against magic damage, per piece.");
+        add("trait.forgeweave.imperium_ward.name", "Imperium Ward");
+        add("trait.forgeweave.imperium_ward.description",
+                "The fourth rung of the essence ladder worn: 2.25 protection against magic damage, per piece.");
+        add("trait.forgeweave.supremium_ward.name", "Supremium Ward");
+        add("trait.forgeweave.supremium_ward.description",
+                "The fifth rung of the essence ladder worn: 2.75 protection against magic damage, per piece.");
+        add("trait.forgeweave.awakened_supremium_ward.name", "Awakened Ward");
+        add("trait.forgeweave.awakened_supremium_ward.description",
+                "The sixth rung of the essence ladder worn: 3.25 protection against magic damage, per piece.");
+        add("trait.forgeweave.insanium_ward.name", "Insanium Ward");
+        add("trait.forgeweave.insanium_ward.description",
+                "The top rung of the essence ladder worn: 3.75 protection against magic damage, per piece.");
+        add("trait.forgeweave.uraninite_sickness.name", "Raw Sickness");
+        add("trait.forgeweave.uraninite_sickness.description",
+                "The worn side of raw uraninite: three times in ten, whoever strikes you is left weakened for three "
+                + "seconds.");
+        add("trait.forgeweave.cyanite_chillback.name", "Cyanite Chillback");
+        add("trait.forgeweave.cyanite_chillback.description",
+                "The worn side of a cyanite chill: two times in five, whoever strikes you is slowed for four "
+                + "seconds.");
+        add("trait.forgeweave.blutonium_fallout.name", "Blutonium Fallout");
+        add("trait.forgeweave.blutonium_fallout.description",
+                "The worn side of a blutonium pulse: half the time, whoever strikes you withers for four seconds.");
+        add("trait.forgeweave.ludicrite_meltdown.name", "Ludicrite Meltdown");
+        add("trait.forgeweave.ludicrite_meltdown.description",
+                "The worn side of a ludicrite surge: three times in five, whoever strikes you withers for five "
+                + "seconds.");
         add("trait.forgeweave.azure_electrum_rush.name", "Azure Rush");
         add("trait.forgeweave.azure_electrum_rush.description",
                 "The tool side of swift: up to 3 more damage the faster the wielder is moving.");

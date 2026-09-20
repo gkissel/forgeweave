@@ -35,7 +35,6 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
   "traits": {
-    "armor": ["forgeweave:magic_protection"],
     "general": ["forgeweave:silicon_lattice"]
   },
   "crafting_items": [

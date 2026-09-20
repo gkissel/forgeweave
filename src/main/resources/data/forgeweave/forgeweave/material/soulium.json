@@ -39,7 +39,7 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "armor": ["forgeweave:magic_protection"],
+    "armor": ["forgeweave:bloodward"],
     "general": ["forgeweave:soulium_reap"]
   },
   "crafting_items": [

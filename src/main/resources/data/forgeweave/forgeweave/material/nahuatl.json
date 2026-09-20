@@ -24,7 +24,7 @@
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
     "general": ["forgeweave:lacerating"],
-    "armor": ["forgeweave:melee_protection"]
+    "armor": ["forgeweave:venomward"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:nahuatl_board" }, "value": 144 }

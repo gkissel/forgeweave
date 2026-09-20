@@ -39,7 +39,7 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "armor": ["forgeweave:magic_protection"],
+    "armor": ["forgeweave:tertium_ward"],
     "general": ["forgeweave:tertium_edge"]
   },
   "crafting_items": [

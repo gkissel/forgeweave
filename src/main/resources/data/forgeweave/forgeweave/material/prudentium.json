@@ -39,7 +39,7 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
-    "armor": ["forgeweave:magic_protection"],
+    "armor": ["forgeweave:prudentium_ward"],
     "general": ["forgeweave:prudentium_edge"]
   },
   "crafting_items": [
