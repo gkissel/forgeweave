@@ -23,7 +23,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:bloodgem"]
+    "general": ["forgeweave:bloodgem"],
+    "armor": ["forgeweave:bloodward"]
   },
   "crafting_items": [
     { "ingredient": { "item": "actuallyadditions:restonia_crystal" }, "value": 144 },

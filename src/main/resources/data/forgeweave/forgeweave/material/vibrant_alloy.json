@@ -43,9 +43,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": [
-      "forgeweave:stormcaller"
-    ]
+    "general": ["forgeweave:stormcaller"],
+    "armor": ["forgeweave:stormward"]
   },
   "crafting_items": [
     {

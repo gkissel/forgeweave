@@ -23,7 +23,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:obliterate", "forgeweave:swiftdig"]
+    "general": ["forgeweave:obliterate", "forgeweave:swiftdig"],
+    "armor": ["forgeweave:depth_protection"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:starfall_stone_ingot" }, "value": 144 },

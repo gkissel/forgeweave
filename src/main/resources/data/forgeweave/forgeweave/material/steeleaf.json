@@ -39,9 +39,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": [
-      "forgeweave:steeleaf_precision"
-    ]
+    "general": ["forgeweave:steeleaf_precision"],
+    "armor": ["forgeweave:melee_protection"]
   },
   "crafting_items": [
     {

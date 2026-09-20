@@ -23,7 +23,8 @@
   "maille": true,
   "incorrect_for_tool": "forgeweave:incorrect_for_hardcinder_tool",
   "traits": {
-    "general": ["forgeweave:riftstep"]
+    "general": ["forgeweave:riftstep"],
+    "armor": ["forgeweave:voidward"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:riftalloy_ingot" }, "value": 144 },

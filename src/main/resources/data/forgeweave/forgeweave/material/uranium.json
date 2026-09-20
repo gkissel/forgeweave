@@ -43,9 +43,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": [
-      "forgeweave:enfeebling"
-    ]
+    "general": ["forgeweave:enfeebling"],
+    "armor": ["forgeweave:blightward"]
   },
   "crafting_items": [
     {

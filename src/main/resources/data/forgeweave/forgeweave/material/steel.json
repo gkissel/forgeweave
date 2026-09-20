@@ -24,7 +24,8 @@
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
     "general": ["forgeweave:stiff"],
-    "head": ["forgeweave:sharp"]
+    "head": ["forgeweave:sharp"],
+    "armor": ["forgeweave:melee_protection"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:steel_ingot" }, "value": 144 },

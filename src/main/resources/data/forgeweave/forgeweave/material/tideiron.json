@@ -23,7 +23,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:tidebreaker"]
+    "general": ["forgeweave:tidebreaker"],
+    "armor": ["forgeweave:tideward"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:tideiron_ingot" }, "value": 144 },

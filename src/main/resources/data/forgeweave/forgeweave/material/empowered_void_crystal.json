@@ -23,7 +23,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:empowered_void_maw"]
+    "general": ["forgeweave:empowered_void_maw"],
+    "armor": ["forgeweave:voidward"]
   },
   "crafting_items": [
     { "ingredient": { "item": "actuallyadditions:empowered_void_crystal" }, "value": 144 },

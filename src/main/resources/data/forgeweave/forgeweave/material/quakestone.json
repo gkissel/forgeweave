@@ -23,7 +23,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:quakecrumble"]
+    "general": ["forgeweave:quakecrumble"],
+    "armor": ["forgeweave:depth_protection"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:quakestone_ingot" }, "value": 144 },

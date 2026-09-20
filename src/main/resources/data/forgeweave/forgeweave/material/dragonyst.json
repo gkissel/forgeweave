@@ -23,7 +23,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:kinetic_charge"]
+    "general": ["forgeweave:kinetic_charge"],
+    "armor": ["forgeweave:kinetic_reserve"]
   },
   "crafting_items": [
     { "ingredient": { "tag": "c:dusts/dragonyst" }, "value": 36 }

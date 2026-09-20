@@ -23,7 +23,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:radiant_edge", "forgeweave:surging"]
+    "general": ["forgeweave:radiant_edge", "forgeweave:surging"],
+    "armor": ["forgeweave:surgeward"]
   },
   "crafting_items": [
     { "ingredient": { "item": "actuallyadditions:diamatine_crystal" }, "value": 144 },

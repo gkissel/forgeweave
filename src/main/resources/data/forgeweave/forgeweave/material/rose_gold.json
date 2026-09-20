@@ -23,7 +23,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_wooden_tool",
   "traits": {
-    "general": ["forgeweave:quick"]
+    "general": ["forgeweave:quick"],
+    "armor": ["forgeweave:swiftward"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:rose_gold_ingot" }, "value": 144 },

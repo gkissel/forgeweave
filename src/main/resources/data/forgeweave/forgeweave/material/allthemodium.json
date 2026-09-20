@@ -23,7 +23,8 @@
   "maille": true,
   "incorrect_for_tool": "forgeweave:incorrect_for_hardcinder_tool",
   "traits": {
-    "general": ["forgeweave:wellspring"]
+    "general": ["forgeweave:wellspring"],
+    "armor": ["forgeweave:depth_protection"]
   },
   "crafting_items": [
     { "ingredient": { "tag": "c:ingots/allthemodium" }, "value": 144 }

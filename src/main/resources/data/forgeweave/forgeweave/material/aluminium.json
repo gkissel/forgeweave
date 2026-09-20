@@ -35,9 +35,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
   "traits": {
-    "general": [
-      "forgeweave:featherfall"
-    ]
+    "general": ["forgeweave:featherfall"],
+    "armor": ["forgeweave:swiftward"]
   },
   "crafting_items": [
     {

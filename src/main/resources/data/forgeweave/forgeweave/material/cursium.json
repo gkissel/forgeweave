@@ -23,7 +23,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:cursium_blight"]
+    "general": ["forgeweave:cursium_blight"],
+    "armor": ["forgeweave:blightward"]
   },
   "crafting_items": [
     { "ingredient": { "item": "cataclysm:cursium_ingot" }, "value": 144 },

@@ -23,7 +23,8 @@
   "maille": true,
   "incorrect_for_tool": "forgeweave:incorrect_for_resonite_tool",
   "traits": {
-    "general": ["forgeweave:avalanche"]
+    "general": ["forgeweave:avalanche"],
+    "armor": ["forgeweave:deadweight"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:sunsteel_ingot" }, "value": 144 },

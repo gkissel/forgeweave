@@ -23,7 +23,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_wooden_tool",
   "traits": {
-    "general": ["forgeweave:buoyant"]
+    "general": ["forgeweave:buoyant"],
+    "armor": ["forgeweave:swiftward"]
   },
   "crafting_items": [
     { "ingredient": { "tag": "c:rods/plastic" }, "value": 144 }

@@ -35,9 +35,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": [
-      "forgeweave:revealing"
-    ]
+    "general": ["forgeweave:revealing"],
+    "armor": ["forgeweave:revealward"]
   },
   "crafting_items": [
     {

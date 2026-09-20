@@ -39,9 +39,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": [
-      "forgeweave:quartzheart"
-    ]
+    "general": ["forgeweave:quartzheart"],
+    "armor": ["forgeweave:vigorward"]
   },
   "crafting_items": [
     {

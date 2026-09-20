@@ -23,7 +23,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:voidtouched"]
+    "general": ["forgeweave:voidtouched"],
+    "armor": ["forgeweave:voidward"]
   },
   "crafting_items": [
     { "ingredient": { "item": "actuallyadditions:void_crystal" }, "value": 144 },
