@@ -458,6 +458,8 @@
   "fluid_type.forgeweave.purple_slime": "Liquid Purple Slime",
   "forgeweave.configuration.heldBowPose": "Held Bow Pose",
   "forgeweave.configuration.heldBowPose.tooltip": "How the shortbow, longbow and crossbow are held. Classic is the original 1.12-era pose; Modern is vanilla's own bow and crossbow pose.",
+  "forgeweave.configuration.stationPreviewModel": "Station Preview Model",
+  "forgeweave.configuration.stationPreviewModel.tooltip": "What the Tool Station, Tool Forge and Modifier Worktable preview their result on: an armor stand, or your own character in your skin.",
   "forgeweave.ponder.armor.header": "Assembling Armor",
   "forgeweave.ponder.armor.text_1": "Armor is assembled at the Tool Station, beside the tools, under one Armor button",
   "forgeweave.ponder.armor.text_2": "The plating you set in it picks the piece, and sets all of its stats",

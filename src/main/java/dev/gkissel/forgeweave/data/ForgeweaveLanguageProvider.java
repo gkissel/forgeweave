@@ -54,6 +54,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("forgeweave.configuration.heldBowPose.tooltip",
                 "How the shortbow, longbow and crossbow are held. Classic is the original 1.12-era pose;"
                         + " Modern is vanilla's own bow and crossbow pose.");
+        add("forgeweave.configuration.stationPreviewModel", "Station Preview Model");
+        add("forgeweave.configuration.stationPreviewModel.tooltip",
+                "What the Tool Station, Tool Forge and Modifier Worktable preview their result on:"
+                        + " an armor stand, or your own character in your skin.");
         add("itemGroup.forgeweave.general", "Forgeweave General Items");
         // #719 -- the veinmine hold-key in vanilla's Controls menu (client/VeinmineKeyMapping).
         add("key.categories.forgeweave", "Forgeweave");
