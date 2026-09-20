@@ -5,11 +5,23 @@ import dev.latvian.mods.kubejs.event.EventGroupRegistry;
 import dev.latvian.mods.kubejs.event.EventHandler;
 import dev.latvian.mods.kubejs.event.KubeEvent;
 import dev.latvian.mods.kubejs.plugin.KubeJSPlugin;
+import dev.latvian.mods.kubejs.registry.ServerRegistryRegistry;
 import dev.latvian.mods.kubejs.script.ScriptManager;
 import dev.latvian.mods.kubejs.script.ScriptType;
 import net.minecraft.resources.ResourceLocation;
 
 import dev.gkissel.forgeweave.api.trait.Trait;
+import dev.gkissel.forgeweave.casting.CastingRecipe;
+import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.modifier.EmbossingRecipe;
+import dev.gkissel.forgeweave.modifier.ModifierDefinition;
+import dev.gkissel.forgeweave.modifier.ModifierRecipe;
+import dev.gkissel.forgeweave.modifier.WorktableRecipe;
+import dev.gkissel.forgeweave.recipe.AlloyRecipe;
+import dev.gkissel.forgeweave.recipe.CoreTransformRecipe;
+import dev.gkissel.forgeweave.recipe.EntityMeltingRecipe;
+import dev.gkissel.forgeweave.recipe.MeltingRecipe;
+import dev.gkissel.forgeweave.recipe.SmelteryFuel;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 import dev.gkissel.forgeweave.trait.ScriptTrait;
 import dev.gkissel.forgeweave.trait.TraitDefinition;
@@ -54,6 +66,47 @@ public final class ForgeweaveKubeJSPlugin implements KubeJSPlugin {
     @Override
     public void registerEvents(EventGroupRegistry registry) {
         registry.register(GROUP);
+    }
+
+    /**
+     * Hands KubeJS every datapack registry Forgeweave owns (issue #1083), so a script can write a
+     * melting, casting, alloy, fuel, entity-melting, core-transform, modifier, embossing or
+     * worktable entry, a material, or a trait or modifier definition:
+     *
+     * <pre>{@code
+     * // kubejs/server_scripts/forgeweave_recipes.js
+     * ServerEvents.registry('forgeweave:melting_recipe', event => {
+     *     event.createFromJson('mypack:molten_mythril', {
+     *         input: { tag: 'c:ingots/mythril' },
+     *         fluid: 'forgeweave:molten_iron',
+     *         amount: 144
+     *     })
+     * })
+     * }</pre>
+     *
+     * <p><b>Why this and not {@code event.recipes.forgeweave.melting(...)}.</b> KubeJS's recipe
+     * schema API edits the vanilla recipe manager, whose entries live under {@code data/<ns>/recipe/}
+     * and carry a {@code type} field. None of Forgeweave's eight recipe types is one of those: each
+     * is a datapack <em>registry</em> loaded by {@code RegistryDataLoader}, which the recipe manager
+     * never sees, so a {@code RecipeSchema} for them would describe something KubeJS could not
+     * write. {@code ServerEvents.registry} is the seam that does reach a datapack registry, and it
+     * reads the JSON through Forgeweave's own codec, so a bad field fails the same way a file in a
+     * pack's {@code data/} folder does. {@code docs/addons.md} says the same thing for pack authors.
+     */
+    @Override
+    public void registerServerRegistries(ServerRegistryRegistry registry) {
+        registry.register(Material.REGISTRY, Material.CODEC, Material.class);
+        registry.register(TraitDefinition.REGISTRY, TraitDefinition.CODEC, TraitDefinition.class);
+        registry.register(ModifierDefinition.REGISTRY, ModifierDefinition.CODEC, ModifierDefinition.class);
+        registry.register(MeltingRecipe.REGISTRY, MeltingRecipe.CODEC, MeltingRecipe.class);
+        registry.register(CastingRecipe.REGISTRY, CastingRecipe.CODEC, CastingRecipe.class);
+        registry.register(AlloyRecipe.REGISTRY, AlloyRecipe.CODEC, AlloyRecipe.class);
+        registry.register(SmelteryFuel.REGISTRY, SmelteryFuel.CODEC, SmelteryFuel.class);
+        registry.register(EntityMeltingRecipe.REGISTRY, EntityMeltingRecipe.CODEC, EntityMeltingRecipe.class);
+        registry.register(CoreTransformRecipe.REGISTRY, CoreTransformRecipe.CODEC, CoreTransformRecipe.class);
+        registry.register(ModifierRecipe.REGISTRY, ModifierRecipe.CODEC, ModifierRecipe.class);
+        registry.register(EmbossingRecipe.REGISTRY, EmbossingRecipe.CODEC, EmbossingRecipe.class);
+        registry.register(WorktableRecipe.REGISTRY, WorktableRecipe.CODEC, WorktableRecipe.class);
     }
 
     @Override

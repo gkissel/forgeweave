@@ -10,16 +10,36 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
+
+import com.mojang.serialization.Codec;
 
 import org.junit.jupiter.api.Test;
 
 import dev.latvian.mods.kubejs.plugin.KubeJSPlugin;
+import dev.latvian.mods.kubejs.registry.ServerRegistryRegistry;
+import dev.latvian.mods.rhino.type.TypeInfo;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 
+import dev.gkissel.forgeweave.casting.CastingRecipe;
+import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.modifier.EmbossingRecipe;
+import dev.gkissel.forgeweave.modifier.ModifierDefinition;
+import dev.gkissel.forgeweave.modifier.ModifierRecipe;
+import dev.gkissel.forgeweave.modifier.WorktableRecipe;
+import dev.gkissel.forgeweave.recipe.AlloyRecipe;
+import dev.gkissel.forgeweave.recipe.CoreTransformRecipe;
+import dev.gkissel.forgeweave.recipe.EntityMeltingRecipe;
+import dev.gkissel.forgeweave.recipe.MeltingRecipe;
+import dev.gkissel.forgeweave.recipe.SmelteryFuel;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 import dev.gkissel.forgeweave.trait.ScriptTrait;
+import dev.gkissel.forgeweave.trait.TraitDefinition;
 
 /**
  * Issue #832's KubeJS gates. With KubeJS on the test classpath (build.gradle's {@code
@@ -57,6 +77,40 @@ class ForgeweaveKubeJSPluginTest {
         ResourceLocation id = ResourceLocation.fromNamespaceAndPath("somepack", "scripted");
         ScriptTrait trait = new ForgeweaveKubeJSPlugin.TraitsKubeEvent().register(id);
         assertSame(trait, ForgeweaveTraits.lookup(id));
+    }
+
+    /**
+     * Issue #1083: every datapack registry Forgeweave owns is handed to KubeJS, so a server script
+     * can write its entries with {@code ServerEvents.registry(...)}. The list here is the list in
+     * {@code Forgeweave#registerDataPackRegistries}; a registry added there and forgotten here is a
+     * recipe type a pack author can only write as a file, which is what this test catches.
+     */
+    @Test
+    void everyForgeweaveDatapackRegistryIsHandedToKubeJS() {
+        Map<ResourceKey<? extends Registry<?>>, Codec<?>> registered = new LinkedHashMap<>();
+        new ForgeweaveKubeJSPlugin().registerServerRegistries(
+                new ServerRegistryRegistry() {
+                    @Override
+                    public <T> void register(ResourceKey<Registry<T>> key, Codec<T> codec, TypeInfo typeInfo) {
+                        registered.put(key, codec);
+                    }
+                });
+
+        Map<ResourceKey<? extends Registry<?>>, Codec<?>> expected = new LinkedHashMap<>();
+        expected.put(Material.REGISTRY, Material.CODEC);
+        expected.put(TraitDefinition.REGISTRY, TraitDefinition.CODEC);
+        expected.put(ModifierDefinition.REGISTRY, ModifierDefinition.CODEC);
+        expected.put(MeltingRecipe.REGISTRY, MeltingRecipe.CODEC);
+        expected.put(CastingRecipe.REGISTRY, CastingRecipe.CODEC);
+        expected.put(AlloyRecipe.REGISTRY, AlloyRecipe.CODEC);
+        expected.put(SmelteryFuel.REGISTRY, SmelteryFuel.CODEC);
+        expected.put(EntityMeltingRecipe.REGISTRY, EntityMeltingRecipe.CODEC);
+        expected.put(CoreTransformRecipe.REGISTRY, CoreTransformRecipe.CODEC);
+        expected.put(ModifierRecipe.REGISTRY, ModifierRecipe.CODEC);
+        expected.put(EmbossingRecipe.REGISTRY, EmbossingRecipe.CODEC);
+        expected.put(WorktableRecipe.REGISTRY, WorktableRecipe.CODEC);
+
+        assertEquals(expected, registered);
     }
 
     /** The mod must boot without KubeJS: only this package may touch its API. */
