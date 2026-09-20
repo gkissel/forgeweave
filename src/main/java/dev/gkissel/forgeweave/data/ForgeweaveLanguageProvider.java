@@ -3104,8 +3104,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.landslide.description", "Packed dense, with a deeper durability pool.");
         add("trait.forgeweave.skyborne.name", "Skyborne");
         add("trait.forgeweave.skyborne.description", "Draws a bow noticeably faster.");
-        add("trait.forgeweave.featherfall.name", "Featherfall");
-        add("trait.forgeweave.featherfall.description", "A little extra spring in the step.");
+        add("trait.forgeweave.featherfall.name", "Featherlight");
+        add("trait.forgeweave.featherfall.description", "A light metal that carries quick: 3% more movement speed while held.");
         add("trait.forgeweave.buoyant.name", "Buoyant");
         add("trait.forgeweave.buoyant.description", "Light enough to swing faster.");
         add("trait.forgeweave.corebound.name", "Corebound");

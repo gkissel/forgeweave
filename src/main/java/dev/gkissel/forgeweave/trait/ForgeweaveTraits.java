@@ -2657,7 +2657,14 @@ public final class ForgeweaveTraits {
         }
     };
 
-    /** M6 dedupe batch (issue #876): a little extra spring in the step. Original Forgeweave content, no upstream port. */
+    /**
+     * M6 dedupe batch (issue #876): 3% more movement speed while held. Original Forgeweave content,
+     * no upstream port.
+     *
+     * <p>The id says falling and the effect is speed. Issue #1097 kept both: saved tools name the
+     * id, so it stays, and the display name is "Featherlight" so the text no longer suggests fall
+     * damage.
+     */
     public static final Trait FEATHERFALL = new Trait() {
         @Override
         public float movementSpeedBonus() {
