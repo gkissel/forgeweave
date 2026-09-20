@@ -327,6 +327,22 @@ Fresh world, dedicated server, no cheats. Craft an **obsidian chestplate plating
 | Compat (D7) | Vanilla armor slots only; chestplate excludes Elytra as vanilla does (Elytra stays the flight option for now). Curios, Apotheosis, wings — M8. |
 | Book / Ponder / harness (D21) | Data-driven `armor.json` book section; armor-assembly Ponder scene (second registered storyboard); screenshot-harness scene with the four pieces worn in third person. |
 
+#### Trait follow-ups (#1097, maintainer decisions, 2026-09-20)
+
+The seven open items in `docs/research/trait-audit.md` are settled, and the two weak groups in
+`docs/research/trait-pairing.md` are re-paired. The decisions:
+
+| Item | Decision |
+| --- | --- |
+| `featherfall` | The id stays (saved tools name it) and so does the +3% movement speed. The display name is **Featherlight** and the description says what the effect is, so nothing suggests fall damage any more. |
+| `overlord` | The capacity half of upstream's `overlord.json` is back: besides the 15% durability cut, the tool gets an overslime pool of a tenth of its durability. It needs no new `Trait` hook, because overslime capacity is read from the stack by `ForgeweaveTraits#overslimeCapacity` rather than summed like durability; `overslime` is still what spends the pool, the same split upstream has. Queen's slime grants both, so its tools keep the flat 50 and gain the scaled part on top. |
+| Self-repair rates | One ladder instead of seven loose numbers. A conditional mend runs at half the ticks of an unconditional one on the same tier, because its condition holds about half of each day. Per tier: netherite 400 / 800, diamond 440, iron 500 / 1000, stone 600. Two rates are set by something else: `sunmend` and `duskmend` are a day/night mirror pair and share one rate (the lower of their two tiers), and `smolderveil`, the one trait whose stated idea is to beat `duskmend`, takes the fastest rate on the ladder. Nothing is faster than 400, the quickest rate that shipped before. `ecological` keeps upstream's 800 and is outside the ladder: 1.12 parity holds its magnitude. |
+| Armor-only traits on `general` lists | Five of the six moved to `armor`: `azure_electrum_swift`, `azure_silver_moonstep`, `ferricore_footing`, `gravitite_levity`, `ironwood_footing`. The sixth the audit counted is `battleworn`, which `StatScalesWithWear` makes reflection report on both sides; the audit's own "what the guard could not decide" section names that blind spot. |
+| `projectile_protection` | Its knockback resistance is the clone's cross-piece figure, 0.05 for a worn set, not 0.2 for four iron pieces. It declares the value through `Trait#knockbackResistance()` and #1093's worn share pays a quarter of it per piece, so a set lands on the clone's number. Upstream reaches the same figure by taking the maximum across worn pieces; the share mechanism was already here and gives the same total, so no second one was written. |
+| `warded` | **The formula wins over upstream's lang row.** The clone's text says 0.5 per level and its own `AdjustDamageModule` computes 1. Forgeweave ports the formula and says 1, and that stays. Nothing to change in behavior; recorded here so the disagreement is not re-opened. |
+| `stacking_resistance` presets | Scaled by their material's tier -- see the `stacking_resistance` row in the trait behavior table below for the numbers. |
+| The two weak pairing groups | `melee_protection` and `magic_protection` are no longer catch-alls. A material's armor companion has to answer what its tool trait actually does, not what its name suggests, and the one-sentence tie for every changed row is in `docs/research/trait-pairing.md`. |
+
 ### Non-goals for M4
 
 Travellers' gear, slimesuit, slime wings, shields (1.20 content, not mechanics) · DEFENSE slot type · 1.20 armor abilities · plating for non-metal materials beyond obsidian/ancient/nahuatl · Curios/Elytra integration (M8) · custom designer models (M9) · armor leveling (M7 plugs into `onDefend`) · an "armor forge" tier (the smeltery and the existing Tool Forge tier are the only gates). An armor station block stays a non-goal: issue #782 shipped one and issue #1006 retired it again on the maintainer's call — see the Station row above.
@@ -429,7 +445,7 @@ ADR-0004 item 3, delivered for traits only (maintainer decision on #832; modifie
 | `effect_on_hurt` | `effect`, `duration`, `amplifier` `[0]` |
 | `amplify_incoming_healing` | `factor` |
 | `convert_damage_to_healing` | `damage_type` (damage type tag), `fraction` 0..1 |
-| `stacking_resistance` | `per_hit`, `cap`, `decay` (ticks) |
+| `stacking_resistance` | `per_hit`, `cap`, `decay` (ticks). The most a preset may take off a blow is `per_hit * cap / 25`, and since #1097 that maximum follows the material's tier: the hardcoded `bracingplate` (vibranium-allthemodium alloy) is the top at 18%, then `dragonsteel_ice_calm` 16% and `deorum_temper` 14% at netherite, `arctic_insulation` 12% at diamond and `naga_ward` 8% at iron. The three middle ones used to top out at 3.2%, 0.8% and 1.8%, which is where #1094 and #1092 flagged them |
 | `death_save` | `cooldown` (ticks), `cost` (durability) |
 | `invulnerability_window` | `ticks`, `condition` (a `DefenseCondition` name) `[any]` |
 | `evasion` | `chance` 0..1 |

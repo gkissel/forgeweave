@@ -23,7 +23,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:gravitite_levity", "forgeweave:gravitite_dive"]
+    "general": ["forgeweave:gravitite_dive"],
+    "armor": ["forgeweave:gravitite_levity"]
   },
   "crafting_items": [
     { "ingredient": { "item": "aether:enchanted_gravitite" }, "value": 144 }

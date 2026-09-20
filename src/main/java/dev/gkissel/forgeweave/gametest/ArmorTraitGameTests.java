@@ -111,6 +111,36 @@ public class ArmorTraitGameTests {
         helper.succeed();
     }
 
+    /**
+     * Iron -&gt; projectile_protection's knockback half, at the clone's cross-piece figure (issue
+     * #1097): a full worn set reaches 0.05 and no further, where it used to reach 0.2 by adding a
+     * flat 0.05 per piece. The control is the same player in plain iron armor with no traits, who
+     * gets nothing.
+     */
+    @GameTest(template = "empty")
+    public static void projectileProtectionKnockbackResistanceIsAPerSetFigure(GameTestHelper helper) {
+        Player bare = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.assertTrue(bare.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE) == 0.0,
+                "the control wears nothing and resists nothing, got "
+                        + bare.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE));
+
+        Player worn = helper.makeMockPlayer(GameType.SURVIVAL);
+        List<ToolConstants.Entry> set = List.of(
+                ToolConstants.HELMET, ToolConstants.CHESTPLATE, ToolConstants.LEGGINGS, ToolConstants.BOOTS);
+        List<EquipmentSlot> slots = List.of(
+                EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET);
+        for (int i = 0; i < set.size(); i++) {
+            worn.setItemSlot(slots.get(i), ToolAssembly.assembleAt(helper, worn, STATION,
+                    ForgeweaveBlocks.TOOL_STATION.get(), ToolAssembly.entryOf(set.get(i)), List.of("iron", "iron")));
+        }
+        worn.tick();
+
+        double resistance = worn.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
+        helper.assertTrue(Math.abs(resistance - 0.05) < 0.0001,
+                "a four-piece iron set must reach the clone's 0.05, got " + resistance);
+        helper.succeed();
+    }
+
     /** Obsidian -&gt; blast_protection: 2.5 against explosions. */
     @GameTest(template = "empty")
     public static void blastProtectionAgainstExplosions(GameTestHelper helper) {

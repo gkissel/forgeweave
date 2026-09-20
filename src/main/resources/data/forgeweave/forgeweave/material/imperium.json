@@ -43,7 +43,7 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "armor": ["forgeweave:magic_protection"],
+    "armor": ["forgeweave:imperium_ward"],
     "general": ["forgeweave:imperium_edge"]
   },
   "crafting_items": [

@@ -1601,25 +1601,53 @@ public final class ForgeweaveTraits {
     // is CRUMBLING above (#228); speed rising as the tool wears is STONEBOUND above (#102). None of
     // the seven get a new class -- the four genuinely new shapes follow.
 
-    /** {@code sunmend}/{@code duskmend}'s own rate: twice ecological's, since each condition holds
-     *  only about half of every day -- proposed to land near the same daily total. */
-    private static final int CONDITIONAL_SELF_REPAIR_TICKS_PER_POINT = ECOLOGICAL_TICKS_PER_POINT / 2;
+    // ------------------------------------------------------------------ the self-repair ladder
+    // Issue #1097. Every `self_repair_when` rate below is read off one scale rather than picked per
+    // trait, because the shipped numbers did not line up with the names or the materials.
+    //
+    // A conditional mend (sunlit or night) runs at half the ticks of an unconditional one on the
+    // same tier, because its condition holds about half of each day, so the two land near the same
+    // daily total. The per-tier unconditional base is 800 ticks at netherite, 1000 at iron and 1200
+    // at stone; the conditional rate is half of it, rounded to whole seconds.
+    //
+    // Two rates are set by something other than tier, and both are deliberate:
+    //   - SUNMEND and DUSKMEND are a day/night mirror pair and share one rate. Their materials sit
+    //     on different tiers (ivory psimetal is diamond, duskspar is netherite), so the shared rate
+    //     is the lower of the two.
+    //   - SMOLDERVEIL is the one trait whose stated idea is to beat DUSKMEND, so it takes the
+    //     fastest rate on the ladder even though ebony psimetal is a tier below duskspar.
+    //
+    // Nothing mends faster than 400 ticks per point, the fastest rate that shipped before this
+    // issue. ECOLOGICAL keeps upstream's own 800 and is not part of the ladder: it is a 1.12 port
+    // and parity holds its magnitude.
+
+    /** Netherite-tier conditional rate: one point every 20 seconds while the condition holds. */
+    private static final int SELF_REPAIR_NETHERITE_CONDITIONAL = 400;
+    /** Diamond-tier conditional rate: one point every 22 seconds. */
+    private static final int SELF_REPAIR_DIAMOND_CONDITIONAL = 440;
+    /** Iron-tier conditional rate: one point every 25 seconds. */
+    private static final int SELF_REPAIR_IRON_CONDITIONAL = 500;
+    /** Stone-tier conditional rate: one point every 30 seconds. */
+    private static final int SELF_REPAIR_STONE_CONDITIONAL = 600;
+    /** Netherite-tier unconditional rate: one point every 40 seconds, day or night. */
+    private static final int SELF_REPAIR_NETHERITE_ALWAYS = 800;
+    /** Iron-tier unconditional rate: one point every 50 seconds, day or night. */
+    private static final int SELF_REPAIR_IRON_ALWAYS = 1000;
 
     /**
-     * The M6 {@code self_repair_when(condition, ticksPerPoint)} instance for direct sunlight -- see
-     * {@link SelfRepairWhen} and {@link SelfRepairCondition#SUNLIT}. Not yet assigned to a material;
-     * that wiring is a later M6 issue.
+     * Ivory psimetal, the daylight half of the mirror pair (see the ladder comment above). One point
+     * every 22 seconds in direct sunlight -- see {@link SelfRepairWhen} and
+     * {@link SelfRepairCondition#SUNLIT}.
      */
     public static final Trait SUNMEND =
-            new SelfRepairWhen(SelfRepairCondition.SUNLIT, CONDITIONAL_SELF_REPAIR_TICKS_PER_POINT);
+            new SelfRepairWhen(SelfRepairCondition.SUNLIT, SELF_REPAIR_DIAMOND_CONDITIONAL);
 
     /**
-     * The M6 {@code self_repair_when(condition, ticksPerPoint)} instance for night -- see {@link
-     * SelfRepairWhen} and {@link SelfRepairCondition#NIGHT}. Not yet assigned to a material; that
-     * wiring is a later M6 issue.
+     * Duskspar, the night half of the mirror pair (see the ladder comment above). One point every 22
+     * seconds after dark -- see {@link SelfRepairWhen} and {@link SelfRepairCondition#NIGHT}.
      */
     public static final Trait DUSKMEND =
-            new SelfRepairWhen(SelfRepairCondition.NIGHT, CONDITIONAL_SELF_REPAIR_TICKS_PER_POINT);
+            new SelfRepairWhen(SelfRepairCondition.NIGHT, SELF_REPAIR_DIAMOND_CONDITIONAL);
 
     /**
      * The M6 {@code cascading_break(blockPredicate)} instance: breaking one gravity-affected block
@@ -1862,9 +1890,15 @@ public final class ForgeweaveTraits {
      * {@code #forgeweave:projectile_protection}, plus the clone's {@code MaxArmorAttributeModule}
      * of +0.05 knockback resistance.
      *
-     * <p>Deviation, recorded: the clone takes the <em>maximum</em> 0.05 across worn pieces; here each
-     * piece adds its own 0.05 (ponytail: one attribute hook, no cross-piece max). Four iron pieces
-     * give 0.2 rather than 0.05.
+     * <p>The knockback half used to be its own {@code armorAttributes} override paying a flat 0.05
+     * per piece, so four iron pieces reached 0.2 where the clone gives 0.05. Issue #1097 dropped
+     * that override: the trait now declares {@link #PROJECTILE_PROTECTION_KNOCKBACK_RESISTANCE}
+     * through {@link Trait#knockbackResistance()} and {@link #armorAttributes} pays each piece
+     * {@link #WORN_KNOCKBACK_RESISTANCE_SHARE} of it, so a worn set reaches the clone's 0.05 and no
+     * further. Upstream reaches the same figure by taking the maximum across worn pieces rather
+     * than a share of each; the repository already had the share mechanism and it lands on the same
+     * cross-piece number, so it is reused instead of a second one. The trait is on iron's armor
+     * list only, so the held half of {@code knockbackResistance} never fires for it.
      */
     public static final Trait PROJECTILE_PROTECTION = new Trait() {
         private final Protection protection = Protection.against(Protection.PROJECTILE_PROTECTION, PROJECTILE_PROTECTION_PER_LEVEL);
@@ -1875,10 +1909,8 @@ public final class ForgeweaveTraits {
         }
 
         @Override
-        public void armorAttributes(ResourceLocation id, EquipmentSlot slot, ItemAttributeModifiers.Builder out) {
-            out.add(Attributes.KNOCKBACK_RESISTANCE,
-                    new AttributeModifier(id, PROJECTILE_PROTECTION_KNOCKBACK_RESISTANCE, AttributeModifier.Operation.ADD_VALUE),
-                    EquipmentSlotGroup.bySlot(slot));
+        public float knockbackResistance() {
+            return PROJECTILE_PROTECTION_KNOCKBACK_RESISTANCE;
         }
     };
 
@@ -2085,9 +2117,21 @@ public final class ForgeweaveTraits {
         return stack.getOrDefault(ForgeweaveDataComponents.OVERSLIME.get(), 0);
     }
 
-    /** {@code OverslimeModule#getCapacity}: {@link #OVERSLIME_CAPACITY} if the stack carries the trait, else 0. */
+    /**
+     * {@code OverslimeModule#getCapacity}: {@link #OVERSLIME_CAPACITY} if the stack carries
+     * {@link #OVERSLIME}, plus {@link #OVERLORD}'s durability-scaled share on top of it (issue
+     * #1097), else 0.
+     *
+     * <p>The two grants add, which is what upstream does: its {@code overslime.json} adds a flat 50
+     * to {@code OVERSLIME_STAT} and its {@code overlord.json} copies a share of durability into the
+     * same stat, and queen's slime carries both.
+     */
     public static int overslimeCapacity(ItemStack stack) {
-        return has(stack, OVERSLIME) ? OVERSLIME_CAPACITY : 0;
+        int capacity = has(stack, OVERSLIME) ? OVERSLIME_CAPACITY : 0;
+        if (has(stack, OVERLORD)) {
+            capacity += Math.max(0, Math.round(stack.getMaxDamage() * OVERLORD_OVERSLIME_FRACTION));
+        }
+        return capacity;
     }
 
     /** {@code PersistentDataCapacityBar#setAmount}: clamped to the capacity, removed at zero. */
@@ -2142,13 +2186,19 @@ public final class ForgeweaveTraits {
 
     /**
      * Queen's slime general trait (issue #843, closes #180). Upstream's {@code overlord.json} pairs
-     * a {@code stat_copy} (10% of durability into overslime capacity) with a {@code stat_boost}
-     * (-15% durability), both leveled. Forgeweave's material defaults are level 1 and there is no
-     * per-trait overslime-capacity-bonus hook ({@link Trait} only sums durability and energy this
-     * way, issue #830's precedent) -- adding one for this single user is not worth a new interface
-     * hook, so the capacity half folds into queen's slime's own {@link #OVERSLIME} grant (a flat
-     * {@link #OVERSLIME_CAPACITY} instead of a dynamic durability-scaled one) and only the durability
-     * trade survives as a distinct effect. Deviation flagged in the PR body.
+     * a {@code stat_copy} ({@code eachLevel(0.1)} of durability into {@code OVERSLIME_STAT}) with a
+     * {@code stat_boost} ({@code eachLevel(-0.15)} of durability), both leveled; a Forgeweave
+     * material default is level 1, so both halves land once.
+     *
+     * <p>Issue #1097 put the capacity half back. It needs no new {@link Trait} hook: overslime
+     * capacity is not a summed stat like durability or energy, it is read from the stack by
+     * {@link #overslimeCapacity}, so overlord is answered there the way {@link #OVERSLIME_FRIEND}
+     * and {@link #VINEWARDEN} are answered in {@link #overslimeArmorPenalty}. The pool is
+     * {@link #OVERLORD_OVERSLIME_FRACTION} of the assembled tool's durability, on top of whatever
+     * {@link #OVERSLIME} itself grants, and {@link #OVERSLIME} is still what spends it -- the same
+     * split upstream has, where {@code overlord.json} only copies the stat and the overslime
+     * modifier carries the {@code DurabilityShieldModule}. Queen's slime grants both, so its tools
+     * keep the pool they had and gain the durability-scaled part.
      */
     public static final Trait OVERLORD = new Trait() {
         @Override
@@ -2158,6 +2208,8 @@ public final class ForgeweaveTraits {
     };
 
     private static final float OVERLORD_DURABILITY_MULTIPLIER = 0.85F;
+    /** {@code overlord.json}'s {@code stat_copy} rate: a tenth of the tool's durability, per level. */
+    public static final float OVERLORD_OVERSLIME_FRACTION = 0.1F;
 
     /**
      * Necrotic bone plating/maille (issue #843, closes #180). Upstream's {@code RestoreLostHealthModule}
@@ -2657,7 +2709,14 @@ public final class ForgeweaveTraits {
         }
     };
 
-    /** M6 dedupe batch (issue #876): a little extra spring in the step. Original Forgeweave content, no upstream port. */
+    /**
+     * M6 dedupe batch (issue #876): 3% more movement speed while held. Original Forgeweave content,
+     * no upstream port.
+     *
+     * <p>The id says falling and the effect is speed. Issue #1097 kept both: saved tools name the
+     * id, so it stays, and the display name is "Featherlight" so the text no longer suggests fall
+     * damage.
+     */
     public static final Trait FEATHERFALL = new Trait() {
         @Override
         public float movementSpeedBonus() {
@@ -2738,8 +2797,11 @@ public final class ForgeweaveTraits {
         }
     };
 
-    /** M6 dedupe batch (issue #876): a slow, unconditional trickle of self-repair. Original Forgeweave content, no upstream port. */
-    public static final Trait TINSEEKER = new SelfRepairWhen(SelfRepairCondition.ALWAYS, 900);
+    /**
+     * Mendstone. Netherite tier, no condition: one point every 40 seconds, day or night (issue
+     * #1097's ladder, above). Original Forgeweave content, no upstream port.
+     */
+    public static final Trait TINSEEKER = new SelfRepairWhen(SelfRepairCondition.ALWAYS, SELF_REPAIR_NETHERITE_ALWAYS);
 
     /** M6 dedupe batch (issue #876): a quick, disciplined swing. Original Forgeweave content, no upstream port. */
     public static final Trait STEELFAST = new Trait() {
@@ -2766,8 +2828,11 @@ public final class ForgeweaveTraits {
         }
     };
 
-    /** M6 dedupe batch (issue #876): repairs a little faster after dark. Original Forgeweave content, no upstream port. */
-    public static final Trait DUSKBLOOM = new SelfRepairWhen(SelfRepairCondition.NIGHT, 600);
+    /**
+     * Redstone alloy. Stone tier, night: one point every 30 seconds (issue #1097's ladder, above).
+     * Original Forgeweave content, no upstream port.
+     */
+    public static final Trait DUSKBLOOM = new SelfRepairWhen(SelfRepairCondition.NIGHT, SELF_REPAIR_STONE_CONDITIONAL);
 
     /** M6 dedupe batch (issue #876): striking a burning target quickens the follow-up. Original Forgeweave content, no upstream port. */
     public static final Trait EMBERWAKE = new Trait() {
@@ -2778,11 +2843,19 @@ public final class ForgeweaveTraits {
         }
     };
 
-    /** M6 dedupe batch (issue #876): mends faster than duskmend's own base rate at night. Original Forgeweave content, no upstream port. */
-    public static final Trait SMOLDERVEIL = new SelfRepairWhen(SelfRepairCondition.NIGHT, 500);
+    /**
+     * Ebony psimetal. The quickest night mend on the ladder above: one point every 20 seconds, which
+     * is what its own wording always claimed and issue #1097 made true. Ebony psimetal is a tier
+     * below duskspar, so this is the ladder's one deliberate tier inversion. Original Forgeweave
+     * content, no upstream port.
+     */
+    public static final Trait SMOLDERVEIL = new SelfRepairWhen(SelfRepairCondition.NIGHT, SELF_REPAIR_NETHERITE_CONDITIONAL);
 
-    /** M6 dedupe batch (issue #876): a slow daylight mend, the mirror of duskmend. Original Forgeweave content, no upstream port. */
-    public static final Trait ASHENBOND = new SelfRepairWhen(SelfRepairCondition.SUNLIT, 700);
+    /**
+     * Embercast. Netherite tier, sunlit: one point every 20 seconds (issue #1097's ladder, above).
+     * Original Forgeweave content, no upstream port.
+     */
+    public static final Trait ASHENBOND = new SelfRepairWhen(SelfRepairCondition.SUNLIT, SELF_REPAIR_NETHERITE_CONDITIONAL);
 
     /** M6 dedupe batch (issue #876): a crystalline ward softens incoming force. Original Forgeweave content, no upstream port. */
     public static final Trait PRISMWARD = new Trait() {
@@ -2901,8 +2974,11 @@ public final class ForgeweaveTraits {
         }
     };
 
-    /** M6 dedupe batch (issue #876): a very slow smoked-meat self-mend. Original Forgeweave content, no upstream port. */
-    public static final Trait SMOKEHOUSE = new SelfRepairWhen(SelfRepairCondition.ALWAYS, 1000);
+    /**
+     * Elementarium palladium. Iron tier, no condition: one point every 50 seconds, day or night
+     * (issue #1097's ladder, above). Original Forgeweave content, no upstream port.
+     */
+    public static final Trait SMOKEHOUSE = new SelfRepairWhen(SelfRepairCondition.ALWAYS, SELF_REPAIR_IRON_ALWAYS);
 
     /** M6 dedupe batch (issue #876): leaden weight resists being knocked back. Original Forgeweave content, no upstream port. */
     public static final Trait GRAVITIC = new Trait() {
@@ -2936,8 +3012,11 @@ public final class ForgeweaveTraits {
         }
     };
 
-    /** M6 dedupe batch (issue #876): a psionic weave that mends best in daylight. Original Forgeweave content, no upstream port. */
-    public static final Trait MATRIXBLOOM = new SelfRepairWhen(SelfRepairCondition.SUNLIT, 650);
+    /**
+     * Psimetal. Iron tier, sunlit: one point every 25 seconds (issue #1097's ladder, above).
+     * Original Forgeweave content, no upstream port.
+     */
+    public static final Trait MATRIXBLOOM = new SelfRepairWhen(SelfRepairCondition.SUNLIT, SELF_REPAIR_IRON_CONDITIONAL);
 
     // ---------------------------------------------------------------- #876 M6 dedupe batch: every
     // material gets a distinct trait id. 49 of the new ids reuse existing ADR-0004 seams with new

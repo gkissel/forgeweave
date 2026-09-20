@@ -24,7 +24,7 @@
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
     "general": ["forgeweave:pristine"],
-    "armor": ["forgeweave:melee_protection"]
+    "armor": ["forgeweave:warded"]
   },
   "crafting_items": [
     { "ingredient": { "tag": "c:gems/emerald" }, "value": 666 }

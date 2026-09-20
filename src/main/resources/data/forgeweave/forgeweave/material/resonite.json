@@ -24,7 +24,7 @@
   "incorrect_for_tool": "forgeweave:incorrect_for_resonite_tool",
   "traits": {
     "general": ["forgeweave:dominant"],
-    "armor": ["forgeweave:melee_protection"]
+    "armor": ["forgeweave:vigorward"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:resonite_ingot" }, "value": 144 },

@@ -24,7 +24,7 @@
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
     "general": ["forgeweave:unyielding"],
-    "armor": ["forgeweave:melee_protection"]
+    "armor": ["forgeweave:warded"]
   },
   "crafting_items": [
     { "ingredient": { "tag": "c:gems/black_quartz" }, "value": 144 },

@@ -152,44 +152,57 @@ datapack definitions. `build/trait-audit/traits.md` has the full generated table
 | cannot fire | 3 | fixed here, table above |
 | backwards | 0 | all four were datapack traits and #1094 fixed them |
 | magnitude off | 0 | none |
-| needs a maintainer decision | 7 | listed below |
+| needs a maintainer decision | 7 | all seven decided and carried out by #1097; see "Decided" below |
 
 The datapack rows are #1094's 52-row table and are not repeated. 190 shipped materials grant at least
 one trait; 165 of them build both tools and armor, 25 build tools only, and none builds armor only.
 
-## Needs a maintainer decision
+## Decided
 
-Seven things read oddly but are balance or design calls rather than defects, so nothing here was
-changed.
+Seven things read oddly but were balance or design calls rather than defects, so #1092 left them
+alone and asked. The maintainer read the list on 2026-09-20 and decided all seven; issue #1097
+carried the decisions out. Each row below is what shipped, not what was proposed.
 
-1. `featherfall` is a movement trait with a falling name. `movementSpeedBonus() = 0.03`, described
-   as "a little extra spring in the step", which is a fair reading of a speed bonus. The name says
-   fall damage. Either the name or the effect is the odd one out; both are original Forgeweave
-   content from #876 with no upstream to appeal to.
-2. `overlord` no longer says it grants overslime, because it does not. Queen's slime grants
-   `overslime` separately, so the material still behaves as #843 intended and only the trait's own
-   sentence changed. Whether `overlord` should carry a durability-scaled overslime pool of its own
-   (the clone's `stat_copy`, which `Trait` has no hook for) is the open question its javadoc already
-   flags.
-3. The self-repair rates have no ladder. Seven traits ride `self_repair_when` at 400, 500, 600,
-   650, 700, 900 and 1000 ticks per point, and the numbers do not line up with the names or with each
-   other: `smolderveil` was meant to beat `duskmend` and is slower, `ashenbond` was meant to mirror
-   `sunmend` and is nearly twice as slow. The descriptions are now honest about direction, but the
-   spread itself is a balance question.
-4. The armor-only traits sit on `general` lists. Ten traits reach the armor side only
-   (`armorAttributes`, `healingMultiplier`, `visibilityMultiplier`); six of them are granted on
-   materials' `general` lists, so they also land on those materials' tool parts and do nothing there.
-   This is SCOPE.md D17's standing rule (a general trait attaches unfiltered; hooks that do not apply
-   never fire), not a bug, but it is exactly the gap issue #1093 is meant to fill with companion
-   traits, and the per-material table is its input.
-5. `PROJECTILE_PROTECTION`'s knockback resistance is per piece rather than a cross-piece maximum. Its own
-   javadoc records the deviation: four iron pieces give 0.2 where the clone gives 0.05. Unchanged.
-6. `WARDED` follows the clone's formula rather than the clone's lang row. The clone's text says
-   0.5 per level and its own `AdjustDamageModule` computes 1. Forgeweave ported the formula and says
-   1. Unchanged; noted because the numbers disagree upstream, not here.
-7. The three weak `stacking_resistance` presets #1094 flagged are still weak. `deorum_temper`,
-   `arctic_insulation` and `dragonsteel_ice_calm` top out at 0.8%, 1.8% and 3.2% off the post-armor
-   blow where the hardcoded `bracingplate` reaches 18%. Carried forward from #1094 unchanged.
+1. **`featherfall` keeps its id and its effect; the text changed.** It is `movementSpeedBonus() =
+   0.03` with a falling name, and saved tools name the id, so the id stays. The display name is
+   **Featherlight** and the description says what the effect is ("a light metal that carries quick:
+   3% more movement speed while held"), so nothing suggests fall damage any more.
+2. **`overlord` got its overslime half back.** Upstream's `overlord.json` pairs a `stat_copy` (a
+   tenth of durability into overslime capacity) with a `stat_boost` (-15% durability); Forgeweave
+   shipped only the second half. Both halves land now. It needed no new `Trait` hook: overslime
+   capacity is not a summed stat, it is read from the stack by `ForgeweaveTraits#overslimeCapacity`,
+   which answers `overlord` there the same way `overslimeArmorPenalty` answers `overslime_friend`.
+   `overslime` is still what spends the pool, the same split upstream has, and queen's slime grants
+   both so its tools keep the flat 50 and gain the scaled part on top.
+3. **The self-repair rates became one ladder.** A conditional mend (day or night) runs at half the
+   ticks of an unconditional one on the same tier, because its condition holds about half of each
+   day. Per tier: netherite 400 conditional / 800 unconditional, diamond 440, iron 500 / 1000,
+   stone 600. Two rates are set by something else: `sunmend` and `duskmend` are a day/night mirror
+   pair and share one rate (the lower of their two materials' tiers), and `smolderveil`, whose whole
+   stated idea is to beat `duskmend`, takes the fastest rate on the ladder even though ebony
+   psimetal sits a tier under duskspar. Nothing mends faster than 400, the quickest rate that
+   shipped before. `ecological` keeps upstream's 800 and is outside the ladder: it is a 1.12 port and
+   parity holds its magnitude. Each description now states its rate in seconds.
+4. **Five armor-only traits moved off `general` lists.** `azure_electrum_swift`,
+   `azure_silver_moonstep`, `ferricore_footing`, `gravitite_levity` and `ironwood_footing` are on
+   their materials' `armor` lists now, so they no longer land on tool parts where they do nothing.
+   The sixth the count included is `battleworn`, which `StatScalesWithWear` makes reflection report
+   on both sides -- the blind spot the next section already names -- and it is on an `armor` list
+   already.
+5. **`projectile_protection`'s knockback resistance is the clone's cross-piece figure.** A worn set
+   reaches 0.05, not the 0.2 four iron pieces used to sum to. The trait declares the value through
+   `Trait#knockbackResistance()` and #1093's worn share pays a quarter of it per piece. Upstream
+   reaches the same number by taking the maximum across worn pieces; the share mechanism was already
+   in the repository and lands on the same set total, so no second one was written. The deviation
+   note is gone from the javadoc.
+6. **`WARDED`'s formula wins over upstream's lang row.** The clone's text says 0.5 per level and its
+   own `AdjustDamageModule` computes 1. Forgeweave ports the formula and says 1, and that is the
+   decision. Nothing changed in behavior; it is recorded in `docs/SCOPE.md` so the disagreement is
+   not re-opened.
+7. **The three weak `stacking_resistance` presets moved into their tier's envelope.**
+   `dragonsteel_ice_calm` 3.2% to 16% and `deorum_temper` 0.8% to 14% at netherite,
+   `arctic_insulation` 1.8% to 12% at diamond. The ladder runs from the hardcoded `bracingplate`'s
+   18% at the top down to `naga_ward`'s 8% at iron, and every description states its real maximum.
 
 ## What the guard test could not decide mechanically
 
@@ -280,8 +293,8 @@ column means the trait has at least one hook on each side, not that it is grante
 | `surging` / `surging2` / `surging3` | extra damage on a fully charged swing, three levels | yes | tool | ok |
 | `ruthless` | a bigger crit multiplier | yes | tool | ok |
 | `escalating` | consecutive full-charge hits ramp, sharing the katana's component | yes | tool | ok |
-| `sunmend` | heals one durability per 400 ticks in direct sunlight | yes | both | ok |
-| `duskmend` | heals one durability per 400 ticks at night | yes | both | ok |
+| `sunmend` | heals one durability per 440 ticks in direct sunlight (#1097) | yes | both | ok |
+| `duskmend` | heals one durability per 440 ticks at night (#1097) | yes | both | ok |
 | `cascading` | breaking a gravity block takes the column above it | yes | tool | ok |
 | `fertilizing` | right-click fertilizes crops for durability | yes | tool | ok |
 | `energized` | an FE buffer spent before durability | yes | both | ok |
@@ -304,21 +317,21 @@ column means the trait has at least one hook on each side, not that it is grante
 | `freezing` | each hit stacks Slowness deeper, up to IV | yes | tool | ok |
 | `hovering` | a projectile is slower but barely minds gravity (read by id) | yes | none | ok |
 | `splitting` | a fired arrow may split in two (read by id from `BowItem`) | yes | none | ok |
-| `projectile_protection` | protection 2 against projectiles, plus 0.05 knockback resistance per piece | yes | both | ok (see decision 5) |
+| `projectile_protection` | protection 2 against projectiles, plus 0.05 knockback resistance across a worn set | yes | both | ok (decision 5, settled by #1097) |
 | `depth_protection` | protection scales with depth below Y=64, a penalty high up | yes | both | ok |
 | `blast_protection` | protection 2.5 against explosions | yes | both | ok |
 | `melee_protection` | protection 2 against direct melee | yes | both | ok |
 | `fire_protection` | protection 2.5 against fire | yes | both | **cannot fire, fixed** |
 | `searing` | mined blocks drop their furnace result | yes | tool | **cannot fire, fixed** |
 | `necrotic` | heals the wielder for a tenth of damage dealt | yes | tool | **cannot fire, fixed** |
-| `warded` | at full health, one damage comes off after armor | yes | both | ok (see decision 6) |
+| `warded` | at full health, one damage comes off after armor | yes | both | ok (decision 6, settled by #1097) |
 | `crystalstrike` | +5% attack speed per worn piece, and snaps knockback to compass directions | yes | armor | ok |
 | `consecrated` | protection 1.25 against undead attackers | yes | both | ok |
 | `overshield` | spends up to two overslime for protection | yes | both | ok |
 | `overslime` | a 50-point pool durability loss is paid from first | yes | both | ok |
 | `overslime_friend` | waives overslime's armor penalty (read by id) | yes | none | ok |
 | `overgrowth` | 5% chance a second to regenerate one overslime | yes | both | ok |
-| `overlord` | assembled durability x0.85, head only | **no** | tool | **text wrong, fixed** |
+| `overlord` | assembled durability x0.85, head only, plus an overslime pool of a tenth of that (#1097) | yes | tool | **text wrong, fixed** |
 | `restore` | 15% chance on being hit to heal a quarter of it for 1 durability | yes | both | ok |
 | `recurrent_protection` | half the blow's damage becomes flat reduction for that blow | yes | both | ok |
 | `piercing_guard` | a direct attacker gets -1 armor for four seconds, one durability | yes | both | ok |
@@ -337,7 +350,7 @@ column means the trait has at least one hook on each side, not that it is grante
 | `avalanche` | extra knockback on every hit | yes | tool | ok |
 | `landslide` | +25 max durability | **no** | both | **text wrong, fixed** |
 | `skyborne` | +8% bow draw speed | yes | tool | ok |
-| `featherfall` | +3% movement speed while held | yes | tool | ok (see decision 1) |
+| `featherfall` | +3% movement speed while held | yes | tool | ok (decision 1, settled by #1097: shown as "Featherlight") |
 | `buoyant` | +8% attack speed | yes | tool | ok |
 | `corebound` | +40 max durability | yes | both | ok |
 | `ballast` | +0.2 knockback resistance while held | yes | tool | ok |
@@ -348,15 +361,15 @@ column means the trait has at least one hook on each side, not that it is grante
 | `stonewake` | +2 against a target at full health | yes | tool | ok |
 | `keenedge` | damage scales with remaining durability | yes | tool | ok |
 | `wellspring` | mining stone may heal the wielder | yes | tool | ok |
-| `tinseeker` | heals one durability per 900 ticks | yes | both | ok |
+| `tinseeker` | heals one durability per 800 ticks (#1097) | yes | both | ok |
 | `steelfast` | +6% attack speed | yes | tool | ok |
 | `brasswind` | +6% bow draw speed | yes | tool | ok |
 | `amberflow` | 20% chance of Speed on hit | yes | tool | ok |
 | `duskbloom` | heals one durability per 600 ticks at night | yes | both | ok |
 | `emberwake` | Speed on hitting a burning target | yes | tool | ok |
 | `overburdened` | mining may leave the wielder with Mining Fatigue | yes | tool | ok |
-| `smolderveil` | heals one durability per 500 ticks at night | **no** | both | **text wrong, fixed** |
-| `ashenbond` | heals one durability per 700 ticks in sunlight | **no** | both | **text wrong, fixed** |
+| `smolderveil` | heals one durability per 400 ticks at night (#1097) | yes | both | **text wrong, fixed** |
+| `ashenbond` | heals one durability per 400 ticks in sunlight (#1097) | yes | both | **text wrong, fixed** |
 | `fallout` | slow self-poison, and mining stone may mutate a neighbour to deepslate | yes | both | ok |
 | `nocturnal_edge` | +2 at night, -1 by day | yes | tool | ok |
 | `prismward` | +0.1 knockback resistance while held | **no** | tool | **text wrong, fixed** |
@@ -381,7 +394,7 @@ column means the trait has at least one hook on each side, not that it is grante
 | `starforged` | +10% durability per repair | yes | both | ok |
 | `rubberize` | +0.08 knockback resistance while held | **no** | tool | **text wrong, fixed** |
 | `tidebreaker` | clears the water around a mined block | yes | tool | ok |
-| `matrixbloom` | heals one durability per 650 ticks in sunlight | **no** | both | **text wrong, fixed** |
+| `matrixbloom` | heals one durability per 500 ticks in sunlight (#1097) | yes | both | **text wrong, fixed** |
 | `berserker_stance` | bonus damage while sneaking, paid in extra wear | yes | tool | ok |
 | `earthmend` | digging dirt-like blocks may heal the wielder | yes | tool | ok |
 | `duskgrasp` | Darkness on hit | yes | tool | ok |

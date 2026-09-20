@@ -43,7 +43,7 @@
   "maille": true,
   "incorrect_for_tool": "forgeweave:incorrect_for_warspar_tool",
   "traits": {
-    "armor": ["forgeweave:magic_protection"],
+    "armor": ["forgeweave:awakened_supremium_ward"],
     "general": ["forgeweave:awakened_supremium_edge"]
   },
   "crafting_items": [

@@ -44,7 +44,7 @@
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
     "general": ["forgeweave:predatory"],
-    "armor": ["forgeweave:melee_protection"]
+    "armor": ["forgeweave:battleworn"]
   },
   "crafting_items": [
     {

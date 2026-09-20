@@ -55,7 +55,12 @@ public class TraitPairingGameTests {
             "inferium_edge", "prudentium_edge", "tertium_edge", "imperium_edge", "supremium_edge",
             "awakened_supremium_edge", "insanium_edge", "prosperity_bloom", "soulium_reap", "blutonium_pulse",
             "cyanite_chill", "ludicrite_surge", "uraninite_decay", "fluix_arc", "silicon_lattice",
-            "quartz_enriched_edge", "iesnium_rite", "fluorite_focus", "vine_weave");
+            "quartz_enriched_edge", "iesnium_rite", "fluorite_focus", "vine_weave",
+            // #1097: the companions that replaced melee_protection and magic_protection where those
+            // two had stopped answering the material's own idea.
+            "temperward", "warded", "battleworn", "inferium_ward", "prudentium_ward", "tertium_ward",
+            "imperium_ward", "supremium_ward", "awakened_supremium_ward", "insanium_ward",
+            "uraninite_sickness", "cyanite_chillback", "blutonium_fallout", "ludicrite_meltdown");
 
     private static ResourceLocation id(String path) {
         return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
@@ -154,6 +159,82 @@ public class TraitPairingGameTests {
 
         helper.assertTrue(plain == warded,
                 "a generic blow is outside the magic tag and must cost the same, " + warded + " against " + plain);
+        helper.succeed();
+    }
+
+    // ---------------------------------------------------------------- #1097: the two weak groups
+
+    /**
+     * Issue #1097's essence ladder. `magic_protection` used to be the armor side of all nine
+     * Mystical Agriculture materials, flat, whatever the tier. The armor side climbs now the way
+     * the tool side does: the top rung takes more off a magic blow than the first, and the control
+     * wearing no trait takes the blow whole.
+     */
+    @GameTest(template = "empty")
+    public static void theEssenceLadderClimbsOnTheArmorSideToo(GameTestHelper helper) {
+        DamageSource wither = helper.getLevel().damageSources().wither();
+        float plain = lost(wearing(helper), wither, BLOW);
+        float first = lost(wearing(helper, "inferium_ward"), wither, BLOW);
+        float top = lost(wearing(helper, "insanium_ward"), wither, BLOW);
+
+        helper.assertTrue(first < plain,
+                "the first rung must still soften a magic blow, " + first + " against " + plain);
+        helper.assertTrue(top < first,
+                "the top rung must beat the first, " + top + " against " + first);
+        helper.succeed();
+    }
+
+    /** The control: the ladder is tag-scoped, so a blow outside the magic tag costs the same on every rung. */
+    @GameTest(template = "empty")
+    public static void theEssenceLadderLeavesANonMagicBlowAlone(GameTestHelper helper) {
+        DamageSource generic = helper.getLevel().damageSources().generic();
+        float plain = lost(wearing(helper), generic, BLOW);
+        float top = lost(wearing(helper, "insanium_ward"), generic, BLOW);
+
+        helper.assertTrue(plain == top,
+                "a generic blow is outside the magic tag and must cost the same, " + top + " against " + plain);
+        helper.succeed();
+    }
+
+    /**
+     * Issue #1097's reactor metals: the radiation the blade carries now answers a blow taken, so
+     * whoever strikes a ludicrite wearer withers. The control is the same chestplate carrying the
+     * tool-side trait instead, which does nothing to an attacker.
+     */
+    @GameTest(template = "empty")
+    public static void ludicriteMeltdownWithersWhoeverStrikesTheWearer(GameTestHelper helper) {
+        LivingEntity control = helper.spawn(EntityType.COW, 2, 2, 2);
+        Player unprotected = wearing(helper, "ludicrite_surge");
+        for (int i = 0; i < 10; i++) {
+            lost(unprotected, helper.getLevel().damageSources().mobAttack(control), BLOW);
+        }
+        helper.assertTrue(control.getEffect(MobEffects.WITHER) == null,
+                "the tool-side trait must leave an attacker alone");
+
+        LivingEntity attacker = helper.spawn(EntityType.COW, 3, 2, 3);
+        Player wearer = wearing(helper, "ludicrite_meltdown");
+        // P(no proc in 20 blows at 60%) is about 1e-8, the repository's usual bar for a chance roll.
+        for (int i = 0; i < 20 && attacker.getEffect(MobEffects.WITHER) == null; i++) {
+            lost(wearer, helper.getLevel().damageSources().mobAttack(attacker), BLOW);
+        }
+        helper.assertTrue(attacker.getEffect(MobEffects.WITHER) != null,
+                "whoever strikes a ludicrite wearer must wither");
+        helper.succeed();
+    }
+
+    /**
+     * Issue #1097's answer to a flat edge: {@code temperward} takes a flat point off every blow,
+     * where the {@code melee_protection} and {@code magic_protection} it replaced were both tag
+     * scoped. The control wears the same piece with no trait.
+     */
+    @GameTest(template = "empty")
+    public static void temperwardTakesAFlatPointOffAnyBlow(GameTestHelper helper) {
+        DamageSource generic = helper.getLevel().damageSources().generic();
+        float plain = lost(wearing(helper), generic, BLOW);
+        float tempered = lost(wearing(helper, "temperward"), generic, BLOW);
+
+        helper.assertTrue(tempered < plain,
+                "temperward must soften a generic blow, " + tempered + " against " + plain);
         helper.succeed();
     }
 

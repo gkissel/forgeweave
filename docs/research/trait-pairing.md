@@ -36,6 +36,23 @@ Two things happened before any material was touched.
 
 Everything else reuses a behavior that already shipped.
 
+## The two groups #1097 re-paired
+
+Two companions had turned into catch-alls: `melee_protection` covered thirteen materials and
+`magic_protection` covered all seventeen of batch 3. The rule is that the armor trait is the
+material's own idea turned around, and "an edge that bites through armor blunts a direct blow when
+worn" does not describe what `pristine`, `dominant`, `elektronbond`, `predatory`, `lacerating` or a
+crit multiplier actually do.
+
+The maintainer's test on 2026-09-20: judge each pair by reading the tool trait's code, not its name,
+and write the one-sentence tie first. Where an honest sentence could not be written, the companion
+was wrong and changed. `melee_protection` stayed on the four materials whose tool trait really is
+about beating armor (`steel`, `tungsten`, `knightmetal`, `certus_quartz`); `magic_protection` is on
+none of the seventeen any more. Three new `trait_definition` families came out of it -- the essence
+ladder's seven rungs, the reactor metals' four radiation companions, and `temperward` -- and
+everything else reuses a companion that already shipped. The changed rows are marked `#1097` in the
+tables below.
+
 ## The pairs, by batch
 
 ### Batch 0: the two shared mechanics
@@ -62,26 +79,26 @@ Each of these builds both halves and carried only tool-side traits. The `Armor s
 | `aluminium` | tools and armor | `featherfall` | `swiftward` | quick in the hand, quick on the feet | new | own |
 | `alumite` | tools and armor | `skyborne` | `swiftward` | quick in the hand, quick on the feet | new | own |
 | `ardite` | tools and armor | `stonebound`, `petramor` | `depth_protection` | what it does underground, it also survives underground | existing | own |
-| `black_quartz` | tools and armor | `unyielding` | `melee_protection` | an edge that bites through armor blunts a direct blow when worn | existing | own |
-| `certus_quartz` | tools and armor | `armor_breaker` | `melee_protection` | an edge that bites through armor blunts a direct blow when worn | existing | own |
+| `black_quartz` | tools and armor | `unyielding` | `warded` | it hits hardest while the tool is whole; worn, a point comes off every blow while the wearer is whole | existing, #1097 | own |
+| `certus_quartz` | tools and armor | `armor_breaker` | `melee_protection` | an edge made to beat armor, and plate made to blunt the blow that tries the same (kept by #1097) | existing | own |
 | `cinderforge` | tools and armor | `magmaforge` | `fire_protection` | it works heat into stone, so heat does not work into the wearer | existing | 1.20 |
 | `conductive_alloy` | tools and armor | `arcing` | `stormward` | it carries the lightning, so the lightning passes the wearer by | new | own |
 | `cosmic_neutronium` | tools and armor | `colossal` | `deadweight` | the mass that shoves the target steadies the wearer | new | own |
 | `crystal_matrix` | tools and armor | `vigorous` | `vigorward` | it strikes hardest while you are whole; worn, it keeps you whole | new | own |
 | `cursium` | tools and armor | `cursium_blight` | `blightward` | it withers what it hits; worn, it withers whoever hits you | new | own |
 | `dark_matter` | tools and armor | `shackling` | `voidward` | dark matter holds a target still; worn, it holds a blow out entirely | new | own |
-| `dark_steel` | tools and armor | `predatory` | `melee_protection` | an edge that bites through armor blunts a direct blow when worn | existing | own |
+| `dark_steel` | tools and armor | `predatory` | `battleworn` | it hits hardest at what is already worn down; worn, it protects hardest once it is worn down itself | existing, #1097 | own |
 | `deathworm_chitin_red` | tools and armor | `deathworm_venom_red` | `venomward` | it poisons what it strikes; worn, it poisons whoever strikes you | new | own |
 | `deathworm_chitin_white` | tools and armor | `deathworm_venom_white` | `venomward` | it poisons what it strikes; worn, it poisons whoever strikes you | new | own |
 | `deathworm_chitin_yellow` | tools and armor | `deathworm_venom_yellow` | `venomward` | it poisons what it strikes; worn, it poisons whoever strikes you | new | own |
 | `diamatine_crystal` | tools and armor | `radiant_edge`, `surging` | `surgeward` | a wound-up swing lands; worn, you get a beat longer before the next one can | new | own |
 | `draconium` | tools and armor | `batteredge` | `surgeward` | a wound-up swing lands; worn, you get a beat longer before the next one can | new | own |
 | `draconium_awakened` | tools and armor | `surging3` | `surgeward` | a wound-up swing lands; worn, you get a beat longer before the next one can | new | own |
-| `dragon_bone` | tools and armor | `dragonbone_edge` | `melee_protection` | an edge that bites through armor blunts a direct blow when worn | existing | own |
+| `dragon_bone` | tools and armor | `dragonbone_edge` | `surgeward` | it makes a critical blow land harder; worn, you get a beat longer before the next one can | existing, #1097 | own |
 | `dragonsteel_lightning` | tools and armor | `dragonsteel_lightning_surge` | `stormward` | it carries the lightning, so the lightning passes the wearer by | new | own |
 | `dragonyst` | tools and armor | `kinetic_charge` | `kinetic_reserve` | damage dealt becomes stored charge; worn, the charge is still there to spend | new | own |
 | `dreadalloy` | tools and armor | `dreadgrip` | `blightward` | it withers what it hits; worn, it withers whoever hits you | new | own |
-| `emerald` | tools and armor | `pristine` | `melee_protection` | an edge that bites through armor blunts a direct blow when worn | existing | own |
+| `emerald` | tools and armor | `pristine` | `warded` | it hits hardest while the tool is whole; worn, a point comes off every blow while the wearer is whole | existing, #1097 | own |
 | `empowered_diamatine_crystal` | tools and armor | `empowered_diamatine_prism` | `surgeward` | a wound-up swing lands; worn, you get a beat longer before the next one can | new | own |
 | `empowered_enori_crystal` | tools and armor | `empowered_enori_radiance` | `revealward` | it lights up a target; worn, it lights up an attacker | new | own |
 | `empowered_palis_crystal` | tools and armor | `empowered_palis_tempest` | `swiftward` | quick in the hand, quick on the feet | new | own |
@@ -97,35 +114,35 @@ Each of these builds both halves and carried only tool-side traits. The `Armor s
 | `infinity` | tools and armor | `escalating` | `surgeward` | a wound-up swing lands; worn, you get a beat longer before the next one can | new | own |
 | `iridium` | tools and armor | `kinetic` | `swiftward` | quick in the hand, quick on the feet | new | own |
 | `ironbrand` | tools and armor | `gamedrop` | `bloodward` | the hunt feeds you: a kill drops meat, and a blow taken starts you mending | new | own |
-| `knightmetal` | tools and armor | `knightmetal_breach` | `melee_protection` | an edge that bites through armor blunts a direct blow when worn | existing | own |
+| `knightmetal` | tools and armor | `knightmetal_breach` | `melee_protection` | an edge made to beat armor, and plate made to blunt the blow that tries the same (kept by #1097) | existing | own |
 | `mendalloy` | tools and armor | `merciful` | `mendward` | a mercy that heals what it strikes heals the wearer harder too | new | own |
 | `murkiron` | tools and armor | `harrying`, `blighted` | `blightward` | it withers what it hits; worn, it withers whoever hits you | new | own |
-| `nahuatl` | tools and armor | `lacerating` | `melee_protection` | an edge that bites through armor blunts a direct blow when worn | existing | own |
+| `nahuatl` | tools and armor | `lacerating` | `venomward` | it opens a wound that keeps bleeding; worn, it poisons whoever opens one on you | existing, #1097 | own |
 | `nickel` | tools and armor | `coilcharge` | `stormward` | it carries the lightning, so the lightning passes the wearer by | new | own |
 | `nightshale` | tools and armor | `nocturnal_edge` | `duskward` | it strikes better after dark; worn, the dark hides you | new | own |
-| `osgloglas` | tools and armor | `elektronbond` | `melee_protection` | an edge that bites through armor blunts a direct blow when worn | existing | own |
+| `osgloglas` | tools and armor | `elektronbond` | `temperward` | a flat point onto every blow it lands, a flat point off every blow it stops | new, #1097 | own |
 | `palis_crystal` | tools and armor | `stormglass` | `swiftward` | quick in the hand, quick on the feet | new | own |
 | `pulsating_alloy` | tools and armor | `brasswind` | `swiftward` | quick in the hand, quick on the feet | new | own |
 | `quakestone` | tools and armor | `quakecrumble` | `depth_protection` | what it does underground, it also survives underground | existing | own |
 | `red_matter` | tools and armor | `voidrend`, `opportunist` | `voidward` | a void-forged edge cuts through; worn, the void swallows the blow | new | own |
 | `refined_glowstone` | tools and armor | `revealing` | `revealward` | it lights up a target; worn, it lights up an attacker | new | own |
 | `refined_obsidian` | tools and armor | `seismic` | `deadweight` | the mass that shoves the target steadies the wearer | new | own |
-| `resonite` | tools and armor | `dominant` | `melee_protection` | an edge that bites through armor blunts a direct blow when worn | existing | own |
+| `resonite` | tools and armor | `dominant` | `vigorward` | it hits hardest while it has the upper hand; worn, a blow taken gives absorption back so it keeps it | existing, #1097 | own |
 | `restonia_crystal` | tools and armor | `bloodgem` | `bloodward` | it drinks blood from a target; worn, it closes the wearer's own wound | new | own |
 | `riftalloy` | tools and armor | `riftstep` | `voidward` | a void-forged edge cuts through; worn, the void swallows the blow | new | own |
 | `rose_gold` | tools and armor | `quick` | `swiftward` | quick in the hand, quick on the feet | new | own |
-| `shardline` | tools and armor | `keenedge` | `melee_protection` | an edge that bites through armor blunts a direct blow when worn | existing | own |
+| `shardline` | tools and armor | `keenedge` | `warded` | it hits hardest while the tool is whole; worn, a point comes off every blow while the wearer is whole | existing, #1097 | own |
 | `skipalloy` | tools and armor | `quickstep` | `swiftward` | quick in the hand, quick on the feet | new | own |
 | `soularium` | tools and armor | `leeching` | `bloodward` | it drinks blood from a target; worn, it closes the wearer's own wound | new | own |
 | `starfall_stone` | tools and armor | `obliterate`, `swiftdig` | `depth_protection` | what it does underground, it also survives underground | existing | own |
-| `steel` | tools and armor | `sharp`, `stiff` | `melee_protection` | an edge that bites through armor blunts a direct blow when worn | existing | own |
-| `steeleaf` | tools and armor | `steeleaf_precision` | `melee_protection` | an edge that bites through armor blunts a direct blow when worn | existing | own |
+| `steel` | tools and armor | `sharp`, `stiff` | `melee_protection` | a keen edge and a stiff guard; worn, the same steel blunts a direct blow (kept by #1097) | existing | own |
+| `steeleaf` | tools and armor | `steeleaf_precision` | `surgeward` | it makes a critical blow land harder; worn, you get a beat longer before the next one can | existing, #1097 | own |
 | `stormalloy` | tools and armor | `unraveling` | `unravelward` | it unravels what the target has; worn, it unravels the blow | new | own |
 | `sunsteel` | tools and armor | `avalanche` | `deadweight` | the mass that shoves the target steadies the wearer | new | own |
 | `tideiron` | tools and armor | `tidebreaker` | `tideward` | it clears the water ahead of you; worn, the water cannot drown you | new | own |
 | `titanium` | tools and armor | `quartzheart` | `vigorward` | it strikes hardest while you are whole; worn, it keeps you whole | new | own |
 | `truesteel` | tools and armor | `berserker_stance` | `bloodward` | it drinks blood from a target; worn, it closes the wearer's own wound | new | own |
-| `tungsten` | tools and armor | `shattermail` | `melee_protection` | an edge that bites through armor blunts a direct blow when worn | existing | own |
+| `tungsten` | tools and armor | `shattermail` | `melee_protection` | an edge made to beat armor, and plate made to blunt the blow that tries the same (kept by #1097) | existing | own |
 | `unobtainium` | tools and armor | `unraveling3` | `unravelward` | it unravels what the target has; worn, it unravels the blow | new | own |
 | `uranium` | tools and armor | `enfeebling` | `blightward` | it withers what it hits; worn, it withers whoever hits you | new | own |
 | `vibranium` | tools and armor | `unraveling2` | `unravelward` | it unravels what the target has; worn, it unravels the blow | new | own |
@@ -136,6 +153,13 @@ Each of these builds both halves and carried only tool-side traits. The `Armor s
 ### Batch 2: the tool side, 11 materials
 
 These carried only armor-side traits. `emberdrink` and `bracingplate` needed no companion at all: both already run on a held tool (`onDefend` and `inventoryTick` are reachable from both halves), and it was the `armor` list scope that stranded them, so the id moved to `general` instead. The `Armor side` column here names the trait that was already there.
+
+**Corrected by #1097.** Five of these batch-2 materials kept their armor-only trait on the `general`
+list, so it also landed on their tool parts and did nothing there -- the audit's decision 4.
+`azure_electrum_swift`, `azure_silver_moonstep`, `ferricore_footing`, `gravitite_levity` and
+`ironwood_footing` are on their materials' `armor` lists now. `ferricore_grip` and `ironwood_grip`
+run on both sides, so they are on both lists, which is what the `Armor side` column below already
+said.
 
 | Material | Builds | Tool side | Armor side | What ties them | New or existing | Source |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -153,27 +177,41 @@ These carried only armor-side traits. `emberdrink` and `bracingplate` needed no 
 
 ### Batch 3: the 17 materials that carried no trait at all
 
-Mystical Agriculture's essence ladder, Extreme Reactors' four reactor metals, Applied Energistics' three quartz metals and Occultism's iesnium shipped with an empty `traits` block. Each gets a tool trait of its own and shares `magic_protection` on the armor side.
+Mystical Agriculture's essence ladder, Extreme Reactors' four reactor metals, Applied Energistics'
+three quartz metals and Occultism's iesnium shipped with an empty `traits` block. Each got a tool
+trait of its own, and all 17 shared `magic_protection` on the armor side.
+
+**Re-paired by #1097.** One companion for seventeen materials was the same shortcut
+`melee_protection` was: "charged matter against a charged blow" is a sentence about magic damage,
+not about what any of these materials actually does. Each family answers its own tool trait now, and
+`magic_protection` is on none of them. The rows below are the current pairs.
 
 | Material | Builds | Tool side | Armor side | What ties them | New or existing | Source |
 | --- | --- | --- | --- | --- | --- | --- |
-| `awakened_supremium` | tools and armor | `awakened_supremium_edge` | `magic_protection` | charged matter on the blade, charged matter against a charged blow | both new | own |
-| `blutonium` | tools and armor | `blutonium_pulse` | `magic_protection` | a reactor metal irradiates the target and shields the wearer from the same | both new | own |
-| `cyanite` | tools and armor | `cyanite_chill` | `magic_protection` | charged matter on the blade, charged matter against a charged blow | both new | own |
-| `fluix` | tools and armor | `fluix_arc` | `magic_protection` | charged quartz arcs out of the blade and grounds a charged blow | both new | own |
-| `iesnium` | tools and armor | `iesnium_rite` | `magic_protection` | a ritual metal weakens what it strikes and turns aside what is thrown at it | both new | own |
-| `imperium` | tools and armor | `imperium_edge` | `magic_protection` | charged matter on the blade, charged matter against a charged blow | both new | own |
-| `inferium` | tools and armor | `inferium_edge` | `magic_protection` | one essence ladder, one rung per tier, against the same magic the armor turns aside | both new | own |
-| `insanium` | tools and armor | `insanium_edge` | `magic_protection` | charged matter on the blade, charged matter against a charged blow | both new | own |
-| `ludicrite` | tools and armor | `ludicrite_surge` | `magic_protection` | charged matter on the blade, charged matter against a charged blow | both new | own |
-| `prosperity` | tools and armor | `prosperity_bloom` | `magic_protection` | prosperity grows what it touches, and turns aside what the essence throws | both new | own |
-| `prudentium` | tools and armor | `prudentium_edge` | `magic_protection` | charged matter on the blade, charged matter against a charged blow | both new | own |
-| `quartz_enriched_iron` | tools and armor | `quartz_enriched_edge` | `magic_protection` | quartz through the grain, both ways | both new | own |
-| `silicon` | tools and armor | `silicon_lattice` | `magic_protection` | a lattice holds one more modifier and one more kind of blow | both new | own |
-| `soulium` | tools and armor | `soulium_reap` | `magic_protection` | it takes life from a target and turns aside a soul-shaped blow | both new | own |
-| `supremium` | tools and armor | `supremium_edge` | `magic_protection` | charged matter on the blade, charged matter against a charged blow | both new | own |
-| `tertium` | tools and armor | `tertium_edge` | `magic_protection` | charged matter on the blade, charged matter against a charged blow | both new | own |
-| `uraninite` | tools and armor | `uraninite_decay` | `magic_protection` | charged matter on the blade, charged matter against a charged blow | both new | own |
+| `inferium` | tools and armor | `inferium_edge` (+0.5 damage) | `inferium_ward` (0.75 magic protection) | one essence ladder, one rung per tier, climbing on both sides at once | both new | own |
+| `prudentium` | tools and armor | `prudentium_edge` (+1.0) | `prudentium_ward` (1.25) | the ladder's second rung, blade and plate together | both new | own |
+| `tertium` | tools and armor | `tertium_edge` (+1.5) | `tertium_ward` (1.75) | the ladder's third rung, blade and plate together | both new | own |
+| `imperium` | tools and armor | `imperium_edge` (+2.0) | `imperium_ward` (2.25) | the ladder's fourth rung, blade and plate together | both new | own |
+| `supremium` | tools and armor | `supremium_edge` (+2.5) | `supremium_ward` (2.75) | the ladder's fifth rung, blade and plate together | both new | own |
+| `awakened_supremium` | tools and armor | `awakened_supremium_edge` (+3.0) | `awakened_supremium_ward` (3.25) | the ladder's sixth rung, blade and plate together | both new | own |
+| `insanium` | tools and armor | `insanium_edge` (+3.5) | `insanium_ward` (3.75) | the ladder's top rung, blade and plate together | both new | own |
+| `prosperity` | tools and armor | `prosperity_bloom` | `mendward` | it makes what it touches grow; worn, it makes healing the wearer receives go a quarter further | tool new, armor existing | own |
+| `soulium` | tools and armor | `soulium_reap` | `bloodward` | it takes life from a target; worn, it closes the wearer's own wound | tool new, armor existing | own |
+| `uraninite` | tools and armor | `uraninite_decay` | `uraninite_sickness` | raw ore, the weakest of the four: it stops a target's wounds closing, and three times in ten it weakens whoever strikes the wearer | both new | own |
+| `cyanite` | tools and armor | `cyanite_chill` | `cyanite_chillback` | it chills what it strikes; worn, two times in five it chills whoever strikes you | both new | own |
+| `blutonium` | tools and armor | `blutonium_pulse` | `blutonium_fallout` | it withers what it strikes; worn, half the time it withers whoever strikes you | both new | own |
+| `ludicrite` | tools and armor | `ludicrite_surge` | `ludicrite_meltdown` | the hottest of the four reactor metals: three times in five, whoever strikes the wearer withers | both new | own |
+| `fluix` | tools and armor | `fluix_arc` | `stormward` | charged quartz arcs out of the blade; worn, the charge passes the wearer by | tool new, armor existing | own |
+| `quartz_enriched_iron` | tools and armor | `quartz_enriched_edge` | `temperward` | quartz through the grain both ways: a flat point onto the blow it lands, a flat point off the blow it stops | both new | own |
+| `silicon` | tools and armor | `silicon_lattice` | `silicon_lattice` | one trait, both sides: the lattice holds one more modifier on a tool or on a worn piece | new | own |
+| `iesnium` | tools and armor | `iesnium_rite` | `blightward` | a ritual metal weakens what it strikes; worn, it weakens whoever strikes you | tool new, armor existing | own |
+
+The reactor metals climb the way the essence ladder does, weakest ore to hottest alloy:
+`uraninite_sickness` (weakness, three seconds, 30%), `cyanite_chillback` (slowness, four seconds,
+40%), `blutonium_fallout` (wither, four seconds, 50%), `ludicrite_meltdown` (wither, five seconds,
+60%). `silicon` needed no companion at all: `silicon_lattice` grants a modifier slot through
+`bonusSlots`, which runs on a worn piece as readily as on a held tool, so its armor list came off
+rather than gaining an id -- the `emberdrink` and `bracingplate` case from batch 2.
 
 ## One-sided materials
 

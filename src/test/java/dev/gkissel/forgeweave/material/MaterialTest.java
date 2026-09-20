@@ -1128,7 +1128,14 @@ class MaterialTest {
                 "forgeweave:swiftward", "forgeweave:deadweight", "forgeweave:bloodward",
                 "forgeweave:vigorward", "forgeweave:blightward", "forgeweave:venomward",
                 "forgeweave:revealward", "forgeweave:stormward", "forgeweave:voidward",
-                "forgeweave:unravelward", "forgeweave:surgeward");
+                "forgeweave:unravelward", "forgeweave:surgeward",
+                // #1097, the same directive applied to three more companions. `warded` is
+                // manyullyn's ported clone trait and is now also the answer for the three materials
+                // whose tool trait scales with remaining durability (emerald, black quartz,
+                // shardline): a blade at its best while the tool is whole, a plate at its best while
+                // the wearer is. `mendward` and `temperward` each cover two materials whose tool
+                // traits are the same idea. docs/research/trait-pairing.md lists which is which.
+                "forgeweave:warded", "forgeweave:mendward", "forgeweave:temperward");
         java.util.Map<String, List<String>> claimants = new java.util.TreeMap<>();
 
         try (Stream<Path> files = Files.list(materialDir)) {
