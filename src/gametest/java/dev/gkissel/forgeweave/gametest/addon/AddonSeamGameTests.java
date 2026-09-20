@@ -7,8 +7,12 @@ import net.minecraft.core.Registry;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.GameType;
 
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -17,8 +21,13 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.api.trait.Trait;
 import dev.gkissel.forgeweave.api.upgrade.UpgradeHosts;
+import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SmelteryScan;
+import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
+import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
+import dev.gkissel.forgeweave.menu.ToolStationMenu;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
@@ -112,7 +121,10 @@ public class AddonSeamGameTests {
         helper.assertTrue(ForgeweaveModifiers.get(GameTestAddon.MODIFIER_ID) == GameTestAddon.WHETTED,
                 "expected the Java-registered modifier behind its own id");
 
-        ItemStack tool = new ItemStack(GameTestAddon.TOOL.get());
+        ItemStack tool = assembled(helper);
+        helper.assertTrue(tool.getMaxDamage() > 0,
+                "expected the addon's own material to give the addon's own tool durability, got "
+                        + tool.getMaxDamage());
         ItemStack modified = ModifierApplication
                 .resolve(helper.getLevel().registryAccess(), tool, new ItemStack(Items.GOAT_HORN), ItemStack.EMPTY)
                 .map(ModifierApplication.Outcome::output)
@@ -122,6 +134,44 @@ public class AddonSeamGameTests {
         helper.assertTrue(ForgeweaveModifiers.entry(modified, GameTestAddon.MODIFIER_ID) != null,
                 "expected the addon's modifier on the tool after the station applied it");
         helper.succeed();
+    }
+
+    /**
+     * The addon's tool, assembled at a real Tool Station from the addon's own material. A bare
+     * {@code new ItemStack(tool)} has no materials and so no modifier slots, and the station would
+     * refuse to modify it.
+     */
+    private static ItemStack assembled(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, ForgeweaveBlocks.TOOL_STATION.get());
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+
+        ToolAssemblyRecipes.Entry entry = ToolAssemblyRecipes.ENTRIES.stream()
+                .filter(candidate -> candidate.constants().id().equals(GameTestAddon.TOOL_ID.toString()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("the registered tool is missing from the station's table"));
+        List<ResourceLocation> materials = List.of(MATERIAL,
+                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "wood"));
+        for (int slot = 0; slot < ToolStationMenu.INPUT_SLOTS; slot++) {
+            blockEntity.container().setItem(slot, slot < entry.slotCount()
+                    ? part(materials.get(slot), entry.part(slot))
+                    : ItemStack.EMPTY);
+        }
+
+        ToolStationMenu menu = new ToolStationMenu(0, player.getInventory(), blockEntity.container(),
+                ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)),
+                blockEntity.findSideInventory(), blockEntity.isForge());
+        menu.broadcastChanges();
+        ItemStack tool = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().copy();
+        menu.getSlot(ToolStationMenu.OUTPUT_SLOT).onTake(player, tool);
+        return tool;
+    }
+
+    private static ItemStack part(ResourceLocation material, Item item) {
+        ItemStack stack = new ItemStack(item);
+        stack.set(ForgeweaveDataComponents.MATERIAL.get(), material);
+        return stack;
     }
 
     /** The upgrade host the addon registered is asked, and what it hands back is what the player gets. */
