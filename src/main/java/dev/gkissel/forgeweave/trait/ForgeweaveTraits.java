@@ -1890,9 +1890,15 @@ public final class ForgeweaveTraits {
      * {@code #forgeweave:projectile_protection}, plus the clone's {@code MaxArmorAttributeModule}
      * of +0.05 knockback resistance.
      *
-     * <p>Deviation, recorded: the clone takes the <em>maximum</em> 0.05 across worn pieces; here each
-     * piece adds its own 0.05 (ponytail: one attribute hook, no cross-piece max). Four iron pieces
-     * give 0.2 rather than 0.05.
+     * <p>The knockback half used to be its own {@code armorAttributes} override paying a flat 0.05
+     * per piece, so four iron pieces reached 0.2 where the clone gives 0.05. Issue #1097 dropped
+     * that override: the trait now declares {@link #PROJECTILE_PROTECTION_KNOCKBACK_RESISTANCE}
+     * through {@link Trait#knockbackResistance()} and {@link #armorAttributes} pays each piece
+     * {@link #WORN_KNOCKBACK_RESISTANCE_SHARE} of it, so a worn set reaches the clone's 0.05 and no
+     * further. Upstream reaches the same figure by taking the maximum across worn pieces rather
+     * than a share of each; the repository already had the share mechanism and it lands on the same
+     * cross-piece number, so it is reused instead of a second one. The trait is on iron's armor
+     * list only, so the held half of {@code knockbackResistance} never fires for it.
      */
     public static final Trait PROJECTILE_PROTECTION = new Trait() {
         private final Protection protection = Protection.against(Protection.PROJECTILE_PROTECTION, PROJECTILE_PROTECTION_PER_LEVEL);
@@ -1903,10 +1909,8 @@ public final class ForgeweaveTraits {
         }
 
         @Override
-        public void armorAttributes(ResourceLocation id, EquipmentSlot slot, ItemAttributeModifiers.Builder out) {
-            out.add(Attributes.KNOCKBACK_RESISTANCE,
-                    new AttributeModifier(id, PROJECTILE_PROTECTION_KNOCKBACK_RESISTANCE, AttributeModifier.Operation.ADD_VALUE),
-                    EquipmentSlotGroup.bySlot(slot));
+        public float knockbackResistance() {
+            return PROJECTILE_PROTECTION_KNOCKBACK_RESISTANCE;
         }
     };
 
