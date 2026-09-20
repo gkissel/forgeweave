@@ -19,7 +19,7 @@ Esta tag junta o que entrou depois da beta.1: o botão único de armadura (#1081
 10. [ ] ⚠ Um cristal avulso de restonia, palis, diamatine, void, emeradic ou enori monta parte na Part Builder, sem precisar compactar nove num bloco. Era esse o defeito dos seis cristais comuns. Black quartz continua montando.
 11. [ ] ⚠ Os seis cristais empowered aparecem como materiais, um degrau acima dos comuns (tier netherite), e também montam na Part Builder a partir do item avulso e do bloco.
 12. [ ] ⚠ Nenhum cristal derrete na smeltery nem tem molde: são só de Part Builder.
-13. [ ] ⚠ Os traits dos empowered se leem como versões mais fortes dos comuns. Olhar com atenção o `empowered_emeradic_bulwark`: um golpe único nunca deixa o portador abaixo de 2 corações. Avaliar se dá para abusar.
+13. [ ] ⚠ Os traits dos empowered se leem como versões mais fortes dos comuns. O `empowered_emeradic_bulwark` estava ao contrário na beta.2 e foi corrigido depois dela (#1091): ele usava `damage_floor`, que é uma desvantagem, não proteção. Em vez de "o portador nunca fica abaixo de 2 corações", como a descrição dizia, todo golpe que acertava quem vestia a peça passava a causar pelo menos 2 corações, e o cristal empowered ficava pior que o comum. Agora ele dá 0,3 de resistência a repulsão com a ferramenta na mão, o dobro do `verdant_ward` do cristal comum (armadura de netherite dá 0,1 por peça). Conferir que o tooltip fala de repulsão e que segurar a ferramenta realmente segura o jogador no lugar.
 
 ## C. API de addons (#1008)
 14. [ ] O jogo abre, entra num mundo e carrega um mundo da beta.1 sem erro: a parte 1 moveu `Modifier`, `Trait`, `UpgradeHosts` e os seams de combate para `dev.gkissel.forgeweave.api`, e nada salvo muda de formato.
@@ -34,7 +34,7 @@ Esta tag junta o que entrou depois da beta.1: o botão único de armadura (#1081
 21. [ ] `docs/addons.md` e `docs/adr/0006-addon-api-stability.md`: a promessa de estabilidade é a que você quer fazer em público?
 
 ## Decisões pendentes
-- `empowered_emeradic_bulwark` (item 13): manter o piso de 2 corações ou trocar por algo menos forte.
+- ~~`empowered_emeradic_bulwark` (item 13): manter o piso de 2 corações ou trocar por algo menos forte.~~ Resolvida por #1091: o piso de 2 corações era uma desvantagem lida como proteção, e saiu. Fica a pergunta menor de sempre, o número: 0,3 de resistência a repulsão com a ferramenta na mão está bom, ou é muito perto do `heavy` (1,0, imunidade)? O mesmo vale para o `compressed_iron_heft`, que foi de `damage_floor` para 0,1 pela mesma razão, e para o `naga_ward`, que virou `stacking_resistance`.
 - O cabo e a amarração da katana e o ícone `lacerate.png` são gerados por script, não desenhados. O brief os conta como prontos. Devolver à lista do designer ou deixar.
 - `ToolLeveling.addXp` ficou fora do pacote `api`, e `socketed` e `goggles` seguem como modifiers internos (#1078). Aceitar ou pedir a mudança.
 - O teto de sincronização de materiais está em 161,8 KB de 160 KiB (163.840 bytes). O próximo lote de materiais sobe o teto de novo; decidir se vale um limite mais folgado.

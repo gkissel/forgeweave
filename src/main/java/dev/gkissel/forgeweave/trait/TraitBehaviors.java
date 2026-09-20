@@ -224,6 +224,9 @@ public final class TraitBehaviors {
         // behaviours, and Gate's ConditionalSeam implements neither onDefend nor incomingHit -- a
         // gated defensive seam would silently never run. The two that carry a roll
         // (effect_on_attacker, evasion) take their own `chance` field instead.
+        // A drawback, not protection: it raises a blow back toward its original damage and never
+        // below it. Only give it to a trait that is meant to cost the wearer something --
+        // TraitDefinitionAuditTest keeps the list of those honest.
         register("damage_floor", NON_NEGATIVE_FLOAT.fieldOf("minimum_hearts")
                 .xmap(DamageFloor::new, DamageFloor::minimumHearts));
         register("effect_on_attacker", RecordCodecBuilder.<EffectOnAttacker>mapCodec(instance -> instance.group(
@@ -276,6 +279,11 @@ public final class TraitBehaviors {
                 .xmap(DamageTypeImmunity::new, DamageTypeImmunity::damageType));
         register("vent_explosions", NON_NEGATIVE_FLOAT.fieldOf("knockback_factor")
                 .xmap(VentExplosions::new, VentExplosions::knockbackFactor));
+
+        // #1091. Held, not worn: Trait#knockbackResistance is the tool-side attribute, so this one
+        // is registered here rather than with the armor batch above.
+        register("knockback_resistance", Codec.floatRange(0.0F, 1.0F).fieldOf("resistance")
+                .xmap(KnockbackResistance::new, KnockbackResistance::resistance));
     }
 
 

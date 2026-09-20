@@ -94,7 +94,9 @@ class TraitBehaviorsTest {
             "{\"behavior\":\"forgeweave:movement_bonus\",\"kind\":\"movement_speed\",\"magnitude\":0.05}",
             "{\"behavior\":\"forgeweave:stat_scales_with_wear\",\"stat\":\"protection\",\"coefficient\":0.5}",
             "{\"behavior\":\"forgeweave:damage_type_immunity\",\"damage_type\":\"minecraft:is_lightning\"}",
-            "{\"behavior\":\"forgeweave:vent_explosions\",\"knockback_factor\":0.05}" })
+            "{\"behavior\":\"forgeweave:vent_explosions\",\"knockback_factor\":0.05}",
+            // #1091.
+            "{\"behavior\":\"forgeweave:knockback_resistance\",\"resistance\":0.3}" })
     void everyBehaviorRoundTrips(String json) {
         JsonElement input = JsonParser.parseString(json);
         TraitDefinition definition = TraitDefinition.CODEC.parse(ops, input).getOrThrow();
@@ -107,7 +109,7 @@ class TraitBehaviorsTest {
     /** Every registered behaviour id has a row above -- a new entry without a round-trip case fails here. */
     @Test
     void everyRegisteredBehaviorIsCoveredAbove() {
-        assertEquals(32, TraitBehaviors.ids().size(), "add a round-trip case for the new behaviour: " + TraitBehaviors.ids());
+        assertEquals(33, TraitBehaviors.ids().size(), "add a round-trip case for the new behaviour: " + TraitBehaviors.ids());
     }
 
     /**

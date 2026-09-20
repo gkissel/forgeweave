@@ -5,9 +5,15 @@ import dev.gkissel.forgeweave.api.combat.DefendedBlow;
 import dev.gkissel.forgeweave.api.trait.Trait;
 
 /**
- * A worn piece refuses to let the blow it is settling fall below a floor -- the M6 armor library's
- * {@code damage_floor(minimumHearts)} (issue #831), the counterweight that keeps a stack of
- * defensive behaviours from adding up to invulnerability.
+ * <b>A drawback, not protection.</b> A worn piece refuses to let the blow it is settling fall below
+ * a floor -- the M6 armor library's {@code damage_floor(minimumHearts)} (issue #831), the
+ * counterweight that keeps a stack of defensive behaviours from adding up to invulnerability.
+ *
+ * <p>Read the direction before reaching for this: every blow that lands on the wearer deals
+ * <em>at least</em> {@link #minimumHearts}, so the only thing it can ever do is take back a
+ * reduction another trait made. On a tool it does nothing at all, because {@code onDefend} runs for
+ * worn pieces only. Issue #1091 found three material traits that had it backwards and sold it as
+ * protection; {@code TraitDefinitionAuditTest} now fails the build on a fourth.
  *
  * <p>The floor never <em>raises</em> a blow: it is clamped to {@link DefendedBlow#originalDamage},
  * so a half-heart tickle stays a half-heart tickle and only reductions made by earlier pieces are
