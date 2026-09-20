@@ -33,6 +33,8 @@ import dev.gkissel.forgeweave.menu.ToolStationMenu;
 import dev.gkissel.forgeweave.modifier.Embossing;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
+import dev.gkissel.forgeweave.tool.ToolConstants;
+import dev.gkissel.forgeweave.tool.ToolLevel;
 import dev.gkissel.forgeweave.tool.ToolStats;
 
 /**
@@ -44,6 +46,11 @@ import dev.gkissel.forgeweave.tool.ToolStats;
  * embossment survive as {@code id + level}, a part the tool has no slot for is refused, a
  * same-material part is refused (upstream's "must not be duplicates" rule), and large tools
  * exchange only at the Tool Forge (the assembly gate, issue #152).
+ *
+ * <p>Issue #1087 adds the armor half at the bottom of the file. It is the same resolver and so the
+ * same semantics, which is what those tests check: a piece's plating, maille and heavy large plate
+ * swap, a plating of the wrong shape is refused, the heavy set is gated to the Tool Forge, and what
+ * the piece carried (damage, modifiers, leveling, name) comes through untouched.
  */
 @GameTestHolder(Forgeweave.MODID)
 @PrefixGameTestTemplate(false)
@@ -412,6 +419,197 @@ public class PartExchangeGameTests {
         helper.assertTrue(material("stone").equals(dropped.get(ForgeweaveDataComponents.MATERIAL.get())),
                 "the dropped part must carry its own (old) material, got "
                         + dropped.get(ForgeweaveDataComponents.MATERIAL.get()));
+        helper.succeed();
+    }
+
+    // ------------------------------------------------------- armor (issue #1087)
+
+    /**
+     * Issue #1087, the mechanic on armor: the same resolver, so swapping a helmet's plating rebuilds
+     * the piece's {@link dev.gkissel.forgeweave.tool.ArmorStats} block and trait list to exactly what
+     * assembling with the new material writes, while everything the piece carried rides the copy --
+     * the damage value, the modifiers, the leveling level and XP, and the custom name.
+     */
+    @GameTest(template = "empty")
+    public static void swappingAHelmetsPlatingRebuildsItsArmorStats(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        HolderLookup.Provider registries = helper.getLevel().registryAccess();
+        ToolAssemblyRecipes.Entry entry = ToolAssembly.entryOf(ToolConstants.HELMET);
+        ItemStack helmet = ToolAssembly.assembleAt(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(),
+                entry, List.of("iron", "iron"));
+        helmet.set(DataComponents.DAMAGE, 7);
+        helmet.set(ForgeweaveDataComponents.MODIFIERS.get(), modifiers("haste"));
+        helmet.set(ForgeweaveDataComponents.TOOL_LEVEL.get(), new ToolLevel(2, 15, 1));
+        helmet.set(DataComponents.CUSTOM_NAME, Component.literal("Fred"));
+
+        ItemStack expected = ToolAssemblyRecipes.assemble(registries, entry,
+                List.of(material("cobalt"), material("iron"))).orElseThrow();
+        ItemStack swapped = take(helper, player,
+                load(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(), helmet,
+                        ToolAssembly.part(entry.part(0), "cobalt")));
+
+        helper.assertTrue(swapped.is(ForgeweaveItems.ARMOR_HELMET.get()),
+                "the swap must keep the piece a helmet, got " + swapped);
+        helper.assertTrue(material("cobalt").equals(materialsOf(swapped).get(0)),
+                "the plating slot's material must now be cobalt, got " + materialsOf(swapped));
+        helper.assertTrue(expected.get(ForgeweaveDataComponents.ARMOR_STATS.get())
+                        .equals(swapped.get(ForgeweaveDataComponents.ARMOR_STATS.get())),
+                "the armor stat block must be exactly what assembling cobalt/iron writes, got "
+                        + swapped.get(ForgeweaveDataComponents.ARMOR_STATS.get()));
+        helper.assertTrue(traits(expected).equals(traits(swapped)),
+                "the trait list must rebuild from the new material set: expected " + traits(expected)
+                        + ", got " + traits(swapped));
+        helper.assertTrue(swapped.getDamageValue() == 7,
+                "the damage value must carry over, got " + swapped.getDamageValue());
+        helper.assertTrue(swapped.getMaxDamage() == expected.getMaxDamage(),
+                "the durability pool must be the new plating's, got " + swapped.getMaxDamage());
+        helper.assertTrue(modifiers("haste").equals(ForgeweaveModifiers.of(swapped)),
+                "the modifiers must survive, got " + ForgeweaveModifiers.of(swapped));
+        helper.assertTrue(new ToolLevel(2, 15, 1).equals(swapped.get(ForgeweaveDataComponents.TOOL_LEVEL.get())),
+                "the leveling level and XP must survive, got " + swapped.get(ForgeweaveDataComponents.TOOL_LEVEL.get()));
+        helper.assertTrue(Component.literal("Fred").equals(swapped.get(DataComponents.CUSTOM_NAME)),
+                "the custom name must ride the copy, got " + swapped.get(DataComponents.CUSTOM_NAME));
+        helper.succeed();
+    }
+
+    /** The other light slot: the maille is one item across all four pieces, so it swaps by material alone. */
+    @GameTest(template = "empty")
+    public static void swappingAChestplatesMailleKeepsThePiece(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ToolAssemblyRecipes.Entry entry = ToolAssembly.entryOf(ToolConstants.CHESTPLATE);
+        ItemStack chestplate = ToolAssembly.assembleAt(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(),
+                entry, List.of("iron", "iron"));
+
+        ItemStack swapped = take(helper, player,
+                load(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(), chestplate,
+                        ToolAssembly.part(entry.part(1), "cobalt")));
+
+        helper.assertTrue(swapped.is(ForgeweaveItems.ARMOR_CHESTPLATE.get()),
+                "the swap must keep the piece a chestplate, got " + swapped);
+        helper.assertTrue(material("iron").equals(materialsOf(swapped).get(0))
+                        && material("cobalt").equals(materialsOf(swapped).get(1)),
+                "only the maille slot may change, got " + materialsOf(swapped));
+        helper.succeed();
+    }
+
+    /**
+     * Issue #1006 puts the heavy set in {@code large_tools}, which is the one roster split, so a heavy
+     * piece inherits the large tools' Tool Forge gate for exchanges too -- and its third slot, the
+     * large plate, swaps there like any other.
+     */
+    @GameTest(template = "empty")
+    public static void aHeavyPieceExchangesAtTheForgeOnly(GameTestHelper helper) {
+        BlockPos forgePos = new BlockPos(1, 1, 1);
+        BlockPos stationPos = new BlockPos(3, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ToolAssemblyRecipes.Entry entry = ToolAssembly.entryOf(ToolConstants.HEAVY_CHESTPLATE);
+        ItemStack piece = ToolAssembly.assembleAt(helper, player, forgePos, ForgeweaveBlocks.TOOL_FORGE.get(),
+                entry, List.of("iron", "iron", "iron"));
+        ItemStack cobaltPlating = ToolAssembly.part(entry.part(0), "cobalt");
+
+        ToolStationMenu station = load(helper, player, stationPos, ForgeweaveBlocks.TOOL_STATION.get(),
+                piece.copy(), cobaltPlating.copy());
+        helper.assertTrue(station.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                "the Tool Station must refuse a heavy piece's part exchange");
+        helper.assertTrue(station.rejection() != null, "and say so");
+
+        ItemStack swapped = take(helper, player,
+                load(helper, player, forgePos, ForgeweaveBlocks.TOOL_FORGE.get(), piece.copy(), cobaltPlating));
+        helper.assertTrue(material("cobalt").equals(materialsOf(swapped).get(0)),
+                "the Tool Forge must swap the heavy plating to cobalt, got " + materialsOf(swapped));
+
+        ItemStack replated = take(helper, player,
+                load(helper, player, forgePos, ForgeweaveBlocks.TOOL_FORGE.get(), swapped,
+                        ToolAssembly.part(entry.part(2), "cobalt")));
+        helper.assertTrue(material("cobalt").equals(materialsOf(replated).get(2)),
+                "and the large plate slot must swap too, got " + materialsOf(replated));
+        helper.succeed();
+    }
+
+    /**
+     * The plating shape is what decides the piece, so a chestplate's plating fits no slot a helmet
+     * has: refused outright rather than turning the helmet into something else.
+     */
+    @GameTest(template = "empty")
+    public static void aPlatingForAnotherPieceIsRejected(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack helmet = ToolAssembly.assembleAt(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(),
+                ToolAssembly.entryOf(ToolConstants.HELMET), List.of("iron", "iron"));
+
+        ToolStationMenu menu = load(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(), helmet,
+                ToolAssembly.part(ToolAssembly.entryOf(ToolConstants.CHESTPLATE).part(0), "cobalt"));
+
+        helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                "a chestplate plating must not swap into a helmet, got "
+                        + menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem());
+        helper.assertTrue(menu.rejection() != null, "a refused exchange must tell the player why");
+        helper.succeed();
+    }
+
+    /** Issue #813 and #1070 on armor: the displaced plating comes back, or does not, on the same option. */
+    @GameTest(template = "empty")
+    public static void theDisplacedPlatingFollowsTheReturnExchangedPartsOption(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ToolAssemblyRecipes.Entry entry = ToolAssembly.entryOf(ToolConstants.HELMET);
+
+        ItemStack helmet = ToolAssembly.assembleAt(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(),
+                entry, List.of("iron", "iron"));
+        take(helper, player, load(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(), helmet,
+                ToolAssembly.part(entry.part(0), "cobalt")));
+        List<ItemStack> returned = player.getInventory().items.stream()
+                .filter(stack -> stack.is(entry.part(0)))
+                .toList();
+        helper.assertTrue(returned.size() == 1 && returned.get(0).getCount() == 1,
+                "the displaced plating must come back exactly once, got " + returned);
+        helper.assertTrue(material("iron").equals(returned.get(0).get(ForgeweaveDataComponents.MATERIAL.get())),
+                "and carry its own old material, got " + returned.get(0));
+
+        // Same set/assert/restore-in-one-method discipline the tool half of this file uses: the value
+        // is global and GameTests in a batch tick concurrently.
+        player.getInventory().clearContent();
+        ItemStack second = ToolAssembly.assembleAt(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(),
+                entry, List.of("iron", "iron"));
+        ForgeweaveConfig.RETURN_EXCHANGED_PARTS.set(false);
+        try {
+            ItemStack swapped = take(helper, player,
+                    load(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(), second,
+                            ToolAssembly.part(entry.part(0), "cobalt")));
+            helper.assertTrue(player.getInventory().items.stream().noneMatch(stack -> stack.is(entry.part(0))),
+                    "no displaced plating may come back while returnExchangedParts is off, got "
+                            + player.getInventory().items);
+            helper.assertTrue(material("cobalt").equals(materialsOf(swapped).get(0)),
+                    "the swap itself must still happen, got " + materialsOf(swapped));
+        } finally {
+            ForgeweaveConfig.RETURN_EXCHANGED_PARTS.set(true);
+        }
+        helper.succeed();
+    }
+
+    /**
+     * Save compat: an exchanged piece is the same stack a freshly assembled one is, component for
+     * component, so nothing about the swap changes what a world writes to disk.
+     */
+    @GameTest(template = "empty")
+    public static void anExchangedPieceSerializesLikeAFreshlyBuiltOne(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ToolAssemblyRecipes.Entry entry = ToolAssembly.entryOf(ToolConstants.HELMET);
+        ItemStack helmet = ToolAssembly.assembleAt(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(),
+                entry, List.of("iron", "iron"));
+
+        ItemStack swapped = take(helper, player,
+                load(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(), helmet,
+                        ToolAssembly.part(entry.part(0), "cobalt")));
+        ItemStack fresh = ToolAssembly.assembleAt(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(),
+                entry, List.of("cobalt", "iron"));
+
+        helper.assertTrue(ItemStack.matches(swapped, fresh),
+                "an exchanged piece must carry exactly a freshly built one's components: "
+                        + swapped.getComponents() + " vs " + fresh.getComponents());
         helper.succeed();
     }
 

@@ -517,7 +517,11 @@ public final class ToolAssemblyRecipes {
 
     /**
      * Part exchange (issue #264): an assembled tool in the head slot plus replacement part(s) in the
-     * free slots swap those parts in place. A port of upstream 1.12's
+     * free slots swap those parts in place. Since issue #1087 "assembled" means
+     * {@link #isAssembled} -- an armor piece swaps its plating, its maille or the heavy set's large
+     * plate through this same resolver, with no armor-only path beside it. Everything below reads
+     * the station table rather than the item class, so the only thing the two shapes disagree on is
+     * which stat block {@link #assemble} writes. A port of upstream 1.12's
      * {@code ToolBuilder#tryReplaceToolParts} + {@code ToolBuilder#rebuildTool} (the pinned commit),
      * whose derived semantics are:
      *
@@ -574,7 +578,7 @@ public final class ToolAssemblyRecipes {
      */
     public static Optional<Exchange> resolveExchange(HolderLookup.Provider registries, ItemStack toolStack,
             List<ItemStack> freeSlots, boolean forge) {
-        if (!(toolStack.getItem() instanceof ToolItem)) {
+        if (!isAssembled(toolStack)) {
             return Optional.empty();
         }
         Optional<Entry> found = entryFor(toolStack);
@@ -653,6 +657,11 @@ public final class ToolAssemblyRecipes {
         result.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(),
                 fresh.get(ForgeweaveDataComponents.TOOL_MATERIALS.get()));
         result.set(ForgeweaveDataComponents.TOOL_STATS.get(), fresh.get(ForgeweaveDataComponents.TOOL_STATS.get()));
+        // #1087: an armor piece's stat block. Set beside the tool one rather than instead of it --
+        // ItemStack#set with a null value against a prototype that does not carry the component is a
+        // no-op, so each shape writes its own block and clears nothing the other owns. That is what
+        // lets one resolver serve both: assemble() already builds whichever of the two applies.
+        result.set(ForgeweaveDataComponents.ARMOR_STATS.get(), fresh.get(ForgeweaveDataComponents.ARMOR_STATS.get()));
         // #593: the swapped-in material changes the mean, so this is rebuilt from the new part set
         // exactly like the stat block above rather than riding along on the copy.
         result.set(ForgeweaveDataComponents.ENCHANTABILITY.get(),
