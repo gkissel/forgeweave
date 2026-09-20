@@ -1117,7 +1117,18 @@ class MaterialTest {
                 // shared mechanic keyed on one id, not a per-material name. #965 added the inert
                 // tier's marker, which the draconium core and duskweld share for the same reason.
                 "forgeweave:evolving",
-                "forgeweave:evolved", "forgeweave:evolved2", "forgeweave:evolved3");
+                "forgeweave:evolved", "forgeweave:evolved2", "forgeweave:evolved3",
+                // #1093 (maintainer directive on the issue): "many materials in one family can
+                // share one companion trait when the theme truly matches; do not write 200 unique
+                // traits for their own sake". These eleven are the companions that give a family
+                // its missing side -- the worn half of a quick edge, of a venom, of a void-forged
+                // edge -- and each one's lang text names the pairing rather than the material, so
+                // splitting it per material would buy a different id and the same sentence.
+                // docs/research/trait-pairing.md lists which materials share which.
+                "forgeweave:swiftward", "forgeweave:deadweight", "forgeweave:bloodward",
+                "forgeweave:vigorward", "forgeweave:blightward", "forgeweave:venomward",
+                "forgeweave:revealward", "forgeweave:stormward", "forgeweave:voidward",
+                "forgeweave:unravelward", "forgeweave:surgeward");
         java.util.Map<String, List<String>> claimants = new java.util.TreeMap<>();
 
         try (Stream<Path> files = Files.list(materialDir)) {

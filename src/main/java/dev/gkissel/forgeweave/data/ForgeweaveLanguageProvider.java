@@ -3262,6 +3262,145 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.berserker_stance.name", "Berserker Stance");
         add("trait.forgeweave.berserker_stance.description",
                 "Crouch to channel a stance: bonus damage at the cost of extra wear.");
+
+        // #1093 -- the companion traits that give every material a side it works on. The armor
+        // companions come first, each shared by the family whose idea they turn around; then the
+        // tool companions for materials whose only trait was armor-scoped; then the materials that
+        // carried no trait at all. docs/research/trait-pairing.md is the table.
+        add("trait.forgeweave.swiftward.name", "Swiftward");
+        add("trait.forgeweave.swiftward.description",
+                "The worn side of a quick edge: each piece worn moves you 6% faster.");
+        add("trait.forgeweave.deadweight.name", "Deadweight");
+        add("trait.forgeweave.deadweight.description",
+                "The worn side of a heavy strike: the mass that shoves your target steadies you too. 0.2 knockback "
+                + "resistance held, a quarter of that per piece worn.");
+        add("trait.forgeweave.bloodward.name", "Bloodward");
+        add("trait.forgeweave.bloodward.description",
+                "The worn side of a blood-drinking edge: being struck starts three seconds of regeneration.");
+        add("trait.forgeweave.vigorward.name", "Vigorward");
+        add("trait.forgeweave.vigorward.description",
+                "The worn side of a blow that lands hardest while you are whole: being struck grants five seconds of "
+                + "absorption.");
+        add("trait.forgeweave.blightward.name", "Blightward");
+        add("trait.forgeweave.blightward.description",
+                "The worn side of a withering edge: half the time, whoever strikes you is left weakened for five "
+                + "seconds.");
+        add("trait.forgeweave.venomward.name", "Venomward");
+        add("trait.forgeweave.venomward.description",
+                "The worn side of the venom: half the time, whoever strikes you is poisoned for three seconds.");
+        add("trait.forgeweave.revealward.name", "Revealward");
+        add("trait.forgeweave.revealward.description",
+                "The worn side of a glowing hit: whoever strikes you is lit up for ten seconds.");
+        add("trait.forgeweave.stormward.name", "Stormward");
+        add("trait.forgeweave.stormward.description",
+                "The worn side of a lightning edge: lightning passes through the wearer harmlessly.");
+        add("trait.forgeweave.voidward.name", "Voidward");
+        add("trait.forgeweave.voidward.description",
+                "The worn side of a void-forged edge: one blow in ten misses the wearer entirely.");
+        add("trait.forgeweave.unravelward.name", "Unravelward");
+        add("trait.forgeweave.unravelward.description",
+                "The worn side of unraveling: one blow in ten comes apart before it lands.");
+        add("trait.forgeweave.surgeward.name", "Surgeward");
+        add("trait.forgeweave.surgeward.description",
+                "The worn side of a wound-up swing: after a hit the wearer stays untouchable for 26 ticks instead of "
+                + "vanilla's 20.");
+        add("trait.forgeweave.tideward.name", "Tideward");
+        add("trait.forgeweave.tideward.description",
+                "The worn side of a tide-clearing edge: 2.5 protection against drowning per piece.");
+        add("trait.forgeweave.mendward.name", "Mendward");
+        add("trait.forgeweave.mendward.description",
+                "The worn side of a mercy that heals what it strikes: healing the wearer receives counts for a "
+                + "quarter more.");
+        add("trait.forgeweave.duskward.name", "Duskward");
+        add("trait.forgeweave.duskward.description",
+                "The worn side of a night edge: below light level 7 creatures notice the wearer at half the usual "
+                + "distance.");
+        add("trait.forgeweave.kinetic_reserve.name", "Kinetic Reserve");
+        add("trait.forgeweave.kinetic_reserve.description",
+                "The worn side of kinetic charge: a 12,000 FE buffer spent before durability, on a tool or on a worn "
+                + "piece.");
+        add("trait.forgeweave.magic_protection.name", "Magic Protection");
+        add("trait.forgeweave.magic_protection.description",
+                "Protects against magic damage, 2.5 protection per piece worn.");
+        add("trait.forgeweave.azure_electrum_rush.name", "Azure Rush");
+        add("trait.forgeweave.azure_electrum_rush.description",
+                "The tool side of swift: up to 3 more damage the faster the wielder is moving.");
+        add("trait.forgeweave.azure_silver_plunge.name", "Moonfall");
+        add("trait.forgeweave.azure_silver_plunge.description",
+                "The tool side of moonstep: what goes up comes down harder, critical hits deal 40% more.");
+        add("trait.forgeweave.ferricore_grip.name", "Ferricore Grip");
+        add("trait.forgeweave.ferricore_grip.description",
+                "The tool side of sure footing: 0.1 knockback resistance held, a quarter of that per piece worn.");
+        add("trait.forgeweave.ironwood_grip.name", "Ironwood Grip");
+        add("trait.forgeweave.ironwood_grip.description",
+                "The tool side of ironwood footing: 0.08 knockback resistance held, a quarter of that per piece "
+                + "worn.");
+        add("trait.forgeweave.gravitite_dive.name", "Gravitite Dive");
+        add("trait.forgeweave.gravitite_dive.description",
+                "The tool side of levity: up to 4 more damage the faster the wielder is moving.");
+        add("trait.forgeweave.mendreach.name", "Mendreach");
+        add("trait.forgeweave.mendreach.description",
+                "The tool side of mendbond: heals the wielder for 8% of the damage dealt, up to 2.");
+        add("trait.forgeweave.slimevine_snap.name", "Slimevine Snap");
+        add("trait.forgeweave.slimevine_snap.description",
+                "The tool side of a slimevine string: mends itself one point every 40 seconds.");
+        add("trait.forgeweave.inferium_edge.name", "Inferium Edge");
+        add("trait.forgeweave.inferium_edge.description",
+                "The first rung of essence-fed steel: 0.5 bonus damage on every hit.");
+        add("trait.forgeweave.prudentium_edge.name", "Prudentium Edge");
+        add("trait.forgeweave.prudentium_edge.description",
+                "Essence-fed steel, second rung: 1 bonus damage on every hit.");
+        add("trait.forgeweave.tertium_edge.name", "Tertium Edge");
+        add("trait.forgeweave.tertium_edge.description",
+                "Essence-fed steel, third rung: 1.5 bonus damage on every hit.");
+        add("trait.forgeweave.imperium_edge.name", "Imperium Edge");
+        add("trait.forgeweave.imperium_edge.description",
+                "Essence-fed steel, fourth rung: 2 bonus damage on every hit.");
+        add("trait.forgeweave.supremium_edge.name", "Supremium Edge");
+        add("trait.forgeweave.supremium_edge.description",
+                "Essence-fed steel, fifth rung: 2.5 bonus damage on every hit.");
+        add("trait.forgeweave.awakened_supremium_edge.name", "Awakened Supremium Edge");
+        add("trait.forgeweave.awakened_supremium_edge.description",
+                "Essence-fed steel, awakened: 3 bonus damage on every hit.");
+        add("trait.forgeweave.insanium_edge.name", "Insanium Edge");
+        add("trait.forgeweave.insanium_edge.description",
+                "The last rung of essence-fed steel: 3.5 bonus damage on every hit.");
+        add("trait.forgeweave.prosperity_bloom.name", "Prosperity Bloom");
+        add("trait.forgeweave.prosperity_bloom.description",
+                "Right-click a crop to make it grow, one time in four, for 5 durability.");
+        add("trait.forgeweave.soulium_reap.name", "Soulium Reap");
+        add("trait.forgeweave.soulium_reap.description",
+                "Heals the wielder for 8% of the damage dealt, up to 2.");
+        add("trait.forgeweave.blutonium_pulse.name", "Blutonium Pulse");
+        add("trait.forgeweave.blutonium_pulse.description",
+                "A struck target withers for two seconds.");
+        add("trait.forgeweave.cyanite_chill.name", "Cyanite Chill");
+        add("trait.forgeweave.cyanite_chill.description",
+                "A struck target is slowed for three seconds.");
+        add("trait.forgeweave.ludicrite_surge.name", "Ludicrite Surge");
+        add("trait.forgeweave.ludicrite_surge.description",
+                "A hit arcs to up to two more enemies within four blocks for 40% of the damage.");
+        add("trait.forgeweave.uraninite_decay.name", "Uraninite Decay");
+        add("trait.forgeweave.uraninite_decay.description",
+                "A struck target's healing is halved for five seconds.");
+        add("trait.forgeweave.fluix_arc.name", "Fluix Arc");
+        add("trait.forgeweave.fluix_arc.description",
+                "A hit arcs to up to two more enemies within four blocks for 35% of the damage.");
+        add("trait.forgeweave.silicon_lattice.name", "Silicon Lattice");
+        add("trait.forgeweave.silicon_lattice.description",
+                "Adds an extra modifier slot.");
+        add("trait.forgeweave.quartz_enriched_edge.name", "Quartz Enriched Edge");
+        add("trait.forgeweave.quartz_enriched_edge.description",
+                "Quartz through the grain: 1.5 bonus damage on every hit.");
+        add("trait.forgeweave.iesnium_rite.name", "Iesnium Rite");
+        add("trait.forgeweave.iesnium_rite.description",
+                "A struck target is weakened for five seconds.");
+        add("trait.forgeweave.fluorite_focus.name", "Fluorite Focus");
+        add("trait.forgeweave.fluorite_focus.description",
+                "Carries a 10,000 FE buffer spent before durability, on a tool or on a worn piece.");
+        add("trait.forgeweave.vine_weave.name", "Vine Weave");
+        add("trait.forgeweave.vine_weave.description",
+                "A living weave mends itself one point every 45 seconds, on a bowstring or on maille.");
     }
 
     /** One tool's ported {@code ContentTool#properties} bullets, keyed {@code <tool>.property.<n>}. */

@@ -1,0 +1,6 @@
+{
+  "behavior": "forgeweave:effect_on_attacker",
+  "effect": "minecraft:glowing",
+  "duration": 200,
+  "amplifier": 0
+}

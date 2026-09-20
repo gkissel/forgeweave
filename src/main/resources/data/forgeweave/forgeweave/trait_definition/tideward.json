@@ -1,0 +1,5 @@
+{
+  "behavior": "forgeweave:protection",
+  "damage_type": "minecraft:is_drowning",
+  "amount": 2.5
+}

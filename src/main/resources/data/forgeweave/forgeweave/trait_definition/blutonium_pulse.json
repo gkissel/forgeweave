@@ -1,0 +1,6 @@
+{
+  "behavior": "forgeweave:effect_on_hit",
+  "effect": "minecraft:wither",
+  "duration": 40,
+  "amplifier": 0
+}

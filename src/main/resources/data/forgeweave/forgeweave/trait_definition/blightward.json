@@ -1,0 +1,7 @@
+{
+  "behavior": "forgeweave:effect_on_attacker",
+  "effect": "minecraft:weakness",
+  "duration": 100,
+  "amplifier": 0,
+  "chance": 0.5
+}
