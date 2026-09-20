@@ -17,6 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.decoration.ArmorStand;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.PlayerModelPart;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
@@ -66,6 +67,8 @@ public final class StandPreview {
     private static final Vector3f NO_TRANSLATION = new Vector3f();
     private static final float Y_BODY_ROT = 210.0F;
     private static final float X_ROT = 25.0F;
+    /** Vanilla {@code InventoryScreen}'s own player preview faces the screen at 180 degrees. */
+    private static final float PLAYER_Y_ROT = 180.0F;
 
     /** The drag-to-rotate ring, upstream 1.20's {@code icons.png} sprite at (0, 184) (NOTICE.md). */
     private static final ResourceLocation ROTATE_RING =
@@ -99,15 +102,34 @@ public final class StandPreview {
         if (level == null) {
             return; // no client level to build an entity against; nothing to preview yet either
         }
-        ItemStack held = stand == null ? ItemStack.EMPTY : stand.getItemBySlot(EquipmentSlot.OFFHAND);
+        ItemStack held = stand == null ? ItemStack.EMPTY : shown(stand);
         stand = level instanceof ClientLevel clientLevel
                 && ForgeweaveClientConfig.STATION_PREVIEW_MODEL.get() == StationPreviewModel.PLAYER
                         ? playerModel(clientLevel) : armorStand(level);
-        stand.yBodyRot = Y_BODY_ROT;
-        stand.setXRot(X_ROT);
+        // The stand keeps upstream's three-quarter pose. The player copy starts facing the screen,
+        // and its head turns with its body: a player's head yaw and pitch are its own fields, where
+        // the stand's head is part of its pose.
+        boolean player = stand instanceof Player;
+        float yaw = player ? PLAYER_Y_ROT : Y_BODY_ROT;
+        stand.yBodyRot = yaw;
+        stand.yBodyRotO = yaw;
+        stand.setXRot(player ? 0.0F : X_ROT);
+        if (player) {
+            stand.setYRot(yaw);
+        }
         stand.yHeadRot = stand.getYRot();
         stand.yHeadRotO = stand.getYRot();
         setItem(held);
+    }
+
+    /** What the model is showing, whichever slot {@link #setItem} put it in; survives a resize. */
+    private static ItemStack shown(LivingEntity model) {
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
+            if (!model.getItemBySlot(slot).isEmpty()) {
+                return model.getItemBySlot(slot);
+            }
+        }
+        return ItemStack.EMPTY;
     }
 
     private static ArmorStand armorStand(Level level) {
@@ -165,8 +187,9 @@ public final class StandPreview {
         if (stack.isEmpty()) {
             return;
         }
-        stand.setItemSlot(stack.getItem() instanceof ArmorItem armor ? armor.getEquipmentSlot() : EquipmentSlot.OFFHAND,
-                stack.copy());
+        // The stand holds a tool in its off hand, as upstream's does; a player holds it in the main hand.
+        EquipmentSlot hand = stand instanceof Player ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND;
+        stand.setItemSlot(stack.getItem() instanceof ArmorItem armor ? armor.getEquipmentSlot() : hand, stack.copy());
     }
 
     public void render(GuiGraphics graphics) {
