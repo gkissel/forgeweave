@@ -1,5 +1,6 @@
 {
   "values": [
-    "minecraft:diamond_block"
+    "minecraft:diamond_block",
+    "gametest_addon:addon_wall"
   ]
 }

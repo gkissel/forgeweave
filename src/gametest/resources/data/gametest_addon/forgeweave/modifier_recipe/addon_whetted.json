@@ -1,0 +1,12 @@
+{
+  "modifier": "gametest_addon:whetted",
+  "reagents": [
+    {
+      "ingredient": {
+        "item": "minecraft:goat_horn"
+      }
+    }
+  ],
+  "cost": 1,
+  "max_level": 1
+}

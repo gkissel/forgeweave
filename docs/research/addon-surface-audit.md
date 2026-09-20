@@ -66,7 +66,9 @@ Sizes are S (a day or less), M (a few days), L (a week or more of design plus co
 
 Items 1 to 4 and 8 are each small and independent. Items 5 to 7 carry the "a new tool from outside" goal and should land together: a tool that assembles but has no pattern to build its parts from, no station tab and no broken texture is not usable.
 
-**Status, 2026-09-19.** Items 1 to 3 shipped in [#1065](https://github.com/gkissel/forgeweave/issues/1065) and items 4 to 7 in [#1066](https://github.com/gkissel/forgeweave/issues/1066). Every row below that calls one of those tables closed is describing the tree on the audit date, not the tree today.
+**Status, 2026-09-19.** Items 1 to 3 shipped in [#1065](https://github.com/gkissel/forgeweave/issues/1065), items 4 to 7 in [#1066](https://github.com/gkissel/forgeweave/issues/1066), item 8 in [#1067](https://github.com/gkissel/forgeweave/issues/1067), and item 10 in [#1083](https://github.com/gkissel/forgeweave/issues/1083), which also wrote `docs/addons.md`, ADR-0006 and the test addon. Item 9, the book, stays closed and is documented as closed, per Q7. Every row below that calls one of those tables closed is describing the tree on the audit date, not the tree today.
+
+Item 10 landed as something other than what this row imagined. KubeJS's `RecipeSchema` API edits the vanilla recipe manager, and none of Forgeweave's recipe types is a recipe-manager recipe: each is a datapack registry, which the recipe manager never sees. The binding that does reach them is `registerServerRegistries` plus `ServerEvents.registry`, and `ForgeweaveKubeJSPlugin` now hands KubeJS all twelve.
 
 A tool or a part from outside is registered in Java, through `dev.gkissel.forgeweave.api.tool.ForgeweaveTools`. It has to be Java: a tool needs an item and a model with one tinted layer per part, and a datapack can produce neither. The three rosters are now a shipped seed plus registered rows, `ToolStationTabs` lays a registered tool's slots out from its part count, and `ToolArt` resolves its layers at `<namespace>:item/<tool>_<layer>`. `src/gametest/java/dev/gkissel/forgeweave/gametest/addon/` is a worked example.
 
