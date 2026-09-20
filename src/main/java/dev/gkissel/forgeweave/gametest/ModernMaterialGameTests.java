@@ -179,9 +179,11 @@ public class ModernMaterialGameTests {
         // #676 (SCOPE.md D17): chorus and amethyst bronze re-scope on armor parts; the rest fall back.
         // #728: chorus's ARMOR row also carries overslime_friend, next to enderclearance.
         // #1093: nahuatl gained one too. Its lacerating opens a bleeding wound and does nothing on
-        // a worn piece, so melee_protection is the worn side of that edge.
+        // a worn piece. #1097 replaced the melee_protection #1093 first reached for: a trait that
+        // bleeds a target belongs with armor that punishes the attacker, so venomward is the worn
+        // side of that edge.
         Map<String, String> armor = Map.of("chorus", "enderclearance|overslime_friend",
-                "amethyst_bronze", "crystalstrike", "nahuatl", "melee_protection");
+                "amethyst_bronze", "crystalstrike", "nahuatl", "venomward");
 
         general.forEach((name, trait) -> {
             Material material = materials.get(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name));

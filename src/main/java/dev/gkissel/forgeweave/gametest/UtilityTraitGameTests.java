@@ -166,6 +166,11 @@ public class UtilityTraitGameTests {
         tick(helper, player, smolderveil, 8000);
         helper.assertTrue(smolderveil.getDamageValue() < 500,
                 "smolderveil should have healed over 8000 ticks of midnight, still at " + smolderveil.getDamageValue());
+        // The world clock is shared with every other test running on this server, and
+        // EnergyTraitGameTests' solar recharge waits five ticks between setting noon and reading the
+        // buffer. Put the sky back before finishing rather than leaving a second test parked at
+        // midnight inside that window.
+        daytime(helper, NOON);
         helper.succeed();
     }
 
