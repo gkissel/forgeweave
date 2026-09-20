@@ -1221,7 +1221,7 @@ public final class ForgeweaveModifiers {
     private static final float NECROTIC_LIFESTEAL_PER_LEVEL = 0.10F;
 
     /** Upstream {@code ModNecrotic#lifesteal}: {@code 0.10f * level} (raw units == display level here). */
-    static float necroticLifestealFraction(int level) {
+    public static float necroticLifestealFraction(int level) {
         return NECROTIC_LIFESTEAL_PER_LEVEL * level;
     }
 

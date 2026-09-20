@@ -1185,7 +1185,7 @@ public class CombatTraitGameTests {
     }
 
     /** Runs every seam's on-hit for one landed blow, the way {@link CombatSeams#onDamageDealt} would. */
-    private static void onHit(GameTestHelper helper, Player attacker, ItemStack weapon, LivingEntity target) {
+    static void onHit(GameTestHelper helper, Player attacker, ItemStack weapon, LivingEntity target) {
         CombatHit hit = new CombatHit(helper.getLevel(), weapon, attacker, target,
                 helper.getLevel().damageSources().playerAttack(attacker));
         for (CombatSeam seam : CombatProviders.seams(weapon)) {

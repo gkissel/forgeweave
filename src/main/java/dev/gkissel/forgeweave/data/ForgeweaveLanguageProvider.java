@@ -492,11 +492,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Hold right-click to charge, then release to leap; the longer the charge, the further the jump.");
         add("tooltip.forgeweave.innate.vital_thrust.name", "Vital Thrust");
         add("tooltip.forgeweave.innate.vital_thrust.description",
-                "Each hit deals a further 5% of the target's remaining health, ignoring armour. "
+                "Each hit deals a further 5% of the target's remaining health, ignoring armor. "
                         + "Right-click on the ground to hop back out of reach.");
         add("tooltip.forgeweave.innate.deflect.name", "Deflect");
         add("tooltip.forgeweave.innate.deflect.description",
-                "While blocking, a projectile caught head-on is returned to its sender.");
+                "While blocking, a projectile caught head-on is returned to its sender, and a melee blow "
+                        + "costs another 30% of its damage, half of which is paid back to the attacker.");
         add("tooltip.forgeweave.innate.heavy_swing.name", "Heavy Swing");
         add("tooltip.forgeweave.innate.heavy_swing.description",
                 "Hits knock the target back twice as far as an ordinary blow. Hold right-click to charge, "
@@ -2290,6 +2291,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.blast_protection.description", "Protects against explosion damage.");
         add("trait.forgeweave.melee_protection.name", "Melee Protection");
         add("trait.forgeweave.melee_protection.description", "Increases protection against direct physical damage.");
+        // #1092: seared stone and necrotic bone have named these three ids since #843, but only the
+        // modifiers of the same names existed, so the grants did nothing and the station showed the
+        // raw key. The names read as traits rather than as the modifier rows above.
+        add("trait.forgeweave.fire_protection.name", "Fire Protection");
+        add("trait.forgeweave.fire_protection.description", "Protects against fire and lava damage.");
+        add("trait.forgeweave.searing.name", "Searing");
+        add("trait.forgeweave.searing.description", "Blocks you mine come out already smelted.");
+        add("trait.forgeweave.necrotic.name", "Necrotic");
+        add("trait.forgeweave.necrotic.description", "Heals you for a tenth of the damage you deal.");
         add("trait.forgeweave.warded.name", "Warded");
         add("trait.forgeweave.warded.description",
                 "When at full health, reduces incoming damage after armor by 1, down to a minimum of 1.");
@@ -2339,7 +2349,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.overgrowth.name", "Overgrowth");
         add("trait.forgeweave.overgrowth.description", "A 5% chance each second of regenerating one point of overslime.");
         add("trait.forgeweave.overlord.name", "Overlord");
-        add("trait.forgeweave.overlord.description", "Reduces durability by 15% and grants overslime in exchange.");
+        add("trait.forgeweave.overlord.description", "Cuts the tool's durability by 15%.");
         add("trait.forgeweave.restore.name", "Restore");
         add("trait.forgeweave.restore.description",
                 "Has a 15% chance when hit to heal a portion of the damage taken, consuming durability.");
@@ -3091,7 +3101,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.avalanche.name", "Avalanche");
         add("trait.forgeweave.avalanche.description", "Every hit shoves like a rockslide.");
         add("trait.forgeweave.landslide.name", "Landslide");
-        add("trait.forgeweave.landslide.description", "Packed dense, wears slower.");
+        add("trait.forgeweave.landslide.description", "Packed dense, with a deeper durability pool.");
         add("trait.forgeweave.skyborne.name", "Skyborne");
         add("trait.forgeweave.skyborne.description", "Draws a bow noticeably faster.");
         add("trait.forgeweave.featherfall.name", "Featherfall");
@@ -3127,13 +3137,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.emberwake.name", "Emberwake");
         add("trait.forgeweave.emberwake.description", "Striking a burning target quickens the follow-up.");
         add("trait.forgeweave.smolderveil.name", "Smolderveil");
-        add("trait.forgeweave.smolderveil.description", "Mends faster than duskmend's own base rate at night.");
+        add("trait.forgeweave.smolderveil.description", "Mends itself slowly after dark.");
         add("trait.forgeweave.ashenbond.name", "Ashenbond");
-        add("trait.forgeweave.ashenbond.description", "A slow daylight mend, the mirror of duskmend.");
+        add("trait.forgeweave.ashenbond.description", "A slow daylight mend.");
         add("trait.forgeweave.prismward.name", "Prismward");
-        add("trait.forgeweave.prismward.description", "A crystalline ward softens incoming force.");
+        add("trait.forgeweave.prismward.description", "A crystalline ward softens a blow's shove.");
         add("trait.forgeweave.shattermail.name", "Shattermail");
-        add("trait.forgeweave.shattermail.description", "Cracks armor a little harder than armor_breaker's base.");
+        add("trait.forgeweave.shattermail.description", "Bites a little deeper into armored targets.");
         add("trait.forgeweave.shieldbreaker.name", "Shieldbreaker");
         add("trait.forgeweave.shieldbreaker.description", "Each hit tears four times its damage out of a Draconic shield.");
         add("trait.forgeweave.chaosmark.name", "Chaosmark");
@@ -3143,7 +3153,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.voidwoven.name", "Voidwoven");
         add("trait.forgeweave.voidwoven.description", "A dense dark-alloy edge.");
         add("trait.forgeweave.crystalline_ward.name", "Crystalline Ward");
-        add("trait.forgeweave.crystalline_ward.description", "An end-forged plate turns aside a blow.");
+        add("trait.forgeweave.crystalline_ward.description", "An end-forged plate holds you steady against a blow's shove.");
         add("trait.forgeweave.quartzheart.name", "Quartzheart");
         add("trait.forgeweave.quartzheart.description", "Hits harder while the wielder is still healthy.");
         add("trait.forgeweave.batteredge.name", "Batteredge");
@@ -3165,9 +3175,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.starforged.name", "Starforged");
         add("trait.forgeweave.starforged.description", "Sky stone takes a repair especially well.");
         add("trait.forgeweave.rubberize.name", "Rubberize");
-        add("trait.forgeweave.rubberize.description", "A bouncy slime cushions a blow.");
+        add("trait.forgeweave.rubberize.description", "A bouncy slime soaks up a blow's shove.");
         add("trait.forgeweave.matrixbloom.name", "Matrixbloom");
-        add("trait.forgeweave.matrixbloom.description", "A psionic weave that mends best in daylight.");
+        add("trait.forgeweave.matrixbloom.description", "A psionic weave that mends itself in daylight.");
         add("trait.forgeweave.wellspring.name", "Wellspring");
         add("trait.forgeweave.wellspring.description", "Mining a stone-type block has a chance to heal the wielder.");
 
