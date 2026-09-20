@@ -106,6 +106,7 @@ import dev.gkissel.forgeweave.combat.IgniteAttackerSeam;
 import dev.gkissel.forgeweave.combat.KnockbackOnHitSeam;
 import dev.gkissel.forgeweave.combat.Lacerate;
 import dev.gkissel.forgeweave.combat.Lifesteal;
+import dev.gkissel.forgeweave.combat.LifestealOnHitSeam;
 import dev.gkissel.forgeweave.combat.LightningOnHit;
 import dev.gkissel.forgeweave.combat.PotionEffectOnHitSeam;
 import dev.gkissel.forgeweave.combat.Protection;
@@ -1888,6 +1889,45 @@ public final class ForgeweaveTraits {
 
     /** Obsidian plating/maille. {@code ModifierIds.blastProtection}: {@link Protection} 2.5 against {@code #forgeweave:blast_protection}. */
     public static final Trait BLAST_PROTECTION = defendTrait(Protection.against(Protection.BLAST_PROTECTION, BLAST_PROTECTION_PER_LEVEL));
+
+    private static final float FIRE_PROTECTION_PER_LEVEL = 2.5F;
+
+    /**
+     * Seared stone plating/maille. {@code MaterialTraitsDataProvider}'s
+     * {@code addTraits(searedStone, ARMOR, fireProtection)}: {@link Protection} 2.5 against
+     * {@code #forgeweave:fire_protection}, the same {@code PROTECTION_STRONG_PER_LEVEL} the
+     * {@code fire_protection} modifier pays per level and the same shape as {@link #BLAST_PROTECTION}.
+     *
+     * <p>Issue #1092: seared stone has named {@code forgeweave:fire_protection} on its armor list
+     * since #843, but only the modifier of that id existed, so the grant resolved to nothing and the
+     * station showed a raw lang key. Its sibling on the same clone row, {@code restore} on necrotic
+     * bone, did get a {@link Trait}; these three ({@link #SEARING} and {@link #NECROTIC} too) were
+     * the rows that did not.
+     */
+    public static final Trait FIRE_PROTECTION =
+            defendTrait(Protection.against(Protection.FIRE_PROTECTION, FIRE_PROTECTION_PER_LEVEL));
+
+    /**
+     * Seared stone, every part. {@code addDefaultTraits(searedStone, searing)}: blocks this tool
+     * mines drop their smelted result, which is what the {@code searing} modifier of the same id
+     * does at its only level, through the same {@link Trait#autoSmelt} opt-in {@link #AUTOSMELT}
+     * uses. See {@link #FIRE_PROTECTION} for why it did not exist until issue #1092.
+     */
+    public static final Trait SEARING = new Trait() {
+        @Override
+        public boolean autoSmelt() {
+            return true;
+        }
+    };
+
+    /**
+     * Necrotic bone, every part. {@code addDefaultTraits(necroticBone, necrotic)}: a landed hit
+     * heals the wielder for a tenth of the damage dealt, the {@code necrotic} modifier's own level-1
+     * {@code ForgeweaveModifiers#necroticLifestealFraction}. See {@link #FIRE_PROTECTION} for why it
+     * did not exist until issue #1092.
+     */
+    public static final Trait NECROTIC =
+            seamTrait(new LifestealOnHitSeam(ForgeweaveModifiers.necroticLifestealFraction(1)));
 
     private static final float MELEE_PROTECTION_PER_LEVEL = 2.0F;
 
@@ -3710,6 +3750,11 @@ public final class ForgeweaveTraits {
             Map.entry(id("projectile_protection"), PROJECTILE_PROTECTION),
             Map.entry(id("depth_protection"), DEPTH_PROTECTION),
             Map.entry(id("blast_protection"), BLAST_PROTECTION),
+            // #1092: the three ids seared stone and necrotic bone have named since #843
+            // without an implementation behind them.
+            Map.entry(id("fire_protection"), FIRE_PROTECTION),
+            Map.entry(id("searing"), SEARING),
+            Map.entry(id("necrotic"), NECROTIC),
             Map.entry(id("melee_protection"), MELEE_PROTECTION),
             Map.entry(id("warded"), WARDED),
             Map.entry(id("crystalstrike"), CRYSTALSTRIKE),
