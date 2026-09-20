@@ -2,9 +2,12 @@ package dev.gkissel.forgeweave.client;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -22,6 +25,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
 import net.minecraft.client.gui.screens.AccessibilityOnboardingScreen;
 import net.minecraft.client.gui.screens.TitleScreen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.tutorial.TutorialSteps;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
@@ -30,6 +34,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.util.FastColor;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.decoration.ItemFrame;
@@ -157,6 +162,29 @@ public final class ScreenshotHarness {
     private static final boolean ENABLED = Boolean.getBoolean("forgeweave.screenshot_harness");
     /** Set by the {@code screenshotHarness} Gradle run; falls back to {@code <run dir>/screenshots}. */
     private static final String OUTPUT_DIR_PROPERTY = "forgeweave.screenshot_output_dir";
+
+    /**
+     * Issue #1086: every frame name that either never became the expected screen within {@link
+     * #SCREEN_READY_TIMEOUT_TICKS} or whose captured panel region failed {@link #checkNotWorldShot}.
+     * Checked by {@link #finishHarness} to decide the process exit code, and printed there so a
+     * failing run names exactly which frames to look at.
+     */
+    private static final List<String> FAILED_FRAMES = new ArrayList<>();
+
+    /**
+     * Ceiling on how long {@link #awaitReady} will wait for the expected screen to become current --
+     * generous next to the couple hundred milliseconds a menu-open round trip to the integrated
+     * server ordinarily takes, so this only fires when something is actually stuck rather than when
+     * a loaded machine is momentarily slow (the bug #1086 reports: the old code captured on a fixed
+     * tick count instead of waiting for the real thing to happen).
+     */
+    private static final int SCREEN_READY_TIMEOUT_TICKS = 200;
+
+    /**
+     * Set by {@link #awaitReady} the first tick its readiness check passes, {@code -1} while still
+     * waiting; one shared field because the harness's stages run strictly one at a time.
+     */
+    private static int screenReadyTicks = -1;
 
     private static final String LEVEL_NAME = "forgeweave_screenshot_harness";
     /** Ticks to let the fresh world finish loading chunks and lighting before anything is placed. */
@@ -2036,19 +2064,64 @@ public final class ScreenshotHarness {
                 LOGGER.warn("{}{}'s block entity is not a StationMenuHost, skipping", LOG_PREFIX, screen.fileName());
             }
         });
+        screenReadyTicks = -1;
         advance(Stage.SETTLE_SCREEN);
     }
 
+    /**
+     * Issue #1086: whether a real station menu -- not the player's own inventory, and not nothing at
+     * all -- is the current screen. {@code host.open} always resolves to whichever {@link
+     * AbstractContainerScreen} that station's own {@code registerScreen} mapped its menu type to, so
+     * this check never needs to name a specific screen class and keeps working for every future
+     * {@link #SCREENS} entry.
+     */
+    private static boolean containerScreenReady(Minecraft mc) {
+        return mc.player != null && mc.player.hasContainerOpen()
+                && mc.screen instanceof AbstractContainerScreen<?> containerScreen
+                && containerScreen.getMenu() == mc.player.containerMenu;
+    }
+
     private static void settleScreen(Minecraft mc) {
-        if (stageTicks < SCREEN_SETTLE_TICKS) {
+        HarnessScreen screen = SCREENS.get(screenIndex);
+        if (!awaitReady(mc, screen.fileName(), () -> containerScreenReady(mc))) {
             return;
         }
-        capture(mc, SCREENS.get(screenIndex).fileName());
+        capture(mc, screen.fileName(), mc.screen instanceof AbstractContainerScreen<?> containerScreen ? containerScreen : null);
         if (mc.screen != null) {
             mc.screen.onClose(); // Same path Escape takes: closes the menu and notifies the server.
         }
         screenIndex++;
         advance(Stage.OPEN_SCREEN);
+    }
+
+    /**
+     * Issue #1086's deterministic wait: capture only once {@code ready} has held for {@link
+     * #SCREEN_SETTLE_TICKS} straight ticks (a render has to have happened somewhere in that window,
+     * since the client renders every loop iteration and this fires once per game tick), rather than
+     * the old fixed-tick-after-open guess that could fire before the menu-open round trip to the
+     * integrated server -- or the screen itself -- had actually finished.
+     *
+     * <p>Returns {@code true} once the caller should capture: either {@code ready} settled, or {@link
+     * #SCREEN_READY_TIMEOUT_TICKS} ran out first, in which case the frame name is logged and recorded
+     * in {@link #FAILED_FRAMES} and the caller captures whatever is on screen anyway -- a broken
+     * capture is still useful for diagnosing why it broke, and a later frame should get its own
+     * chance rather than the whole run wedging on one stuck screen.
+     */
+    private static boolean awaitReady(Minecraft mc, String fileName, BooleanSupplier ready) {
+        if (ready.getAsBoolean()) {
+            if (screenReadyTicks < 0) {
+                screenReadyTicks = stageTicks;
+            }
+            return stageTicks - screenReadyTicks >= SCREEN_SETTLE_TICKS;
+        }
+        screenReadyTicks = -1;
+        if (stageTicks < SCREEN_READY_TIMEOUT_TICKS) {
+            return false;
+        }
+        LOGGER.error("{}{} never became the current screen after {} ticks; capturing whatever is showing",
+                LOG_PREFIX, fileName, stageTicks);
+        FAILED_FRAMES.add(fileName);
+        return true;
     }
 
     /**
@@ -2076,14 +2149,16 @@ public final class ScreenshotHarness {
         if (scene.bookmark() == null && scene.spread() >= 0) {
             screen.openSpread(scene.spread());
         }
+        screenReadyTicks = -1;
         advance(Stage.SETTLE_BOOK);
     }
 
     private static void settleBook(Minecraft mc) {
-        if (stageTicks < SCREEN_SETTLE_TICKS) {
+        BookScene scene = BOOK_SCENES.get(bookSceneIndex);
+        if (!awaitReady(mc, scene.fileName(), () -> mc.screen instanceof BookScreen)) {
             return;
         }
-        capture(mc, BOOK_SCENES.get(bookSceneIndex).fileName());
+        capture(mc, scene.fileName());
         if (mc.screen != null) {
             mc.screen.onClose();
         }
@@ -2118,6 +2193,7 @@ public final class ScreenshotHarness {
         if (!PonderHarnessCaptures.finished(mc)) {
             LOGGER.error("{}ponder scene {} never reached its finished frame; capturing it as is", LOG_PREFIX,
                     capture.fileName());
+            FAILED_FRAMES.add(capture.fileName()); // #1086: a timed-out ponder scene fails the run too.
         }
         capture(mc, capture.fileName());
         if (mc.screen != null) {
@@ -2143,7 +2219,7 @@ public final class ScreenshotHarness {
         // runtime this harness runs under, so this only matters for a stripped-down one.
         if (!ModList.get().isLoaded("jei")) {
             LOGGER.warn("{}JEI is not installed, skipping the JEI category captures", LOG_PREFIX);
-            mc.stop();
+            finishHarness(mc);
             advance(Stage.DONE);
             return;
         }
@@ -2151,25 +2227,32 @@ public final class ScreenshotHarness {
             LOGGER.info("{}all {} screens, {} book scenes, {} ponder scenes and {} JEI categories captured, exiting",
                     LOG_PREFIX, SCREENS.size(), BOOK_SCENES.size(), PonderHarnessCaptures.CAPTURES.size(),
                     JeiScreenshotHarness.categoryCount());
-            mc.stop();
+            finishHarness(mc);
             advance(Stage.DONE);
             return;
         }
         String fileName = JeiScreenshotHarness.categoryFileName(jeiCaptureIndex);
         if (!JeiScreenshotHarness.openCategory(jeiCaptureIndex)) {
             LOGGER.error("{}JEI runtime not available, skipping {}", LOG_PREFIX, fileName);
+            FAILED_FRAMES.add(fileName);
             jeiCaptureIndex++;
             return;
         }
         LOGGER.info("{}opening JEI category {}", LOG_PREFIX, fileName);
+        screenReadyTicks = -1;
         advance(Stage.SETTLE_JEI);
     }
 
     private static void settleJei(Minecraft mc) {
-        if (stageTicks < SCREEN_SETTLE_TICKS) {
+        String fileName = JeiScreenshotHarness.categoryFileName(jeiCaptureIndex);
+        // JEI's showTypes (called from openJei) sets the screen synchronously on the client thread,
+        // unlike the station menus above -- there is no server round trip to race here, so "some
+        // screen is up" is already a strong signal. JEI's own types stay off this class's classpath
+        // (see JeiScreenshotHarness's javadoc), which rules out naming its screen class here too.
+        if (!awaitReady(mc, fileName, () -> mc.screen != null)) {
             return;
         }
-        capture(mc, JeiScreenshotHarness.categoryFileName(jeiCaptureIndex));
+        capture(mc, fileName);
         if (mc.screen != null) {
             mc.screen.onClose();
         }
@@ -2197,12 +2280,25 @@ public final class ScreenshotHarness {
     }
 
     private static void capture(Minecraft mc, String fileName) {
+        capture(mc, fileName, null);
+    }
+
+    /**
+     * The {@code panelScreen} overload also runs {@link #checkNotWorldShot} against the same
+     * framebuffer this writes to disk -- issue #1086's self-check, for the station-menu captures
+     * where a race between this call and the screen actually being current used to let a plain world
+     * shot through even once {@link #awaitReady} says the right screen is up.
+     */
+    private static void capture(Minecraft mc, String fileName, @Nullable AbstractContainerScreen<?> panelScreen) {
         NativeImage image = Screenshot.takeScreenshot(mc.getMainRenderTarget());
         try {
             if (!isExpectedFrameShape(image.getWidth(), image.getHeight())) {
                 LOGGER.error("{}#712 scene check FAILED: {} captured at {}x{}, expected the {}x{} window from build.gradle"
                         + " -- the window manager resized the client; first-person poses at the frame edge are cut off",
                         LOG_PREFIX, fileName, image.getWidth(), image.getHeight(), EXPECTED_FRAME_WIDTH, EXPECTED_FRAME_HEIGHT);
+            }
+            if (panelScreen != null) {
+                checkNotWorldShot(image, mc, fileName, panelScreen);
             }
             File dir = outputDir(mc);
             dir.mkdirs();
@@ -2216,9 +2312,136 @@ public final class ScreenshotHarness {
         }
     }
 
+    /**
+     * Below this luminance standard deviation within the panel region, {@link #checkNotWorldShot}
+     * treats the frame as a probable world shot. A real GUI panel's borders, slots and text put its
+     * variance in the dozens; a flat sky or grass patch's dithering noise keeps it in the single
+     * digits -- this sits well under the first and well over the second.
+     */
+    private static final double WORLD_SHOT_STDDEV_THRESHOLD = 10.0;
+
+    /** Sample grid resolution for {@link #checkNotWorldShot}; cheap, and plenty for a stddev estimate. */
+    private static final int WORLD_SHOT_SAMPLE_GRID = 12;
+
+    /**
+     * Issue #1086's self-check: flags a capture whose panel region reads as a near-uniform color --
+     * what a captured sky or grass patch looks like, and exactly what a screenshot taken before the
+     * GUI drew produces -- rather than a real GUI panel's borders, slots and text. The panel's pixel
+     * bounds come from the screen's own {@code leftPos}/{@code topPos}/{@code imageWidth}/{@code
+     * imageHeight} (via {@link #containerScreenBounds}, since {@link AbstractContainerScreen} exposes
+     * none of them publicly) scaled by the image's actual size against the window's GUI-space size,
+     * so this tracks whatever panel size and GUI scale the run actually used instead of a hardcoded
+     * pixel box.
+     */
+    private static void checkNotWorldShot(NativeImage image, Minecraft mc, String fileName, AbstractContainerScreen<?> screen) {
+        int[] bounds = containerScreenBounds(screen);
+        if (bounds == null) {
+            return; // Reflection failed; containerScreenBounds already logged why.
+        }
+        double scaleX = image.getWidth() / (double) mc.getWindow().getGuiScaledWidth();
+        double scaleY = image.getHeight() / (double) mc.getWindow().getGuiScaledHeight();
+        int left = (int) Math.round(bounds[0] * scaleX);
+        int top = (int) Math.round(bounds[1] * scaleY);
+        int width = (int) Math.round(bounds[2] * scaleX);
+        int height = (int) Math.round(bounds[3] * scaleY);
+        if (width <= 0 || height <= 0) {
+            return;
+        }
+        double stdDev = sampleLuminanceStdDev(image, left, top, width, height);
+        if (stdDev < WORLD_SHOT_STDDEV_THRESHOLD) {
+            LOGGER.error("{}#1086 self-check FAILED: {}'s panel region ({}x{} at {},{}) reads as a near-uniform "
+                    + "color (luminance stddev {}) -- this looks like a world shot, not a rendered GUI panel",
+                    LOG_PREFIX, fileName, width, height, left, top, stdDev);
+            FAILED_FRAMES.add(fileName);
+        }
+    }
+
+    /** Standard deviation of pixel luminance over a {@link #WORLD_SHOT_SAMPLE_GRID}-by-grid sample of the region. */
+    private static double sampleLuminanceStdDev(NativeImage image, int left, int top, int width, int height) {
+        int count = 0;
+        double sum = 0.0;
+        double sumSq = 0.0;
+        for (int gx = 0; gx < WORLD_SHOT_SAMPLE_GRID; gx++) {
+            for (int gy = 0; gy < WORLD_SHOT_SAMPLE_GRID; gy++) {
+                int x = clampToImage((gx + 0.5) * width / WORLD_SHOT_SAMPLE_GRID + left, image.getWidth());
+                int y = clampToImage((gy + 0.5) * height / WORLD_SHOT_SAMPLE_GRID + top, image.getHeight());
+                int abgr = image.getPixelRGBA(x, y);
+                double luminance = 0.299 * FastColor.ABGR32.red(abgr) + 0.587 * FastColor.ABGR32.green(abgr)
+                        + 0.114 * FastColor.ABGR32.blue(abgr);
+                sum += luminance;
+                sumSq += luminance * luminance;
+                count++;
+            }
+        }
+        double mean = sum / count;
+        double variance = sumSq / count - mean * mean;
+        return Math.sqrt(Math.max(variance, 0.0));
+    }
+
+    private static int clampToImage(double coordinate, int imageDimension) {
+        return (int) Math.min(Math.max(coordinate, 0), imageDimension - 1);
+    }
+
+    /**
+     * Reflected once and cached: {@link AbstractContainerScreen} keeps {@code leftPos}/{@code
+     * topPos}/{@code imageWidth}/{@code imageHeight} {@code protected} with no getter, and this class
+     * is neither a subclass nor in its package.
+     */
+    private static final Field CONTAINER_LEFT_POS_FIELD = containerScreenField("leftPos");
+    private static final Field CONTAINER_TOP_POS_FIELD = containerScreenField("topPos");
+    private static final Field CONTAINER_IMAGE_WIDTH_FIELD = containerScreenField("imageWidth");
+    private static final Field CONTAINER_IMAGE_HEIGHT_FIELD = containerScreenField("imageHeight");
+
+    @Nullable
+    private static Field containerScreenField(String name) {
+        try {
+            Field field = AbstractContainerScreen.class.getDeclaredField(name);
+            field.setAccessible(true);
+            return field;
+        } catch (ReflectiveOperationException e) {
+            LOGGER.error("{}#1086 self-check: AbstractContainerScreen has no '{}' field any more; the "
+                    + "world-shot self-check is disabled for every screen capture", LOG_PREFIX, name, e);
+            return null;
+        }
+    }
+
+    /** {@code {leftPos, topPos, imageWidth, imageHeight}} in GUI-space pixels, or {@code null} if reflection failed. */
+    @Nullable
+    private static int[] containerScreenBounds(AbstractContainerScreen<?> screen) {
+        if (CONTAINER_LEFT_POS_FIELD == null || CONTAINER_TOP_POS_FIELD == null
+                || CONTAINER_IMAGE_WIDTH_FIELD == null || CONTAINER_IMAGE_HEIGHT_FIELD == null) {
+            return null;
+        }
+        try {
+            return new int[] {
+                CONTAINER_LEFT_POS_FIELD.getInt(screen), CONTAINER_TOP_POS_FIELD.getInt(screen),
+                CONTAINER_IMAGE_WIDTH_FIELD.getInt(screen), CONTAINER_IMAGE_HEIGHT_FIELD.getInt(screen)};
+        } catch (IllegalAccessException e) {
+            LOGGER.error("{}#1086 self-check: could not read {}'s bounds fields", LOG_PREFIX, screen.getClass().getSimpleName(), e);
+            return null;
+        }
+    }
+
     private static File outputDir(Minecraft mc) {
         String configured = System.getProperty(OUTPUT_DIR_PROPERTY);
         return configured != null ? new File(configured) : new File(mc.gameDirectory, "screenshots");
+    }
+
+    /**
+     * Issue #1086: stops the client and, if any frame failed its readiness wait or its world-shot
+     * self-check, forces a non-zero exit so a caller (a human running scripts/screenshots.sh, or
+     * Gradle's own {@code runScreenshotHarness} task) sees the run as failed instead of the quiet 0
+     * the process would otherwise return the moment the window closes -- {@link Minecraft#stop()}
+     * alone only asks the client to shut down cleanly, it never sets an exit code by itself.
+     */
+    private static void finishHarness(Minecraft mc) {
+        mc.stop();
+        if (FAILED_FRAMES.isEmpty()) {
+            LOGGER.info("{}every frame captured cleanly", LOG_PREFIX);
+            return;
+        }
+        LOGGER.error("{}{} frame(s) failed: {}", LOG_PREFIX, FAILED_FRAMES.size(), String.join(", ", FAILED_FRAMES));
+        System.exit(1);
     }
 
     private static void advance(Stage next) {
