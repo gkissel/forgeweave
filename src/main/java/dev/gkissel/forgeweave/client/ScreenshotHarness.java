@@ -95,6 +95,7 @@ import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ArmorPieceItem;
 import dev.gkissel.forgeweave.config.ForgeweaveClientConfig;
 import dev.gkissel.forgeweave.config.HeldBowPose;
+import dev.gkissel.forgeweave.config.StationPreviewModel;
 import dev.gkissel.forgeweave.item.BowItem;
 import dev.gkissel.forgeweave.item.CrossbowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
@@ -297,12 +298,26 @@ public final class ScreenshotHarness {
             new HarnessScreen("tool_station_stand_armor", ForgeweaveBlocks.TOOL_STATION,
                     (level, pos) -> loadWholeToolParts(level, pos, ForgeweaveItems.ARMOR_CHESTPLATE.get()),
                     ScreenshotHarness::selectChestplateTab),
+            // The same two frames under stationPreviewModel = PLAYER: the result on a copy of the
+            // player in their own skin. The third frame's prepare puts the setting back, so every
+            // capture after these is on the armor stand again.
+            new HarnessScreen("tool_station_player_tool", ForgeweaveBlocks.TOOL_STATION,
+                    (level, pos) -> {
+                        ForgeweaveClientConfig.STATION_PREVIEW_MODEL.set(StationPreviewModel.PLAYER);
+                        loadWholeToolParts(level, pos, ForgeweaveItems.TOOL_PICKAXE.get());
+                    }, ScreenshotHarness::selectPickaxeTab),
+            new HarnessScreen("tool_station_player_armor", ForgeweaveBlocks.TOOL_STATION,
+                    (level, pos) -> loadWholeToolParts(level, pos, ForgeweaveItems.ARMOR_CHESTPLATE.get()),
+                    ScreenshotHarness::selectChestplateTab),
             // #796: every item icon a Forged sprite in that issue's first batch replaced, one
             // capture -- see prepareForgedLegacyCompareScene's javadoc. Enabling the built-in Legacy
             // resource pack and re-running this one capture is the release-checklist comparison the
             // issue asked for; no display was available to run it here, so it is wired but uncaptured.
             new HarnessScreen("forged_legacy_compare", ForgeweaveBlocks.PART_CHEST,
-                    ScreenshotHarness::prepareForgedLegacyCompareScene),
+                    (level, pos) -> {
+                        ForgeweaveClientConfig.STATION_PREVIEW_MODEL.set(StationPreviewModel.DEFAULT);
+                        prepareForgedLegacyCompareScene(level, pos);
+                    }),
             new HarnessScreen("crafting_station", ForgeweaveBlocks.CRAFTING_STATION),
             new HarnessScreen("stencil_table", ForgeweaveBlocks.STENCIL_TABLE),
             // #101: the smeltery is a multiblock, so unlike every M1 station it needs a structure

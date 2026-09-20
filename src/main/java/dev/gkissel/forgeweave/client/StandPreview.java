@@ -7,18 +7,25 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.player.RemotePlayer;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.decoration.ArmorStand;
+import net.minecraft.world.entity.player.PlayerModelPart;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.modifier.Modifier;
+import dev.gkissel.forgeweave.config.ForgeweaveClientConfig;
+import dev.gkissel.forgeweave.config.StationPreviewModel;
 
 /**
  * A station's live preview of what it is about to hand back: an armor stand that holds the piece in
@@ -33,6 +40,10 @@ import dev.gkissel.forgeweave.api.modifier.Modifier;
  * class rather than a method on {@link ToolStationScreen} for the same reason it is a base class
  * upstream: a Modifier Worktable would want the identical widget, and one copy is one thing to keep
  * honest.
+ *
+ * <p>The one Forgeweave addition is the client config's {@code stationPreviewModel}: set to
+ * {@code PLAYER}, the same pose, slots and drag ring are drawn on a copy of the player in their own
+ * skin instead of on the stand. The armor stand stays the default.
  *
  * <p>Client only, in every sense the issue asked for. The stand is built from {@link #open} when a
  * screen appears and dropped by {@link #close} when it goes away, so a closed screen holds no entity
@@ -61,8 +72,15 @@ public final class StandPreview {
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/stand_rotate.png");
     private static final int RING_SIZE = 32;
 
+    /**
+     * Where the player model stands. It is never in a level, but the name tag check measures from
+     * the camera to the entity's own coordinates, so it is kept further away than a tag ever draws.
+     */
+    private static final double OUT_OF_NAME_TAG_RANGE = -10_000.0D;
+
+    /** The armor stand, or the player copy when {@code stationPreviewModel = PLAYER}. */
     @Nullable
-    private ArmorStand stand;
+    private LivingEntity stand;
     private int x;
     private int y;
     private int scale = SCALE;
@@ -82,14 +100,43 @@ public final class StandPreview {
             return; // no client level to build an entity against; nothing to preview yet either
         }
         ItemStack held = stand == null ? ItemStack.EMPTY : stand.getItemBySlot(EquipmentSlot.OFFHAND);
-        stand = new ArmorStand(level, 0.0D, 0.0D, 0.0D);
-        stand.setNoBasePlate(true);
-        stand.setShowArms(true);
+        stand = level instanceof ClientLevel clientLevel
+                && ForgeweaveClientConfig.STATION_PREVIEW_MODEL.get() == StationPreviewModel.PLAYER
+                        ? playerModel(clientLevel) : armorStand(level);
         stand.yBodyRot = Y_BODY_ROT;
         stand.setXRot(X_ROT);
         stand.yHeadRot = stand.getYRot();
         stand.yHeadRotO = stand.getYRot();
         setItem(held);
+    }
+
+    private static ArmorStand armorStand(Level level) {
+        ArmorStand armorStand = new ArmorStand(level, 0.0D, 0.0D, 0.0D);
+        armorStand.setNoBasePlate(true);
+        armorStand.setShowArms(true);
+        return armorStand;
+    }
+
+    /**
+     * A copy of the player at the screen: same profile, so the renderer finds the same skin, and the
+     * same skin layers the player switched on in vanilla's Skin Customization screen.
+     */
+    private static LivingEntity playerModel(ClientLevel level) {
+        Minecraft minecraft = Minecraft.getInstance();
+        byte layers = 0;
+        for (PlayerModelPart part : PlayerModelPart.values()) {
+            if (minecraft.options.isModelPartEnabled(part)) {
+                layers |= (byte) part.getMask();
+            }
+        }
+        byte shownLayers = layers;
+        RemotePlayer player = new RemotePlayer(level, minecraft.getGameProfile()) {
+            {
+                entityData.set(DATA_PLAYER_MODE_CUSTOMISATION, shownLayers);
+            }
+        };
+        player.setPos(0.0D, OUT_OF_NAME_TAG_RANGE, 0.0D);
+        return player;
     }
 
     /** Drops the stand, so a closed screen costs nothing. */

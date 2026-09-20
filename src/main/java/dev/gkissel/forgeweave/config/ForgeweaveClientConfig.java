@@ -65,6 +65,13 @@ public final class ForgeweaveClientConfig {
      */
     public static final ModConfigSpec.EnumValue<HeldBowPose> HELD_BOW_POSE;
 
+    /**
+     * Forgeweave's own (no upstream counterpart): whether the stations preview their result on
+     * upstream 1.20's armor stand or on a copy of the player in their own skin. Read by
+     * {@code StandPreview#open}, so a change applies the next time a station screen opens.
+     */
+    public static final ModConfigSpec.EnumValue<StationPreviewModel> STATION_PREVIEW_MODEL;
+
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
@@ -87,6 +94,10 @@ public final class ForgeweaveClientConfig {
                 .comment("How the shortbow, longbow and crossbow are held, in every draw state. CLASSIC is",
                         "the original 1.12-era pose; MODERN is vanilla 1.21.1's own bow/crossbow pose.")
                 .defineEnum("heldBowPose", HeldBowPose.DEFAULT);
+        STATION_PREVIEW_MODEL = builder
+                .comment("What the Tool Station, Tool Forge and Modifier Worktable preview their result on.",
+                        "ARMOR_STAND is an armor stand; PLAYER is your own character, in your skin.")
+                .defineEnum("stationPreviewModel", StationPreviewModel.DEFAULT);
 
         SPEC = builder.build();
     }
