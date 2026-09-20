@@ -41,7 +41,8 @@ class ToolStationPreviewTest {
     @Test
     void emptySlotsAreAllGrey() {
         Tab tab = pickaxe();
-        List<Integer> colors = ToolStationPreview.layerColors(tab, i -> ItemStack.EMPTY, ToolStationPreviewTest::color);
+        List<Integer> colors =
+                ToolStationPreview.layerColors(tab.entry(), i -> ItemStack.EMPTY, ToolStationPreviewTest::color);
         assertEquals(3, colors.size(), "a pickaxe has head, binding and handle layers");
         assertEquals(List.of(ToolStationPreview.MISSING, ToolStationPreview.MISSING, ToolStationPreview.MISSING), colors);
     }
@@ -51,7 +52,7 @@ class ToolStationPreviewTest {
         Tab tab = pickaxe();
         ItemStack head = new ItemStack(tab.part(0));
         head.set(ForgeweaveDataComponents.MATERIAL.get(), IRON);
-        List<Integer> colors = ToolStationPreview.layerColors(tab, i -> i == 0 ? head : ItemStack.EMPTY,
+        List<Integer> colors = ToolStationPreview.layerColors(tab.entry(), i -> i == 0 ? head : ItemStack.EMPTY,
                 ToolStationPreviewTest::color);
         // Layer order is the art's (handle under head under binding), not the slot order.
         List<Integer> layerSlots = ToolArt.layerSlots(tab.entry().constants().parts());
@@ -70,7 +71,7 @@ class ToolStationPreviewTest {
         ItemStack unknown = new ItemStack(tab.part(1));
         unknown.set(ForgeweaveDataComponents.MATERIAL.get(),
                 ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "nothing"));
-        List<Integer> colors = ToolStationPreview.layerColors(tab,
+        List<Integer> colors = ToolStationPreview.layerColors(tab.entry(),
                 i -> i == 0 ? handleInHeadSlot : i == 1 ? unknown : ItemStack.EMPTY, ToolStationPreviewTest::color);
         assertEquals(List.of(ToolStationPreview.MISSING, ToolStationPreview.MISSING, ToolStationPreview.MISSING), colors);
     }

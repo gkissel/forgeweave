@@ -10,6 +10,7 @@ import net.minecraft.network.chat.Component;
 
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.item.ToolItem;
@@ -73,6 +74,13 @@ import dev.gkissel.forgeweave.item.ToolItem;
  * selected tab doesn't use. Since issue #155 that count is per-tool on the build tabs too: three M3
  * weapons have no extra part, so their tabs list two positions where the M1 tools list three and the
  * repair tab lists six.
+ *
+ * <p>Since issue #1081 a tab is not always one tool either. The two armor tabs list four pieces each
+ * and the plating in the first slot is what picks one ({@link Tab#resolve}), which is how upstream
+ * 1.20 has always laid armor out: its
+ * {@code data/tconstruct/tinkering/station_layouts/plate_armor.json} is a single layout whose plating
+ * slot names all four platings and whose building recipe reads the piece off whichever went in. The
+ * eight pieces are still eight items with eight recipes; only the buttons collapsed.
  */
 public final class ToolStationTabs {
 
@@ -82,44 +90,77 @@ public final class ToolStationTabs {
     /**
      * One entry in the selection sidebar.
      *
-     * @param entry the tool this tab builds and the parts it takes (issue #155), or {@code null} for
-     *     the repair tab, which accepts an assembled tool in its first slot instead
+     * @param captionKey the lang key this tab is named by, or {@code null} to take the built tool's
+     *     own registered name. Set on the repair tab and on the two armor tabs, which stand for a
+     *     family of pieces rather than for one item (issue #1081).
+     * @param entries the tools this tab builds and the parts each takes (issue #155) -- empty on the
+     *     repair tab, which accepts an assembled tool in its first slot instead. More than one only
+     *     on the armor tabs: the plating in the first slot picks which of them comes out
+     *     ({@link #resolve}), the way upstream 1.20's one {@code plate_armor} layout does.
      * @param slots where this tab's input slots sit, in the entry's own part order (or, on the repair
      *     tab, tool then the five free slots). Its size is the tab's active-slot count.
      */
-    public record Tab(@Nullable ToolAssemblyRecipes.Entry entry, List<Pos> slots) {
+    public record Tab(@Nullable String captionKey, List<ToolAssemblyRecipes.Entry> entries, List<Pos> slots) {
 
         public Tab {
-            if (entry != null && entry.slotCount() != slots.size()) {
-                throw new IllegalArgumentException(entry.constants().id() + ": tab positions and part slots disagree");
+            entries = List.copyOf(entries);
+            for (ToolAssemblyRecipes.Entry candidate : entries) {
+                if (candidate.slotCount() != slots.size()) {
+                    throw new IllegalArgumentException(
+                            candidate.constants().id() + ": tab positions and part slots disagree");
+                }
             }
         }
 
         public boolean isRepair() {
-            return entry == null;
+            return entries.isEmpty();
+        }
+
+        /**
+         * The piece this tab stands for while nothing has picked one yet: its only entry on a plain
+         * build tab, the first of the family on an armor tab, {@code null} on the repair tab -- which
+         * is the contract this had while it was a record component holding one nullable entry.
+         */
+        @Nullable
+        public ToolAssemblyRecipes.Entry entry() {
+            return entries.isEmpty() ? null : entries.get(0);
         }
 
         public Item tool() {
-            return entry.tool().get();
+            return entry().tool().get();
         }
 
         /** The part this tab's slot {@code index} accepts. */
         public PartItem part(int index) {
-            return entry.part(index);
+            return entry().part(index);
+        }
+
+        /**
+         * Which of this tab's entries {@code first} -- whatever sits in its first slot -- selects.
+         * On an armor tab that is the plating deciding the piece (issue #1081); everywhere else there
+         * is only ever one entry to return. Falls back to {@link #entry()} for an empty or
+         * unrecognised first slot, so a caller always has a shape to draw.
+         */
+        public ToolAssemblyRecipes.Entry resolve(ItemStack first) {
+            return entries.stream()
+                    .filter(candidate -> first.is(candidate.part(0)))
+                    .findFirst()
+                    .orElseGet(this::entry);
+        }
+
+        /** Whether slot {@code index} takes {@code stack} for any of the pieces this tab builds. */
+        public boolean acceptsPart(int index, ItemStack stack) {
+            return index < slots.size() && entries.stream().anyMatch(candidate -> stack.is(candidate.part(index)));
         }
 
         /** The caption the info panel and the button tooltip show for this tab. */
         public Component title() {
-            return isRepair()
-                    ? Component.translatable("gui.forgeweave.tool_station.repair")
-                    : Component.translatable(tool().getDescriptionId());
+            return Component.translatable(captionKey != null ? captionKey : tool().getDescriptionId());
         }
 
         /** The lang key of this tab's one-paragraph description, shown while nothing is loaded. */
         public String descriptionKey() {
-            return isRepair()
-                    ? "gui.forgeweave.tool_station.repair.description"
-                    : tool().getDescriptionId() + ".description";
+            return (captionKey != null ? captionKey : tool().getDescriptionId()) + ".description";
         }
     }
 
@@ -138,11 +179,24 @@ public final class ToolStationTabs {
      * catches. An unknown tool throws at class-init instead.
      */
     private static Tab build(Supplier<? extends Item> tool, Pos... slots) {
-        return new Tab(ToolAssemblyRecipes.ENTRIES.stream()
+        return new Tab(null, List.of(entryOf(tool)), List.of(slots));
+    }
+
+    /**
+     * One tab that builds a whole family of pieces, told apart by what goes in its first slot --
+     * issue #1081's two armor tabs, mirroring upstream 1.20's single {@code plate_armor} station
+     * layout. Every listed piece takes the same parts in the same slots except that first one, which
+     * is where the four platings differ, so one set of positions serves all four.
+     */
+    private static Tab family(String captionKey, List<Supplier<? extends Item>> tools, Pos... slots) {
+        return new Tab(captionKey, tools.stream().map(ToolStationTabs::entryOf).toList(), List.of(slots));
+    }
+
+    private static ToolAssemblyRecipes.Entry entryOf(Supplier<? extends Item> tool) {
+        return ToolAssemblyRecipes.ENTRIES.stream()
                 .filter(entry -> entry.tool() == tool)
                 .findFirst()
-                .orElseThrow(() -> new IllegalStateException(tool + " has no ToolAssemblyRecipes entry")),
-                List.of(slots));
+                .orElseThrow(() -> new IllegalStateException(tool + " has no ToolAssemblyRecipes entry"));
     }
 
     /**
@@ -180,7 +234,7 @@ public final class ToolStationTabs {
             slots.add(at((int) Math.round(Math.cos(angle) * DERIVED_RADIUS),
                     (int) Math.round(Math.sin(angle) * DERIVED_RADIUS)));
         }
-        return new Tab(entry, List.copyOf(slots));
+        return new Tab(null, List.of(entry), List.copyOf(slots));
     }
 
     private static List<Tab> withRegistered(List<Tab> builtIn) {
@@ -192,7 +246,8 @@ public final class ToolStationTabs {
     }
 
     public static final List<Tab> TABS = withRegistered(List.of(
-            new Tab(null, List.of(at(0, 0), at(-18, 20), at(-22, -5), at(0, -23), at(22, -5), at(18, 20))),
+            new Tab("gui.forgeweave.tool_station.repair", List.of(),
+                    List.of(at(0, 0), at(-18, 20), at(-22, -5), at(0, -23), at(22, -5), at(18, 20))),
             // pickaxe: head, binding, handle
             build(ForgeweaveItems.TOOL_PICKAXE, at(20, -20), at(0, 0), at(-18, 18)),
             build(ForgeweaveItems.TOOL_SHOVEL, at(18, -18), at(-20, 20), at(0, 0)),
@@ -267,19 +322,26 @@ public final class ToolStationTabs {
             // shaft, head, fletching part order.
             build(ForgeweaveItems.TOOL_ARROW, at(-1, -1), at(17, -19), at(-19, 17)),
             // M4 armor (issue #678): plating above, maille below. On the Tool Station and the Tool
-            // Forge alike (SCOPE.md D13, restored by #1006).
-            build(ForgeweaveItems.ARMOR_HELMET, at(0, -14), at(0, 14)),
-            build(ForgeweaveItems.ARMOR_CHESTPLATE, at(0, -14), at(0, 14)),
-            build(ForgeweaveItems.ARMOR_LEGGINGS, at(0, -14), at(0, 14)),
-            build(ForgeweaveItems.ARMOR_BOOTS, at(0, -14), at(0, 14)),
+            // Forge alike (SCOPE.md D13, restored by #1006). Issue #1081 collapses the four light
+            // pieces into one tab, as upstream 1.20 has always had it: its
+            // data/tconstruct/tinkering/station_layouts/plate_armor.json is a single layout whose
+            // first slot is filtered to all four platings, and the plating that goes in is what picks
+            // the piece. Its two positions are upstream's verbatim -- plating (33, 29), maille
+            // (33, 53) -- which from this table's (33, 42) origin are the offsets below.
+            family("gui.forgeweave.tool_station.armor",
+                    List.of(ForgeweaveItems.ARMOR_HELMET, ForgeweaveItems.ARMOR_CHESTPLATE,
+                            ForgeweaveItems.ARMOR_LEGGINGS, ForgeweaveItems.ARMOR_BOOTS),
+                    at(0, -13), at(0, 11)),
             // #735 heavy armor (epic #730): plating top, maille bottom-left, large plate
             // bottom-right, in the entry's own plating/maille/large_plate order. No upstream
-            // counterpart to cite (no 1.12 armor at all) -- Forgeweave's own triangular layout.
-            // Forge only since #1006, through the #forgeweave:large_tools tag the gate below reads.
-            build(ForgeweaveItems.ARMOR_HEAVY_HELMET, at(0, -16), at(-14, 10), at(14, 10)),
-            build(ForgeweaveItems.ARMOR_HEAVY_CHESTPLATE, at(0, -16), at(-14, 10), at(14, 10)),
-            build(ForgeweaveItems.ARMOR_HEAVY_LEGGINGS, at(0, -16), at(-14, 10), at(14, 10)),
-            build(ForgeweaveItems.ARMOR_HEAVY_BOOTS, at(0, -16), at(-14, 10), at(14, 10))));
+            // counterpart to cite (no 1.12 armor at all, and no heavy set in 1.20 either) --
+            // Forgeweave's own triangular layout, which #1081 leaves exactly where #735 put it while
+            // collapsing the four pieces onto one tab the same way. Forge only since #1006, through
+            // the #forgeweave:large_tools tag the gate below reads.
+            family("gui.forgeweave.tool_station.heavy_armor",
+                    List.of(ForgeweaveItems.ARMOR_HEAVY_HELMET, ForgeweaveItems.ARMOR_HEAVY_CHESTPLATE,
+                            ForgeweaveItems.ARMOR_HEAVY_LEGGINGS, ForgeweaveItems.ARMOR_HEAVY_BOOTS),
+                    at(0, -16), at(-14, 10), at(14, 10))));
 
     /** The repair tab, which is what a freshly opened station shows (as upstream's does). */
     public static final int REPAIR = 0;
@@ -319,8 +381,11 @@ public final class ToolStationTabs {
         List<Integer> indices = new ArrayList<>(TABS.size());
         for (int i = 0; i < TABS.size(); i++) {
             Tab tab = TABS.get(i);
-            if (!tab.isRepair() && !ContentFamilies.toolEnabled(tab.entry())) {
-                continue; // content-family toggles ticket: an off family offers no build tab at all
+            // Content-family toggles ticket: an off family offers no build tab at all. Asked of the
+            // whole family (#1081): the armor tabs stand for four pieces each, and a tab is worth
+            // drawing while any one of them is still buildable.
+            if (!tab.isRepair() && tab.entries().stream().noneMatch(ContentFamilies::toolEnabled)) {
+                continue;
             }
             if (forge || tab.isRepair() || !ToolAssemblyRecipes.isLargeTool(tab.entry())) {
                 indices.add(i);
@@ -329,11 +394,17 @@ public final class ToolStationTabs {
         return List.copyOf(indices);
     }
 
-    /** The tab index that builds {@code tool}, or -1 if none does. Used by JEI's [+] transfer. */
+    /**
+     * The tab index that builds {@code tool}, or -1 if none does. Used by JEI's [+] transfer.
+     *
+     * <p>Since issue #1081 a tab can build more than one item -- the two armor tabs build four
+     * pieces each -- so this searches the whole family. JEI still lists one recipe per piece, and
+     * each of them lands on the armor tab whose first slot takes that piece's plating.
+     */
     public static int indexOfTool(Item tool) {
         for (int i = 0; i < TABS.size(); i++) {
             Tab tab = TABS.get(i);
-            if (!tab.isRepair() && tab.tool() == tool) {
+            if (!tab.isRepair() && tab.entries().stream().anyMatch(entry -> entry.tool().get() == tool)) {
                 return i;
             }
         }

@@ -154,6 +154,13 @@ public class ToolForgeGameTests {
     private static final int FORGE_ONLY_ENTRIES = 15;
 
     /**
+     * How many sidebar <em>tabs</em> those entries amount to. Fewer than the entries since issue
+     * #1081: the four heavy armor pieces share one Heavy armor button, so the eleven large tools plus
+     * that one button are what a Tool Station's column drops.
+     */
+    private static final int FORGE_ONLY_TABS = FORGE_ONLY_ENTRIES - 3;
+
+    /**
      * Issue #336: the battleaxe is Tool Forge tier too. Upstream 1.12 never shipped it -- its
      * {@code TinkerRegistry.registerToolForgeCrafting(battleAxe)} sits commented out at
      * {@code tools/melee/TinkerMeleeWeapons.java:104} -- but the line it is commented out on is the
@@ -190,27 +197,26 @@ public class ToolForgeGameTests {
         helper.assertTrue(forge.size() == ToolStationTabs.TABS.size(),
                 "the Tool Forge builds the whole roster, got " + forge.size() + " of "
                         + ToolStationTabs.TABS.size());
-        helper.assertTrue(station.size() == ToolStationTabs.TABS.size() - FORGE_ONLY_ENTRIES,
-                "the Tool Station's sidebar drops the " + FORGE_ONLY_ENTRIES
-                        + " forge-only entries, got " + station.size());
+        helper.assertTrue(station.size() == ToolStationTabs.TABS.size() - FORGE_ONLY_TABS,
+                "the Tool Station's sidebar drops the " + FORGE_ONLY_TABS
+                        + " forge-only tabs, got " + station.size());
         helper.assertTrue(station.contains(ToolStationTabs.REPAIR), "every station keeps its repair tab");
         for (int index : station) {
             ToolStationTabs.Tab tab = ToolStationTabs.get(index);
             helper.assertFalse(!tab.isRepair() && ToolAssemblyRecipes.isLargeTool(tab.entry()),
                     "a Tool Station tab must not build a forge-only entry, got " + tab.title().getString());
         }
-        // #1006: the light set is on the Tool Station's own column, the heavy set is not.
+        // #1006: the light set is on the Tool Station's own column, the heavy set is not. #1081:
+        // each set is one tab that builds all four, so the question is which tab lists the piece.
         for (ToolConstants.Entry light : List.of(ToolConstants.HELMET, ToolConstants.CHESTPLATE,
                 ToolConstants.LEGGINGS, ToolConstants.BOOTS)) {
-            helper.assertTrue(station.stream()
-                            .anyMatch(index -> !ToolStationTabs.get(index).isRepair()
-                                    && ToolStationTabs.get(index).entry().constants() == light),
+            helper.assertTrue(station.stream().anyMatch(index -> ToolStationTabs.get(index).entries().stream()
+                            .anyMatch(entry -> entry.constants() == light)),
                     "the Tool Station's sidebar must carry " + light.id());
         }
         for (ToolConstants.Entry heavy : ToolConstants.HEAVY_ARMOR) {
-            helper.assertFalse(station.stream()
-                            .anyMatch(index -> !ToolStationTabs.get(index).isRepair()
-                                    && ToolStationTabs.get(index).entry().constants() == heavy),
+            helper.assertFalse(station.stream().anyMatch(index -> ToolStationTabs.get(index).entries().stream()
+                            .anyMatch(entry -> entry.constants() == heavy)),
                     "the Tool Station's sidebar must not carry " + heavy.id());
         }
         helper.succeed();

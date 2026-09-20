@@ -158,6 +158,28 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     private static final int ANVIL_U = 54;
     private static final int ANVIL_V = 0;
     /**
+     * Issue #1081's two family icons, drawn where a plain build tab draws its tool's own layers:
+     * one tab now stands for four armor pieces, so the button and the still-empty preview need a
+     * glyph that means "armor" rather than any one piece of it.
+     *
+     * <p>{@link #ARMOR_ICON} is upstream 1.20's own {@code Patterns#PLATE_ARMOR}
+     * ({@code textures/gui/tinker_pattern/plate_armor.png}, MIT, NOTICE.md) -- the icon its single
+     * {@code plate_armor} station layout carries. {@link #PLATING_ICON} is its {@code Patterns#PLATING}
+     * beside it, the generic plating outline its layout names for the slot the four platings share;
+     * that is what an empty plating slot ghosts here, rather than singling one piece's plating out.
+     *
+     * <p>The heavy set has no upstream counterpart to take an icon from, so its button is composed at
+     * draw time out of art Forgeweave already ships -- the armor icon with a shrunken large plate
+     * over its corner, which is exactly what the heavy set adds to the light one. Composed rather
+     * than authored as a file so nothing new is derived and nothing new can reach the Legacy pack.
+     */
+    private static final ResourceLocation ARMOR_ICON =
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/armor_button.png");
+    private static final ResourceLocation PLATING_ICON =
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/plating_slot.png");
+    /** How big the large plate is drawn in the heavy armor button's corner. */
+    private static final int HEAVY_BADGE_SIZE = 9;
+    /**
      * Upstream's repair-slot glyphs, in its own order: {@code Icons.ICON_Pickaxe}, {@code ICON_Dust},
      * {@code ICON_Lapis}, {@code ICON_Ingot}, {@code ICON_Gem}, {@code ICON_Quartz}
      * ({@code GuiToolStation#drawRepairSlotIcon} pairs them with {@code GuiButtonRepair}'s positions,
@@ -428,7 +450,13 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
         ItemStack subject = !output.isEmpty() ? output : ToolAssemblyRecipes.isAssembled(head) ? head : ItemStack.EMPTY;
         // Issue #1043, upstream's own order in ToolTableScreen#updateDisplay: the stand shows the
         // result, and falls back to the tool already loaded when there is no result to show yet.
-        preview.setItem(subject);
+        // #1081 adds one more fallback for the armor tabs, whose four pieces are told apart by the
+        // plating: with a chest plating in and the maille still missing there is no result yet, so
+        // the stand wears a bare chestplate to show which piece the loaded plating is heading for.
+        // Untinted grey, as any materialless piece renders (ArmorPieceItem#layerMaterial).
+        preview.setItem(!subject.isEmpty() || !isFamily(tab) || head.isEmpty()
+                ? subject
+                : new ItemStack(tab.resolve(head).tool().get()));
 
         if (!subject.isEmpty()) {
             describeTool(subject);
@@ -496,10 +524,19 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     /** " * Part Name" per required component, red while its slot doesn't hold that part yet. */
     private List<Component> componentLines(Tab tab) {
         List<Component> lines = new ArrayList<>(tab.slots().size());
+        // #1081: on an armor tab the parts listed are the ones the plating already in the slot asks
+        // for, so "Chest Plating" replaces the generic line the moment one goes in. Until then the
+        // plating line names no piece, because any of the four would do -- upstream's own
+        // pattern.tconstruct.plating, which its layout gives that shared slot.
+        ItemStack first = menu.getSlot(ToolStationMenu.HEAD_SLOT).getItem();
+        ToolAssemblyRecipes.Entry entry = tab.resolve(first);
         for (int i = 0; i < tab.slots().size(); i++) {
-            Item part = tab.part(i);
+            Item part = entry.part(i);
             boolean satisfied = menu.getSlot(i).getItem().is(part);
-            Component name = Component.literal(" * ").append(new ItemStack(part).getHoverName());
+            Component partName = isFamily(tab) && i == ToolStationMenu.HEAD_SLOT && first.isEmpty()
+                    ? Component.translatable("gui.forgeweave.tool_station.plating")
+                    : new ItemStack(part).getHoverName();
+            Component name = Component.literal(" * ").append(partName);
             lines.add(satisfied ? name : name.copy().withStyle(ChatFormatting.RED));
         }
         return lines;
@@ -543,13 +580,19 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
      */
     private void renderToolPreview(GuiGraphics graphics) {
         Tab tab = menu.tab();
+        ItemStack plating = menu.getSlot(ToolStationMenu.HEAD_SLOT).getItem();
         graphics.pose().pushPose();
         graphics.pose().translate(leftPos + 10.0F, topPos + 22.0F, 0.0F);
         graphics.pose().scale(PREVIEW_SCALE, PREVIEW_SCALE, 1.0F);
         if (tab.isRepair()) {
             graphics.blit(ICONS, 0, 0, ANVIL_U, ANVIL_V, SLOT_SPRITE_SIZE, SLOT_SPRITE_SIZE, SHEET, SHEET);
+        } else if (isFamily(tab) && plating.isEmpty()) {
+            // #1081: four pieces share this tab and nothing has picked one yet, so the preview shows
+            // the same glyph the button does instead of guessing at a piece.
+            renderFamilyIcon(graphics, tab, 0, 0);
         } else {
-            renderToolLayers(graphics, tab, 0, 0, ToolStationPreview.layerColors(tab,
+            ToolAssemblyRecipes.Entry entry = tab.resolve(plating);
+            renderToolLayers(graphics, entry, 0, 0, ToolStationPreview.layerColors(entry,
                     slot -> menu.getSlot(slot).getItem(), ForgeweaveItemColors::materialColor));
         }
         graphics.pose().popPose();
@@ -567,23 +610,24 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
      * which a preview stack has never had (GUI blits bypass the block atlas, so no atlas entry is
      * needed for these).
      */
-    private static void renderToolLayers(GuiGraphics graphics, Tab tab, int x, int y) {
-        List<ToolConstants.PartSlot> parts = tab.entry().constants().parts();
+    private static void renderToolLayers(GuiGraphics graphics, ToolAssemblyRecipes.Entry entry, int x, int y) {
+        List<ToolConstants.PartSlot> parts = entry.constants().parts();
         List<Integer> colors = new ArrayList<>();
         for (int slot : ToolArt.layerSlots(parts)) {
             colors.add(TOOL_LAYER_COLORS.get(parts.get(slot).role()));
         }
-        renderToolLayers(graphics, tab, x, y, colors);
+        renderToolLayers(graphics, entry, x, y, colors);
     }
 
     /** As above with one 0xRRGGBB per layer, in {@link ToolArt#layers} order. */
-    private static void renderToolLayers(GuiGraphics graphics, Tab tab, int x, int y, List<Integer> colors) {
+    private static void renderToolLayers(GuiGraphics graphics, ToolAssemblyRecipes.Entry entry, int x, int y,
+            List<Integer> colors) {
         // #1066: the entry's own id, not the item's path -- a tool registered from another mod
         // carries its namespace here, which is what routes its layers to its own art.
-        String path = tab.entry().constants().id();
+        String path = entry.constants().id();
         // One layer per part, which is how every tool's model is built (ToolArt): a two-part weapon
         // (battlesign, frying pan, dagger -- issue #155) simply has no binding layer to draw.
-        List<String> layers = ToolArt.layers(tab.entry().constants().parts());
+        List<String> layers = ToolArt.layers(entry.constants().parts());
         for (int layer = 0; layer < layers.size(); layer++) {
             int color = colors.get(layer);
             graphics.setColor((color >> 16 & 0xFF) / 255.0F, (color >> 8 & 0xFF) / 255.0F, (color & 0xFF) / 255.0F, 1.0F);
@@ -598,6 +642,10 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     /** Slot plate, border and -- while empty -- the ghost of whatever belongs in that slot. */
     private void renderSlots(GuiGraphics graphics) {
         Tab tab = menu.tab();
+        // #1081: on an armor tab every ghost past the first follows the plating that is already in,
+        // because that is what says which piece is being built.
+        ToolAssemblyRecipes.Entry entry =
+                tab.isRepair() ? null : tab.resolve(menu.getSlot(ToolStationMenu.HEAD_SLOT).getItem());
         // The selected tab's own slot count, not the container's: a build tab hides the repair
         // tab's two extra reagent slots (ToolStationMenu's inputSlot#isActive draws the same line).
         for (int i = 0; i < tab.slots().size(); i++) {
@@ -620,10 +668,36 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
                         SLOT_SPRITE_SIZE, SLOT_SPRITE_SIZE, SHEET, SHEET);
             } else {
                 graphics.setColor(1.0F, 1.0F, 1.0F, GHOST_ALPHA);
-                graphics.blit(partTexture(tab.part(i)), leftPos + slot.x, topPos + slot.y, 0, 0, 16, 16, 16, 16);
+                // The plating slot of an armor tab takes any of the four, so its ghost is upstream's
+                // own generic plating outline rather than one piece's (#1081); every other slot ghosts
+                // the part the resolved piece wants there.
+                ResourceLocation ghost = isFamily(tab) && i == ToolStationMenu.HEAD_SLOT
+                        ? PLATING_ICON
+                        : partTexture(entry.part(i));
+                graphics.blit(ghost, leftPos + slot.x, topPos + slot.y, 0, 0, 16, 16, 16, 16);
                 graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
             }
         }
+    }
+
+    /** Whether this tab stands for a family of pieces rather than one item (issue #1081). */
+    private static boolean isFamily(Tab tab) {
+        return tab.entries().size() > 1;
+    }
+
+    /**
+     * The glyph a family tab shows in place of one piece's layers: upstream's plate armor icon, and
+     * for the heavy set the same icon badged with a shrunken large plate -- the part that is the
+     * whole of the difference between the two sets. Drawn into the usual 16x16 box.
+     */
+    private void renderFamilyIcon(GuiGraphics graphics, Tab tab, int x, int y) {
+        graphics.blit(ARMOR_ICON, x, y, 0, 0, 16, 16, 16, 16);
+        if (!ToolAssemblyRecipes.isLargeTool(tab.entry())) {
+            return; // the light set: the plain icon is the whole of it
+        }
+        ResourceLocation plate = partTexture(tab.entry().part(tab.slots().size() - 1));
+        graphics.blit(plate, x + 16 - HEAVY_BADGE_SIZE, y + 16 - HEAVY_BADGE_SIZE,
+                HEAVY_BADGE_SIZE, HEAVY_BADGE_SIZE, 0.0F, 0.0F, 16, 16, 16, 16);
     }
 
     /** A part item's own inventory sprite, blitted straight from its file (GUI draws bypass the atlas). */
@@ -664,8 +738,10 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
             Tab tab = ToolStationTabs.get(index);
             if (tab.isRepair()) {
                 graphics.blit(ICONS, x, y, ANVIL_U, ANVIL_V, BUTTON_SIZE, BUTTON_SIZE, SHEET, SHEET);
+            } else if (isFamily(tab)) {
+                renderFamilyIcon(graphics, tab, x + 1, y + 1);
             } else {
-                renderToolLayers(graphics, tab, x + 1, y + 1);
+                renderToolLayers(graphics, tab.entry(), x + 1, y + 1);
             }
         }
         beam(graphics, leftPos + buttonX(0) - BEAM_END_W, topPos, sidebarWidth());

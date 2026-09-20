@@ -354,8 +354,10 @@ public class ToolStationMenu extends StationMenu {
         }
         // Since issue #155 the per-slot filter is the tab's own entry: M3's swords each take a
         // different guard as their extra part, and three of its weapons have no extra part at all,
-        // in which case the surplus slots are inactive and accept nothing.
-        return index < tab.slots().size() && stack.is(tab.part(index));
+        // in which case the surplus slots are inactive and accept nothing. Since issue #1081 a tab
+        // can stand for a family of pieces, and then the filter is the union -- the armor tabs' first
+        // slot takes any of the four platings, which is what decides the piece.
+        return tab.acceptsPart(index, stack);
     }
 
     /** Whether this menu belongs to a Tool Forge; the screen reads it to pick its metal styling. */
@@ -458,11 +460,14 @@ public class ToolStationMenu extends StationMenu {
         if (tab.isRepair()) {
             return null;
         }
+        // #1081: on an armor tab the piece follows the plating, so the shapes this checks are the
+        // resolved piece's rather than the family's representative.
+        ToolAssemblyRecipes.Entry entry = tab.resolve(slots.get(HEAD_SLOT).getItem());
         for (int i = 0; i < tab.slots().size(); i++) {
             ItemStack stack = slots.get(i).getItem();
             // "Right part, wrong material" is upstream's exact shape (`pmt.isValidItem` passing while
             // `pmt.isValid` fails); anything else in the slot is the components list's business.
-            if (stack.is(tab.part(i)) && PartItem.hasUnusableMaterial(registries, stack)) {
+            if (stack.is(entry.part(i)) && PartItem.hasUnusableMaterial(registries, stack)) {
                 return Component.translatable("gui.forgeweave.tool_station.wrong_material_part");
             }
         }

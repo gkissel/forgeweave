@@ -9,7 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
-import dev.gkissel.forgeweave.menu.ToolStationTabs.Tab;
+import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.tool.ToolArt;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 
@@ -26,19 +26,22 @@ public final class ToolStationPreview {
     private ToolStationPreview() {}
 
     /**
-     * One 0xRRGGBB per {@link ToolArt#layers} entry of {@code tab}'s tool.
+     * One 0xRRGGBB per {@link ToolArt#layers} entry of {@code entry}'s tool.
+     *
+     * <p>Takes the entry rather than the tab since issue #1081: an armor tab stands for four pieces
+     * and the caller has already resolved which of them the plating in the first slot picked.
      *
      * @param slotItem what sits in the tab's slot {@code i}
      * @param materialColor a material id's bare 0xRRGGBB, or a negative value when unknown
      */
-    public static List<Integer> layerColors(Tab tab, IntFunction<ItemStack> slotItem,
+    public static List<Integer> layerColors(ToolAssemblyRecipes.Entry entry, IntFunction<ItemStack> slotItem,
             ToIntFunction<ResourceLocation> materialColor) {
-        List<ToolConstants.PartSlot> parts = tab.entry().constants().parts();
+        List<ToolConstants.PartSlot> parts = entry.constants().parts();
         List<Integer> slots = ToolArt.layerSlots(parts);
         List<Integer> colors = new ArrayList<>(slots.size());
         for (int slot : slots) {
             ItemStack stack = slotItem.apply(slot);
-            ResourceLocation material = stack.is(tab.part(slot))
+            ResourceLocation material = stack.is(entry.part(slot))
                     ? stack.get(ForgeweaveDataComponents.MATERIAL.get()) : null;
             int color = material == null ? -1 : materialColor.applyAsInt(material);
             colors.add(color < 0 ? MISSING : color & 0xFFFFFF);

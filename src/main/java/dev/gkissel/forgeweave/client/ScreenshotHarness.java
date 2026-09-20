@@ -239,14 +239,25 @@ public final class ScreenshotHarness {
             new HarnessScreen("tool_station_preview", ForgeweaveBlocks.TOOL_STATION,
                     ScreenshotHarness::loadPickaxeParts, ScreenshotHarness::selectPickaxeTab),
             // Issue #1006: the two armor layouts, now that the Armor Station is gone and armor is
-            // on these two blocks' own sidebars. The Tool Station frame shows a light chestplate
-            // tab (plating above, maille below) and the Tool Forge frame a heavy one (its third
-            // slot, and the piece a Tool Station refuses), so a reviewer can check both ghost-slot
+            // on these two blocks' own sidebars. The Tool Station frame shows the light armor tab
+            // (plating above, maille below) and the Tool Forge frame the heavy one (its third slot,
+            // and the piece a Tool Station refuses), so a reviewer can check both ghost-slot
             // arrangements and both previews against the tool tabs beside them.
+            //
+            // #1081 collapsed the eight armor buttons into these two and put a chest plating in each
+            // frame's first slot, which is what now picks the piece: both frames should show a
+            // chestplate where before they showed whichever of the four the button named.
             new HarnessScreen("tool_station_armor", ForgeweaveBlocks.TOOL_STATION,
-                    (level, pos) -> {}, ScreenshotHarness::selectChestplateTab),
+                    (level, pos) -> loadToolParts(level, pos, ForgeweaveItems.ARMOR_CHESTPLATE.get(), 1),
+                    ScreenshotHarness::selectChestplateTab),
             new HarnessScreen("tool_forge_heavy_armor", ForgeweaveBlocks.TOOL_FORGE,
-                    (level, pos) -> {}, ScreenshotHarness::selectHeavyChestplateTab),
+                    (level, pos) -> loadToolParts(level, pos, ForgeweaveItems.ARMOR_HEAVY_CHESTPLATE.get(), 1),
+                    ScreenshotHarness::selectHeavyChestplateTab),
+            // #1081: the same tab with nothing in it, which is the state the decision was about --
+            // upstream's plate armor glyph on the button and in the preview, and its generic plating
+            // outline ghosting the slot the four platings share.
+            new HarnessScreen("tool_station_armor_empty", ForgeweaveBlocks.TOOL_STATION,
+                    (level, pos) -> {}, ScreenshotHarness::selectChestplateTab),
             // #1043: the armor stand preview with something on it. The two frames are the two
             // branches of StandPreview#setItem -- a pickaxe goes in the stand's off hand, a
             // chestplate onto its body -- so a reviewer can check both against upstream 1.20's.
@@ -2513,15 +2524,25 @@ public final class ScreenshotHarness {
      * handle, plating and maille stats alike, so the same loader serves a tool and an armor piece.
      */
     private static void loadWholeToolParts(ServerLevel level, BlockPos pos, Item tool) {
+        loadToolParts(level, pos, tool, Integer.MAX_VALUE);
+    }
+
+    /**
+     * Loads the first {@code count} of {@code tool}'s own parts into the station. Keyed on the tool's
+     * {@code ToolAssemblyRecipes} entry rather than on the selected tab, because since issue #1081 an
+     * armor tab stands for four pieces and its representative is not necessarily the one asked for.
+     */
+    private static void loadToolParts(ServerLevel level, BlockPos pos, Item tool, int count) {
         if (!(level.getBlockEntity(pos) instanceof ToolStationBlockEntity station)) {
             return;
         }
-        ToolStationTabs.Tab tab = ToolStationTabs.get(ToolStationTabs.indexOfTool(tool));
-        for (int i = 0; i < tab.slots().size(); i++) {
-            ItemStack part = new ItemStack(tab.part(i));
-            part.set(ForgeweaveDataComponents.MATERIAL.get(), material("iron"));
-            station.container().setItem(i, part);
-        }
+        ToolAssemblyRecipes.entryFor(new ItemStack(tool)).ifPresent(entry -> {
+            for (int i = 0; i < Math.min(count, entry.slotCount()); i++) {
+                ItemStack part = new ItemStack(entry.part(i));
+                part.set(ForgeweaveDataComponents.MATERIAL.get(), material("iron"));
+                station.container().setItem(i, part);
+            }
+        });
     }
 
     /**

@@ -10,6 +10,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
@@ -95,28 +96,67 @@ public class ArmorGameTests {
         helper.succeed();
     }
 
+    /**
+     * Issue #1081: one Armor button for the whole light set, at the Tool Station and at the Tool
+     * Forge alike. Its plating slot takes all four platings, and the one that goes in is what decides
+     * the piece -- upstream 1.20's single {@code plate_armor} station layout, whose plating slot
+     * carries exactly that four-item filter.
+     */
     @GameTest(template = "empty")
-    public static void helmetPlatingIsRefusedInTheChestplateRow(GameTestHelper helper) {
+    public static void theOneArmorTabBuildsEveryPieceFromItsPlating(GameTestHelper helper) {
+        for (Block station : List.of(ForgeweaveBlocks.TOOL_STATION.get(), ForgeweaveBlocks.TOOL_FORGE.get())) {
+            buildsEveryPieceFromItsPlating(helper, station, ForgeweaveItems.ARMOR_HELMET.get(),
+                    ToolConstants.ARMOR, ItemStack.EMPTY);
+        }
+        helper.succeed();
+    }
+
+    /**
+     * The same for the heavy set's own button, which only the Tool Forge offers (issue #1006's
+     * {@code #forgeweave:large_tools} gate). Its third slot holds the large plate that makes the
+     * piece heavy, and the plating still decides which piece.
+     */
+    @GameTest(template = "empty")
+    public static void theOneHeavyArmorTabBuildsEveryPieceFromItsPlating(GameTestHelper helper) {
+        buildsEveryPieceFromItsPlating(helper, ForgeweaveBlocks.TOOL_FORGE.get(),
+                ForgeweaveItems.ARMOR_HEAVY_HELMET.get(), ToolConstants.HEAVY_ARMOR,
+                ToolAssembly.part(ForgeweaveItems.PART_LARGE_PLATE.get(), "iron"));
+        helper.succeed();
+    }
+
+    /**
+     * Selects the one tab that builds {@code anyPiece}, then walks the whole set through it: each
+     * piece's plating has to be accepted by the shared first slot and has to come out as that piece.
+     *
+     * @param extra what the tab's third slot takes, or empty when it has none
+     */
+    private static void buildsEveryPieceFromItsPlating(GameTestHelper helper, Block station,
+            Item anyPiece, List<ToolConstants.Entry> set, ItemStack extra) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        helper.setBlock(STATION, ForgeweaveBlocks.TOOL_STATION.get());
+        helper.setBlock(STATION, station);
         ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION);
         ToolStationMenu menu = ToolAssembly.menu(helper, player, STATION, blockEntity);
-        int tab = ToolStationTabs.indexOfTool(ForgeweaveItems.ARMOR_CHESTPLATE.get());
-        helper.assertTrue(tab >= 0 && menu.clickMenuButton(player, tab), "the chestplate tab must exist and be selectable");
-        helper.assertTrue(menu.getSlot(0).mayPlace(ToolAssembly.part(ForgeweaveItems.PART_PLATING_CHESTPLATE.get(), "iron")),
-                "the chestplate row takes chest plating");
-        helper.assertFalse(menu.getSlot(0).mayPlace(ToolAssembly.part(ForgeweaveItems.PART_PLATING_HELMET.get(), "iron")),
-                "the chestplate row must refuse helmet plating");
-        helper.assertTrue(menu.getSlot(1).mayPlace(ToolAssembly.part(ForgeweaveItems.PART_MAILLE.get(), "iron")),
-                "the chestplate row takes maille second");
 
-        // And loaded regardless of the tab, helmet plating + maille is a helmet, never a chestplate.
-        blockEntity.container().setItem(0, ToolAssembly.part(ForgeweaveItems.PART_PLATING_HELMET.get(), "iron"));
-        blockEntity.container().setItem(1, ToolAssembly.part(ForgeweaveItems.PART_MAILLE.get(), "iron"));
-        menu.broadcastChanges();
-        ItemStack output = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem();
-        helper.assertTrue(output.is(ForgeweaveItems.ARMOR_HELMET.get()), "helmet plating builds a helmet, got " + output);
-        helper.succeed();
+        int tab = ToolStationTabs.indexOfTool(anyPiece);
+        helper.assertTrue(tab >= 0 && menu.clickMenuButton(player, tab),
+                "the armor tab must exist and be selectable at " + station);
+        helper.assertTrue(menu.getSlot(1).mayPlace(ToolAssembly.part(ForgeweaveItems.PART_MAILLE.get(), "iron")),
+                "the armor tab takes maille in its second slot");
+
+        for (ToolConstants.Entry constants : set) {
+            // Slot 0 of every armor entry is its plating (ToolConstants#armor/#heavyArmor).
+            ItemStack plating = ToolAssembly.part(ToolAssembly.entryOf(constants).part(0), "iron");
+            helper.assertTrue(menu.getSlot(0).mayPlace(plating),
+                    "the one armor tab must take " + constants.id() + "'s plating");
+
+            blockEntity.container().setItem(0, plating);
+            blockEntity.container().setItem(1, ToolAssembly.part(ForgeweaveItems.PART_MAILLE.get(), "iron"));
+            blockEntity.container().setItem(2, extra.copy());
+            menu.broadcastChanges();
+            ItemStack output = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem();
+            helper.assertTrue(BuiltInRegistries.ITEM.getKey(output.getItem()).getPath().equals(constants.id()),
+                    constants.id() + "'s plating must build a " + constants.id() + ", got " + output);
+        }
     }
 
     /**
