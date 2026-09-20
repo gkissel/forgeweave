@@ -417,13 +417,13 @@ public class MiningTraitGameTests {
     }
 
     /** Builds a pickaxe {@code ItemStack} with the given traits/stats directly (see class javadoc). */
-    private static ItemStack pickaxe(List<ResourceLocation> traits, int durability, float miningSpeed,
+    static ItemStack pickaxe(List<ResourceLocation> traits, int durability, float miningSpeed,
             float attackDamage) {
         return pickaxe(traits, durability, miningSpeed, attackDamage, "incorrect_for_stone_tool");
     }
 
     /** As {@link #pickaxe(List, int, float, float)}, with the head's tier tag chosen (unnatural). */
-    private static ItemStack pickaxe(List<ResourceLocation> traits, int durability, float miningSpeed,
+    static ItemStack pickaxe(List<ResourceLocation> traits, int durability, float miningSpeed,
             float attackDamage, String incorrectForTool) {
         ToolItem toolItem = ForgeweaveItems.TOOL_PICKAXE.get();
         ToolStats.Stats stats = new ToolStats.Stats(durability, miningSpeed, attackDamage);
@@ -446,7 +446,7 @@ public class MiningTraitGameTests {
         return stack;
     }
 
-    private static BlockDropsEvent dropsEvent(GameTestHelper helper, ItemStack tool, Entity breaker,
+    static BlockDropsEvent dropsEvent(GameTestHelper helper, ItemStack tool, Entity breaker,
             ItemEntity... drops) {
         return new BlockDropsEvent(helper.getLevel(), BlockPos.ZERO, Blocks.STONE.defaultBlockState(), null,
                 new ArrayList<>(List.of(drops)), breaker, tool);
