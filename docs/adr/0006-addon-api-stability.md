@@ -12,7 +12,7 @@ Issue #1008 opened Forgeweave to addons in four parts: the `dev.gkissel.forgewea
 
 Three tiers, three different promises.
 
-1. **Datapack JSON shapes are stable from the first release that carries the api package.** The twelve datapack registries — `material`, `trait_definition`, `modifier_definition`, `melting_recipe`, `casting_recipe`, `alloy_recipe`, `smeltery_fuel`, `entity_melting_recipe`, `core_transform_recipe`, `modifier_recipe`, `embossing_recipe` and `worktable_recipe` — never lose a field or change a field's meaning inside a major version. New fields are optional and default to the old behavior. A file written against that release loads unchanged on every later release in the same major version.
+1. **Datapack JSON shapes are stable from the first release that carries the api package.** None of the twelve datapack registries (`material`, `trait_definition`, `modifier_definition`, `melting_recipe`, `casting_recipe`, `alloy_recipe`, `smeltery_fuel`, `entity_melting_recipe`, `core_transform_recipe`, `modifier_recipe`, `embossing_recipe` and `worktable_recipe`) ever loses a field or changes a field's meaning inside a major version. New fields are optional and default to the old behavior. A file written against that release loads unchanged on every later release in the same major version.
 
 2. **The stack serialization contract is stable from the same release.** A modifier on a tool is an id plus a level and nothing else. Materials are one id per part slot. An id whose addon is gone is kept inertly, never dropped, and works again the moment the addon returns. This is ADR-0004 item 2, restated here as a promise rather than an internal rule.
 

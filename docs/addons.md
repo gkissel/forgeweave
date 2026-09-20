@@ -119,7 +119,7 @@ and named from a definition file exactly like a built-in one:
 
 ### One finished trait
 
-`TraitRegistry.register(id, trait)` adds a single finished `Trait` under an id, for logic with nothing to parameterize. A material naming that id gets the behavior the same way it gets a built-in one. Nothing here is gated by `compat.kubejsTraits` — that toggle governs KubeJS script traits only, and your content is governed by your own config.
+`TraitRegistry.register(id, trait)` adds a single finished `Trait` under an id, for logic with nothing to parameterize. A material naming that id gets the behavior the same way it gets a built-in one. Nothing here is gated by `compat.kubejsTraits`. That toggle governs KubeJS script traits only, and your content is governed by your own config.
 
 ### From a KubeJS script
 
@@ -281,7 +281,7 @@ ServerEvents.registry('forgeweave:melting_recipe', event => {
 })
 ```
 
-The object is read through Forgeweave's own codec, so a bad field fails exactly the way the same file in a `data/` folder would. Materials and definitions work the same way — `ServerEvents.registry('forgeweave:material', ...)`, `'forgeweave:trait_definition'`, and so on — which is what makes scripting worth the trouble: a loop over your metals writes forty melting recipes without forty files.
+The object is read through Forgeweave's own codec, so a bad field fails exactly the way the same file in a `data/` folder would. Materials and definitions work the same way, under `ServerEvents.registry('forgeweave:material', ...)`, `'forgeweave:trait_definition'` and so on. That is what makes scripting worth the trouble: a loop over your metals writes forty melting recipes without forty files.
 
 ## Tools and tool parts
 
@@ -328,7 +328,7 @@ Add your block to the tag from your own `data/forgeweave/tags/block/smeltery/<ro
 
 ## Reclaiming an upgrade on a part swap
 
-If your mod attaches something to a Forgeweave tool — a module, a socket, an augment — register an `UpgradeHosts.Host` so a part swap that invalidates it hands it back as items instead of destroying it. Forgeweave asks every host at the one point a swap is resolved, and what the hosts return joins the parts the swap already gives back.
+If your mod attaches something to a Forgeweave tool (a module, a socket, an augment), register an `UpgradeHosts.Host` so a part swap that invalidates it hands it back as items instead of destroying it. Forgeweave asks every host at the one point a swap is resolved, and what the hosts return joins the parts the swap already gives back.
 
 <!-- from src/gametest/java/dev/gkissel/forgeweave/gametest/addon/GameTestAddon.java -->
 ```java
@@ -345,7 +345,7 @@ The contract: mutate `replacement` and never `original`; strip only what the rep
 
 `ToolLeveling.addXp(stack, amount, player)` is the one call every XP source makes, and your mod can grant XP for its own activity today.
 
-It is **not** in the api package, and that is deliberate. It is a call into Forgeweave rather than a type an addon implements, and the api package may import only Minecraft, NeoForge and itself — moving it would mean dragging `config`, `item`, `menu` and `tool` in behind it, or adding an indirection with exactly one implementation. It stays public where it is and carries the same promise as the api package ([ADR-0006](adr/0006-addon-api-stability.md) tier 3).
+It is **not** in the api package, and that is deliberate. It is a call into Forgeweave rather than a type an addon implements, and the api package may import only Minecraft, NeoForge and itself. Moving it would mean dragging `config`, `item`, `menu` and `tool` in behind it, or adding an indirection with exactly one implementation. It stays public where it is and carries the same promise as the api package ([ADR-0006](adr/0006-addon-api-stability.md) tier 3).
 
 ## What is closed
 
@@ -366,7 +366,7 @@ Four cases, and only the last one loses anything.
 | --- | --- |
 | A modifier | The entry keeps its id and level and contributes nothing. Unknown ids are kept, not dropped, and work again the moment the addon returns. |
 | A trait | The same. Every hook site treats an unresolvable trait id as no trait. |
-| A material | A finished tool keeps working: its stats were baked in at assembly. What breaks is anything that looks the material up live — the tooltip's material name, repair, and the traits that material granted. Loose, unassembled **parts** are worse off: the stations refuse them with a message until the addon returns. |
+| A material | A finished tool keeps working: its stats were baked in at assembly. What breaks is anything that looks the material up live: the tooltip's material name, repair, and the traits that material granted. Loose, unassembled **parts** are worse off: the stations refuse them with a message until the addon returns. |
 | A tool or part item | Lost. The item id itself is gone, so vanilla's own behavior applies. Nothing Forgeweave can do, and worth saying in your own documentation. |
 
 Removing an addon that defined traits or modifiers is safe and reversible. Removing one that defined materials degrades tools rather than breaking them. Removing one that defined tools loses them.
