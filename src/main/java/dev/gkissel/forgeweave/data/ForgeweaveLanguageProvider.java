@@ -2442,7 +2442,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.spirited_charge.name", "Spirited Charge");
         add("trait.forgeweave.spirited_charge.description", "Carries a still larger Forge Energy buffer that is spent before durability.");
         add("trait.forgeweave.nitro_charge.name", "Nitro Charge");
-        add("trait.forgeweave.nitro_charge.description", "Carries the largest Forge Energy buffer that is spent before durability.");
+        add("trait.forgeweave.nitro_charge.description", "Carries a very large Forge Energy buffer that is spent before durability.");
         // Issue #993 (D-M8-13 and D-M8-15): atomic matter alloy's own instance of the same #830
         // behavior. Mekanism's module container runs on the #830 EnergyBuffer, so the metal's trait
         // is what gives the tool the buffer the modules draw from (see trait_definition/infused.json).
