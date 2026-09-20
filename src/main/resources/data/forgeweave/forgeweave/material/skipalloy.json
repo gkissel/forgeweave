@@ -23,7 +23,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:quickstep"]
+    "general": ["forgeweave:quickstep"],
+    "armor": ["forgeweave:swiftward"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:skipalloy_ingot" }, "value": 144 },

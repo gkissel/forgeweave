@@ -23,7 +23,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:stormglass"]
+    "general": ["forgeweave:stormglass"],
+    "armor": ["forgeweave:swiftward"]
   },
   "crafting_items": [
     { "ingredient": { "item": "actuallyadditions:palis_crystal" }, "value": 144 },

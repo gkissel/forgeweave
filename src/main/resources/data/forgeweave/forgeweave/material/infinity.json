@@ -43,9 +43,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": [
-      "forgeweave:escalating"
-    ]
+    "general": ["forgeweave:escalating"],
+    "armor": ["forgeweave:surgeward"]
   },
   "crafting_items": [
     {

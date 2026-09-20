@@ -24,7 +24,8 @@
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
     "general": ["forgeweave:petramor"],
-    "head": ["forgeweave:stonebound"]
+    "head": ["forgeweave:stonebound"],
+    "armor": ["forgeweave:depth_protection"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:ardite_ingot" }, "value": 144 },

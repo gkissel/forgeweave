@@ -23,7 +23,8 @@
   "maille": true,
   "incorrect_for_tool": "forgeweave:incorrect_for_hardcinder_tool",
   "traits": {
-    "general": ["forgeweave:leanharvest"]
+    "general": ["forgeweave:leanharvest"],
+    "armor": ["forgeweave:depth_protection"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:hardcinder_ingot" }, "value": 144 },

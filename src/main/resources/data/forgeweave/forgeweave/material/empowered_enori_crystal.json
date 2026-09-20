@@ -23,7 +23,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:empowered_enori_radiance"]
+    "general": ["forgeweave:empowered_enori_radiance"],
+    "armor": ["forgeweave:revealward"]
   },
   "crafting_items": [
     { "ingredient": { "item": "actuallyadditions:empowered_enori_crystal" }, "value": 144 },

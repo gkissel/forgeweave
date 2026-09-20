@@ -43,9 +43,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": [
-      "forgeweave:shackling"
-    ]
+    "general": ["forgeweave:shackling"],
+    "armor": ["forgeweave:voidward"]
   },
   "crafting_items": [
     {

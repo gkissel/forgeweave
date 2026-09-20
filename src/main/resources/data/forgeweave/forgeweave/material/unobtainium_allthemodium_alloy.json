@@ -23,7 +23,7 @@
   "maille": true,
   "incorrect_for_tool": "forgeweave:incorrect_for_resonite_tool",
   "traits": {
-    "armor": ["forgeweave:emberdrink"]
+    "general": ["forgeweave:emberdrink"]
   },
   "crafting_items": [
     { "ingredient": { "item": "allthemodium:unobtainium_allthemodium_alloy_ingot" }, "value": 144 }

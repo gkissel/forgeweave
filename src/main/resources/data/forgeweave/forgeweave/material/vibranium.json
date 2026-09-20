@@ -23,7 +23,8 @@
   "maille": true,
   "incorrect_for_tool": "forgeweave:incorrect_for_warspar_tool",
   "traits": {
-    "general": ["forgeweave:unraveling2"]
+    "general": ["forgeweave:unraveling2"],
+    "armor": ["forgeweave:unravelward"]
   },
   "crafting_items": [
     { "ingredient": { "tag": "c:ingots/vibranium" }, "value": 144 }

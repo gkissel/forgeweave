@@ -23,7 +23,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:empowered_diamatine_prism"]
+    "general": ["forgeweave:empowered_diamatine_prism"],
+    "armor": ["forgeweave:surgeward"]
   },
   "crafting_items": [
     { "ingredient": { "item": "actuallyadditions:empowered_diamatine_crystal" }, "value": 144 },

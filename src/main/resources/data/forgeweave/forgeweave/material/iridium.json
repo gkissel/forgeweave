@@ -43,9 +43,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": [
-      "forgeweave:kinetic"
-    ]
+    "general": ["forgeweave:kinetic"],
+    "armor": ["forgeweave:swiftward"]
   },
   "crafting_items": [
     {

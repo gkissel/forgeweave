@@ -1,0 +1,5 @@
+{
+  "behavior": "forgeweave:conceal_in_darkness",
+  "light_threshold": 7,
+  "visibility": 0.5
+}

@@ -35,9 +35,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
-    "general": [
-      "forgeweave:arcing"
-    ]
+    "general": ["forgeweave:arcing"],
+    "armor": ["forgeweave:stormward"]
   },
   "crafting_items": [
     {

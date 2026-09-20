@@ -122,8 +122,9 @@ class TraitReachabilityTest {
             Map.entry("autoSmelt", TOOL),
             // Depends on the seams it hands out; resolved through SEAM_HOOK_SIDES instead.
             Map.entry("combatSeams", Set.of()),
-            // ToolItem#getDefaultAttributeModifiers, main hand.
-            Map.entry("knockbackResistance", TOOL),
+            // ToolItem#getDefaultAttributeModifiers, main hand, and since #1093
+            // ForgeweaveTraits#armorAttributes pays a worn piece a quarter of the same value.
+            Map.entry("knockbackResistance", BOTH),
             // CombatSeams#armorPass walks held tools first (#729), then the four worn slots.
             Map.entry("onDefend", BOTH),
             Map.entry("armorAttributes", ARMOR),
@@ -227,6 +228,74 @@ class TraitReachabilityTest {
                 + "for one whose hooks reach the side it is on (issue #1092, #1093):\n  "
                 + String.join("\n  ", stranded));
     }
+
+    /**
+     * Issue #1093's rule, the other way round from the guard above: for every side a material can
+     * build, at least one trait it carries on that side has a hook that runs there. A material that
+     * builds both halves needs both.
+     *
+     * <p>Two exemptions, both narrow and both listed by name rather than inferred.
+     *
+     * <ul>
+     *   <li>{@link #BEHAVIOUR_BY_ID}: six traits override no hook at all and are read by id instead
+     *       ({@code ArrowEntity}, {@code BowItem}, {@code ForgeweaveTraits#overslimeArmorPenalty}).
+     *       Reflection cannot see them, so the side each really runs on is written down here.
+     *   <li>{@link #ACCESSORY_ONLY_WITHOUT_A_TRAIT}: seven materials that build a bowstring or a
+     *       fletching and nothing else, and carry no trait. Upstream 1.12 gives string, vine,
+     *       feathers and leaves no trait either, and the repository's 1.12-parity default says the
+     *       tool side of a ported material keeps upstream's trait. Inventing one for them is a
+     *       maintainer decision, not a gap this rule should force.
+     * </ul>
+     */
+    @Test
+    void everySideAMaterialBuildsHasATraitThatWorksThere() throws IOException {
+        Map<ResourceLocation, Set<Side>> traitSides = traitSides();
+        List<String> gaps = new ArrayList<>();
+
+        for (MaterialFacts material : materials()) {
+            if (ACCESSORY_ONLY_WITHOUT_A_TRAIT.contains(material.name())) {
+                continue;
+            }
+            Set<Side> covered = EnumSet.noneOf(Side.class);
+            material.grantedTraits().forEach((id, grantedOn) -> {
+                Set<Side> works = EnumSet.noneOf(Side.class);
+                works.addAll(BEHAVIOUR_BY_ID.getOrDefault(id.getPath(), traitSides.getOrDefault(id, Set.of())));
+                works.retainAll(grantedOn);
+                covered.addAll(works);
+            });
+            if (material.buildsTools() && !covered.contains(Side.TOOL)) {
+                gaps.add(material.name() + " builds tool parts but carries no trait that works on one");
+            }
+            if (material.buildsArmor() && !covered.contains(Side.ARMOR)) {
+                gaps.add(material.name() + " builds armor parts but carries no trait that works on one");
+            }
+        }
+
+        assertTrue(gaps.isEmpty(), "every material must carry a trait that does something on each side it can "
+                + "build, and the two must belong together (issue #1093; the pairs are in "
+                + "docs/research/trait-pairing.md). Give the material a companion trait on the missing side, in "
+                + "its traits.armor list or in a tool-side list:\n  " + String.join("\n  ", gaps));
+    }
+
+    /**
+     * Traits that carry their behaviour by id rather than by overriding a hook, and the side each
+     * one really runs on (issue #1092's own list of what it could not decide mechanically).
+     * {@code breakable}, {@code endspeed}, {@code hovering} and {@code splitting} are read by
+     * {@code ArrowEntity} and {@code BowItem}; {@code overslime_friend} and {@code vinewarden} by
+     * {@code ForgeweaveTraits#overslimeArmorPenalty}.
+     */
+    private static final Map<String, Set<Side>> BEHAVIOUR_BY_ID = Map.of(
+            "breakable", TOOL,
+            "endspeed", TOOL,
+            "hovering", TOOL,
+            "splitting", TOOL,
+            "overslime_friend", ARMOR,
+            "vinewarden", ARMOR);
+
+    /** See {@link #everySideAMaterialBuildsHasATraitThatWorksThere}. */
+    private static final Set<String> ACCESSORY_ONLY_WITHOUT_A_TRAIT = Set.of(
+            "string", "feather", "leaf", "slimeleaf_blue", "slimeleaf_orange", "slimeleaf_purple",
+            "slimevine_purple");
 
     /**
      * Writes the mechanical half of {@code docs/research/trait-audit.md} to {@code build/trait-audit/}

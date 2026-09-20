@@ -1,0 +1,5 @@
+{
+  "behavior": "forgeweave:energized",
+  "capacity": 12000,
+  "energy_per_durability_point": 25
+}

@@ -312,12 +312,17 @@ class ArmorMaterialTest {
         assertTrue(material.traits().all().containsAll(expected), name + " all()");
     }
 
+    /**
+     * Steel used to stand here. Issue #1093 gave it an {@code armor} row ({@code melee_protection},
+     * the worn side of its bleeding edge), so the fallback is pinned on {@code ancient} instead: its
+     * {@code vintage} runs on both halves, so it needed no companion and keeps a bare general list.
+     */
     @Test
     void materialsWithoutAnArmorRowFallBackToGeneral() {
-        Material steel = shipped("steel");
+        Material ancient = shipped("ancient");
 
-        assertTrue(steel.traits().armor().isEmpty());
-        assertEquals(steel.traits().general(), steel.traits().forPart(PartItem.Kind.PLATING));
-        assertEquals(steel.traits().general(), steel.traits().forPart(PartItem.Kind.MAILLE));
+        assertTrue(ancient.traits().armor().isEmpty());
+        assertEquals(ancient.traits().general(), ancient.traits().forPart(PartItem.Kind.PLATING));
+        assertEquals(ancient.traits().general(), ancient.traits().forPart(PartItem.Kind.MAILLE));
     }
 }

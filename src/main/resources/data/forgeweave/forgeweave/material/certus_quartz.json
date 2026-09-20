@@ -23,7 +23,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:armor_breaker"]
+    "general": ["forgeweave:armor_breaker"],
+    "armor": ["forgeweave:melee_protection"]
   },
   "crafting_items": [
     { "ingredient": { "tag": "c:gems/certus_quartz" }, "value": 144 },

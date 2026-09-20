@@ -35,9 +35,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
-    "general": [
-      "forgeweave:brasswind"
-    ]
+    "general": ["forgeweave:brasswind"],
+    "armor": ["forgeweave:swiftward"]
   },
   "crafting_items": [
     {

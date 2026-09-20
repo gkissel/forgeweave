@@ -23,7 +23,8 @@
   "maille": true,
   "incorrect_for_tool": "forgeweave:incorrect_for_hardcinder_tool",
   "traits": {
-    "general": ["forgeweave:dreadgrip"]
+    "general": ["forgeweave:dreadgrip"],
+    "armor": ["forgeweave:blightward"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:dreadalloy_ingot" }, "value": 144 },

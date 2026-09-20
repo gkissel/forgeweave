@@ -2417,7 +2417,26 @@ public final class ForgeweaveTraits {
         return attacker;
     }
 
-    /** Attribute modifiers the traits of a worn piece grant ({@link Trait#armorAttributes}); read by {@code ArmorPieceItem}. */
+    /**
+     * A worn piece's share of {@link Trait#knockbackResistance()}: a quarter, so a full four-piece
+     * set of one material grants exactly what the same trait grants while its tool is held.
+     * See {@link #armorAttributes}.
+     */
+    public static final float WORN_KNOCKBACK_RESISTANCE_SHARE = 0.25F;
+
+    /**
+     * Attribute modifiers the traits of a worn piece grant ({@link Trait#armorAttributes}); read by
+     * {@code ArmorPieceItem}.
+     *
+     * <p>{@link Trait#knockbackResistance()} is read here too (issue #1093). The hook used to act on
+     * a held tool only, so a material whose whole idea is weight -- osmium's {@code heavy}, lead's
+     * {@code gravitic}, the emeradic crystals' wards -- planted its wielder and did nothing at all
+     * for the same metal worn. It now pays {@link #WORN_KNOCKBACK_RESISTANCE_SHARE} of its value per
+     * piece, so a full set reaches the held figure and no further: #1091 rejected granting the flat
+     * value per piece because four pieces of the empowered emeradic crystal would have summed past
+     * total immunity. Pieces of different materials still add up, the way vanilla's own per-piece
+     * knockback resistance and {@code projectile_protection} do.
+     */
     public static void armorAttributes(ItemStack piece, EquipmentSlot slot, ItemAttributeModifiers.Builder out) {
         List<ResourceLocation> ids = piece.get(ForgeweaveDataComponents.TRAITS.get());
         if (ids == null) {
@@ -2425,8 +2444,17 @@ public final class ForgeweaveTraits {
         }
         for (ResourceLocation id : ids) {
             Trait trait = lookup(id);
-            if (trait != null) {
-                trait.armorAttributes(id.withPrefix("trait/").withSuffix("/" + slot.getName()), slot, out);
+            if (trait == null) {
+                continue;
+            }
+            ResourceLocation modifierId = id.withPrefix("trait/").withSuffix("/" + slot.getName());
+            trait.armorAttributes(modifierId, slot, out);
+            float knockback = trait.knockbackResistance();
+            if (knockback > 0.0F) {
+                out.add(Attributes.KNOCKBACK_RESISTANCE,
+                        new AttributeModifier(modifierId.withSuffix("/knockback"),
+                                knockback * WORN_KNOCKBACK_RESISTANCE_SHARE, AttributeModifier.Operation.ADD_VALUE),
+                        EquipmentSlotGroup.bySlot(slot));
             }
         }
     }

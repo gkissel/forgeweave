@@ -23,7 +23,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:luminous"]
+    "general": ["forgeweave:luminous"],
+    "armor": ["forgeweave:revealward"]
   },
   "crafting_items": [
     { "ingredient": { "item": "actuallyadditions:enori_crystal" }, "value": 144 },

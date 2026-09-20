@@ -22,7 +22,9 @@
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
-  "traits": {},
+  "traits": {
+    "general": ["forgeweave:fluorite_focus"]
+  },
   "crafting_items": [
     { "ingredient": { "tag": "c:gems/fluorite" }, "value": 144 },
     { "ingredient": { "tag": "c:storage_blocks/fluorite" }, "value": 1296 }

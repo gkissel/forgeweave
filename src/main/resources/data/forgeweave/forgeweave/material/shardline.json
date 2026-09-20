@@ -23,7 +23,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:keenedge"]
+    "general": ["forgeweave:keenedge"],
+    "armor": ["forgeweave:melee_protection"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:shardline_ingot" }, "value": 144 },
