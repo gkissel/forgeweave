@@ -8,6 +8,7 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
@@ -21,7 +22,9 @@ import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
 import dev.gkissel.forgeweave.compat.mekanism.ForgeweaveMekanismCompat;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
+import dev.gkissel.forgeweave.tool.ToolConstants;
 import dev.gkissel.forgeweave.api.upgrade.UpgradeHosts;
 
 /**
@@ -175,14 +178,52 @@ public class UpgradeReclaimGameTests {
         helper.succeed();
     }
 
+    /**
+     * Issue #1087: armor swaps parts through the same resolver, so the hosts are asked there too and
+     * once. A real case is a Mekanism module on {@code atomic_matter_alloy} plating or a Draconic
+     * module on evolved armor: swap that plating away and the module has nothing left to sit in. The
+     * fixture host stands in for both, for the reason this class's javadoc gives.
+     */
+    @GameTest(template = "empty")
+    public static void anInvalidatingArmorSwapHandsTheUpgradeBack(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ToolAssemblyRecipes.Entry entry = ToolAssembly.entryOf(ToolConstants.HELMET);
+        ItemStack helmet = ToolAssembly.assembleAt(helper, player, POS, ForgeweaveBlocks.TOOL_STATION.get(),
+                entry, List.of("atomic_matter_alloy", "iron"));
+
+        UpgradeHosts.register((original, replacement) -> {
+            replacement.set(DataComponents.CUSTOM_NAME, Component.literal("stripped"));
+            return List.of(upgrade(2));
+        });
+        try {
+            ItemStack swapped = swapPart(helper, player, helmet, entry.part(0), "iron");
+            helper.assertTrue(swapped.is(ForgeweaveItems.ARMOR_HELMET.get()),
+                    "the armor swap itself must still happen, got " + swapped);
+            helper.assertTrue("stripped".equals(swapped.getHoverName().getString()),
+                    "the host's edit to the replacement must reach the piece the player takes, got "
+                            + swapped.getHoverName().getString());
+            helper.assertTrue(player.getInventory().countItem(Items.NETHER_STAR) == 2,
+                    "the invalidated upgrade must come back as items, found "
+                            + player.getInventory().countItem(Items.NETHER_STAR));
+        } finally {
+            UpgradeHosts.clear();
+        }
+        helper.succeed();
+    }
+
     /** Swaps the pickaxe's head for one of {@code material} at the Tool Station and takes the result. */
     private static ItemStack swapHead(GameTestHelper helper, Player player, ItemStack tool, String material) {
+        return swapPart(helper, player, tool, ForgeweaveItems.PART_PICKAXE_HEAD.get(), material);
+    }
+
+    /** Swaps {@code part} of {@code material} into whatever is in the head slot, and takes the result. */
+    private static ItemStack swapPart(GameTestHelper helper, Player player, ItemStack tool, Item part,
+            String material) {
         helper.setBlock(POS, ForgeweaveBlocks.TOOL_STATION.get());
         ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS);
         blockEntity.container().clearContent();
         blockEntity.container().setItem(ToolStationMenu.HEAD_SLOT, tool);
-        blockEntity.container().setItem(ToolStationMenu.BINDING_SLOT,
-                ToolAssembly.part(ForgeweaveItems.PART_PICKAXE_HEAD.get(), material));
+        blockEntity.container().setItem(ToolStationMenu.BINDING_SLOT, ToolAssembly.part(part, material));
         ToolStationMenu menu = ToolAssembly.menu(helper, player, POS, blockEntity);
         menu.broadcastChanges();
 

@@ -732,8 +732,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
 
         // Why an attempted part exchange was refused (issue #264), same info-panel surface. The
         // durability line mirrors upstream 1.12's gui.error.not_enough_durability.
-        add("gui.forgeweave.exchange.wrong_part", "This tool has no slot for that part.");
-        add("gui.forgeweave.exchange.same_material", "The tool already has a part of that material there.");
+        // #1087 rewords the first three away from "tool": the same resolver now swaps an armor
+        // piece's plating or maille, and these are the messages it refuses with.
+        add("gui.forgeweave.exchange.wrong_part", "There is no slot for that part here.");
+        add("gui.forgeweave.exchange.same_material", "That slot already holds a part of that material.");
         add("gui.forgeweave.exchange.not_enough_durability",
                 "Not enough durability to replace parts! %s more durability required.");
         // Issue #293, upstream's gui.error.not_enough_modifiers ("Not enough Modifiers. (%d needed)"):
@@ -741,7 +743,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.exchange.not_enough_slots",
                 "Not enough modifier slots to replace parts! %s more needed.");
         add("gui.forgeweave.exchange.needs_forge",
-                "This tool is too large to work on here. Exchange its parts at a Tool Forge.");
+                "This is too large to work on here. Exchange its parts at a Tool Forge.");
 
         add("gui.forgeweave.stat.durability", "Durability: %s");
         add("gui.forgeweave.stat.mining_speed", "Mining Speed: %s");
