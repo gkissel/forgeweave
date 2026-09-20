@@ -35,9 +35,7 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
-    "general": [
-      "forgeweave:ironwood_footing"
-    ]
+    "general": ["forgeweave:ironwood_footing", "forgeweave:ironwood_grip"]
   },
   "crafting_items": [
     {

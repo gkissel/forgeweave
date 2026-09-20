@@ -23,7 +23,7 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:azure_electrum_swift"]
+    "general": ["forgeweave:azure_electrum_swift", "forgeweave:azure_electrum_rush"]
   },
   "crafting_items": [
     { "ingredient": { "tag": "c:ingots/azure_electrum" }, "value": 144 },
