@@ -1601,25 +1601,53 @@ public final class ForgeweaveTraits {
     // is CRUMBLING above (#228); speed rising as the tool wears is STONEBOUND above (#102). None of
     // the seven get a new class -- the four genuinely new shapes follow.
 
-    /** {@code sunmend}/{@code duskmend}'s own rate: twice ecological's, since each condition holds
-     *  only about half of every day -- proposed to land near the same daily total. */
-    private static final int CONDITIONAL_SELF_REPAIR_TICKS_PER_POINT = ECOLOGICAL_TICKS_PER_POINT / 2;
+    // ------------------------------------------------------------------ the self-repair ladder
+    // Issue #1097. Every `self_repair_when` rate below is read off one scale rather than picked per
+    // trait, because the shipped numbers did not line up with the names or the materials.
+    //
+    // A conditional mend (sunlit or night) runs at half the ticks of an unconditional one on the
+    // same tier, because its condition holds about half of each day, so the two land near the same
+    // daily total. The per-tier unconditional base is 800 ticks at netherite, 1000 at iron and 1200
+    // at stone; the conditional rate is half of it, rounded to whole seconds.
+    //
+    // Two rates are set by something other than tier, and both are deliberate:
+    //   - SUNMEND and DUSKMEND are a day/night mirror pair and share one rate. Their materials sit
+    //     on different tiers (ivory psimetal is diamond, duskspar is netherite), so the shared rate
+    //     is the lower of the two.
+    //   - SMOLDERVEIL is the one trait whose stated idea is to beat DUSKMEND, so it takes the
+    //     fastest rate on the ladder even though ebony psimetal is a tier below duskspar.
+    //
+    // Nothing mends faster than 400 ticks per point, the fastest rate that shipped before this
+    // issue. ECOLOGICAL keeps upstream's own 800 and is not part of the ladder: it is a 1.12 port
+    // and parity holds its magnitude.
+
+    /** Netherite-tier conditional rate: one point every 20 seconds while the condition holds. */
+    private static final int SELF_REPAIR_NETHERITE_CONDITIONAL = 400;
+    /** Diamond-tier conditional rate: one point every 22 seconds. */
+    private static final int SELF_REPAIR_DIAMOND_CONDITIONAL = 440;
+    /** Iron-tier conditional rate: one point every 25 seconds. */
+    private static final int SELF_REPAIR_IRON_CONDITIONAL = 500;
+    /** Stone-tier conditional rate: one point every 30 seconds. */
+    private static final int SELF_REPAIR_STONE_CONDITIONAL = 600;
+    /** Netherite-tier unconditional rate: one point every 40 seconds, day or night. */
+    private static final int SELF_REPAIR_NETHERITE_ALWAYS = 800;
+    /** Iron-tier unconditional rate: one point every 50 seconds, day or night. */
+    private static final int SELF_REPAIR_IRON_ALWAYS = 1000;
 
     /**
-     * The M6 {@code self_repair_when(condition, ticksPerPoint)} instance for direct sunlight -- see
-     * {@link SelfRepairWhen} and {@link SelfRepairCondition#SUNLIT}. Not yet assigned to a material;
-     * that wiring is a later M6 issue.
+     * Ivory psimetal, the daylight half of the mirror pair (see the ladder comment above). One point
+     * every 22 seconds in direct sunlight -- see {@link SelfRepairWhen} and
+     * {@link SelfRepairCondition#SUNLIT}.
      */
     public static final Trait SUNMEND =
-            new SelfRepairWhen(SelfRepairCondition.SUNLIT, CONDITIONAL_SELF_REPAIR_TICKS_PER_POINT);
+            new SelfRepairWhen(SelfRepairCondition.SUNLIT, SELF_REPAIR_DIAMOND_CONDITIONAL);
 
     /**
-     * The M6 {@code self_repair_when(condition, ticksPerPoint)} instance for night -- see {@link
-     * SelfRepairWhen} and {@link SelfRepairCondition#NIGHT}. Not yet assigned to a material; that
-     * wiring is a later M6 issue.
+     * Duskspar, the night half of the mirror pair (see the ladder comment above). One point every 22
+     * seconds after dark -- see {@link SelfRepairWhen} and {@link SelfRepairCondition#NIGHT}.
      */
     public static final Trait DUSKMEND =
-            new SelfRepairWhen(SelfRepairCondition.NIGHT, CONDITIONAL_SELF_REPAIR_TICKS_PER_POINT);
+            new SelfRepairWhen(SelfRepairCondition.NIGHT, SELF_REPAIR_DIAMOND_CONDITIONAL);
 
     /**
      * The M6 {@code cascading_break(blockPredicate)} instance: breaking one gravity-affected block
@@ -2765,8 +2793,11 @@ public final class ForgeweaveTraits {
         }
     };
 
-    /** M6 dedupe batch (issue #876): a slow, unconditional trickle of self-repair. Original Forgeweave content, no upstream port. */
-    public static final Trait TINSEEKER = new SelfRepairWhen(SelfRepairCondition.ALWAYS, 900);
+    /**
+     * Mendstone. Netherite tier, no condition: one point every 40 seconds, day or night (issue
+     * #1097's ladder, above). Original Forgeweave content, no upstream port.
+     */
+    public static final Trait TINSEEKER = new SelfRepairWhen(SelfRepairCondition.ALWAYS, SELF_REPAIR_NETHERITE_ALWAYS);
 
     /** M6 dedupe batch (issue #876): a quick, disciplined swing. Original Forgeweave content, no upstream port. */
     public static final Trait STEELFAST = new Trait() {
@@ -2793,8 +2824,11 @@ public final class ForgeweaveTraits {
         }
     };
 
-    /** M6 dedupe batch (issue #876): repairs a little faster after dark. Original Forgeweave content, no upstream port. */
-    public static final Trait DUSKBLOOM = new SelfRepairWhen(SelfRepairCondition.NIGHT, 600);
+    /**
+     * Redstone alloy. Stone tier, night: one point every 30 seconds (issue #1097's ladder, above).
+     * Original Forgeweave content, no upstream port.
+     */
+    public static final Trait DUSKBLOOM = new SelfRepairWhen(SelfRepairCondition.NIGHT, SELF_REPAIR_STONE_CONDITIONAL);
 
     /** M6 dedupe batch (issue #876): striking a burning target quickens the follow-up. Original Forgeweave content, no upstream port. */
     public static final Trait EMBERWAKE = new Trait() {
@@ -2805,11 +2839,19 @@ public final class ForgeweaveTraits {
         }
     };
 
-    /** M6 dedupe batch (issue #876): mends faster than duskmend's own base rate at night. Original Forgeweave content, no upstream port. */
-    public static final Trait SMOLDERVEIL = new SelfRepairWhen(SelfRepairCondition.NIGHT, 500);
+    /**
+     * Ebony psimetal. The quickest night mend on the ladder above: one point every 20 seconds, which
+     * is what its own wording always claimed and issue #1097 made true. Ebony psimetal is a tier
+     * below duskspar, so this is the ladder's one deliberate tier inversion. Original Forgeweave
+     * content, no upstream port.
+     */
+    public static final Trait SMOLDERVEIL = new SelfRepairWhen(SelfRepairCondition.NIGHT, SELF_REPAIR_NETHERITE_CONDITIONAL);
 
-    /** M6 dedupe batch (issue #876): a slow daylight mend, the mirror of duskmend. Original Forgeweave content, no upstream port. */
-    public static final Trait ASHENBOND = new SelfRepairWhen(SelfRepairCondition.SUNLIT, 700);
+    /**
+     * Embercast. Netherite tier, sunlit: one point every 20 seconds (issue #1097's ladder, above).
+     * Original Forgeweave content, no upstream port.
+     */
+    public static final Trait ASHENBOND = new SelfRepairWhen(SelfRepairCondition.SUNLIT, SELF_REPAIR_NETHERITE_CONDITIONAL);
 
     /** M6 dedupe batch (issue #876): a crystalline ward softens incoming force. Original Forgeweave content, no upstream port. */
     public static final Trait PRISMWARD = new Trait() {
@@ -2928,8 +2970,11 @@ public final class ForgeweaveTraits {
         }
     };
 
-    /** M6 dedupe batch (issue #876): a very slow smoked-meat self-mend. Original Forgeweave content, no upstream port. */
-    public static final Trait SMOKEHOUSE = new SelfRepairWhen(SelfRepairCondition.ALWAYS, 1000);
+    /**
+     * Elementarium palladium. Iron tier, no condition: one point every 50 seconds, day or night
+     * (issue #1097's ladder, above). Original Forgeweave content, no upstream port.
+     */
+    public static final Trait SMOKEHOUSE = new SelfRepairWhen(SelfRepairCondition.ALWAYS, SELF_REPAIR_IRON_ALWAYS);
 
     /** M6 dedupe batch (issue #876): leaden weight resists being knocked back. Original Forgeweave content, no upstream port. */
     public static final Trait GRAVITIC = new Trait() {
@@ -2963,8 +3008,11 @@ public final class ForgeweaveTraits {
         }
     };
 
-    /** M6 dedupe batch (issue #876): a psionic weave that mends best in daylight. Original Forgeweave content, no upstream port. */
-    public static final Trait MATRIXBLOOM = new SelfRepairWhen(SelfRepairCondition.SUNLIT, 650);
+    /**
+     * Psimetal. Iron tier, sunlit: one point every 25 seconds (issue #1097's ladder, above).
+     * Original Forgeweave content, no upstream port.
+     */
+    public static final Trait MATRIXBLOOM = new SelfRepairWhen(SelfRepairCondition.SUNLIT, SELF_REPAIR_IRON_CONDITIONAL);
 
     // ---------------------------------------------------------------- #876 M6 dedupe batch: every
     // material gets a distinct trait id. 49 of the new ids reuse existing ADR-0004 seams with new

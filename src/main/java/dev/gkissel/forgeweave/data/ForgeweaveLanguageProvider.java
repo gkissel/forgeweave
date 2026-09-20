@@ -2569,9 +2569,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("tooltip.forgeweave.energy", "Stored Energy");
         // #829 M6 utility/economy trait behavior library.
         add("trait.forgeweave.sunmend.name", "Sunmend");
-        add("trait.forgeweave.sunmend.description", "Slowly self-repairs while standing in direct sunlight.");
+        add("trait.forgeweave.sunmend.description", "Mends one point every 22 seconds in direct sunlight.");
         add("trait.forgeweave.duskmend.name", "Duskmend");
-        add("trait.forgeweave.duskmend.description", "Slowly self-repairs at night.");
+        add("trait.forgeweave.duskmend.description", "Mends one point every 22 seconds after dark.");
         add("trait.forgeweave.cascading.name", "Cascading");
         add("trait.forgeweave.cascading.description", "Breaks the whole column of falling blocks above what you mine.");
         add("trait.forgeweave.fertilizing.name", "Fertilizing");
@@ -3126,7 +3126,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.keenedge.name", "Keenedge");
         add("trait.forgeweave.keenedge.description", "Keeps a keen edge until it wears down.");
         add("trait.forgeweave.tinseeker.name", "Tinseeker");
-        add("trait.forgeweave.tinseeker.description", "A slow, unconditional trickle of self-repair.");
+        add("trait.forgeweave.tinseeker.description", "Mends one point every 40 seconds, day or night.");
         add("trait.forgeweave.steelfast.name", "Steelfast");
         add("trait.forgeweave.steelfast.description", "A quick, disciplined swing.");
         add("trait.forgeweave.brasswind.name", "Brasswind");
@@ -3134,13 +3134,13 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.amberflow.name", "Amberflow");
         add("trait.forgeweave.amberflow.description", "A charged hit sometimes sparks a burst of speed.");
         add("trait.forgeweave.duskbloom.name", "Duskbloom");
-        add("trait.forgeweave.duskbloom.description", "Repairs a little faster after dark.");
+        add("trait.forgeweave.duskbloom.description", "Mends one point every 30 seconds after dark.");
         add("trait.forgeweave.emberwake.name", "Emberwake");
         add("trait.forgeweave.emberwake.description", "Striking a burning target quickens the follow-up.");
         add("trait.forgeweave.smolderveil.name", "Smolderveil");
-        add("trait.forgeweave.smolderveil.description", "Mends itself slowly after dark.");
+        add("trait.forgeweave.smolderveil.description", "Mends one point every 20 seconds after dark, the quickest night mend there is.");
         add("trait.forgeweave.ashenbond.name", "Ashenbond");
-        add("trait.forgeweave.ashenbond.description", "A slow daylight mend.");
+        add("trait.forgeweave.ashenbond.description", "Mends one point every 20 seconds in direct sunlight.");
         add("trait.forgeweave.prismward.name", "Prismward");
         add("trait.forgeweave.prismward.description", "A crystalline ward softens a blow's shove, held or worn.");
         add("trait.forgeweave.shattermail.name", "Shattermail");
@@ -3169,7 +3169,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.coilcharge.name", "Coilcharge");
         add("trait.forgeweave.coilcharge.description", "A magnetic-coil jolt on every hit.");
         add("trait.forgeweave.smokehouse.name", "Smokehouse");
-        add("trait.forgeweave.smokehouse.description", "A very slow smoked-meat self-mend.");
+        add("trait.forgeweave.smokehouse.description", "Mends one point every 50 seconds, day or night.");
         add("trait.forgeweave.gravitic.name", "Gravitic");
         add("trait.forgeweave.gravitic.description", "Leaden weight resists being knocked back, held or worn.");
         add("trait.forgeweave.elektronbond.name", "Elektronbond");
@@ -3179,7 +3179,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.rubberize.name", "Rubberize");
         add("trait.forgeweave.rubberize.description", "A bouncy slime soaks up a blow's shove, held or worn.");
         add("trait.forgeweave.matrixbloom.name", "Matrixbloom");
-        add("trait.forgeweave.matrixbloom.description", "A psionic weave that mends itself in daylight.");
+        add("trait.forgeweave.matrixbloom.description", "A psionic weave that mends one point every 25 seconds in daylight.");
         add("trait.forgeweave.wellspring.name", "Wellspring");
         add("trait.forgeweave.wellspring.description", "Mining a stone-type block has a chance to heal the wielder.");
 

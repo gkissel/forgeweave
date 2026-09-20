@@ -32,7 +32,10 @@ import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.api.trait.Trait;
 import dev.gkissel.forgeweave.tool.ToolStats;
+import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
+import dev.gkissel.forgeweave.trait.SelfRepairWhen;
 
 /**
  * Issue #829's verification: one test per new M6 utility/economy library instance ({@code sunmend},
@@ -55,7 +58,7 @@ public class UtilityTraitGameTests {
      * dev.gkissel.forgeweave.trait.SelfRepairCondition#SUNLIT}'s gate is absolute (a miss on the
      * condition costs nothing, unlike the roll it also gates), so "never at night" is a certainty,
      * not a probability; "heals at noon" runs enough ticks that the chance of zero successes is
-     * astronomically small (~2e-9 at the trait's own 400-ticks-per-point rate over 8000 ticks).
+     * astronomically small (~1e-8 at the trait's own 440-ticks-per-point rate over 8000 ticks).
      */
     @GameTest(template = "empty")
     public static void sunmendHealsInSunlightNotAtNight(GameTestHelper helper) {
@@ -95,6 +98,74 @@ public class UtilityTraitGameTests {
         tick(helper, player, pickaxe, 8000);
         helper.assertTrue(pickaxe.getDamageValue() < 500,
                 "duskmend should have healed over 8000 ticks of midnight, still at " + pickaxe.getDamageValue());
+        helper.succeed();
+    }
+
+    /**
+     * Issue #1097's self-repair ladder, read off the registry rather than off a hand-written list.
+     * A conditional mend runs at half the ticks of an unconditional one on the same tier; within
+     * that, a higher-tier material mends faster; the mirror pair shares one rate; smolderveil, the
+     * one trait whose idea is to beat duskmend, beats it; and nothing is faster than the 400 ticks
+     * per point that was the quickest rate before the issue.
+     */
+    @GameTest(template = "empty")
+    public static void theSelfRepairLadderIsOrderedByTierAndCondition(GameTestHelper helper) {
+        int smolderveil = ticksPerPoint(helper, "smolderveil");
+        int ashenbond = ticksPerPoint(helper, "ashenbond");
+        int sunmend = ticksPerPoint(helper, "sunmend");
+        int duskmend = ticksPerPoint(helper, "duskmend");
+        int matrixbloom = ticksPerPoint(helper, "matrixbloom");
+        int duskbloom = ticksPerPoint(helper, "duskbloom");
+        int tinseeker = ticksPerPoint(helper, "tinseeker");
+        int smokehouse = ticksPerPoint(helper, "smokehouse");
+
+        helper.assertTrue(sunmend == duskmend,
+                "the day/night mirror pair shares one rate, got " + sunmend + " and " + duskmend);
+        helper.assertTrue(smolderveil < duskmend,
+                "smolderveil must beat duskmend, got " + smolderveil + " against " + duskmend);
+        helper.assertTrue(ashenbond < sunmend && sunmend < matrixbloom && matrixbloom < duskbloom,
+                "the conditional ladder must fall by tier, got " + ashenbond + ", " + sunmend + ", "
+                        + matrixbloom + ", " + duskbloom);
+        helper.assertTrue(tinseeker < smokehouse,
+                "the unconditional ladder must fall by tier, got " + tinseeker + " and " + smokehouse);
+        helper.assertTrue(tinseeker == 2 * ashenbond && smokehouse == 2 * matrixbloom,
+                "an unconditional mend runs at twice the ticks of a conditional one on the same tier, got "
+                        + tinseeker + "/" + ashenbond + " and " + smokehouse + "/" + matrixbloom);
+        for (int rate : new int[] {smolderveil, ashenbond, sunmend, duskmend, matrixbloom, duskbloom,
+                tinseeker, smokehouse}) {
+            helper.assertTrue(rate >= 400, "nothing may mend faster than 400 ticks per point, got " + rate);
+        }
+        helper.succeed();
+    }
+
+    /**
+     * The ladder on real gear: smolderveil heals after dark at its new 400-ticks-per-point rate, and
+     * neither it nor a duskmend pickaxe beside it moves under the same noon sky. The rates
+     * themselves are pinned deterministically by
+     * {@link #theSelfRepairLadderIsOrderedByTierAndCondition}; racing one against the other here
+     * would only be a coin flip.
+     */
+    @GameTest(template = "empty")
+    public static void smolderveilMendsAfterDarkAtTheLaddersQuickestRate(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        BlockPos pos = helper.absolutePos(new BlockPos(1, 2, 1));
+        player.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+        ItemStack smolderveil = pickaxe(List.of(traitId("smolderveil")), 1000);
+        smolderveil.setDamageValue(500);
+        ItemStack control = pickaxe(List.of(traitId("duskmend")), 1000);
+        control.setDamageValue(500);
+
+        daytime(helper, NOON);
+        tick(helper, player, smolderveil, 8000);
+        tick(helper, player, control, 8000);
+        helper.assertTrue(smolderveil.getDamageValue() == 500 && control.getDamageValue() == 500,
+                "neither night mend may heal at noon, got " + smolderveil.getDamageValue()
+                        + " and " + control.getDamageValue());
+
+        daytime(helper, MIDNIGHT);
+        tick(helper, player, smolderveil, 8000);
+        helper.assertTrue(smolderveil.getDamageValue() < 500,
+                "smolderveil should have healed over 8000 ticks of midnight, still at " + smolderveil.getDamageValue());
         helper.succeed();
     }
 
@@ -203,5 +274,12 @@ public class UtilityTraitGameTests {
 
     private static ResourceLocation traitId(String path) {
         return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    }
+
+    /** The registered {@link SelfRepairWhen}'s rate for a trait id, so the ladder is read, not retyped. */
+    private static int ticksPerPoint(GameTestHelper helper, String name) {
+        Trait trait = ForgeweaveTraits.lookup(traitId(name));
+        helper.assertTrue(trait instanceof SelfRepairWhen, name + " must be a self-repair trait, got " + trait);
+        return ((SelfRepairWhen) trait).ticksPerPoint();
     }
 }
