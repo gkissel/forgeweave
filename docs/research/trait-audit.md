@@ -2,8 +2,9 @@
 
 Issue #1092, 2026-09-20. Companion to PR #1094, which audited the 52 datapack `trait_definition`
 files after three of them sold the armor library's drawback as protection. This one covers the rest:
-the 197 hardcoded traits in `trait/ForgeweaveTraits.java`, the 26 combat innates in
-`combat/ForgeweaveInnates.java` and the 44 modifiers in `modifier/ForgeweaveModifiers.java`.
+the 197 hardcoded traits in `trait/ForgeweaveTraits.java`, the 21 named combat innates in
+`combat/ForgeweaveInnates.java` (plus its four unnamed per-tool knockback multipliers) and the 44
+modifiers in `modifier/ForgeweaveModifiers.java`.
 
 For each entry the audit answers the five questions the issue asks: what the code does, what the
 player is told, whether the two agree, whether the hook can fire on the part kinds the material
@@ -146,7 +147,7 @@ datapack definitions. `build/trait-audit/traits.md` has the full generated table
 
 | Verdict | Count | Where |
 | --- | --- | --- |
-| ok | 224 | 172 Java traits, 26 innates, 44 modifiers, and the 35 datapack traits #1094 cleared |
+| ok | 249 | 185 Java traits, 20 innates and all 44 modifiers |
 | text wrong | 10 | fixed here, table above |
 | cannot fire | 3 | fixed here, table above |
 | backwards | 0 | all four were datapack traits and #1094 fixed them |
