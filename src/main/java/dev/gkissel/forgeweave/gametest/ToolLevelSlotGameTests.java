@@ -142,7 +142,7 @@ public class ToolLevelSlotGameTests {
     }
 
     /**
-     * Trait-granted (netherite's {@code reinforced_core}), modifier-granted ({@code extra_slot}) and
+     * Trait-granted (netherite's {@code writable2}), modifier-granted ({@code extra_slot}) and
      * level-granted bonus slots all sum on top of {@link ForgeweaveModifiers#DEFAULT_SLOTS} on one
      * tool: {@code 3 + 1 (trait) + 1 (extra_slot net) + 1 (level) = 6}.
      */
@@ -152,7 +152,7 @@ public class ToolLevelSlotGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "netherite", "netherite", "netherite");
         helper.assertTrue(ForgeweaveModifiers.freeSlots(pickaxe) == ForgeweaveModifiers.DEFAULT_SLOTS + 1,
-                "expected reinforced_core's +1 trait slot alone, got " + ForgeweaveModifiers.freeSlots(pickaxe));
+                "expected writable2's +1 trait slot alone, got " + ForgeweaveModifiers.freeSlots(pickaxe));
 
         ItemStack widened = applyReagent(helper, player, pos, pickaxe, new ItemStack(ForgeweaveItems.EXTRA_MODIFIER.get()));
         helper.assertTrue(ForgeweaveModifiers.freeSlots(widened) == ForgeweaveModifiers.DEFAULT_SLOTS + 2,

@@ -1008,18 +1008,18 @@ public class CombatTraitGameTests {
         helper.succeed();
     }
 
-    /** {@code forgeweave:leeching}: heals the wielder for a share of the damage just dealt. */
+    /** {@code forgeweave:soulrend2}: heals the wielder for a share of the damage just dealt. */
     @GameTest(template = "empty")
     public static void leechingHealsTheWielderByAFractionOfDamageDealt(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("leeching")), 3.0F);
+        ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("soulrend2")), 3.0F);
         Zombie target = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
 
         player.setHealth(player.getMaxHealth() - 5.0F);
         float before = player.getHealth();
         onHit(helper, player, hatchet, target); // 1.0 damage dealt, per the onHit helper
         float healed = player.getHealth() - before;
-        // The proposed magnitude (leeching's javadoc): 15% of 1.0 damage, well under the 4.0 cap.
+        // The proposed magnitude (soulrend2's javadoc): 15% of 1.0 damage, well under the 4.0 cap.
         helper.assertTrue(Math.abs(healed - 0.15F) < 0.01F, "expected a 0.15 lifesteal heal, got " + healed);
 
         target.discard();
@@ -1131,7 +1131,7 @@ public class CombatTraitGameTests {
         // damage, all well under each level's own cap.
         // Soul wick (#965) is duskweld's own faint rung under the three, shipped the same way.
         float[] expected = { 0.05F, 0.10F, 0.18F, 0.26F };
-        String[] ids = { "soulwick", "soulrend", "soulrend2", "soulrend3" };
+        String[] ids = { "soulrend", "soulrend2", "soulrend3", "soulrend4" };
         for (int level = 0; level < ids.length; level++) {
             helper.assertTrue(ForgeweaveTraits.lookup(traitId(ids[level])) != null,
                     "expected " + ids[level] + "'s trait definition to resolve to a behaviour after data load");

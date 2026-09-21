@@ -29,10 +29,10 @@ import dev.gkissel.forgeweave.trait.TraitStacks;
  * Issue #1091: the four material traits that promised one thing and did another, each proved on a
  * real piece of gear rather than on the JSON that describes it.
  *
- * <p>Three of them ({@code empowered_emeradic_bulwark}, {@code naga_ward},
- * {@code compressed_iron_heft}) shipped over {@code damage_floor}, which is the armor library's
+ * <p>Three of them ({@code heft3}, {@code bracingplate},
+ * {@code heft}) shipped over {@code damage_floor}, which is the armor library's
  * drawback: it raises a blow back toward its original damage, so on armor it undoes other traits'
- * reductions and on a tool it does nothing at all. The fourth ({@code alpha_yeti_resilience}) asked
+ * reductions and on a tool it does nothing at all. The fourth ({@code surgeward}) asked
  * for an 8-tick invulnerability window, below vanilla's own 20, so it shortened the wearer's
  * recovery instead of lengthening it -- {@code InvulnerabilityWindow}'s own javadoc warns about
  * exactly that threshold.
@@ -95,20 +95,20 @@ public class MaterialTraitCorrectionGameTests {
     }
 
     /**
-     * {@code empowered_emeradic_bulwark} is the plain crystal's own ward at twice the strength: a
-     * held tool resists knockback, and the empowered crystal resists more than the plain one.
-     * Before #1091 the empowered crystal granted no knockback resistance at all.
+     * Heft II and Heft III, the rungs #1103 folded the twelve knockback ids into: a held tool plants
+     * its wielder, and the deeper rung plants them harder. Before #1091 the empowered crystal
+     * granted no knockback resistance at all.
      */
     @GameTest(template = "empty")
     public static void theEmpoweredCrystalResistsKnockbackMoreThanThePlainOne(GameTestHelper helper) {
         double bare = knockbackResistance(holding(helper));
-        double plain = knockbackResistance(holding(helper, "verdant_ward"));
-        double empowered = knockbackResistance(holding(helper, "empowered_emeradic_bulwark"));
+        double plain = knockbackResistance(holding(helper, "heft2"));
+        double empowered = knockbackResistance(holding(helper, "heft3"));
 
-        helper.assertTrue(Math.abs(plain - bare - 0.15) < 1e-4,
-                "the plain crystal's verdant_ward must grant 0.15 over " + bare + ", got " + plain);
-        helper.assertTrue(Math.abs(empowered - bare - 0.3) < 1e-4,
-                "the empowered crystal must grant 0.3 over " + bare + ", got " + empowered);
+        helper.assertTrue(Math.abs(plain - bare - 0.4) < 1e-4,
+                "Heft II must grant 0.4 over " + bare + ", got " + plain);
+        helper.assertTrue(Math.abs(empowered - bare - 0.55) < 1e-4,
+                "Heft III must grant 0.55 over " + bare + ", got " + empowered);
         helper.assertTrue(empowered > plain,
                 "the empowered crystal must resist knockback more than the plain one, "
                         + empowered + " vs " + plain);
@@ -116,29 +116,29 @@ public class MaterialTraitCorrectionGameTests {
     }
 
     /**
-     * {@code compressed_iron_heft} is the weight its name claims: a held tool plants the wielder by
-     * 0.1, vanilla netherite armour's own per-piece grant. Before #1091 it granted nothing on a
-     * tool and cost the wearer damage on armour.
+     * Heft I is the weight its name claims: #1103's floor puts the bottom rung at 0.25, a quarter of
+     * full immunity, because below that the shove still moves the wielder the same visual distance.
+     * Before #1091 it granted nothing on a tool and cost the wearer damage on armour.
      */
     @GameTest(template = "empty")
     public static void compressedIronHeftPlantsTheWielderWhileHeld(GameTestHelper helper) {
         double bare = knockbackResistance(holding(helper));
-        double heft = knockbackResistance(holding(helper, "compressed_iron_heft"));
+        double heft = knockbackResistance(holding(helper, "heft"));
 
-        helper.assertTrue(Math.abs(heft - bare - 0.1) < 1e-4,
-                "compressed heft must grant 0.1 over " + bare + ", got " + heft);
+        helper.assertTrue(Math.abs(heft - bare - 0.25) < 1e-4,
+                "Heft I must grant 0.25 over " + bare + ", got " + heft);
         helper.assertTrue(heft > bare, "and must be strictly more than an empty hand");
         helper.succeed();
     }
 
     /**
-     * {@code naga_ward} protects, and protects more the longer the fight runs: the fifth blow costs
+     * {@code bracingplate} protects, and protects more the longer the fight runs: the fifth blow costs
      * less than the first and the stacks stand at the cap on the piece. Before #1091 repeated blows
      * built nothing.
      */
     @GameTest(template = "empty")
     public static void nagaWardHardensAsBlowsKeepLanding(GameTestHelper helper) {
-        Player player = wearing(helper, "naga_ward");
+        Player player = wearing(helper, "bracingplate");
         DamageSource source = helper.getLevel().damageSources().generic();
 
         float first = lost(player, source, BLOW);
@@ -150,15 +150,14 @@ public class MaterialTraitCorrectionGameTests {
         helper.assertTrue(last < first, "the fifth blow must cost less than the first, " + last + " vs " + first);
         TraitStacks stacks = worn(player).get(ForgeweaveDataComponents.RESISTANCE_STACKS.get());
         helper.assertTrue(stacks != null && stacks.level() == 4,
-                "five blows must leave the stacks at the cap of 4, got " + stacks);
+                "five blows must leave the stacks at Bracing Plate I's cap of 4, got " + stacks);
         helper.succeed();
     }
 
     /**
-     * Issue #1097's raised {@code stacking_resistance} preset. {@code arctic_insulation} used to top
-     * out at 1.8% off a blow, far under the envelope of arctic fur's tier; it is 12% now, which is
-     * the whole point of a trait that says it toughens. The control is the same iron chestplate
-     * carrying no trait at all, whose blows never get cheaper however many land.
+     * Issue #1097's raised {@code stacking_resistance} preset, now Bracing Plate I after #1103
+     * merged the five ids that shared the mechanic. The control is the same iron chestplate carrying
+     * no trait at all, whose blows never get cheaper however many land.
      */
     @GameTest(template = "empty")
     public static void arcticInsulationReachesItsTiersProtection(GameTestHelper helper) {
@@ -173,34 +172,34 @@ public class MaterialTraitCorrectionGameTests {
         helper.assertTrue(Math.abs(controlLast - controlFirst) < 1e-4,
                 "an untraited piece must cost the same every blow, " + controlLast + " against " + controlFirst);
 
-        Player player = wearing(helper, "arctic_insulation");
+        Player player = wearing(helper, "bracingplate");
         float first = lost(player, source, BLOW);
         float capped = first;
         for (int i = 0; i < 3; i++) {
             capped = lost(player, source, BLOW);
         }
         TraitStacks stacks = worn(player).get(ForgeweaveDataComponents.RESISTANCE_STACKS.get());
-        helper.assertTrue(stacks != null && stacks.level() == 3,
-                "four blows must leave the stacks at the cap of 3, got " + stacks);
-        // Three stacks at 1.0 protection each is 3/25 of the blow that arrives with them standing.
-        helper.assertTrue(capped < first && Math.abs(capped - first * 0.88F) < 0.2F,
-                "at the cap the blow must cost 12% less, " + capped + " against " + first);
+        helper.assertTrue(stacks != null && stacks.level() == 4,
+                "four blows must leave the stacks at Bracing Plate I's cap of 4, got " + stacks);
+        // Four stacks at 1.0 protection each is 4/25 of the blow that arrives with them standing.
+        helper.assertTrue(capped < first && Math.abs(capped - first * 0.84F) < 0.2F,
+                "at the cap the blow must cost 16% less, " + capped + " against " + first);
         helper.succeed();
     }
 
     /**
-     * The negative that started #1091. {@code stormrind} cancels a lightning blow outright; none of
+     * The negative that started #1091. {@code stormward} cancels a lightning blow outright; none of
      * the three corrected traits may put any of it back. Worn beside {@code damage_floor} -- which
      * is what all three carried in 0.6.0-beta.2 -- each of them did.
      */
     @GameTest(template = "empty")
     public static void noneOfTheThreeTurnsACancelledBlowBackIntoDamage(GameTestHelper helper) {
         DamageSource lightning = helper.getLevel().damageSources().lightningBolt();
-        helper.assertTrue(lost(wearing(helper, "stormrind"), lightning, BLOW) == 0.0F,
-                "stormrind alone must cancel the blow outright");
+        helper.assertTrue(lost(wearing(helper, "stormward"), lightning, BLOW) == 0.0F,
+                "stormward alone must cancel the blow outright");
 
-        for (String trait : List.of("empowered_emeradic_bulwark", "naga_ward", "compressed_iron_heft")) {
-            float lost = lost(wearing(helper, "stormrind", trait), lightning, BLOW);
+        for (String trait : List.of("heft3", "bracingplate", "heft")) {
+            float lost = lost(wearing(helper, "stormward", trait), lightning, BLOW);
             helper.assertTrue(lost == 0.0F,
                     trait + " must not put a cancelled blow back; it cost the wearer " + lost);
         }
@@ -208,7 +207,7 @@ public class MaterialTraitCorrectionGameTests {
     }
 
     /**
-     * {@code alpha_yeti_resilience} lengthens the wearer's recovery window past vanilla's 20 ticks.
+     * {@code surgeward} lengthens the wearer's recovery window past vanilla's 20 ticks.
      * Before #1091 it asked for 8, which vanilla honours literally, so the trait left its wearer
      * open sooner than wearing nothing would have.
      */
@@ -218,20 +217,20 @@ public class MaterialTraitCorrectionGameTests {
         lost(plain, helper.getLevel().damageSources().generic(), BLOW);
         helper.assertTrue(plain.invulnerableTime == 20, "vanilla's own window is 20, got " + plain.invulnerableTime);
 
-        Player player = wearing(helper, "alpha_yeti_resilience");
+        Player player = wearing(helper, "surgeward");
         lost(player, helper.getLevel().damageSources().generic(), BLOW);
         helper.assertTrue(player.invulnerableTime > 20,
                 "the trait must lengthen the window, not shorten it, got " + player.invulnerableTime);
-        helper.assertTrue(player.invulnerableTime == 30,
-                "and the shipped definition asks for 30 ticks, got " + player.invulnerableTime);
+        helper.assertTrue(player.invulnerableTime == 40,
+                "and the shipped definition asks for 40 ticks, got " + player.invulnerableTime);
         helper.succeed();
     }
 
     /** Every trait id under test resolves to a behaviour: a renamed or dropped definition fails here. */
     @GameTest(template = "empty")
     public static void everyCorrectedTraitIdStillResolves(GameTestHelper helper) {
-        for (String trait : List.of("empowered_emeradic_bulwark", "naga_ward", "compressed_iron_heft",
-                "alpha_yeti_resilience")) {
+        for (String trait : List.of("heft3", "bracingplate", "heft",
+                "surgeward")) {
             helper.assertTrue(ForgeweaveTraits.lookup(id(trait)) != null,
                     "expected " + trait + " to still resolve, so tools built before #1091 keep their trait");
         }

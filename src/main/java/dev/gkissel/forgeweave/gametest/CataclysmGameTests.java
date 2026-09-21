@@ -39,13 +39,13 @@ import dev.gkissel.forgeweave.material.Material;
  *       strictly above vanilla netherite's {@code [3, 8, 6, 3]} / {@code 3.0f} / {@code 0.1f}, and
  *       the armor is non-damageable in the mod's own item class. No rung above {@code resonite}
  *       (D-M8-10): Forgeweave still places it at the netherite tier. Echoed with {@code
- *       forgeweave:ignitium_blaze}, a {@code damage_type_immunity} against {@code
+ *       forgeweave:fireward}, a {@code damage_type_immunity} against {@code
  *       minecraft:is_fire} -- the issue's own "ignitium's fire" hint.
  *   <li><b>{@code cursium}</b> ({@code cataclysm:cursium_ingot}, {@code cataclysm:cursium_block},
  *       dropped by the Maledictus boss): {@code Armortier.CURSIUM} (defense {@code [5, 10, 8, 5]},
  *       toughness {@code 4.0f}, knockback resistance {@code 0.05f}), the roster's other
  *       above-netherite boss armor metal, found alongside ignitium in the same jar. Echoed with
- *       {@code forgeweave:cursium_blight}, a {@code reduce_target_healing} matching a curse theme.
+ *       {@code forgeweave:grievous}, a {@code reduce_target_healing} matching a curse theme.
  * </ul>
  *
  * <p>The jar also ships a third above-netherite armor tier, {@code Armortier.BONE_REPTILE} ({@code

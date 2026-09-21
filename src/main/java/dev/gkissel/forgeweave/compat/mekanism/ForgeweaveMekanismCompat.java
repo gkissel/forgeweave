@@ -26,7 +26,7 @@ import dev.gkissel.forgeweave.tool.ToolMaterials;
  * <p>A tool with an {@code atomic_matter_alloy} part, and armour whose plating is that metal. Read
  * off {@code ForgeweaveDataComponents#TOOL_MATERIALS} rather than off the trait list the way
  * {@code ForgeweaveDraconicCompat#isWeldTool} does: the welds each grant their own {@code evolved}
- * marker trait, whereas D-M8-13 fixes this metal's trait list at {@code infused} alone, and other
+ * marker trait, whereas D-M8-13 fixes this metal's trait list at {@code energized4} alone, and other
  * materials may grant that too. Nothing here has to identify a stack whose parts have been stripped,
  * which is the case the trait-list read exists for.
  */

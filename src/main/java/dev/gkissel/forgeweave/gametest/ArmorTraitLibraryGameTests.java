@@ -91,25 +91,25 @@ public class ArmorTraitLibraryGameTests {
         helper.getLevel().updateSkyBrightness();
     }
 
-    /** {@code bloodtoll}: stormrind zeroes a lightning blow, the floor puts a half heart back. */
+    /** {@code bloodtoll}: stormward zeroes a lightning blow, the floor puts a half heart back. */
     @GameTest(template = "empty")
     public static void bloodtollKeepsACancelledBlowFromBeingFree(GameTestHelper helper) {
         DamageSource lightning = helper.getLevel().damageSources().lightningBolt();
 
-        Player immune = wearing(helper, "stormrind");
-        helper.assertTrue(lost(immune, lightning, BLOW) == 0.0F, "stormrind alone must cancel the blow outright");
+        Player immune = wearing(helper, "stormward");
+        helper.assertTrue(lost(immune, lightning, BLOW) == 0.0F, "stormward alone must cancel the blow outright");
 
-        Player floored = wearing(helper, "stormrind", "bloodtoll");
+        Player floored = wearing(helper, "stormward", "bloodtoll");
         float lost = lost(floored, lightning, BLOW);
         helper.assertTrue(lost > 0.0F && lost < BLOW,
                 "the floor must put something back without restoring the whole blow, lost " + lost);
         helper.succeed();
     }
 
-    /** {@code hexward}: a quarter of direct blows weaken the attacker. Rolled often enough that a miss is impossible in practice. */
+    /** {@code blightward}: a quarter of direct blows weaken the attacker. Rolled often enough that a miss is impossible in practice. */
     @GameTest(template = "empty")
     public static void hexwardWeakensDirectAttackers(GameTestHelper helper) {
-        Player player = wearing(helper, "hexward");
+        Player player = wearing(helper, "blightward");
         Zombie attacker = zombie(helper);
         DamageSource source = helper.getLevel().damageSources().mobAttack(attacker);
         for (int i = 0; i < 60 && attacker.getEffect(MobEffects.WEAKNESS) == null; i++) {
@@ -121,7 +121,7 @@ public class ArmorTraitLibraryGameTests {
         helper.succeed();
     }
 
-    /** {@code mendbond}: a heal lands a quarter larger than the same heal without the trait. */
+    /** {@code mendward}: a heal lands a quarter larger than the same heal without the trait. */
     @GameTest(template = "empty")
     public static void mendbondAmplifiesHealing(GameTestHelper helper) {
         Player plain = wearing(helper);
@@ -129,13 +129,13 @@ public class ArmorTraitLibraryGameTests {
         plain.heal(4.0F);
         float without = plain.getHealth() - 10.0F;
 
-        Player player = wearing(helper, "mendbond");
+        Player player = wearing(helper, "mendward");
         player.setHealth(10.0F);
         player.heal(4.0F);
         float with = player.getHealth() - 10.0F;
 
         helper.assertTrue(Math.abs(without - 4.0F) < 0.01F, "the control heal is the plain 4, got " + without);
-        helper.assertTrue(Math.abs(with - 5.0F) < 0.01F, "mendbond must turn 4 into 5, got " + with);
+        helper.assertTrue(Math.abs(with - 5.0F) < 0.01F, "mendward must turn 4 into 5, got " + with);
         helper.succeed();
     }
 
@@ -170,10 +170,10 @@ public class ArmorTraitLibraryGameTests {
         helper.succeed();
     }
 
-    /** {@code sapmend}: taking a blow starts the wearer regenerating. */
+    /** {@code bloodward}: taking a blow starts the wearer regenerating. */
     @GameTest(template = "empty")
     public static void sapmendRegeneratesAfterABlow(GameTestHelper helper) {
-        Player player = wearing(helper, "sapmend");
+        Player player = wearing(helper, "bloodward");
         lost(player, helper.getLevel().damageSources().generic(), BLOW);
         helper.assertTrue(player.getEffect(MobEffects.REGENERATION) != null,
                 "a blow that landed must leave Regeneration on the wearer");
@@ -216,10 +216,10 @@ public class ArmorTraitLibraryGameTests {
         helper.succeed();
     }
 
-    /** {@code windstep}: one blow in ten misses. 200 rolls; zero misses is a 7e-10 event. */
+    /** {@code voidward}: one blow in ten misses. 200 rolls; zero misses is a 7e-10 event. */
     @GameTest(template = "empty")
     public static void windstepSometimesAvoidsABlowEntirely(GameTestHelper helper) {
-        Player player = wearing(helper, "windstep");
+        Player player = wearing(helper, "voidward");
         DamageSource source = helper.getLevel().damageSources().generic();
         int misses = 0;
         for (int i = 0; i < 200; i++) {
@@ -232,10 +232,10 @@ public class ArmorTraitLibraryGameTests {
         helper.succeed();
     }
 
-    /** {@code nightveil}: half visibility in the dark, none of it by day. */
+    /** {@code duskward}: half visibility in the dark, none of it by day. */
     @GameTest(template = "empty")
     public static void nightveilHidesTheWearerOnlyInTheDark(GameTestHelper helper) {
-        Player player = wearing(helper, "nightveil");
+        Player player = wearing(helper, "duskward");
         BlockPos pos = helper.absolutePos(new BlockPos(1, 2, 1));
         player.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
         Zombie looker = zombie(helper);
@@ -251,12 +251,12 @@ public class ArmorTraitLibraryGameTests {
         helper.succeed();
     }
 
-    /** {@code swiftstride}: the piece grants its movement speed as a worn attribute. */
+    /** {@code swiftward}: the piece grants its movement speed as a worn attribute. */
     @GameTest(template = "empty")
     public static void swiftstrideRaisesMovementSpeed(GameTestHelper helper) {
         Player plain = wearing(helper);
         double without = plain.getAttributeValue(Attributes.MOVEMENT_SPEED);
-        Player player = wearing(helper, "swiftstride");
+        Player player = wearing(helper, "swiftward");
         double with = player.getAttributeValue(Attributes.MOVEMENT_SPEED);
         helper.assertTrue(with > without, "the piece must speed the wearer up, " + with + " vs " + without);
         helper.succeed();
@@ -278,10 +278,10 @@ public class ArmorTraitLibraryGameTests {
         helper.succeed();
     }
 
-    /** {@code stormrind}: lightning does nothing, everything else lands as usual. */
+    /** {@code stormward}: lightning does nothing, everything else lands as usual. */
     @GameTest(template = "empty")
     public static void stormrindIgnoresLightningOnly(GameTestHelper helper) {
-        Player player = wearing(helper, "stormrind");
+        Player player = wearing(helper, "stormward");
         helper.assertTrue(lost(player, helper.getLevel().damageSources().lightningBolt(), BLOW) == 0.0F,
                 "lightning must do nothing at all");
         helper.assertTrue(lost(player, helper.getLevel().damageSources().generic(), BLOW) > 0.0F,

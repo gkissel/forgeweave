@@ -23,7 +23,7 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 /**
  * docs/SCOPE.md M2 issue #103's verification: the seven metal materials assembled through the real
  * Tool Station ({@code ToolAssembly.pickaxe}) -- clone-exact stats, repair with the head material's
- * ingot, rose gold's {@code quick}, netherite's {@code reinforced_core}, and the netherite-ingot
+ * ingot, rose gold's {@code quick}, netherite's {@code writable2}, and the netherite-ingot
  * application of the existing {@code extra_slot} modifier. Magnitudes are cited in {@code ForgeweaveTraits} and the
  * material JSONs themselves; deviations are recorded in NOTICE.md and the PR.
  */
@@ -99,7 +99,7 @@ public class MetalMaterialGameTests {
     }
 
     /**
-     * Netherite -&gt; {@code forgeweave:reinforced_core}: a netherite-headed tool starts with
+     * Netherite -&gt; {@code forgeweave:writable2}: a netherite-headed tool starts with
      * {@code DEFAULT_SLOTS + 1 = 4} free modifier slots, not the usual three.
      */
     @GameTest(template = "empty")
