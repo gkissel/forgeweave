@@ -10,15 +10,15 @@
   },
   "extra_durability": 280,
   "bow": {
-    "drawspeed": 0.55,
+    "drawspeed": 0.63,
     "range": 1.25,
-    "bonus_damage": 5.0
+    "bonus_damage": 5.83
   },
   "plating": {
-    "helmet": { "durability": 372, "armor": 2.0, "toughness": 2.0, "knockback_resistance": 0.05 },
-    "chestplate": { "durability": 541, "armor": 7.0, "toughness": 2.0, "knockback_resistance": 0.05 },
-    "leggings": { "durability": 508, "armor": 5.0, "toughness": 2.0, "knockback_resistance": 0.05 },
-    "boots": { "durability": 440, "armor": 2.0, "toughness": 2.0, "knockback_resistance": 0.05 }
+    "helmet": { "durability": 558, "armor": 2.0, "toughness": 2.0, "knockback_resistance": 0.05 },
+    "chestplate": { "durability": 812, "armor": 7.0, "toughness": 2.0, "knockback_resistance": 0.05 },
+    "leggings": { "durability": 762, "armor": 5.0, "toughness": 2.0, "knockback_resistance": 0.05 },
+    "boots": { "durability": 660, "armor": 2.0, "toughness": 2.0, "knockback_resistance": 0.05 }
   },
   "maille": true,
   "incorrect_for_tool": "forgeweave:incorrect_for_hardcinder_tool",

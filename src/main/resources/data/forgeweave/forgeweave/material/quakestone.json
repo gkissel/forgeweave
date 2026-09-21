@@ -10,15 +10,15 @@
   },
   "extra_durability": 35,
   "bow": {
-    "drawspeed": 0.45,
+    "drawspeed": 0.53,
     "range": 1.95,
-    "bonus_damage": 8.5
+    "bonus_damage": 9.05
   },
   "plating": {
-    "helmet": { "durability": 237, "armor": 2.0 },
-    "chestplate": { "durability": 344, "armor": 7.0 },
-    "leggings": { "durability": 323, "armor": 5.0 },
-    "boots": { "durability": 280, "armor": 2.0 }
+    "helmet": { "durability": 279, "armor": 2.0 },
+    "chestplate": { "durability": 405, "armor": 7.0 },
+    "leggings": { "durability": 381, "armor": 5.0 },
+    "boots": { "durability": 330, "armor": 2.0 }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",

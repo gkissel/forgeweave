@@ -10,15 +10,15 @@
   },
   "extra_durability": 270,
   "bow": {
-    "drawspeed": 0.65,
+    "drawspeed": 0.81,
     "range": 1.3,
-    "bonus_damage": 4.0
+    "bonus_damage": 6.4
   },
   "plating": {
-    "helmet": { "durability": 343, "armor": 2.0, "toughness": 1.0, "knockback_resistance": 0.05 },
-    "chestplate": { "durability": 498, "armor": 7.0, "toughness": 1.0, "knockback_resistance": 0.05 },
-    "leggings": { "durability": 467, "armor": 5.0, "toughness": 1.0, "knockback_resistance": 0.05 },
-    "boots": { "durability": 405, "armor": 2.0, "toughness": 1.0, "knockback_resistance": 0.05 }
+    "helmet": { "durability": 550, "armor": 2.0, "toughness": 1.0, "knockback_resistance": 0.05 },
+    "chestplate": { "durability": 799, "armor": 7.0, "toughness": 1.0, "knockback_resistance": 0.05 },
+    "leggings": { "durability": 750, "armor": 5.0, "toughness": 1.0, "knockback_resistance": 0.05 },
+    "boots": { "durability": 650, "armor": 2.0, "toughness": 1.0, "knockback_resistance": 0.05 }
   },
   "maille": true,
   "incorrect_for_tool": "forgeweave:incorrect_for_resonite_tool",

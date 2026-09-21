@@ -10,9 +10,9 @@
   },
   "extra_durability": 33,
   "bow": {
-    "drawspeed": 0.37,
+    "drawspeed": 0.36,
     "range": 1.42,
-    "bonus_damage": 6.16
+    "bonus_damage": 5.75
   },
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {

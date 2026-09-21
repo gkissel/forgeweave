@@ -415,31 +415,19 @@ public class PartBuilderGameTests {
                 "iron shards are iron, so they are refused the same way, got "
                         + menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem());
 
-        // Obsidian used to be upstream's counter-example here: it is the one metal-tier material
-        // that sets both setCraftable and setCastable (TinkerMaterials:236-237), so the Part
-        // Builder took it. Issue #1113 made it cast-only anyway -- two obsidian blocks were a
-        // netherite-rung pickaxe head with no smeltery, no cast and no alloy, the widest skip the
-        // harvest ladder had (review 06-progression.md section 3, "break 3"). A deliberate
-        // deviation from parity, recorded in that issue.
+        // Obsidian is upstream's counter-example: it is the one metal-tier material that sets both
+        // setCraftable and setCastable (TinkerMaterials:236-237), so the Part Builder still takes
+        // it. Issue #1113 tried closing that off (a netherite-rung head out of two blocks is the
+        // widest skip the harvest ladder has, review 06-progression.md section 3) and the
+        // maintainer reverted it: upstream sets both flags here and puts obsidian's head at the
+        // top COBALT harvest level, so the skip is 1.12 behaviour, kept on purpose.
         menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).set(new ItemStack(Items.OBSIDIAN, 2));
-        menu.broadcastChanges();
-        helper.assertTrue(menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem().isEmpty(),
-                "obsidian is cast-only since #1113, so two blocks must stamp nothing, got "
-                        + menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem());
-
-        // Knightslime is the counter-example that is left: it sets both flags upstream
-        // (TinkerMaterials:299) and nothing about the harvest ladder argues against it, so the
-        // Part Builder still takes it and this stays a two-sided test.
-        ItemStack knightslimeShards = new ItemStack(ForgeweaveItems.SHARD.get(), 4);
-        knightslimeShards.set(ForgeweaveDataComponents.MATERIAL.get(), materialId("knightslime"));
-        menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).set(knightslimeShards);
         menu.broadcastChanges();
         ItemStack output = menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem();
         helper.assertTrue(output.is(ForgeweaveItems.PART_PICKAXE_HEAD.get()),
-                "knightslime is craftable as well as castable upstream, got " + output);
-        helper.assertTrue(materialId("knightslime").equals(output.get(ForgeweaveDataComponents.MATERIAL.get())),
-                "expected a knightslime pickaxe head, got "
-                        + output.get(ForgeweaveDataComponents.MATERIAL.get()));
+                "obsidian is craftable as well as castable upstream, got " + output);
+        helper.assertTrue(materialId("obsidian").equals(output.get(ForgeweaveDataComponents.MATERIAL.get())),
+                "expected an obsidian pickaxe head, got " + output.get(ForgeweaveDataComponents.MATERIAL.get()));
 
         helper.succeed();
     }

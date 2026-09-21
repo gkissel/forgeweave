@@ -2855,8 +2855,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "piece worn, which is the one thing a set this cheap is genuinely good at.\n\n"
                         + "Those same carved parts are what the metal era is built on: set one on a "
                         + "Casting Table, pour gold over it, and the cast you keep will take any metal "
-                        + "afterwards. Amethyst, emerald and nahuatl carve into plating too, once you "
-                        + "have them.");
+                        + "afterwards. Obsidian, amethyst, emerald and nahuatl carve into plating too, "
+                        + "once you have them.");
         add("book.forgeweave.armor.traits.title", "Armor Traits");
         add("book.forgeweave.armor.traits.text",
                 "Some materials carry a trait that only wakes on armor: iron's plating shrugs off "
@@ -3268,8 +3268,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "ingot.\n\n"
                         + "Obsidian. 125 water to 125 lava, out 36. The ratio is deliberately poor, "
                         + "and it is still the easiest way to keep obsidian coming without a diamond "
-                        + "pickaxe. Obsidian parts are poured like any metal's rather than carved, so a "
-                        + "cast comes first.\n\n"
+                        + "pickaxe.\n\n"
                         + "All three are reachable the day the smeltery lights. Try rose gold first: "
                         + "one copper ingot and one gold ingot is the whole cost.");
         add("book.forgeweave.alloys.classic_alloys.title", "The Classics");

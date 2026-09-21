@@ -64,10 +64,9 @@ public class ArmorPartGameTests {
 
     /**
      * Seared stone is a plating material and not {@code cast_only}: six seared bricks pay the
-     * chestplate's 6 ingots. This test used to run on obsidian, which issue #1113 made cast-only to
-     * close the harvest-ladder skip; seared stone is what the guide book's first-set page teaches
-     * instead, and it is the cheapest Part Builder plating there is, baked in the same furnace the
-     * smeltery's own bricks come out of.
+     * chestplate's 6 ingots. It is the cheapest Part Builder plating there is, baked in the same
+     * furnace the smeltery's own bricks come out of, which is why the guide book's first-set page
+     * teaches it (issue #1113). Obsidian, which this test used to run on, still stamps too.
      */
     @GameTest(template = "empty")
     public static void partBuilderStampsSearedStoneChestplatePlating(GameTestHelper helper) {
@@ -80,10 +79,11 @@ public class ArmorPartGameTests {
         helper.assertTrue(materialId("seared_stone").equals(output.get(ForgeweaveDataComponents.MATERIAL.get())),
                 "expected forgeweave:seared_stone, got " + output.get(ForgeweaveDataComponents.MATERIAL.get()));
 
-        // And obsidian, which used to be this test's subject, now stamps nothing.
-        helper.assertTrue(craft(helper, player, ForgeweaveItems.PATTERN_PLATING_CHESTPLATE.get(),
-                        new ItemStack(Items.OBSIDIAN, 6)).isEmpty(),
-                "obsidian is cast_only since #1113, so the Part Builder must stamp no plating");
+        ItemStack fromObsidian = craft(helper, player, ForgeweaveItems.PATTERN_PLATING_CHESTPLATE.get(),
+                new ItemStack(Items.OBSIDIAN, 6));
+        helper.assertTrue(materialId("obsidian").equals(fromObsidian.get(ForgeweaveDataComponents.MATERIAL.get())),
+                "obsidian is craftable as well as castable upstream, so six blocks must stamp a"
+                        + " plating too, got " + fromObsidian);
         helper.succeed();
     }
 

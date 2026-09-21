@@ -10,28 +10,28 @@
   },
   "extra_durability": 68,
   "bow": {
-    "drawspeed": 0.5,
+    "drawspeed": 0.62,
     "range": 1.6,
-    "bonus_damage": 5.0
+    "bonus_damage": 4.3
   },
   "plating": {
     "helmet": {
-      "durability": 380,
+      "durability": 324,
       "armor": 3.0,
       "toughness": 2.0
     },
     "chestplate": {
-      "durability": 555,
+      "durability": 474,
       "armor": 8.0,
       "toughness": 2.0
     },
     "leggings": {
-      "durability": 520,
+      "durability": 444,
       "armor": 7.0,
       "toughness": 2.0
     },
     "boots": {
-      "durability": 450,
+      "durability": 384,
       "armor": 3.0,
       "toughness": 2.0
     }

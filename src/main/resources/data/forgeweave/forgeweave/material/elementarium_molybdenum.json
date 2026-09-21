@@ -12,7 +12,7 @@
   "bow": {
     "drawspeed": 0.44,
     "range": 1.46,
-    "bonus_damage": 6.59
+    "bonus_damage": 6.72
   },
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {

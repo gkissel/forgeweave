@@ -198,6 +198,71 @@ class AlloyPayoffTest {
         assertTrue(checked >= 25, "non-vacuity: only " + checked + " alloys had a head-bearing input to check");
     }
 
+    /**
+     * Armor keeps pace with the head. Issue #1113's first round moved 54 materials' head blocks and
+     * left their {@code plating} alone, so a material that had become a better pickaxe had become a
+     * relatively worse chestplate: {@code truesteel}'s chestplate-to-head ratio fell from 0.62 to
+     * 0.36, the lowest in the roster. Plating durability is scaled by each material's own head
+     * durability factor now, and this is the rule that keeps it that way.
+     *
+     * <p>Two clauses per plated input of every alloy recipe, both on the four pieces summed, i.e.
+     * what a full set is worth:
+     *
+     * <ol>
+     *   <li>where the alloy's head durability beats the input's at all, its plating has to as well;
+     *   <li>where the head clears {@link #PAYOFF}, the plating has to clear it too.
+     * </ol>
+     *
+     * <p>Armor points, toughness and knockback resistance are deliberately outside this: vanilla caps
+     * armor at 30 and the shipped per-set totals already sit near that, so the durability pool is the
+     * only axis alloy depth buys on the armor side.
+     */
+    @Test
+    void anAlloysPlatingKeepsPaceWithItsHead() {
+        int checked = 0;
+        for (AlloyRecipe recipe : alloys) {
+            String resultId = materialOf(recipe.result().getFluid());
+            int[] out = headAndSetDurability(resultId);
+            if (out == null) {
+                continue;
+            }
+            for (FluidStack input : recipe.inputs()) {
+                String sourceId = materialOf(input.getFluid());
+                int[] in = headAndSetDurability(sourceId);
+                if (in == null) {
+                    continue;
+                }
+                checked++;
+                if (out[0] > in[0]) {
+                    assertTrue(out[1] > in[1], resultId + " has more head durability than its ingredient "
+                            + sourceId + " (" + out[0] + " over " + in[0] + ") and less plating durability across a"
+                            + " full set (" + out[1] + " under " + in[1] + ")");
+                }
+                if (out[0] >= (1.0 + PAYOFF) * in[0]) {
+                    assertTrue(out[1] >= (1.0 + PAYOFF) * in[1],
+                            resultId + "'s head clears " + sourceId + "'s by "
+                            + String.format(Locale.ROOT, "%.1f%%", (out[0] / (double) in[0] - 1) * 100)
+                            + " and its full-set plating durability by only "
+                            + String.format(Locale.ROOT, "%.1f%%", (out[1] / (double) in[1] - 1) * 100)
+                            + " (" + out[1] + " against " + in[1] + ")");
+                }
+            }
+        }
+        assertTrue(checked >= 20, "non-vacuity: only " + checked + " plated alloy-and-ingredient pairs");
+    }
+
+    /** A material's head durability and its four plating pieces summed, or null if it has no both. */
+    private static int[] headAndSetDurability(String materialId) {
+        Material material = materials.get(materialId);
+        if (material == null || material.head().isEmpty() || material.plating().isEmpty()) {
+            return null;
+        }
+        Material.Plating plating = material.plating().get();
+        int set = plating.helmet().durability() + plating.chestplate().durability()
+                + plating.leggings().durability() + plating.boots().durability();
+        return new int[] {material.head().get().durability(), set};
+    }
+
     @Test
     void theModsOwnRungsAboveNetheriteClearPlainNetherite() {
         int checked = 0;
