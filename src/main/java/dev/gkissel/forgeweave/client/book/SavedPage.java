@@ -99,9 +99,19 @@ public final class SavedPage {
             }
             case ToolPage tool -> BuiltInRegistries.ITEM.getKey(tool.tool()).getPath();
             case MaterialPage material -> material.id().getPath();
+            // Issue #1104: the trait reference bookmarks under the family, so a bookmark survives a
+            // datapack adding another level to it.
+            case BookPage.TraitPage trait -> trait.family().path();
             case ModifierPage modifier -> modifier.id().getPath();
             case ListingPage listing -> "listing";
-            case IconGridPage grid -> "listing";
+            // Issue #1104: the materials chapter has one grid per progression stage, so "listing"
+            // is no longer unique in it. A grid bookmarks under its own title's last segment
+            // (book.forgeweave.stage.first_day.name -> first_day), the same way a text page drops
+            // its ".title" suffix above.
+            case IconGridPage grid -> {
+                String key = grid.titleKey();
+                yield lastSegment(key.endsWith(".name") ? key.substring(0, key.length() - ".name".length()) : key);
+            }
             // IndexTranformer names its generated pages page1, page2, ... itself.
             case BookPage.SectionListPage sectionList -> sectionList.name();
             // The structure page carries its authored JSON name, upstream's own source for it.

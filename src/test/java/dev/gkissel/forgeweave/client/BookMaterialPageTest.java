@@ -123,13 +123,18 @@ class BookMaterialPageTest {
             assertEquals(prismarine.traits().forPart(group.kind()).size(), group.traits().size(),
                     "upstream getAllTraitsForStats falls back to the general list, so every block "
                             + "lists the traits a part of its kind grants");
-            for (Component trait : group.traits()) {
+            for (MaterialPageContent.TraitLine entry : group.traits()) {
+                Component trait = entry.line();
                 assertEquals(ChatFormatting.DARK_GRAY.getColor(),
                         trait.getStyle().getColor() == null ? null : trait.getStyle().getColor().getValue(),
                         "upstream getTraitLines colours a book trait line DARK_GRAY");
                 assertTrue(trait.getStyle().isUnderlined(), "upstream getTraitLines underlines it");
                 assertEquals(prismarine.color(), hoverOf(trait).getStyle().getColor(),
                         "upstream prefixes the hover description with the material's text colour");
+                // Issue #1104: the line carries the id it came from, which is what lets the page
+                // link it to the trait's reference entry.
+                assertTrue(prismarine.traits().forPart(group.kind()).contains(entry.id()),
+                        "a trait line must name the id it was built from");
             }
         }
         assertTrue(groups.stream().anyMatch(group -> !group.traits().isEmpty()),

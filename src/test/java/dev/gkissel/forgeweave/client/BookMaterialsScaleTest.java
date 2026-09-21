@@ -31,6 +31,7 @@ import dev.gkissel.forgeweave.client.book.BookContent;
 import dev.gkissel.forgeweave.client.book.BookLayout;
 import dev.gkissel.forgeweave.client.book.BookLayout.Slot;
 import dev.gkissel.forgeweave.client.book.BookLink;
+import dev.gkissel.forgeweave.client.book.BookPage;
 import dev.gkissel.forgeweave.client.book.BookPage.IconGridPage;
 import dev.gkissel.forgeweave.client.book.BookPage.MaterialPage;
 import dev.gkissel.forgeweave.client.book.BookSection;
@@ -96,17 +97,26 @@ class BookMaterialsScaleTest {
                 .orElseThrow(() -> new AssertionError("no materials section"));
     }
 
+    /** Every icon of every stage grid, in chapter order (issue #1104 split the one grid per stage). */
+    private static List<BookLink> stageGridIcons(BookSection materials) {
+        return ((BookPage.ListingPage) materials.pages().get(0)).links().stream()
+                .map(row -> (IconGridPage) materials.pages().get(row.targetPage()))
+                .flatMap(grid -> grid.links().stream())
+                .toList();
+    }
+
     @Test
-    void theMaterialsGridHoldsEveryShippedMaterialAtRealRosterScale() throws Exception {
+    void theStageGridsHoldEveryShippedMaterialAtRealRosterScale() throws Exception {
         List<Map.Entry<ResourceLocation, Material>> shipped = shippedMaterials();
         assertTrue(shipped.size() >= 100, "non-vacuity: expected the real M6 roster, saw only " + shipped.size());
 
         BookSection materials = materialsSection(BookContent.sections(shipped));
-        IconGridPage grid = assertInstanceOf(IconGridPage.class, materials.pages().get(0),
-                "the materials section must still open on one icon grid at real roster scale");
+        assertInstanceOf(BookPage.ListingPage.class, materials.pages().get(0),
+                "the materials chapter opens on the stage ladder at real roster scale");
+        List<BookLink> icons = stageGridIcons(materials);
 
-        assertEquals(shipped.size(), grid.links().size(), "one grid icon per shipped material");
-        for (BookLink link : grid.links()) {
+        assertEquals(shipped.size(), icons.size(), "one grid icon per shipped material, across all stages");
+        for (BookLink link : icons) {
             assertTrue(link.targetPage() >= 1 && link.targetPage() < materials.pages().size(),
                     "link " + link.labelKey() + " targets page " + link.targetPage() + " outside the section");
             MaterialPage target = assertInstanceOf(MaterialPage.class, materials.pages().get(link.targetPage()),
@@ -116,8 +126,13 @@ class BookMaterialsScaleTest {
     }
 
     @Test
-    void theMaterialsGridSpansSeveralLeavesAndDropsNothingAtRealRosterScale() throws Exception {
-        int materialCount = shippedMaterials().size();
+    void theBiggestStageGridSpansSeveralLeavesAndDropsNothingAtRealRosterScale() throws Exception {
+        BookSection materials = materialsSection(BookContent.sections(shippedMaterials()));
+        int materialCount = ((BookPage.ListingPage) materials.pages().get(0)).links().stream()
+                .map(row -> (IconGridPage) materials.pages().get(row.targetPage()))
+                .mapToInt(grid -> grid.links().size())
+                .max()
+                .orElseThrow();
         int rows = (materialCount + COLUMNS - 1) / COLUMNS;
         assertTrue(rows > 1, "non-vacuity: the real roster must need more than one grid row to be worth testing");
 
@@ -129,11 +144,11 @@ class BookMaterialsScaleTest {
 
         List<Slot> slots = BookLayout.paginate(List.of(gridPageBlocks), BookLayout.PAGE_TEXT_H);
 
-        System.out.println("[#846] guide book materials grid: " + materialCount + " materials / " + COLUMNS
+        System.out.println("[#846/#1104] biggest guide book stage grid: " + materialCount + " materials / " + COLUMNS
                 + " columns = " + rows + " rows -> " + slots.size() + " leaves");
 
         assertTrue(slots.size() > 1,
-                "the real roster's materials grid (" + rows + " rows) should need more than one leaf, got "
+                "the biggest stage's grid (" + rows + " rows) should need more than one leaf, got "
                         + slots.size());
         int blocksLaidOut = slots.stream().mapToInt(Slot::blockCount).sum();
         assertEquals(gridPageBlocks.size(), blocksLaidOut, "no grid row may be dropped while paginating");

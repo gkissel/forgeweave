@@ -43,6 +43,7 @@ import dev.gkissel.forgeweave.client.book.BookPage.TextPage;
 import dev.gkissel.forgeweave.client.book.BookPage.ToolPage;
 import dev.gkissel.forgeweave.client.book.BookSection;
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.material.MaterialStage;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 
 /**
@@ -210,25 +211,61 @@ class BookListingTest {
         }
     }
 
+    /**
+     * Issue #1104: the chapter opens on the ladder rather than on one grid of everything. One row
+     * per stage that has a material, each carrying the sentence that says what unlocks it and
+     * jumping to that stage's own grid.
+     */
     @Test
-    void theMaterialsSectionOpensOnAnIconGridOfEveryMaterial() {
+    void theMaterialsSectionOpensOnTheStageLadder() {
         BookSection materials = section("book.forgeweave.section.materials");
 
-        IconGridPage grid = assertInstanceOf(IconGridPage.class, materials.pages().get(0),
-                "upstream AbstractMaterialSectionTransformer opens the materials section with "
-                        + "ContentPageIconList overview pages, not with a text page");
-        assertEquals("book.forgeweave.section.materials", grid.titleKey());
-        assertEquals(3, grid.links().size(), "one icon per material");
-        assertTargetsAreInSection(materials, grid.links());
+        ListingPage ladder = assertInstanceOf(ListingPage.class, materials.pages().get(0),
+                "the materials chapter opens on its progression ladder");
+        assertEquals(BookContent.MATERIAL_STAGES_TITLE, ladder.titleKey());
+        assertEquals(List.of(MaterialStage.FIRST_DAY.nameKey(), MaterialStage.FIRST_SMELTERY.nameKey()),
+                ladder.links().stream().map(BookLink::labelKey).toList(),
+                "wood and stone are first-day materials, iron needs the smeltery; no other stage has "
+                        + "a material here, so no other stage gets a row");
+        assertTargetsAreInSection(materials, ladder.links());
 
-        for (BookLink link : grid.links()) {
-            assertNotNull(link.icon(), "every grid entry needs the material's representative item");
-            assertNotNull(link.color(), "the hover name is the material's coloured name upstream");
-            MaterialPage target = assertInstanceOf(MaterialPage.class, materials.pages().get(link.targetPage()),
-                    "a grid icon links to that material's own page");
-            assertEquals("material." + target.id().getNamespace() + "." + target.id().getPath(), link.labelKey());
-            assertEquals(target.material().color(), link.color());
+        for (BookLink row : ladder.links()) {
+            assertNotNull(row.descriptionKey(), "a stage row says what unlocks the stage");
+            assertEquals(row.labelKey().replace(".name", ".unlock"), row.descriptionKey());
+            assertInstanceOf(IconGridPage.class, materials.pages().get(row.targetPage()),
+                    "a stage row jumps to that stage's icon grid");
         }
+    }
+
+    /**
+     * Issue #1104: upstream's {@code ContentPageIconList} grid survives, one per stage instead of
+     * one for the whole roster, and every icon still links to that material's own page.
+     */
+    @Test
+    void everyStageHasItsOwnIconGridOfItsOwnMaterials() {
+        BookSection materials = section("book.forgeweave.section.materials");
+        ListingPage ladder = (ListingPage) materials.pages().get(0);
+
+        int icons = 0;
+        for (BookLink row : ladder.links()) {
+            IconGridPage grid = (IconGridPage) materials.pages().get(row.targetPage());
+            assertEquals(row.labelKey(), grid.titleKey(), "a stage's grid is titled with the stage");
+            assertFalse(grid.links().isEmpty(), grid.titleKey() + " has an empty grid");
+            assertTargetsAreInSection(materials, grid.links());
+            for (BookLink link : grid.links()) {
+                assertNotNull(link.icon(), "every grid entry needs the material's representative item");
+                assertNotNull(link.color(), "the hover name is the material's coloured name upstream");
+                MaterialPage target = assertInstanceOf(MaterialPage.class, materials.pages().get(link.targetPage()),
+                        "a grid icon links to that material's own page");
+                assertEquals("material." + target.id().getNamespace() + "." + target.id().getPath(),
+                        link.labelKey());
+                assertEquals(target.material().color(), link.color());
+                assertEquals(row.labelKey(), target.stage().nameKey(),
+                        "a stage's grid may only hold materials of that stage");
+                icons++;
+            }
+        }
+        assertEquals(3, icons, "every material still gets exactly one icon somewhere in the chapter");
     }
 
     /** The intro text page survives the grid going in front of it -- it is content, not chrome. */
@@ -246,18 +283,20 @@ class BookListingTest {
     }
 
     @Test
-    void theMaterialGridFollowsTheSectionsMaterialOrder() {
+    void theStageGridsFollowTheSectionsMaterialOrder() {
         BookSection materials = section("book.forgeweave.section.materials");
-        IconGridPage grid = (IconGridPage) materials.pages().get(0);
+        ListingPage ladder = (ListingPage) materials.pages().get(0);
 
         List<ResourceLocation> pageOrder = materials.pages().stream()
                 .filter(MaterialPage.class::isInstance).map(page -> ((MaterialPage) page).id()).toList();
-        List<ResourceLocation> gridOrder = grid.links().stream()
+        List<ResourceLocation> gridOrder = ladder.links().stream()
+                .flatMap(row -> ((IconGridPage) materials.pages().get(row.targetPage())).links().stream())
                 .map(link -> ((MaterialPage) materials.pages().get(link.targetPage())).id()).toList();
 
-        assertEquals(pageOrder, gridOrder);
-        assertEquals(pageOrder.stream().sorted(Comparator.comparing(ResourceLocation::getPath)).toList(), pageOrder,
-                "the book sorts materials by path; the grid must not reorder them");
+        assertEquals(pageOrder, gridOrder, "the grids walk the chapter in page order");
+        // Issue #1104: the id sort is now only the tiebreaker inside a stage, so stone and wood
+        // stay alphabetical within the first day and iron follows in the next stage.
+        assertEquals(List.of(fw("stone"), fw("wood"), fw("iron")), pageOrder);
     }
 
     /** Upstream registers a transformer for tools/materials/modifiers only (TinkerBook:36-39). */

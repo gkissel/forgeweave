@@ -2647,6 +2647,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.section.tools", "Tools");
         add("book.forgeweave.section.armor", "Armor");
         add("book.forgeweave.section.materials", "Materials");
+        add("book.forgeweave.section.traits", "Traits");
         add("book.forgeweave.section.modifiers", "Modifiers");
         add("book.forgeweave.section.smeltery", "Smeltery");
         add("book.forgeweave.section.leveling", "Leveling");
@@ -2769,6 +2770,45 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.materials.tier_equivalence.title", "Beyond Resonite");
         add("book.forgeweave.materials.tier_equivalence.text",
                 "Allthemodium adds three metals above netherite of its own, and this workshop's tools reach the same three rungs. The two ladders line up: Allthemodium, Vibranium and Unobtainium ore mine and are mined by Hardcinder, Warspar and Resonite tools respectively, in either direction, with no rung skipped.\n\nA Resonite pick mining Unobtainium ore is expected, not a bug: the two sit at the same rung. The same tools also find this workshop's ores generating in Allthemodium's own mining dimension.");
+        // #1104: the materials chapter is a ladder now, so it opens on the ladder itself -- one row
+        // per stage saying what a player needs before that stage opens.
+        add("book.forgeweave.materials.stages", "The Material Ladder");
+        add("book.forgeweave.stage.first_day.name", "First day");
+        add("book.forgeweave.stage.first_day.unlock",
+                "Wood, stone, flint and bone. Carve these at the Part Builder on the first day; none of them needs a smeltery.");
+        add("book.forgeweave.stage.first_smeltery.name", "First smeltery");
+        add("book.forgeweave.stage.first_smeltery.unlock",
+                "Iron and the other early metals. Build a smeltery, melt the ore, pour it into a cast.");
+        add("book.forgeweave.stage.deeper_mining.name", "Deeper mining");
+        add("book.forgeweave.stage.deeper_mining.unlock",
+                "Materials that mine what iron cannot, and the first alloys poured from early metals.");
+        add("book.forgeweave.stage.nether_metals.name", "Nether metals");
+        add("book.forgeweave.stage.nether_metals.unlock",
+                "Cobalt, ardite and the rest of the nether rung, and alloys of the rung below them.");
+        add("book.forgeweave.stage.past_netherite.name", "Past netherite");
+        add("book.forgeweave.stage.past_netherite.unlock",
+                "This workshop's own ores above netherite, and alloys of nether metals.");
+        add("book.forgeweave.stage.deep_alloys.name", "Deep alloys");
+        add("book.forgeweave.stage.deep_alloys.unlock",
+                "The top rung of the ladder, and the alloys that need a fuel hotter than lava.");
+        add("book.forgeweave.stage.endgame.name", "Endgame");
+        add("book.forgeweave.stage.endgame.unlock",
+                "Alloys poured out of other alloys. Each of these is two or more smeltery loads deep.");
+        // #1104: the per-material-page lines. A page used to say "Can be cast from Molten Glowveil"
+        // and never that molten glowveil is three other alloys.
+        add("book.forgeweave.material.stage", "Stage: %s");
+        add("book.forgeweave.material.made_by_melting", "Melts from:");
+        add("book.forgeweave.material.made_by_alloying", "Alloyed from:");
+        add("book.forgeweave.material.alloy_input", "%1$s parts %2$s");
+        // #1104: the traits reference, the other direction from a material page's trait list.
+        add("book.forgeweave.trait.level", "Level %s");
+        add("book.forgeweave.trait.granted_by", "Granted by:");
+        add("book.forgeweave.traits.intro.title", "Traits");
+        add("book.forgeweave.traits.intro.text",
+                "A material brings more than numbers. Every part made from it grants the traits listed on "
+                        + "its own page, and the pages after this one read the other way round: one page per "
+                        + "trait, what each of its levels does, and every material that grants it.\n\n"
+                        + "A trait name on a material page is a link. Click it to land on that trait's page.");
         add("book.forgeweave.modifiers.intro.title", "Modifiers");
         add("book.forgeweave.modifiers.intro.text",
                 "A finished tool is never truly finished. At the Tool Station or Tool Forge, sacrifice items to imbue a tool with modifiers. Each tool starts with a limited number of free slots, and some modifiers can be applied repeatedly for a stronger effect.\n\nThe pages that follow list every modifier known to this workshop.");

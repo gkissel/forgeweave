@@ -36,6 +36,15 @@
     }
   },
   {
+    "name": "traits",
+    "data": "sections/traits.json",
+    "icon": {
+      "item": {
+        "id": "minecraft:nether_star"
+      }
+    }
+  },
+  {
     "name": "modifiers",
     "data": "sections/modifiers.json",
     "icon": {

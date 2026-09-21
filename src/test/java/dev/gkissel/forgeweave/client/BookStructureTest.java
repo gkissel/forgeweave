@@ -62,12 +62,13 @@ class BookStructureTest {
         List<String> names = structure().sections().stream().map(SectionDef::name).toList();
 
         assertEquals(
-                List.of("intro", "tools", "armor", "materials", "modifiers", "smeltery", "leveling"),
+                List.of("intro", "tools", "armor", "materials", "traits", "modifiers", "smeltery", "leveling"),
                 names,
                 "upstream index.json: intro, tools, materials, modifiers, smeltery; M4 (#682) slots armor "
-                        + "after tools, where the 1.20 book's materials_and_you/index.json puts it; M7-7 "
-                        + "(#924) appends leveling last -- it has no upstream section at all, and reads "
-                        + "best as a capstone chapter once every gear kind and modifier slots exist");
+                        + "after tools, where the 1.20 book's materials_and_you/index.json puts it; #1104 "
+                        + "slots the traits reference straight after the materials chapter it is the other "
+                        + "half of; M7-7 (#924) appends leveling last -- it has no upstream section at all, "
+                        + "and reads best as a capstone chapter once every gear kind and modifier slots exist");
         for (SectionDef def : structure().sections()) {
             assertNotNull(def.iconItem(), "index entry " + def.name() + " needs its icon item");
             assertFalse(def.pages().isEmpty(),

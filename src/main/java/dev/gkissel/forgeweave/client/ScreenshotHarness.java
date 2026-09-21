@@ -649,7 +649,14 @@ public final class ScreenshotHarness {
             // onto the facing page. Both must show the diagram sharing the leaf with its own title
             // and description, never on a page by itself.
             new BookScene("book_tool_pickaxe", -1, "tools.pickaxe"),
-            new BookScene("book_tool_battlesign", -1, "tools.battlesign"));
+            new BookScene("book_tool_battlesign", -1, "tools.battlesign"),
+            // #1104: the materials chapter as a ladder. The opening page (one row per progression
+            // stage with what unlocks it), one stage's icon grid, a material page that shows its
+            // stage and its alloy recipe, and one trait reference entry with its levels.
+            new BookScene("book_material_stages", -1, "materials.listing"),
+            new BookScene("book_material_stage_grid", -1, "materials.first_smeltery"),
+            new BookScene("book_material_manyullyn", -1, "materials.manyullyn"),
+            new BookScene("book_trait_evolved", -1, "traits.evolved"));
 
     private ScreenshotHarness() {}
 

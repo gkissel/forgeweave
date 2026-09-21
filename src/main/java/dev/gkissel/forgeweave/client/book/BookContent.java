@@ -26,7 +26,9 @@ import dev.gkissel.forgeweave.client.book.BookStructure.PageDef;
 import dev.gkissel.forgeweave.client.book.BookStructure.SectionDef;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.material.MaterialStage;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.recipe.AlloyRecipe;
 
 /**
  * Builds the guide book's page tree from the data-driven structure in
@@ -49,6 +51,9 @@ public final class BookContent {
 
     public static final String TITLE = "book.forgeweave.title";
     public static final String SUBTITLE = "book.forgeweave.subtitle";
+
+    /** The materials chapter's opening page: the progression ladder, one row per stage (#1104). */
+    public static final String MATERIAL_STAGES_TITLE = "book.forgeweave.materials.stages";
 
     /** {@code IndexTranformer}: one {@code ContentSectionList} page holds at most nine sections. */
     private static final int SECTIONS_PER_INDEX_PAGE = 9;
@@ -78,7 +83,9 @@ public final class BookContent {
                 .sorted(Comparator.comparing(entry -> entry.getKey().location().getPath()))
                 .map((Map.Entry<ResourceKey<Material>, Material> entry) ->
                         Map.entry(entry.getKey().location(), entry.getValue()))
-                .toList());
+                .toList(),
+                MaterialStage.Lookup.of(registries.registryOrThrow(Material.REGISTRY),
+                        registries.registryOrThrow(AlloyRecipe.REGISTRY)));
     }
 
     /**
@@ -87,9 +94,22 @@ public final class BookContent {
      * whole page tree unit-testable ({@code BookListingTest}) without standing up a datapack
      * registry.
      *
-     * @param materials every material to give a page, already in the order the book shows them
+     * @param materials every material to give a page, in the order the id sort left them; the
+     *                  chapter's own order is {@link BookMaterialOrder}'s, applied here
      */
     public static List<BookSection> sections(List<Map.Entry<ResourceLocation, Material>> materials) {
+        return sections(materials, MaterialStage.Lookup.EMPTY);
+    }
+
+    /**
+     * As {@link #sections(List)}, with the stage lookup the materials chapter's ladder needs
+     * (issue #1104). {@link MaterialStage.Lookup#EMPTY} derives every stage from the material's
+     * own harvest rung alone, which is all a caller with no alloy registry can know.
+     */
+    public static List<BookSection> sections(List<Map.Entry<ResourceLocation, Material>> materials,
+            MaterialStage.Lookup stages) {
+        List<BookMaterialOrder.Stage> ladder = BookMaterialOrder.byStage(materials, stages);
+        List<BookTraits.Family> traits = BookTraits.families(materials);
         List<BookSection> sections = new ArrayList<>();
         for (SectionDef def : BookStructure.load().sections()) {
             String titleKey = "book.forgeweave.section." + def.name();
@@ -101,7 +121,8 @@ public final class BookContent {
             // SectionTransformers ("tools"/"materials"/"modifiers", TinkerBook:37-40).
             List<BookPage> pages = switch (def.name()) {
                 case "tools" -> withListing(titleKey, authored);
-                case "materials" -> withMaterials(titleKey, authored, materials);
+                case "materials" -> withMaterials(authored, ladder, stages);
+                case "traits" -> withTraits(titleKey, authored, traits);
                 case "modifiers" -> {
                     ForgeweaveModifiers.ids().stream()
                             .sorted(Comparator.comparing(ResourceLocation::getPath))
@@ -170,25 +191,65 @@ public final class BookContent {
     }
 
     /**
-     * Upstream {@code AbstractMaterialSectionTransformer#transform}: the materials section opens
-     * with a {@code ContentPageIconList} grid of one linked item icon per material, in front of the
-     * authored intro page and the generated material pages (issue #479).
+     * The materials chapter, stage by stage (issue #1104). Upstream
+     * {@code AbstractMaterialSectionTransformer#transform} opens the chapter with
+     * {@code ContentPageIconList} grids of one linked item icon per material (issue #479); 1.20
+     * splits the chapter into tier-scoped sections that each get their own grid. This keeps one
+     * section and gives each stage its own grid inside it:
+     *
+     * <ol>
+     *   <li>the chapter's opening page: one row per stage, with the sentence saying what unlocks
+     *       it, jumping to that stage's grid;
+     *   <li>the authored intro pages;
+     *   <li>per stage, in ladder order: the stage's icon grid, then its material pages in
+     *       {@link BookMaterialOrder}'s order.
+     * </ol>
+     *
+     * <p>A grid link is section-relative, so the page indices are counted as the list is built --
+     * the same arithmetic the old single grid did, once per stage.
      */
-    private static List<BookPage> withMaterials(String titleKey, List<BookPage> authored,
-            List<Map.Entry<ResourceLocation, Material>> materials) {
-        List<BookPage> content = new ArrayList<>(authored);
-        List<BookLink> grid = new ArrayList<>();
-        for (Map.Entry<ResourceLocation, Material> entry : materials) {
-            ResourceLocation id = entry.getKey();
-            Material material = entry.getValue();
-            grid.add(new BookLink("material." + id.getNamespace() + "." + id.getPath(), material.color(),
-                    () -> representativeItem(material), 1 + content.size()));
-            content.add(new MaterialPage(id, material));
+    private static List<BookPage> withMaterials(List<BookPage> authored,
+            List<BookMaterialOrder.Stage> ladder, MaterialStage.Lookup stages) {
+        // Page 0 is the stage listing; the authored pages follow, then one grid plus its material
+        // pages per stage.
+        int firstStagePage = 1 + authored.size();
+        List<BookLink> stageRows = new ArrayList<>();
+        List<BookPage> stagePages = new ArrayList<>();
+        for (BookMaterialOrder.Stage stage : ladder) {
+            int gridPage = firstStagePage + stagePages.size();
+            stageRows.add(new BookLink(stage.stage().nameKey(), null, null, gridPage,
+                    stage.stage().unlockKey()));
+            List<BookLink> grid = new ArrayList<>();
+            List<BookPage> materialPages = new ArrayList<>();
+            for (Map.Entry<ResourceLocation, Material> entry : stage.materials()) {
+                ResourceLocation id = entry.getKey();
+                Material material = entry.getValue();
+                grid.add(new BookLink("material." + id.getNamespace() + "." + id.getPath(), material.color(),
+                        () -> representativeItem(material), gridPage + 1 + materialPages.size()));
+                materialPages.add(new MaterialPage(id, material, stage.stage()));
+            }
+            stagePages.add(new IconGridPage(stage.stage().nameKey(), List.copyOf(grid)));
+            stagePages.addAll(materialPages);
         }
         List<BookPage> pages = new ArrayList<>();
-        pages.add(new IconGridPage(titleKey, List.copyOf(grid)));
-        pages.addAll(content);
+        pages.add(new ListingPage(MATERIAL_STAGES_TITLE, List.copyOf(stageRows)));
+        pages.addAll(authored);
+        pages.addAll(stagePages);
         return List.copyOf(pages);
+    }
+
+    /**
+     * The traits reference (issue #1104): one page per trait family, behind the listing page every
+     * generated section opens with. One page per family rather than one long roster page so a trait
+     * name on a material page can jump to that trait and nothing else -- 1.12's book has no trait
+     * section at all to copy, and its {@code ContentListing} row-per-page shape is what the rest of
+     * this book already uses.
+     */
+    private static List<BookPage> withTraits(String titleKey, List<BookPage> authored,
+            List<BookTraits.Family> families) {
+        List<BookPage> content = new ArrayList<>(authored);
+        families.forEach(family -> content.add(new BookPage.TraitPage(family)));
+        return withListing(titleKey, content);
     }
 
     /**
@@ -228,6 +289,7 @@ public final class BookContent {
                     "modifier." + modifier.id().getNamespace() + "." + modifier.id().getPath() + ".name";
             case MaterialPage material ->
                     "material." + material.id().getNamespace() + "." + material.id().getPath();
+            case BookPage.TraitPage trait -> trait.family().nameKey();
             case ListingPage listing -> listing.titleKey();
             case IconGridPage listing -> listing.titleKey();
             case SectionListPage sectionList -> sectionList.name(); // never listed; exhaustiveness
@@ -258,7 +320,20 @@ public final class BookContent {
                 // Issue #651: the tool/modifier pages' bullet-list headers (upstream's
                 // tool.properties / modifier.effect book strings).
                 ModifyPageContent.TOOL_PROPERTIES_TITLE,
-                ModifyPageContent.MODIFIER_EFFECTS_TITLE));
+                ModifyPageContent.MODIFIER_EFFECTS_TITLE,
+                // Issue #1104: the materials chapter's ladder page and the per-material-page lines
+                // that say which stage it sits in and how it is made.
+                MATERIAL_STAGES_TITLE,
+                MaterialPageContent.STAGE_LINE,
+                MaterialPageContent.MADE_BY_MELTING,
+                MaterialPageContent.MADE_BY_ALLOYING,
+                MaterialPageContent.ALLOY_INPUT,
+                MaterialPageContent.TRAIT_GRANTED_BY,
+                MaterialPageContent.TRAIT_LEVEL));
+        for (MaterialStage stage : MaterialStage.values()) {
+            keys.add(stage.nameKey());
+            keys.add(stage.unlockKey());
+        }
         for (SectionDef def : BookStructure.load().sections()) {
             keys.add("book.forgeweave.section." + def.name());
             for (PageDef page : def.pages()) {
