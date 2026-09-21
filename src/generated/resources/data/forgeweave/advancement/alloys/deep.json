@@ -1,11 +1,11 @@
 {
-  "parent": "forgeweave:root",
+  "parent": "forgeweave:smeltery/first_alloy",
   "criteria": {
-    "has_item": {
+    "deep_alloy": {
       "conditions": {
         "items": [
           {
-            "items": "forgeweave:seared_brick"
+            "items": "#forgeweave:alloys/deep"
           }
         ]
       },
@@ -14,19 +14,20 @@
   },
   "display": {
     "description": {
-      "translate": "advancements.forgeweave.smeltery_root.description"
+      "translate": "advancements.forgeweave.deep_alloy.description"
     },
+    "frame": "goal",
     "icon": {
       "count": 1,
-      "id": "forgeweave:seared_brick"
+      "id": "forgeweave:tideiron_ingot"
     },
     "title": {
-      "translate": "advancements.forgeweave.smeltery_root.title"
+      "translate": "advancements.forgeweave.deep_alloy.title"
     }
   },
   "requirements": [
     [
-      "has_item"
+      "deep_alloy"
     ]
   ],
   "sends_telemetry_event": true

@@ -5,7 +5,7 @@
       "conditions": {
         "items": [
           {
-            "items": "forgeweave:seared_brick"
+            "items": "forgeweave:pattern_blank"
           }
         ]
       },
@@ -14,14 +14,14 @@
   },
   "display": {
     "description": {
-      "translate": "advancements.forgeweave.smeltery_root.description"
+      "translate": "advancements.forgeweave.pattern.description"
     },
     "icon": {
       "count": 1,
-      "id": "forgeweave:seared_brick"
+      "id": "forgeweave:pattern_blank"
     },
     "title": {
-      "translate": "advancements.forgeweave.smeltery_root.title"
+      "translate": "advancements.forgeweave.pattern.title"
     }
   },
   "requirements": [

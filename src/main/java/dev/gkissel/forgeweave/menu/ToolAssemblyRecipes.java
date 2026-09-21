@@ -1134,7 +1134,9 @@ public final class ToolAssemblyRecipes {
      * kept: when two repair slots hold the same material only the first is counted, so an all-cobalt
      * hammer repairs at 2.5x once, not 2.5x + 1.5x + 1.5x with a triple-material bonus.
      */
-    private static Optional<Result> resolveRepair(HolderLookup.Provider registries, ItemStack toolStack,
+    // Package-private rather than private since issue #1106: ToolStationMenu asks it "was this take a
+    // repair?" for the repair advancement, which is the same question resolve() answers first below.
+    static Optional<Result> resolveRepair(HolderLookup.Provider registries, ItemStack toolStack,
             List<ItemStack> freeSlots, boolean forge) {
         int damage = toolStack.getDamageValue();
         if (damage <= 0) {

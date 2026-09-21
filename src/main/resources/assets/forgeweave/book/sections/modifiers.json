@@ -4,11 +4,19 @@
     "type": "text"
   },
   {
+    "name": "slots",
+    "type": "text"
+  },
+  {
+    "name": "first_modifiers",
+    "type": "text"
+  },
+  {
     "name": "worktable",
     "type": "text"
   },
   {
-    "name": "affixes",
+    "name": "embossing",
     "type": "text"
   },
   {
@@ -16,11 +24,15 @@
     "type": "text"
   },
   {
-    "name": "rituals",
+    "name": "affixes",
     "type": "text"
   },
   {
     "name": "augments",
+    "type": "text"
+  },
+  {
+    "name": "rituals",
     "type": "text"
   }
 ]

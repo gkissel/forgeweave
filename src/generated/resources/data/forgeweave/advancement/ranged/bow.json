@@ -1,0 +1,37 @@
+{
+  "parent": "forgeweave:tools/first_tool",
+  "criteria": {
+    "bow": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "forgeweave:shortbow",
+              "forgeweave:longbow",
+              "forgeweave:crossbow"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.forgeweave.bow.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "forgeweave:shortbow"
+    },
+    "title": {
+      "translate": "advancements.forgeweave.bow.title"
+    }
+  },
+  "requirements": [
+    [
+      "bow"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

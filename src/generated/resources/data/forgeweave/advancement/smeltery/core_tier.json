@@ -1,11 +1,15 @@
 {
   "parent": "forgeweave:smeltery/first_cast",
   "criteria": {
-    "has_item": {
+    "hotter_core": {
       "conditions": {
         "items": [
           {
-            "items": "forgeweave:tool_forge"
+            "items": [
+              "forgeweave:nether_core",
+              "forgeweave:end_core",
+              "forgeweave:deep_core"
+            ]
           }
         ]
       },
@@ -14,19 +18,20 @@
   },
   "display": {
     "description": {
-      "translate": "advancements.forgeweave.forge.description"
+      "translate": "advancements.forgeweave.core_tier.description"
     },
+    "frame": "goal",
     "icon": {
       "count": 1,
-      "id": "forgeweave:tool_forge"
+      "id": "forgeweave:nether_core"
     },
     "title": {
-      "translate": "advancements.forgeweave.forge.title"
+      "translate": "advancements.forgeweave.core_tier.title"
     }
   },
   "requirements": [
     [
-      "has_item"
+      "hotter_core"
     ]
   ],
   "sends_telemetry_event": true

@@ -1,0 +1,85 @@
+{
+  "parent": "forgeweave:armor/first_piece",
+  "criteria": {
+    "boots": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "forgeweave:boots",
+              "forgeweave:heavy_boots"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "chestplate": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "forgeweave:chestplate",
+              "forgeweave:heavy_chestplate"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "helmet": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "forgeweave:helmet",
+              "forgeweave:heavy_helmet"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "leggings": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "forgeweave:leggings",
+              "forgeweave:heavy_leggings"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.forgeweave.armor_set.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "forgeweave:chestplate"
+    },
+    "title": {
+      "translate": "advancements.forgeweave.armor_set.title"
+    }
+  },
+  "requirements": [
+    [
+      "helmet"
+    ],
+    [
+      "chestplate"
+    ],
+    [
+      "leggings"
+    ],
+    [
+      "boots"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

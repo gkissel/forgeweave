@@ -1,11 +1,11 @@
 {
-  "parent": "forgeweave:root",
+  "parent": "forgeweave:tools/pattern",
   "criteria": {
     "has_item": {
       "conditions": {
         "items": [
           {
-            "items": "forgeweave:seared_brick"
+            "items": "forgeweave:part_builder"
           }
         ]
       },
@@ -14,14 +14,14 @@
   },
   "display": {
     "description": {
-      "translate": "advancements.forgeweave.smeltery_root.description"
+      "translate": "advancements.forgeweave.part_builder.description"
     },
     "icon": {
       "count": 1,
-      "id": "forgeweave:seared_brick"
+      "id": "forgeweave:part_builder"
     },
     "title": {
-      "translate": "advancements.forgeweave.smeltery_root.title"
+      "translate": "advancements.forgeweave.part_builder.title"
     }
   },
   "requirements": [

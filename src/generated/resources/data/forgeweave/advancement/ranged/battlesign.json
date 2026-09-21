@@ -1,11 +1,11 @@
 {
-  "parent": "forgeweave:root",
+  "parent": "forgeweave:ranged/bow",
   "criteria": {
     "has_item": {
       "conditions": {
         "items": [
           {
-            "items": "forgeweave:seared_brick"
+            "items": "forgeweave:battlesign"
           }
         ]
       },
@@ -14,14 +14,14 @@
   },
   "display": {
     "description": {
-      "translate": "advancements.forgeweave.smeltery_root.description"
+      "translate": "advancements.forgeweave.battlesign.description"
     },
     "icon": {
       "count": 1,
-      "id": "forgeweave:seared_brick"
+      "id": "forgeweave:battlesign"
     },
     "title": {
-      "translate": "advancements.forgeweave.smeltery_root.title"
+      "translate": "advancements.forgeweave.battlesign.title"
     }
   },
   "requirements": [

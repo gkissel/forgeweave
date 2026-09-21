@@ -4,6 +4,10 @@
     "type": "text"
   },
   {
+    "name": "progression",
+    "type": "text"
+  },
+  {
     "name": "workshop",
     "type": "text"
   },
@@ -12,15 +16,7 @@
     "type": "text"
   },
   {
-    "name": "crafting_station",
-    "type": "text"
-  },
-  {
     "name": "stencil_table",
-    "type": "text"
-  },
-  {
-    "name": "pattern_chest",
     "type": "text"
   },
   {
@@ -28,11 +24,35 @@
     "type": "text"
   },
   {
-    "name": "part_chest",
+    "name": "tool_station",
     "type": "text"
   },
   {
-    "name": "tool_station",
+    "name": "first_pickaxe",
+    "type": "text"
+  },
+  {
+    "name": "repairing",
+    "type": "text"
+  },
+  {
+    "name": "part_exchange",
+    "type": "text"
+  },
+  {
+    "name": "growing",
+    "type": "text"
+  },
+  {
+    "name": "crafting_station",
+    "type": "text"
+  },
+  {
+    "name": "pattern_chest",
+    "type": "text"
+  },
+  {
+    "name": "part_chest",
     "type": "text"
   },
   {

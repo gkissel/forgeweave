@@ -1,11 +1,11 @@
 {
-  "parent": "forgeweave:root",
+  "parent": "forgeweave:smeltery/first_cast",
   "criteria": {
-    "has_item": {
+    "cast": {
       "conditions": {
         "items": [
           {
-            "items": "forgeweave:seared_brick"
+            "items": "#forgeweave:casts/gold"
           }
         ]
       },
@@ -14,19 +14,19 @@
   },
   "display": {
     "description": {
-      "translate": "advancements.forgeweave.smeltery_root.description"
+      "translate": "advancements.forgeweave.cast.description"
     },
     "icon": {
       "count": 1,
-      "id": "forgeweave:seared_brick"
+      "id": "forgeweave:cast_pickaxe_head"
     },
     "title": {
-      "translate": "advancements.forgeweave.smeltery_root.title"
+      "translate": "advancements.forgeweave.cast.title"
     }
   },
   "requirements": [
     [
-      "has_item"
+      "cast"
     ]
   ],
   "sends_telemetry_event": true

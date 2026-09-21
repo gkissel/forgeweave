@@ -2,19 +2,19 @@
   "parent": "forgeweave:tools/first_tool",
   "criteria": {
     "triggered": {
-      "trigger": "forgeweave:first_modifier"
+      "trigger": "forgeweave:part_exchanged"
     }
   },
   "display": {
     "description": {
-      "translate": "advancements.forgeweave.first_modifier.description"
+      "translate": "advancements.forgeweave.part_exchange.description"
     },
     "icon": {
       "count": 1,
-      "id": "forgeweave:extra_modifier"
+      "id": "forgeweave:pickaxe_head"
     },
     "title": {
-      "translate": "advancements.forgeweave.first_modifier.title"
+      "translate": "advancements.forgeweave.part_exchange.title"
     }
   },
   "requirements": [

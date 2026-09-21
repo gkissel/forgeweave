@@ -1,11 +1,11 @@
 {
-  "parent": "forgeweave:root",
+  "parent": "forgeweave:alloys/deep",
   "criteria": {
-    "has_item": {
+    "deepest_alloy": {
       "conditions": {
         "items": [
           {
-            "items": "forgeweave:seared_brick"
+            "items": "#forgeweave:alloys/deepest"
           }
         ]
       },
@@ -14,19 +14,20 @@
   },
   "display": {
     "description": {
-      "translate": "advancements.forgeweave.smeltery_root.description"
+      "translate": "advancements.forgeweave.deepest_alloy.description"
     },
+    "frame": "challenge",
     "icon": {
       "count": 1,
-      "id": "forgeweave:seared_brick"
+      "id": "forgeweave:truesteel_ingot"
     },
     "title": {
-      "translate": "advancements.forgeweave.smeltery_root.title"
+      "translate": "advancements.forgeweave.deepest_alloy.title"
     }
   },
   "requirements": [
     [
-      "has_item"
+      "deepest_alloy"
     ]
   ],
   "sends_telemetry_event": true
