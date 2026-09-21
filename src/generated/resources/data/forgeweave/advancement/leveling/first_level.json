@@ -2,19 +2,20 @@
   "parent": "forgeweave:smeltery/first_modifier",
   "criteria": {
     "triggered": {
-      "trigger": "forgeweave:combat_modifier_applied"
+      "trigger": "forgeweave:tool_level_up"
     }
   },
   "display": {
     "description": {
-      "translate": "advancements.forgeweave.combat_modifier.description"
+      "translate": "advancements.forgeweave.first_level.description"
     },
+    "frame": "goal",
     "icon": {
       "count": 1,
-      "id": "forgeweave:manyullyn_ingot"
+      "id": "minecraft:experience_bottle"
     },
     "title": {
-      "translate": "advancements.forgeweave.combat_modifier.title"
+      "translate": "advancements.forgeweave.first_level.title"
     }
   },
   "requirements": [

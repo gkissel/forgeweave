@@ -163,6 +163,7 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         }
 
         addMaterialFormTags();
+        addAlloyDepthTags();
 
         // #152 -- the "large tool" classification: what only the Tool Forge can assemble. See
         // ToolAssemblyRecipes#LARGE_TOOLS, which is the whole gate: a tool issue adds its row here and
@@ -506,6 +507,41 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
             }
         }
     }
+
+    /**
+     * #1106 -- the two tags the alloy advancements key on, built from {@link AlloyDepths}' read of
+     * the shipped {@code alloy_recipe} JSON so a rebalanced recipe moves the advancement with it.
+     * Membership is by {@code c:ingots/<metal>} rather than by item, which keeps this loop from
+     * having to know whether a given alloy's ingot is a Track B item or somebody else's; every
+     * shipped alloy deep enough to land in either tag has one of those tags already.
+     *
+     * <p>Depth 1 gets no tag: {@code smeltery/first_alloy} already covers the first alloy and fires
+     * from the smeltery itself, so a tag naming every shallow alloy would have no reader.
+     */
+    private void addAlloyDepthTags() {
+        IntrinsicTagAppender<Item> deep = tag(ALLOYS_DEEP);
+        IntrinsicTagAppender<Item> deepest = tag(ALLOYS_DEEPEST);
+        AlloyDepths.byMaterial().forEach((metal, depth) -> {
+            if (depth >= DEEP_ALLOY_DEPTH) {
+                deep.addTag(cTag("ingots/" + metal));
+            }
+            if (depth >= DEEPEST_ALLOY_DEPTH) {
+                deepest.addTag(cTag("ingots/" + metal));
+            }
+        });
+    }
+
+    /** How many alloying steps in {@link #ALLOYS_DEEP} starts, and {@link #ALLOYS_DEEPEST} after it. */
+    private static final int DEEP_ALLOY_DEPTH = 2;
+    private static final int DEEPEST_ALLOY_DEPTH = 3;
+
+    /** Ingots of every alloy that takes at least {@value #DEEP_ALLOY_DEPTH} alloying steps (issue #1106). */
+    public static final TagKey<Item> ALLOYS_DEEP =
+            TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "alloys/deep"));
+
+    /** Ingots of every alloy that takes at least {@value #DEEPEST_ALLOY_DEPTH} alloying steps (issue #1106). */
+    public static final TagKey<Item> ALLOYS_DEEPEST =
+            TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "alloys/deepest"));
 
     private static TagKey<Item> cTag(String path) {
         return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", path));

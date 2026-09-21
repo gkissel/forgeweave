@@ -2,19 +2,20 @@
   "parent": "forgeweave:smeltery/first_modifier",
   "criteria": {
     "triggered": {
-      "trigger": "forgeweave:combat_modifier_applied"
+      "trigger": "forgeweave:modifier_slots_filled"
     }
   },
   "display": {
     "description": {
-      "translate": "advancements.forgeweave.combat_modifier.description"
+      "translate": "advancements.forgeweave.slots_filled.description"
     },
+    "frame": "challenge",
     "icon": {
       "count": 1,
-      "id": "forgeweave:manyullyn_ingot"
+      "id": "forgeweave:extra_modifier"
     },
     "title": {
-      "translate": "advancements.forgeweave.combat_modifier.title"
+      "translate": "advancements.forgeweave.slots_filled.title"
     }
   },
   "requirements": [

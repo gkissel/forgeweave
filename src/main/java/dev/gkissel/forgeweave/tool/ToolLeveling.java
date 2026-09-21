@@ -5,7 +5,9 @@ import javax.annotation.Nullable;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
+import dev.gkissel.forgeweave.advancement.ForgeweaveCriteriaTriggers;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
+import dev.gkissel.forgeweave.item.ArmorPieceItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 
@@ -111,6 +113,14 @@ public final class ToolLeveling {
         if (leveledUp && player != null) {
             for (int level = before.level() + 1; level <= after.level(); level++) {
                 ToolLevelFeedback.onLevelUp(stack, level, player);
+            }
+            // Issue #1106's leveling advancements, once per grant rather than once per level -- an
+            // advancement is either earned or not, so a burst that buys two levels has nothing to say
+            // twice. Armor levels through this same seam (CombatSeams' mitigated-damage share), so
+            // the armor branch reads the stack rather than needing its own call site.
+            ForgeweaveCriteriaTriggers.TOOL_LEVEL_UP.get().trigger(player);
+            if (stack.getItem() instanceof ArmorPieceItem) {
+                ForgeweaveCriteriaTriggers.ARMOR_LEVEL_UP.get().trigger(player);
             }
         }
         return leveledUp;

@@ -2224,6 +2224,53 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("advancements.forgeweave.combat_modifier.title", "Sharpened Edge");
         add("advancements.forgeweave.combat_modifier.description", "Apply a combat modifier to a tool");
 
+        // #1106 -- the nineteen the re-rooted tree adds (ForgeweaveAdvancementProvider). Same key
+        // family as the ten above. Each description is one sentence naming the next thing to do, so
+        // the advancement screen reads as a to-do list rather than as flavor text.
+        add("advancements.forgeweave.guide_book.title", "Forgeweave");
+        add("advancements.forgeweave.guide_book.description", "Open the guide book and read the first page");
+        add("advancements.forgeweave.pattern.title", "Blank Slate");
+        add("advancements.forgeweave.pattern.description", "Craft a blank pattern");
+        add("advancements.forgeweave.part_builder.title", "Carving Bench");
+        add("advancements.forgeweave.part_builder.description", "Craft a Part Builder to cut patterns into tool parts");
+        add("advancements.forgeweave.tool_station.title", "Somewhere to Work");
+        add("advancements.forgeweave.tool_station.description", "Craft a Tool Station to put parts together");
+        add("advancements.forgeweave.first_tool.title", "Your Own Tool");
+        add("advancements.forgeweave.first_tool.description", "Assemble a tool from its parts at the Tool Station");
+        add("advancements.forgeweave.repair.title", "Good as New");
+        add("advancements.forgeweave.repair.description", "Repair a worn tool with more of its own material");
+        add("advancements.forgeweave.part_exchange.title", "Swap a Part");
+        add("advancements.forgeweave.part_exchange.description", "Swap a part on an assembled tool at the station");
+
+        add("advancements.forgeweave.armor_piece.title", "Plated");
+        add("advancements.forgeweave.armor_piece.description", "Assemble an armor piece from plating and maille");
+        add("advancements.forgeweave.armor_set.title", "Head to Toe");
+        add("advancements.forgeweave.armor_set.description", "Assemble all four armor pieces");
+        add("advancements.forgeweave.armor_level.title", "Battle Worn");
+        add("advancements.forgeweave.armor_level.description", "Take enough hits in one armor piece to level it up");
+
+        add("advancements.forgeweave.bow.title", "Drawn");
+        add("advancements.forgeweave.bow.description", "Assemble a bow from two limbs and a bowstring");
+        add("advancements.forgeweave.battlesign.title", "Hold the Line");
+        add("advancements.forgeweave.battlesign.description", "Assemble a battlesign at the Tool Station");
+
+        add("advancements.forgeweave.slots_filled.title", "Nothing Spare");
+        add("advancements.forgeweave.slots_filled.description", "Spend every modifier slot on one tool");
+        add("advancements.forgeweave.first_level.title", "Well Used");
+        add("advancements.forgeweave.first_level.description", "Use one tool until it gains a level");
+
+        add("advancements.forgeweave.cast.title", "Cast in Gold");
+        add("advancements.forgeweave.cast.description", "Pour molten gold over a tool part to get a reusable cast");
+        add("advancements.forgeweave.core_tier.title", "Hotter Core");
+        add("advancements.forgeweave.core_tier.description", "Swap the smeltery core for a nether, end or deep one");
+        add("advancements.forgeweave.hotter_fuel.title", "Past Lava");
+        add("advancements.forgeweave.hotter_fuel.description", "Fill a bucket with a smeltery fuel hotter than lava");
+        add("advancements.forgeweave.deep_alloy.title", "Alloy of an Alloy");
+        add("advancements.forgeweave.deep_alloy.description", "Cast an ingot of a metal that takes two rounds of alloying");
+        add("advancements.forgeweave.deepest_alloy.title", "Deep Metallurgy");
+        add("advancements.forgeweave.deepest_alloy.description",
+                "Cast an ingot of a metal that takes three rounds of alloying");
+
         // The Ponder soft dependency's one-time chat hint (issue #110): shown on a player's first
         // smeltery controller interaction only when Ponder isn't installed (ForgeweavePonderHint).
         // A new "chat" family, following vanilla's own chat.* namespace -- none of this file's usual

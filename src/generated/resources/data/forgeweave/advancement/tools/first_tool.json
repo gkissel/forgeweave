@@ -1,0 +1,27 @@
+{
+  "parent": "forgeweave:tools/tool_station",
+  "criteria": {
+    "triggered": {
+      "trigger": "forgeweave:tool_assembled"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.forgeweave.first_tool.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "forgeweave:pickaxe"
+    },
+    "title": {
+      "translate": "advancements.forgeweave.first_tool.title"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
