@@ -2704,16 +2704,58 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // own lines rather than Tinkers' (its wood quote is a joke of its author's).
         add("material.forgeweave.wood.flavour", "Every workshop starts with a plank and a bad idea.");
         add("material.forgeweave.stone.flavour", "Patient, heavy, and utterly unimpressed by you.");
+        // #1105 reorders the chapters into tutorial order (index.json) and adds the Casting and
+        // Alloys chapters. Nine sections, which is exactly what one generated index page holds.
         add("book.forgeweave.section.intro", "Introduction");
-        add("book.forgeweave.section.tools", "Tools");
-        add("book.forgeweave.section.armor", "Armor");
+        add("book.forgeweave.section.smeltery", "Smeltery");
+        add("book.forgeweave.section.casting", "Casting");
+        add("book.forgeweave.section.alloys", "Alloys");
         add("book.forgeweave.section.materials", "Materials");
         add("book.forgeweave.section.modifiers", "Modifiers");
-        add("book.forgeweave.section.smeltery", "Smeltery");
+        add("book.forgeweave.section.armor", "Armor");
         add("book.forgeweave.section.leveling", "Leveling");
+        add("book.forgeweave.section.tools", "Tools");
         add("book.forgeweave.intro.welcome.title", "Surviving the First Day");
         add("book.forgeweave.intro.welcome.text",
-                "Welcome to Materials and You: surviving the first day and beyond. Within these pages you will find the first steps to making tools from the materials you gather.\n\nThe first step is to craft a blank pattern. It is a blank slate to stamp a shape into, providing a reference for future creations.\n\nThis book grows with the workshop; check back occasionally for new chapters.");
+                "This book is the whole workshop, written in the order it is meant to be learned. "
+                        + "Read it front to back once and you will have built a tool, lit a smeltery, "
+                        + "cast a metal part and mixed your first alloy, without leaving the game.\n\n"
+                        + "The chapters run Introduction, Smeltery, Casting, Alloys, Materials, "
+                        + "Modifiers, Armor, Leveling, Tools. Each one assumes only what the chapters "
+                        + "before it taught, and each one ends by naming the next.\n\n"
+                        + "The last chapters are reference rather than lesson. Come back to Materials "
+                        + "whenever a new metal turns up, and to Tools to see what a shape does before "
+                        + "you spend materials on it.\n\n"
+                        + "What next: the page after this one lays out the whole ladder, from a wooden "
+                        + "pickaxe to the deepest alloy.");
+        // #1105: the progression page the review asked for. Every number on it is read from data --
+        // the fuel temperatures from ForgeweaveFluids, the rungs from ForgeweaveModifiers.TIER_TAGS
+        // and their names from the tooltip.forgeweave.tier.* family above.
+        add("book.forgeweave.intro.progression.title", "The Whole Ladder");
+        add("book.forgeweave.intro.progression.text",
+                "Five steps take you from a plank to the deepest metal in the game.\n\n"
+                        + "One. Two planks and two sticks make blank patterns. Stamp a pattern at a "
+                        + "Stencil Table, carve wood or stone into a part at a Part Builder, and put "
+                        + "the parts together at a Tool Station. This needs no heat and no ore, so it "
+                        + "all happens on the first day.\n\n"
+                        + "Two. Clay, sand and gravel make grout. A furnace bakes grout into seared "
+                        + "bricks, and seared bricks build a smeltery. A bucket of lava heats it.\n\n"
+                        + "Three. Metal is poured rather than carved. Pour molten gold over a carved "
+                        + "part on a Casting Table and you keep a reusable cast of that shape. Every "
+                        + "metal part you ever make comes out of one of those casts.\n\n"
+                        + "Four. Two melts sharing one smeltery mix into a third metal. Rose gold and "
+                        + "steel are both reachable the day the smeltery lights.\n\n"
+                        + "Five. Alloys feed alloys. The deepest metals are four mixing stages and six "
+                        + "ores down the chain, and the Alloys chapter draws each path.\n\n"
+                        + "Fuel. Lava burns at 1300 degrees, which melts every ore and every ingot of "
+                        + "this workshop's own metals. A few of the late metals in full block form, and "
+                        + "a lot of what other mods add, need hotter fuel: blazing blood at 1500, "
+                        + "molten magma at 1700, molten brimspar at 1900, molten pyrealloy at 2100. The "
+                        + "Smeltery chapter has that page.\n\n"
+                        + "Mining rungs, lowest first: Wood, Stone, Iron, Diamond, Netherite, "
+                        + "Hardcinder, Warspar, Resonite. A tool mines at its head material's rung. The "
+                        + "Materials chapter says which materials sit on which.\n\n"
+                        + "What next: the workshop that makes all of this. Read on.");
         add("book.forgeweave.intro.workshop.title", "The Tool Workshop");
         add("book.forgeweave.intro.workshop.text",
                 "Shape a non-metal material in the Part Builder with a pattern, then combine the finished parts at the Tool Station. Patterns keep in the Pattern Chest and spare parts in the Part Chest. A crafting table converts into a Crafting Station that holds an unfinished project while you step away.\n\nTogether these make the Tool Workshop; they work best side by side. The Tool Forge, the station's sturdier sibling, is needed for the largest tools.");
@@ -2749,8 +2791,14 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.intro.part_builder.text",
                 "Built from a blank pattern over a log. Lay a stamped pattern and a non-metal material "
                         + "on it and it carves the material into that part, showing the cost and the "
-                        + "finished part's stats before you commit.\n\nMetal is not carved; molten metal is "
-                        + "cast into parts at the Smeltery.");
+                        + "finished part's stats before you commit.\n\n"
+                        + "Costs are quoted in ingots' worth, and one ingot's worth is 144 units. A "
+                        + "head costs two ingots' worth, a handle or a binding one, a sign plate or a "
+                        + "pan or a tough rod three, and a large head eight.\n\n"
+                        + "Non-metals are priced the same way. A plank and a cobblestone are each "
+                        + "worth one ingot, a stick half of one, and a log four. So a head, a handle "
+                        + "and a binding come to four ingots' worth: one log, or four cobblestone.\n\n"
+                        + "Metal is not carved; molten metal is cast into parts at the Smeltery.");
         add("book.forgeweave.intro.part_chest.title", "Part Chest");
         add("book.forgeweave.intro.part_chest.text",
                 "Holds spare tool parts, and nothing else. Like the workshop's other chests it shows "
@@ -2767,12 +2815,100 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "as to tools; the Modifiers chapter covers those.");
         add("book.forgeweave.intro.tool_forge.title", "Tool Forge");
         add("book.forgeweave.intro.tool_forge.text",
-                "The Tool Station's sturdier sibling: seared bricks and metal blocks built around a "
-                        + "Tool Station. It does everything the station does, and it alone assembles the "
-                        + "large tools (the hammer, the cleaver and their kin) and the heavy armor set.");
-        add("book.forgeweave.tools.repairing.title", "Repairing");
-        add("book.forgeweave.tools.repairing.text",
-                "As you use your tools they take damage, and once all of their durability is gone they break. To fix that, repair your tool; there is no need to wait until it breaks.\n\nPut the tool into a Tool Station or Tool Forge and add material matching the tool's head. If the head is made of several materials, any of them will do, and repairing with several at once grants bonus durability.");
+                "The Tool Station's sturdier sibling: three blocks of seared bricks and four metal "
+                        + "blocks built around a Tool Station. Iron, gold and copper blocks all count, "
+                        + "so the real price is four metal blocks, or thirty-six ingots.\n\n"
+                        + "It does everything the station does, and it alone assembles the large tools "
+                        + "(the hammer, the cleaver and their kin) and the heavy armor set. It also "
+                        + "repairs five percent more cheaply than the station.\n\n"
+                        + "What next: metal is not carved. Read the Smeltery chapter.");
+        // #1105: the worked example the review asked for, and the three pages that were scattered
+        // elsewhere or missing -- repairing moved here out of the Tools chapter (a first tool breaks
+        // on day one), part exchange and leveling's teaser are new.
+        add("book.forgeweave.intro.first_pickaxe.title", "Your First Pickaxe");
+        add("book.forgeweave.intro.first_pickaxe.text",
+                "End to end, with nothing but wood.\n\n"
+                        + "One. Craft two planks and two sticks into four blank patterns.\n\n"
+                        + "Two. At the Stencil Table, stamp three of them: a pickaxe head, a tool "
+                        + "handle and a tool binding.\n\n"
+                        + "Three. At the Part Builder, lay each stamped pattern beside a log and take "
+                        + "the carved part. The three parts come to four ingots' worth, which is one "
+                        + "log exactly.\n\n"
+                        + "Four. At the Tool Station, pick the pickaxe from the sidebar, drop the three "
+                        + "parts into their slots, read the stats, and take the finished tool.\n\n"
+                        + "A wooden head gives 35 durability, 2.0 mining speed and 2.0 attack. Swap the "
+                        + "head for cobblestone and it is 120, 4.0 and 3.0 instead, for four "
+                        + "cobblestone. Either one mines well enough to reach iron.");
+        add("book.forgeweave.intro.repairing.title", "Repairing");
+        add("book.forgeweave.intro.repairing.text",
+                "As you use your tools they take damage, and once all of their durability is gone they "
+                        + "break. Repair it before that happens; there is no reason to wait.\n\n"
+                        + "Put the tool into a Tool Station or Tool Forge and add material matching the "
+                        + "tool's head. A tool with more than one repairable part accepts any of their "
+                        + "materials: a hammer takes its head's material or either plate's, a shortbow "
+                        + "either limb's.\n\n"
+                        + "Feeding two different materials in the same repair adds a ninth to what the "
+                        + "repair restores, a second ninth for a third material, and so on. A Tool "
+                        + "Forge stretches every repair item five percent further than the station "
+                        + "does.");
+        add("book.forgeweave.intro.part_exchange.title", "Changing a Part");
+        add("book.forgeweave.intro.part_exchange.text",
+                "A finished tool is not stuck with the materials you built it from. Put the tool in a "
+                        + "Tool Station with a spare part of the same shape in a different material, "
+                        + "and the station swaps them.\n\n"
+                        + "Stats and traits rebuild from the new set of materials. Everything else "
+                        + "rides along: the modifiers, the name you gave it, the experience it has "
+                        + "earned, and the damage it was carrying. A swap that would leave the tool "
+                        + "more damaged than its new maximum allows is refused rather than breaking "
+                        + "the tool.\n\n"
+                        + "A part in the material the slot already holds is refused, since there would "
+                        + "be nothing to change. Armor works the same way, plating and maille both, "
+                        + "and large tools and the heavy set exchange only at the Tool Forge.");
+        add("book.forgeweave.intro.growing.title", "It Is Already Growing");
+        add("book.forgeweave.intro.growing.text",
+                "The pickaxe you just built is already earning experience, and it started on its "
+                        + "first block. Every level it earns grants one more modifier slot, for good.\n\n"
+                        + "Nothing has to be switched on and nothing has to be spent. The Leveling "
+                        + "chapter says what each kind of gear earns experience for and what a level "
+                        + "costs; until then, just use the tool.");
+        // #1105: the Tools chapter becomes the book's reference chapter at the back. `repairing` left
+        // for the Introduction; these two pages open it instead -- what the chapter is for, and the
+        // ranged system, which had no page of its own even though four of its part kinds do nothing
+        // else (05-book.md section 5).
+        add("book.forgeweave.tools.intro.title", "Every Shape This Workshop Knows");
+        add("book.forgeweave.tools.intro.text",
+                "The tutorial ends with Leveling. This chapter is the catalogue: one page per tool "
+                        + "shape, listing the parts it takes and what it does that the others do "
+                        + "not.\n\n"
+                        + "Read a shape's page before you spend a late metal on it. The parts are what "
+                        + "cost, and a shape that wants a large head wants eight ingots' worth of "
+                        + "whatever you feed it.\n\n"
+                        + "Every shape here is built the same way: parts at the Part Builder or the "
+                        + "Casting Table, assembly at the Tool Station, or at the Tool Forge for the "
+                        + "large ones and the bows above the shortbow.");
+        add("book.forgeweave.tools.ranged.title", "Bows and Arrows");
+        add("book.forgeweave.tools.ranged.text",
+                "The three bows take a part no melee tool does: a bowstring. A shortbow is two bow "
+                        + "limbs and a bowstring at the Tool Station. A longbow adds a large plate grip "
+                        + "and needs the Tool Forge. A crossbow is a tough rod body, one limb, a tough "
+                        + "binding and a bowstring, also at the forge.\n\n"
+                        + "A limb costs three ingots' worth, a bowstring one. The limbs set draw speed, "
+                        + "range and bonus damage; the bowstring is the only part that changes a bow's "
+                        + "durability beyond that.\n\n"
+                        + "Bowstring materials are the soft ones: string, vine and their kin. They make "
+                        + "nothing else, which is why they have pages in Materials with only a "
+                        + "bowstring block on them.\n\n"
+                        + "All three bows fire vanilla arrows. They also fire this workshop's own "
+                        + "Arrow, built at the Tool Station from an arrow shaft, an arrow head and a "
+                        + "fletching, two ingots' worth each. The head sets damage, the fletching "
+                        + "accuracy, and the shaft sets how much ammo the arrow holds.\n\n"
+                        + "An Arrow's durability is its ammo. Ten durability is one shot, so an arrow "
+                        + "worth 300 durability is thirty shots; firing it empty breaks it, and "
+                        + "repairing it at the Tool Station is the reload. It takes modifiers and "
+                        + "earns levels like any other tool.\n\n"
+                        + "That is every page. From here the book is a reference, and Materials is the "
+                        + "chapter you will open most.");
+
         // M4-7 (issue #682, docs/SCOPE.md D21) -- the armor section. The intro's first lines and the
         // piece pages' Properties bullets are rewritten from the 1.20 clone's book
         // (encyclopedia/en_us/armor/info.json and tconstruct_plate_*.json, NOTICE.md); the rest
@@ -2796,14 +2932,32 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "chain worn underneath. It has no stats of its own; it brings its material's "
                         + "traits and shows through the plating's gaps. Softer materials such as vine, "
                         + "bone and cactus can be woven into maille.");
+        // #1105: the "how a cast is made" paragraph moved to the Casting chapter, which now owns it
+        // for every part shape. This page keeps only what is specific to armor.
         add("book.forgeweave.armor.casting.title", "Casting Plating");
         add("book.forgeweave.armor.casting.text",
-                "Metal plating is cast at the Smeltery like any other metal part, which needs a "
-                        + "plating cast, and a cast is made by pouring gold over a finished part.\n\n"
-                        + "Obsidian plating is the way in: the Part Builder carves obsidian into plating "
-                        + "with a plating pattern. Set that plating on a Casting Table and pour gold over "
-                        + "it for a plating cast, then cast iron and every other metal from there. The "
-                        + "maille cast is made the same way from any Part Builder maille.");
+                "Metal plating and maille are cast at the Smeltery like any other metal part, from a "
+                        + "cast of that shape. The Casting chapter says how a cast is made; the only "
+                        + "thing special about armor is which part you start from.\n\n"
+                        + "There are five shapes to cast for: helmet, chestplate, leggings and boots "
+                        + "plating, and maille. Each needs its own cast, so a full metal set is five "
+                        + "casts, or ten gold ingots.\n\n"
+                        + "Plating costs more metal than a tool part does: three ingots for a helmet, "
+                        + "six for a chestplate, five for leggings, two for boots, and two for a "
+                        + "maille. A full set of one metal is eighteen ingots of plating plus eight of "
+                        + "maille.");
+        // #1105: the armor way in, previously a clause inside the casting page.
+        add("book.forgeweave.armor.first_set.title", "Your First Set");
+        add("book.forgeweave.armor.first_set.text",
+                "You do not need a smeltery to wear this armor. Obsidian carves in the Part Builder, "
+                        + "plating and maille both, and an obsidian set is built at the Tool Station "
+                        + "like any other.\n\n"
+                        + "One obsidian is one ingot's worth, so a helmet plating is three obsidian, a "
+                        + "chestplate six, leggings five, boots two, and each maille two. A full set "
+                        + "with maille under every piece is twenty-four obsidian.\n\n"
+                        + "Those same carved parts are what the metal era is built on: set one on a "
+                        + "Casting Table, pour gold over it, and the cast you keep will take any metal "
+                        + "afterwards.");
         add("book.forgeweave.armor.traits.title", "Armor Traits");
         add("book.forgeweave.armor.traits.text",
                 "Some materials carry a trait that only wakes on armor: iron's plating shrugs off "
@@ -2822,6 +2976,22 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "Resistance keeps you on your feet; Thorns hurts whatever hits you.\n\nThe "
                         + "general modifiers (Reinforced, Mending Moss, Soulbound and the extra "
                         + "modifier slot) fit armor as well. See the Modifiers chapter for each one.");
+        // #1105: overslime had one clause inside armor.traits and no explanation as a mechanic
+        // (05-book.md section 5). Deliberately free of magnitudes -- the capacity comes from a trait,
+        // and the trait families work (#1103) is retuning those numbers.
+        add("book.forgeweave.armor.overslime.title", "Overslime");
+        add("book.forgeweave.armor.overslime.text",
+                "Armor built from slime carries overslime: a second pool of durability that sits on "
+                        + "top of the real one. Damage eats the overslime first, and only starts on "
+                        + "the piece's own durability once the overslime is gone.\n\n"
+                        + "Refill it at the Tool Station with slime balls, congealed slime or slime "
+                        + "blocks, the way you would repair with a metal. A piece already full is "
+                        + "refused rather than eating the slime. Some materials also regrow their own "
+                        + "overslime slowly while worn.\n\n"
+                        + "Only armor with the overslime trait has a pool to fill. Which materials "
+                        + "grant it, and how much each one carries, is on their pages in the Materials "
+                        + "chapter.\n\n"
+                        + "What next: everything you wear and swing keeps growing. Read Leveling.");
         add("book.forgeweave.materials.intro.title", "Materials");
         add("book.forgeweave.materials.intro.text",
                 "Every part of a tool contributes the stats of the material it is made from: the head brings durability, mining speed and attack; the handle multiplies durability; a binding adds a flat bonus.\n\nMaterials also grant traits: special behaviours listed on the pages that follow.");
@@ -2829,10 +2999,48 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // resonite pick (or the reverse) knows that is expected rather than a bug.
         add("book.forgeweave.materials.tier_equivalence.title", "Beyond Resonite");
         add("book.forgeweave.materials.tier_equivalence.text",
-                "Allthemodium adds three metals above netherite of its own, and this workshop's tools reach the same three rungs. The two ladders line up: Allthemodium, Vibranium and Unobtainium ore mine and are mined by Hardcinder, Warspar and Resonite tools respectively, in either direction, with no rung skipped.\n\nA Resonite pick mining Unobtainium ore is expected, not a bug: the two sit at the same rung. The same tools also find this workshop's ores generating in Allthemodium's own mining dimension.");
+                "Allthemodium adds three metals above netherite of its own, and this workshop's tools reach the same three rungs. The two ladders line up: Allthemodium, Vibranium and Unobtainium ore mine and are mined by Hardcinder, Warspar and Resonite tools respectively, in either direction, with no rung skipped.\n\nA Resonite pick mining Unobtainium ore is expected, not a bug: the two sit at the same rung. The same tools also find this workshop's ores generating in Allthemodium's own mining dimension.\n\nWhat next: a finished tool is never finished. Read Modifiers.");
         add("book.forgeweave.modifiers.intro.title", "Modifiers");
         add("book.forgeweave.modifiers.intro.text",
-                "A finished tool is never truly finished. At the Tool Station or Tool Forge, sacrifice items to imbue a tool with modifiers. Each tool starts with a limited number of free slots, and some modifiers can be applied repeatedly for a stronger effect.\n\nThe pages that follow list every modifier known to this workshop.");
+                "A finished tool is never truly finished. At the Tool Station or Tool Forge, spend "
+                        + "items to imbue a tool with modifiers.\n\n"
+                        + "Every tool and every armor piece starts with three free slots. Most "
+                        + "modifiers cost one slot per level, and many can be applied again and again "
+                        + "for a stronger effect, so three slots is a real budget rather than three "
+                        + "modifiers.\n\n"
+                        + "Armor draws on the same three, and the same pool covers both: there is no "
+                        + "separate defence budget.\n\n"
+                        + "The pages that follow explain the slot budget, name three worth putting on "
+                        + "a first tool, and then list every modifier this workshop knows.");
+        // #1105: the two pages the slot economy was missing -- how to get past three, and what to
+        // actually apply first. Both numbers are read from modifier_recipe/*.json and
+        // ForgeweaveModifiers.DEFAULT_SLOTS.
+        add("book.forgeweave.modifiers.slots.title", "Getting More Slots");
+        add("book.forgeweave.modifiers.slots.text",
+                "Three slots run out fast. There are three ways past them.\n\n"
+                        + "Use it. Every level a tool or armor piece earns grants one more slot, "
+                        + "permanently. This is the cheapest source and the slowest; see the Leveling "
+                        + "chapter.\n\n"
+                        + "Build it out of the right material. A few materials carry a trait that adds "
+                        + "a slot or two on their own, paper being the obvious one. Their pages in "
+                        + "Materials say so.\n\n"
+                        + "Buy it. The Extra Modifier reagent is a nether star and a block of gold, "
+                        + "and each one nets a slot, up to five on one tool. A plain netherite ingot "
+                        + "does the same job and shares the same cap of five.\n\n"
+                        + "Slots only ever go one way at the Tool Station. Taking a modifier back off "
+                        + "is the Modifier Worktable's job, two pages on.");
+        add("book.forgeweave.modifiers.first_modifiers.title", "Three To Start With");
+        add("book.forgeweave.modifiers.first_modifiers.text",
+                "Haste. Redstone, and every fifty pieces is another level, up to 250. It speeds the "
+                        + "tool up, and a block of redstone counts as nine. One slot per level.\n\n"
+                        + "Sharpness. Quartz, every seventy-two pieces another level, up to 360. More "
+                        + "attack damage; a quartz block counts as four. One slot per level.\n\n"
+                        + "Reinforced. A reinforced plate, which is eight obsidian around a gold cast. "
+                        + "Every level is another twenty percent chance that a hit costs the tool no "
+                        + "durability at all, and at five levels the tool stops wearing out.\n\n"
+                        + "One more worth knowing early: a single diamond adds 500 durability and "
+                        + "raises the tool one mining rung, which is the cheapest way to make a stone "
+                        + "pickaxe mine iron.");
         // #1057: the Modifier Worktable, the one station that works on modifiers already applied.
         add("book.forgeweave.modifiers.worktable.title", "Modifier Worktable");
         add("book.forgeweave.modifiers.worktable.text",
@@ -2845,6 +3053,23 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "Put it in the upper slot to move the modifier down the list and in the lower slot "
                         + "to move it up. The compass is never used up. Order matters where two modifiers "
                         + "reach for the same number: the later one gets the last word.");
+        // #1105: embossing had no book page at all (05-book.md section 5), even though it is the one
+        // way to put a material's traits on a tool without putting its stats there too.
+        add("book.forgeweave.modifiers.embossing.title", "Embossing");
+        add("book.forgeweave.modifiers.embossing.text",
+                "Embossing spends a spare tool part to give a finished tool that part material's "
+                        + "traits, and changes none of its stats. A bone handle embossed onto a "
+                        + "manyullyn tool brings bone's traits to a tool that keeps manyullyn's "
+                        + "numbers.\n\n"
+                        + "It happens at the Tool Station or the Tool Forge. Lay the tool in, then the "
+                        + "donor part, then the reagents: a green, a blue and a magma slime crystal, "
+                        + "and a block of gold.\n\n"
+                        + "Two rules. An embossment costs no modifier slot at all. And one tool takes "
+                        + "exactly one embossment, ever, so choose the donor material with that in "
+                        + "mind.\n\n"
+                        + "Which traits arrive depends on the part's kind as well as its material: a "
+                        + "material grants different traits through a head than through a handle, and "
+                        + "embossing brings only the ones that donor part's kind carries.");
         // Issue #999 (D-M8-20): the augment path needs its own page because nothing else in the book
         // sends a player to another mod's station with Forgeweave gear in hand.
         add("book.forgeweave.modifiers.augments.title", "Augments");
@@ -2864,21 +3089,301 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // reader needs here is that a second route to them exists and what it costs.
         add("book.forgeweave.modifiers.rituals.title", "Binding a Spirit");
         add("book.forgeweave.modifiers.rituals.text",
-                "Where Occultism's rituals are practised, a tool is one more thing a spirit will inhabit. Draw a pentacle, set a spirit attuned gem and a measure of otherworld essence on the bowls around it, and lay a finished tool on the Golden Sacrificial Bowl. The tool comes back with the bound spirit's gift already in it, and no reagents ground down to get there.\n\nFour spirits answer, each in its own pentacle. A foliot fetches what the tool breaks. A djinni keeps it whole. An afrit feeds it on what it kills. A marid follows it back out of your own death drop.\n\nThe gift still costs modifier slots, the same as it would at the Tool Station, so no tool holds all four. And a spirit will only ever give as much as the Tool Station could: the ritual spares you the reagents, never the limit.");
+                "Where Occultism's rituals are practised, a tool is one more thing a spirit will inhabit. Draw a pentacle, set a spirit attuned gem and a measure of otherworld essence on the bowls around it, and lay a finished tool on the Golden Sacrificial Bowl. The tool comes back with the bound spirit's gift already in it, and no reagents ground down to get there.\n\nFour spirits answer, each in its own pentacle. A foliot fetches what the tool breaks. A djinni keeps it whole. An afrit feeds it on what it kills. A marid follows it back out of your own death drop.\n\nThe gift still costs modifier slots, the same as it would at the Tool Station, so no tool holds all four. And a spirit will only ever give as much as the Tool Station could: the ritual spares you the reagents, never the limit.\n\nWhat next: armor is built from parts and spends the same slots. Read Armor. The pages after this one are the full modifier roster, one each.");
+        // #1105 rewrites the intro (it was one joke sentence) and adds the five pages the smeltery
+        // only had Ponder scenes for: the grout loop and its brick count, the fuel ladder, the four
+        // core tiers, entity melting, and the furnace and reservoir.
         add("book.forgeweave.smeltery.intro.title", "The Smeltery");
         add("book.forgeweave.smeltery.intro.text",
-                "There are many smelteries, but this one is yours, and it melts things really well.");
+                "The Part Builder carves, and it cannot carve metal. Every metal part in this "
+                        + "workshop starts as a liquid, and the smeltery is where metal becomes "
+                        + "liquid.\n\n"
+                        + "It buys three things nothing else does. Ore melts into more metal than a "
+                        + "furnace returns, and a better core returns more still. Molten metal poured "
+                        + "into a cast becomes a tool part in a material no chisel would touch. And "
+                        + "two melts sharing one smeltery mix into a metal that exists as no ore "
+                        + "anywhere.\n\n"
+                        + "It is a multiblock: seared blocks in the shape of a box, a tank of fuel in "
+                        + "the wall, and a core to control it. The next page starts with the bricks.");
+        add("book.forgeweave.smeltery.grout.title", "Grout and Seared Bricks");
+        add("book.forgeweave.smeltery.grout.text",
+                "Everything the smeltery is made of starts here. A clay ball, a sand and a gravel "
+                        + "craft into two grout. A furnace bakes one grout into one seared brick in ten "
+                        + "seconds. There is no shortcut, so set a furnace going early and leave it "
+                        + "running.\n\n"
+                        + "What the bricks build, counted in bricks: four make a block of seared "
+                        + "bricks (the walls and floor), eight make a Seared Tank with a glass block, "
+                        + "eight make a Standard Core, six make a Seared Drain, three make a Faucet, "
+                        + "five make three Seared Channels, and seven make a Casting Table or a "
+                        + "Casting Basin.\n\n"
+                        + "The smallest smeltery has a one-block interior: one seared block under it, "
+                        + "and two courses of four wall positions around it, corners not needed. Make "
+                        + "one of those eight the core, one a tank and one a drain and you need six "
+                        + "plain wall blocks. That is 46 bricks, plus three for a faucet and seven for "
+                        + "a casting table.\n\n"
+                        + "Call it 56 seared bricks for a working first smeltery: 28 grout crafts and "
+                        + "56 trips through a furnace. A bigger interior holds more melt and costs "
+                        + "proportionally more.");
         add("book.forgeweave.smeltery.structure.title", "Building the Smeltery");
         add("book.forgeweave.smeltery.structure.text",
                 "The smeltery's interior can be any size up to 9x9, with walls as short as a single block or as tall as you like. A larger structure holds more molten metal at once. The structure needs a complete seared floor, but no ceiling.\n\nThe walls are built from seared bricks, seared glass, tanks and drains, with the core set into a wall; the floor must be solely seared blocks. At least one seared tank is required to hold fuel (lava works nicely), and faucets attach to drains to pour fluids out.");
         add("book.forgeweave.smeltery.working.title", "Working the Smeltery");
         add("book.forgeweave.smeltery.working.text",
-                "Place ore or metal into the smeltery through its core and it slowly melts down. Different molten metals pool together below; some combinations mix into alloys.\n\nDrain the result through a faucet into a Casting Table holding a cast to shape tool parts and ingots, or into a Casting Basin for full blocks.");
+                "Open the core and put ore or metal in. It melts over time and the liquid pools "
+                        + "inside, in layers, one per metal. The core's screen shows what is in there "
+                        + "and how far each item has to go.\n\n"
+                        + "An ore gives more than it would in a furnace: a Standard Core returns one "
+                        + "and a half ingots' worth per ore. Re-melting a finished ingot or block "
+                        + "always returns exactly what went in, so there is no way to loop metal into "
+                        + "more metal.\n\n"
+                        + "Nothing comes out on its own. A Seared Drain in a wall is the outlet, and a "
+                        + "Faucet on the drain is what pours. The Casting chapter covers that end.\n\n"
+                        + "A melt that sits at no progress is short of heat. The next page is about "
+                        + "fuel, which is where heat comes from.");
+        add("book.forgeweave.smeltery.fuel.title", "Fuel and Heat");
+        add("book.forgeweave.smeltery.fuel.text",
+                "A Seared Tank in the wall holds the fuel: four buckets in one tank. Right-click it "
+                        + "with a bucket to fill it, or pipe fluid in.\n\n"
+                        + "Burning takes 50 at a time, and each 50 keeps the smeltery hot for about "
+                        + "twenty seconds of melting. A full tank is therefore something like "
+                        + "twenty-five minutes of work, and it only burns while there is something to "
+                        + "melt.\n\n"
+                        + "Every melt has a temperature it needs, and every fuel has one it gives. "
+                        + "The fuel's has to reach the melt's or nothing happens, and the core says "
+                        + "which of the two went wrong: not enough heat to melt this item, or no "
+                        + "valid fuel in the smeltery. An ore or an ingot asks for less than the "
+                        + "metal's own liquid does, which is why lava goes a long way.\n\n"
+                        + "The ladder, coldest first. Lava at 1300 degrees, from anywhere. Blazing "
+                        + "blood at 1500, melted out of blazes. Molten magma at 1700, from magma "
+                        + "blocks. Molten brimspar at 1900, from brimspar crystals in the Nether. "
+                        + "Molten pyrealloy at 2100, which is itself an alloy.\n\n"
+                        + "Pyrealloy is also the only fuel that burns differently: 100 per step "
+                        + "instead of 50, but five times as long, which is two and a half times the "
+                        + "work out of every bucket.\n\n"
+                        + "Lava clears every ore and every ingot of this workshop's own metals. What "
+                        + "needs the hotter rungs is a handful of the late metals in full block form, "
+                        + "and a lot of what other mods add: their ores sit at 1200, 1400, 1600, 1800 "
+                        + "and 2000 by rung, so each step up the fuel ladder opens a band of them.");
+        add("book.forgeweave.smeltery.cores.title", "The Four Cores");
+        add("book.forgeweave.smeltery.cores.text",
+                "The core in the wall decides how much metal an ore gives. There are four, and only "
+                        + "the first is crafted.\n\n"
+                        + "Standard Core, eight seared bricks: one and a half ingots' worth per ore.\n\n"
+                        + "Nether Core: two ingots' worth. Made by setting a Faucet over a Standard "
+                        + "Core and pouring half a bucket of blazing blood onto it.\n\n"
+                        + "End Core: two and a half. A full bucket of molten dragon breath, poured the "
+                        + "same way over a Nether Core. Dragon breath melts at 250 per bottle, so a "
+                        + "bucket is four bottles.\n\n"
+                        + "Deep Core: three, the top. Two buckets of deep blood over an End Core. "
+                        + "Deep blood comes out of a warden standing in a smeltery.\n\n"
+                        + "Pouring is one way only, and the wrong fluid on a core is simply refused. "
+                        + "The smeltery stays formed through an upgrade and keeps its melt and its "
+                        + "fuel; its walls just take on the new core's look, spreading out from it.\n\n"
+                        + "A Deep Core returns twice what a Standard Core does, so it is worth "
+                        + "upgrading before you mine the late ores rather than after.");
+        add("book.forgeweave.smeltery.entity_melting.title", "Melting What Walks In");
+        add("book.forgeweave.smeltery.entity_melting.text",
+                "A living thing standing inside a formed smeltery is treated as an input. Once a "
+                        + "second the smeltery deals it one heart of damage and pours what that heart "
+                        + "was worth into the tank.\n\n"
+                        + "Most living things are worth 20 of blood per heart, so an ordinary "
+                        + "ten-heart mob leaves 200. Some are worth something better: a blaze gives 20 "
+                        + "of blazing blood per heart, an iron golem 18 of molten iron, a villager or "
+                        + "an illager 6 of molten emerald, a snow golem 100 of water, a warden 20 of "
+                        + "deep blood.\n\n"
+                        + "Blood is an alloy input, blazing blood is both an alloy input and a fuel, "
+                        + "and deep blood and blazing blood are what upgrade a core. A warden has "
+                        + "enough hearts to pay for a Deep Core twice over.\n\n"
+                        + "The core's tier changes nothing here. A Nether Core does not make a "
+                        + "villager worth more emerald.");
         // #972 (M8, D-M8-11): the energized tank's page. Original Forgeweave content -- the block
         // has no upstream counterpart, so nothing here is derived.
         add("book.forgeweave.smeltery.energized.title", "Heating It With Energy");
         add("book.forgeweave.smeltery.energized.text",
                 "An Energized Tank set into a wall heats the smeltery without burning anything. Pour in a bucket of any fuel the smeltery accepts and the tank keeps it as a sample: it is never used up, and it simply tells the tank which fuel to imitate. The smeltery then runs at that fuel's temperature.\n\nWhat the tank does burn is Forge Energy, fed in by any cable. A hotter sample costs proportionally more per melt cycle, an empty buffer means no heat at all rather than slow heat, and among several tanks only the hottest one with energy to spend pays anything.\n\nRight-click the tank to open its panel: the sample in a gauge on the left, the buffer in a bar on the right, and beside them the heat the sample gives and what one melt cycle costs. The button underneath turns overdrive on, which doubles both the melting and the spending.");
+
+        // #1105: the two seared multiblocks that are not the smeltery. Both had Ponder scenes and no
+        // book page, so a Forgeweave-only install had no way to learn they exist.
+        add("book.forgeweave.smeltery.furnace.title", "The Furnace and the Reservoir");
+        add("book.forgeweave.smeltery.furnace.text",
+                "Seared blocks build two other multiblocks, and neither of them melts anything.\n\n"
+                        + "A Seared Furnace is a sealed box: seared blocks under the interior, plain "
+                        + "seared walls, a ceiling, at least one tank, and a Seared Furnace Controller "
+                        + "in a wall facing out. It cooks whatever a vanilla furnace cooks and returns "
+                        + "ordinary items, burning smeltery fuel from its tanks and going faster the "
+                        + "hotter that fuel is. Every slot holds sixteen and all of them cook at once: "
+                        + "fifteen slots at the smallest size, three more per block of interior.\n\n"
+                        + "A Seared Reservoir is a sealed box that only stores fluid. It needs no "
+                        + "tank, because the shell is the tank: every block of it holds four buckets. "
+                        + "Put a Seared Drain in a wall to get fluid in and out and finish with a "
+                        + "Seared Reservoir Controller. Fluids layer inside and the controller picks "
+                        + "which one leaves first, so a reservoir is where spare melt waits between "
+                        + "pours.\n\n"
+                        + "What next: a melt is worth nothing until you can shape it. Read Casting.");
+
+        // #1105: the Casting chapter. The mod's central mechanic had no page of its own -- the only
+        // place the book said how a cast is made was inside the Armor chapter, two chapters before
+        // the smeltery (06-progression.md section 0). The amounts here are read from
+        // data/forgeweave/forgeweave/casting_recipe/*.json and the channel text follows the
+        // `forgeweave.ponder.casting.*` scene.
+        add("book.forgeweave.casting.intro.title", "Pouring Metal");
+        add("book.forgeweave.casting.intro.text",
+                "Melting a metal is half the job. Casting is the other half, and it is three "
+                        + "blocks.\n\n"
+                        + "A Seared Drain in the smeltery's wall is the outlet. A Faucet placed on the "
+                        + "drain is the tap: right-click it and it pours one ingot's worth, 144, of "
+                        + "whichever melt the core has selected. Right-click again for the next 144.\n\n"
+                        + "Under the faucet goes one of two blocks. A Casting Table holds a cast and "
+                        + "makes ingots and tool parts. A Casting Basin holds nothing and makes full "
+                        + "blocks, at 1296 each, which is nine ingots.\n\n"
+                        + "Keep pouring until the table or basin is full, let it cool, then "
+                        + "right-click to take the result. The cast stays behind for the next pour.\n\n"
+                        + "A cast is the one thing on this page you cannot buy or mine. The next page "
+                        + "is how one is made.");
+        add("book.forgeweave.casting.first_cast.title", "Making a Cast");
+        add("book.forgeweave.casting.first_cast.text",
+                "A cast is made by pouring gold over the thing you want to copy.\n\n"
+                        + "Carve the part you want out of a non-metal at the Part Builder: a pickaxe "
+                        + "head out of wood or stone will do. Set that part alone on a Casting Table "
+                        + "and pour 288 of molten gold over it, which is two gold ingots. The part is "
+                        + "used up. What you keep is a cast of that shape, and it is reusable "
+                        + "forever.\n\n"
+                        + "From then on, pour any metal into that cast and get that part in that "
+                        + "metal. A pickaxe head costs 288 whatever the metal is, since the cast holds "
+                        + "the shape's cost.\n\n"
+                        + "An ingot cast works the same way, except the thing you pour over is any "
+                        + "ingot at all, or a seared, clay or nether brick. Two gold, and you can cast "
+                        + "ingots of everything you ever melt.\n\n"
+                        + "So the metal era costs two gold ingots per part shape you intend to use. "
+                        + "Carve the shape first, in the cheapest material you have.");
+        add("book.forgeweave.casting.clay_casts.title", "Clay Casts");
+        add("book.forgeweave.casting.clay_casts.text",
+                "If gold is the thing you are short of, clay does the same job once.\n\n"
+                        + "Pour 288 of molten clay over a carved part instead of gold and you get a "
+                        + "clay cast of that shape. Two clay balls melt to exactly 288, and clay melts "
+                        + "cold enough that lava is more than enough heat.\n\n"
+                        + "A clay cast breaks after one pour. It is the right choice for a shape you "
+                        + "will cast once and the wrong one for a pickaxe head.\n\n"
+                        + "Every shape that has a gold cast has a clay one, so nothing is locked "
+                        + "behind gold, only made cheaper by it.");
+        add("book.forgeweave.casting.channels.title", "Faucets and Channels");
+        add("book.forgeweave.casting.channels.text",
+                "One faucet over one table is fine for one part. For a row of them, use Seared "
+                        + "Channels: five bricks make three.\n\n"
+                        + "A channel carries melt sideways. Place one against another and they chain. "
+                        + "Right-click an arm to turn that arm on or off, and right-click the top to "
+                        + "open the bottom.\n\n"
+                        + "An open bottom pours into whatever waits below, which means one faucet can "
+                        + "feed several tables and a basin at once. The melt runs down the chain and "
+                        + "fills them all.\n\n"
+                        + "Nothing here is automated by itself, but a redstone pulse works a faucet, "
+                        + "so a channel run plus a clock is as close to automatic as this workshop "
+                        + "gets.");
+        add("book.forgeweave.casting.first_iron_part.title", "Your First Iron Pickaxe");
+        add("book.forgeweave.casting.first_iron_part.text",
+                "End to end, with a lit smeltery and two gold ingots.\n\n"
+                        + "One. Carve a pickaxe head, a tool handle and a tool binding out of stone at "
+                        + "the Part Builder. Four cobblestone.\n\n"
+                        + "Two. Set the stone pickaxe head on a Casting Table. Melt two gold ingots "
+                        + "and pour 288 of gold over it. Take the pickaxe head cast.\n\n"
+                        + "Three. Put iron ore in the smeltery. A Standard Core gives one and a half "
+                        + "ingots' worth per ore, so two ore make 432 of molten iron and that is "
+                        + "enough for a head with 144 spare.\n\n"
+                        + "Four. Set the cast on the table, select molten iron at the core, and work "
+                        + "the faucet twice. Take the iron pickaxe head.\n\n"
+                        + "Five. Assemble at the Tool Station: iron head, stone handle, stone binding. "
+                        + "The head is what sets the mining rung, so that is an iron-tier pickaxe even "
+                        + "with stone holding it together.\n\n"
+                        + "What next: two melts in one smeltery make a third metal. Read Alloys.");
+
+        // #1105: the Alloys chapter. Alloying had one clause in the whole book ("some combinations
+        // mix into alloys") and no page named a single recipe, which is the one system the player
+        // review singled out as good (tracking issue #1101). Every ratio below is read from
+        // data/forgeweave/forgeweave/alloy_recipe/*.json.
+        add("book.forgeweave.alloys.intro.title", "Mixing Metals");
+        add("book.forgeweave.alloys.intro.text",
+                "Melts do not stay separate. When the right combination sits in one smeltery at the "
+                        + "same time, it mixes into a metal that no ore in the world produces.\n\n"
+                        + "There is nothing to build and no button to press. Melt the inputs into the "
+                        + "same smeltery and the alloy appears as a new layer, with the inputs gone.\n\n"
+                        + "Two things to know. Alloying works in whole batches, so an input that is "
+                        + "short of its share of the ratio simply sits there. And most recipes give "
+                        + "back less than went in, sometimes far less, so an alloy is always dearer "
+                        + "than its inputs suggest.\n\n"
+                        + "Ratios below are quoted in the units the smeltery counts, where 144 is one "
+                        + "ingot's worth. The next page is the three you can make on day one.");
+        add("book.forgeweave.alloys.first_alloys.title", "The First Three");
+        add("book.forgeweave.alloys.first_alloys.text",
+                "Rose gold. One copper to one gold, out two. The cheapest alloy in the game, and one "
+                        + "of the fastest-mining head materials in it at 10.0 mining speed, though 90 "
+                        + "durability means it wears out quickly. That makes it worth a pickaxe far "
+                        + "earlier than it sounds.\n\n"
+                        + "Steel. Two iron to one carbon, out two. Carbon is what coal and charcoal "
+                        + "melt into, at 72 each, so one coal and one iron ingot make one steel "
+                        + "ingot.\n\n"
+                        + "Obsidian. 125 water to 125 lava, out 36. The ratio is deliberately poor, "
+                        + "and it is still the easiest way to keep obsidian coming without a diamond "
+                        + "pickaxe.\n\n"
+                        + "All three are reachable the day the smeltery lights. Try rose gold first: "
+                        + "one copper ingot and one gold ingot is the whole cost.");
+        add("book.forgeweave.alloys.classic_alloys.title", "The Classics");
+        add("book.forgeweave.alloys.classic_alloys.text",
+                "The next tier up. Every one of them needs a smeltery.\n\n"
+                        + "Manyullyn. One cobalt to one ardite, out one. Both come out of the Nether, "
+                        + "and manyullyn is the standard endgame melee head.\n\n"
+                        + "Hepatizon. 180 copper, 90 cobalt and 100 molten quartz, out 180.\n\n"
+                        + "Amethyst bronze. 90 copper and 100 molten amethyst, out 90.\n\n"
+                        + "Pig iron. 144 iron, 40 blood and 72 molten clay, out 144. Blood is what an "
+                        + "ordinary mob leaves when it melts, so the smeltery makes its own.\n\n"
+                        + "Knightslime. 72 iron, 125 purple slime and 144 molten seared stone, out "
+                        + "72.\n\n"
+                        + "Queen's slime. 90 cobalt, 90 gold and 250 molten magma cream, out 180.\n\n"
+                        + "Netherite. Four molten netherite scrap to four molten gold, out one. The "
+                        + "same four-to-one loss vanilla charges, done in bulk.");
+        add("book.forgeweave.alloys.catalysts.title", "Catalysts");
+        add("book.forgeweave.alloys.catalysts.text",
+                "The deep alloys all take a small measure of something that is not a metal at all. "
+                        + "These are the catalysts, and every one of them melts out of an item you "
+                        + "already pick up.\n\n"
+                        + "Glowstone dust melts to 32 of sparkalloy. Blaze powder to 32 of flarealloy. "
+                        + "An echo shard to 32 of deepalloy. Redstone to 32 of redcinder, an ender "
+                        + "pearl to 32 of pearlcinder, a honeycomb to 32 of ambercinder.\n\n"
+                        + "Two more are mined rather than melted from a drop: a brimspar crystal gives "
+                        + "144 of molten brimspar, and a fulmenite crystal 144 of molten fulmenite.\n\n"
+                        + "One catalyst is itself an alloy: 32 each of redcinder, pearlcinder and "
+                        + "ambercinder mix into 72 of ironbrand, which four of the second-tier alloys "
+                        + "take.\n\n"
+                        + "A catalyst measure is 32, so one glowstone dust is exactly one dose. That "
+                        + "is what keeps the long chains affordable: the deep recipes are mostly ore, "
+                        + "with a pinch of one of these.");
+        add("book.forgeweave.alloys.chains.title", "The Long Chains");
+        add("book.forgeweave.alloys.chains.text",
+                "An alloy can be the input to another alloy. Four of them sit three and four stages "
+                        + "deep, and each one is a path you can walk from ore.\n\n"
+                        + "Truesteel, at the end of the longest chain in the game. Riftalloy is 144 murkiron, 144 nightshale and 144 "
+                        + "voltcinder, out 216. Glowveil is 216 riftalloy, 32 sparkalloy and 32 "
+                        + "brimspar, out 216. Sunsteel is 144 warspar, 144 hollowstone and 144 "
+                        + "glowveil, out 216. Truesteel is 144 resonite, 216 sunsteel and 32 "
+                        + "sparkalloy, out 216. Four stages, and the raw cost is one ingot's worth of "
+                        + "each of six ores, one brimspar crystal and two glowstone dust.\n\n"
+                        + "Hollowsteel is the same chain with the last catalyst left out: 144 resonite "
+                        + "and 216 sunsteel, out 216. If a tank holds resonite, sunsteel and "
+                        + "sparkalloy at once, truesteel is the one that forms; leave the sparkalloy "
+                        + "out to get hollowsteel.\n\n"
+                        + "Stormalloy. Quakestone is 144 fulmenite and 144 basalt, out 144. Shardline "
+                        + "is 144 quakestone, 144 obsidian and 32 deepalloy, out 144. Faultsteel is "
+                        + "144 obsidian, 144 quakestone and 144 voltcinder, out 216. Stormalloy is 144 "
+                        + "quakestone, 144 shardline and 216 faultsteel, out 288, so it wants "
+                        + "quakestone three separate times.\n\n"
+                        + "Glowveil also has a shorter road: dreadalloy is 144 hardcinder, 144 "
+                        + "murkiron and 32 deepalloy, and 144 dreadalloy with the same two catalysts "
+                        + "gives 144 glowveil. Whichever ores you have found first decides which of "
+                        + "the two you use.\n\n"
+                        + "Pyrealloy, the top fuel, is its own two-stage chain: 192 molten magma and "
+                        + "32 flarealloy, out 144. Magma blocks and blaze powder, both of which the "
+                        + "Nether hands out, and no ore at all.\n\n"
+                        + "What next: the ladder all these metals climb, and what each one is good "
+                        + "for. Read Materials.");
 
         // M7-7 (issue #924, epic #917): the leveling chapter. Original Forgeweave content, not a
         // derivation -- upstream ships no guide book and no Ponder scenes for this mechanic.
@@ -2890,7 +3395,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Tools and armor earn experience by doing what they are built for.\n\nA pickaxe, hatchet, shovel and their kin earn experience for every block they break effectively. A weapon earns experience for the damage it deals in a fight, but only once its target dies: hit a mob and walk away and the weapon has earned nothing yet. The target remembers the damage instead, and every weapon that hurt it collects its own share the moment it finally dies, however long that takes and whatever finishes it off; swap to a second weapon mid-fight and both are paid.\n\nA bow or crossbow earns experience for a shot that lands, scaled by how long it was drawn; a miss earns nothing. A mattock earns experience for tilling soil, a scythe or kama for harvesting a wide swath of crops in one stroke, a shovel for flattening a path, and any tool held to block an attack for the damage that was coming in, not the amount it stopped.\n\nArmor works differently: each of the four worn pieces earns experience for the damage it personally kept off you, as long as it is not broken. A full set does not share one pool; a chestplate doing the real work levels faster than a helmet that rarely gets hit.");
         add("book.forgeweave.leveling.curve.title", "The Cost of Leveling");
         add("book.forgeweave.leveling.curve.text",
-                "Leveling gets expensive fast. A tool's or armor piece's first level costs a base amount, and its second level costs that same amount again; every level after that costs twice the one before it, and by default nothing caps how high a level can climb.\n\nA big area-of-effect tool, the hammer, excavator, lumberaxe, scythe and vein hammer, costs nine times as much to level as an ordinary tool at every step, because one swing of it breaks nine times the blocks.\n\nA level-up shows itself three ways: a chime, a line in chat naming the tool, and a new line on the tooltip giving the tool's level a name and its own colour, with the current experience total shown beneath it.");
+                "Leveling gets expensive fast. The first level costs 500 experience by default and the second costs 500 again; every level after that costs twice the one before, so the third is 1000, the fourth 2000, the fifth 4000. By default nothing caps how high a level can climb.\n\nA big area-of-effect tool, the hammer, excavator, lumberaxe, scythe and vein hammer, costs nine times as much at every step, because one swing of it breaks nine times the blocks. Its first level is 4500.\n\nArmor levels at the ordinary rate, light and heavy alike, and a piece earns at least one point per blow that lands on it. A chestplate soaking four damage a hit reaches its first level in about 125 hits; boots that mostly ride the floor of one point take the full 500.\n\nA level-up shows itself three ways: a chime, a line in chat naming the tool, and a new line on the tooltip giving the tool's level a name and its own colour, with the current experience total shown beneath it.\n\nWhat next: the catalogue of every shape this workshop can build. Read Tools.");
 
         // Issue #651: the tool pages' "Properties:" and modifier pages' "Effects:" bullet lists --
         // upstream ContentTool#properties / ContentModifier#effects, headers from the 1.12 book's

@@ -9,20 +9,29 @@
     }
   },
   {
-    "name": "tools",
-    "data": "sections/tools.json",
+    "name": "smeltery",
+    "data": "sections/smeltery.json",
     "icon": {
       "item": {
-        "id": "forgeweave:pickaxe"
+        "id": "forgeweave:standard_core"
       }
     }
   },
   {
-    "name": "armor",
-    "data": "sections/armor.json",
+    "name": "casting",
+    "data": "sections/casting.json",
     "icon": {
       "item": {
-        "id": "forgeweave:chestplate"
+        "id": "forgeweave:casting_table"
+      }
+    }
+  },
+  {
+    "name": "alloys",
+    "data": "sections/alloys.json",
+    "icon": {
+      "item": {
+        "id": "forgeweave:manyullyn_ingot"
       }
     }
   },
@@ -45,11 +54,11 @@
     }
   },
   {
-    "name": "smeltery",
-    "data": "sections/smeltery.json",
+    "name": "armor",
+    "data": "sections/armor.json",
     "icon": {
       "item": {
-        "id": "forgeweave:standard_core"
+        "id": "forgeweave:chestplate"
       }
     }
   },
@@ -59,6 +68,15 @@
     "icon": {
       "item": {
         "id": "minecraft:experience_bottle"
+      }
+    }
+  },
+  {
+    "name": "tools",
+    "data": "sections/tools.json",
+    "icon": {
+      "item": {
+        "id": "forgeweave:pickaxe"
       }
     }
   }
