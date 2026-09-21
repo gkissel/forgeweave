@@ -1,5 +1,0 @@
-{
-  "behavior": "forgeweave:reduce_target_healing",
-  "fraction": 0.5,
-  "duration": 100
-}

@@ -1,6 +1,0 @@
-{
-  "behavior": "forgeweave:chain_arc",
-  "range": 4.0,
-  "damage_fraction": 0.35,
-  "max_targets": 2
-}

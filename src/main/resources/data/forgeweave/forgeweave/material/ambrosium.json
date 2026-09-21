@@ -15,19 +15,47 @@
     "bonus_damage": 5.6
   },
   "plating": {
-    "helmet": { "durability": 200, "armor": 3.0, "toughness": 1.0 },
-    "chestplate": { "durability": 295, "armor": 7.0, "toughness": 1.0 },
-    "leggings": { "durability": 276, "armor": 6.0, "toughness": 1.0 },
-    "boots": { "durability": 240, "armor": 3.0, "toughness": 1.0 }
+    "helmet": {
+      "durability": 200,
+      "armor": 3.0,
+      "toughness": 1.0
+    },
+    "chestplate": {
+      "durability": 295,
+      "armor": 7.0,
+      "toughness": 1.0
+    },
+    "leggings": {
+      "durability": 276,
+      "armor": 6.0,
+      "toughness": 1.0
+    },
+    "boots": {
+      "durability": 240,
+      "armor": 3.0,
+      "toughness": 1.0
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
-    "general": ["forgeweave:ambrosium_glow"]
+    "general": [
+      "forgeweave:bloodward"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "aether:ambrosium_shard" }, "value": 144 },
-    { "ingredient": { "item": "aether:ambrosium_block" }, "value": 1296 }
+    {
+      "ingredient": {
+        "item": "aether:ambrosium_shard"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "item": "aether:ambrosium_block"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "item": "aether:ambrosium_shard"

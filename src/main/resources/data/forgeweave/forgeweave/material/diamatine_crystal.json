@@ -15,20 +15,47 @@
     "bonus_damage": 2.2
   },
   "plating": {
-    "helmet": { "durability": 238, "armor": 2.0 },
-    "chestplate": { "durability": 350, "armor": 5.0 },
-    "leggings": { "durability": 329, "armor": 4.0 },
-    "boots": { "durability": 280, "armor": 2.0 }
+    "helmet": {
+      "durability": 238,
+      "armor": 2.0
+    },
+    "chestplate": {
+      "durability": 350,
+      "armor": 5.0
+    },
+    "leggings": {
+      "durability": 329,
+      "armor": 4.0
+    },
+    "boots": {
+      "durability": 280,
+      "armor": 2.0
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:radiant_edge", "forgeweave:surging"],
-    "armor": ["forgeweave:surgeward"]
+    "general": [
+      "forgeweave:surging2",
+      "forgeweave:surging"
+    ],
+    "armor": [
+      "forgeweave:surgeward"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "actuallyadditions:diamatine_crystal" }, "value": 144 },
-    { "ingredient": { "tag": "c:storage_blocks/diamatine_crystal" }, "value": 1296 }
+    {
+      "ingredient": {
+        "item": "actuallyadditions:diamatine_crystal"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/diamatine_crystal"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "item": "actuallyadditions:diamatine_crystal"
@@ -36,6 +63,9 @@
   "enchantability": 16,
   "color": "#7FD9E8",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "actuallyadditions:diamatine_crystal" }
+    {
+      "type": "neoforge:item_exists",
+      "item": "actuallyadditions:diamatine_crystal"
+    }
   ]
 }

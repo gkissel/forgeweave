@@ -63,7 +63,7 @@ class DraconicModuleHostTest {
      */
     private static final List<String> TIER_TRAITS = List.of("evolving", "evolved", "evolved2", "evolved3");
     /** The weld marker beside each tier: only a weld tool hosts modules (maintainer decision 2026-09-06). */
-    private static final List<String> WELD_TRAITS = List.of("soulwick", "soulrend", "soulrend2", "soulrend3");
+    private static final List<String> WELD_TRAITS = List.of("soulrend", "soulrend2", "soulrend3", "soulrend4");
 
     private static ItemStack evolved(net.minecraft.world.level.ItemLike item, int level) {
         ItemStack stack = new ItemStack(item);

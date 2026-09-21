@@ -27,8 +27,8 @@ import dev.gkissel.forgeweave.tool.ToolLevel;
 class ToolLevelFreeSlotsTest {
 
     private static final ResourceLocation SEARING = ResourceLocation.fromNamespaceAndPath("forgeweave", "searing");
-    private static final ResourceLocation REINFORCED_CORE =
-            ResourceLocation.fromNamespaceAndPath("forgeweave", "reinforced_core");
+    private static final ResourceLocation WRITABLE2 =
+            ResourceLocation.fromNamespaceAndPath("forgeweave", "writable2");
 
     @BeforeAll
     static void bootstrapMinecraft() {
@@ -65,12 +65,12 @@ class ToolLevelFreeSlotsTest {
     @Test
     void traitModifierAndLevelBonusesAllSumTogether() {
         ItemStack stack = pickaxe();
-        stack.set(ForgeweaveDataComponents.TRAITS.get(), List.of(REINFORCED_CORE));
+        stack.set(ForgeweaveDataComponents.TRAITS.get(), List.of(WRITABLE2));
         stack.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(SEARING, 1)));
         stack.set(ForgeweaveDataComponents.TOOL_LEVEL.get(), new ToolLevel(3, 0, 3));
 
-        // DEFAULT_SLOTS + trait(1) + level(3) - searing's one occupied slot.
-        assertEquals(ForgeweaveModifiers.DEFAULT_SLOTS + 1 + 3 - 1, ForgeweaveModifiers.freeSlots(stack));
+        // DEFAULT_SLOTS + trait(2) + level(3) - searing's one occupied slot.
+        assertEquals(ForgeweaveModifiers.DEFAULT_SLOTS + 2 + 3 - 1, ForgeweaveModifiers.freeSlots(stack));
     }
 
     /** D-M7-1: the flag has no read here -- freeSlots never consults {@code toolLeveling}, only addXp does. */

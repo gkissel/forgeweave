@@ -48,19 +48,19 @@ public class TraitPairingGameTests {
 
     /** Every companion trait #1093 added, in the order `docs/research/trait-pairing.md` lists them. */
     private static final List<String> COMPANIONS = List.of(
-            "swiftward", "deadweight", "bloodward", "vigorward", "blightward", "venomward", "revealward",
-            "stormward", "voidward", "unravelward", "surgeward", "tideward", "mendward", "duskward",
-            "kinetic_reserve", "magic_protection", "azure_electrum_rush", "azure_silver_plunge",
-            "ferricore_grip", "ironwood_grip", "gravitite_dive", "mendreach", "slimevine_snap",
-            "inferium_edge", "prudentium_edge", "tertium_edge", "imperium_edge", "supremium_edge",
-            "awakened_supremium_edge", "insanium_edge", "prosperity_bloom", "soulium_reap", "blutonium_pulse",
-            "cyanite_chill", "ludicrite_surge", "uraninite_decay", "fluix_arc", "silicon_lattice",
-            "quartz_enriched_edge", "iesnium_rite", "fluorite_focus", "vine_weave",
+            "swiftward", "heft2", "bloodward", "vigorward", "blightward", "venomward", "revealward",
+            "stormward", "voidward", "voidward", "surgeward", "tideward", "mendward", "duskward",
+            "energized", "magic_protection", "kinetic", "ruthless",
+            "heft", "heft", "kinetic", "soulrend", "ecological",
+            "keen_edge", "keen_edge", "keen_edge", "keen_edge2", "keen_edge2",
+            "keen_edge3", "keen_edge4", "prosperity_bloom", "soulrend", "blutonium_pulse",
+            "cyanite_chill", "arcing2", "grievous", "arcing2", "writable",
+            "keen_edge", "enfeebling", "energized", "ecological",
             // #1097: the companions that replaced melee_protection and magic_protection where those
             // two had stopped answering the material's own idea.
-            "temperward", "warded", "battleworn", "inferium_ward", "prudentium_ward", "tertium_ward",
-            "imperium_ward", "supremium_ward", "awakened_supremium_ward", "insanium_ward",
-            "uraninite_sickness", "cyanite_chillback", "blutonium_fallout", "ludicrite_meltdown");
+            "temperward", "warded", "battleworn", "magic_protection", "magic_protection", "magic_protection",
+            "magic_protection2", "magic_protection2", "magic_protection3", "magic_protection3",
+            "blightward", "cyanite_chillback", "witherward", "witherward");
 
     private static ResourceLocation id(String path) {
         return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
@@ -111,11 +111,11 @@ public class TraitPairingGameTests {
     @GameTest(template = "empty")
     public static void aWornPieceGetsAQuarterOfTheTraitsKnockbackResistance(GameTestHelper helper) {
         double plain = wearing(helper).getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
-        double heft = wearing(helper, "compressed_iron_heft").getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
+        double heft = wearing(helper, "heft").getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
         double heavy = wearing(helper, "heavy").getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
 
-        helper.assertTrue(Math.abs(heft - plain - 0.025) < 1e-4,
-                "compressed heft is 0.1 held, so a worn piece must add 0.025 over " + plain + ", got " + heft);
+        helper.assertTrue(Math.abs(heft - plain - 0.0625) < 1e-4,
+                "Heft I is 0.25 held, so a worn piece must add 0.0625 over " + plain + ", got " + heft);
         helper.assertTrue(Math.abs(heavy - plain - 0.25) < 1e-4,
                 "heavy is 1.0 held, so a worn piece must add 0.25 over " + plain + ", got " + heavy);
         helper.assertTrue(heavy - plain < 1.0,
@@ -174,8 +174,8 @@ public class TraitPairingGameTests {
     public static void theEssenceLadderClimbsOnTheArmorSideToo(GameTestHelper helper) {
         DamageSource wither = helper.getLevel().damageSources().wither();
         float plain = lost(wearing(helper), wither, BLOW);
-        float first = lost(wearing(helper, "inferium_ward"), wither, BLOW);
-        float top = lost(wearing(helper, "insanium_ward"), wither, BLOW);
+        float first = lost(wearing(helper, "magic_protection"), wither, BLOW);
+        float top = lost(wearing(helper, "magic_protection3"), wither, BLOW);
 
         helper.assertTrue(first < plain,
                 "the first rung must still soften a magic blow, " + first + " against " + plain);
@@ -189,7 +189,7 @@ public class TraitPairingGameTests {
     public static void theEssenceLadderLeavesANonMagicBlowAlone(GameTestHelper helper) {
         DamageSource generic = helper.getLevel().damageSources().generic();
         float plain = lost(wearing(helper), generic, BLOW);
-        float top = lost(wearing(helper, "insanium_ward"), generic, BLOW);
+        float top = lost(wearing(helper, "magic_protection3"), generic, BLOW);
 
         helper.assertTrue(plain == top,
                 "a generic blow is outside the magic tag and must cost the same, " + top + " against " + plain);
@@ -204,7 +204,7 @@ public class TraitPairingGameTests {
     @GameTest(template = "empty")
     public static void ludicriteMeltdownWithersWhoeverStrikesTheWearer(GameTestHelper helper) {
         LivingEntity control = helper.spawn(EntityType.COW, 2, 2, 2);
-        Player unprotected = wearing(helper, "ludicrite_surge");
+        Player unprotected = wearing(helper, "arcing");
         for (int i = 0; i < 10; i++) {
             lost(unprotected, helper.getLevel().damageSources().mobAttack(control), BLOW);
         }
@@ -212,7 +212,7 @@ public class TraitPairingGameTests {
                 "the tool-side trait must leave an attacker alone");
 
         LivingEntity attacker = helper.spawn(EntityType.COW, 3, 2, 3);
-        Player wearer = wearing(helper, "ludicrite_meltdown");
+        Player wearer = wearing(helper, "witherward");
         // P(no proc in 20 blows at 60%) is about 1e-8, the repository's usual bar for a chance roll.
         for (int i = 0; i < 20 && attacker.getEffect(MobEffects.WITHER) == null; i++) {
             lost(wearer, helper.getLevel().damageSources().mobAttack(attacker), BLOW);
@@ -247,22 +247,22 @@ public class TraitPairingGameTests {
         double swift = wearing(helper, "swiftward").getAttributeValue(Attributes.MOVEMENT_SPEED);
 
         helper.assertTrue(swift > plain, "swiftward must move the wearer faster, " + swift + " against " + plain);
-        helper.assertTrue(Math.abs(swift - plain * 1.06) < 1e-4,
-                "and by the shipped 6%, so " + plain * 1.06 + " rather than " + swift);
+        helper.assertTrue(Math.abs(swift - plain * 1.08) < 1e-4,
+                "and by the shipped 8%, so " + plain * 1.08 + " rather than " + swift);
         helper.succeed();
     }
 
     /**
-     * Batch 2's representative: {@code ferricore_grip}, the tool side of a material whose only trait
+     * Batch 2's representative: {@code heft}, the tool side of a material whose only trait
      * was a worn step-height grant. Sure footing worn, sure footing held.
      */
     @GameTest(template = "empty")
     public static void ferricoreGripPlantsTheWielderWhileHeld(GameTestHelper helper) {
         double bare = holding(helper).getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
-        double grip = holding(helper, "ferricore_grip").getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
+        double grip = holding(helper, "heft").getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
 
-        helper.assertTrue(Math.abs(grip - bare - 0.1) < 1e-4,
-                "ferricore grip must add 0.1 over " + bare + ", got " + grip);
+        helper.assertTrue(Math.abs(grip - bare - 0.25) < 1e-4,
+                "Heft I must add 0.25 over " + bare + ", got " + grip);
         helper.succeed();
     }
 

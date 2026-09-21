@@ -1,6 +1,0 @@
-{
-  "behavior": "forgeweave:effect_on_hit",
-  "effect": "minecraft:weakness",
-  "duration": 100,
-  "amplifier": 0
-}

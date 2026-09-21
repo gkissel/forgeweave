@@ -31,7 +31,7 @@ import dev.gkissel.forgeweave.material.Material;
  * <ul>
  *   <li><b>{@code zanite}</b> ({@code aether:zanite_gemstone}, {@code aether:zanite_block}):
  *       {@code AetherItemTiers.ZANITE} (iron-equivalent, {@code uses=250, speed=6.0F, damage=2.0F,
- *       enchantability=14}). Echoed with {@code forgeweave:zanite_growth}, a {@code
+ *       enchantability=14}). Echoed with {@code forgeweave:stonebound}, a {@code
  *       stat_scales_with_wear} raising mining speed as the tool wears -- the issue's own "zanite
  *       growing stronger as it wears" hint.
  *   <li><b>{@code gravitite}</b> ({@code aether:enchanted_gravitite}, no storage-block form): {@code
@@ -42,7 +42,7 @@ import dev.gkissel.forgeweave.material.Material;
  *   <li><b>{@code ambrosium}</b> ({@code aether:ambrosium_shard}, {@code aether:ambrosium_block}):
  *       the mod's own healing/light-themed utility gem (the Ambrosium Torch's regeneration aura);
  *       the mod gives it no {@code AetherItemTiers} entry of its own, so Forgeweave's stats sit at
- *       the iron tier by placement. Echoed with {@code forgeweave:ambrosium_glow}, an {@code
+ *       the iron tier by placement. Echoed with {@code forgeweave:bloodward}, an {@code
  *       effect_on_hurt} granting a short burst of regeneration.
  * </ul>
  */

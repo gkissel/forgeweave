@@ -1,0 +1,10 @@
+{
+  "behavior": "forgeweave:evasion",
+  "chance": 0.1,
+  "family": "voidward",
+  "level": 2,
+  "max_level": 2,
+  "description_args": [
+    "10"
+  ]
+}

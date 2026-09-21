@@ -149,7 +149,7 @@ class TraitStateLinesTest {
     void evolvedTheAllowanceIsTheModuleGridsOwnCellCount() {
         List<Integer> allowances = List.of(6, 12, 20, 36);
         List<String> markers = List.of("evolving", "evolved", "evolved2", "evolved3");
-        List<String> welds = List.of("soulwick", "soulrend", "soulrend2", "soulrend3");
+        List<String> welds = List.of("soulrend", "soulrend2", "soulrend3", "soulrend4");
         List<Trait> traits = List.of(ForgeweaveTraits.EVOLVING, ForgeweaveTraits.EVOLVED,
                 ForgeweaveTraits.EVOLVED2, ForgeweaveTraits.EVOLVED3);
 

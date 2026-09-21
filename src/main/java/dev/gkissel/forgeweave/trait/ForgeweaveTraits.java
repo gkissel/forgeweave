@@ -168,8 +168,16 @@ public final class ForgeweaveTraits {
     /** Ids already reported as unknown, so a bad material JSON logs once rather than every tick. */
     private static final Set<ResourceLocation> WARNED_UNKNOWN = ConcurrentHashMap.newKeySet();
 
-    /** Upstream {@code TraitEcological#chance}: one durability roughly every 40 seconds (20 ticks/s). */
-    private static final int ECOLOGICAL_TICKS_PER_POINT = 20 * 40;
+    /**
+     * The always-on self-repair ladder, one name for what used to be nine (issue #1103). Upstream's
+     * own {@code TraitEcological#chance} is one point every 40 seconds; 04-impact.md's floor is 10
+     * seconds at level I, so this is the one ported magnitude the merge moves, and it moves because
+     * nine ids meant the same imperceptible thing. Each rung is at least half of level I again on
+     * top, which is what makes the numerals worth reading.
+     */
+    private static final int ECOLOGICAL_TICKS_PER_POINT = 20 * 10;
+    private static final int ECOLOGICAL2_TICKS_PER_POINT = 130;
+    private static final int ECOLOGICAL3_TICKS_PER_POINT = 100;
 
     /**
      * Wood. Upstream {@code TraitEcological}: server side, a 1-in-{@code 20 * 40} chance per tick to
@@ -184,6 +192,14 @@ public final class ForgeweaveTraits {
      * the healing rule itself, including why an already-undamaged tool needs no clamp of its own.
      */
     public static final Trait ECOLOGICAL = new SelfRepairWhen(SelfRepairCondition.ALWAYS, ECOLOGICAL_TICKS_PER_POINT);
+
+    /** Ecological II: one point every 6.5 seconds, the troll-leather and tin-tier rung. */
+    public static final Trait ECOLOGICAL2 =
+            new SelfRepairWhen(SelfRepairCondition.ALWAYS, ECOLOGICAL2_TICKS_PER_POINT);
+
+    /** Ecological III: one point every 5 seconds, the draconium-core rung at the top of the ladder. */
+    public static final Trait ECOLOGICAL3 =
+            new SelfRepairWhen(SelfRepairCondition.ALWAYS, ECOLOGICAL3_TICKS_PER_POINT);
 
     /**
      * Stone, general (issue #493 split; this id used to also carry {@code cheapskate}'s
@@ -602,18 +618,6 @@ public final class ForgeweaveTraits {
         @Override
         public float attackSpeedBonus() {
             return QUICK_ATTACK_SPEED_BONUS;
-        }
-    };
-
-    /**
-     * Netherite, the other maintainer-decided trait (issue #103): +1 modifier slot on a tool with a
-     * netherite part, applied through {@link Trait#bonusSlots} -- {@code
-     * modifier.ForgeweaveModifiers#freeSlots}'s trait-consulting term. No upstream trait to port either.
-     */
-    public static final Trait REINFORCED_CORE = new Trait() {
-        @Override
-        public int bonusSlots() {
-            return 1;
         }
     };
 
@@ -1480,7 +1484,7 @@ public final class ForgeweaveTraits {
 
     /** Proposed (issue #827 maintainer decision): +3 at full durability, scaling to 0 as it wears. */
     private static final float PRISTINE_COEFFICIENT = 3.0F;
-    private static final float PRISTINE_CAP = 3.0F;
+    private static final float PRISTINE_CAP = 4.0F;
 
     /**
      * {@code damage_scales_with(REMAINING_DURABILITY, coefficient, cap)}: bonus damage rises with
@@ -1510,7 +1514,7 @@ public final class ForgeweaveTraits {
             DamageScalesWith.Source.TARGET_MISSING_HEALTH, PREDATORY_COEFFICIENT, PREDATORY_CAP));
 
     /** Proposed (issue #827 maintainer decision): +0.05 per point of the target's own max health. */
-    private static final float COLOSSAL_COEFFICIENT = 0.05F;
+    private static final float COLOSSAL_COEFFICIENT = 0.06F;
     private static final float COLOSSAL_CAP = 6.0F;
 
     /**
@@ -1520,9 +1524,14 @@ public final class ForgeweaveTraits {
     public static final Trait COLOSSAL = seamTrait(
             new DamageScalesWith(DamageScalesWith.Source.TARGET_MAX_HEALTH, COLOSSAL_COEFFICIENT, COLOSSAL_CAP));
 
-    /** Proposed (issue #827 maintainer decision): +3 per block/tick of the wielder's own motion. */
-    private static final float KINETIC_COEFFICIENT = 3.0F;
+    /**
+     * The impact-velocity ladder, one name for what used to be five (issue #1103). Level I takes the
+     * highest coefficient the five shipped with, level II goes past it.
+     */
+    private static final float KINETIC_COEFFICIENT = 5.0F;
     private static final float KINETIC_CAP = 6.0F;
+    private static final float KINETIC2_COEFFICIENT = 8.0F;
+    private static final float KINETIC2_CAP = 9.0F;
 
     /**
      * {@code damage_scales_with(IMPACT_VELOCITY, coefficient, cap)}: a falling or sprinting blow
@@ -1531,8 +1540,22 @@ public final class ForgeweaveTraits {
     public static final Trait KINETIC = seamTrait(
             new DamageScalesWith(DamageScalesWith.Source.IMPACT_VELOCITY, KINETIC_COEFFICIENT, KINETIC_CAP));
 
+    /** Kinetic II: the same blow, harder, for the deepest material on the ladder. */
+    public static final Trait KINETIC2 = seamTrait(
+            new DamageScalesWith(DamageScalesWith.Source.IMPACT_VELOCITY, KINETIC2_COEFFICIENT, KINETIC2_CAP));
+
     /** Proposed (issue #827 maintainer decision): a flat +2 for each {@code bonus_damage_vs} instance below. */
     private static final float BONUS_DAMAGE_VS_AMOUNT = 2.0F;
+
+    /**
+     * #1103 gave the two merged families their own numbers. Dominant took over {@code warbond} and
+     * {@code obsidian_heart} (three names, one promise) and armor breaker took over {@code
+     * shattermail}, {@code brittleforce} and {@code knightmetal_breach} (four), so each one is now
+     * the whole answer for its condition and is sized to be worth reading.
+     */
+    private static final float DOMINANT_AMOUNT = 3.0F;
+    private static final float ARMOR_BREAKER_AMOUNT = 2.5F;
+    private static final float ARMOR_BREAKER2_AMOUNT = 4.0F;
 
     /**
      * {@code bonus_damage_vs(BELOW_WIELDER_HEALTH, amount)}: bonus damage against a target already
@@ -1541,11 +1564,15 @@ public final class ForgeweaveTraits {
      * three M6 predicates ride that existing pair rather than a fourth near-identical damage class.
      */
     public static final Trait DOMINANT = seamTrait(new ConditionalSeam(
-            HitCondition.BELOW_WIELDER_HEALTH, 1.0F, new FlatBonusDamage(BONUS_DAMAGE_VS_AMOUNT)));
+            HitCondition.BELOW_WIELDER_HEALTH, 1.0F, new FlatBonusDamage(DOMINANT_AMOUNT)));
 
     /** {@code bonus_damage_vs(ARMORED, amount)}: bonus damage against an armored target. */
     public static final Trait ARMOR_BREAKER = seamTrait(
-            new ConditionalSeam(HitCondition.ARMORED, 1.0F, new FlatBonusDamage(BONUS_DAMAGE_VS_AMOUNT)));
+            new ConditionalSeam(HitCondition.ARMORED, 1.0F, new FlatBonusDamage(ARMOR_BREAKER_AMOUNT)));
+
+    /** Armor Breaker II: knightmetal's rung, the one that goes through plate outright. */
+    public static final Trait ARMOR_BREAKER2 = seamTrait(
+            new ConditionalSeam(HitCondition.ARMORED, 1.0F, new FlatBonusDamage(ARMOR_BREAKER2_AMOUNT)));
 
     /** {@code bonus_damage_vs(HARMFUL_EFFECT, amount)}: bonus damage against an already-debuffed target. */
     public static final Trait OPPORTUNIST = seamTrait(
@@ -1574,7 +1601,7 @@ public final class ForgeweaveTraits {
     }
 
     /** Proposed (issue #827 maintainer decision): +0.5 to the effective crit multiplier. */
-    private static final float RUTHLESS_CRIT_BONUS = 0.5F;
+    private static final float RUTHLESS_CRIT_BONUS = 0.6F;
 
     /**
      * {@code crit_multiplier_bonus(extra)}: a critical hit lands for even more. See {@link
@@ -1602,52 +1629,27 @@ public final class ForgeweaveTraits {
     // the seven get a new class -- the four genuinely new shapes follow.
 
     // ------------------------------------------------------------------ the self-repair ladder
-    // Issue #1097. Every `self_repair_when` rate below is read off one scale rather than picked per
-    // trait, because the shipped numbers did not line up with the names or the materials.
-    //
-    // A conditional mend (sunlit or night) runs at half the ticks of an unconditional one on the
-    // same tier, because its condition holds about half of each day, so the two land near the same
-    // daily total. The per-tier unconditional base is 800 ticks at netherite, 1000 at iron and 1200
-    // at stone; the conditional rate is half of it, rounded to whole seconds.
-    //
-    // Two rates are set by something other than tier, and both are deliberate:
-    //   - SUNMEND and DUSKMEND are a day/night mirror pair and share one rate. Their materials sit
-    //     on different tiers (ivory psimetal is diamond, duskspar is netherite), so the shared rate
-    //     is the lower of the two.
-    //   - SMOLDERVEIL is the one trait whose stated idea is to beat DUSKMEND, so it takes the
-    //     fastest rate on the ladder even though ebony psimetal is a tier below duskspar.
-    //
-    // Nothing mends faster than 400 ticks per point, the fastest rate that shipped before this
-    // issue. ECOLOGICAL keeps upstream's own 800 and is not part of the ladder: it is a 1.12 port
-    // and parity holds its magnitude.
+    // Issue #1097 read every `self_repair_when` rate off one per-tier scale. Issue #1103 collapsed
+    // the result: the four night ids were one rate wearing four names, and so were the three sunlit
+    // ones, so there is one conditional rate left and it sits at the 04-impact.md floor -- one point
+    // every 8 seconds, which a player notices inside a minute of use. The always-on side is
+    // ECOLOGICAL I-III above.
 
-    /** Netherite-tier conditional rate: one point every 20 seconds while the condition holds. */
-    private static final int SELF_REPAIR_NETHERITE_CONDITIONAL = 400;
-    /** Diamond-tier conditional rate: one point every 22 seconds. */
-    private static final int SELF_REPAIR_DIAMOND_CONDITIONAL = 440;
-    /** Iron-tier conditional rate: one point every 25 seconds. */
-    private static final int SELF_REPAIR_IRON_CONDITIONAL = 500;
-    /** Stone-tier conditional rate: one point every 30 seconds. */
-    private static final int SELF_REPAIR_STONE_CONDITIONAL = 600;
-    /** Netherite-tier unconditional rate: one point every 40 seconds, day or night. */
-    private static final int SELF_REPAIR_NETHERITE_ALWAYS = 800;
-    /** Iron-tier unconditional rate: one point every 50 seconds, day or night. */
-    private static final int SELF_REPAIR_IRON_ALWAYS = 1000;
+    /** The one conditional rate: a point every 8 seconds while the condition holds. */
+    private static final int SELF_REPAIR_CONDITIONAL = 160;
 
     /**
-     * Ivory psimetal, the daylight half of the mirror pair (see the ladder comment above). One point
-     * every 22 seconds in direct sunlight -- see {@link SelfRepairWhen} and
-     * {@link SelfRepairCondition#SUNLIT}.
+     * Every material that mends in sunlight, since #1103 folded {@code ashenbond} and {@code
+     * matrixbloom} into it: one point every 8 seconds under open sky -- see {@link SelfRepairWhen}
+     * and {@link SelfRepairCondition#SUNLIT}.
      */
-    public static final Trait SUNMEND =
-            new SelfRepairWhen(SelfRepairCondition.SUNLIT, SELF_REPAIR_DIAMOND_CONDITIONAL);
+    public static final Trait SUNMEND = new SelfRepairWhen(SelfRepairCondition.SUNLIT, SELF_REPAIR_CONDITIONAL);
 
     /**
-     * Duskspar, the night half of the mirror pair (see the ladder comment above). One point every 22
-     * seconds after dark -- see {@link SelfRepairWhen} and {@link SelfRepairCondition#NIGHT}.
+     * The night half of the same pair, and since #1103 the only one: one point every 8 seconds after
+     * dark -- see {@link SelfRepairWhen} and {@link SelfRepairCondition#NIGHT}.
      */
-    public static final Trait DUSKMEND =
-            new SelfRepairWhen(SelfRepairCondition.NIGHT, SELF_REPAIR_DIAMOND_CONDITIONAL);
+    public static final Trait DUSKMEND = new SelfRepairWhen(SelfRepairCondition.NIGHT, SELF_REPAIR_CONDITIONAL);
 
     /**
      * The M6 {@code cascading_break(blockPredicate)} instance: breaking one gravity-affected block
@@ -1677,12 +1679,13 @@ public final class ForgeweaveTraits {
     // #103's metal traits and #827's damage-scaling batch all used.
 
     /**
-     * Proposed (issue #830 maintainer decision): 32,000 FE capacity, 40 FE buys back one point of
-     * durability -- a full buffer covers 800 durability points before falling back to the tool's
-     * own pool, roughly a diamond tool's whole lifespan.
+     * Energized I, the bottom of the buffer ladder #1103 made out of ten separate names: 12,000 FE,
+     * 25 FE buys back one durability point. Constantan used to hold 32,000, third from the top of
+     * the ladder for a first-tier alloy, so this rung is a deliberate step down and 36,000 is
+     * Energized III.
      */
-    private static final int ENERGIZED_CAPACITY = 32000;
-    private static final float ENERGIZED_FE_PER_DURABILITY_POINT = 40.0F;
+    private static final int ENERGIZED_CAPACITY = 12000;
+    private static final float ENERGIZED_FE_PER_DURABILITY_POINT = 25.0F;
 
     /**
      * {@code energized(capacity, perDurabilityPoint)}: the tool spends stored energy before
@@ -1814,14 +1817,6 @@ public final class ForgeweaveTraits {
     public static final Trait HARRYING = seamTrait(new ShortenInvulnerability(HARRYING_TICKS));
 
     /** Proposed (issue #828 maintainer decision): heal 15% of damage dealt, capped at 4 (2 hearts). */
-    private static final float LEECHING_FRACTION = 0.15F;
-    private static final float LEECHING_CAP = 4.0F;
-
-    /**
-     * {@code lifesteal(fraction, cap)}: issue #828's "Vampiric" reference instance. Not a migration
-     * of necrotic's {@code LifestealOnHitSeam} -- see {@link Lifesteal}'s javadoc.
-     */
-    public static final Trait LEECHING = seamTrait(new Lifesteal(LEECHING_FRACTION, LEECHING_CAP));
 
     /**
      * Proposed (issue #828 maintainer decision): 35% chance on a fully-charged hit, arcing to up to 2
@@ -1877,7 +1872,6 @@ public final class ForgeweaveTraits {
 
     /** Bone shafts. Upstream {@code TraitSplitting}: a fired arrow may split into two ({@code BowItem#shoot}). */
     public static final Trait SPLITTING = new Trait() {};
-
 
     // ------------------------------------------------------------------ #680 (M4-5): the 1.20
     // clone's ARMOR-scope traits (MaterialTraitsDataProvider; behavior per ModifierProvider's
@@ -2353,35 +2347,17 @@ public final class ForgeweaveTraits {
     // own, proposed and accepted on the issue thread; the reference pool (TAIGA, Tinkers' Evolution)
     // is inspiration only under ADR-0003, so nothing here is derived and no NOTICE.md row applies.
 
-    /** Every blow lands for at least this much, in hearts -- see {@link DamageFloor}. */
-    private static final float BLOODTOLL_MINIMUM_HEARTS = 0.5F;
-
-    /**
-     * {@code damage_floor(0.5 hearts)}: the batch's counterweight -- a wearer stacking defensive
-     * behaviours still takes a half heart from anything that gets through. Never raises a blow above
-     * its own original damage.
-     */
-    public static final Trait BLOODTOLL = new DamageFloor(BLOODTOLL_MINIMUM_HEARTS);
-
-    private static final int HEXWARD_TICKS = 100;
-    private static final float HEXWARD_CHANCE = 0.25F;
-
-    /** {@code effect_on_attacker(weakness I, 100 ticks, 25%)}: a quarter of direct blows weaken whoever landed them. */
-    public static final Trait HEXWARD = new EffectOnAttacker(MobEffects.WEAKNESS, HEXWARD_TICKS, 0, HEXWARD_CHANCE);
-
-    private static final float MENDBOND_FACTOR = 1.25F;
-
-    /** {@code amplify_incoming_healing(1.25)}: every heal the wearer receives is a quarter larger. */
-    public static final Trait MENDBOND = new AmplifyIncomingHealing(MENDBOND_FACTOR);
-
     private static final float EMBERDRINK_FRACTION = 0.5F;
 
     /** {@code convert_damage_to_healing(#is_fire, 0.5)}: fire does not burn the wearer, it feeds them half of itself. */
     public static final Trait EMBERDRINK = new ConvertDamageToHealing(DamageTypeTags.IS_FIRE, EMBERDRINK_FRACTION);
 
-    private static final float BRACINGPLATE_PER_HIT = 0.75F;
-    private static final int BRACINGPLATE_CAP = 6;
-    private static final int BRACINGPLATE_DECAY_TICKS = 100;
+    private static final float BRACINGPLATE_PER_HIT = 1.0F;
+    private static final int BRACINGPLATE_CAP = 3;
+    private static final int BRACINGPLATE_DECAY_TICKS = 120;
+    private static final float BRACINGPLATE3_PER_HIT = 0.5F;
+    private static final int BRACINGPLATE2_CAP = 4;
+    private static final int BRACINGPLATE3_CAP = 10;
 
     /**
      * {@code stacking_resistance(0.75, cap 6, decay 100)}: a sustained fight builds up to +4.5
@@ -2390,10 +2366,13 @@ public final class ForgeweaveTraits {
     public static final Trait BRACINGPLATE =
             new StackingResistance(BRACINGPLATE_PER_HIT, BRACINGPLATE_CAP, BRACINGPLATE_DECAY_TICKS);
 
-    private static final int SAPMEND_TICKS = 60;
+    /** Bracing Plate II: the same build-up, held longer before it caps. */
+    public static final Trait BRACINGPLATE2 =
+            new StackingResistance(BRACINGPLATE_PER_HIT, BRACINGPLATE2_CAP, BRACINGPLATE_DECAY_TICKS);
 
-    /** {@code effect_on_hurt(regeneration I, 60 ticks)}: being hit starts the wearer healing. */
-    public static final Trait SAPMEND = new EffectOnHurt(MobEffects.REGENERATION, SAPMEND_TICKS, 0);
+    /** Bracing Plate III: half a point a blow, so it takes a long fight to reach the highest cap. */
+    public static final Trait BRACINGPLATE3 =
+            new StackingResistance(BRACINGPLATE3_PER_HIT, BRACINGPLATE3_CAP, BRACINGPLATE_DECAY_TICKS);
 
     private static final int LASTBREATH_COOLDOWN_TICKS = 6000;
     private static final int LASTBREATH_DURABILITY_COST = 100;
@@ -2404,30 +2383,6 @@ public final class ForgeweaveTraits {
      */
     public static final Trait LASTBREATH = new DeathSave(LASTBREATH_COOLDOWN_TICKS, LASTBREATH_DURABILITY_COST);
 
-    private static final int AEGISPULSE_TICKS = 40;
-
-    /**
-     * {@code invulnerability_window(40 ticks, full_health)}: a blow that catches the wearer at full
-     * health buys them double vanilla's recovery window. The blow itself still lands.
-     */
-    public static final Trait AEGISPULSE = new InvulnerabilityWindow(AEGISPULSE_TICKS, DefenseCondition.FULL_HEALTH);
-
-    private static final float WINDSTEP_CHANCE = 0.1F;
-
-    /** {@code evasion(10%)}: one blow in ten misses entirely. Stands alone (JC8, 2026-09-02). */
-    public static final Trait WINDSTEP = new Evasion(WINDSTEP_CHANCE);
-
-    private static final int NIGHTVEIL_LIGHT_THRESHOLD = 7;
-    private static final float NIGHTVEIL_VISIBILITY = 0.5F;
-
-    /** {@code conceal_in_darkness(light <= 7, x0.5)}: mobs notice the wearer at half the distance in the dark. */
-    public static final Trait NIGHTVEIL = new ConcealInDarkness(NIGHTVEIL_LIGHT_THRESHOLD, NIGHTVEIL_VISIBILITY);
-
-    private static final float SWIFTSTRIDE_SPEED = 0.05F;
-
-    /** {@code movement_bonus(movement_speed, +5%)} per worn piece -- an attribute grant, no seam. */
-    public static final Trait SWIFTSTRIDE = new MovementBonus(MovementBonus.Kind.MOVEMENT_SPEED, SWIFTSTRIDE_SPEED);
-
     private static final float BATTLEWORN_COEFFICIENT = 0.5F;
 
     /**
@@ -2437,14 +2392,6 @@ public final class ForgeweaveTraits {
      */
     public static final Trait BATTLEWORN =
             new StatScalesWithWear(StatScalesWithWear.Stat.PROTECTION, BATTLEWORN_COEFFICIENT);
-
-    /** {@code damage_type_immunity(#is_lightning)}: lightning does nothing to the wearer. */
-    public static final Trait STORMRIND = new DamageTypeImmunity(DamageTypeTags.IS_LIGHTNING);
-
-    private static final float BLASTVENT_KNOCKBACK_FACTOR = 0.05F;
-
-    /** {@code vent_explosions(0.05)}: a blast throws the wearer instead of hurting them. */
-    public static final Trait BLASTVENT = new VentExplosions(BLASTVENT_KNOCKBACK_FACTOR);
 
     /** A trait whose whole behavior is one worn-armor seam (the four protections). */
     private static Trait defendTrait(CombatSeam seam) {
@@ -2620,30 +2567,6 @@ public final class ForgeweaveTraits {
         }
     }
 
-    /** M6 dedupe batch (issue #876): sharper the less worn it is. Original Forgeweave content, no upstream port. */
-    public static final Trait UNYIELDING = new Trait() {
-        @Override
-        public void combatSeams(Consumer<CombatSeam> out) {
-            out.accept(new DamageScalesWith(DamageScalesWith.Source.REMAINING_DURABILITY, 2.0F, 4.0F));
-        }
-    };
-
-    /** M6 dedupe batch (issue #876): a fully-charged swing lands extra damage. Original Forgeweave content, no upstream port. */
-    public static final Trait RADIANT_EDGE = new Trait() {
-        @Override
-        public void combatSeams(Consumer<CombatSeam> out) {
-            out.accept(new ConditionalSeam(HitCondition.FULL_CHARGE, 1.0F, new FlatBonusDamage(3.0F)));
-        }
-    };
-
-    /** M6 dedupe batch (issue #876): a facet of crystal absorbs a blow's shove. Original Forgeweave content, no upstream port. */
-    public static final Trait VERDANT_WARD = new Trait() {
-        @Override
-        public float knockbackResistance() {
-            return 0.15F;
-        }
-    };
-
     /** M6 dedupe batch (issue #876): a landed hit leaves the target glowing. Original Forgeweave content, no upstream port. */
     public static final Trait LUMINOUS = new Trait() {
         @Override
@@ -2653,59 +2576,11 @@ public final class ForgeweaveTraits {
         }
     };
 
-    /** M6 dedupe batch (issue #876): more damage the faster the wielder is moving. Original Forgeweave content, no upstream port. */
-    public static final Trait STORMGLASS = new Trait() {
-        @Override
-        public void combatSeams(Consumer<CombatSeam> out) {
-            out.accept(new DamageScalesWith(DamageScalesWith.Source.IMPACT_VELOCITY, 5.0F, 3.0F));
-        }
-    };
-
-    /** M6 dedupe batch (issue #876): more damage against tougher targets. Original Forgeweave content, no upstream port. */
-    public static final Trait BLOODGEM = new Trait() {
-        @Override
-        public void combatSeams(Consumer<CombatSeam> out) {
-            out.accept(new DamageScalesWith(DamageScalesWith.Source.TARGET_MAX_HEALTH, 0.04F, 4.0F));
-        }
-    };
-
-    /** M6 dedupe batch (issue #876): a flat void-forged edge. Original Forgeweave content, no upstream port. */
-    public static final Trait VOIDTOUCHED = new Trait() {
-        @Override
-        public float attackDamageBonus(ItemStack stack) {
-            return 1.0F;
-        }
-    };
-
-    /** M6 dedupe batch (issue #876): shatters armored targets a little harder. Original Forgeweave content, no upstream port. */
-    public static final Trait BRITTLEFORCE = new Trait() {
-        @Override
-        public void combatSeams(Consumer<CombatSeam> out) {
-            out.accept(new ConditionalSeam(HitCondition.ARMORED, 1.0F, new FlatBonusDamage(2.0F)));
-        }
-    };
-
-    /** M6 dedupe batch (issue #876): every hit shoves like a rockslide. Original Forgeweave content, no upstream port. */
-    public static final Trait AVALANCHE = new Trait() {
-        @Override
-        public void combatSeams(Consumer<CombatSeam> out) {
-            out.accept(new KnockbackOnHitSeam(0.4F));
-        }
-    };
-
-    /** M6 dedupe batch (issue #876): packed dense, wears slower. Original Forgeweave content, no upstream port. */
-    public static final Trait LANDSLIDE = new Trait() {
-        @Override
-        public int maxDurabilityBonus(ItemStack stack) {
-            return 25;
-        }
-    };
-
     /** M6 dedupe batch (issue #876): draws a bow noticeably faster. Original Forgeweave content, no upstream port. */
     public static final Trait SKYBORNE = new Trait() {
         @Override
         public float drawSpeedBonus() {
-            return 0.08F;
+            return 0.15F;
         }
     };
 
@@ -2720,31 +2595,7 @@ public final class ForgeweaveTraits {
     public static final Trait FEATHERFALL = new Trait() {
         @Override
         public float movementSpeedBonus() {
-            return 0.03F;
-        }
-    };
-
-    /** M6 dedupe batch (issue #876): light enough to swing faster. Original Forgeweave content, no upstream port. */
-    public static final Trait BUOYANT = new Trait() {
-        @Override
-        public float attackSpeedBonus() {
-            return 0.08F;
-        }
-    };
-
-    /** M6 dedupe batch (issue #876): packs more mass into its durability pool. Original Forgeweave content, no upstream port. */
-    public static final Trait COREBOUND = new Trait() {
-        @Override
-        public int maxDurabilityBonus(ItemStack stack) {
-            return 40;
-        }
-    };
-
-    /** M6 dedupe batch (issue #876): too heavy to be knocked far. Original Forgeweave content, no upstream port. */
-    public static final Trait BALLAST = new Trait() {
-        @Override
-        public float knockbackResistance() {
-            return 0.2F;
+            return 0.15F;
         }
     };
 
@@ -2752,15 +2603,7 @@ public final class ForgeweaveTraits {
     public static final Trait LEADFOOT = new Trait() {
         @Override
         public float movementSpeedBonus() {
-            return -0.03F;
-        }
-    };
-
-    /** M6 dedupe batch (issue #876): punishes a target already losing the fight. Original Forgeweave content, no upstream port. */
-    public static final Trait OBSIDIAN_HEART = new Trait() {
-        @Override
-        public void combatSeams(Consumer<CombatSeam> out) {
-            out.accept(new ConditionalSeam(HitCondition.BELOW_WIELDER_HEALTH, 1.0F, new FlatBonusDamage(2.5F)));
+            return -0.1F;
         }
     };
 
@@ -2770,6 +2613,23 @@ public final class ForgeweaveTraits {
         public void combatSeams(Consumer<CombatSeam> out) {
             out.accept(new ConditionalSeam(HitCondition.ANY, 0.25F,
                     new PotionEffectOnHitSeam(MobEffects.WEAKNESS, 0, 60)));
+        }
+    };
+
+    /**
+     * Hardcinder. Destroys a third of what it breaks but pays the loss back in experience -- kept
+     * out of #1103's {@code obliterate} merge because that trade is a second hook and a real choice,
+     * not the same trait under another name. Original Forgeweave content, no upstream port.
+     */
+    public static final Trait LEANHARVEST = new Trait() {
+        @Override
+        public float dropDestroyChance() {
+            return LEANHARVEST_DROP_CHANCE;
+        }
+
+        @Override
+        public int blockBreakExperience(RandomSource random, int xp) {
+            return xp + LEANHARVEST_XP_BONUS;
         }
     };
 
@@ -2789,33 +2649,11 @@ public final class ForgeweaveTraits {
         }
     };
 
-    /** M6 dedupe batch (issue #876): keeps a keen edge until it wears down. Original Forgeweave content, no upstream port. */
-    public static final Trait KEENEDGE = new Trait() {
-        @Override
-        public void combatSeams(Consumer<CombatSeam> out) {
-            out.accept(new DamageScalesWith(DamageScalesWith.Source.REMAINING_DURABILITY, 1.5F, 3.0F));
-        }
-    };
-
-    /**
-     * Mendstone. Netherite tier, no condition: one point every 40 seconds, day or night (issue
-     * #1097's ladder, above). Original Forgeweave content, no upstream port.
-     */
-    public static final Trait TINSEEKER = new SelfRepairWhen(SelfRepairCondition.ALWAYS, SELF_REPAIR_NETHERITE_ALWAYS);
-
     /** M6 dedupe batch (issue #876): a quick, disciplined swing. Original Forgeweave content, no upstream port. */
     public static final Trait STEELFAST = new Trait() {
         @Override
         public float attackSpeedBonus() {
-            return 0.06F;
-        }
-    };
-
-    /** M6 dedupe batch (issue #876): a brisk draw. Original Forgeweave content, no upstream port. */
-    public static final Trait BRASSWIND = new Trait() {
-        @Override
-        public float drawSpeedBonus() {
-            return 0.06F;
+            return 0.15F;
         }
     };
 
@@ -2828,48 +2666,12 @@ public final class ForgeweaveTraits {
         }
     };
 
-    /**
-     * Redstone alloy. Stone tier, night: one point every 30 seconds (issue #1097's ladder, above).
-     * Original Forgeweave content, no upstream port.
-     */
-    public static final Trait DUSKBLOOM = new SelfRepairWhen(SelfRepairCondition.NIGHT, SELF_REPAIR_STONE_CONDITIONAL);
-
     /** M6 dedupe batch (issue #876): striking a burning target quickens the follow-up. Original Forgeweave content, no upstream port. */
     public static final Trait EMBERWAKE = new Trait() {
         @Override
         public void combatSeams(Consumer<CombatSeam> out) {
             out.accept(new ConditionalSeam(HitCondition.BURNING, 1.0F,
                     new PotionEffectOnHitSeam(MobEffects.MOVEMENT_SPEED, 0, 40)));
-        }
-    };
-
-    /**
-     * Ebony psimetal. The quickest night mend on the ladder above: one point every 20 seconds, which
-     * is what its own wording always claimed and issue #1097 made true. Ebony psimetal is a tier
-     * below duskspar, so this is the ladder's one deliberate tier inversion. Original Forgeweave
-     * content, no upstream port.
-     */
-    public static final Trait SMOLDERVEIL = new SelfRepairWhen(SelfRepairCondition.NIGHT, SELF_REPAIR_NETHERITE_CONDITIONAL);
-
-    /**
-     * Embercast. Netherite tier, sunlit: one point every 20 seconds (issue #1097's ladder, above).
-     * Original Forgeweave content, no upstream port.
-     */
-    public static final Trait ASHENBOND = new SelfRepairWhen(SelfRepairCondition.SUNLIT, SELF_REPAIR_NETHERITE_CONDITIONAL);
-
-    /** M6 dedupe batch (issue #876): a crystalline ward softens incoming force. Original Forgeweave content, no upstream port. */
-    public static final Trait PRISMWARD = new Trait() {
-        @Override
-        public float knockbackResistance() {
-            return 0.1F;
-        }
-    };
-
-    /** M6 dedupe batch (issue #876): cracks armor a little harder than armor_breaker's base. Original Forgeweave content, no upstream port. */
-    public static final Trait SHATTERMAIL = new Trait() {
-        @Override
-        public void combatSeams(Consumer<CombatSeam> out) {
-            out.accept(new ConditionalSeam(HitCondition.ARMORED, 1.0F, new FlatBonusDamage(1.5F)));
         }
     };
 
@@ -2909,35 +2711,11 @@ public final class ForgeweaveTraits {
      */
     public static final Trait VINEWARDEN = new Trait() {};
 
-    /** M6 dedupe batch (issue #876): a dense dark-alloy edge. Original Forgeweave content, no upstream port. */
-    public static final Trait VOIDWOVEN = new Trait() {
-        @Override
-        public float attackDamageBonus(ItemStack stack) {
-            return 1.5F;
-        }
-    };
-
-    /** M6 dedupe batch (issue #876): an end-forged plate turns aside a blow. Original Forgeweave content, no upstream port. */
-    public static final Trait CRYSTALLINE_WARD = new Trait() {
-        @Override
-        public float knockbackResistance() {
-            return 0.18F;
-        }
-    };
-
     /** M6 dedupe batch (issue #876): hits harder while the wielder is still healthy. Original Forgeweave content, no upstream port. */
     public static final Trait QUARTZHEART = new Trait() {
         @Override
         public void combatSeams(Consumer<CombatSeam> out) {
             out.accept(new DamageScalesWith(DamageScalesWith.Source.WIELDER_HEALTH, 1.5F, 3.0F));
-        }
-    };
-
-    /** M6 dedupe batch (issue #876): a second, smaller surge on a full-charge swing. Original Forgeweave content, no upstream port. */
-    public static final Trait BATTEREDGE = new Trait() {
-        @Override
-        public void combatSeams(Consumer<CombatSeam> out) {
-            out.accept(new ConditionalSeam(HitCondition.FULL_CHARGE, 1.0F, new FlatBonusDamage(2.5F)));
         }
     };
 
@@ -2950,49 +2728,11 @@ public final class ForgeweaveTraits {
         }
     };
 
-    /** M6 dedupe batch (issue #876): bonus damage against a target already losing. Original Forgeweave content, no upstream port. */
-    public static final Trait WARBOND = new Trait() {
-        @Override
-        public void combatSeams(Consumer<CombatSeam> out) {
-            out.accept(new ConditionalSeam(HitCondition.BELOW_WIELDER_HEALTH, 1.0F, new FlatBonusDamage(2.0F)));
-        }
-    };
-
     /** M6 dedupe batch (issue #876): a stable, oversized durability pool. Original Forgeweave content, no upstream port. */
     public static final Trait STEADFAST = new Trait() {
         @Override
         public int maxDurabilityBonus(ItemStack stack) {
-            return 60;
-        }
-    };
-
-    /** M6 dedupe batch (issue #876): a magnetic-coil jolt on every hit. Original Forgeweave content, no upstream port. */
-    public static final Trait COILCHARGE = new Trait() {
-        @Override
-        public void combatSeams(Consumer<CombatSeam> out) {
-            out.accept(new KnockbackOnHitSeam(0.3F));
-        }
-    };
-
-    /**
-     * Elementarium palladium. Iron tier, no condition: one point every 50 seconds, day or night
-     * (issue #1097's ladder, above). Original Forgeweave content, no upstream port.
-     */
-    public static final Trait SMOKEHOUSE = new SelfRepairWhen(SelfRepairCondition.ALWAYS, SELF_REPAIR_IRON_ALWAYS);
-
-    /** M6 dedupe batch (issue #876): leaden weight resists being knocked back. Original Forgeweave content, no upstream port. */
-    public static final Trait GRAVITIC = new Trait() {
-        @Override
-        public float knockbackResistance() {
-            return 0.25F;
-        }
-    };
-
-    /** M6 dedupe batch (issue #876): a keen magnesium-alloy edge. Original Forgeweave content, no upstream port. */
-    public static final Trait ELEKTRONBOND = new Trait() {
-        @Override
-        public float attackDamageBonus(ItemStack stack) {
-            return 1.0F;
+            return 80;
         }
     };
 
@@ -3003,20 +2743,6 @@ public final class ForgeweaveTraits {
             return amount * 10 / 100;
         }
     };
-
-    /** M6 dedupe batch (issue #876): a bouncy slime cushions a blow. Original Forgeweave content, no upstream port. */
-    public static final Trait RUBBERIZE = new Trait() {
-        @Override
-        public float knockbackResistance() {
-            return 0.08F;
-        }
-    };
-
-    /**
-     * Psimetal. Iron tier, sunlit: one point every 25 seconds (issue #1097's ladder, above).
-     * Original Forgeweave content, no upstream port.
-     */
-    public static final Trait MATRIXBLOOM = new SelfRepairWhen(SelfRepairCondition.SUNLIT, SELF_REPAIR_IRON_CONDITIONAL);
 
     // ---------------------------------------------------------------- #876 M6 dedupe batch: every
     // material gets a distinct trait id. 49 of the new ids reuse existing ADR-0004 seams with new
@@ -3299,19 +3025,6 @@ public final class ForgeweaveTraits {
 
     private static final float LEANHARVEST_DROP_CHANCE = 0.35F;
     private static final int LEANHARVEST_XP_BONUS = 2;
-
-    /** Hardcinder. Issue #884 (6a): the reference Duranite's fewer-drops/more-XP mining trade-off. Replaces emberwake. */
-    public static final Trait LEANHARVEST = new Trait() {
-        @Override
-        public float dropDestroyChance() {
-            return LEANHARVEST_DROP_CHANCE;
-        }
-
-        @Override
-        public int blockBreakExperience(RandomSource random, int xp) {
-            return xp + LEANHARVEST_XP_BONUS;
-        }
-    };
 
     private static final int WAR_MEMORY_CAP = 20;
     private static final float WAR_MEMORY_PER_FIGHT = 0.15F;
@@ -3750,6 +3463,8 @@ public final class ForgeweaveTraits {
 
     private static final Map<ResourceLocation, Trait> REGISTRY = Map.ofEntries(
             Map.entry(id("ecological"), ECOLOGICAL),
+            Map.entry(id("ecological2"), ECOLOGICAL2),
+            Map.entry(id("ecological3"), ECOLOGICAL3),
             Map.entry(id("cheap"), CHEAP),
             Map.entry(id("cheapskate"), CHEAPSKATE),
             Map.entry(id("crude"), CRUDE),
@@ -3767,7 +3482,6 @@ public final class ForgeweaveTraits {
             // #103 metal materials: rose gold's quick, netherite's reinforced_core (netherite's
             // fireproof was retired by #447 -- every dropped tool is indestructible now).
             Map.entry(id("quick"), QUICK),
-            Map.entry(id("reinforced_core"), REINFORCED_CORE),
             // #230 M3.2 stateful/special traits.
             Map.entry(id("alien"), ALIEN),
             Map.entry(id("shocking"), SHOCKING),
@@ -3812,8 +3526,10 @@ public final class ForgeweaveTraits {
             Map.entry(id("predatory"), PREDATORY),
             Map.entry(id("colossal"), COLOSSAL),
             Map.entry(id("kinetic"), KINETIC),
+            Map.entry(id("kinetic2"), KINETIC2),
             Map.entry(id("dominant"), DOMINANT),
             Map.entry(id("armor_breaker"), ARMOR_BREAKER),
+            Map.entry(id("armor_breaker2"), ARMOR_BREAKER2),
             Map.entry(id("opportunist"), OPPORTUNIST),
             Map.entry(id("surging"), SURGING),
             Map.entry(id("surging2"), SURGING2),
@@ -3844,7 +3560,6 @@ public final class ForgeweaveTraits {
             Map.entry(id("unraveling3"), UNRAVELING3),
             Map.entry(id("grievous"), GRIEVOUS),
             Map.entry(id("harrying"), HARRYING),
-            Map.entry(id("leeching"), LEECHING),
             Map.entry(id("arcing"), ARCING),
             Map.entry(id("stormcaller"), STORMCALLER),
             // #626 T17 ammo traits; entity-side behavior lands with the material arrow.
@@ -3877,70 +3592,39 @@ public final class ForgeweaveTraits {
             Map.entry(id("thorns"), THORNS),
             Map.entry(id("enderclearance"), ENDERCLEARANCE),
             Map.entry(id("skyfall"), SKYFALL),
-            Map.entry(id("unyielding"), UNYIELDING),
-            Map.entry(id("radiant_edge"), RADIANT_EDGE),
-            Map.entry(id("verdant_ward"), VERDANT_WARD),
             Map.entry(id("luminous"), LUMINOUS),
-            Map.entry(id("stormglass"), STORMGLASS),
-            Map.entry(id("bloodgem"), BLOODGEM),
-            Map.entry(id("voidtouched"), VOIDTOUCHED),
-            Map.entry(id("brittleforce"), BRITTLEFORCE),
             Map.entry(id("obliterate"), OBLITERATE),
-            Map.entry(id("avalanche"), AVALANCHE),
-            Map.entry(id("landslide"), LANDSLIDE),
+            Map.entry(id("leanharvest"), LEANHARVEST),
             Map.entry(id("skyborne"), SKYBORNE),
             Map.entry(id("featherfall"), FEATHERFALL),
-            Map.entry(id("buoyant"), BUOYANT),
-            Map.entry(id("corebound"), COREBOUND),
-            Map.entry(id("ballast"), BALLAST),
             Map.entry(id("leadfoot"), LEADFOOT),
-            Map.entry(id("obsidian_heart"), OBSIDIAN_HEART),
             Map.entry(id("voidrend"), VOIDREND),
             Map.entry(id("seismic"), SEISMIC),
             Map.entry(id("stonewake"), STONEWAKE),
-            Map.entry(id("keenedge"), KEENEDGE),
             Map.entry(id("wellspring"), WELLSPRING),
-            Map.entry(id("tinseeker"), TINSEEKER),
             Map.entry(id("steelfast"), STEELFAST),
-            Map.entry(id("brasswind"), BRASSWIND),
             Map.entry(id("amberflow"), AMBERFLOW),
-            Map.entry(id("duskbloom"), DUSKBLOOM),
             Map.entry(id("emberwake"), EMBERWAKE),
             Map.entry(id("overburdened"), OVERBURDENED),
-            Map.entry(id("smolderveil"), SMOLDERVEIL),
-            Map.entry(id("ashenbond"), ASHENBOND),
             Map.entry(id("fallout"), FALLOUT),
             Map.entry(id("nocturnal_edge"), NOCTURNAL_EDGE),
-            Map.entry(id("prismward"), PRISMWARD),
-            Map.entry(id("shattermail"), SHATTERMAIL),
             Map.entry(id("chaosmark"), CHAOSMARK),
             Map.entry(id("shieldbreaker"), SHIELDBREAKER),
             Map.entry(id("vinewarden"), VINEWARDEN),
             Map.entry(id("magmaforge"), MAGMAFORGE),
-            Map.entry(id("voidwoven"), VOIDWOVEN),
-            Map.entry(id("crystalline_ward"), CRYSTALLINE_WARD),
             Map.entry(id("quartzheart"), QUARTZHEART),
             Map.entry(id("daybound"), DAYBOUND),
-            Map.entry(id("batteredge"), BATTEREDGE),
             Map.entry(id("sparkforge"), SPARKFORGE),
             Map.entry(id("unstable_core"), UNSTABLE_CORE),
-            Map.entry(id("warbond"), WARBOND),
             Map.entry(id("steadfast"), STEADFAST),
-            Map.entry(id("coilcharge"), COILCHARGE),
-            Map.entry(id("smokehouse"), SMOKEHOUSE),
-            Map.entry(id("gravitic"), GRAVITIC),
-            Map.entry(id("elektronbond"), ELEKTRONBOND),
             Map.entry(id("starforged"), STARFORGED),
-            Map.entry(id("rubberize"), RUBBERIZE),
             Map.entry(id("tidebreaker"), TIDEBREAKER),
-            Map.entry(id("matrixbloom"), MATRIXBLOOM),
             Map.entry(id("berserker_stance"), BERSERKER_STANCE),
             // #884 TAIGA-faithful trait pass.
             Map.entry(id("earthmend"), EARTHMEND),
             Map.entry(id("duskgrasp"), DUSKGRASP),
             // #886: duskgrasp's capture half, split out of #884.
             Map.entry(id("dusksnare"), DUSKSNARE),
-            Map.entry(id("leanharvest"), LEANHARVEST),
             Map.entry(id("warmemory"), WARMEMORY),
             Map.entry(id("hollowyield"), HOLLOWYIELD),
             Map.entry(id("swiftdig"), SWIFTDIG),
@@ -3952,20 +3636,12 @@ public final class ForgeweaveTraits {
             Map.entry(id("gamedrop"), GAMEDROP),
             // #831 M6-7 armor trait library: one instance per parameterized behaviour class, all
             // ARMOR scope. No material names them yet -- the preset batches assign them.
-            Map.entry(id("bloodtoll"), BLOODTOLL),
-            Map.entry(id("hexward"), HEXWARD),
-            Map.entry(id("mendbond"), MENDBOND),
             Map.entry(id("emberdrink"), EMBERDRINK),
             Map.entry(id("bracingplate"), BRACINGPLATE),
-            Map.entry(id("sapmend"), SAPMEND),
+            Map.entry(id("bracingplate2"), BRACINGPLATE2),
+            Map.entry(id("bracingplate3"), BRACINGPLATE3),
             Map.entry(id("lastbreath"), LASTBREATH),
-            Map.entry(id("aegispulse"), AEGISPULSE),
-            Map.entry(id("windstep"), WINDSTEP),
-            Map.entry(id("nightveil"), NIGHTVEIL),
-            Map.entry(id("swiftstride"), SWIFTSTRIDE),
             Map.entry(id("battleworn"), BATTLEWORN),
-            Map.entry(id("stormrind"), STORMRIND),
-            Map.entry(id("blastvent"), BLASTVENT),
             // #946 -- the fusion metals' gating marker; soul rend, the metals' other trait, is a
             // datapack trait_definition instead (trait_definition/soulrend*.json) because the
             // lifesteal behaviour TraitBehaviors already ships fits it exactly. #965 added
@@ -4011,10 +3687,29 @@ public final class ForgeweaveTraits {
         if (trait == null) {
             trait = TraitRegistry.trait(id);
         }
+        if (trait == null && ForgeweaveConfig.enabled(ForgeweaveConfig.KUBEJS_TRAITS)) {
+            trait = SCRIPTED.get(id);
+        }
         if (trait != null) {
             return trait;
         }
-        return ForgeweaveConfig.enabled(ForgeweaveConfig.KUBEJS_TRAITS) ? SCRIPTED.get(id) : null;
+        // #1103: last, so a live id is never shadowed by an alias that happens to share its name.
+        ResourceLocation canonical = TraitFamilies.canonical(id);
+        return canonical.equals(id) ? null : lookup(canonical);
+    }
+
+    /**
+     * What a stored trait id means in this version: itself, or the rung that replaced it when #1103
+     * merged its name away. Every read of {@code forgeweave:traits} off a stack goes through this,
+     * so a tool built before the merge keeps the behaviour it was assembled with.
+     */
+    public static ResourceLocation canonical(ResourceLocation id) {
+        return TraitFamilies.canonical(id);
+    }
+
+    /** {@link #canonical} over a whole stored list, dropping the duplicates a merge creates. */
+    public static List<ResourceLocation> canonical(List<ResourceLocation> ids) {
+        return TraitFamilies.canonical(ids);
     }
 
     /**
@@ -4060,6 +3755,7 @@ public final class ForgeweaveTraits {
      */
     public static void onTagsUpdated(TagsUpdatedEvent event) {
         Map<ResourceLocation, Trait> loaded = new LinkedHashMap<>();
+        Map<ResourceLocation, TraitFamilies.Rung> rungs = new LinkedHashMap<>();
         event.getRegistryAccess().registry(TraitDefinition.REGISTRY).ifPresent(registry -> registry.entrySet()
                 .forEach(entry -> {
                     ResourceLocation id = entry.getKey().location();
@@ -4068,9 +3764,11 @@ public final class ForgeweaveTraits {
                                 + "behavior wins and the definition is ignored (issue #832).", id);
                     } else {
                         loaded.put(id, entry.getValue().trait());
+                        rungs.put(id, entry.getValue().rung());
                     }
                 }));
         DATAPACK = Map.copyOf(loaded);
+        TraitFamilies.datapack(rungs);
         WARNED_UNKNOWN.clear();
         if (!loaded.isEmpty()) {
             LOGGER.info("Loaded {} datapack trait definitions: {}", loaded.size(), loaded.keySet());
@@ -4161,7 +3859,6 @@ public final class ForgeweaveTraits {
         return List.of();
     }
 
-
     /**
      * The assembled tool's durability after the <b>head</b> material's head-scoped traits adjusted it
      * ({@link Trait#headDurability}), applied in order. Called from {@code ToolStats#compute} with
@@ -4210,6 +3907,10 @@ public final class ForgeweaveTraits {
         if (ids == null || ids.isEmpty()) {
             return List.of();
         }
+        // #1103: canonical() folds the ids this version retired onto their surviving rungs and
+        // drops the duplicate a merge can create (a head and a handle material that used to grant
+        // two names for one mechanic now name the same rung, and every hook would run twice).
+        ids = canonical(ids);
         List<Trait> traits = new ArrayList<>(ids.size());
         for (ResourceLocation id : ids) {
             Trait trait = lookup(id);

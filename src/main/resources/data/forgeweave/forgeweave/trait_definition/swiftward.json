@@ -1,5 +1,5 @@
 {
   "behavior": "forgeweave:movement_bonus",
   "kind": "movement_speed",
-  "magnitude": 0.06
+  "magnitude": 0.08
 }

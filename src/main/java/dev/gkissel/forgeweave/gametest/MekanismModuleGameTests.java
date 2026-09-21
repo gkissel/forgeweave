@@ -80,7 +80,7 @@ public class MekanismModuleGameTests {
     }
 
     /**
-     * The metal's own {@code infused} trait is what gives the tool the {@code EnergyBuffer} D-M8-15
+     * The metal's own {@code energized4} trait is what gives the tool the {@code EnergyBuffer} D-M8-15
      * makes the container's energy, so a module has something to spend before any module is installed.
      */
     @GameTest(template = "empty")
@@ -90,7 +90,7 @@ public class MekanismModuleGameTests {
 
         int capacity = ForgeweaveTraits.energyCapacity(tool);
         helper.assertTrue(capacity > 0,
-                "the infused trait must give the tool a Forge Energy buffer, got " + capacity);
+                "the energized4 trait must give the tool a Forge Energy buffer, got " + capacity);
         helper.assertTrue(EnergyBuffer.capability(tool) != null,
                 "and that buffer must be exposed as a capability");
         helper.assertTrue(EnergyBuffer.stored(tool) == 0,

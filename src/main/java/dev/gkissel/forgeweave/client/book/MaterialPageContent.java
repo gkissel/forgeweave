@@ -35,6 +35,8 @@ import dev.gkissel.forgeweave.menu.PartBuilderRecipes;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.recipe.AlloyRecipe;
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
+import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
+import dev.gkissel.forgeweave.trait.TraitFamilies;
 
 /**
  * What a material's book page shows, as data: the display-item bar, the per-stat-block groups and
@@ -166,10 +168,10 @@ public final class MaterialPageContent {
     }
 
     private static Component traitLine(Material material, ResourceLocation id) {
-        String base = "trait." + id.getNamespace() + "." + id.getPath();
-        Component hover = Component.translatable(base + ".description")
-                .withStyle(Style.EMPTY.withColor(material.color()));
-        return Component.translatable(base + ".name")
+        // #1103: family name plus roman numeral, family description with this rung's numbers.
+        id = ForgeweaveTraits.canonical(id);
+        Component hover = TraitFamilies.description(id).withStyle(Style.EMPTY.withColor(material.color()));
+        return TraitFamilies.name(id)
                 .withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.UNDERLINE)
                 .withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover)));
     }
@@ -397,9 +399,13 @@ public final class MaterialPageContent {
         return Component.translatable(TRAIT_LEVEL, numeral).withStyle(ChatFormatting.DARK_GRAY);
     }
 
-    /** A trait reference entry's own description line: the rung's {@code .description} string. */
+    /**
+     * A trait reference entry's own description line. A family has one description string for all
+     * its rungs and each rung fills its own numbers into it (issue #1103), so Keen Edge II reads
+     * "3" where Keen Edge IV reads "5" off the same entry.
+     */
     public static Component traitDescription(ResourceLocation trait) {
-        return Component.translatable("trait." + trait.getNamespace() + "." + trait.getPath() + ".description");
+        return TraitFamilies.description(ForgeweaveTraits.canonical(trait));
     }
 
     /**

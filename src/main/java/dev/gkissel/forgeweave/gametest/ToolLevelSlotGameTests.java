@@ -142,25 +142,25 @@ public class ToolLevelSlotGameTests {
     }
 
     /**
-     * Trait-granted (netherite's {@code reinforced_core}), modifier-granted ({@code extra_slot}) and
+     * Trait-granted (netherite's {@code writable2}), modifier-granted ({@code extra_slot}) and
      * level-granted bonus slots all sum on top of {@link ForgeweaveModifiers#DEFAULT_SLOTS} on one
-     * tool: {@code 3 + 1 (trait) + 1 (extra_slot net) + 1 (level) = 6}.
+     * tool: {@code 3 + 2 (trait) + 1 (extra_slot net) + 1 (level) = 7}.
      */
     @GameTest(template = "empty")
     public static void traitModifierAndLevelBonusSlotsSumTogether(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 1, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "netherite", "netherite", "netherite");
-        helper.assertTrue(ForgeweaveModifiers.freeSlots(pickaxe) == ForgeweaveModifiers.DEFAULT_SLOTS + 1,
-                "expected reinforced_core's +1 trait slot alone, got " + ForgeweaveModifiers.freeSlots(pickaxe));
+        helper.assertTrue(ForgeweaveModifiers.freeSlots(pickaxe) == ForgeweaveModifiers.DEFAULT_SLOTS + 2,
+                "expected writable2's +2 trait slots alone, got " + ForgeweaveModifiers.freeSlots(pickaxe));
 
         ItemStack widened = applyReagent(helper, player, pos, pickaxe, new ItemStack(ForgeweaveItems.EXTRA_MODIFIER.get()));
-        helper.assertTrue(ForgeweaveModifiers.freeSlots(widened) == ForgeweaveModifiers.DEFAULT_SLOTS + 2,
-                "expected trait (+1) and extra_slot's net (+1) together, got " + ForgeweaveModifiers.freeSlots(widened));
+        helper.assertTrue(ForgeweaveModifiers.freeSlots(widened) == ForgeweaveModifiers.DEFAULT_SLOTS + 3,
+                "expected trait (+2) and extra_slot's net (+1) together, got " + ForgeweaveModifiers.freeSlots(widened));
 
         widened.set(ForgeweaveDataComponents.TOOL_LEVEL.get(), new ToolLevel(1, 0, 1));
-        helper.assertTrue(ForgeweaveModifiers.freeSlots(widened) == ForgeweaveModifiers.DEFAULT_SLOTS + 3,
-                "expected trait (+1), extra_slot's net (+1) and the level (+1) all summed, got "
+        helper.assertTrue(ForgeweaveModifiers.freeSlots(widened) == ForgeweaveModifiers.DEFAULT_SLOTS + 4,
+                "expected trait (+2), extra_slot's net (+1) and the level (+1) all summed, got "
                         + ForgeweaveModifiers.freeSlots(widened));
 
         helper.succeed();

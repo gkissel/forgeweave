@@ -15,19 +15,48 @@
     "bonus_damage": 5.0
   },
   "plating": {
-    "helmet": { "durability": 350, "armor": 3.0, "toughness": 1.5, "knockback_resistance": 0.05 },
-    "chestplate": { "durability": 510, "armor": 8.0, "toughness": 1.5, "knockback_resistance": 0.05 },
-    "leggings": { "durability": 480, "armor": 6.0, "toughness": 1.5, "knockback_resistance": 0.05 },
-    "boots": { "durability": 415, "armor": 3.0, "toughness": 1.5, "knockback_resistance": 0.05 }
+    "helmet": {
+      "durability": 350,
+      "armor": 3.0,
+      "toughness": 1.5,
+      "knockback_resistance": 0.05
+    },
+    "chestplate": {
+      "durability": 510,
+      "armor": 8.0,
+      "toughness": 1.5,
+      "knockback_resistance": 0.05
+    },
+    "leggings": {
+      "durability": 480,
+      "armor": 6.0,
+      "toughness": 1.5,
+      "knockback_resistance": 0.05
+    },
+    "boots": {
+      "durability": 415,
+      "armor": 3.0,
+      "toughness": 1.5,
+      "knockback_resistance": 0.05
+    }
   },
   "maille": true,
   "incorrect_for_tool": "forgeweave:incorrect_for_warspar_tool",
   "traits": {
-    "general": ["forgeweave:unraveling2"],
-    "armor": ["forgeweave:unravelward"]
+    "general": [
+      "forgeweave:unraveling2"
+    ],
+    "armor": [
+      "forgeweave:voidward"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:ingots/vibranium" }, "value": 144 }
+    {
+      "ingredient": {
+        "tag": "c:ingots/vibranium"
+      },
+      "value": 144
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/vibranium"
@@ -36,6 +65,9 @@
   "enchantability": 10,
   "color": "#6A3FA0",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "allthemodium:vibranium_ingot" }
+    {
+      "type": "neoforge:item_exists",
+      "item": "allthemodium:vibranium_ingot"
+    }
   ]
 }

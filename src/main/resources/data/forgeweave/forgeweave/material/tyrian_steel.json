@@ -15,19 +15,51 @@
     "bonus_damage": 8.8
   },
   "plating": {
-    "helmet": { "durability": 400, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 },
-    "chestplate": { "durability": 590, "armor": 8.0, "toughness": 3.0, "knockback_resistance": 0.1 },
-    "leggings": { "durability": 552, "armor": 6.0, "toughness": 3.0, "knockback_resistance": 0.1 },
-    "boots": { "durability": 479, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 }
+    "helmet": {
+      "durability": 400,
+      "armor": 3.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
+    },
+    "chestplate": {
+      "durability": 590,
+      "armor": 8.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
+    },
+    "leggings": {
+      "durability": 552,
+      "armor": 6.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
+    },
+    "boots": {
+      "durability": 479,
+      "armor": 3.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:tyrian_steel_ward"]
+    "general": [
+      "forgeweave:lastbreath"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:ingots/tyrian_steel" }, "value": 144 },
-    { "ingredient": { "tag": "c:storage_blocks/tyrian_steel" }, "value": 1296 }
+    {
+      "ingredient": {
+        "tag": "c:ingots/tyrian_steel"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/tyrian_steel"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/tyrian_steel"

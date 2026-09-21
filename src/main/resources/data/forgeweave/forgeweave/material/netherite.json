@@ -15,19 +15,51 @@
     "bonus_damage": 10.0
   },
   "plating": {
-    "helmet": { "durability": 407, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 },
-    "chestplate": { "durability": 592, "armor": 8.0, "toughness": 3.0, "knockback_resistance": 0.1 },
-    "leggings": { "durability": 555, "armor": 6.0, "toughness": 3.0, "knockback_resistance": 0.1 },
-    "boots": { "durability": 481, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 }
+    "helmet": {
+      "durability": 407,
+      "armor": 3.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
+    },
+    "chestplate": {
+      "durability": 592,
+      "armor": 8.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
+    },
+    "leggings": {
+      "durability": 555,
+      "armor": 6.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
+    },
+    "boots": {
+      "durability": 481,
+      "armor": 3.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:reinforced_core"]
+    "general": [
+      "forgeweave:writable2"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:netherite_ingot" }, "value": 144 },
-    { "ingredient": { "item": "minecraft:netherite_block" }, "value": 1296 }
+    {
+      "ingredient": {
+        "item": "minecraft:netherite_ingot"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "item": "minecraft:netherite_block"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/netherite"

@@ -44,7 +44,7 @@
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
     "general": [
-      "forgeweave:dragonsteel_fire_ward"
+      "forgeweave:fireward"
     ]
   },
   "crafting_items": [

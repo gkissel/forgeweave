@@ -240,9 +240,9 @@ public class SlimeContentGameTests {
                 "knightslime", "knightslime", "knightslime");
 
         // Issue #876 M6 dedupe batch: knightslime's head moved off the shared crumbling to its own
-        // brittleforce id (amethyst_bronze keeps crumbling -- ModernMaterialGameTests).
-        helper.assertTrue(traits(pickaxe).contains(trait("brittleforce")),
-                "a knightslime head must carry brittleforce, got " + traits(pickaxe));
+        // armor_breaker id (amethyst_bronze keeps crumbling -- ModernMaterialGameTests).
+        helper.assertTrue(traits(pickaxe).contains(trait("armor_breaker")),
+                "a knightslime head must carry armor_breaker, got " + traits(pickaxe));
         helper.assertTrue(traits(pickaxe).contains(trait("unnatural")),
                 "knightslime binding/handle parts must carry unnatural, got " + traits(pickaxe));
         helper.succeed();

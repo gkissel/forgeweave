@@ -102,70 +102,59 @@ public class UtilityTraitGameTests {
     }
 
     /**
-     * Issue #1097's self-repair ladder, read off the registry rather than off a hand-written list.
-     * A conditional mend runs at half the ticks of an unconditional one on the same tier; within
-     * that, a higher-tier material mends faster; the mirror pair shares one rate; smolderveil, the
-     * one trait whose idea is to beat duskmend, beats it; and nothing is faster than the 400 ticks
-     * per point that was the quickest rate before the issue.
+     * The self-repair ladder after issue #1103 merged it, read off the registry rather than off a
+     * hand-written list. Nine always-on ids turned into Ecological I-III and seven conditional ones
+     * into a single rate, so what is left to pin is: the three always-on rungs are strictly ordered,
+     * the day and night mends share one rate, and every rate meets 04-impact.md's floor of one point
+     * every 10 seconds at level I.
      */
     @GameTest(template = "empty")
-    public static void theSelfRepairLadderIsOrderedByTierAndCondition(GameTestHelper helper) {
-        int smolderveil = ticksPerPoint(helper, "smolderveil");
-        int ashenbond = ticksPerPoint(helper, "ashenbond");
+    public static void theSelfRepairLadderIsOrderedByLevelAndMeetsTheFloor(GameTestHelper helper) {
+        int ecological = ticksPerPoint(helper, "ecological");
+        int ecological2 = ticksPerPoint(helper, "ecological2");
+        int ecological3 = ticksPerPoint(helper, "ecological3");
         int sunmend = ticksPerPoint(helper, "sunmend");
         int duskmend = ticksPerPoint(helper, "duskmend");
-        int matrixbloom = ticksPerPoint(helper, "matrixbloom");
-        int duskbloom = ticksPerPoint(helper, "duskbloom");
-        int tinseeker = ticksPerPoint(helper, "tinseeker");
-        int smokehouse = ticksPerPoint(helper, "smokehouse");
 
+        helper.assertTrue(ecological > ecological2 && ecological2 > ecological3,
+                "Ecological I-III must mend faster at every rung, got " + ecological + ", " + ecological2
+                        + ", " + ecological3);
         helper.assertTrue(sunmend == duskmend,
-                "the day/night mirror pair shares one rate, got " + sunmend + " and " + duskmend);
-        helper.assertTrue(smolderveil < duskmend,
-                "smolderveil must beat duskmend, got " + smolderveil + " against " + duskmend);
-        helper.assertTrue(ashenbond < sunmend && sunmend < matrixbloom && matrixbloom < duskbloom,
-                "the conditional ladder must fall by tier, got " + ashenbond + ", " + sunmend + ", "
-                        + matrixbloom + ", " + duskbloom);
-        helper.assertTrue(tinseeker < smokehouse,
-                "the unconditional ladder must fall by tier, got " + tinseeker + " and " + smokehouse);
-        helper.assertTrue(tinseeker == 2 * ashenbond && smokehouse == 2 * matrixbloom,
-                "an unconditional mend runs at twice the ticks of a conditional one on the same tier, got "
-                        + tinseeker + "/" + ashenbond + " and " + smokehouse + "/" + matrixbloom);
-        for (int rate : new int[] {smolderveil, ashenbond, sunmend, duskmend, matrixbloom, duskbloom,
-                tinseeker, smokehouse}) {
-            helper.assertTrue(rate >= 400, "nothing may mend faster than 400 ticks per point, got " + rate);
+                "the day and night mends share one rate, got " + sunmend + " and " + duskmend);
+        for (int rate : new int[] {ecological, ecological2, ecological3, sunmend, duskmend}) {
+            helper.assertTrue(rate <= 200, "every self-repair rate must be one point every 10 seconds or "
+                    + "faster (issue #1103's floor), got " + rate);
         }
         helper.succeed();
     }
 
     /**
-     * The ladder on real gear: smolderveil heals after dark at its new 400-ticks-per-point rate, and
-     * neither it nor a duskmend pickaxe beside it moves under the same noon sky. The rates
-     * themselves are pinned deterministically by
-     * {@link #theSelfRepairLadderIsOrderedByTierAndCondition}; racing one against the other here
-     * would only be a coin flip.
+     * The ladder on real gear: a night mend heals after dark and nothing mends under the same noon
+     * sky. The rates themselves are pinned deterministically by
+     * {@link #theSelfRepairLadderIsOrderedByLevelAndMeetsTheFloor}; racing one against the other
+     * here would only be a coin flip.
      */
     @GameTest(template = "empty")
-    public static void smolderveilMendsAfterDarkAtTheLaddersQuickestRate(GameTestHelper helper) {
+    public static void theNightMendHealsAfterDarkAndNotAtNoon(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         BlockPos pos = helper.absolutePos(new BlockPos(1, 2, 1));
         player.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
-        ItemStack smolderveil = pickaxe(List.of(traitId("smolderveil")), 1000);
-        smolderveil.setDamageValue(500);
+        ItemStack duskmend = pickaxe(List.of(traitId("duskmend")), 1000);
+        duskmend.setDamageValue(500);
         ItemStack control = pickaxe(List.of(traitId("duskmend")), 1000);
         control.setDamageValue(500);
 
         daytime(helper, NOON);
-        tick(helper, player, smolderveil, 8000);
+        tick(helper, player, duskmend, 8000);
         tick(helper, player, control, 8000);
-        helper.assertTrue(smolderveil.getDamageValue() == 500 && control.getDamageValue() == 500,
-                "neither night mend may heal at noon, got " + smolderveil.getDamageValue()
+        helper.assertTrue(duskmend.getDamageValue() == 500 && control.getDamageValue() == 500,
+                "neither night mend may heal at noon, got " + duskmend.getDamageValue()
                         + " and " + control.getDamageValue());
 
         daytime(helper, MIDNIGHT);
-        tick(helper, player, smolderveil, 8000);
-        helper.assertTrue(smolderveil.getDamageValue() < 500,
-                "smolderveil should have healed over 8000 ticks of midnight, still at " + smolderveil.getDamageValue());
+        tick(helper, player, duskmend, 8000);
+        helper.assertTrue(duskmend.getDamageValue() < 500,
+                "duskmend should have healed over 8000 ticks of midnight, still at " + duskmend.getDamageValue());
         // The world clock is shared with every other test running on this server, and
         // EnergyTraitGameTests' solar recharge waits five ticks between setting noon and reading the
         // buffer. Put the sky back before finishing rather than leaving a second test parked at

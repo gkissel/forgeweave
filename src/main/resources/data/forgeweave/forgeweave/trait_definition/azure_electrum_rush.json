@@ -1,6 +1,0 @@
-{
-  "behavior": "forgeweave:damage_scales_with",
-  "source": "impact_velocity",
-  "coefficient": 4.0,
-  "cap": 3.0
-}

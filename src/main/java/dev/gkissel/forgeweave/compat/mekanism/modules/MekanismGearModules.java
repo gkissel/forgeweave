@@ -310,7 +310,7 @@ public final class MekanismGearModules {
 
     /**
      * The FE a stack's Mekanism energy modules add to {@code ForgeweaveTraits#energyCapacity}, so one
-     * buffer serves the metal's own {@code infused} trait and an installed energy unit alike (D-M8-15).
+     * buffer serves the metal's own {@code energized4} trait and an installed energy unit alike (D-M8-15).
      * 0 without Mekanism and 0 for a stack carrying no {@code atomic_matter_alloy} part.
      */
     public static int moduleEnergyCapacity(ItemStack stack) {

@@ -15,21 +15,60 @@
     "bonus_damage": 5.5
   },
   "plating": {
-    "helmet": { "durability": 406, "armor": 3.0, "toughness": 2.0, "knockback_resistance": 0.1 },
-    "chestplate": { "durability": 590, "armor": 8.0, "toughness": 2.0, "knockback_resistance": 0.1 },
-    "leggings": { "durability": 554, "armor": 6.0, "toughness": 2.0, "knockback_resistance": 0.1 },
-    "boots": { "durability": 480, "armor": 3.0, "toughness": 2.0, "knockback_resistance": 0.1 }
+    "helmet": {
+      "durability": 406,
+      "armor": 3.0,
+      "toughness": 2.0,
+      "knockback_resistance": 0.1
+    },
+    "chestplate": {
+      "durability": 590,
+      "armor": 8.0,
+      "toughness": 2.0,
+      "knockback_resistance": 0.1
+    },
+    "leggings": {
+      "durability": 554,
+      "armor": 6.0,
+      "toughness": 2.0,
+      "knockback_resistance": 0.1
+    },
+    "boots": {
+      "durability": 480,
+      "armor": 3.0,
+      "toughness": 2.0,
+      "knockback_resistance": 0.1
+    }
   },
   "maille": true,
   "incorrect_for_tool": "forgeweave:incorrect_for_resonite_tool",
   "traits": {
-    "general": ["forgeweave:avalanche"],
-    "armor": ["forgeweave:deadweight"]
+    "general": [
+      "forgeweave:seismic"
+    ],
+    "armor": [
+      "forgeweave:heft2"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:sunsteel_ingot" }, "value": 144 },
-    { "ingredient": { "item": "forgeweave:sunsteel_nugget" }, "value": 16 },
-    { "ingredient": { "item": "forgeweave:sunsteel_block" }, "value": 1296 }
+    {
+      "ingredient": {
+        "item": "forgeweave:sunsteel_ingot"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "item": "forgeweave:sunsteel_nugget"
+      },
+      "value": 16
+    },
+    {
+      "ingredient": {
+        "item": "forgeweave:sunsteel_block"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/sunsteel"

@@ -1,4 +1,0 @@
-{
-  "behavior": "forgeweave:damage_type_immunity",
-  "damage_type": "minecraft:is_fire"
-}

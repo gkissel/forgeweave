@@ -40,7 +40,7 @@
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
     "general": [
-      "forgeweave:troll_regeneration_mountain"
+      "forgeweave:ecological2"
     ]
   },
   "crafting_items": [

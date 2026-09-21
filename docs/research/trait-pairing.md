@@ -1,5 +1,14 @@
 # Trait pairing: one side that hits, one side that holds
 
+> **Superseded in part, 2026-09-21 (issue #1103).** The rule below still holds: every material has
+> to carry something that fires on a tool and something that fires on a worn piece, and
+> `TraitReachabilityTest` still enforces it. What no longer holds is the id-level detail. #1103
+> withdrew #876's "no two materials may name one trait id" rule, so the per-material companion ids
+> this document pairs up were merged into shared, leveled families -- `ironwood_grip`, `prismward`
+> and `rubberize` are all Heft I now, and the eight Mystical Agriculture wards are Magic Protection
+> I-III. Read the pairs here as pairs of *mechanics*; for the id a material names today, read its
+> material JSON, and for which ids a retired one became, read `TraitFamilies`.
+
 Issue #1093. Every material carries a trait that does something on a tool or weapon **and** a trait
 that does something on armor, and the two belong together: the same idea seen from the attacking
 side and from the defending side.

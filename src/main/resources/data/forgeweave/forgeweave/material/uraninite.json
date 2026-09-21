@@ -35,8 +35,12 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "armor": ["forgeweave:uraninite_sickness"],
-    "general": ["forgeweave:uraninite_decay"]
+    "armor": [
+      "forgeweave:blightward"
+    ],
+    "general": [
+      "forgeweave:grievous"
+    ]
   },
   "crafting_items": [
     {

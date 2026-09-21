@@ -15,21 +15,60 @@
     "bonus_damage": 5.0
   },
   "plating": {
-    "helmet": { "durability": 381, "armor": 2.0, "toughness": 2.0, "knockback_resistance": 0.05 },
-    "chestplate": { "durability": 554, "armor": 7.0, "toughness": 2.0, "knockback_resistance": 0.05 },
-    "leggings": { "durability": 519, "armor": 5.0, "toughness": 2.0, "knockback_resistance": 0.05 },
-    "boots": { "durability": 450, "armor": 2.0, "toughness": 2.0, "knockback_resistance": 0.05 }
+    "helmet": {
+      "durability": 381,
+      "armor": 2.0,
+      "toughness": 2.0,
+      "knockback_resistance": 0.05
+    },
+    "chestplate": {
+      "durability": 554,
+      "armor": 7.0,
+      "toughness": 2.0,
+      "knockback_resistance": 0.05
+    },
+    "leggings": {
+      "durability": 519,
+      "armor": 5.0,
+      "toughness": 2.0,
+      "knockback_resistance": 0.05
+    },
+    "boots": {
+      "durability": 450,
+      "armor": 2.0,
+      "toughness": 2.0,
+      "knockback_resistance": 0.05
+    }
   },
   "maille": true,
   "incorrect_for_tool": "forgeweave:incorrect_for_hardcinder_tool",
   "traits": {
-    "general": ["forgeweave:unraveling"],
-    "armor": ["forgeweave:unravelward"]
+    "general": [
+      "forgeweave:unraveling"
+    ],
+    "armor": [
+      "forgeweave:voidward"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:stormalloy_ingot" }, "value": 144 },
-    { "ingredient": { "item": "forgeweave:stormalloy_nugget" }, "value": 16 },
-    { "ingredient": { "item": "forgeweave:stormalloy_block" }, "value": 1296 }
+    {
+      "ingredient": {
+        "item": "forgeweave:stormalloy_ingot"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "item": "forgeweave:stormalloy_nugget"
+      },
+      "value": 16
+    },
+    {
+      "ingredient": {
+        "item": "forgeweave:stormalloy_block"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/stormalloy"

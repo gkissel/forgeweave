@@ -1353,7 +1353,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // tool info panel (issue #47) is what will display them; wording follows upstream 1.12's
         // modifier.<id>.name/.desc entries.
         add("trait.forgeweave.ecological.name", "Ecological");
-        add("trait.forgeweave.ecological.description", "Renewable resources are so good, they regenerate by themselves!");
+        add("trait.forgeweave.ecological.description", "Renewable resources are so good, they regenerate by themselves! One durability point every "
+                + "%s seconds.");
         add("trait.forgeweave.cheap.name", "Cheap");
         // Upstream modifier.cheap.desc, mechanical line only (flavor text dropped, as elsewhere).
         add("trait.forgeweave.cheap.description", "Increases durability gained when repairing the tool.");
@@ -1362,16 +1363,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.cheapskate.name", "Cheapskate");
         add("trait.forgeweave.cheapskate.description", "Stone is bad. Your tool has less durability.");
         add("trait.forgeweave.crude.name", "Crude");
-        add("trait.forgeweave.crude.description", "Bonus damage against unarmored targets.");
+        add("trait.forgeweave.crude.description", "Deals %s% more damage to unarmored targets.");
         // #231 flint retrofit: upstream's head-scoped crude2, named like magnetic2/writable2 are.
-        // Issue #1102: crude2 used to share crude's own sentence word for word, so a player reading
-        // the tooltip could not tell the two tiers apart -- ForgeweaveTraits#CRUDE_FRACTION_PER_LEVEL
-        // is 0.05F per level, so level 2 is 10%, twice crude's own +5%. crude's own description is
-        // untouched here; the wider trait-description pass is a separate issue (#1101 wave 2).
-        add("trait.forgeweave.crude2.name", "Crude II");
-        add("trait.forgeweave.crude2.description", "Deals 10% more damage to unarmored targets.");
         add("trait.forgeweave.fractured.name", "Fractured");
-        add("trait.forgeweave.fractured.description", "Your tool's damage is increased.");
+        add("trait.forgeweave.fractured.description", "Your tool's damage is increased by 1.5.");
 
         // Modifier names and descriptions, keyed by modifier id the same way (issue #105, ADR-0004:
         // behavior is Java, the recipe that applies it is data). Wording follows upstream 1.12's
@@ -1392,8 +1387,6 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // 1.12's modifier.<id>.name/.desc entries, same as the M1 traits above.
         add("trait.forgeweave.magnetic.name", "Magnetic");
         add("trait.forgeweave.magnetic.description", "Pulls nearby item drops toward you.");
-        add("trait.forgeweave.magnetic2.name", "Magnetic II");
-        add("trait.forgeweave.magnetic2.description", "Pulls nearby item drops toward you, from further away.");
         add("trait.forgeweave.momentum.name", "Momentum");
         add("trait.forgeweave.momentum.description", "Mining speed increases the longer you mine continuously.");
         add("trait.forgeweave.lightweight.name", "Lightweight");
@@ -1414,8 +1407,6 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // 1.12 counterpart for either material or trait, so wording is this PR's own.
         add("trait.forgeweave.quick.name", "Quick");
         add("trait.forgeweave.quick.description", "Greatly increases mining and attack speed.");
-        add("trait.forgeweave.reinforced_core.name", "Reinforced Core");
-        add("trait.forgeweave.reinforced_core.description", "Adds an extra modifier slot to the tool.");
 
         // M3.2 stateful/special traits (issue #230). Wording follows upstream 1.12's
         // modifier.<id>.name/.desc entries where the trait is a port; vintage is a Forgeweave
@@ -1466,12 +1457,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.dense.name", "Dense");
         add("trait.forgeweave.dense.description", "Your tool lasts longer when it has less durability.");
         add("trait.forgeweave.writable.name", "Writable");
-        add("trait.forgeweave.writable.description", "More words. More modifiers. It's only logical!");
-        // Issue #1102: writable2 used to repeat writable's own flavour line with no mechanism stated
-        // at either tier. ForgeweaveTraits#WRITABLE2 is extraModifierSlots(2), a flat +2 free modifier
-        // slots next to writable's own +1 (an all-paper tool totals +3).
-        add("trait.forgeweave.writable2.name", "Writable II");
-        add("trait.forgeweave.writable2.description", "More words. More modifiers. Grants 2 extra modifier slots.");
+        add("trait.forgeweave.writable.description",
+                "More words. More modifiers. Grants %s extra modifier slots.");
         add("trait.forgeweave.squeaky.name", "Squeaky");
         add("trait.forgeweave.squeaky.description",
                 "Your tool is so soft and squeaky it gained Silk Touch, but deals no damage.");
@@ -2302,6 +2289,22 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.holy.description", "Deal bonus damage to undead enemies.");
         add("trait.forgeweave.poisonous.name", "Poisonous");
         add("trait.forgeweave.poisonous.description", "Poisons enemies on hit.");
+
+        // #1103: the families and the merged survivors. A family has one name key and one
+        // description key; TraitFamilies appends the roman numeral and fills in the rung's own
+        // numbers, so "Keen Edge II" and "Keen Edge IV" quote 3 and 5 from this one string.
+        add("trait.forgeweave.fireward.name", "Fireward");
+        add("trait.forgeweave.fireward.description", "The wearer takes no damage from fire, lava or a blaze.");
+        add("trait.forgeweave.heft.name", "Heft");
+        add("trait.forgeweave.heft.description", "Plants whoever holds it: knockback shoves you %s% less, and a full worn set the same.");
+        add("trait.forgeweave.keen_edge.name", "Keen Edge");
+        add("trait.forgeweave.keen_edge.description", "Every hit lands %s extra damage, whatever it hits.");
+        add("trait.forgeweave.sure_footing.name", "Sure Footing");
+        add("trait.forgeweave.sure_footing.description", "Steps up half a block per piece worn without jumping, a full two blocks in a set.");
+        add("trait.forgeweave.witherward.name", "Witherward");
+        add("trait.forgeweave.witherward.description", "The worn side of a decaying edge: three blows in five leave the attacker withering for "
+                + "five seconds.");
+
         add("trait.forgeweave.heavy.name", "Heavy");
         add("trait.forgeweave.heavy.description", "Prevents knockback while held; a full worn set does the same.");
         add("trait.forgeweave.stiff.name", "Stiff");
@@ -2315,7 +2318,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Blocking blocks fire damage and getting hit sets the attacker on fire.");
         add("trait.forgeweave.enderference.name", "Enderference");
         add("trait.forgeweave.enderference.description", "Prevents Endermen from teleporting around for a short time.");
-        add("trait.forgeweave.lacerating.name", "Lacerating");
+        add("trait.forgeweave.lacerating.name", "Lacerate");
         add("trait.forgeweave.lacerating.description", "Hits open a bleeding wound that stacks and ticks over time.");
         // #626 (parity audit T17): the five ammo-side traits, upstream's modifier.<id>.name/.desc
         // (TinkerTraits:106-110). Same mechanic-sentence convention as every family above -- the
@@ -2427,31 +2430,27 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // #827 -- the M6 damage-scaling trait behavior library (ADR-0004). Own names, own wording;
         // not assigned to a material yet, so no ported upstream row applies here.
         add("trait.forgeweave.pristine.name", "Pristine");
-        add("trait.forgeweave.pristine.description", "Deals more damage the less worn the tool is.");
+        add("trait.forgeweave.pristine.description", "Deals up to 4 extra damage while the tool is still in good repair.");
         add("trait.forgeweave.vigorous.name", "Vigorous");
         add("trait.forgeweave.vigorous.description", "Deals more damage while the wielder is healthy.");
         add("trait.forgeweave.predatory.name", "Predatory");
         add("trait.forgeweave.predatory.description", "Deals more damage to targets that are already hurt.");
         add("trait.forgeweave.colossal.name", "Colossal");
-        add("trait.forgeweave.colossal.description", "Deals more damage to targets with a lot of health.");
+        add("trait.forgeweave.colossal.description", "Deals up to 6 extra damage to targets with a lot of health.");
         add("trait.forgeweave.kinetic.name", "Kinetic");
-        add("trait.forgeweave.kinetic.description", "Deals more damage the faster the wielder is moving.");
+        add("trait.forgeweave.kinetic.description", "A falling or sprinting blow lands up to %s extra damage.");
         add("trait.forgeweave.dominant.name", "Dominant");
-        add("trait.forgeweave.dominant.description", "Deals bonus damage to targets weaker than the wielder.");
+        add("trait.forgeweave.dominant.description", "Deals 3 extra damage to anything already weaker than the wielder.");
         add("trait.forgeweave.armor_breaker.name", "Armor Breaker");
-        add("trait.forgeweave.armor_breaker.description", "Deals bonus damage to armored targets.");
+        add("trait.forgeweave.armor_breaker.description", "Deals %s extra damage to anything wearing armor.");
         add("trait.forgeweave.opportunist.name", "Opportunist");
         add("trait.forgeweave.opportunist.description", "Deals bonus damage to targets already suffering a harmful effect.");
         // Issue #1102: all three levels used to say only "extra"/"even more extra"/"a lot of extra"
         // damage, though ForgeweaveTraits#CHARGED_BONUS_PER_LEVEL (1.5F) already fixes the amount.
         add("trait.forgeweave.surging.name", "Surging");
-        add("trait.forgeweave.surging.description", "A fully-charged swing deals 1.5 extra damage.");
-        add("trait.forgeweave.surging2.name", "Surging II");
-        add("trait.forgeweave.surging2.description", "A fully-charged swing deals 3 extra damage.");
-        add("trait.forgeweave.surging3.name", "Surging III");
-        add("trait.forgeweave.surging3.description", "A fully-charged swing deals 4.5 extra damage.");
+        add("trait.forgeweave.surging.description", "A fully-charged swing deals %s extra damage.");
         add("trait.forgeweave.ruthless.name", "Ruthless");
-        add("trait.forgeweave.ruthless.description", "Critical hits deal even more damage.");
+        add("trait.forgeweave.ruthless.description", "Critical hits deal 60% more damage.");
 
         // #946 -- the fusion metals' traits. None of them has an effect of its own; each is what a
         // fusion upgrade recipe checks before it will take the tool as a catalyst, so the
@@ -2476,165 +2475,57 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // the damage dealt, though trait_definition/soulrend{,2,3}.json already carries an exact
         // fraction and cap per level (forgeweave:lifesteal, Lifesteal#fraction/#cap).
         add("trait.forgeweave.soulrend.name", "Soul Rend");
-        add("trait.forgeweave.soulrend.description", "Heals the wielder for 10% of the damage dealt, up to 3.");
-        add("trait.forgeweave.soulrend2.name", "Soul Rend II");
-        add("trait.forgeweave.soulrend2.description", "Heals the wielder for 18% of the damage dealt, up to 5.");
-        add("trait.forgeweave.soulrend3.name", "Soul Rend III");
-        add("trait.forgeweave.soulrend3.description", "Heals the wielder for 26% of the damage dealt, up to 7.");
+        add("trait.forgeweave.soulrend.description", "Drinks %s% of the damage it deals back as health, up to %s a hit.");
         // #965 -- duskweld's own on-hit trait and the draconium core's, both datapack definitions
         // over behaviours TraitBehaviors already ships, the same shape soul rend uses above. A
         // material never shares a trait id with another material, so the inert tier gets its own
         // pair rather than borrowing the tier above's.
-        add("trait.forgeweave.soulwick.name", "Soul Wick");
-        add("trait.forgeweave.soulwick.description", "Heals the wielder for a small share of the damage dealt.");
-        add("trait.forgeweave.coremend.name", "Coremend");
-        add("trait.forgeweave.coremend.description", "Mends itself slowly, with no help from anyone.");
         add("trait.forgeweave.escalating.name", "Escalating");
         add("trait.forgeweave.escalating.description",
                 "Consecutive fully-charged hits deal more and more damage, fading if you stop landing them.");
         // #830 -- the M6 energy buffer trait behavior library (ADR-0004). Own names, own wording;
         // not assigned to a material yet, so no ported upstream row applies here.
         add("trait.forgeweave.energized.name", "Energized");
-        add("trait.forgeweave.energized.description",
-                "Carries a Forge Energy buffer that is spent before durability.");
+        add("trait.forgeweave.energized.description", "Carries a %s FE buffer and spends it before durability.");
         add("trait.forgeweave.solar_recharge.name", "Solar Recharge");
         add("trait.forgeweave.solar_recharge.description", "Slowly refills its energy buffer in daylight.");
         add("trait.forgeweave.kinetic_charge.name", "Kinetic Charge");
         add("trait.forgeweave.kinetic_charge.description", "Converts a share of damage dealt into stored energy.");
         // Issue #996 (D-M8-17): datapack trait_definition instances of the #830 energized behavior,
         // one per Powah crystal, ascending capacity (see trait_definition/*_charge.json).
-        add("trait.forgeweave.blazing_charge.name", "Blazing Charge");
-        add("trait.forgeweave.blazing_charge.description", "Carries a Forge Energy buffer that is spent before durability.");
         // #997 (D-M8-18) -- the spirit attuned gem's own trait. A datapack trait_definition instance
         // of the existing #829 self_repair_when behavior at its own rate, the same way the Powah
         // crystals' charges are instances of energized: no new Java, and its own id rather than a
         // share of duskspar's duskmend, which #876's dedupe policy forbids (MaterialTest).
-        add("trait.forgeweave.spiritmend.name", "Spirit Mend");
-        add("trait.forgeweave.spiritmend.description", "Slowly repairs itself after dark.");
-        add("trait.forgeweave.niotic_charge.name", "Niotic Charge");
-        add("trait.forgeweave.niotic_charge.description", "Carries a larger Forge Energy buffer that is spent before durability.");
-        add("trait.forgeweave.spirited_charge.name", "Spirited Charge");
-        add("trait.forgeweave.spirited_charge.description", "Carries a still larger Forge Energy buffer that is spent before durability.");
-        add("trait.forgeweave.nitro_charge.name", "Nitro Charge");
-        add("trait.forgeweave.nitro_charge.description", "Carries a very large Forge Energy buffer that is spent before durability.");
         // Issue #993 (D-M8-13 and D-M8-15): atomic matter alloy's own instance of the same #830
         // behavior. Mekanism's module container runs on the #830 EnergyBuffer, so the metal's trait
         // is what gives the tool the buffer the modules draw from (see trait_definition/infused.json).
-        add("trait.forgeweave.infused.name", "Infused");
-        add("trait.forgeweave.infused.description", "Carries a deep Forge Energy buffer that is spent before durability.");
         // Issue #1031 (D-M8-21): Just Dire Things' four tool tiers, each a datapack trait_definition
         // over an existing TraitBehaviors class echoing that tier's own identity in the source mod --
         // never a copy of its code. See trait_definition/ferricore_footing.json and siblings.
-        add("trait.forgeweave.ferricore_footing.name", "Sure Footing");
-        add("trait.forgeweave.ferricore_footing.description", "Steps up a full block without jumping, while worn.");
-        add("trait.forgeweave.blazegold_ember.name", "Blazegold Ember");
-        add("trait.forgeweave.blazegold_ember.description", "The wearer takes no damage from fire.");
-        add("trait.forgeweave.celestigem_charge.name", "Celestial Charge");
-        add("trait.forgeweave.celestigem_charge.description", "Carries a Forge Energy buffer that is spent before durability.");
-        add("trait.forgeweave.eclipsealloy_charge.name", "Eclipse Charge");
-        add("trait.forgeweave.eclipsealloy_charge.description",
-                "Carries a large Forge Energy buffer that is spent before durability.");
-        add("trait.forgeweave.eclipsealloy_ward.name", "Eclipse Ward");
-        add("trait.forgeweave.eclipsealloy_ward.description",
-                "Once per cooldown, a killing blow spends the worn piece's durability to save the wearer instead.");
         // Issue #1059 (D-M8-25): Twilight Forest and Ice and Fire's fourteen material traits, each a
         // datapack trait_definition over an existing TraitBehaviors class echoing that material's own
         // identity in its source mod. See docs/research/twilight-forest-and-ice-and-fire.md for the
         // per-material reasoning.
-        add("trait.forgeweave.ironwood_footing.name", "Ironwood Footing");
-        add("trait.forgeweave.ironwood_footing.description", "Steps up a full block without jumping, while worn.");
-        add("trait.forgeweave.steeleaf_precision.name", "Steeleaf Precision");
-        add("trait.forgeweave.steeleaf_precision.description", "Critical hits strike harder.");
-        add("trait.forgeweave.knightmetal_breach.name", "Knightmetal Breach");
-        add("trait.forgeweave.knightmetal_breach.description", "Deals bonus damage to armored targets.");
-        add("trait.forgeweave.fiery_ember.name", "Fiery Ember");
-        add("trait.forgeweave.fiery_ember.description", "The wearer takes no damage from fire.");
-        add("trait.forgeweave.naga_ward.name", "Naga Ward");
-        add("trait.forgeweave.naga_ward.description", "Scales harden as blows keep landing, up to 8% off a blow, easing off after a lull.");
-        add("trait.forgeweave.arctic_insulation.name", "Arctic Insulation");
-        add("trait.forgeweave.arctic_insulation.description", "Toughens against repeated blows, up to 12% off a blow, resetting after a lull.");
-        add("trait.forgeweave.alpha_yeti_resilience.name", "Alpha Yeti Resilience");
-        add("trait.forgeweave.alpha_yeti_resilience.description", "Grants a brief window of extra invulnerability after being hit.");
-        add("trait.forgeweave.carminite_flicker.name", "Carminite Flicker");
-        add("trait.forgeweave.carminite_flicker.description", "A chance to avoid an incoming hit entirely.");
-        add("trait.forgeweave.dragonbone_edge.name", "Dragonbone Edge");
-        add("trait.forgeweave.dragonbone_edge.description", "Critical hits strike harder.");
-        add("trait.forgeweave.dragonsteel_fire_ward.name", "Dragonsteel Fire Ward");
-        add("trait.forgeweave.dragonsteel_fire_ward.description", "The wearer takes no damage from fire.");
-        add("trait.forgeweave.dragonsteel_ice_calm.name", "Dragonsteel Ice Calm");
-        add("trait.forgeweave.dragonsteel_ice_calm.description", "Toughens against repeated blows, up to 16% off a blow, resetting after a lull.");
-        add("trait.forgeweave.dragonsteel_lightning_surge.name", "Dragonsteel Lightning Surge");
-        add("trait.forgeweave.dragonsteel_lightning_surge.description", "Deals bonus damage on a fully charged swing.");
         // Issue #876's dedupe policy forbids one trait id claimed by more than one material, so each
         // color/biome variant gets its own id over the identical behavior body rather than sharing
         // one (MaterialTest#noTwoMaterialsShareANonExemptTraitId).
-        add("trait.forgeweave.deathworm_venom_yellow.name", "Death Worm Venom");
-        add("trait.forgeweave.deathworm_venom_yellow.description", "Poisons whatever it strikes.");
-        add("trait.forgeweave.deathworm_venom_white.name", "Death Worm Venom");
-        add("trait.forgeweave.deathworm_venom_white.description", "Poisons whatever it strikes.");
-        add("trait.forgeweave.deathworm_venom_red.name", "Death Worm Venom");
-        add("trait.forgeweave.deathworm_venom_red.description", "Poisons whatever it strikes.");
-        add("trait.forgeweave.troll_regeneration_mountain.name", "Troll Regeneration");
-        add("trait.forgeweave.troll_regeneration_mountain.description", "Slowly repairs itself over time.");
-        add("trait.forgeweave.troll_regeneration_forest.name", "Troll Regeneration");
-        add("trait.forgeweave.troll_regeneration_forest.description", "Slowly repairs itself over time.");
-        add("trait.forgeweave.troll_regeneration_frost.name", "Troll Regeneration");
-        add("trait.forgeweave.troll_regeneration_frost.description", "Slowly repairs itself over time.");
         // Issue #1058 (D-M8-24): Track A presets for Silent Gear, PneumaticCraft: Repressurized,
         // Forbidden and Arcanus, The Aether and L_Ender's Cataclysm, each a datapack
         // trait_definition over an existing TraitBehaviors class echoing that material's own
         // identity in the source mod -- never a copy of its code.
-        add("trait.forgeweave.crimson_steel_temper.name", "Crimson Temper");
-        add("trait.forgeweave.crimson_steel_temper.description", "The wearer takes no damage from fire.");
         add("trait.forgeweave.azure_silver_moonstep.name", "Moonstep");
         add("trait.forgeweave.azure_silver_moonstep.description", "Jumps noticeably higher while worn.");
-        add("trait.forgeweave.azure_electrum_swift.name", "Swift");
-        add("trait.forgeweave.azure_electrum_swift.description", "Moves faster while worn.");
-        add("trait.forgeweave.blaze_gold_cinder.name", "Cinder Brand");
-        add("trait.forgeweave.blaze_gold_cinder.description", "The wearer takes no damage from fire.");
-        add("trait.forgeweave.tyrian_steel_ward.name", "Tyrian Ward");
-        add("trait.forgeweave.tyrian_steel_ward.description",
-                "Once per cooldown, a killing blow spends the worn piece's durability to save the wearer instead.");
-        add("trait.forgeweave.compressed_iron_heft.name", "Compressed Heft");
-        add("trait.forgeweave.compressed_iron_heft.description", "Its weight keeps you planted: knockback moves you "
-                + "less while you hold it, and a quarter as much again for every piece you wear.");
-        add("trait.forgeweave.deorum_temper.name", "Deorum Temper");
-        add("trait.forgeweave.deorum_temper.description", "Toughens against repeated blows, up to 14% off a blow, resetting after a lull.");
-        add("trait.forgeweave.zanite_growth.name", "Zanite Growth");
-        add("trait.forgeweave.zanite_growth.description", "Mines faster the more worn the tool becomes.");
         add("trait.forgeweave.gravitite_levity.name", "Gravitite Levity");
         add("trait.forgeweave.gravitite_levity.description", "Flies faster while worn.");
-        add("trait.forgeweave.ambrosium_glow.name", "Ambrosium Glow");
-        add("trait.forgeweave.ambrosium_glow.description", "Being struck grants a short burst of regeneration.");
-        add("trait.forgeweave.ignitium_blaze.name", "Ignitium Blaze");
-        add("trait.forgeweave.ignitium_blaze.description", "The wearer takes no damage from fire.");
-        add("trait.forgeweave.cursium_blight.name", "Cursium Blight");
-        add("trait.forgeweave.cursium_blight.description", "A struck target's healing is weakened for a short time.");
         // Issue #1069 (D-M8-26): the six empowered crystals' traits, each the plain crystal's own
         // trait family at a higher level.
-        add("trait.forgeweave.empowered_restonia_bloodsurge.name", "Empowered Bloodsurge");
-        add("trait.forgeweave.empowered_restonia_bloodsurge.description",
-                "Much more damage against tougher targets.");
-        add("trait.forgeweave.empowered_palis_tempest.name", "Empowered Tempest");
-        add("trait.forgeweave.empowered_palis_tempest.description",
-                "Far more damage the faster the wielder is moving.");
-        add("trait.forgeweave.empowered_diamatine_prism.name", "Empowered Prism");
-        add("trait.forgeweave.empowered_diamatine_prism.description",
-                "A fully-charged swing lands much more extra damage.");
-        add("trait.forgeweave.empowered_void_maw.name", "Empowered Maw");
-        add("trait.forgeweave.empowered_void_maw.description", "A deeper void-forged edge.");
-        add("trait.forgeweave.empowered_emeradic_bulwark.name", "Empowered Bulwark");
-        add("trait.forgeweave.empowered_emeradic_bulwark.description",
-                "A deeper crystal facet turns aside a blow's shove, held or worn.");
-        add("trait.forgeweave.empowered_enori_radiance.name", "Empowered Radiance");
-        add("trait.forgeweave.empowered_enori_radiance.description",
-                "A landed hit leaves the target glowing for longer.");
         add("tooltip.forgeweave.energy", "Stored Energy");
         // #829 M6 utility/economy trait behavior library.
         add("trait.forgeweave.sunmend.name", "Sunmend");
-        add("trait.forgeweave.sunmend.description", "Mends one point every 22 seconds in direct sunlight.");
+        add("trait.forgeweave.sunmend.description", "Mends one point every 8 seconds in direct sunlight.");
         add("trait.forgeweave.duskmend.name", "Duskmend");
-        add("trait.forgeweave.duskmend.description", "Mends one point every 22 seconds after dark.");
+        add("trait.forgeweave.duskmend.description", "Mends one point every 8 seconds after dark.");
         add("trait.forgeweave.cascading.name", "Cascading");
         add("trait.forgeweave.cascading.description", "Breaks the whole column of falling blocks above what you mine.");
         add("trait.forgeweave.fertilizing.name", "Fertilizing");
@@ -2644,7 +2535,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.blighted.name", "Blighted");
         add("trait.forgeweave.blighted.description", "Repeated hits stack a withering effect on the target.");
         add("trait.forgeweave.enfeebling.name", "Enfeebling");
-        add("trait.forgeweave.enfeebling.description", "Weakens enemies on hit.");
+        add("trait.forgeweave.enfeebling.description", "Weakens enemies for five seconds on hit.");
         add("trait.forgeweave.shackling.name", "Shackling");
         add("trait.forgeweave.shackling.description", "Briefly roots enemies on hit.");
         add("trait.forgeweave.revealing.name", "Revealing");
@@ -2656,19 +2547,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // Issue #1102: all three levels used to say only "a chance"/"a better chance"/"very likely",
         // though ForgeweaveTraits#UNRAVELING_CHANCE_PER_LEVEL (0.25F) already fixes the chance per level.
         add("trait.forgeweave.unraveling.name", "Unraveling");
-        add("trait.forgeweave.unraveling.description", "A fully-charged hit has a 25% chance to strip a beneficial effect from the target.");
-        add("trait.forgeweave.unraveling2.name", "Unraveling II");
-        add("trait.forgeweave.unraveling2.description", "A fully-charged hit has a 50% chance to strip a beneficial effect from the target.");
-        add("trait.forgeweave.unraveling3.name", "Unraveling III");
-        add("trait.forgeweave.unraveling3.description", "A fully-charged hit has a 75% chance to strip a beneficial effect from the target.");
+        add("trait.forgeweave.unraveling.description",
+                "A fully-charged hit has a %s% chance to strip a beneficial effect from the target.");
         add("trait.forgeweave.grievous.name", "Grievous");
         add("trait.forgeweave.grievous.description", "Wounds struck by this weapon resist healing for a short time.");
         add("trait.forgeweave.harrying.name", "Harrying");
         add("trait.forgeweave.harrying.description", "Shortens the target's invulnerability after being hit, letting follow-up blows land sooner.");
-        add("trait.forgeweave.leeching.name", "Leeching");
-        add("trait.forgeweave.leeching.description", "Heals the wielder for a share of the damage dealt.");
         add("trait.forgeweave.arcing.name", "Arcing");
-        add("trait.forgeweave.arcing.description", "A fully-charged hit has a chance to arc to nearby enemies.");
+        add("trait.forgeweave.arcing.description", "The hit arcs to two more enemies nearby for %s% of its "
+                + "damage. Level I needs a fully charged swing; level II fires on every hit.");
         add("trait.forgeweave.stormcaller.name", "Stormcaller");
         add("trait.forgeweave.stormcaller.description", "Strikes lightning on enemies hit while the wielder is at full health.");
         add("effect.forgeweave.reduced_healing", "Grievous Wound");
@@ -3691,103 +3578,40 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
 
         // M6 dedupe batch (issue #876): every material gets a distinct trait id. Own
         // names, own wording -- see ForgeweaveTraits for the mechanics.
-        add("trait.forgeweave.unyielding.name", "Unyielding");
-        add("trait.forgeweave.unyielding.description", "Sharper the less worn it is.");
-        add("trait.forgeweave.radiant_edge.name", "Radiant Edge");
-        add("trait.forgeweave.radiant_edge.description", "A fully-charged swing lands extra damage.");
-        add("trait.forgeweave.verdant_ward.name", "Verdant Ward");
-        add("trait.forgeweave.verdant_ward.description", "A facet of crystal absorbs a blow's shove, held or worn.");
         add("trait.forgeweave.luminous.name", "Luminous");
         add("trait.forgeweave.luminous.description", "A landed hit leaves the target glowing.");
-        add("trait.forgeweave.stormglass.name", "Stormglass");
-        add("trait.forgeweave.stormglass.description", "More damage the faster the wielder is moving.");
-        add("trait.forgeweave.bloodgem.name", "Bloodgem");
-        add("trait.forgeweave.bloodgem.description", "More damage against tougher targets.");
-        add("trait.forgeweave.voidtouched.name", "Voidtouched");
-        add("trait.forgeweave.voidtouched.description", "A flat void-forged edge.");
-        add("trait.forgeweave.brittleforce.name", "Brittleforce");
-        add("trait.forgeweave.brittleforce.description", "Shatters armored targets a little harder.");
-        add("trait.forgeweave.avalanche.name", "Avalanche");
-        add("trait.forgeweave.avalanche.description", "Every hit shoves like a rockslide.");
-        add("trait.forgeweave.landslide.name", "Landslide");
-        add("trait.forgeweave.landslide.description", "Packed dense, with a deeper durability pool.");
         add("trait.forgeweave.skyborne.name", "Skyborne");
-        add("trait.forgeweave.skyborne.description", "Draws a bow noticeably faster.");
+        add("trait.forgeweave.skyborne.description", "Draws a bow 15% faster.");
         add("trait.forgeweave.featherfall.name", "Featherlight");
-        add("trait.forgeweave.featherfall.description", "A light metal that carries quick: 3% more movement speed while held.");
-        add("trait.forgeweave.buoyant.name", "Buoyant");
-        add("trait.forgeweave.buoyant.description", "Light enough to swing faster.");
-        add("trait.forgeweave.corebound.name", "Corebound");
-        add("trait.forgeweave.corebound.description", "Packs more mass into its durability pool.");
-        add("trait.forgeweave.ballast.name", "Ballast");
-        add("trait.forgeweave.ballast.description", "Too heavy to be knocked far, held or worn.");
+        add("trait.forgeweave.featherfall.description", "A light metal that carries quick: 15% more movement speed while held.");
         add("trait.forgeweave.leadfoot.name", "Leadfoot");
-        add("trait.forgeweave.leadfoot.description", "Dense enough to slow the wielder slightly.");
-        add("trait.forgeweave.obsidian_heart.name", "Obsidian Heart");
-        add("trait.forgeweave.obsidian_heart.description", "Punishes a target already losing the fight.");
+        add("trait.forgeweave.leadfoot.description", "Dense enough to drag: 10% less movement speed while held.");
         add("trait.forgeweave.voidrend.name", "Voidrend");
         add("trait.forgeweave.voidrend.description", "A hit sometimes saps the target's strength.");
         add("trait.forgeweave.seismic.name", "Seismic");
         add("trait.forgeweave.seismic.description", "A heavy, shove-first strike.");
         add("trait.forgeweave.stonewake.name", "Stonewake");
         add("trait.forgeweave.stonewake.description", "Opens a fight with a harder first strike.");
-        add("trait.forgeweave.keenedge.name", "Keenedge");
-        add("trait.forgeweave.keenedge.description", "Keeps a keen edge until it wears down.");
-        add("trait.forgeweave.tinseeker.name", "Tinseeker");
-        add("trait.forgeweave.tinseeker.description", "Mends one point every 40 seconds, day or night.");
         add("trait.forgeweave.steelfast.name", "Steelfast");
-        add("trait.forgeweave.steelfast.description", "A quick, disciplined swing.");
-        add("trait.forgeweave.brasswind.name", "Brasswind");
-        add("trait.forgeweave.brasswind.description", "A brisk draw.");
+        add("trait.forgeweave.steelfast.description", "A quick, disciplined swing: 15% more attack speed.");
         add("trait.forgeweave.amberflow.name", "Amberflow");
         add("trait.forgeweave.amberflow.description", "A charged hit sometimes sparks a burst of speed.");
-        add("trait.forgeweave.duskbloom.name", "Duskbloom");
-        add("trait.forgeweave.duskbloom.description", "Mends one point every 30 seconds after dark.");
         add("trait.forgeweave.emberwake.name", "Emberwake");
         add("trait.forgeweave.emberwake.description", "Striking a burning target quickens the follow-up.");
-        add("trait.forgeweave.smolderveil.name", "Smolderveil");
-        add("trait.forgeweave.smolderveil.description", "Mends one point every 20 seconds after dark, the quickest night mend there is.");
-        add("trait.forgeweave.ashenbond.name", "Ashenbond");
-        add("trait.forgeweave.ashenbond.description", "Mends one point every 20 seconds in direct sunlight.");
-        add("trait.forgeweave.prismward.name", "Prismward");
-        add("trait.forgeweave.prismward.description", "A crystalline ward softens a blow's shove, held or worn.");
-        add("trait.forgeweave.shattermail.name", "Shattermail");
-        add("trait.forgeweave.shattermail.description", "Bites a little deeper into armored targets.");
         add("trait.forgeweave.shieldbreaker.name", "Shieldbreaker");
         add("trait.forgeweave.shieldbreaker.description", "Each hit tears four times its damage out of a Draconic shield.");
         add("trait.forgeweave.chaosmark.name", "Chaosmark");
         add("trait.forgeweave.chaosmark.description", "An unstable strike occasionally disorients the target.");
         add("trait.forgeweave.vinewarden.name", "Vinewarden");
         add("trait.forgeweave.vinewarden.description", "Armor with overslime pays no armor penalty for it.");
-        add("trait.forgeweave.voidwoven.name", "Voidwoven");
-        add("trait.forgeweave.voidwoven.description", "A dense dark-alloy edge.");
-        add("trait.forgeweave.crystalline_ward.name", "Crystalline Ward");
-        add("trait.forgeweave.crystalline_ward.description",
-                "An end-forged plate holds you steady against a blow's shove, held or worn.");
         add("trait.forgeweave.quartzheart.name", "Quartzheart");
         add("trait.forgeweave.quartzheart.description", "Hits harder while the wielder is still healthy.");
-        add("trait.forgeweave.batteredge.name", "Batteredge");
-        add("trait.forgeweave.batteredge.description", "A second, smaller surge on a full-charge swing.");
         add("trait.forgeweave.sparkforge.name", "Sparkforge");
         add("trait.forgeweave.sparkforge.description", "Landing a hit sometimes sparks a burst of haste.");
-        add("trait.forgeweave.warbond.name", "Warbond");
-        add("trait.forgeweave.warbond.description", "Bonus damage against a target already losing.");
         add("trait.forgeweave.steadfast.name", "Steadfast");
-        add("trait.forgeweave.steadfast.description", "A stable, oversized durability pool.");
-        add("trait.forgeweave.coilcharge.name", "Coilcharge");
-        add("trait.forgeweave.coilcharge.description", "A magnetic-coil jolt on every hit.");
-        add("trait.forgeweave.smokehouse.name", "Smokehouse");
-        add("trait.forgeweave.smokehouse.description", "Mends one point every 50 seconds, day or night.");
-        add("trait.forgeweave.gravitic.name", "Gravitic");
-        add("trait.forgeweave.gravitic.description", "Leaden weight resists being knocked back, held or worn.");
-        add("trait.forgeweave.elektronbond.name", "Elektronbond");
-        add("trait.forgeweave.elektronbond.description", "A keen magnesium-alloy edge.");
+        add("trait.forgeweave.steadfast.description", "A stable, oversized durability pool: +80 durability.");
         add("trait.forgeweave.starforged.name", "Starforged");
         add("trait.forgeweave.starforged.description", "Sky stone takes a repair especially well.");
-        add("trait.forgeweave.rubberize.name", "Rubberize");
-        add("trait.forgeweave.rubberize.description", "A bouncy slime soaks up a blow's shove, held or worn.");
-        add("trait.forgeweave.matrixbloom.name", "Matrixbloom");
-        add("trait.forgeweave.matrixbloom.description", "A psionic weave that mends one point every 25 seconds in daylight.");
         add("trait.forgeweave.wellspring.name", "Wellspring");
         add("trait.forgeweave.wellspring.description", "Mining a stone-type block has a chance to heal the wielder.");
 
@@ -3823,31 +3647,18 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // #831 M6-7: the armor trait behavior library on the M4 defense seam.
         add("trait.forgeweave.bloodtoll.name", "Blood Toll");
         add("trait.forgeweave.bloodtoll.description", "No blow can ever be reduced to nothing; something always gets through.");
-        add("trait.forgeweave.hexward.name", "Hexward");
-        add("trait.forgeweave.hexward.description", "Attackers who strike you directly are sometimes left weakened.");
-        add("trait.forgeweave.mendbond.name", "Mendbond");
-        add("trait.forgeweave.mendbond.description", "Every point of healing you receive goes further.");
         add("trait.forgeweave.emberdrink.name", "Emberdrink");
         add("trait.forgeweave.emberdrink.description", "Fire does not burn you; it feeds you.");
         add("trait.forgeweave.bracingplate.name", "Bracing Plate");
-        add("trait.forgeweave.bracingplate.description", "Protection builds with every blow taken, up to 18% off a blow, and lapses once they stop.");
-        add("trait.forgeweave.sapmend.name", "Sapmend");
-        add("trait.forgeweave.sapmend.description", "Being wounded starts the wound closing.");
+        add("trait.forgeweave.bracingplate.description", "Protection builds on every piece worn with every "
+                + "blow taken, up to %s points each, and lapses six seconds after they stop.");
         add("trait.forgeweave.lastbreath.name", "Last Breath");
         add("trait.forgeweave.lastbreath.description",
                 "A killing blow is spent on the armor instead, at a heavy cost in durability, once in a long while.");
         add("trait.forgeweave.aegispulse.name", "Aegis Pulse");
         add("trait.forgeweave.aegispulse.description", "Struck at full health, you shrug off everything for a moment longer.");
-        add("trait.forgeweave.windstep.name", "Windstep");
-        add("trait.forgeweave.windstep.description", "Some blows simply miss you.");
-        add("trait.forgeweave.nightveil.name", "Nightveil");
-        add("trait.forgeweave.nightveil.description", "In the dark, creatures notice you far later.");
-        add("trait.forgeweave.swiftstride.name", "Swiftstride");
-        add("trait.forgeweave.swiftstride.description", "You move faster wearing it.");
         add("trait.forgeweave.battleworn.name", "Battleworn");
         add("trait.forgeweave.battleworn.description", "Protects better the more battered it gets.");
-        add("trait.forgeweave.stormrind.name", "Stormrind");
-        add("trait.forgeweave.stormrind.description", "Lightning passes through you harmlessly.");
         add("trait.forgeweave.blastvent.name", "Blastvent");
         add("trait.forgeweave.blastvent.description", "Explosions throw you clear instead of tearing into you.");
         add("trait.forgeweave.unstable_core.name", "Unstable Core");
@@ -3877,15 +3688,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // tool companions for materials whose only trait was armor-scoped; then the materials that
         // carried no trait at all. docs/research/trait-pairing.md is the table.
         add("trait.forgeweave.swiftward.name", "Swiftward");
-        add("trait.forgeweave.swiftward.description",
-                "The worn side of a quick edge: each piece worn moves you 6% faster.");
-        add("trait.forgeweave.deadweight.name", "Deadweight");
-        add("trait.forgeweave.deadweight.description",
-                "The worn side of a heavy strike: the mass that shoves your target steadies you too. 0.2 knockback "
-                + "resistance held, a quarter of that per piece worn.");
+        add("trait.forgeweave.swiftward.description", "The worn side of a quick edge: each piece worn moves you 8% faster, a third faster in a "
+                + "full set.");
         add("trait.forgeweave.bloodward.name", "Bloodward");
-        add("trait.forgeweave.bloodward.description",
-                "The worn side of a blood-drinking edge: being struck starts three seconds of regeneration.");
+        add("trait.forgeweave.bloodward.description", "The worn side of a blood-drinking edge: being struck starts six seconds of regeneration.");
         add("trait.forgeweave.vigorward.name", "Vigorward");
         add("trait.forgeweave.vigorward.description",
                 "The worn side of a blow that lands hardest while you are whole: being struck grants five seconds of "
@@ -3904,15 +3710,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.stormward.description",
                 "The worn side of a lightning edge: lightning passes through the wearer harmlessly.");
         add("trait.forgeweave.voidward.name", "Voidward");
-        add("trait.forgeweave.voidward.description",
-                "The worn side of a void-forged edge: one blow in ten misses the wearer entirely.");
-        add("trait.forgeweave.unravelward.name", "Unravelward");
-        add("trait.forgeweave.unravelward.description",
-                "The worn side of unraveling: one blow in ten comes apart before it lands.");
+        add("trait.forgeweave.voidward.description", "The worn side of a void-forged edge: every piece worn "
+                + "has a %s% chance of its own to make a blow miss, so a full set turns aside about a "
+                + "quarter of them.");
         add("trait.forgeweave.surgeward.name", "Surgeward");
-        add("trait.forgeweave.surgeward.description",
-                "The worn side of a wound-up swing: after a hit the wearer stays untouchable for 26 ticks instead of "
-                + "vanilla's 20.");
+        add("trait.forgeweave.surgeward.description", "The worn side of a wound-up swing: after a hit the wearer stays untouchable for two seconds "
+                + "instead of vanilla's one.");
         add("trait.forgeweave.tideward.name", "Tideward");
         add("trait.forgeweave.tideward.description",
                 "The worn side of a tide-clearing edge: 2.5 protection against drowning per piece.");
@@ -3924,13 +3727,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.duskward.description",
                 "The worn side of a night edge: below light level 7 creatures notice the wearer at half the usual "
                 + "distance.");
-        add("trait.forgeweave.kinetic_reserve.name", "Kinetic Reserve");
-        add("trait.forgeweave.kinetic_reserve.description",
-                "The worn side of kinetic charge: a 12,000 FE buffer spent before durability, on a tool or on a worn "
-                + "piece.");
         add("trait.forgeweave.magic_protection.name", "Magic Protection");
-        add("trait.forgeweave.magic_protection.description",
-                "Protects against magic damage, 2.5 protection per piece worn.");
+        add("trait.forgeweave.magic_protection.description", "Turns magic aside: %s protection on every piece worn.");
 
         // #1097 -- the companions that replaced melee_protection and magic_protection where those
         // two had become catch-alls. The essence ladder climbs on the armor side the way it climbs
@@ -3939,121 +3737,19 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.temperward.name", "Temperward");
         add("trait.forgeweave.temperward.description",
                 "The worn side of a flat, keen edge: 1.5 protection against every blow, per piece worn.");
-        add("trait.forgeweave.inferium_ward.name", "Inferium Ward");
-        add("trait.forgeweave.inferium_ward.description",
-                "The first rung of the essence ladder worn: 0.75 protection against magic damage, per piece.");
-        add("trait.forgeweave.prudentium_ward.name", "Prudentium Ward");
-        add("trait.forgeweave.prudentium_ward.description",
-                "The second rung of the essence ladder worn: 1.25 protection against magic damage, per piece.");
-        add("trait.forgeweave.tertium_ward.name", "Tertium Ward");
-        add("trait.forgeweave.tertium_ward.description",
-                "The third rung of the essence ladder worn: 1.75 protection against magic damage, per piece.");
-        add("trait.forgeweave.imperium_ward.name", "Imperium Ward");
-        add("trait.forgeweave.imperium_ward.description",
-                "The fourth rung of the essence ladder worn: 2.25 protection against magic damage, per piece.");
-        add("trait.forgeweave.supremium_ward.name", "Supremium Ward");
-        add("trait.forgeweave.supremium_ward.description",
-                "The fifth rung of the essence ladder worn: 2.75 protection against magic damage, per piece.");
-        add("trait.forgeweave.awakened_supremium_ward.name", "Awakened Ward");
-        add("trait.forgeweave.awakened_supremium_ward.description",
-                "The sixth rung of the essence ladder worn: 3.25 protection against magic damage, per piece.");
-        add("trait.forgeweave.insanium_ward.name", "Insanium Ward");
-        add("trait.forgeweave.insanium_ward.description",
-                "The top rung of the essence ladder worn: 3.75 protection against magic damage, per piece.");
-        add("trait.forgeweave.uraninite_sickness.name", "Raw Sickness");
-        add("trait.forgeweave.uraninite_sickness.description",
-                "The worn side of raw uraninite: three times in ten, whoever strikes you is left weakened for three "
-                + "seconds.");
         add("trait.forgeweave.cyanite_chillback.name", "Cyanite Chillback");
         add("trait.forgeweave.cyanite_chillback.description",
                 "The worn side of a cyanite chill: two times in five, whoever strikes you is slowed for four "
                 + "seconds.");
-        add("trait.forgeweave.blutonium_fallout.name", "Blutonium Fallout");
-        add("trait.forgeweave.blutonium_fallout.description",
-                "The worn side of a blutonium pulse: half the time, whoever strikes you withers for four seconds.");
-        add("trait.forgeweave.ludicrite_meltdown.name", "Ludicrite Meltdown");
-        add("trait.forgeweave.ludicrite_meltdown.description",
-                "The worn side of a ludicrite surge: three times in five, whoever strikes you withers for five "
-                + "seconds.");
-        add("trait.forgeweave.azure_electrum_rush.name", "Azure Rush");
-        add("trait.forgeweave.azure_electrum_rush.description",
-                "The tool side of swift: up to 3 more damage the faster the wielder is moving.");
-        add("trait.forgeweave.azure_silver_plunge.name", "Moonfall");
-        add("trait.forgeweave.azure_silver_plunge.description",
-                "The tool side of moonstep: what goes up comes down harder, critical hits deal 40% more.");
-        add("trait.forgeweave.ferricore_grip.name", "Ferricore Grip");
-        add("trait.forgeweave.ferricore_grip.description",
-                "The tool side of sure footing: 0.1 knockback resistance held, a quarter of that per piece worn.");
-        add("trait.forgeweave.ironwood_grip.name", "Ironwood Grip");
-        add("trait.forgeweave.ironwood_grip.description",
-                "The tool side of ironwood footing: 0.08 knockback resistance held, a quarter of that per piece "
-                + "worn.");
-        add("trait.forgeweave.gravitite_dive.name", "Gravitite Dive");
-        add("trait.forgeweave.gravitite_dive.description",
-                "The tool side of levity: up to 4 more damage the faster the wielder is moving.");
-        add("trait.forgeweave.mendreach.name", "Mendreach");
-        add("trait.forgeweave.mendreach.description",
-                "The tool side of mendbond: heals the wielder for 8% of the damage dealt, up to 2.");
-        add("trait.forgeweave.slimevine_snap.name", "Slimevine Snap");
-        add("trait.forgeweave.slimevine_snap.description",
-                "The tool side of a slimevine string: mends itself one point every 40 seconds.");
-        add("trait.forgeweave.inferium_edge.name", "Inferium Edge");
-        add("trait.forgeweave.inferium_edge.description",
-                "The first rung of essence-fed steel: 0.5 bonus damage on every hit.");
-        add("trait.forgeweave.prudentium_edge.name", "Prudentium Edge");
-        add("trait.forgeweave.prudentium_edge.description",
-                "Essence-fed steel, second rung: 1 bonus damage on every hit.");
-        add("trait.forgeweave.tertium_edge.name", "Tertium Edge");
-        add("trait.forgeweave.tertium_edge.description",
-                "Essence-fed steel, third rung: 1.5 bonus damage on every hit.");
-        add("trait.forgeweave.imperium_edge.name", "Imperium Edge");
-        add("trait.forgeweave.imperium_edge.description",
-                "Essence-fed steel, fourth rung: 2 bonus damage on every hit.");
-        add("trait.forgeweave.supremium_edge.name", "Supremium Edge");
-        add("trait.forgeweave.supremium_edge.description",
-                "Essence-fed steel, fifth rung: 2.5 bonus damage on every hit.");
-        add("trait.forgeweave.awakened_supremium_edge.name", "Awakened Supremium Edge");
-        add("trait.forgeweave.awakened_supremium_edge.description",
-                "Essence-fed steel, awakened: 3 bonus damage on every hit.");
-        add("trait.forgeweave.insanium_edge.name", "Insanium Edge");
-        add("trait.forgeweave.insanium_edge.description",
-                "The last rung of essence-fed steel: 3.5 bonus damage on every hit.");
         add("trait.forgeweave.prosperity_bloom.name", "Prosperity Bloom");
         add("trait.forgeweave.prosperity_bloom.description",
                 "Right-click a crop to make it grow, one time in four, for 5 durability.");
-        add("trait.forgeweave.soulium_reap.name", "Soulium Reap");
-        add("trait.forgeweave.soulium_reap.description",
-                "Heals the wielder for 8% of the damage dealt, up to 2.");
         add("trait.forgeweave.blutonium_pulse.name", "Blutonium Pulse");
         add("trait.forgeweave.blutonium_pulse.description",
                 "A struck target withers for two seconds.");
         add("trait.forgeweave.cyanite_chill.name", "Cyanite Chill");
         add("trait.forgeweave.cyanite_chill.description",
                 "A struck target is slowed for three seconds.");
-        add("trait.forgeweave.ludicrite_surge.name", "Ludicrite Surge");
-        add("trait.forgeweave.ludicrite_surge.description",
-                "A hit arcs to up to two more enemies within four blocks for 40% of the damage.");
-        add("trait.forgeweave.uraninite_decay.name", "Uraninite Decay");
-        add("trait.forgeweave.uraninite_decay.description",
-                "A struck target's healing is halved for five seconds.");
-        add("trait.forgeweave.fluix_arc.name", "Fluix Arc");
-        add("trait.forgeweave.fluix_arc.description",
-                "A hit arcs to up to two more enemies within four blocks for 35% of the damage.");
-        add("trait.forgeweave.silicon_lattice.name", "Silicon Lattice");
-        add("trait.forgeweave.silicon_lattice.description",
-                "Adds an extra modifier slot.");
-        add("trait.forgeweave.quartz_enriched_edge.name", "Quartz Enriched Edge");
-        add("trait.forgeweave.quartz_enriched_edge.description",
-                "Quartz through the grain: 1.5 bonus damage on every hit.");
-        add("trait.forgeweave.iesnium_rite.name", "Iesnium Rite");
-        add("trait.forgeweave.iesnium_rite.description",
-                "A struck target is weakened for five seconds.");
-        add("trait.forgeweave.fluorite_focus.name", "Fluorite Focus");
-        add("trait.forgeweave.fluorite_focus.description",
-                "Carries a 10,000 FE buffer spent before durability, on a tool or on a worn piece.");
-        add("trait.forgeweave.vine_weave.name", "Vine Weave");
-        add("trait.forgeweave.vine_weave.description",
-                "A living weave mends itself one point every 45 seconds, on a bowstring or on maille.");
     }
 
     /** One tool's ported {@code ContentTool#properties} bullets, keyed {@code <tool>.property.<n>}. */

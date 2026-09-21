@@ -33,30 +33,30 @@ import dev.gkissel.forgeweave.material.Material;
  *   <li><b>{@code empowered_restonia_crystal}</b> ({@code actuallyadditions:empowered_restonia_crystal},
  *       block {@code actuallyadditions:empowered_restonia_crystal_block}). The mod's own {@code
  *       Crystals} enum (decompiled from the jar) pairs restonia with {@code REDSTONE}. Echoed with
- *       {@code forgeweave:empowered_restonia_bloodsurge}, a stronger {@code damage_scales_with}
- *       (target max health) than the plain crystal's {@code bloodgem} trait -- the same behavior
+ *       {@code forgeweave:colossal}, a stronger {@code damage_scales_with}
+ *       (target max health) than the plain crystal's {@code colossal} trait -- the same behavior
  *       family at a higher level, issue #1069's own steer.
  *   <li><b>{@code empowered_palis_crystal}</b> ({@code actuallyadditions:empowered_palis_crystal},
  *       block {@code actuallyadditions:empowered_palis_crystal_block}). Paired with {@code LAPIS}.
- *       Echoed with {@code forgeweave:empowered_palis_tempest}, {@code stormglass}'s impact-velocity
+ *       Echoed with {@code forgeweave:kinetic2}, {@code kinetic}'s impact-velocity
  *       scaling at a higher coefficient and cap.
  *   <li><b>{@code empowered_diamatine_crystal}</b> ({@code actuallyadditions:empowered_diamatine_crystal},
  *       block {@code actuallyadditions:empowered_diamatine_crystal_block}). Paired with {@code
- *       DIAMOND}. Echoed with {@code forgeweave:empowered_diamatine_prism}, {@code radiant_edge}'s
+ *       DIAMOND}. Echoed with {@code forgeweave:surging3}, {@code surging2}'s
  *       full-charge bonus damage raised from 3.0 to 5.0.
  *   <li><b>{@code empowered_void_crystal}</b> ({@code actuallyadditions:empowered_void_crystal}, block
  *       {@code actuallyadditions:empowered_void_crystal_block}). Paired with {@code COAL}. Echoed
- *       with {@code forgeweave:empowered_void_maw}, {@code voidtouched}'s flat attack bonus doubled
+ *       with {@code forgeweave:keen_edge2}, {@code fractured}'s flat attack bonus doubled
  *       from 1.0 to 2.0.
  *   <li><b>{@code empowered_emeradic_crystal}</b> ({@code actuallyadditions:empowered_emeradic_crystal},
  *       block {@code actuallyadditions:empowered_emeradic_crystal_block}). Paired with {@code
- *       EMERALD}. Echoed with {@code forgeweave:empowered_emeradic_bulwark}, a {@code damage_floor}
- *       (never take a hit below 2 hearts) -- {@code verdant_ward}'s knockback-resistance shield idea
+ *       EMERALD}. Echoed with {@code forgeweave:heft3}, a {@code damage_floor}
+ *       (never take a hit below 2 hearts) -- {@code heft2}'s knockback-resistance shield idea
  *       at a concrete, stronger defensive guarantee no {@code TraitBehaviors} seam expresses as flat
  *       knockback resistance.
  *   <li><b>{@code empowered_enori_crystal}</b> ({@code actuallyadditions:empowered_enori_crystal},
  *       block {@code actuallyadditions:empowered_enori_crystal_block}). Paired with {@code IRON}.
- *       Echoed with {@code forgeweave:empowered_enori_radiance}, {@code luminous}'s on-hit glowing
+ *       Echoed with {@code forgeweave:revealing}, {@code luminous}'s on-hit glowing
  *       effect held twice as long (200 ticks instead of 100).
  * </ul>
  *

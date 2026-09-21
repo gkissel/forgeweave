@@ -39,8 +39,12 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:deathworm_venom_red"],
-    "armor": ["forgeweave:venomward"]
+    "general": [
+      "forgeweave:poisonous"
+    ],
+    "armor": [
+      "forgeweave:venomward"
+    ]
   },
   "crafting_items": [
     {

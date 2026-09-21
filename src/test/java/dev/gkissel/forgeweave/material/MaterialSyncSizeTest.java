@@ -25,6 +25,8 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.Bootstrap;
 
+import dev.gkissel.forgeweave.trait.TraitDefinition;
+
 /**
  * Guards the material registry-sync payload (issue #227; docs/SCOPE.md performance budget: "the
  * material sync packet stays trivially small even at M6 scale"). {@code Material.REGISTRY} is a
@@ -174,6 +176,9 @@ class MaterialSyncSizeTest {
      */
     private static final int SYNC_BUDGET_BYTES = 170 * 1024;
 
+    /** The {@code trait_definition} registry's own line, first drawn by issue #1103. */
+    private static final int DEFINITION_SYNC_BUDGET_BYTES = 12 * 1024;
+
 
     private static RegistryOps<JsonElement> jsonOps;
     private static RegistryOps<Tag> nbtOps;
@@ -210,6 +215,42 @@ class MaterialSyncSizeTest {
                 materials + " materials encode to " + buf.readableBytes() + " bytes of registry-sync payload, "
                         + "over the " + SYNC_BUDGET_BYTES + "-byte budget -- either a material grew far beyond "
                         + "the roster's norm or the budget needs a deliberate revisit (SCOPE.md performance budgets)");
+    }
+
+    /**
+     * The same budget question for the other synced datapack registry, which nothing measured until
+     * issue #1103 asked for it. {@code trait_definition} rides {@code Material}'s idiom -- a
+     * NeoForge datapack registry with the codec as its network codec -- so every shipped definition
+     * is on the wire at login next to the materials.
+     *
+     * <p>It is small: 106 files encoded to about 8.4 KB before #1103, and the merge left 40. The
+     * budget is deliberately tight so a future batch of definitions has to say so out loud, the
+     * same way the material line does.
+     */
+    @Test
+    void shippedTraitDefinitionsFitTheirOwnSyncBudget() throws Exception {
+        Path definitionDir = projectRoot()
+                .resolve("src/main/resources/data/forgeweave/forgeweave/trait_definition");
+        FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
+        int definitions = 0;
+
+        try (Stream<Path> files = Files.list(definitionDir)) {
+            for (Path file : files.filter(p -> p.toString().endsWith(".json")).sorted().toList()) {
+                definitions++;
+                JsonElement json = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8));
+                TraitDefinition definition = TraitDefinition.CODEC.parse(jsonOps, json).getOrThrow();
+                buf.writeNbt(TraitDefinition.CODEC.encodeStart(nbtOps, definition).getOrThrow());
+            }
+        }
+
+        assertTrue(definitions >= 20, "expected the shipped definitions, walked only " + definitions);
+        System.out.println("[#1103] trait definition sync payload: " + definitions + " definitions encode to "
+                + buf.readableBytes() + " bytes (budget " + DEFINITION_SYNC_BUDGET_BYTES + ")");
+        assertTrue(buf.readableBytes() <= DEFINITION_SYNC_BUDGET_BYTES,
+                definitions + " trait definitions encode to " + buf.readableBytes() + " bytes of registry-sync "
+                        + "payload, over the " + DEFINITION_SYNC_BUDGET_BYTES + "-byte budget -- either a "
+                        + "definition grew far beyond the norm or the budget needs a deliberate revisit "
+                        + "(SCOPE.md performance budgets)");
     }
 
     private static Path projectRoot() {

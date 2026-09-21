@@ -1,0 +1,11 @@
+{
+  "behavior": "forgeweave:energized",
+  "capacity": 20000,
+  "energy_per_durability_point": 30.0,
+  "family": "energized",
+  "level": 2,
+  "max_level": 4,
+  "description_args": [
+    "20,000"
+  ]
+}

@@ -39,8 +39,12 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:knightmetal_breach"],
-    "armor": ["forgeweave:melee_protection"]
+    "general": [
+      "forgeweave:armor_breaker2"
+    ],
+    "armor": [
+      "forgeweave:melee_protection"
+    ]
   },
   "crafting_items": [
     {

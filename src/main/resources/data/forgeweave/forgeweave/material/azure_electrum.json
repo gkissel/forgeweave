@@ -15,20 +15,54 @@
     "bonus_damage": 8.2
   },
   "plating": {
-    "helmet": { "durability": 340, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 },
-    "chestplate": { "durability": 500, "armor": 8.0, "toughness": 3.0, "knockback_resistance": 0.1 },
-    "leggings": { "durability": 468, "armor": 6.0, "toughness": 3.0, "knockback_resistance": 0.1 },
-    "boots": { "durability": 407, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 }
+    "helmet": {
+      "durability": 340,
+      "armor": 3.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
+    },
+    "chestplate": {
+      "durability": 500,
+      "armor": 8.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
+    },
+    "leggings": {
+      "durability": 468,
+      "armor": 6.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
+    },
+    "boots": {
+      "durability": 407,
+      "armor": 3.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:azure_electrum_rush"],
-    "armor": ["forgeweave:azure_electrum_swift"]
+    "general": [
+      "forgeweave:kinetic"
+    ],
+    "armor": [
+      "forgeweave:swiftward"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:ingots/azure_electrum" }, "value": 144 },
-    { "ingredient": { "tag": "c:storage_blocks/azure_electrum" }, "value": 1296 }
+    {
+      "ingredient": {
+        "tag": "c:ingots/azure_electrum"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/azure_electrum"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/azure_electrum"

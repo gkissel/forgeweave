@@ -84,13 +84,13 @@ public class TrackBMaterialGameTests {
             Map.entry("voidglass", "alien2"),
             Map.entry("ironbrand", "gamedrop"),
             Map.entry("quakestone", "quakecrumble"),
-            Map.entry("shardline", "keenedge"),
-            Map.entry("embercast", "ashenbond"),
+            Map.entry("shardline", "pristine"),
+            Map.entry("embercast", "sunmend"),
             Map.entry("riftalloy", "riftstep"),
             Map.entry("tideiron", "tidebreaker"),
             Map.entry("cinderforge", "magmaforge"),
             Map.entry("dreadalloy", "dreadgrip"),
-            Map.entry("sunsteel", "avalanche"),
+            Map.entry("sunsteel", "seismic"),
             Map.entry("hollowsteel", "bloodtally"),
             Map.entry("truesteel", "berserker_stance"),
             Map.entry("stormalloy", "unraveling"),
@@ -99,10 +99,10 @@ public class TrackBMaterialGameTests {
             Map.entry("faultsteel", "cascading"),
             Map.entry("skipalloy", "quickstep"),
             Map.entry("mendalloy", "merciful"),
-            Map.entry("mendstone", "tinseeker"),
-            // #993 (D-M8-13, D-M8-15): infused is the metal's own instance of the #830 energized
+            Map.entry("mendstone", "ecological"),
+            // #993 (D-M8-13, D-M8-15): energized4 is the metal's own instance of the #830 energized
             // behavior, which is the buffer Mekanism's module container draws from.
-            Map.entry("atomic_matter_alloy", "infused"));
+            Map.entry("atomic_matter_alloy", "energized4"));
 
     /** Every Track B material is registered with no supplying mod required -- the Track A contrast. */
     @GameTest(template = "empty")

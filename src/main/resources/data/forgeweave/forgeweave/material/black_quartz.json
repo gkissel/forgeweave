@@ -15,20 +15,46 @@
     "bonus_damage": 2.0
   },
   "plating": {
-    "helmet": { "durability": 162, "armor": 2.0 },
-    "chestplate": { "durability": 235, "armor": 5.0 },
-    "leggings": { "durability": 221, "armor": 4.0 },
-    "boots": { "durability": 191, "armor": 2.0 }
+    "helmet": {
+      "durability": 162,
+      "armor": 2.0
+    },
+    "chestplate": {
+      "durability": 235,
+      "armor": 5.0
+    },
+    "leggings": {
+      "durability": 221,
+      "armor": 4.0
+    },
+    "boots": {
+      "durability": 191,
+      "armor": 2.0
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
-    "general": ["forgeweave:unyielding"],
-    "armor": ["forgeweave:warded"]
+    "general": [
+      "forgeweave:pristine"
+    ],
+    "armor": [
+      "forgeweave:warded"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:gems/black_quartz" }, "value": 144 },
-    { "ingredient": { "tag": "c:storage_blocks/black_quartz" }, "value": 1296 }
+    {
+      "ingredient": {
+        "tag": "c:gems/black_quartz"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/black_quartz"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "tag": "c:gems/black_quartz"
@@ -36,6 +62,9 @@
   "enchantability": 12,
   "color": "#2B2B2E",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "actuallyadditions:black_quartz" }
+    {
+      "type": "neoforge:item_exists",
+      "item": "actuallyadditions:black_quartz"
+    }
   ]
 }

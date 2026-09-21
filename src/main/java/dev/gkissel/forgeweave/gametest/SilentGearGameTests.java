@@ -36,7 +36,7 @@ import dev.gkissel.forgeweave.material.Material;
  * <ul>
  *   <li><b>{@code crimson_steel}</b> (level_hint 4, netherite-equivalent): carries the mod's own
  *       {@code flame_ward} and {@code magmatic} traits. Echoed with {@code
- *       forgeweave:crimson_steel_temper}, a {@code damage_type_immunity} against {@code
+ *       forgeweave:fireward}, a {@code damage_type_immunity} against {@code
  *       minecraft:is_fire}.
  *   <li><b>{@code azure_silver}</b> (level_hint 3, diamond-equivalent, the one ore-sourced metal of
  *       the five -- it alone carries {@code c:ores}/{@code c:raw_materials}): carries the mod's own
@@ -44,13 +44,13 @@ import dev.gkissel.forgeweave.material.Material;
  *       movement_bonus} raising jump strength.
  *   <li><b>{@code azure_electrum}</b> (level_hint 4, netherite-equivalent): carries the mod's own
  *       {@code light} and {@code accelerate} traits. Echoed with {@code
- *       forgeweave:azure_electrum_swift}, a {@code movement_bonus} raising movement speed.
+ *       forgeweave:swiftward}, a {@code movement_bonus} raising movement speed.
  *   <li><b>{@code blaze_gold}</b> (level_hint 2, iron-equivalent): carries the mod's own {@code
- *       fiery} trait on its tip. Echoed with {@code forgeweave:blaze_gold_cinder}, a {@code
+ *       fiery} trait on its tip. Echoed with {@code forgeweave:fireward}, a {@code
  *       damage_type_immunity} against {@code minecraft:is_fire}.
  *   <li><b>{@code tyrian_steel}</b> (level_hint 4, netherite-equivalent, the roster's toughest
  *       metal): carries the mod's own {@code void_ward} trait. Echoed with {@code
- *       forgeweave:tyrian_steel_ward}, a {@code death_save}.
+ *       forgeweave:lastbreath}, a {@code death_save}.
  * </ul>
  */
 @GameTestHolder(Forgeweave.MODID)

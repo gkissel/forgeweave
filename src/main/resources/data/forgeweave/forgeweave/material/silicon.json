@@ -35,7 +35,9 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
   "traits": {
-    "general": ["forgeweave:silicon_lattice"]
+    "general": [
+      "forgeweave:writable"
+    ]
   },
   "crafting_items": [
     {
@@ -52,8 +54,12 @@
     }
   ],
   "repair_item": [
-    { "tag": "c:silicon" },
-    { "tag": "c:ingots/silicon" }
+    {
+      "tag": "c:silicon"
+    },
+    {
+      "tag": "c:ingots/silicon"
+    }
   ],
   "cast_only": true,
   "enchantability": 10,

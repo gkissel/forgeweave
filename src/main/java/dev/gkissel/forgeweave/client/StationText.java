@@ -36,6 +36,7 @@ import dev.gkissel.forgeweave.tool.LauncherStats;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
+import dev.gkissel.forgeweave.trait.TraitFamilies;
 
 /**
  * The lines the stations' info panels and the part/tool item tooltips show, and the one place stat
@@ -386,10 +387,14 @@ public final class StationText {
                 .toList();
     }
 
-    /** The trait ids stored on an assembled tool, or an empty list for anything else. */
+    /**
+     * The trait ids stored on an assembled tool, or an empty list for anything else -- run through
+     * {@link ForgeweaveTraits#canonical(List)} since #1103, so a tool built before a merge shows
+     * the family that replaced its old names rather than a raw lang key, and shows it once.
+     */
     public static List<ResourceLocation> traitIdsOf(ItemStack stack) {
         List<ResourceLocation> ids = stack.get(ForgeweaveDataComponents.TRAITS.get());
-        return ids == null ? List.of() : ids;
+        return ids == null ? List.of() : ForgeweaveTraits.canonical(ids);
     }
 
     /**
@@ -485,9 +490,11 @@ public final class StationText {
     }
 
     private static Component traitLine(@Nullable TextColor color, ResourceLocation id, ItemStack tool) {
-        String base = "trait." + id.getNamespace() + "." + id.getPath();
-        MutableComponent name = Component.translatable(base + ".name");
-        MutableComponent description = Component.translatable(base + ".description");
+        // #1103: the name and the description come off the family's own keys where this id is a rung
+        // of one, with the roman numeral appended and the rung's numbers interpolated.
+        id = ForgeweaveTraits.canonical(id);
+        MutableComponent name = TraitFamilies.name(id);
+        MutableComponent description = TraitFamilies.description(id);
         if (!tool.isEmpty()) {
             // Upstream's getExtraInfo is only ever reached through an assembled tool's modifier list
             // (TooltipBuilder#addModifierInfo), so the Part Builder's material rows show none of it.
