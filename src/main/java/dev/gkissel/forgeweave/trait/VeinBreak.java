@@ -55,7 +55,6 @@ public record VeinBreak(int maxBlocks, int durabilityPerBlock) implements Trait 
         if (durabilityPerBlock > 0) {
             stack.hurtAndBreak(rest.size() * durabilityPerBlock, player, EquipmentSlot.MAINHAND);
         }
-        // #1112: TraitFeedback.fire(this, TraitFeedback.Kind.HARVEST, level, player);
-        SignatureFeedback.fire(SignatureFeedback.Kind.HARVEST, level, player);
+        TraitFeedback.fire(this, TraitFeedback.Kind.HARVEST, level, player);
     }
 }

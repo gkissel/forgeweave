@@ -7,6 +7,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import dev.gkissel.forgeweave.api.combat.CombatHit;
 import dev.gkissel.forgeweave.api.combat.CombatProviders;
 import dev.gkissel.forgeweave.api.combat.CombatSeam;
+import dev.gkissel.forgeweave.trait.TraitFeedback;
 
 /**
  * Applies a potion effect to the target on a landed hit -- shulking's levitation and webbed's
@@ -25,5 +26,6 @@ public record PotionEffectOnHitSeam(Holder<MobEffect> effect, int amplifier, int
     @Override
     public void onHit(CombatHit hit, float damageDealt) {
         hit.target().addEffect(new MobEffectInstance(effect, durationTicks, amplifier));
+        TraitFeedback.fire(this, TraitFeedback.Kind.AFFLICT, hit.level(), hit.target());
     }
 }

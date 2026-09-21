@@ -876,6 +876,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("tooltip.forgeweave.trait.warmemory.cap", "Max +%s damage per type, %s fights");
         add("tooltip.forgeweave.trait.evolved", "Draconic modules: %s of %s");
         add("tooltip.forgeweave.trait.evolved.fusion", "Fusion upgrades: %s of %s");
+        // Issue #1112: the two numbers that move in play on a trait with no proc cue of its own.
+        add("tooltip.forgeweave.trait.resistance_stacks", "Braced: %s%% off a blow, %s of %s stacks");
+        add("tooltip.forgeweave.trait.death_save.cooldown", "Can save again in %ss");
         // tooltip.pattern.cost, quoted in ingots off PartBuilderRecipes' own cost constants.
         add("tooltip.forgeweave.pattern_cost", "Material Cost: %s");
         // tooltip.part.missing_material / tooltip.part.missing_info -- a part whose material
@@ -3609,7 +3612,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.sparkforge.name", "Sparkforge");
         add("trait.forgeweave.sparkforge.description", "Two hits in five spark Haste II for five seconds.");
         add("trait.forgeweave.steadfast.name", "Steadfast");
-        add("trait.forgeweave.steadfast.description", "A stable, oversized durability pool: +80 durability.");
+        add("trait.forgeweave.steadfast.description", "A stable, oversized durability pool: a fifth more durability than the parts built.");
         add("trait.forgeweave.starforged.name", "Starforged");
         add("trait.forgeweave.starforged.description", "Sky stone takes a repair especially well: a quarter more durability out of every repair.");
         add("trait.forgeweave.wellspring.name", "Wellspring");

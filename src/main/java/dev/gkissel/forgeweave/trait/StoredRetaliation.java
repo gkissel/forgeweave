@@ -70,8 +70,7 @@ public record StoredRetaliation(float storedFraction, int threshold, double radi
             SecondaryDamage.deal(nearby, level.damageSources().magic(), damage);
             nearby.knockback(KNOCKBACK, wearer.getX() - nearby.getX(), wearer.getZ() - nearby.getZ());
         }
-        // #1112: TraitFeedback.fire(this, TraitFeedback.Kind.WARD, level, wearer);
-        SignatureFeedback.fire(SignatureFeedback.Kind.WARD, level, wearer);
+        TraitFeedback.fire(this, TraitFeedback.Kind.WARD, level, wearer);
     }
 
     @Override

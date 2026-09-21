@@ -43,8 +43,7 @@ public record BankedStrike(float perCharge, int cap, int decayTicks) implements 
         boolean killed = target.isDeadOrDying();
         if (banked(stack) > 0) {
             stack.remove(ForgeweaveDataComponents.BANKED_CHARGES.get());
-            // #1112: TraitFeedback.fire(this, TraitFeedback.Kind.STRIKE, level, target);
-            SignatureFeedback.fire(SignatureFeedback.Kind.STRIKE, level, target);
+            TraitFeedback.fire(this, TraitFeedback.Kind.STRIKE, level, target);
         }
         if (killed) {
             stack.set(ForgeweaveDataComponents.BANKED_CHARGES.get(), new TraitStacks(1, decayTicks));

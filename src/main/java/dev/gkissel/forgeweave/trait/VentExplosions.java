@@ -38,5 +38,6 @@ public record VentExplosions(float knockbackFactor) implements Trait {
         // LivingEntity#knockback takes the vector *towards* the source and pushes the other way,
         // which is exactly how vanilla's own explosion knockback is signed.
         defender.knockback(strength, origin.x() - defender.getX(), origin.z() - defender.getZ());
+        TraitFeedback.fire(this, TraitFeedback.Kind.WARD, defense.level(), defender);
     }
 }

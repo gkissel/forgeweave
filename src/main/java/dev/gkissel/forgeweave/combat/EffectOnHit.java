@@ -6,6 +6,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 
 import dev.gkissel.forgeweave.api.combat.CombatHit;
 import dev.gkissel.forgeweave.api.combat.CombatSeam;
+import dev.gkissel.forgeweave.trait.TraitFeedback;
 
 /**
  * A hit applies a {@link MobEffectInstance} to the target, optionally escalating the amplifier one
@@ -44,5 +45,6 @@ public record EffectOnHit(Holder<MobEffect> effect, int durationTicks, int ampli
             applied = Math.min(stackingCap, base + 1);
         }
         hit.target().addEffect(new MobEffectInstance(effect, durationTicks, applied));
+        TraitFeedback.fire(this, TraitFeedback.Kind.AFFLICT, hit.level(), hit.target());
     }
 }

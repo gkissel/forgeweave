@@ -131,6 +131,7 @@ import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.particle.ForgeweaveParticles;
+import dev.gkissel.forgeweave.tool.ArmorStats;
 import dev.gkissel.forgeweave.tool.ToolStats;
 
 /**
@@ -2755,11 +2756,29 @@ public final class ForgeweaveTraits {
         }
     };
 
-    /** M6 dedupe batch (issue #876): a stable, oversized durability pool. Original Forgeweave content, no upstream port. */
+    /** A fifth on top of what the materials built, {@link #STEADFAST}'s share (issue #1114). */
+    private static final int STEADFAST_PERCENT = 20;
+
+    /**
+     * M6 dedupe batch (issue #876): a stable, oversized durability pool -- a fifth more than the
+     * materials built, {@link #STEADFAST_PERCENT}. Original Forgeweave content, no upstream port.
+     *
+     * <p>Issue #1114 turned the flat +80 into a share. A flat number cannot be right twice on a
+     * ladder whose heads run from 35 (wood) to 1800 (truesteel after issue #1113's curve): +80 was
+     * more than half a tin tool and under a twentieth of a truesteel one, and a material's identity
+     * should not evaporate as the ladder climbs. Read off the built stat block rather than off
+     * {@code max_damage}, because {@code max_damage} already includes this bonus and reading it
+     * would compound on every rebuild.
+     */
     public static final Trait STEADFAST = new Trait() {
         @Override
         public int maxDurabilityBonus(ItemStack stack) {
-            return 80;
+            ToolStats.Stats tool = stack.get(ForgeweaveDataComponents.TOOL_STATS.get());
+            if (tool != null) {
+                return tool.durability() * STEADFAST_PERCENT / 100;
+            }
+            ArmorStats armor = stack.get(ForgeweaveDataComponents.ARMOR_STATS.get());
+            return armor == null ? 0 : armor.durability() * STEADFAST_PERCENT / 100;
         }
     };
 
@@ -3788,6 +3807,7 @@ public final class ForgeweaveTraits {
     public static void onTagsUpdated(TagsUpdatedEvent event) {
         Map<ResourceLocation, Trait> loaded = new LinkedHashMap<>();
         Map<ResourceLocation, TraitFamilies.Rung> rungs = new LinkedHashMap<>();
+        Map<ResourceLocation, TraitDefinition> definitions = new LinkedHashMap<>();
         event.getRegistryAccess().registry(TraitDefinition.REGISTRY).ifPresent(registry -> registry.entrySet()
                 .forEach(entry -> {
                     ResourceLocation id = entry.getKey().location();
@@ -3797,10 +3817,13 @@ public final class ForgeweaveTraits {
                     } else {
                         loaded.put(id, entry.getValue().trait());
                         rungs.put(id, entry.getValue().rung());
+                        definitions.put(id, entry.getValue());
                     }
                 }));
         DATAPACK = Map.copyOf(loaded);
         TraitFamilies.datapack(rungs);
+        // #1112: the particle/sound overrides, keyed by the behaviour object a proc site hands back.
+        TraitFeedback.datapack(definitions);
         WARNED_UNKNOWN.clear();
         if (!loaded.isEmpty()) {
             LOGGER.info("Loaded {} datapack trait definitions: {}", loaded.size(), loaded.keySet());

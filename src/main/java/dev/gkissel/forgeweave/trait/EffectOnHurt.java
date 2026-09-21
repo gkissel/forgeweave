@@ -31,5 +31,6 @@ public record EffectOnHurt(Holder<MobEffect> effect, int durationTicks, int ampl
             return;
         }
         defense.defender().addEffect(new MobEffectInstance(effect, durationTicks, amplifier));
+        TraitFeedback.fire(this, TraitFeedback.Kind.AFFLICT, defense.level(), defense.defender());
     }
 }
