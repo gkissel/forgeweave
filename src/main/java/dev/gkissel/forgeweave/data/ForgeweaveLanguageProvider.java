@@ -1363,7 +1363,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.cheapskate.name", "Cheapskate");
         add("trait.forgeweave.cheapskate.description", "Stone is bad. Your tool has less durability.");
         add("trait.forgeweave.crude.name", "Crude");
-        add("trait.forgeweave.crude.description", "Bonus damage against unarmored targets.");
+        add("trait.forgeweave.crude.description", "Deals %s% more damage to unarmored targets.");
         // #231 flint retrofit: upstream's head-scoped crude2, named like magnetic2/writable2 are.
         add("trait.forgeweave.fractured.name", "Fractured");
         add("trait.forgeweave.fractured.description", "Your tool's damage is increased by 1.5.");
@@ -1457,7 +1457,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.dense.name", "Dense");
         add("trait.forgeweave.dense.description", "Your tool lasts longer when it has less durability.");
         add("trait.forgeweave.writable.name", "Writable");
-        add("trait.forgeweave.writable.description", "More words. More modifiers. It's only logical!");
+        add("trait.forgeweave.writable.description",
+                "More words. More modifiers. Grants %s extra modifier slots.");
         add("trait.forgeweave.squeaky.name", "Squeaky");
         add("trait.forgeweave.squeaky.description",
                 "Your tool is so soft and squeaky it gained Silk Touch, but deals no damage.");
@@ -2397,8 +2398,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.armor_breaker.description", "Deals %s extra damage to anything wearing armor.");
         add("trait.forgeweave.opportunist.name", "Opportunist");
         add("trait.forgeweave.opportunist.description", "Deals bonus damage to targets already suffering a harmful effect.");
+        // Issue #1102: all three levels used to say only "extra"/"even more extra"/"a lot of extra"
+        // damage, though ForgeweaveTraits#CHARGED_BONUS_PER_LEVEL (1.5F) already fixes the amount.
         add("trait.forgeweave.surging.name", "Surging");
-        add("trait.forgeweave.surging.description", "A fully-charged swing deals extra damage.");
+        add("trait.forgeweave.surging.description", "A fully-charged swing deals %s extra damage.");
         add("trait.forgeweave.ruthless.name", "Ruthless");
         add("trait.forgeweave.ruthless.description", "Critical hits deal 60% more damage.");
 
@@ -2421,6 +2424,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.evolved3.name", "Evolved III");
         add("trait.forgeweave.evolved3.description",
                 "Chaotic tier. Made of a Draconic core, fusion crafting upgrades this tool; made of a weld, it hosts Draconic modules. Chaotic hits damage the Chaos Guardian's crystals.");
+        // Issue #1102: all three levels used to say only "a share"/"a larger share"/"a big share" of
+        // the damage dealt, though trait_definition/soulrend{,2,3}.json already carries an exact
+        // fraction and cap per level (forgeweave:lifesteal, Lifesteal#fraction/#cap).
         add("trait.forgeweave.soulrend.name", "Soul Rend");
         add("trait.forgeweave.soulrend.description", "Drinks %s% of the damage it deals back as health, up to %s a hit.");
         // #965 -- duskweld's own on-hit trait and the draconium core's, both datapack definitions
@@ -2491,8 +2497,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.merciful.description", "Regenerates whatever it strikes. Not a helpful trait.");
         add("trait.forgeweave.quickstep.name", "Quickstep");
         add("trait.forgeweave.quickstep.description", "A fully-charged hit grants the wielder a burst of speed.");
+        // Issue #1102: all three levels used to say only "a chance"/"a better chance"/"very likely",
+        // though ForgeweaveTraits#UNRAVELING_CHANCE_PER_LEVEL (0.25F) already fixes the chance per level.
         add("trait.forgeweave.unraveling.name", "Unraveling");
-        add("trait.forgeweave.unraveling.description", "A fully-charged hit has a chance to strip a beneficial effect from the target.");
+        add("trait.forgeweave.unraveling.description",
+                "A fully-charged hit has a %s% chance to strip a beneficial effect from the target.");
         add("trait.forgeweave.grievous.name", "Grievous");
         add("trait.forgeweave.grievous.description", "Wounds struck by this weapon resist healing for a short time.");
         add("trait.forgeweave.harrying.name", "Harrying");

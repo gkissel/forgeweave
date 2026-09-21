@@ -94,22 +94,22 @@ public final class TraitFamilies {
      * their own file instead ({@link Rung#CODEC}) and arrive through {@link #datapack}.
      */
     private static final Map<ResourceLocation, Rung> JAVA = Map.ofEntries(
-            // Ported 1.12 ladders, which upstream already renders as one name plus a numeral. No
-            // description arguments: their sentences are 1.12's own and a later issue rewrites the
-            // text that this issue does not merge.
-            Map.entry(id("crude"), rung("crude", 1, 2)),
-            Map.entry(id("crude2"), rung("crude", 2, 2)),
+            // Ported 1.12 ladders, which upstream already renders as one name plus a numeral. The
+            // numbers are issue #1102's: it had written one description per rung to tell the tiers
+            // apart, and a rung's arguments say the same thing from one key.
+            Map.entry(id("crude"), rung("crude", 1, 2, "5")),
+            Map.entry(id("crude2"), rung("crude", 2, 2, "10")),
             Map.entry(id("magnetic"), rung("magnetic", 1, 2)),
             Map.entry(id("magnetic2"), rung("magnetic", 2, 2)),
-            Map.entry(id("writable"), rung("writable", 1, 2)),
-            Map.entry(id("writable2"), rung("writable", 2, 2)),
+            Map.entry(id("writable"), rung("writable", 1, 2, "1")),
+            Map.entry(id("writable2"), rung("writable", 2, 2, "2")),
             // Forgeweave ladders that were already several ids of one mechanic.
-            Map.entry(id("surging"), rung("surging", 1, 3)),
-            Map.entry(id("surging2"), rung("surging", 2, 3)),
-            Map.entry(id("surging3"), rung("surging", 3, 3)),
-            Map.entry(id("unraveling"), rung("unraveling", 1, 3)),
-            Map.entry(id("unraveling2"), rung("unraveling", 2, 3)),
-            Map.entry(id("unraveling3"), rung("unraveling", 3, 3)),
+            Map.entry(id("surging"), rung("surging", 1, 3, "1.5")),
+            Map.entry(id("surging2"), rung("surging", 2, 3, "3")),
+            Map.entry(id("surging3"), rung("surging", 3, 3, "4.5")),
+            Map.entry(id("unraveling"), rung("unraveling", 1, 3, "25")),
+            Map.entry(id("unraveling2"), rung("unraveling", 2, 3, "50")),
+            Map.entry(id("unraveling3"), rung("unraveling", 3, 3, "75")),
             // Energized I is a Java trait and its three deeper rungs are trait_definition files, so
             // this family is declared from both sides; TraitFamilies.of reads both.
             Map.entry(id("energized"), rung("energized", 1, 4, "12,000")),
