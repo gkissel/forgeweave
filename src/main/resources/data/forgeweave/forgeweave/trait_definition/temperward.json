@@ -1,4 +1,9 @@
 {
   "behavior": "forgeweave:protection",
-  "amount": 2.0
+  "amount": 2.0,
+  "family": "temperward",
+  "description_args": [
+    "2",
+    "8"
+  ]
 }

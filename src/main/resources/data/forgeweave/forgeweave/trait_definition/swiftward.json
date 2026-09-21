@@ -1,5 +1,10 @@
 {
   "behavior": "forgeweave:movement_bonus",
   "kind": "movement_speed",
-  "magnitude": 0.08
+  "magnitude": 0.08,
+  "family": "swiftward",
+  "description_args": [
+    "8",
+    "32"
+  ]
 }

@@ -1,5 +1,9 @@
 {
   "behavior": "forgeweave:conditional_mining_speed",
   "condition": "nether",
-  "bonus": 0.3
+  "bonus": 0.3,
+  "family": "netherkeen",
+  "description_args": [
+    "30"
+  ]
 }

@@ -1,4 +1,8 @@
 {
   "behavior": "forgeweave:amplify_incoming_healing",
-  "factor": 1.25
+  "factor": 1.25,
+  "family": "mendward",
+  "description_args": [
+    "25"
+  ]
 }

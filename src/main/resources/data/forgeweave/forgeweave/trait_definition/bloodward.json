@@ -2,5 +2,9 @@
   "behavior": "forgeweave:effect_on_hurt",
   "effect": "minecraft:regeneration",
   "duration": 120,
-  "amplifier": 0
+  "amplifier": 0,
+  "family": "bloodward",
+  "description_args": [
+    "6"
+  ]
 }

@@ -62,6 +62,8 @@ Adding the next Forged sprite: drop the new file at its normal default path, cop
 
 Every player-facing string is a `Component.translatable` lang key added to `ForgeweaveLanguageProvider` — never `Component.literal` for real text (numeric/glue literals like `"/"`, `": "`, or a `DecimalFormat` pattern are fine; so is wrapping player-typed input, e.g. a renamed tool). Follow existing key families rather than inventing new ones: `item.forgeweave.*`/`block.forgeweave.*` (registered names, via `addItem`/`addBlock`), `material.forgeweave.*` (datapack material names), `trait.forgeweave.<id>.name`/`.description`, `tooltip.forgeweave.*` (item hover text), `gui.forgeweave.*` (station/screen labels), `jei.category.forgeweave.*`. `LocalizationAuditTest` scans `client/`, `menu/`, `item/`, and `jei/` for stray `Component.literal("...")` calls containing a letter and fails the build on new ones.
 
+Trait and modifier descriptions follow one house style: say the real number, seconds never ticks, numerals never number words, per piece and full-set totals for worn effects. See `docs/agents/description-style.md`; `DescriptionStyleTest` fails the build on a description with no number or with the word "tick".
+
 ## Prose
 
 Run the `/humanizer` skill over every piece of prose before it is published: issue bodies and comments, PR titles and bodies, docs under `docs/`, lang strings, javadoc and code comments longer than a line. The skill rewrites for plain verbs, sentence case, no em dashes and no filler without changing the claims. Every issue body carries a reminder line so agents working from the issue apply it to their own PR text too.

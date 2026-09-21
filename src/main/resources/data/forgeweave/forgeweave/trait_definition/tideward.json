@@ -1,5 +1,10 @@
 {
   "behavior": "forgeweave:protection",
   "damage_type": "minecraft:is_drowning",
-  "amount": 4.0
+  "amount": 4.0,
+  "family": "tideward",
+  "description_args": [
+    "4",
+    "16"
+  ]
 }
