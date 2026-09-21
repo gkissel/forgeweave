@@ -97,8 +97,11 @@ public final class TraitFamilies {
             // Ported 1.12 ladders, which upstream already renders as one name plus a numeral. The
             // numbers are issue #1102's: it had written one description per rung to tell the tiers
             // apart, and a rung's arguments say the same thing from one key.
-            Map.entry(id("crude"), rung("crude", 1, 2, "5")),
-            Map.entry(id("crude2"), rung("crude", 2, 2, "10")),
+            // ForgeweaveTraits' CRUDE_FRACTION_PER_LEVEL times the rung. Issue #1114 raised that
+            // fraction from upstream's 0.05 to 0.15 and these arguments stayed at the old pair, so
+            // the tooltip read 5% and 10% for a trait that has dealt 15% and 30% since.
+            Map.entry(id("crude"), rung("crude", 1, 2, "15")),
+            Map.entry(id("crude2"), rung("crude", 2, 2, "30")),
             // The pull radius each rung reaches, ForgeweaveTraits' MAGNETIC_BASE_RANGE plus its
             // MAGNETIC_RANGE_PER_LEVEL times the rung: 1.8 + 0.3, then 1.8 + 0.6.
             Map.entry(id("magnetic"), rung("magnetic", 1, 2, "2.1")),
@@ -129,8 +132,11 @@ public final class TraitFamilies {
             // Arcing I is the Java trait (a fully charged swing only) and Arcing II is a
             // trait_definition that arcs on every hit, so this family is declared from both
             // sides. Its two rungs differ in kind as well as in magnitude, which is why its one
-            // sentence names both levels.
-            Map.entry(id("arcing"), rung("arcing", 1, 2, "35")));
+            // sentence names both levels. Its arguments are the reach and the share of the blow
+            // each rung passes on (ARCING_RANGE and ARCING_DAMAGE_FRACTION here, the json's own
+            // range and damage_fraction there); the 35% chance in the sentence is level I's alone,
+            // so it is written out rather than passed.
+            Map.entry(id("arcing"), rung("arcing", 1, 2, "3", "50")));
 
     /** Retired ids a stored trait list may still carry, each pointing at the rung that replaced it. */
     private static final Map<ResourceLocation, ResourceLocation> ALIASES = Map.ofEntries(

@@ -42,6 +42,12 @@ fails the build on a description that states no number or says "tick".
    see the other one.
 10. **Prefer an argument over a typed number.** A number typed into the lang string drifts the first
     time the value is tuned. Where the render path takes arguments, pass them instead.
+11. **In a string that takes arguments, a literal percent is `%%`.** Vanilla's
+    `TranslatableContents#decomposeTemplate` throws on any bare `%` outside a format match and on any
+    format letter but `s`, and the catch prints the raw template. `"has a %s% chance"` shows the
+    player `%s% chance`. `%s` is the only argument form; never `%d` or `%.1f`. A string with no
+    arguments and a bare `10%` takes the same exception path and comes out right only because the raw
+    template is the sentence, so it is safe exactly as long as nothing passes it arguments.
 
 ## Where the numbers live
 

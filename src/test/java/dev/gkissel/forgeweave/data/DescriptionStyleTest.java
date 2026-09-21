@@ -25,8 +25,11 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.SharedConstants;
+import net.minecraft.locale.Language;
+import net.minecraft.network.chat.FormattedText;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.Bootstrap;
+import net.minecraft.util.FormattedCharSequence;
 
 import dev.gkissel.forgeweave.api.trait.Trait;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
@@ -62,6 +65,12 @@ class DescriptionStyleTest {
     private static final Pattern TICKS = Pattern.compile("\\btick", Pattern.CASE_INSENSITIVE);
 
     private static final Pattern DIGIT = Pattern.compile("\\d");
+
+    /** {@code TranslatableContents#FORMAT_PATTERN}, verbatim, so this test cannot disagree with the game. */
+    private static final Pattern VANILLA_FORMAT = Pattern.compile("%(?:(\\d+)\\$)?([A-Za-z%]|$)");
+
+    /** One argument slot: {@code %s} or its indexed form {@code %1$s}. */
+    private static final Pattern FORMAT_ARGUMENT = Pattern.compile("%(?:\\d+\\$)?s");
 
     /**
      * Traits whose effect has no magnitude to state, each with the reason it has none. Nothing here
@@ -140,6 +149,164 @@ class DescriptionStyleTest {
                         + "with the reason");
         assertEquals(List.of(), mentioningTicks(descriptions),
                 "player-facing text has no such word as \"tick\": 100 ticks is 5 seconds");
+    }
+
+    /**
+     * A lang string that takes arguments has to survive vanilla's own decomposition, or the player
+     * reads the template instead of the sentence.
+     *
+     * <p>{@code TranslatableContents#decomposeTemplate} walks {@link #VANILLA_FORMAT}'s matches and
+     * throws on any literal {@code %} between or after them, and on any format letter but {@code s};
+     * {@code TranslatableContents#decompose} catches that and renders the raw string. So
+     * {@code "has a %s% chance"} shows a player the literal {@code "%s% chance"} rather than
+     * {@code "has a 20% chance"}. A literal percent inside a template is written {@code %%}.
+     *
+     * <p>A string with no arguments and a bare {@code 10%} takes the same exception path, and comes
+     * out right only because the raw string is the sentence. Those are left alone -- which is safe
+     * exactly as long as nothing passes them arguments, and
+     * {@link #everyRungSuppliesAsManyArgumentsAsItsSentenceTakes} is what checks that for the one
+     * mechanism that could.
+     */
+    @Test
+    void everyArgumentBearingStringSurvivesVanillasFormatter() throws IOException {
+        JsonObject lang = generatedLang();
+        List<String> broken = new ArrayList<>();
+        for (String key : lang.keySet()) {
+            String value = lang.get(key).getAsString();
+            if (!FORMAT_ARGUMENT.matcher(value).find()) {
+                continue;
+            }
+            String problem = decomposeFailure(value);
+            if (problem != null) {
+                broken.add(key + ": " + problem + " in \"" + value + "\"");
+            }
+        }
+        assertEquals(List.of(), broken, "these lang strings take arguments and would throw in "
+                + "TranslatableContents#decomposeTemplate, so the game renders the raw template "
+                + "instead of the sentence. Write a literal percent as %% and use no format letter "
+                + "but s");
+    }
+
+    /**
+     * A family rung's sentence takes exactly as many {@code %s} as the rung supplies arguments.
+     * One too few and the extra argument is dropped silently; one too many and the player reads a
+     * missing-argument error component in the middle of the line.
+     */
+    @Test
+    void everyRungSuppliesAsManyArgumentsAsItsSentenceTakes() throws Exception {
+        JsonObject lang = generatedLang();
+        List<String> mismatched = new ArrayList<>();
+        Map<String, List<String>> rungs = new LinkedHashMap<>();
+        for (ResourceLocation id : javaTraitIds()) {
+            TraitFamilies.Rung rung = TraitFamilies.of(id);
+            if (rung != null) {
+                rungs.put(id.getPath(), rung.descriptionArgs());
+            }
+        }
+        for (Path file : traitDefinitionFiles()) {
+            JsonObject root = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8))
+                    .getAsJsonObject();
+            if (!root.has("family") || root.get("family").getAsString().isEmpty()) {
+                continue;
+            }
+            List<String> args = new ArrayList<>();
+            if (root.has("description_args")) {
+                root.getAsJsonArray("description_args").forEach(arg -> args.add(arg.getAsString()));
+            }
+            rungs.put(file.getFileName().toString().replace(".json", ""), args);
+        }
+
+        Map<String, String> bases = liveTraitLangBases();
+        rungs.forEach((id, args) -> {
+            String key = bases.get(id) + ".description";
+            if (!lang.has(key)) {
+                mismatched.add(id + " has no " + key);
+                return;
+            }
+            int placeholders = 0;
+            var matcher = FORMAT_ARGUMENT.matcher(lang.get(key).getAsString());
+            while (matcher.find()) {
+                placeholders++;
+            }
+            if (placeholders != args.size()) {
+                mismatched.add(id + ": " + key + " takes " + placeholders + " arguments, the rung supplies "
+                        + args.size());
+            }
+        });
+
+        assertTrue(rungs.size() > 20, "expected the family rungs, walked only " + rungs.size());
+        assertEquals(List.of(), mismatched, "a rung's numbers and its family's sentence have to line up");
+    }
+
+    /**
+     * The one end-to-end check: resolve a family's sentence through the real
+     * {@code TranslatableContents}, against the shipped {@code en_us.json}, and read the line a
+     * player would. {@code crude}'s two rungs quote one number each out of one lang entry, and a
+     * literal percent sign has to survive next to them.
+     *
+     * <p>Injecting a {@link Language} is global, so the previous one goes back in a finally: the
+     * whole module's tests share a JVM.
+     */
+    @Test
+    void aFamilySentenceRendersWithItsRungsNumbersInIt() throws IOException {
+        JsonObject lang = generatedLang();
+        Language previous = Language.getInstance();
+        Language.inject(new Language() {
+            @Override
+            public String getOrDefault(String key, String fallback) {
+                return lang.has(key) ? lang.get(key).getAsString() : fallback;
+            }
+
+            @Override
+            public boolean has(String key) {
+                return lang.has(key);
+            }
+
+            @Override
+            public boolean isDefaultRightToLeft() {
+                return false;
+            }
+
+            @Override
+            public FormattedCharSequence getVisualOrder(FormattedText text) {
+                return FormattedCharSequence.EMPTY;
+            }
+        });
+        try {
+            assertEquals("Deals 15% more damage to unarmored targets.",
+                    TraitFamilies.description(ResourceLocation.fromNamespaceAndPath("forgeweave", "crude"))
+                            .getString());
+            assertEquals("Deals 30% more damage to unarmored targets.",
+                    TraitFamilies.description(ResourceLocation.fromNamespaceAndPath("forgeweave", "crude2"))
+                            .getString());
+        } finally {
+            Language.inject(previous);
+        }
+    }
+
+    /**
+     * Vanilla's own {@code TranslatableContents#decomposeTemplate}, reduced to the reason it would
+     * throw, or {@code null} when the string parses. Mirrored rather than called because the real
+     * one needs a {@code Language} to resolve against.
+     */
+    private static String decomposeFailure(String template) {
+        var matcher = VANILLA_FORMAT.matcher(template);
+        int from = 0;
+        while (matcher.find(from)) {
+            if (matcher.start() > from && template.substring(from, matcher.start()).indexOf('%') != -1) {
+                return "stray percent in \"" + template.substring(from, matcher.start()) + "\"";
+            }
+            String letter = matcher.group(2);
+            String whole = template.substring(matcher.start(), matcher.end());
+            if (!("%".equals(letter) && "%%".equals(whole)) && !"s".equals(letter)) {
+                return "unsupported format \"" + whole + "\"";
+            }
+            from = matcher.end();
+        }
+        if (from < template.length() && template.substring(from).indexOf('%') != -1) {
+            return "stray percent in \"" + template.substring(from) + "\"";
+        }
+        return null;
     }
 
     /** A modifier's book bullets say what it costs, so the one fact the description leaves out is there. */
