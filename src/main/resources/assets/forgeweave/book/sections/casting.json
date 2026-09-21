@@ -1,0 +1,22 @@
+[
+  {
+    "name": "intro",
+    "type": "text"
+  },
+  {
+    "name": "first_cast",
+    "type": "text"
+  },
+  {
+    "name": "clay_casts",
+    "type": "text"
+  },
+  {
+    "name": "channels",
+    "type": "text"
+  },
+  {
+    "name": "first_iron_part",
+    "type": "text"
+  }
+]

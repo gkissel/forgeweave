@@ -5,11 +5,32 @@
     "image": "forgeweave:textures/derived/gui/book/smeltery.png"
   },
   {
+    "name": "grout",
+    "type": "text"
+  },
+  {
     "name": "structure",
     "type": "text"
   },
   {
+    "name": "multiblock",
+    "type": "structure",
+    "data": "structure/smeltery.json"
+  },
+  {
     "name": "working",
+    "type": "text"
+  },
+  {
+    "name": "fuel",
+    "type": "text"
+  },
+  {
+    "name": "cores",
+    "type": "text"
+  },
+  {
+    "name": "entity_melting",
     "type": "text"
   },
   {
@@ -17,8 +38,7 @@
     "type": "text"
   },
   {
-    "name": "multiblock",
-    "type": "structure",
-    "data": "structure/smeltery.json"
+    "name": "furnace",
+    "type": "text"
   }
 ]

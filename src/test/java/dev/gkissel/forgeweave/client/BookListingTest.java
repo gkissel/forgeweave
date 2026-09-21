@@ -127,7 +127,7 @@ class BookListingTest {
 
         assertEquals("book.forgeweave.section.index", index.titleKey());
         assertEquals(1, index.pages().size(),
-                "five sections fit one nine-button ContentSectionList page");
+                "#1105's nine sections are exactly what one nine-button ContentSectionList page holds");
         BookPage.SectionListPage page = assertInstanceOf(BookPage.SectionListPage.class,
                 index.pages().get(0), "the index page is upstream's ContentSectionList");
         assertEquals("page1", page.name(), "IndexTranformer names its pages page1, page2, ...");
@@ -159,8 +159,10 @@ class BookListingTest {
         assertTargetsAreInSection(tools, listing.links());
 
         List<String> labels = listing.links().stream().map(BookLink::labelKey).toList();
-        assertEquals("book.forgeweave.tools.repairing.title", labels.get(0),
-                "the static repairing page keeps its own title as its row");
+        assertEquals(List.of("book.forgeweave.tools.intro.title", "book.forgeweave.tools.ranged.title"),
+                labels.subList(0, 2),
+                "#1105: the chapter's two authored pages keep their own titles as their rows, and "
+                        + "repairing is no longer one of them (it moved to the Introduction)");
         for (Supplier<? extends Item> tool : BookContent.TOOLS) {
             assertTrue(labels.contains(tool.get().getDescriptionId()),
                     "no listing row for " + tool.get().getDescriptionId());

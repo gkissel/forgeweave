@@ -1,0 +1,22 @@
+[
+  {
+    "name": "intro",
+    "type": "text"
+  },
+  {
+    "name": "first_alloys",
+    "type": "text"
+  },
+  {
+    "name": "classic_alloys",
+    "type": "text"
+  },
+  {
+    "name": "catalysts",
+    "type": "text"
+  },
+  {
+    "name": "chains",
+    "type": "text"
+  }
+]

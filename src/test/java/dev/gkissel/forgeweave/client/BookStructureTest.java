@@ -56,18 +56,27 @@ class BookStructureTest {
         assertEquals(BookContent.SUBTITLE, appearance.subtitle());
     }
 
-    /** Upstream {@code index.json} order for the sections Forgeweave has, with an icon each. */
+    /**
+     * Issue #1105: the chapter order is the tutorial order, not upstream's index.json order any
+     * more. A chapter may only assume what the chapters before it taught, which puts the Smeltery
+     * second (metal is the first wall a new player hits), the new Casting and Alloys chapters
+     * straight after it, and the two reference chapters -- Materials' roster and Tools' catalogue --
+     * behind the lessons. Nine sections is also exactly what one generated index page holds
+     * ({@code BookContent.SECTIONS_PER_INDEX_PAGE}), so the index stays a single leaf.
+     */
     @Test
-    void theIndexJsonListsTheShippedSectionsInUpstreamOrder() {
+    void theIndexJsonListsTheShippedSectionsInTutorialOrder() {
         List<String> names = structure().sections().stream().map(SectionDef::name).toList();
 
         assertEquals(
-                List.of("intro", "tools", "armor", "materials", "modifiers", "smeltery", "leveling"),
+                List.of("intro", "smeltery", "casting", "alloys", "materials", "modifiers", "armor",
+                        "leveling", "tools"),
                 names,
-                "upstream index.json: intro, tools, materials, modifiers, smeltery; M4 (#682) slots armor "
-                        + "after tools, where the 1.20 book's materials_and_you/index.json puts it; M7-7 "
-                        + "(#924) appends leveling last -- it has no upstream section at all, and reads "
-                        + "best as a capstone chapter once every gear kind and modifier slots exist");
+                "the #1105 tutorial spine: learn the workshop, then melting, then shaping a melt, "
+                        + "then mixing melts, then the material ladder those metals climb, then "
+                        + "modifiers, armor and leveling, with the Tools catalogue last");
+        assertEquals(9, names.size(),
+                "nine sections fit one generated index page; a tenth would split the index in two");
         for (SectionDef def : structure().sections()) {
             assertNotNull(def.iconItem(), "index entry " + def.name() + " needs its icon item");
             assertFalse(def.pages().isEmpty(),
@@ -80,10 +89,12 @@ class BookStructureTest {
     void theToolsSectionDataDrivesTheToolRoster() {
         List<PageDef> defs = section("tools").pages();
 
-        assertEquals("repairing", defs.get(0).name(), "upstream tools.json opens with repairing");
-        assertEquals("text", defs.get(0).type());
+        assertEquals(List.of("intro", "ranged"),
+                defs.stream().filter(def -> def.type().equals("text")).map(PageDef::name).toList(),
+                "#1105: repairing moved to the Introduction (a first tool breaks on day one) and the "
+                        + "chapter opens on what it is for, then the ranged system");
         List<PageDef> tools = defs.stream().filter(def -> def.type().equals("tool")).toList();
-        assertEquals(defs.size() - 1, tools.size(), "every page after repairing is a tool page");
+        assertEquals(defs.size() - 2, tools.size(), "every page after the two text pages is a tool");
         assertTrue(tools.size() >= 21, "expected the full tool roster, saw " + tools.size());
         for (PageDef def : tools) {
             assertNotNull(def.item(), "tool page " + def.name() + " names no item");
@@ -106,10 +117,14 @@ class BookStructureTest {
     void theIntroSectionCarriesThePerStationPages() {
         List<PageDef> pages = section("intro").pages();
 
-        assertEquals(List.of("welcome", "workshop", "blank_pattern", "crafting_station",
-                "stencil_table", "pattern_chest", "part_builder", "part_chest", "tool_station",
-                "tool_forge"), pages.stream().map(PageDef::name).toList(),
-                "the intro section: the condensed welcome pair, then upstream's station pages."
+        assertEquals(List.of("welcome", "progression", "workshop", "blank_pattern", "stencil_table",
+                "part_builder", "tool_station", "first_pickaxe", "repairing", "part_exchange",
+                "growing", "crafting_station", "pattern_chest", "part_chest", "tool_forge"),
+                pages.stream().map(PageDef::name).toList(),
+                "#1105 orders the chapter as the first hour actually runs: the welcome pair (now "
+                        + "welcome plus the progression ladder), the four stations a first tool needs "
+                        + "in the order it needs them, the worked example, then repair, part exchange "
+                        + "and the leveling teaser, then the convenience blocks and the forge."
                         + " Issue #782's Armor Station page went with the block in #1006");
         for (PageDef def : pages) {
             assertEquals("text", def.type(), "intro page " + def.name() + " is a plain text page");
@@ -127,9 +142,12 @@ class BookStructureTest {
     void theArmorSectionListsThePiecesBetweenItsTextPages() {
         List<PageDef> pages = section("armor").pages();
 
-        assertEquals(List.of("intro", "parts", "casting", "helmet", "chestplate", "leggings", "boots",
-                "heavy_helmet", "heavy_chestplate", "heavy_leggings", "heavy_boots",
-                "traits", "modifiers"), pages.stream().map(PageDef::name).toList());
+        assertEquals(List.of("intro", "parts", "first_set", "casting", "helmet", "chestplate",
+                "leggings", "boots", "heavy_helmet", "heavy_chestplate", "heavy_leggings",
+                "heavy_boots", "traits", "modifiers", "overslime"),
+                pages.stream().map(PageDef::name).toList(),
+                "#1105 adds first_set (the obsidian way in, previously a clause inside casting) and "
+                        + "overslime, which had no page at all");
         assertEquals("forgeweave:chestplate", section("armor").iconItem());
         for (PageDef def : pages) {
             if (def.type().equals("tool")) {
@@ -153,14 +171,22 @@ class BookStructureTest {
     }
 
     /**
-     * The smeltery section ends on upstream's {@code structure} page (issue #651): the rotating 3D
+     * The smeltery section carries upstream's {@code structure} page (issue #651): the rotating 3D
      * schematic, whose def carries a {@code data} reference to the structure file instead of lang
-     * text -- upstream's own page has no title and no text, so it contributes no lang keys.
+     * text -- upstream's own page has no title and no text, so it contributes no lang keys. Issue
+     * #1105 moves it up to sit directly behind the structure rules it illustrates, and appends the
+     * five pages the chapter previously only had Ponder scenes for.
      */
     @Test
-    void theSmelterySectionEndsOnTheStructurePage() {
+    void theSmelterySectionCarriesTheStructurePageBehindItsRules() {
         List<PageDef> pages = section("smeltery").pages();
-        PageDef multiblock = pages.get(pages.size() - 1);
+
+        assertEquals(List.of("intro", "grout", "structure", "multiblock", "working", "fuel", "cores",
+                "entity_melting", "energized", "furnace"),
+                pages.stream().map(PageDef::name).toList(),
+                "#1105: bricks, then the rules, then the picture, then melting, heat, cores, what "
+                        + "walks in, energy, and the two non-smeltery seared multiblocks");
+        PageDef multiblock = pages.get(3);
 
         assertEquals("multiblock", multiblock.name());
         assertEquals("structure", multiblock.type(), "upstream smeltery.json's structure page type");
