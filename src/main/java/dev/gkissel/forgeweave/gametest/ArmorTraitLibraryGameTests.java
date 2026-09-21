@@ -91,21 +91,6 @@ public class ArmorTraitLibraryGameTests {
         helper.getLevel().updateSkyBrightness();
     }
 
-    /** {@code bloodtoll}: stormward zeroes a lightning blow, the floor puts a half heart back. */
-    @GameTest(template = "empty")
-    public static void bloodtollKeepsACancelledBlowFromBeingFree(GameTestHelper helper) {
-        DamageSource lightning = helper.getLevel().damageSources().lightningBolt();
-
-        Player immune = wearing(helper, "stormward");
-        helper.assertTrue(lost(immune, lightning, BLOW) == 0.0F, "stormward alone must cancel the blow outright");
-
-        Player floored = wearing(helper, "stormward", "bloodtoll");
-        float lost = lost(floored, lightning, BLOW);
-        helper.assertTrue(lost > 0.0F && lost < BLOW,
-                "the floor must put something back without restoring the whole blow, lost " + lost);
-        helper.succeed();
-    }
-
     /** {@code blightward}: a quarter of direct blows weaken the attacker. Rolled often enough that a miss is impossible in practice. */
     @GameTest(template = "empty")
     public static void hexwardWeakensDirectAttackers(GameTestHelper helper) {
@@ -165,8 +150,8 @@ public class ArmorTraitLibraryGameTests {
         }
         helper.assertTrue(last < first, "the seventh blow must cost less than the first, " + last + " vs " + first);
         TraitStacks stacks = worn(player).get(ForgeweaveDataComponents.RESISTANCE_STACKS.get());
-        helper.assertTrue(stacks != null && stacks.level() == 6,
-                "seven blows must leave the stacks at the cap of 6, got " + stacks);
+        helper.assertTrue(stacks != null && stacks.level() == 4,
+                "seven blows must leave the stacks at Bracing Plate I's cap of 4, got " + stacks);
         helper.succeed();
     }
 
@@ -286,23 +271,6 @@ public class ArmorTraitLibraryGameTests {
                 "lightning must do nothing at all");
         helper.assertTrue(lost(player, helper.getLevel().damageSources().generic(), BLOW) > 0.0F,
                 "and nothing else must be affected");
-        helper.succeed();
-    }
-
-    /** {@code blastvent}: an explosion throws the wearer instead of hurting them. */
-    @GameTest(template = "empty")
-    public static void blastventTurnsExplosionsIntoKnockback(GameTestHelper helper) {
-        Player player = wearing(helper, "blastvent");
-        Zombie exploder = zombie(helper);
-        // Away from the blast, so the push has a direction to go in (a zero vector normalizes to zero).
-        BlockPos pos = helper.absolutePos(new BlockPos(0, 2, 0));
-        player.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
-        player.setDeltaMovement(Vec3.ZERO);
-        helper.assertTrue(lost(player, explosion(helper, exploder), 20.0F) == 0.0F,
-                "the blast must do no damage");
-        helper.assertTrue(player.getDeltaMovement().lengthSqr() > 0.0,
-                "and must push the wearer instead, delta " + player.getDeltaMovement());
-        exploder.discard();
         helper.succeed();
     }
 

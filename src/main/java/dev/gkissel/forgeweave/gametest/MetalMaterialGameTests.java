@@ -100,15 +100,17 @@ public class MetalMaterialGameTests {
 
     /**
      * Netherite -&gt; {@code forgeweave:writable2}: a netherite-headed tool starts with
-     * {@code DEFAULT_SLOTS + 1 = 4} free modifier slots, not the usual three.
+     * {@code DEFAULT_SLOTS + 2 = 5} free modifier slots, not the usual three. Issue #1103 folded
+     * netherite's own {@code reinforced_core} into the Writable family's level II, which is paper's
+     * own +2 rather than the +1 the invented clone paid.
      */
     @GameTest(template = "empty")
-    public static void netheriteToolStartsWithFourModifierSlots(GameTestHelper helper) {
+    public static void netheriteToolStartsWithFiveModifierSlots(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, new BlockPos(1, 1, 1), "netherite", "netherite", "netherite");
 
-        helper.assertTrue(ForgeweaveModifiers.freeSlots(pickaxe) == ForgeweaveModifiers.DEFAULT_SLOTS + 1,
-                "expected " + (ForgeweaveModifiers.DEFAULT_SLOTS + 1) + " free slots on a netherite tool, got "
+        helper.assertTrue(ForgeweaveModifiers.freeSlots(pickaxe) == ForgeweaveModifiers.DEFAULT_SLOTS + 2,
+                "expected " + (ForgeweaveModifiers.DEFAULT_SLOTS + 2) + " free slots on a netherite tool, got "
                         + ForgeweaveModifiers.freeSlots(pickaxe));
 
         helper.succeed();

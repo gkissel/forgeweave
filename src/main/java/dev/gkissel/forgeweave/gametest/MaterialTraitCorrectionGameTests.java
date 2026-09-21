@@ -181,9 +181,9 @@ public class MaterialTraitCorrectionGameTests {
         TraitStacks stacks = worn(player).get(ForgeweaveDataComponents.RESISTANCE_STACKS.get());
         helper.assertTrue(stacks != null && stacks.level() == 4,
                 "four blows must leave the stacks at Bracing Plate I's cap of 4, got " + stacks);
-        // Four stacks at 1.0 protection each is 4/25 of the blow that arrives with them standing.
-        helper.assertTrue(capped < first && Math.abs(capped - first * 0.84F) < 0.2F,
-                "at the cap the blow must cost 16% less, " + capped + " against " + first);
+        // The fourth blow arrives with three stacks standing: 3/25 of it, 12%.
+        helper.assertTrue(capped < first && Math.abs(capped - first * 0.88F) < 0.2F,
+                "with three stacks standing the blow must cost 12% less, " + capped + " against " + first);
         helper.succeed();
     }
 

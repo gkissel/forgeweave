@@ -634,11 +634,11 @@ public class CombatTraitGameTests {
         Zombie zombie = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(3, 2, 3)));
 
         float vsPig = preHit(helper, player, hatchet, pig, 1.0F);
-        helper.assertTrue(Math.abs(vsPig - 1.5F) < 0.001F,
-                "expected +0.5 against a 10-max-health pig (1 -> 1.5), got " + vsPig);
+        helper.assertTrue(Math.abs(vsPig - 1.6F) < 0.001F,
+                "expected +0.6 against a 10-max-health pig (1 -> 1.6), got " + vsPig);
         float vsZombie = preHit(helper, player, hatchet, zombie, 1.0F);
-        helper.assertTrue(Math.abs(vsZombie - 2.0F) < 0.001F,
-                "expected +1.0 against a 20-max-health zombie (1 -> 2), got " + vsZombie);
+        helper.assertTrue(Math.abs(vsZombie - 2.2F) < 0.001F,
+                "expected +1.2 against a 20-max-health zombie (1 -> 2.2), got " + vsZombie);
 
         pig.discard();
         zombie.discard();
@@ -659,8 +659,8 @@ public class CombatTraitGameTests {
 
         player.setDeltaMovement(new Vec3(1.0, 0.0, 0.0));
         float moving = preHit(helper, player, hatchet, pig, 1.0F);
-        helper.assertTrue(Math.abs(moving - 4.0F) < 0.001F,
-                "expected +3 at 1 block/tick of motion (1 -> 4), got " + moving);
+        helper.assertTrue(Math.abs(moving - 6.0F) < 0.001F,
+                "expected +5 at 1 block/tick of motion (1 -> 6), got " + moving);
 
         pig.discard();
         helper.succeed();
@@ -679,8 +679,8 @@ public class CombatTraitGameTests {
 
         target.setHealth(target.getHealth() - 10.0F);
         float weakerTarget = preHit(helper, player, hatchet, target, 1.0F);
-        helper.assertTrue(Math.abs(weakerTarget - 3.0F) < 0.001F,
-                "expected +2 against a target below the wielder's health (1 -> 3), got " + weakerTarget);
+        helper.assertTrue(Math.abs(weakerTarget - 4.0F) < 0.001F,
+                "expected +3 against a target below the wielder's health (1 -> 4), got " + weakerTarget);
 
         target.discard();
         helper.succeed();
@@ -704,8 +704,8 @@ public class CombatTraitGameTests {
         target.setItemSlot(EquipmentSlot.CHEST, new ItemStack(Items.IRON_CHESTPLATE));
         target.tick();
         float armored = preHit(helper, player, hatchet, target, 1.0F);
-        helper.assertTrue(Math.abs(armored - 3.0F) < 0.001F,
-                "expected +2 against an armored target (1 -> 3), got " + armored);
+        helper.assertTrue(Math.abs(armored - 3.5F) < 0.001F,
+                "expected +2.5 against an armored target (1 -> 3.5), got " + armored);
 
         target.discard();
         helper.succeed();
@@ -781,8 +781,8 @@ public class CombatTraitGameTests {
                 "ruthless must not touch a non-critical blow, got " + notCrit);
 
         float crit = preHitCrit(helper, player, hatchet, pig, 3.0F, 1.5F);
-        helper.assertTrue(Math.abs(crit - 4.0F) < 0.001F,
-                "expected +1.0 on a vanilla 1.5x crit (3 -> 4), got " + crit);
+        helper.assertTrue(Math.abs(crit - 4.2F) < 0.001F,
+                "expected +1.2 on a vanilla 1.5x crit (3 -> 4.2), got " + crit);
 
         pig.discard();
         helper.succeed();
@@ -1019,8 +1019,8 @@ public class CombatTraitGameTests {
         float before = player.getHealth();
         onHit(helper, player, hatchet, target); // 1.0 damage dealt, per the onHit helper
         float healed = player.getHealth() - before;
-        // The proposed magnitude (soulrend2's javadoc): 15% of 1.0 damage, well under the 4.0 cap.
-        helper.assertTrue(Math.abs(healed - 0.15F) < 0.01F, "expected a 0.15 lifesteal heal, got " + healed);
+        // Soul Rend II after #1103 merged leeching into it: 22% of 1.0 damage, well under the cap.
+        helper.assertTrue(Math.abs(healed - 0.22F) < 0.01F, "expected a 0.22 lifesteal heal, got " + healed);
 
         target.discard();
         helper.succeed();
@@ -1128,9 +1128,10 @@ public class CombatTraitGameTests {
         Zombie target = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
 
         // The shipped fractions (trait_definition/soulrend*.json) against the onHit helper's 1.0
-        // damage, all well under each level's own cap.
-        // Soul wick (#965) is duskweld's own faint rung under the three, shipped the same way.
-        float[] expected = { 0.05F, 0.10F, 0.18F, 0.26F };
+        // damage, all well under each level's own cap. Issue #1103 folded soulwick, mendreach,
+        // soulium_reap and leeching in and raised level I to the 15% floor, so the four welds sit one
+        // rung apart at 15/22/28/35 percent.
+        float[] expected = { 0.15F, 0.22F, 0.28F, 0.35F };
         String[] ids = { "soulrend", "soulrend2", "soulrend3", "soulrend4" };
         for (int level = 0; level < ids.length; level++) {
             helper.assertTrue(ForgeweaveTraits.lookup(traitId(ids[level])) != null,

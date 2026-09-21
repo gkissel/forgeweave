@@ -114,8 +114,8 @@ public class TraitPairingGameTests {
         double heft = wearing(helper, "heft").getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
         double heavy = wearing(helper, "heavy").getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
 
-        helper.assertTrue(Math.abs(heft - plain - 0.025) < 1e-4,
-                "compressed heft is 0.1 held, so a worn piece must add 0.025 over " + plain + ", got " + heft);
+        helper.assertTrue(Math.abs(heft - plain - 0.0625) < 1e-4,
+                "Heft I is 0.25 held, so a worn piece must add 0.0625 over " + plain + ", got " + heft);
         helper.assertTrue(Math.abs(heavy - plain - 0.25) < 1e-4,
                 "heavy is 1.0 held, so a worn piece must add 0.25 over " + plain + ", got " + heavy);
         helper.assertTrue(heavy - plain < 1.0,
@@ -247,8 +247,8 @@ public class TraitPairingGameTests {
         double swift = wearing(helper, "swiftward").getAttributeValue(Attributes.MOVEMENT_SPEED);
 
         helper.assertTrue(swift > plain, "swiftward must move the wearer faster, " + swift + " against " + plain);
-        helper.assertTrue(Math.abs(swift - plain * 1.06) < 1e-4,
-                "and by the shipped 6%, so " + plain * 1.06 + " rather than " + swift);
+        helper.assertTrue(Math.abs(swift - plain * 1.08) < 1e-4,
+                "and by the shipped 8%, so " + plain * 1.08 + " rather than " + swift);
         helper.succeed();
     }
 
@@ -261,8 +261,8 @@ public class TraitPairingGameTests {
         double bare = holding(helper).getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
         double grip = holding(helper, "heft").getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
 
-        helper.assertTrue(Math.abs(grip - bare - 0.1) < 1e-4,
-                "ferricore grip must add 0.1 over " + bare + ", got " + grip);
+        helper.assertTrue(Math.abs(grip - bare - 0.25) < 1e-4,
+                "Heft I must add 0.25 over " + bare + ", got " + grip);
         helper.succeed();
     }
 

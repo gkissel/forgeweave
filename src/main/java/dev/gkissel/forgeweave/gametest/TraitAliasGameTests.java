@@ -17,7 +17,6 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.trait.Trait;
-import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 import dev.gkissel.forgeweave.trait.SelfRepairWhen;
@@ -46,12 +45,14 @@ public class TraitAliasGameTests {
         return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
-    /** A pickaxe whose stored trait list is exactly {@code traits}, the way an old save's is. */
+    /**
+     * A hatchet whose stored trait list is exactly {@code traits}, the way an old save's is -- built
+     * through {@code CombatTraitGameTests#tool} so it carries the stats and materials an assembled
+     * tool has and its attribute modifiers are computed for real.
+     */
     private static ItemStack savedTool(String... traits) {
-        ItemStack pickaxe = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
-        pickaxe.set(ForgeweaveDataComponents.TRAITS.get(), List.of(traits).stream()
-                .map(TraitAliasGameTests::id).toList());
-        return pickaxe;
+        return CombatTraitGameTests.tool(ForgeweaveItems.TOOL_HATCHET.get(),
+                List.of(traits).stream().map(TraitAliasGameTests::id).toList(), 3.0F);
     }
 
     /** Every retired id resolves to the behaviour of the rung that replaced it. */
@@ -79,7 +80,7 @@ public class TraitAliasGameTests {
     @GameTest(template = "empty")
     public static void aSavedToolsRetiredTraitsStillFire(GameTestHelper helper) {
         Player bare = helper.makeMockPlayer(GameType.SURVIVAL);
-        bare.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get()));
+        bare.setItemInHand(InteractionHand.MAIN_HAND, savedTool());
         bare.tick();
         double none = bare.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
 

@@ -43,7 +43,8 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
  * kinetic_charge) plus the item capability's own round trip, per the issue's test strategy list.
  * Like {@link MiningTraitGameTests}/{@link CombatTraitGameTests}, tools are assembled by hand
  * ({@link #pickaxe}/{@link #hatchet}) with the trait ids set directly -- material wiring is a later
- * M6 issue. Magnitudes asserted here (32,000 FE capacity, 40 FE/durability point, 2 FE/tick solar,
+ * M6 issue. Magnitudes asserted here (Energized I's 12,000 FE capacity, 25 FE/durability point after
+ * issue #1103 made the trait the bottom rung of a four-rung ladder, 2 FE/tick solar,
  * 5 FE/damage kinetic) are {@code ForgeweaveTraits}' proposed issue #830 numbers; a maintainer
  * retune updates both places together, same as every other M6 batch's tests.
  */
@@ -55,18 +56,18 @@ public class EnergyTraitGameTests {
     @GameTest(template = "empty")
     public static void energizedSpendsEnergyBeforeDurabilityThenFallsBackOnceEmpty(GameTestHelper helper) {
         ItemStack pickaxe = pickaxe(List.of(traitId("energized")), 1000);
-        pickaxe.set(ForgeweaveDataComponents.ENERGY.get(), 400); // 400 FE / 40 per point = 10 points covered
+        pickaxe.set(ForgeweaveDataComponents.ENERGY.get(), 250); // 250 FE / 25 per point = 10 points covered
         RandomSource random = helper.getLevel().getRandom();
 
         int fullyCovered = ForgeweaveTraits.durabilityDamage(pickaxe, random, 6);
         helper.assertTrue(fullyCovered == 0,
                 "a full-enough buffer must take no durability damage, got " + fullyCovered);
-        helper.assertTrue(EnergyBuffer.stored(pickaxe) == 160,
-                "expected 400 - 6*40 = 160 FE left, got " + EnergyBuffer.stored(pickaxe));
+        helper.assertTrue(EnergyBuffer.stored(pickaxe) == 100,
+                "expected 250 - 6*25 = 100 FE left, got " + EnergyBuffer.stored(pickaxe));
 
         int partiallyCovered = ForgeweaveTraits.durabilityDamage(pickaxe, random, 6);
         helper.assertTrue(partiallyCovered == 2,
-                "the remaining 160 FE covers only 4 of the 6 points, expected 2 left over, got " + partiallyCovered);
+                "the remaining 100 FE covers only 4 of the 6 points, expected 2 left over, got " + partiallyCovered);
         helper.assertTrue(EnergyBuffer.stored(pickaxe) == 0, "the buffer must be drained to zero");
 
         int emptyBuffer = ForgeweaveTraits.durabilityDamage(pickaxe, random, 5);
@@ -85,23 +86,23 @@ public class EnergyTraitGameTests {
         ItemStack pickaxe = pickaxe(List.of(traitId("energized")), 1000);
         IEnergyStorage capability = EnergyBuffer.capability(pickaxe);
         helper.assertTrue(capability != null, "a tool with the energized trait must expose the capability");
-        helper.assertTrue(capability.getMaxEnergyStored() == 32000,
-                "expected the proposed 32,000 FE capacity, got " + capability.getMaxEnergyStored());
+        helper.assertTrue(capability.getMaxEnergyStored() == 12000,
+                "expected Energized I's 12,000 FE capacity, got " + capability.getMaxEnergyStored());
 
         int simulated = capability.receiveEnergy(50000, true);
-        helper.assertTrue(simulated == 32000, "a simulated insert must clamp to capacity, got " + simulated);
+        helper.assertTrue(simulated == 12000, "a simulated insert must clamp to capacity, got " + simulated);
         helper.assertTrue(capability.getEnergyStored() == 0, "a simulated insert must not mutate the stack");
 
-        int accepted = capability.receiveEnergy(20000, false);
-        helper.assertTrue(accepted == 20000, "expected the full 20,000 FE accepted, got " + accepted);
-        int topUp = capability.receiveEnergy(20000, false);
-        helper.assertTrue(topUp == 12000, "expected only the remaining 12,000 FE accepted, got " + topUp);
-        helper.assertTrue(capability.getEnergyStored() == 32000, "the buffer must now read full");
+        int accepted = capability.receiveEnergy(8000, false);
+        helper.assertTrue(accepted == 8000, "expected the full 8,000 FE accepted, got " + accepted);
+        int topUp = capability.receiveEnergy(8000, false);
+        helper.assertTrue(topUp == 4000, "expected only the remaining 4,000 FE accepted, got " + topUp);
+        helper.assertTrue(capability.getEnergyStored() == 12000, "the buffer must now read full");
 
         int extracted = capability.extractEnergy(5000, false);
         helper.assertTrue(extracted == 5000, "expected 5,000 FE extracted, got " + extracted);
-        helper.assertTrue(capability.getEnergyStored() == 27000,
-                "expected 27,000 FE left after the extraction, got " + capability.getEnergyStored());
+        helper.assertTrue(capability.getEnergyStored() == 7000,
+                "expected 7,000 FE left after the extraction, got " + capability.getEnergyStored());
 
         helper.succeed();
     }
@@ -112,12 +113,12 @@ public class EnergyTraitGameTests {
         ItemStack pickaxe = pickaxe(List.of(traitId("energized")), 1000);
         IEnergyStorage capability = EnergyBuffer.capability(pickaxe);
         helper.assertTrue(capability != null, "setup: the capability must be present");
-        capability.receiveEnergy(400, false);
+        capability.receiveEnergy(250, false);
 
         RandomSource random = helper.getLevel().getRandom();
         int covered = ForgeweaveTraits.durabilityDamage(pickaxe, random, 10);
         helper.assertTrue(covered == 0,
-                "the 400 FE charged through the capability must cover all 10 durability points, got " + covered);
+                "the 250 FE charged through the capability must cover all 10 durability points, got " + covered);
         helper.assertTrue(EnergyBuffer.stored(pickaxe) == 0, "the charge must be fully spent");
 
         int afterDrained = ForgeweaveTraits.durabilityDamage(pickaxe, random, 3);
