@@ -2347,19 +2347,23 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // modifier.tconstruct.<id>/.description rows (NOTICE.md), reworded only where a mechanic
         // was not ported (warded's row said 0.5 where its formula is 1).
         add("trait.forgeweave.projectile_protection.name", "Projectile Protection");
-        add("trait.forgeweave.projectile_protection.description", "Turns arrows aside: 3 protection against projectiles on every piece worn, and a steadier footing.");
+        add("trait.forgeweave.projectile_protection.description",
+                "Turns arrows aside: 4 protection against projectile damage, per piece worn.");
         add("trait.forgeweave.depth_protection.name", "Depth Protection");
         add("trait.forgeweave.depth_protection.description",
                 "3 protection a piece at Y=0, twice that at the bottom of the world, and nothing above Y=96.");
         add("trait.forgeweave.blast_protection.name", "Blast Protection");
-        add("trait.forgeweave.blast_protection.description", "Shrugs off blasts: 3 protection against explosions on every piece worn.");
+        add("trait.forgeweave.blast_protection.description",
+                "Soaks up a blast: 4 protection against explosion damage, per piece worn.");
         add("trait.forgeweave.melee_protection.name", "Melee Protection");
-        add("trait.forgeweave.melee_protection.description", "Blunts a direct blow: 3 protection against anything that swings at you, on every piece worn.");
+        add("trait.forgeweave.melee_protection.description",
+                "Answers a direct blow: 3 protection against physical damage, per piece worn.");
         // #1092: seared stone and necrotic bone have named these three ids since #843, but only the
         // modifiers of the same names existed, so the grants did nothing and the station showed the
         // raw key. The names read as traits rather than as the modifier rows above.
         add("trait.forgeweave.fire_protection.name", "Fire Protection");
-        add("trait.forgeweave.fire_protection.description", "Turns heat aside: 3 protection against fire and lava on every piece worn.");
+        add("trait.forgeweave.fire_protection.description",
+                "Shrugs off heat: 4 protection against fire and lava damage, per piece worn.");
         add("trait.forgeweave.searing.name", "Searing");
         add("trait.forgeweave.searing.description", "Blocks you mine come out already smelted.");
         add("trait.forgeweave.necrotic.name", "Necrotic");
@@ -2637,11 +2641,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "steel are both reachable the day the smeltery lights.\n\n"
                         + "Five. Alloys feed alloys. The deepest metals are four mixing stages and six "
                         + "ores down the chain, and the Alloys chapter draws each path.\n\n"
-                        + "Fuel. Lava burns at 1300 degrees, which melts every ore and every ingot of "
-                        + "this workshop's own metals. A few of the late metals in full block form, and "
-                        + "a lot of what other mods add, need hotter fuel: blazing blood at 1500, "
-                        + "molten magma at 1700, molten brimspar at 1900, molten pyrealloy at 2100. The "
-                        + "Smeltery chapter has that page.\n\n"
+                        + "Fuel. Lava burns at 1300 degrees, which melts every ore and every metal down "
+                        + "to the first round of mixing. Past that the chains need heat lava cannot give: "
+                        + "blazing blood at 1500 for a second-stage alloy, molten magma at 1700 for a "
+                        + "third or a fourth. Molten brimspar at 1900 and molten pyrealloy at 2100 are "
+                        + "for what other mods add. The Smeltery chapter has that page.\n\n"
                         + "Mining rungs, lowest first: Wood, Stone, Iron, Diamond, Netherite, "
                         + "Hardcinder, Warspar, Resonite. A tool mines at its head material's rung. The "
                         + "Materials chapter says which materials sit on which.\n\n"
@@ -2839,15 +2843,20 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // #1105: the armor way in, previously a clause inside the casting page.
         add("book.forgeweave.armor.first_set.title", "Your First Set");
         add("book.forgeweave.armor.first_set.text",
-                "You do not need a smeltery to wear this armor. Obsidian carves in the Part Builder, "
-                        + "plating and maille both, and an obsidian set is built at the Tool Station "
-                        + "like any other.\n\n"
-                        + "One obsidian is one ingot's worth, so a helmet plating is three obsidian, a "
-                        + "chestplate six, leggings five, boots two, and each maille two. A full set "
-                        + "with maille under every piece is twenty-four obsidian.\n\n"
+                "You do not need a smeltery to wear this armor. Seared stone carves in the Part "
+                        + "Builder, plating and maille both, and a seared stone set is built at the "
+                        + "Tool Station like any other.\n\n"
+                        + "One seared brick is one ingot's worth, so a helmet plating is three bricks, "
+                        + "a chestplate six, leggings five, boots two, and each maille two. A full set "
+                        + "with maille under every piece is twenty-four seared bricks, which is twelve "
+                        + "grout crafts and twenty-four trips through a furnace. You are baking bricks "
+                        + "for the smeltery anyway.\n\n"
+                        + "Seared stone plating also carries fire protection, four points on every "
+                        + "piece worn, which is the one thing a set this cheap is genuinely good at.\n\n"
                         + "Those same carved parts are what the metal era is built on: set one on a "
                         + "Casting Table, pour gold over it, and the cast you keep will take any metal "
-                        + "afterwards.");
+                        + "afterwards. Obsidian, amethyst, emerald and nahuatl carve into plating too, "
+                        + "once you have them.");
         add("book.forgeweave.armor.traits.title", "Armor Traits");
         add("book.forgeweave.armor.traits.text",
                 "Some materials carry a trait that only wakes on armor: iron's plating shrugs off "
@@ -3088,10 +3097,18 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "Pyrealloy is also the only fuel that burns differently: 100 per step "
                         + "instead of 50, but five times as long, which is two and a half times the "
                         + "work out of every bucket.\n\n"
-                        + "Lava clears every ore and every ingot of this workshop's own metals. What "
-                        + "needs the hotter rungs is a handful of the late metals in full block form, "
-                        + "and a lot of what other mods add: their ores sit at 1200, 1400, 1600, 1800 "
-                        + "and 2000 by rung, so each step up the fuel ladder opens a band of them.");
+                        + "Lava clears every ore, and every metal one mixing stage deep. The alloys "
+                        + "poured out of other alloys ask for more: a second-stage alloy melts at 1400, "
+                        + "so it needs blazing blood, and a third- or fourth-stage one at 1600, so it "
+                        + "needs molten magma. That holds for every form of it, ingot, nugget, block and "
+                        + "dust alike, so grinding one down is no way round the fuel.\n\n"
+                        + "Other mods' materials sit on the same bands: 1200, 1400, 1600, 1800 and 2000 "
+                        + "by rung. Each step up the fuel ladder therefore opens a band of theirs and a "
+                        + "stage of this workshop's own chains at once.\n\n"
+                        + "Mixing itself asks for no heat beyond what the inputs needed to melt, so a "
+                        + "chain walked in one sitting never stalls. The gate bites when you pour a deep "
+                        + "alloy back in, which is what casting spare ingots and re-melting them in bulk "
+                        + "comes down to.");
         add("book.forgeweave.smeltery.cores.title", "The Four Cores");
         add("book.forgeweave.smeltery.cores.text",
                 "The core in the wall decides how much metal an ore gives. There are four, and only "
@@ -3258,7 +3275,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.alloys.classic_alloys.text",
                 "The next tier up. Every one of them needs a smeltery.\n\n"
                         + "Manyullyn. One cobalt to one ardite, out one. Both come out of the Nether, "
-                        + "and manyullyn is the standard endgame melee head.\n\n"
+                        + "and manyullyn hits harder than anything else you can reach without leaving "
+                        + "it. The ores above netherite, and the alloys poured out of them, pass it "
+                        + "later.\n\n"
                         + "Hepatizon. 180 copper, 90 cobalt and 100 molten quartz, out 180.\n\n"
                         + "Amethyst bronze. 90 copper and 100 molten amethyst, out 90.\n\n"
                         + "Pig iron. 144 iron, 40 blood and 72 molten clay, out 144. Blood is what an "
@@ -3722,7 +3741,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 + "instead of vanilla's one.");
         add("trait.forgeweave.tideward.name", "Tideward");
         add("trait.forgeweave.tideward.description",
-                "The worn side of a tide-clearing edge: 3 protection against drowning per piece worn.");
+                "The worn side of a tide-clearing edge: 4 protection against drowning, per piece worn.");
         add("trait.forgeweave.mendward.name", "Mendward");
         add("trait.forgeweave.mendward.description",
                 "The worn side of a mercy that heals what it strikes: healing the wearer receives counts for a "
@@ -3740,7 +3759,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // temperward is the flat plate that answers a flat edge. docs/research/trait-pairing.md.
         add("trait.forgeweave.temperward.name", "Temperward");
         add("trait.forgeweave.temperward.description",
-                "The worn side of a flat, keen edge: 3 protection against every blow, per piece worn.");
+                "The worn side of a flat, keen edge: 2 protection against every blow, per piece worn.");
         add("trait.forgeweave.cyanite_chillback.name", "Cyanite Chillback");
         add("trait.forgeweave.cyanite_chillback.description",
                 "The worn side of a cyanite chill: one blow in five leaves the attacker with Slowness II for five "
@@ -3776,6 +3795,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.stormfed.description", "Mines 35% faster while the rain is falling on you.");
         add("trait.forgeweave.netherkeen.name", "Netherkeen");
         add("trait.forgeweave.netherkeen.description", "Mines 30% faster in the Nether.");
+
+        add("trait.forgeweave.truestring.name", "Truestring");
+        add("trait.forgeweave.truestring.description",
+                "A shot held to full draw strays 60% less. A snap shot gets nothing.");
+        add("trait.forgeweave.featherglide.name", "Featherglide");
+        add("trait.forgeweave.featherglide.description",
+                "The arrow drops half as fast, so a long shot flies flat.");
+        add("trait.forgeweave.leafsprung.name", "Leafsprung");
+        add("trait.forgeweave.leafsprung.description", "One shot in four costs no arrow.");
 
         add("tooltip.forgeweave.trait.banked_strike", "Banked: %s charges, worth %s damage");
     }

@@ -19,8 +19,10 @@ import dev.gkissel.forgeweave.tool.AoeHarvest;
  *
  * <p>The price is the point. A vein hammer gets its sweep from the tool kind and pays nothing extra
  * for it; this is a <em>material</em> saying "any tool made of me mines an ore body in one swing,
- * and you will feel it in the durability bar". {@code veinseeker} pulls 12 blocks at one extra
- * durability each, {@code veinseeker2} pulls 28. Both numbers are datapack fields.
+ * and you will feel it in the durability bar". {@code veinseeker} pulls 12 blocks and
+ * {@code veinseeker2} pulls 28, both at four extra durability a block: a full level-I vein is a
+ * twentieth of the 1,140-durability head that carries it, which is a price rather than a rounding
+ * error. Both numbers are datapack fields.
  *
  * <p>Reuses {@link AoeHarvest#veinFrom} for the flood fill and its breakability filter and
  * {@link AoeHarvest#breakEach} for the removal, the same way {@link CascadingBreak} does -- there is

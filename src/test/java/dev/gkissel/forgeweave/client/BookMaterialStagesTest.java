@@ -184,6 +184,50 @@ class BookMaterialStagesTest {
         return lookup.of(id, material);
     }
 
+    /**
+     * Issue #1113 item 6: atomic matter alloy keeps its stats and has to read as the last thing you
+     * make. Its own data cannot say so -- it sits on the resonite rung and has no alloy recipe at
+     * all, because a nucleosynthesis run on Mekanism's own deepest machine is the only thing that
+     * makes the ingot -- so the derivation lands it at {@link MaterialStage#DEEP_ALLOYS} next to
+     * mined resonite. The shipped {@code stage/endgame} material tag is what moves it, and this
+     * reads that tag out of the shipped datapack rather than restating it.
+     */
+    @Test
+    void theShippedStageTagPutsAtomicMatterAlloyLast() throws Exception {
+        Map<ResourceLocation, MaterialStage> overrides = shippedStageTags();
+        assertFalse(overrides.isEmpty(), "no shipped stage tag found under data/forgeweave/tags/forgeweave/material");
+
+        ResourceLocation id = ResourceLocation.fromNamespaceAndPath("forgeweave", "atomic_matter_alloy");
+        Map<ResourceLocation, Material> materials = new java.util.HashMap<>();
+        shippedMaterials().forEach(entry -> materials.put(entry.getKey(), entry.getValue()));
+        MaterialStage.Lookup derived = shippedLookup();
+
+        assertEquals(MaterialStage.DEEP_ALLOYS, derived.of(id, materials.get(id)),
+                "the derivation reads only the rung and the alloy depth, so it lands a stage early");
+        assertEquals(MaterialStage.ENDGAME,
+                new MaterialStage.Lookup(overrides, Map.of()).of(id, materials.get(id)),
+                "the shipped stage/endgame tag has to move it to the last stage");
+    }
+
+    /** Every {@code forgeweave:stage/<id>} material tag the mod's own datapack ships. */
+    private static Map<ResourceLocation, MaterialStage> shippedStageTags() throws Exception {
+        Path dir = projectRoot().resolve("src/main/resources/data/forgeweave/tags/forgeweave/material/stage");
+        Map<ResourceLocation, MaterialStage> overrides = new java.util.HashMap<>();
+        if (!Files.isDirectory(dir)) {
+            return overrides;
+        }
+        for (MaterialStage stage : MaterialStage.values()) {
+            Path file = dir.resolve(stage.id() + ".json");
+            if (!Files.exists(file)) {
+                continue;
+            }
+            JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8))
+                    .getAsJsonObject().getAsJsonArray("values")
+                    .forEach(value -> overrides.put(ResourceLocation.parse(value.getAsString()), stage));
+        }
+        return overrides;
+    }
+
     @Test
     void aStageTagOverridesTheDerivedStage() throws Exception {
         Map.Entry<ResourceLocation, Material> wood = shippedMaterials().stream()

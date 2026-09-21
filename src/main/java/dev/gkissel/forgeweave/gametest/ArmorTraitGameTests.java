@@ -99,12 +99,12 @@ public class ArmorTraitGameTests {
         helper.succeed();
     }
 
-    /** Iron -&gt; projectile_protection: 3 against projectile-tagged blows (a falling anvil), nothing against an explosion. */
+    /** Iron -&gt; projectile_protection: 4 against projectile-tagged blows (a falling anvil), nothing against an explosion. */
     @GameTest(template = "empty")
     public static void projectileProtectionOnlyAgainstProjectiles(GameTestHelper helper) {
         Player player = wearing(helper, "iron", "iron");
         DamageSource anvil = helper.getLevel().damageSources().anvil(null);
-        assertRatio(helper, lost(player, anvil, BLOW), lostWithoutTraits(player, anvil, BLOW), 3.0F, "anvil");
+        assertRatio(helper, lost(player, anvil, BLOW), lostWithoutTraits(player, anvil, BLOW), 4.0F, "anvil");
         assertRatio(helper, lost(player, explosion(helper), BLOW), lostWithoutTraits(player, explosion(helper), BLOW), 0.0F, "explosion");
         helper.assertTrue(player.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE) > 0.0F,
                 "the piece grants knockback resistance");
@@ -141,11 +141,11 @@ public class ArmorTraitGameTests {
         helper.succeed();
     }
 
-    /** Obsidian -&gt; blast_protection: 3 against explosions. */
+    /** Obsidian -&gt; blast_protection: 4 against explosions. */
     @GameTest(template = "empty")
     public static void blastProtectionAgainstExplosions(GameTestHelper helper) {
         Player player = wearing(helper, "obsidian", "obsidian");
-        assertRatio(helper, lost(player, explosion(helper), BLOW), lostWithoutTraits(player, explosion(helper), BLOW), 3.0F, "explosion");
+        assertRatio(helper, lost(player, explosion(helper), BLOW), lostWithoutTraits(player, explosion(helper), BLOW), 4.0F, "explosion");
         helper.succeed();
     }
 

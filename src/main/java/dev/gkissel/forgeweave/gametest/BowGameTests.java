@@ -138,7 +138,7 @@ public class BowGameTests {
                 "expected draw speed 0.725, range 1.325, bonus 3.5, got " + launcher);
         List<ResourceLocation> traits = bow.get(ForgeweaveDataComponents.TRAITS.get());
         helper.assertTrue(List.of(id("magnetic"), id("magnetic2"), id("fractured"), id("splintering"),
-                        id("ecological")).equals(traits),
+                        id("truestring")).equals(traits),
                 "a limb grants its material's general (BOW-scoped) and head-scoped traits, got " + traits);
         helper.succeed();
     }

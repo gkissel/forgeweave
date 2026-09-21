@@ -1,8 +1,8 @@
 {
   "head": {
-    "durability": 860,
-    "mining_speed": 8.3,
-    "attack_damage": 6.5
+    "durability": 1240,
+    "mining_speed": 9.0,
+    "attack_damage": 9.0
   },
   "handle": {
     "durability_modifier": 1.0,
@@ -10,18 +10,18 @@
   },
   "extra_durability": 270,
   "bow": {
-    "drawspeed": 0.6,
+    "drawspeed": 0.65,
     "range": 1.3,
-    "bonus_damage": 4.2
+    "bonus_damage": 5.82
   },
   "plating": {
-    "helmet": { "durability": 364, "armor": 2.0, "toughness": 1.0, "knockback_resistance": 0.05 },
-    "chestplate": { "durability": 529, "armor": 7.0, "toughness": 1.0, "knockback_resistance": 0.05 },
-    "leggings": { "durability": 496, "armor": 5.0, "toughness": 1.0, "knockback_resistance": 0.05 },
-    "boots": { "durability": 430, "armor": 2.0, "toughness": 1.0, "knockback_resistance": 0.05 }
+    "helmet": { "durability": 525, "armor": 2.0, "toughness": 1.0, "knockback_resistance": 0.05 },
+    "chestplate": { "durability": 763, "armor": 7.0, "toughness": 1.0, "knockback_resistance": 0.05 },
+    "leggings": { "durability": 715, "armor": 5.0, "toughness": 1.0, "knockback_resistance": 0.05 },
+    "boots": { "durability": 620, "armor": 2.0, "toughness": 1.0, "knockback_resistance": 0.05 }
   },
   "maille": true,
-  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "incorrect_for_tool": "forgeweave:incorrect_for_hardcinder_tool",
   "traits": {
     "general": ["forgeweave:merciful"],
     "armor": ["forgeweave:mendward"]

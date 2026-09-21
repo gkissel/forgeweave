@@ -1,11 +1,11 @@
 {
   "behavior": "forgeweave:vein_break",
   "max_blocks": 12,
-  "durability_per_block": 1,
+  "durability_per_block": 4,
   "family": "veinseeker",
   "max_level": 2,
   "description_args": [
     "12",
-    "1"
+    "4"
   ]
 }

@@ -1889,9 +1889,16 @@ public final class ForgeweaveTraits {
     // level 1, so every magnitude below is the clone's eachLevel constant times one.
 
     /**
-     * Iron plating/maille. {@code ModifierIds.projectileProtection}: {@link Protection} 2 against
+     * Iron plating/maille. {@code ModifierIds.projectileProtection}: {@link Protection} against
      * {@code #forgeweave:projectile_protection}, plus the clone's {@code MaxArmorAttributeModule}
      * of +0.05 knockback resistance.
+     *
+     * <p>Issue #1113 raised the protection half from the clone's own 2 to 4 a piece, the maintainer's
+     * floor for a type-specific protection trait: 4 points is a free Protection IV against that
+     * damage type, the reference a player already has. The deviation from parity is deliberate and is
+     * recorded in that issue; it applies the same way to {@link #BLAST_PROTECTION} and
+     * {@link #FIRE_PROTECTION}, and {@link #MELEE_PROTECTION} takes 3 because it covers every direct
+     * blow rather than one type.
      *
      * <p>The knockback half used to be its own {@code armorAttributes} override paying a flat 0.05
      * per piece, so four iron pieces reached 0.2 where the clone gives 0.05. Issue #1097 dropped
@@ -1918,36 +1925,40 @@ public final class ForgeweaveTraits {
     };
 
     /**
-     * The smallest protection value a material trait may pay per worn piece (issue #1114, the
-     * maintainer's magnitude floors on #1101). One point blocks a twenty-fifth of the post-armor
-     * blow, so the six {@code *_protection} traits shipped at 1.25 to 2.5 were blocking 5% to 10%
-     * each -- under the noise floor of a fight, and the reason a copper or cobalt armour set felt
-     * the same as no set at all. Three points a piece is 12% each and 48% off for a full set, which
-     * is what {@code magic_protection} I already pays after issue #1103.
+     * The smallest protection a material trait may pay per worn piece, for the two singles issue
+     * #1113 did not set itself (issue #1114). One point blocks a twenty-fifth of the post-armor
+     * blow, so {@code consecrated} and {@code depth_protection} at the 1.20 clone's 1.25 were
+     * blocking 5% each, under the noise floor of a fight.
      *
-     * <p>This moves every one of the six off its 1.20-clone value (recorded in the PR): projectile
-     * and melee paid 2.0, blast and fire 2.5, consecrated and depth 1.25. The clone's numbers are a
-     * <em>modifier's</em> per-level pay, and a modifier can be applied several times; a material
-     * trait is granted once and has no ladder to climb, so the floor is read off what one grant has
-     * to be worth rather than off the clone's per-level step.
+     * <p>Three rather than the 4.0 the type-specific singles above pay, for the reason
+     * {@link #MELEE_PROTECTION} is also three: both of these cover a wide class of blow.
+     * {@code consecrated} answers every undead attacker whatever it swings, and
+     * {@code depth_protection} answers everything at all while the wearer is deep enough. The
+     * clone's own numbers are a <em>modifier's</em> per-level pay and a modifier can be applied
+     * several times; a material trait is granted once and has no ladder to climb.
      */
     private static final float PROTECTION_FLOOR = 3.0F;
 
-    private static final float PROJECTILE_PROTECTION_PER_LEVEL = PROTECTION_FLOOR;
+    private static final float PROJECTILE_PROTECTION_PER_LEVEL = 4.0F;
     private static final float PROJECTILE_PROTECTION_KNOCKBACK_RESISTANCE = 0.05F;
 
-    private static final float BLAST_PROTECTION_PER_LEVEL = PROTECTION_FLOOR;
+    private static final float BLAST_PROTECTION_PER_LEVEL = 4.0F;
 
-    /** Obsidian plating/maille. {@code ModifierIds.blastProtection}: {@link Protection} 2.5 against {@code #forgeweave:blast_protection}. */
+    /**
+     * Obsidian plating/maille. {@code ModifierIds.blastProtection}: {@link Protection} against
+     * {@code #forgeweave:blast_protection}, at issue #1113's 4-a-piece floor rather than the clone's
+     * 2.5 -- see {@link #PROJECTILE_PROTECTION}.
+     */
     public static final Trait BLAST_PROTECTION = defendTrait(Protection.against(Protection.BLAST_PROTECTION, BLAST_PROTECTION_PER_LEVEL));
 
-    private static final float FIRE_PROTECTION_PER_LEVEL = PROTECTION_FLOOR;
+    private static final float FIRE_PROTECTION_PER_LEVEL = 4.0F;
 
     /**
      * Seared stone plating/maille. {@code MaterialTraitsDataProvider}'s
-     * {@code addTraits(searedStone, ARMOR, fireProtection)}: {@link Protection} 2.5 against
-     * {@code #forgeweave:fire_protection}, the same {@code PROTECTION_STRONG_PER_LEVEL} the
-     * {@code fire_protection} modifier pays per level and the same shape as {@link #BLAST_PROTECTION}.
+     * {@code addTraits(searedStone, ARMOR, fireProtection)}: {@link Protection} against
+     * {@code #forgeweave:fire_protection}, the same shape as {@link #BLAST_PROTECTION} and at the
+     * same 4-a-piece floor issue #1113 set for both. It used to pay the clone's 2.5, which is what
+     * {@code PROTECTION_STRONG_PER_LEVEL} still pays the {@code fire_protection} modifier per level.
      *
      * <p>Issue #1092: seared stone has named {@code forgeweave:fire_protection} on its armor list
      * since #843, but only the modifier of that id existed, so the grant resolved to nothing and the
@@ -1980,12 +1991,14 @@ public final class ForgeweaveTraits {
     public static final Trait NECROTIC =
             seamTrait(new LifestealOnHitSeam(ForgeweaveModifiers.necroticLifestealFraction(1)));
 
-    private static final float MELEE_PROTECTION_PER_LEVEL = PROTECTION_FLOOR;
+    private static final float MELEE_PROTECTION_PER_LEVEL = 3.0F;
 
     /**
-     * Cobalt plating/maille. {@code ModifierIds.meleeProtection}: {@link Protection} 2 against
-     * direct {@code #forgeweave:melee_protection} blows. The clone's +5% use-item speed per level
-     * rides a Tinkers'-only attribute with no vanilla counterpart and is not ported.
+     * Cobalt plating/maille. {@code ModifierIds.meleeProtection}: {@link Protection} against
+     * direct {@code #forgeweave:melee_protection} blows, 3 a piece rather than the clone's 2 (issue
+     * #1113, one point under the type-specific floor because this one covers every direct blow). The
+     * clone's +5% use-item speed per level rides a Tinkers'-only attribute with no vanilla
+     * counterpart and is not ported.
      */
     public static final Trait MELEE_PROTECTION = defendTrait(
             Protection.against(Protection.MELEE_PROTECTION, MELEE_PROTECTION_PER_LEVEL).directOnly());
@@ -2538,6 +2551,58 @@ public final class ForgeweaveTraits {
             bonus += trait.maxDurabilityBonus(stack);
         }
         return bonus;
+    }
+
+    /**
+     * {@link Trait#shotInaccuracyFactor}'s driver: what the launcher's own traits multiply a shot's
+     * spread by, read off the <em>bow</em> in {@code BowItem#shoot}. Multiplied together rather than
+     * summed, so two tightening traits compose the way {@code endspeed}'s own factor does with
+     * either of them.
+     */
+    public static float shotInaccuracyFactor(ItemStack bow, float drawProgress) {
+        float factor = 1.0F;
+        for (Trait trait : of(bow)) {
+            factor *= trait.shotInaccuracyFactor(drawProgress);
+        }
+        return factor;
+    }
+
+    /**
+     * {@link Trait#projectileGravityFactor}'s driver: what the ammo's own traits multiply a fired
+     * arrow's gravity by, read off the arrow's origin stack in {@code ArrowEntity#getDefaultGravity}.
+     * Multiplied together, same reasoning as {@link #shotInaccuracyFactor}.
+     */
+    public static float projectileGravityFactor(ItemStack ammo) {
+        float factor = 1.0F;
+        for (Trait trait : of(ammo)) {
+            factor *= trait.projectileGravityFactor();
+        }
+        return factor;
+    }
+
+    /**
+     * {@link Trait#ammoSaveChance}'s driver, roll included: whether firing {@code ammo} leaves it
+     * unspent. The highest chance offered wins and is rolled once, rather than each trait rolling in
+     * turn -- the rule {@link Trait#dropDestroyChance} already states -- and the trait that offered
+     * it is the {@link TraitFeedback} source, so a datapack's {@code particle}/{@code sound}
+     * override on that definition is what plays.
+     */
+    public static boolean savesAmmo(ItemStack ammo, Player shooter) {
+        Trait best = null;
+        float chance = 0.0F;
+        for (Trait trait : of(ammo)) {
+            if (trait.ammoSaveChance() > chance) {
+                chance = trait.ammoSaveChance();
+                best = trait;
+            }
+        }
+        if (best == null || shooter.getRandom().nextFloat() >= chance) {
+            return false;
+        }
+        if (shooter.level() instanceof ServerLevel level) {
+            TraitFeedback.fire(best, TraitFeedback.Kind.HARVEST, level, shooter);
+        }
+        return true;
     }
 
     /**

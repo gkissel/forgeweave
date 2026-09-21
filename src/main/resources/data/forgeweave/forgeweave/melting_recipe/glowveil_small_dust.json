@@ -3,5 +3,6 @@
     "tag": "c:small_dusts/glowveil"
   },
   "fluid": "forgeweave:molten_glowveil",
-  "amount": 48
+  "amount": 48,
+  "temperature": 1400
 }

@@ -1,0 +1,4 @@
+{
+  "behavior": "forgeweave:projectile_glide",
+  "gravity_factor": 0.5
+}

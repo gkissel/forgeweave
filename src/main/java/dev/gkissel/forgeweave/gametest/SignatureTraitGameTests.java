@@ -204,6 +204,81 @@ public class SignatureTraitGameTests {
         helper.succeed();
     }
 
+    /**
+     * {@code truestring} on a real station-assembled shortbow: a fully drawn shot strays 60% less,
+     * and a shot short of full draw gets nothing. Read through the driver {@code BowItem#shoot}
+     * multiplies into its spread, because the spread itself is consumed by
+     * {@code Projectile#shoot}'s own jitter and is recorded nowhere on the arrow.
+     */
+    @GameTest(template = "empty")
+    public static void truestringTightensAFullyDrawnShotOnly(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack bow = ToolAssembly.assemble(helper, player, STATION,
+                ToolAssembly.entryFor(ForgeweaveItems.TOOL_SHORTBOW.get()), List.of("wood", "wood", "string"));
+        List<ResourceLocation> traits = bow.get(ForgeweaveDataComponents.TRAITS.get());
+        helper.assertTrue(traits != null && traits.contains(id("truestring")),
+                "a string bowstring must put truestring on the bow, got " + traits);
+
+        float full = ForgeweaveTraits.shotInaccuracyFactor(bow, 1.0F);
+        helper.assertTrue(Math.abs(full - 0.4F) < 0.001F,
+                "a fully drawn shot must keep four tenths of the spread, got " + full);
+        float partial = ForgeweaveTraits.shotInaccuracyFactor(bow, 0.9F);
+        helper.assertTrue(Math.abs(partial - 1.0F) < 0.001F,
+                "a shot short of full draw must get nothing, got " + partial);
+        helper.succeed();
+    }
+
+    /**
+     * {@code featherglide}: a feather fletching halves the arrow's gravity, which is what flattens a
+     * long shot. The control is the same arrow fletched with a slime leaf, whose two traits touch
+     * neither gravity nor flight.
+     */
+    @GameTest(template = "empty")
+    public static void featherglideHalvesTheArrowsDrop(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack feathered = ToolAssembly.assemble(helper, player, STATION,
+                ToolAssembly.entryFor(ForgeweaveItems.TOOL_ARROW.get()), List.of("wood", "wood", "feather"));
+        ItemStack plain = ToolAssembly.assemble(helper, player, STATION,
+                ToolAssembly.entryFor(ForgeweaveItems.TOOL_ARROW.get()), List.of("wood", "wood", "slimeleaf_blue"));
+
+        float glide = ForgeweaveTraits.projectileGravityFactor(feathered);
+        helper.assertTrue(Math.abs(glide - 0.5F) < 0.001F,
+                "a feather fletching must halve the arrow's gravity, got " + glide);
+        float control = ForgeweaveTraits.projectileGravityFactor(plain);
+        helper.assertTrue(Math.abs(control - 1.0F) < 0.001F,
+                "a slime-leaf fletching must leave gravity alone, got " + control);
+        helper.succeed();
+    }
+
+    /**
+     * {@code leafsprung}: one shot in four costs no arrow. Rolled 600 times, so a fair quarter
+     * cannot miss the band (the chance of landing outside 18% to 32% is under one in a million) and
+     * a wiring that answers always or never cannot land inside it.
+     */
+    @GameTest(template = "empty")
+    public static void leafsprungSometimesCostsNoArrow(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack leafFletched = ToolAssembly.assemble(helper, player, STATION,
+                ToolAssembly.entryFor(ForgeweaveItems.TOOL_ARROW.get()), List.of("wood", "wood", "leaf"));
+        ItemStack feathered = ToolAssembly.assemble(helper, player, STATION,
+                ToolAssembly.entryFor(ForgeweaveItems.TOOL_ARROW.get()), List.of("wood", "wood", "feather"));
+
+        int saved = 0;
+        for (int i = 0; i < 600; i++) {
+            if (ForgeweaveTraits.savesAmmo(leafFletched, player)) {
+                saved++;
+            }
+        }
+        helper.assertTrue(saved > 108 && saved < 192,
+                "600 shots at one in four must save between 108 and 192 arrows, got " + saved);
+
+        for (int i = 0; i < 100; i++) {
+            helper.assertFalse(ForgeweaveTraits.savesAmmo(feathered, player),
+                    "a feather fletching must never save an arrow");
+        }
+        helper.succeed();
+    }
+
     // ------------------------------------------------------------------ staging
 
     private static float speed(GameTestHelper helper, Player player, BlockPos pos) {

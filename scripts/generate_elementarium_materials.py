@@ -33,8 +33,17 @@ periodic table" mod: vanadium, chromium, molybdenum, palladium, hafnium, tantalu
 Every numeric stat is a linear interpolation between two materials this repository already ships
 and anchors its own stat curve on: iron.json (a common-metal floor, fraction 0.0) and tungsten.json
 (a diamond-tier ceiling already used by another real-world-metal Track A preset, fraction 1.0). The
-interpolation parameter is the element's atomic number, clamped to [23, 73] -- vanadium (23) to
-tantalum (73), the curated roster's own bounds -- and normalized to [0.0, 1.0] against that range.
+interpolation parameter is the element's atomic number, clamped to [13, 83] -- aluminium (13), the
+lightest element anyone smelts into an ingot, to bismuth (83), the heaviest stable one -- and
+normalized to [0.0, 1.0] against that range.
+
+Issue #1113 widened that window from the roster's own bounds, [23, 73]. Keying it to vanadium and
+tantalum put those two elements at fraction 0.0 and 1.0 exactly, so their generated stats came out
+byte-identical to the two anchors: elementarium_vanadium was a copy of iron and
+elementarium_tantalum a copy of tungsten, two of the seven stat-identical clusters review
+04-impact.md counted. A window that neither endpoint of the roster sits on gives every element its
+own point on the curve, and the rule stays the same one rule.
+
 incorrect_for_tool is a two-bucket split on the same fraction (iron-tier below the midpoint,
 diamond-tier at or above it) rather than a third tag, since nothing in Elementarium's own public
 data ever asks for more than diamond. This rule is deliberately simple and is the whole rule: no
@@ -67,8 +76,8 @@ ELEMENTS = [
     ("tantalum", 73, "#3B4750", "warbond"),
 ]
 
-ATOMIC_NUMBER_MIN = 23  # vanadium
-ATOMIC_NUMBER_MAX = 73  # tantalum
+ATOMIC_NUMBER_MIN = 13  # aluminium
+ATOMIC_NUMBER_MAX = 83  # bismuth
 
 # The two in-repo anchors (see docstring). Kept as plain literals rather than read from the shipped
 # JSON, so this script has no runtime dependency on file layout beyond where it writes.

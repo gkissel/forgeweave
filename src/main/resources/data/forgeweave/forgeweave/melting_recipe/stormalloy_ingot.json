@@ -3,5 +3,6 @@
     "tag": "c:ingots/stormalloy"
   },
   "fluid": "forgeweave:molten_stormalloy",
-  "amount": 144
+  "amount": 144,
+  "temperature": 1600
 }

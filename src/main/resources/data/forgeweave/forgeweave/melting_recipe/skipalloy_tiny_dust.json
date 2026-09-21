@@ -3,5 +3,6 @@
     "tag": "c:tiny_dusts/skipalloy"
   },
   "fluid": "forgeweave:molten_skipalloy",
-  "amount": 16
+  "amount": 16,
+  "temperature": 1400
 }

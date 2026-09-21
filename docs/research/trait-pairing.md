@@ -269,7 +269,7 @@ general rather than one class per material.
 
 | behaviour | what it does | parameters | who has it |
 | --- | --- | --- | --- |
-| `vein_break` | One swing takes the connected run of the same block, and each extra block costs durability | `max_blocks`, `durability_per_block` | Veinseeker I on `hollowstone` and `faultsteel`, II on `hollowsteel` |
+| `vein_break` | One swing takes the connected run of the same block, and each extra block costs durability | `max_blocks`, `durability_per_block` | Veinseeker I (12 blocks) on `hollowstone` and `faultsteel`, II (28) on `hollowsteel`, both at 4 durability a block |
 | `banked_strike` | A kill banks a charge; the next blow spends the whole bank | `per_charge`, `cap`, `decay` | Warcharge I on `warspar` and `voltcinder`, II on `truesteel` |
 | `stored_retaliation` | A worn piece stores part of every blow and erupts once the store is full | `stored_fraction`, `threshold`, `radius`, `release_fraction` | Backlash I on `quakestone` and `faultsteel`, II on `hollowsteel` |
 | `conditional_mining_speed` | Mines faster where the world suits the metal, slower where it does not | `condition`, `bonus`, `penalty` | Sunforged on `sunsteel` and `daybrass`, Stormfed on `stormalloy`, Netherkeen on `cinderforge`, `embercast` and `hardcinder` |
@@ -297,11 +297,23 @@ self-repair ladder to the fastest.
 The seven bowstring-and-fletching-only materials get a trait each, which settles the open decision
 this document recorded above. The four Forgeweave-own ones (`slimeleaf_blue`, `slimeleaf_orange`,
 `slimeleaf_purple`, `slimevine_purple`) get `skyborne` for the draw speed and `ecological` for the
-regrowth. The three vanilla ones (`feather`, `leaf`, `string`) get `ecological` only: `skyborne`
-changes a bow's draw speed, and every 1.12 bow-parity GameTest pins that number for a
-vanilla-material bow, so putting a draw-speed trait on string would re-tune upstream's own stats.
-Giving those three a ranged-specific effect needs either a new ranged hook on `Trait` or a maintainer
-decision to move the parity numbers.
+regrowth.
+
+The three vanilla ones keep upstream's draw speed and get a ranged effect of their own instead,
+through three new hooks on `Trait`. Draw speed was the only ranged number `Trait` exposed, and every
+1.12 bow-parity GameTest pins it for a vanilla-material bow, so `string` could not have it. Each hook
+is one line at a call site that already existed.
+
+| material | part | trait | hook | call site |
+| --- | --- | --- | --- | --- |
+| `string` | bowstring | Truestring, a fully drawn shot strays 60% less | `shotInaccuracyFactor(drawProgress)` | `BowItem#shoot`, beside `endspeed`'s own hardcoded factor |
+| `feather` | fletching | Featherglide, the arrow drops half as fast | `projectileGravityFactor()` | `ArrowEntity#getDefaultGravity`, where `hovering`'s 5% already lives |
+| `leaf` | fletching | Leafsprung, one shot in four costs no arrow | `ammoSaveChance()` | `BowItem#consumeAmmo` |
+
+Air drag would have been the other half of "the arrow keeps its speed", but vanilla's 0.99 is written
+into `AbstractArrow#tick` with no override, so reaching it would mean a mixin. Gravity is the half
+that is both reachable and the half an archer aims with. The saved arrow is a discrete event, so it
+fires a `TraitFeedback` cue; the other two are standing bonuses and stay silent.
 
 ### Before and after
 
@@ -333,9 +345,9 @@ the magnitude behind an id they already named, which the PR body lists.
 | `invar` | melt | general=[steadfast] | general=[steadfast, emberwake]; armor=[temperward] |
 | `carminite` | craft/no-melt | general=[voidward2] | general=[voidward2, chaosmark] |
 | `vibranium_allthemodium_alloy` | craft/no-melt | general=[bracingplate] | general=[bracingplate2] |
-| `feather` | craft/no-melt | nothing | general=[ecological] |
-| `leaf` | craft/no-melt | nothing | general=[ecological] |
-| `string` | craft/no-melt | nothing | general=[ecological] |
+| `feather` | craft/no-melt | nothing | general=[featherglide] |
+| `leaf` | craft/no-melt | nothing | general=[leafsprung] |
+| `string` | craft/no-melt | nothing | general=[truestring] |
 | `slimeleaf_blue` | craft/no-melt | nothing | general=[skyborne, ecological] |
 | `slimeleaf_orange` | craft/no-melt | nothing | general=[skyborne, ecological] |
 | `slimeleaf_purple` | craft/no-melt | nothing | general=[skyborne, ecological] |
@@ -345,11 +357,11 @@ the magnitude behind an id they already named, which the PR body lists.
 
 `impact_scan.py` in the review folder, rerun against this branch: 0 of 216 materials inert on a side
 they can be built for, down from 29. 0 with no trait at all, down from 7. 0 whose best trait across
-every side is one a player cannot feel, down from 19. Six trait ids are still in the scan's
-`invisible` bucket and all six are there on purpose: `baconlicious`, `prickly`, `slimey_green` and
-`slimey_blue` are upstream 1.12 magnitudes kept as they are, and `fallout` and `unstable_core` are
-drawbacks that pay for a material's upside. Every one of the six sits on a material that also
-carries something felt.
+every side is one a player cannot feel, down from 19. 0 trait ids that no material names, down from
+one. Seven trait ids are still in the scan's `invisible` bucket and every one is there on purpose:
+`baconlicious`, `prickly`, `slimey_green` and `slimey_blue` are upstream 1.12 magnitudes kept as they
+are, `fallout` and `unstable_core` are drawbacks that pay for a material's upside, and `temperward`
+is issue #1113's own number. Each of the seven sits on a material that also carries something felt.
 
 The scan needed two corrections to read the tree honestly, both recorded in the PR: a worn trait is
 judged by what a full set totals rather than by what one piece pays, and the hand-read table of Java

@@ -1,18 +1,18 @@
 {
   "head": {
-    "durability": 212,
-    "mining_speed": 5.99,
-    "attack_damage": 4.04
+    "durability": 269,
+    "mining_speed": 5.91,
+    "attack_damage": 4.31
   },
   "handle": {
-    "durability_modifier": 0.86,
-    "durability": 59
+    "durability_modifier": 0.9,
+    "durability": 55
   },
-  "extra_durability": 50,
+  "extra_durability": 47,
   "bow": {
-    "drawspeed": 0.5,
-    "range": 1.5,
-    "bonus_damage": 6.98
+    "drawspeed": 0.49,
+    "range": 1.48,
+    "bonus_damage": 7.45
   },
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
@@ -44,7 +44,7 @@
     "tag": "c:ingots/chromium"
   },
   "cast_only": true,
-  "enchantability": 14,
+  "enchantability": 13,
   "color": "#B8C4C8",
   "neoforge:conditions": [
     {

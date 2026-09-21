@@ -10,10 +10,10 @@
   },
   "extra_durability": 98,
   "plating": {
-    "helmet": { "durability": 352, "armor": 2.0, "toughness": 2.0, "knockback_resistance": 0.1 },
-    "chestplate": { "durability": 512, "armor": 7.0, "toughness": 2.0, "knockback_resistance": 0.1 },
-    "leggings": { "durability": 480, "armor": 5.0, "toughness": 2.0, "knockback_resistance": 0.1 },
-    "boots": { "durability": 416, "armor": 2.0, "toughness": 2.0, "knockback_resistance": 0.1 }
+    "helmet": { "durability": 370, "armor": 2.0, "toughness": 2.0, "knockback_resistance": 0.1 },
+    "chestplate": { "durability": 538, "armor": 7.0, "toughness": 2.0, "knockback_resistance": 0.1 },
+    "leggings": { "durability": 504, "armor": 5.0, "toughness": 2.0, "knockback_resistance": 0.1 },
+    "boots": { "durability": 437, "armor": 2.0, "toughness": 2.0, "knockback_resistance": 0.1 }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",

@@ -336,6 +336,15 @@ public final class TraitBehaviors {
                 Codec.DOUBLE.fieldOf("radius").forGetter(StoredRetaliation::radius),
                 NON_NEGATIVE_FLOAT.fieldOf("release_fraction").forGetter(StoredRetaliation::releaseFraction))
                 .apply(instance, StoredRetaliation::new)));
+        register("shot_accuracy", RecordCodecBuilder.<ShotAccuracy>mapCodec(instance -> instance.group(
+                NON_NEGATIVE_FLOAT.fieldOf("factor").forGetter(ShotAccuracy::factor),
+                Codec.floatRange(0.0F, 1.0F).optionalFieldOf("minimum_draw", 0.0F)
+                        .forGetter(ShotAccuracy::minimumDraw))
+                .apply(instance, ShotAccuracy::new)));
+        register("projectile_glide", NON_NEGATIVE_FLOAT.fieldOf("gravity_factor")
+                .xmap(ProjectileGlide::new, ProjectileGlide::gravityFactor));
+        register("save_ammo", Codec.floatRange(0.0F, 1.0F).fieldOf("chance")
+                .xmap(SaveAmmo::new, SaveAmmo::chance));
         register("conditional_mining_speed",
                 RecordCodecBuilder.<ConditionalMiningSpeed>mapCodec(instance -> instance.group(
                         enumCodec(WorldCondition.class).fieldOf("condition")

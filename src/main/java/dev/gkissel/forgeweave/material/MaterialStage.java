@@ -46,12 +46,19 @@ import dev.gkissel.forgeweave.recipe.AlloyRecipe;
  * material tags ({@link #tag()}) and that wins. The tags cost nothing for the materials nobody
  * overrides and they need no change to {@link Material} itself.
  *
+ * <p>Forgeweave ships one such override itself (issue #1113):
+ * {@code data/forgeweave/tags/forgeweave/material/stage/endgame.json} puts
+ * {@code atomic_matter_alloy} in {@link #ENDGAME}. That material is the one whose real gate lives
+ * outside its own data -- the only thing that makes its ingot is a nucleosynthesis run on Mekanism's
+ * own deepest machine -- so the derivation, which reads only the rung and the alloy depth, lands it
+ * a stage early at {@link #DEEP_ALLOYS} alongside mined resonite.
+ *
  * <p>ponytail: the override rides on registry tags, which is the cheapest carrier that needs no new
- * field and no new sync payload, but no shipped pack uses it yet and it has not been exercised in a
- * client. If a tag on a datapack registry turns out not to reach the client, the derivation still
- * stands and only the override goes quiet; the next carrier to try would be a small
- * {@code stage_override} datapack registry of its own, which syncs the same way {@code material}
- * does.
+ * field and no new sync payload, and it has still not been exercised in a live client. If a tag on a
+ * datapack registry turns out not to reach the client, the derivation still stands and only the
+ * override goes quiet -- atomic matter alloy would show up one stage early rather than break; the
+ * next carrier to try would be a small {@code stage_override} datapack registry of its own, which
+ * syncs the same way {@code material} does.
  */
 public enum MaterialStage {
 
@@ -74,8 +81,14 @@ public enum MaterialStage {
 
     /**
      * Which band each of {@link ForgeweaveModifiers}' eight harvest rungs starts in: wooden and
-     * stone share the first day, and hardcinder/warspar share one band because the ladder's own
-     * stat spread stops there (review 06-progression.md &sect;3, "break 2").
+     * stone share the first day, and hardcinder/warspar share one band so the eight rungs fold into
+     * the six a seven-stage ladder has room for once the alloy bump is added on top.
+     *
+     * <p>That fold used to be justified by the rungs' stats being a plateau (review
+     * 06-progression.md &sect;3, "break 2"). Issue #1113 fixed the plateau -- every rung-5, -6 and -7
+     * material now clears plain netherite and the rungs read as three steps -- so what keeps the fold
+     * is the stage count alone: splitting rung 5 from rung 6 needs a seventh band, and band 6 plus
+     * the alloy bump runs off the end of the seven stages.
      */
     private static final int[] RUNG_BAND = {0, 0, 1, 2, 3, 4, 4, 5};
 

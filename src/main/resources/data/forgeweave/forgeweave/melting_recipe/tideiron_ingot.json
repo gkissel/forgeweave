@@ -3,5 +3,6 @@
     "tag": "c:ingots/tideiron"
   },
   "fluid": "forgeweave:molten_tideiron",
-  "amount": 144
+  "amount": 144,
+  "temperature": 1400
 }

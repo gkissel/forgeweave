@@ -416,7 +416,11 @@ public class PartBuilderGameTests {
                         + menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem());
 
         // Obsidian is upstream's counter-example: it is the one metal-tier material that sets both
-        // setCraftable and setCastable (TinkerMaterials:236-237), so the Part Builder still takes it.
+        // setCraftable and setCastable (TinkerMaterials:236-237), so the Part Builder still takes
+        // it. Issue #1113 tried closing that off (a netherite-rung head out of two blocks is the
+        // widest skip the harvest ladder has, review 06-progression.md section 3) and the
+        // maintainer reverted it: upstream sets both flags here and puts obsidian's head at the
+        // top COBALT harvest level, so the skip is 1.12 behaviour, kept on purpose.
         menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).set(new ItemStack(Items.OBSIDIAN, 2));
         menu.broadcastChanges();
         ItemStack output = menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem();

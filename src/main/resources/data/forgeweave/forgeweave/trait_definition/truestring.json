@@ -1,0 +1,5 @@
+{
+  "behavior": "forgeweave:shot_accuracy",
+  "factor": 0.4,
+  "minimum_draw": 1.0
+}

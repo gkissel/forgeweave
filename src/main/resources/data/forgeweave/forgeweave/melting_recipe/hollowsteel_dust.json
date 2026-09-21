@@ -3,5 +3,6 @@
     "tag": "c:dusts/hollowsteel"
   },
   "fluid": "forgeweave:molten_hollowsteel",
-  "amount": 144
+  "amount": 144,
+  "temperature": 1600
 }

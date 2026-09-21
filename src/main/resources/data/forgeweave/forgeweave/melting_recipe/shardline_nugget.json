@@ -3,5 +3,6 @@
     "tag": "c:nuggets/shardline"
   },
   "fluid": "forgeweave:molten_shardline",
-  "amount": 16
+  "amount": 16,
+  "temperature": 1400
 }
