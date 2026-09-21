@@ -1,5 +1,10 @@
 {
   "behavior": "forgeweave:movement_bonus",
   "kind": "jump_strength",
-  "magnitude": 0.5
+  "magnitude": 0.5,
+  "family": "azure_silver_moonstep",
+  "description_args": [
+    "0.5",
+    "2.0"
+  ]
 }

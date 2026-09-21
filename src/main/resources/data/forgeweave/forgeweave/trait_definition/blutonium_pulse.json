@@ -2,5 +2,9 @@
   "behavior": "forgeweave:effect_on_hit",
   "effect": "minecraft:wither",
   "duration": 40,
-  "amplifier": 0
+  "amplifier": 0,
+  "family": "blutonium_pulse",
+  "description_args": [
+    "2"
+  ]
 }

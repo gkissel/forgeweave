@@ -1,4 +1,8 @@
 {
   "behavior": "forgeweave:invulnerability_window",
-  "ticks": 40
+  "ticks": 40,
+  "family": "surgeward",
+  "description_args": [
+    "2"
+  ]
 }

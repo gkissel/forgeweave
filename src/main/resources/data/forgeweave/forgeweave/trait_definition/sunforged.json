@@ -2,5 +2,10 @@
   "behavior": "forgeweave:conditional_mining_speed",
   "condition": "sunlit",
   "bonus": 0.4,
-  "penalty": 0.1
+  "penalty": 0.1,
+  "family": "sunforged",
+  "description_args": [
+    "40",
+    "10"
+  ]
 }

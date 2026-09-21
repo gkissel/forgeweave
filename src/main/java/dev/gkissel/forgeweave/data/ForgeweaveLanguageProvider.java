@@ -2303,10 +2303,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.keen_edge.name", "Keen Edge");
         add("trait.forgeweave.keen_edge.description", "Every hit lands %s extra damage, whatever it hits.");
         add("trait.forgeweave.sure_footing.name", "Sure Footing");
-        add("trait.forgeweave.sure_footing.description", "Steps up half a block per piece worn without jumping, a full two blocks in a set.");
+        add("trait.forgeweave.sure_footing.description", "Steps up %s blocks per piece worn without jumping, %s across a full "
+                + "set.");
         add("trait.forgeweave.witherward.name", "Witherward");
-        add("trait.forgeweave.witherward.description", "The worn side of a decaying edge: one blow in five leaves the attacker withering for five "
-                + "seconds, so about three blows in five do it to a full set.");
+        add("trait.forgeweave.witherward.description", "The worn side of a decaying edge: each piece worn has a %s% chance "
+                + "when struck to leave the attacker withering for %s seconds, so a full set answers about %s% of blows.");
 
         add("trait.forgeweave.heavy.name", "Heavy");
         add("trait.forgeweave.heavy.description", "Prevents knockback while held; a full worn set does the same.");
@@ -2347,23 +2348,23 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // modifier.tconstruct.<id>/.description rows (NOTICE.md), reworded only where a mechanic
         // was not ported (warded's row said 0.5 where its formula is 1).
         add("trait.forgeweave.projectile_protection.name", "Projectile Protection");
-        add("trait.forgeweave.projectile_protection.description",
-                "Turns arrows aside: 4 protection against projectile damage, per piece worn.");
+        add("trait.forgeweave.projectile_protection.description", "Turns arrows aside: 4 protection against projectile damage "
+                + "per piece worn, 16 across a full set, and 5% knockback resistance for the set.");
         add("trait.forgeweave.depth_protection.name", "Depth Protection");
-        add("trait.forgeweave.depth_protection.description",
-                "3 protection a piece at Y=0, twice that at the bottom of the world, and nothing above Y=96.");
+        add("trait.forgeweave.depth_protection.description", "3 protection a piece at Y=0, twice that at the bottom of the "
+                + "world, nothing above Y=96, and a penalty of up to 3 a piece at Y=160.");
         add("trait.forgeweave.blast_protection.name", "Blast Protection");
-        add("trait.forgeweave.blast_protection.description",
-                "Soaks up a blast: 4 protection against explosion damage, per piece worn.");
+        add("trait.forgeweave.blast_protection.description", "Soaks up a blast: 4 protection against explosion damage per "
+                + "piece worn, 16 across a full set.");
         add("trait.forgeweave.melee_protection.name", "Melee Protection");
-        add("trait.forgeweave.melee_protection.description",
-                "Answers a direct blow: 3 protection against physical damage, per piece worn.");
+        add("trait.forgeweave.melee_protection.description", "Answers a direct blow: 3 protection against physical damage per "
+                + "piece worn, 12 across a full set.");
         // #1092: seared stone and necrotic bone have named these three ids since #843, but only the
         // modifiers of the same names existed, so the grants did nothing and the station showed the
         // raw key. The names read as traits rather than as the modifier rows above.
         add("trait.forgeweave.fire_protection.name", "Fire Protection");
-        add("trait.forgeweave.fire_protection.description",
-                "Shrugs off heat: 4 protection against fire and lava damage, per piece worn.");
+        add("trait.forgeweave.fire_protection.description", "Shrugs off heat: 4 protection against fire and lava damage per "
+                + "piece worn, 16 across a full set.");
         add("trait.forgeweave.searing.name", "Searing");
         add("trait.forgeweave.searing.description", "Blocks you mine come out already smelted.");
         add("trait.forgeweave.necrotic.name", "Necrotic");
@@ -2374,7 +2375,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.crystalstrike.name", "Crystalstrike");
         add("trait.forgeweave.crystalstrike.description", "15% more attack speed per piece worn, and the knockback you take snaps to a fixed direction.");
         add("trait.forgeweave.consecrated.name", "Consecrated");
-        add("trait.forgeweave.consecrated.description", "Hallowed silver: 3 protection against the undead on every piece worn.");
+        add("trait.forgeweave.consecrated.description", "Hallowed silver: 3 protection against the undead per piece worn, 12 "
+                + "across a full set.");
         add("trait.forgeweave.overshield.name", "Overshield");
         add("trait.forgeweave.overshield.description", "Consumes overslime to reduce all sources of damage.");
         // #728: modifier.tconstruct.overslime/.description and the overslime_friend marker (which the
@@ -2522,9 +2524,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // trait_definition over an existing TraitBehaviors class echoing that material's own
         // identity in the source mod -- never a copy of its code.
         add("trait.forgeweave.azure_silver_moonstep.name", "Moonstep");
-        add("trait.forgeweave.azure_silver_moonstep.description", "Jumps noticeably higher while worn.");
+        add("trait.forgeweave.azure_silver_moonstep.description", "Adds %s jump strength per piece worn, %s across a full "
+                + "set, on top of the wearer's own 0.42.");
         add("trait.forgeweave.gravitite_levity.name", "Gravitite Levity");
-        add("trait.forgeweave.gravitite_levity.description", "Flies faster while worn.");
+        add("trait.forgeweave.gravitite_levity.description", "Flies %s% faster per piece worn, %s% faster across a full set.");
         // Issue #1069 (D-M8-26): the six empowered crystals' traits, each the plain crystal's own
         // trait family at a higher level.
         add("tooltip.forgeweave.energy", "Stored Energy");
@@ -3672,8 +3675,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.emberdrink.name", "Emberdrink");
         add("trait.forgeweave.emberdrink.description", "Fire does not burn you; it feeds you.");
         add("trait.forgeweave.bracingplate.name", "Bracing Plate");
-        add("trait.forgeweave.bracingplate.description", "Protection builds on every piece worn with every "
-                + "blow taken, up to %s points each, and lapses six seconds after they stop.");
+        add("trait.forgeweave.bracingplate.description", "Protection builds on every piece worn with every blow taken, up to "
+                + "%s points each, and lapses 6 seconds after they stop.");
         add("trait.forgeweave.lastbreath.name", "Last Breath");
         add("trait.forgeweave.lastbreath.description",
                 "A killing blow is spent on the armor instead, at a heavy cost in durability, once in a long while.");
@@ -3710,69 +3713,64 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // tool companions for materials whose only trait was armor-scoped; then the materials that
         // carried no trait at all. docs/research/trait-pairing.md is the table.
         add("trait.forgeweave.swiftward.name", "Swiftward");
-        add("trait.forgeweave.swiftward.description", "The worn side of a quick edge: each piece worn moves you 8% faster, a third faster in a "
-                + "full set.");
+        add("trait.forgeweave.swiftward.description", "The worn side of a quick edge: each piece worn moves you %s% faster, "
+                + "%s% across a full set.");
         add("trait.forgeweave.bloodward.name", "Bloodward");
-        add("trait.forgeweave.bloodward.description", "The worn side of a blood-drinking edge: being struck starts six seconds of regeneration.");
+        add("trait.forgeweave.bloodward.description", "The worn side of a blood-drinking edge: being struck grants "
+                + "Regeneration for %s seconds.");
         add("trait.forgeweave.vigorward.name", "Vigorward");
-        add("trait.forgeweave.vigorward.description",
-                "The worn side of a blow that lands hardest while you are whole: being struck grants five seconds of "
-                + "absorption.");
+        add("trait.forgeweave.vigorward.description", "The worn side of a blow that lands hardest while you are whole: being "
+                + "struck grants Absorption for %s seconds.");
         add("trait.forgeweave.blightward.name", "Blightward");
-        add("trait.forgeweave.blightward.description",
-                "The worn side of a withering edge: one blow in five leaves the attacker with Weakness II for five "
-                + "seconds, so about three blows in five do it to a full set.");
+        add("trait.forgeweave.blightward.description", "The worn side of a withering edge: each piece worn has a %s% chance "
+                + "when struck to leave the attacker with Weakness II for %s seconds, so a full set answers about %s% of "
+                + "blows.");
         add("trait.forgeweave.venomward.name", "Venomward");
-        add("trait.forgeweave.venomward.description",
-                "The worn side of the venom: one blow in five leaves the attacker with Poison II for five seconds, so "
-                + "about three blows in five do it to a full set.");
+        add("trait.forgeweave.venomward.description", "The worn side of the venom: each piece worn has a %s% chance when "
+                + "struck to leave the attacker with Poison II for %s seconds, so a full set answers about %s% of blows.");
         add("trait.forgeweave.revealward.name", "Revealward");
-        add("trait.forgeweave.revealward.description",
-                "The worn side of a glowing hit: whoever strikes you is lit up for ten seconds.");
+        add("trait.forgeweave.revealward.description", "The worn side of a glowing hit: whoever strikes the wearer glows for "
+                + "%s seconds.");
         add("trait.forgeweave.stormward.name", "Stormward");
         add("trait.forgeweave.stormward.description",
                 "The worn side of a lightning edge: lightning passes through the wearer harmlessly.");
         add("trait.forgeweave.voidward.name", "Voidward");
-        add("trait.forgeweave.voidward.description", "The worn side of a void-forged edge: every piece worn "
-                + "has a %s% chance of its own to make a blow miss, so a full set turns aside about a "
-                + "quarter of them.");
+        add("trait.forgeweave.voidward.description", "The worn side of a void-forged edge: every piece worn has a %s% chance "
+                + "of its own to make a blow miss, so a full set turns aside about %s% of them.");
         add("trait.forgeweave.surgeward.name", "Surgeward");
-        add("trait.forgeweave.surgeward.description", "The worn side of a wound-up swing: after a hit the wearer stays untouchable for two seconds "
-                + "instead of vanilla's one.");
+        add("trait.forgeweave.surgeward.description", "The worn side of a wound-up swing: after a hit the wearer stays "
+                + "untouchable for %s seconds instead of vanilla's 1.");
         add("trait.forgeweave.tideward.name", "Tideward");
-        add("trait.forgeweave.tideward.description",
-                "The worn side of a tide-clearing edge: 4 protection against drowning, per piece worn.");
+        add("trait.forgeweave.tideward.description", "The worn side of a tide-clearing edge: %s protection against drowning "
+                + "per piece worn, %s across a full set.");
         add("trait.forgeweave.mendward.name", "Mendward");
-        add("trait.forgeweave.mendward.description",
-                "The worn side of a mercy that heals what it strikes: healing the wearer receives counts for a "
-                + "quarter more.");
+        add("trait.forgeweave.mendward.description", "The worn side of a mercy that heals what it strikes: healing the wearer "
+                + "receives counts for %s% more.");
         add("trait.forgeweave.duskward.name", "Duskward");
-        add("trait.forgeweave.duskward.description",
-                "The worn side of a night edge: below light level 7 creatures notice the wearer at half the usual "
-                + "distance.");
+        add("trait.forgeweave.duskward.description", "The worn side of a night edge: below light level %s, creatures notice "
+                + "the wearer at %s% of the usual distance.");
         add("trait.forgeweave.magic_protection.name", "Magic Protection");
-        add("trait.forgeweave.magic_protection.description", "Turns magic aside: %s protection on every piece worn.");
+        add("trait.forgeweave.magic_protection.description", "Turns magic aside: %s protection on every piece worn, %s across "
+                + "a full set.");
 
         // #1097 -- the companions that replaced melee_protection and magic_protection where those
         // two had become catch-alls. The essence ladder climbs on the armor side the way it climbs
         // on the tool side; the reactor metals answer a blow with the radiation their blade carries;
         // temperward is the flat plate that answers a flat edge. docs/research/trait-pairing.md.
         add("trait.forgeweave.temperward.name", "Temperward");
-        add("trait.forgeweave.temperward.description",
-                "The worn side of a flat, keen edge: 2 protection against every blow, per piece worn.");
+        add("trait.forgeweave.temperward.description", "The worn side of a flat, keen edge: %s protection against every blow "
+                + "per piece worn, %s across a full set.");
         add("trait.forgeweave.cyanite_chillback.name", "Cyanite Chillback");
-        add("trait.forgeweave.cyanite_chillback.description",
-                "The worn side of a cyanite chill: one blow in five leaves the attacker with Slowness II for five "
-                + "seconds, so about three blows in five do it to a full set.");
+        add("trait.forgeweave.cyanite_chillback.description", "The worn side of a chilling edge: each piece worn has a %s% "
+                + "chance when struck to leave the attacker with Slowness II for %s seconds, so a full set answers about %s% "
+                + "of blows.");
         add("trait.forgeweave.prosperity_bloom.name", "Prosperity Bloom");
-        add("trait.forgeweave.prosperity_bloom.description",
-                "Right-click a crop to make it grow, one time in four, for 5 durability.");
+        add("trait.forgeweave.prosperity_bloom.description", "Right-click a crop for a %s% chance to make it grow, at %s "
+                + "durability.");
         add("trait.forgeweave.blutonium_pulse.name", "Blutonium Pulse");
-        add("trait.forgeweave.blutonium_pulse.description",
-                "A struck target withers for two seconds.");
+        add("trait.forgeweave.blutonium_pulse.description", "A struck target withers for %s seconds.");
         add("trait.forgeweave.cyanite_chill.name", "Cyanite Chill");
-        add("trait.forgeweave.cyanite_chill.description",
-                "A struck target is slowed for three seconds.");
+        add("trait.forgeweave.cyanite_chill.description", "A struck target is slowed for %s seconds.");
 
         // #1114 -- the signature traits. One sentence with its number each, and each one a
         // condition or a price rather than a flat percentage. docs/research/trait-pairing.md has
@@ -3781,29 +3779,26 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.veinseeker.description",
                 "One swing takes the whole vein, up to %s blocks of it, and each extra block costs %s durability.");
         add("trait.forgeweave.warcharge.name", "Warcharge");
-        add("trait.forgeweave.warcharge.description",
-                "Every kill banks a charge, up to %s. Your next blow spends the whole bank for %s damage a charge, "
-                + "so a full bank is worth %s. Lapses after twenty seconds.");
+        add("trait.forgeweave.warcharge.description", "Every kill banks a charge, up to %s. Your next blow spends the whole "
+                + "bank for %s damage a charge, so a full bank is worth %s. Lapses after 20 seconds.");
         add("trait.forgeweave.backlash.name", "Backlash");
         add("trait.forgeweave.backlash.description",
                 "Each piece worn stores %s% of every blow it takes. At %s damage stored the piece erupts, dealing "
                 + "the whole store to everything within %s blocks and shoving it back.");
         add("trait.forgeweave.sunforged.name", "Sunforged");
-        add("trait.forgeweave.sunforged.description",
-                "Mines 40% faster under open daylight, and 10% slower out of the sun.");
+        add("trait.forgeweave.sunforged.description", "Mines %s% faster under open daylight, and %s% slower out of the sun.");
         add("trait.forgeweave.stormfed.name", "Stormfed");
-        add("trait.forgeweave.stormfed.description", "Mines 35% faster while the rain is falling on you.");
+        add("trait.forgeweave.stormfed.description", "Mines %s% faster while the rain is falling on you.");
         add("trait.forgeweave.netherkeen.name", "Netherkeen");
-        add("trait.forgeweave.netherkeen.description", "Mines 30% faster in the Nether.");
+        add("trait.forgeweave.netherkeen.description", "Mines %s% faster in the Nether.");
 
         add("trait.forgeweave.truestring.name", "Truestring");
-        add("trait.forgeweave.truestring.description",
-                "A shot held to full draw strays 60% less. A snap shot gets nothing.");
+        add("trait.forgeweave.truestring.description", "A shot held to full draw strays %s% less. A snap shot gets nothing.");
         add("trait.forgeweave.featherglide.name", "Featherglide");
-        add("trait.forgeweave.featherglide.description",
-                "The arrow drops half as fast, so a long shot flies flat.");
+        add("trait.forgeweave.featherglide.description", "The arrow falls at %s% of normal gravity, so a long shot flies "
+                + "flat.");
         add("trait.forgeweave.leafsprung.name", "Leafsprung");
-        add("trait.forgeweave.leafsprung.description", "One shot in four costs no arrow.");
+        add("trait.forgeweave.leafsprung.description", "A %s% chance that a shot costs no arrow.");
 
         add("tooltip.forgeweave.trait.banked_strike", "Banked: %s charges, worth %s damage");
     }

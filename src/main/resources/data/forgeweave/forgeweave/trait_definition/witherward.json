@@ -3,5 +3,11 @@
   "effect": "minecraft:wither",
   "duration": 100,
   "amplifier": 0,
-  "chance": 0.2
+  "chance": 0.2,
+  "family": "witherward",
+  "description_args": [
+    "20",
+    "5",
+    "59"
+  ]
 }

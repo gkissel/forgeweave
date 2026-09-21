@@ -5,6 +5,7 @@
   "family": "magic_protection",
   "max_level": 3,
   "description_args": [
-    "4"
+    "4",
+    "16"
   ]
 }

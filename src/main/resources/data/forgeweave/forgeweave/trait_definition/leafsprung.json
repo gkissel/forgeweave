@@ -1,4 +1,8 @@
 {
   "behavior": "forgeweave:save_ammo",
-  "chance": 0.25
+  "chance": 0.25,
+  "family": "leafsprung",
+  "description_args": [
+    "25"
+  ]
 }

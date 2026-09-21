@@ -2,5 +2,9 @@
   "behavior": "forgeweave:effect_on_attacker",
   "effect": "minecraft:glowing",
   "duration": 200,
-  "amplifier": 0
+  "amplifier": 0,
+  "family": "revealward",
+  "description_args": [
+    "10"
+  ]
 }

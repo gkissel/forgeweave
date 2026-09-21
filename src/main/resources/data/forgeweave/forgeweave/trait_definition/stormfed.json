@@ -1,5 +1,9 @@
 {
   "behavior": "forgeweave:conditional_mining_speed",
   "condition": "raining",
-  "bonus": 0.35
+  "bonus": 0.35,
+  "family": "stormfed",
+  "description_args": [
+    "35"
+  ]
 }

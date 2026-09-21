@@ -2,5 +2,9 @@
   "behavior": "forgeweave:effect_on_hurt",
   "effect": "minecraft:absorption",
   "duration": 100,
-  "amplifier": 0
+  "amplifier": 0,
+  "family": "vigorward",
+  "description_args": [
+    "5"
+  ]
 }

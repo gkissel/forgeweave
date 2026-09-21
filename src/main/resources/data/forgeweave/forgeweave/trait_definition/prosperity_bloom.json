@@ -1,5 +1,10 @@
 {
   "behavior": "forgeweave:fertilize_on_use",
   "durability_cost": 5,
-  "chance": 0.25
+  "chance": 0.25,
+  "family": "prosperity_bloom",
+  "description_args": [
+    "25",
+    "5"
+  ]
 }

@@ -1,5 +1,10 @@
 {
   "behavior": "forgeweave:movement_bonus",
   "kind": "flying_speed",
-  "magnitude": 0.15
+  "magnitude": 0.15,
+  "family": "gravitite_levity",
+  "description_args": [
+    "15",
+    "60"
+  ]
 }

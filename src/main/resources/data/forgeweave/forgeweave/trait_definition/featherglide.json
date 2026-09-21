@@ -1,4 +1,8 @@
 {
   "behavior": "forgeweave:projectile_glide",
-  "gravity_factor": 0.5
+  "gravity_factor": 0.5,
+  "family": "featherglide",
+  "description_args": [
+    "50"
+  ]
 }

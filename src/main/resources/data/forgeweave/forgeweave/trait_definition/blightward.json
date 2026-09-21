@@ -3,5 +3,11 @@
   "effect": "minecraft:weakness",
   "duration": 100,
   "amplifier": 1,
-  "chance": 0.2
+  "chance": 0.2,
+  "family": "blightward",
+  "description_args": [
+    "20",
+    "5",
+    "59"
+  ]
 }

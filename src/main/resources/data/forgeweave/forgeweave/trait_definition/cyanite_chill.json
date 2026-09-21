@@ -2,5 +2,9 @@
   "behavior": "forgeweave:effect_on_hit",
   "effect": "minecraft:slowness",
   "duration": 60,
-  "amplifier": 0
+  "amplifier": 0,
+  "family": "cyanite_chill",
+  "description_args": [
+    "3"
+  ]
 }
