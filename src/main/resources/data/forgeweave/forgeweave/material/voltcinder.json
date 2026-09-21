@@ -44,7 +44,8 @@
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
     "general": [
-      "forgeweave:overburdened"
+      "forgeweave:overburdened",
+      "forgeweave:warcharge"
     ],
     "armor": [
       "forgeweave:heft2"

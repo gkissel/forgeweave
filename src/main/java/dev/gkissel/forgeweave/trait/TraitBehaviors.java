@@ -316,6 +316,34 @@ public final class TraitBehaviors {
         // is registered here rather than with the armor batch above.
         register("knockback_resistance", Codec.floatRange(0.0F, 1.0F).fieldOf("resistance")
                 .xmap(KnockbackResistance::new, KnockbackResistance::resistance));
+
+        // #1114 signature behaviours. Registered with register(), not seam(): the first three are
+        // Trait hooks (afterBlockBreak, bonusDamageAgainst/afterHit, onDefend) rather than
+        // CombatSeams, and the fourth is a break-speed read.
+        register("vein_break", RecordCodecBuilder.<VeinBreak>mapCodec(instance -> instance.group(
+                ExtraCodecs.POSITIVE_INT.fieldOf("max_blocks").forGetter(VeinBreak::maxBlocks),
+                ExtraCodecs.NON_NEGATIVE_INT.optionalFieldOf("durability_per_block", 0)
+                        .forGetter(VeinBreak::durabilityPerBlock))
+                .apply(instance, VeinBreak::new)));
+        register("banked_strike", RecordCodecBuilder.<BankedStrike>mapCodec(instance -> instance.group(
+                ExtraCodecs.POSITIVE_FLOAT.fieldOf("per_charge").forGetter(BankedStrike::perCharge),
+                ExtraCodecs.POSITIVE_INT.fieldOf("cap").forGetter(BankedStrike::cap),
+                ExtraCodecs.POSITIVE_INT.fieldOf("decay").forGetter(BankedStrike::decayTicks))
+                .apply(instance, BankedStrike::new)));
+        register("stored_retaliation", RecordCodecBuilder.<StoredRetaliation>mapCodec(instance -> instance.group(
+                Codec.floatRange(0.0F, 1.0F).fieldOf("stored_fraction").forGetter(StoredRetaliation::storedFraction),
+                ExtraCodecs.POSITIVE_INT.fieldOf("threshold").forGetter(StoredRetaliation::threshold),
+                Codec.DOUBLE.fieldOf("radius").forGetter(StoredRetaliation::radius),
+                NON_NEGATIVE_FLOAT.fieldOf("release_fraction").forGetter(StoredRetaliation::releaseFraction))
+                .apply(instance, StoredRetaliation::new)));
+        register("conditional_mining_speed",
+                RecordCodecBuilder.<ConditionalMiningSpeed>mapCodec(instance -> instance.group(
+                        enumCodec(WorldCondition.class).fieldOf("condition")
+                                .forGetter(ConditionalMiningSpeed::condition),
+                        NON_NEGATIVE_FLOAT.fieldOf("bonus").forGetter(ConditionalMiningSpeed::bonus),
+                        NON_NEGATIVE_FLOAT.optionalFieldOf("penalty", 0.0F)
+                                .forGetter(ConditionalMiningSpeed::penalty))
+                        .apply(instance, ConditionalMiningSpeed::new)));
     }
 
 

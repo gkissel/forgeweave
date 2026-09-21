@@ -1,0 +1,14 @@
+{
+  "behavior": "forgeweave:banked_strike",
+  "per_charge": 2.5,
+  "cap": 6,
+  "decay": 400,
+  "family": "warcharge",
+  "level": 2,
+  "max_level": 2,
+  "description_args": [
+    "6",
+    "2.5",
+    "15"
+  ]
+}

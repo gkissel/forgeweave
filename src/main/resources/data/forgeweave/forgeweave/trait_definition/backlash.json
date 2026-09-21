@@ -1,0 +1,14 @@
+{
+  "behavior": "forgeweave:stored_retaliation",
+  "stored_fraction": 0.25,
+  "threshold": 20,
+  "radius": 4.0,
+  "release_fraction": 1.0,
+  "family": "backlash",
+  "max_level": 2,
+  "description_args": [
+    "25",
+    "20",
+    "4"
+  ]
+}

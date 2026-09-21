@@ -23,7 +23,10 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:daybound"]
+    "general": [
+      "forgeweave:daybound",
+      "forgeweave:sunforged"
+    ]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:daybrass_ingot" }, "value": 144 },

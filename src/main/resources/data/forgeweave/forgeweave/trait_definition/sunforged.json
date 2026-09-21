@@ -1,0 +1,6 @@
+{
+  "behavior": "forgeweave:conditional_mining_speed",
+  "condition": "sunlit",
+  "bonus": 0.4,
+  "penalty": 0.1
+}

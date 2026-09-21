@@ -44,7 +44,10 @@
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
     "general": [
-      "forgeweave:ecological"
+      "forgeweave:ecological3"
+    ],
+    "armor": [
+      "forgeweave:mendward"
     ]
   },
   "crafting_items": [

@@ -23,8 +23,13 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:magmaforge"],
-    "armor": ["forgeweave:fire_protection"]
+    "general": [
+      "forgeweave:magmaforge",
+      "forgeweave:netherkeen"
+    ],
+    "armor": [
+      "forgeweave:fireward"
+    ]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:cinderforge_ingot" }, "value": 144 },

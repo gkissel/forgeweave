@@ -23,8 +23,13 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:cascading"],
-    "armor": ["forgeweave:depth_protection"]
+    "general": [
+      "forgeweave:cascading",
+      "forgeweave:veinseeker"
+    ],
+    "armor": [
+      "forgeweave:backlash"
+    ]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:faultsteel_ingot" }, "value": 144 },

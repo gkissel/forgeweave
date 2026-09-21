@@ -23,7 +23,13 @@
   "maille": true,
   "incorrect_for_tool": "forgeweave:incorrect_for_warspar_tool",
   "traits": {
-    "general": ["forgeweave:bloodtally"]
+    "general": [
+      "forgeweave:bloodtally",
+      "forgeweave:veinseeker2"
+    ],
+    "armor": [
+      "forgeweave:backlash2"
+    ]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:hollowsteel_ingot" }, "value": 144 },

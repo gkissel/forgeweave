@@ -617,6 +617,18 @@ public final class AoeHarvest {
      * {@link #VEIN_LIMIT} blocks -- the shape of the 1.20 branch's {@code VeiningAOEIterator} with
      * the maintainer's block cap in place of its distance cap (see {@link #VEIN_LIMIT}).
      */
+    /**
+     * The connected run of {@code originState}'s own block reachable from {@code origin}, already
+     * filtered by {@link #canBreakExtra} and capped at {@code limit} -- what {@link Shape#VEIN}
+     * takes along, offered to a trait that wants the same sweep without being a vein hammer.
+     * {@code trait.VeinBreak} (issue #1114) is the one caller, the way {@code CascadingBreak} is
+     * {@link #breakEach}'s.
+     */
+    public static List<BlockPos> veinFrom(ItemStack tool, Level level, Player player, BlockPos origin,
+            BlockState originState, int limit) {
+        return breakable(tool, level, player, origin, originState, vein(level, origin, originState, limit));
+    }
+
     private static List<BlockPos> vein(Level level, BlockPos origin, BlockState originState, int limit) {
         List<BlockPos> out = new ArrayList<>();
         Set<BlockPos> visited = new HashSet<>();
