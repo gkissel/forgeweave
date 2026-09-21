@@ -1356,8 +1356,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // tool info panel (issue #47) is what will display them; wording follows upstream 1.12's
         // modifier.<id>.name/.desc entries.
         add("trait.forgeweave.ecological.name", "Ecological");
-        add("trait.forgeweave.ecological.description", "Renewable resources are so good, they regenerate by themselves! One durability point every "
-                + "%s seconds.");
+        add("trait.forgeweave.ecological.description", "Renewable resources are so good, they regenerate by themselves! 1 "
+                + "durability point every %s seconds.");
         add("trait.forgeweave.cheap.name", "Cheap");
         // Upstream modifier.cheap.desc, mechanical line only (flavor text dropped, as elsewhere).
         add("trait.forgeweave.cheap.description", "A repair gives back 25% more durability than the material is worth.");
@@ -1369,7 +1369,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.crude.description", "Deals %s% more damage to unarmored targets.");
         // #231 flint retrofit: upstream's head-scoped crude2, named like magnetic2/writable2 are.
         add("trait.forgeweave.fractured.name", "Fractured");
-        add("trait.forgeweave.fractured.description", "Your tool's damage is increased by 1.5.");
+        add("trait.forgeweave.fractured.description", "Adds 1.5 attack damage to the tool.");
 
         // Modifier names and descriptions, keyed by modifier id the same way (issue #105, ADR-0004:
         // behavior is Java, the recipe that applies it is data). Wording follows upstream 1.12's
@@ -1464,14 +1464,14 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.aridiculous.description", "Mines faster and hits harder the hotter and drier the biome: about "
                 + "47% more mining speed and 9 more damage in a desert, and a small penalty in a cold or wet one.");
         add("trait.forgeweave.crumbling.name", "Crumbling");
-        add("trait.forgeweave.crumbling.description", "On a block that needs no tool, multiplies break speed by half the "
+        add("trait.forgeweave.crumbling.description", "On a block that needs no tool, multiplies break speed by 50% of the "
                 + "tool's own mining speed, so a speed-7 tool goes 3.5 times as fast.");
         add("trait.forgeweave.unnatural.name", "Unnatural");
         add("trait.forgeweave.unnatural.description", "Adds 1 break speed for every mining tier the tool sits above the "
                 + "block's requirement.");
         add("trait.forgeweave.dense.name", "Dense");
-        add("trait.forgeweave.dense.description", "A chance to pay half the durability, growing as the tool wears: about 42% "
-                + "on a nearly broken tool.");
+        add("trait.forgeweave.dense.description", "A chance to pay 50% of the durability cost, growing as the tool wears: "
+                + "about 42% on a nearly broken tool.");
         add("trait.forgeweave.writable.name", "Writable");
         add("trait.forgeweave.writable.description",
                 "More words. More modifiers. Grants %s extra modifier slots.");
@@ -1506,7 +1506,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("modifier.forgeweave.reinforced.unbreakable", "Unbreakable");
         add("modifier.forgeweave.mending_moss.name", "Mending Moss");
         add("modifier.forgeweave.mending_moss.description", "Banks the experience it picks up, 100 points at level 1 and 900 "
-                + "at level 3, and spends one about every 7.5 seconds to repair 3 durability, 5 at level 3.");
+                + "at level 3, and spends 1 point about every 7.5 seconds to repair 3 durability, 5 at level 3.");
         // Upstream modifier.mending_moss.extra ("Stored XP: %d"), parity audit T26 (issue #457).
         add("modifier.forgeweave.mending_moss.extra", "Stored XP: %s");
         add("modifier.forgeweave.silky.name", "Silky");
@@ -1633,7 +1633,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 + "levels a piece and 80% across a worn set.");
         add("modifier.forgeweave.knockback_resistance.name", "Knockback Resistance");
         add("modifier.forgeweave.knockback_resistance.description", "Reduces knockback taken by 10% a piece, 40% across a "
-                + "worn set. One level a piece.");
+                + "worn set. 1 level a piece.");
         add("modifier.forgeweave.thorns.name", "Thorns");
         add("modifier.forgeweave.thorns.description", "A 15% chance per level to put 1 to 4 damage back on whoever strikes "
                 + "the wearer, up to 3 levels.");
@@ -1661,7 +1661,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // speed rising with each crystal.
         add("modifier.forgeweave.surgebound.name", "Surgebound");
         add("modifier.forgeweave.surgebound.description", "Raises the tool's energy capacity 25% and its mining speed 5% per "
-                + "level, and the nitro step at level 5 doubles both instead. Five levels, applied in crystal order.");
+                + "level, and the nitro step at level 5 doubles both instead. 5 levels, applied in crystal order.");
         add("modifier.forgeweave.surgebound.extra", "Energy Capacity: +%s, Mining Speed: +%s");
 
         // Issue #994 (M8-10): lead lining against radiation, four levels to a fully shielded piece.
@@ -2326,8 +2326,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.stiff.name", "Stiff");
         add("trait.forgeweave.stiff.description", "Blocking takes 1 more damage off the blow, never below 1.");
         add("trait.forgeweave.sharp.name", "Sharp");
-        add("trait.forgeweave.sharp.description", "A hit opens a bleed that armor cannot stop: a third of a damage point "
-                + "every 0.75 seconds for 6 seconds.");
+        add("trait.forgeweave.sharp.description", "A hit opens a bleed that armor cannot stop: 0.33 damage every 0.75 seconds "
+                + "for 6 seconds, about 2.7 in all.");
         add("trait.forgeweave.splintering.name", "Splintering");
         add("trait.forgeweave.splintering.description", "Each hit marks the target for 2 seconds and adds 0.3 damage, "
                 + "stacking up to 6 marks.");
@@ -2349,7 +2349,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.endspeed.description", "The arrow flies about 126 blocks a second, so a shot lands almost at "
                 + "once, and strays 33% less.");
         add("trait.forgeweave.freezing.name", "Freezing");
-        add("trait.forgeweave.freezing.description", "Each hit deepens the target's Slowness by one level, up to Slowness V, "
+        add("trait.forgeweave.freezing.description", "Each hit deepens the target's Slowness by 1 level, up to Slowness V, "
                 + "1.5 seconds at a time.");
         add("trait.forgeweave.hovering.name", "Hovering");
         add("trait.forgeweave.hovering.description", "The arrow leaves the bow at 50% speed but falls at 5% of normal "
@@ -2418,8 +2418,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // read overslime's above), the socket rows on the tooltip and the station panel, and the
         // four refusals the station can hand back.
         add("modifier.forgeweave.socketed.name", "Socketed");
-        add("modifier.forgeweave.socketed.description", "Adds 1 empty gem socket per level, up to 3. Each socket holds one "
-                + "gem and costs 1 modifier slot.");
+        add("modifier.forgeweave.socketed.description", "Adds 1 empty gem socket per level, up to 3. Each socket holds 1 gem "
+                + "and costs 1 modifier slot.");
         add("modifier.forgeweave.socket_gem.name", "Seat Gem");
         add("modifier.forgeweave.socket_gem.description", "Seats 1 gem in the tool's first empty socket. The socket already "
                 + "paid the modifier slot, so this costs none.");
@@ -2438,11 +2438,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.overgrowth.name", "Overgrowth");
         add("trait.forgeweave.overgrowth.description", "A 25% chance each second to regrow 1 point of overslime.");
         add("trait.forgeweave.overlord.name", "Overlord");
-        add("trait.forgeweave.overlord.description",
-                "Cuts the tool's durability by 15% and turns a tenth of what is left into overslime capacity.");
+        add("trait.forgeweave.overlord.description", "Cuts the tool's durability by 15% and turns 10% of what is left into "
+                + "overslime capacity.");
         add("trait.forgeweave.restore.name", "Restore");
-        add("trait.forgeweave.restore.description",
-                "Has a 15% chance when hit to heal a portion of the damage taken, consuming durability.");
+        add("trait.forgeweave.restore.description", "A 15% chance when struck to heal 25% of the damage taken, for 1 "
+                + "durability.");
         add("trait.forgeweave.recurrent_protection.name", "Recurrent");
         add("trait.forgeweave.recurrent_protection.description", "Turns 50% of a blow's damage into flat damage reduction for "
                 + "that hit.");
@@ -2469,7 +2469,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.predatory.description", "Deals 0.15 more damage per point of health the target has already "
                 + "lost, up to 4.");
         add("trait.forgeweave.colossal.name", "Colossal");
-        add("trait.forgeweave.colossal.description", "Deals up to 6 extra damage to targets with a lot of health.");
+        add("trait.forgeweave.colossal.description", "Deals 0.06 more damage per point of the target's own max health, up to "
+                + "6.");
         add("trait.forgeweave.kinetic.name", "Kinetic");
         add("trait.forgeweave.kinetic.description", "A falling or sprinting blow lands up to %s extra damage.");
         add("trait.forgeweave.dominant.name", "Dominant");
@@ -2558,9 +2559,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("tooltip.forgeweave.energy", "Stored Energy");
         // #829 M6 utility/economy trait behavior library.
         add("trait.forgeweave.sunmend.name", "Sunmend");
-        add("trait.forgeweave.sunmend.description", "Mends one point every 8 seconds in direct sunlight.");
+        add("trait.forgeweave.sunmend.description", "Mends 1 point every 8 seconds in direct sunlight.");
         add("trait.forgeweave.duskmend.name", "Duskmend");
-        add("trait.forgeweave.duskmend.description", "Mends one point every 8 seconds after dark.");
+        add("trait.forgeweave.duskmend.description", "Mends 1 point every 8 seconds after dark.");
         add("trait.forgeweave.cascading.name", "Cascading");
         add("trait.forgeweave.cascading.description", "Breaks the whole column of falling blocks above what you mine, up to "
                 + "256 of them.");
@@ -2594,8 +2595,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.harrying.description", "Cuts the target's post-hit immunity from 1 second to 0.5, so follow-up "
                 + "blows land sooner.");
         add("trait.forgeweave.arcing.name", "Arcing");
-        add("trait.forgeweave.arcing.description", "The hit arcs to two more enemies nearby for %s% of its "
-                + "damage. Level I needs a fully charged swing; level II fires on every hit.");
+        add("trait.forgeweave.arcing.description", "The hit arcs to 2 more enemies within 3 blocks for %s% of its damage. "
+                + "Level I needs a fully charged swing; level II fires on every hit.");
         add("trait.forgeweave.stormcaller.name", "Stormcaller");
         add("trait.forgeweave.stormcaller.description", "Calls a real lightning bolt down on every enemy hit while the "
                 + "wielder is at full health: vanilla's own 5 damage, and it burns.");
@@ -3705,8 +3706,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.alien2.description", "Carried, it grows fast: one of 2,400 stat points lands every 3.6 seconds, "
                 + "adding 3 durability, 0.021 mining speed or 0.015 attack damage.");
         add("trait.forgeweave.quakecrumble.name", "Quakecrumble");
-        add("trait.forgeweave.quakecrumble.description", "Mining a block gives each of its six neighbours a 25% chance to "
-                + "crack loose too.");
+        add("trait.forgeweave.quakecrumble.description", "Mining a block gives each of its 6 neighbours a 25% chance to crack "
+                + "loose too.");
         add("trait.forgeweave.riftstep.name", "Riftstep");
         add("trait.forgeweave.riftstep.description", "A 12% chance on hit to teleport the target or the wielder up to 6 "
                 + "blocks, a coin flip which.");
