@@ -253,3 +253,104 @@ fails `everyHookIsClassified` first.
 Two things it does not check. A reachable hook is not a reachable condition: `duskward` needs a dark
 place and `stormward` needs lightning. And "belongs together" is a judgement, not a property -- the
 table above is where that is argued, and a reviewer is the check.
+
+## Signature traits (issue #1114)
+
+Issue #1103 made the shared families strong. It added almost no character, and the scan behind
+04-impact.md still read 29 of 216 materials as inert on a side they can be built for: their only
+traits were numbers too small to attribute to anything, a drawback with no upside, or nothing at all.
+This section is what closed that to zero, and the table at the end is the before and after.
+
+### Four behaviours, not forty traits
+
+Each one is a `TraitBehaviors` entry with a codec, so a datapack tunes it and several materials use
+it at different numbers. That is the constraint the issue set: keep the behaviour classes few and
+general rather than one class per material.
+
+| behaviour | what it does | parameters | who has it |
+| --- | --- | --- | --- |
+| `vein_break` | One swing takes the connected run of the same block, and each extra block costs durability | `max_blocks`, `durability_per_block` | Veinseeker I on `hollowstone` and `faultsteel`, II on `hollowsteel` |
+| `banked_strike` | A kill banks a charge; the next blow spends the whole bank | `per_charge`, `cap`, `decay` | Warcharge I on `warspar` and `voltcinder`, II on `truesteel` |
+| `stored_retaliation` | A worn piece stores part of every blow and erupts once the store is full | `stored_fraction`, `threshold`, `radius`, `release_fraction` | Backlash I on `quakestone` and `faultsteel`, II on `hollowsteel` |
+| `conditional_mining_speed` | Mines faster where the world suits the metal, slower where it does not | `condition`, `bonus`, `penalty` | Sunforged on `sunsteel` and `daybrass`, Stormfed on `stormalloy`, Netherkeen on `cinderforge`, `embercast` and `hardcinder` |
+
+`vein_break` reuses `AoeHarvest`'s own flood fill and break loop rather than adding a third one,
+the way `cascading_break` already reuses the second. `banked_strike` and `stored_retaliation` keep
+their state in a `TraitStacks` component, the shape `momentum`, `insatiable` and
+`stacking_resistance` already use. `conditional_mining_speed` is the general form of the two
+upstream traits that each do this for one fixed condition, `aquadynamic`'s water and `aridiculous`'
+biome heat, with a penalty half neither of them has.
+
+The first three announce a proc through `TraitFeedback.fire` (issue #1115). The fourth does not, on
+that issue's own guidance: a bonus that holds for as long as the weather does is not an event.
+
+### Everything else was reassignment
+
+Twenty-two of the thirty materials below got no new behaviour at all. They got an id that already
+existed, because #1103 withdrew the rule that no two materials may share one. `glowveil` had a
+drawback and no upside, so it gained `luminous` and `duskward` and kept `fallout` as the price.
+`fulmenite` gained `arcing` and kept `unstable_core` as its price. `cinderforge`'s
+`fire_protection` became outright `fireward` immunity, which is what a material made in a fire
+should read as. `mendstone`, the material named for mending, moved from the slowest rung of the
+self-repair ladder to the fastest.
+
+The seven bowstring-and-fletching-only materials get a trait each, which settles the open decision
+this document recorded above. The four Forgeweave-own ones (`slimeleaf_blue`, `slimeleaf_orange`,
+`slimeleaf_purple`, `slimevine_purple`) get `skyborne` for the draw speed and `ecological` for the
+regrowth. The three vanilla ones (`feather`, `leaf`, `string`) get `ecological` only: `skyborne`
+changes a bow's draw speed, and every 1.12 bow-parity GameTest pins that number for a
+vanilla-material bow, so putting a draw-speed trait on string would re-tune upstream's own stats.
+Giving those three a ranged-specific effect needs either a new ranged hook on `Trait` or a maintainer
+decision to move the parity numbers.
+
+### Before and after
+
+Thirty material trait blocks moved. The rest of the roster is untouched; what changed for those is
+the magnitude behind an id they already named, which the PR body lists.
+
+| material | acquisition | before | after |
+| --- | --- | --- | --- |
+| `hollowsteel` | multistep alloy (depth 4) | general=[bloodtally] | general=[bloodtally, veinseeker2]; armor=[backlash2] |
+| `truesteel` | multistep alloy (depth 4) | general=[berserker_stance]; armor=[bloodward] | general=[berserker_stance, warcharge2]; armor=[bloodward] |
+| `stormalloy` | multistep alloy (depth 3) | general=[unraveling]; armor=[voidward] | general=[unraveling, stormfed]; armor=[voidward, stormward] |
+| `sunsteel` | multistep alloy (depth 3) | general=[seismic]; armor=[heft2] | general=[seismic, sunforged]; armor=[heft2] |
+| `cinderforge` | multistep alloy (depth 2) | general=[magmaforge]; armor=[fire_protection] | general=[magmaforge, netherkeen]; armor=[fireward] |
+| `daybrass` | multistep alloy (depth 2) | general=[daybound] | general=[daybound, sunforged] |
+| `faultsteel` | multistep alloy (depth 2) | general=[cascading]; armor=[depth_protection] | general=[cascading, veinseeker]; armor=[backlash] |
+| `glowveil` | multistep alloy (depth 2) | general=[fallout] | general=[luminous, fallout]; armor=[duskward] |
+| `embercast` | alloy (depth 1) | general=[sunmend] | general=[sunmend, netherkeen] |
+| `mendstone` | alloy (depth 1) | general=[ecological] | general=[ecological3]; armor=[mendward] |
+| `quakestone` | alloy (depth 1) | general=[quakecrumble]; armor=[depth_protection] | general=[quakecrumble]; armor=[backlash] |
+| `fulmenite` | melt | general=[unstable_core] | general=[unstable_core, arcing]; armor=[stormward] |
+| `hardcinder` | melt | general=[leanharvest]; armor=[depth_protection] | general=[leanharvest, netherkeen]; armor=[depth_protection] |
+| `hollowstone` | melt | general=[hollowyield]; armor=[depth_protection] | general=[hollowyield, veinseeker]; armor=[depth_protection] |
+| `voltcinder` | melt | general=[overburdened]; armor=[heft2] | general=[overburdened, warcharge]; armor=[heft2] |
+| `warspar` | melt | general=[warmemory] | general=[warmemory, warcharge] |
+| `slime` | melt | general=[slimey_green] | general=[slimey_green, ecological] |
+| `blueslime` | craft/no-melt | general=[slimey_blue] | general=[slimey_blue, ecological] |
+| `bronze` | melt | general=[steadfast] | general=[steadfast, stonewake] |
+| `tin` | melt | general=[steadfast] | general=[steadfast, quick] |
+| `invar` | melt | general=[steadfast] | general=[steadfast, emberwake]; armor=[temperward] |
+| `carminite` | craft/no-melt | general=[voidward2] | general=[voidward2, chaosmark] |
+| `vibranium_allthemodium_alloy` | craft/no-melt | general=[bracingplate] | general=[bracingplate2] |
+| `feather` | craft/no-melt | nothing | general=[ecological] |
+| `leaf` | craft/no-melt | nothing | general=[ecological] |
+| `string` | craft/no-melt | nothing | general=[ecological] |
+| `slimeleaf_blue` | craft/no-melt | nothing | general=[skyborne, ecological] |
+| `slimeleaf_orange` | craft/no-melt | nothing | general=[skyborne, ecological] |
+| `slimeleaf_purple` | craft/no-melt | nothing | general=[skyborne, ecological] |
+| `slimevine_purple` | craft/no-melt | nothing | general=[skyborne, ecological] |
+
+### What the scan says now
+
+`impact_scan.py` in the review folder, rerun against this branch: 0 of 216 materials inert on a side
+they can be built for, down from 29. 0 with no trait at all, down from 7. 0 whose best trait across
+every side is one a player cannot feel, down from 19. Six trait ids are still in the scan's
+`invisible` bucket and all six are there on purpose: `baconlicious`, `prickly`, `slimey_green` and
+`slimey_blue` are upstream 1.12 magnitudes kept as they are, and `fallout` and `unstable_core` are
+drawbacks that pay for a material's upside. Every one of the six sits on a material that also
+carries something felt.
+
+The scan needed two corrections to read the tree honestly, both recorded in the PR: a worn trait is
+judged by what a full set totals rather than by what one piece pays, and the hand-read table of Java
+magnitudes was stale for the eight ids issues #1103 and #1114 moved.
