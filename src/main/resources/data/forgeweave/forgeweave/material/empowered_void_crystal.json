@@ -1,14 +1,14 @@
 {
   "head": {
-    "durability": 820,
-    "mining_speed": 7.6,
-    "attack_damage": 6.4
+    "durability": 620,
+    "mining_speed": 8.6,
+    "attack_damage": 8.4
   },
   "handle": {
-    "durability_modifier": 1.05,
-    "durability": 55
+    "durability_modifier": 0.9,
+    "durability": 32
   },
-  "extra_durability": 90,
+  "extra_durability": 60,
   "bow": {
     "drawspeed": 0.5,
     "range": 1.6,

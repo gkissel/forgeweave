@@ -32,6 +32,7 @@
   "repair_item": {
     "item": "minecraft:obsidian"
   },
+  "cast_only": true,
   "enchantability": 10,
   "color": "#601CC4"
 }

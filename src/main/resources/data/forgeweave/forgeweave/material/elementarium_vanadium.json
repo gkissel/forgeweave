@@ -1,18 +1,18 @@
 {
   "head": {
-    "durability": 204,
-    "mining_speed": 6.0,
-    "attack_damage": 4.0
+    "durability": 263,
+    "mining_speed": 5.91,
+    "attack_damage": 4.29
   },
   "handle": {
-    "durability_modifier": 0.85,
-    "durability": 60
+    "durability_modifier": 0.89,
+    "durability": 56
   },
-  "extra_durability": 50,
+  "extra_durability": 47,
   "bow": {
-    "drawspeed": 0.5,
-    "range": 1.5,
-    "bonus_damage": 7.0
+    "drawspeed": 0.48,
+    "range": 1.49,
+    "bonus_damage": 6.86
   },
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
@@ -44,7 +44,7 @@
     "tag": "c:ingots/vanadium"
   },
   "cast_only": true,
-  "enchantability": 14,
+  "enchantability": 13,
   "color": "#8A8F94",
   "neoforge:conditions": [
     {

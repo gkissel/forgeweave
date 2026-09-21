@@ -1,8 +1,8 @@
 {
   "head": {
-    "durability": 820,
-    "mining_speed": 8.0,
-    "attack_damage": 5.8
+    "durability": 920,
+    "mining_speed": 8.8,
+    "attack_damage": 6.9
   },
   "handle": {
     "durability_modifier": 1.0,

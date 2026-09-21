@@ -1,8 +1,8 @@
 {
   "head": {
-    "durability": 870,
-    "mining_speed": 8.4,
-    "attack_damage": 6.3
+    "durability": 1380,
+    "mining_speed": 9.4,
+    "attack_damage": 9.5
   },
   "handle": {
     "durability_modifier": 1.0,
@@ -21,7 +21,7 @@
     "boots": { "durability": 435, "armor": 2.0, "toughness": 1.0, "knockback_resistance": 0.05 }
   },
   "maille": true,
-  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "incorrect_for_tool": "forgeweave:incorrect_for_warspar_tool",
   "traits": {
     "general": ["forgeweave:tinseeker"]
   },

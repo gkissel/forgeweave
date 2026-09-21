@@ -1,8 +1,8 @@
 {
   "head": {
-    "durability": 860,
-    "mining_speed": 8.3,
-    "attack_damage": 6.5
+    "durability": 1240,
+    "mining_speed": 9.0,
+    "attack_damage": 9.0
   },
   "handle": {
     "durability_modifier": 1.0,
@@ -21,7 +21,7 @@
     "boots": { "durability": 430, "armor": 2.0, "toughness": 1.0, "knockback_resistance": 0.05 }
   },
   "maille": true,
-  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "incorrect_for_tool": "forgeweave:incorrect_for_hardcinder_tool",
   "traits": {
     "general": ["forgeweave:merciful"],
     "armor": ["forgeweave:mendward"]

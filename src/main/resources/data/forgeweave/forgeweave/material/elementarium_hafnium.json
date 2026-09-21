@@ -1,18 +1,18 @@
 {
   "head": {
-    "durability": 612,
-    "mining_speed": 5.41,
-    "attack_damage": 5.96
+    "durability": 555,
+    "mining_speed": 5.49,
+    "attack_damage": 5.69
   },
   "handle": {
-    "durability_modifier": 1.14,
-    "durability": 31
+    "durability_modifier": 1.1,
+    "durability": 35
   },
-  "extra_durability": 30,
+  "extra_durability": 33,
   "bow": {
-    "drawspeed": 0.35,
-    "range": 1.4,
-    "bonus_damage": 6.02
+    "drawspeed": 0.37,
+    "range": 1.42,
+    "bonus_damage": 6.16
   },
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
@@ -44,7 +44,7 @@
     "tag": "c:ingots/hafnium"
   },
   "cast_only": true,
-  "enchantability": 10,
+  "enchantability": 11,
   "color": "#4F5D63",
   "neoforge:conditions": [
     {
