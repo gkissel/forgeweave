@@ -43,6 +43,7 @@ import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.client.StationText;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.LauncherStats;
 import dev.gkissel.forgeweave.tool.ToolLevel;
@@ -153,6 +154,46 @@ class ToolTooltipTest {
                         .append(Component.literal(" (51/100)").withStyle(ChatFormatting.GRAY)),
                 slotsLine(1)),
                 tooltip);
+    }
+
+    /**
+     * Issue #1102: the compact tier keeps showing only the modifier's name and level -- the same tier
+     * split a trait's own line already has (a trait's description is Shift-only, in {@link
+     * #appendPartSections}). Haste's own description is unaffected by this issue, only whether it is
+     * shown at all in this tier.
+     */
+    @Test
+    void compactTooltipModifierLineHasNoDescription() {
+        ItemStack stack = assembledPickaxe(40, List.of());
+        stack.set(ForgeweaveDataComponents.MODIFIERS.get(),
+                List.of(new ModifierEntry(HASTE_ID, 51)));
+
+        List<Component> tooltip = new ArrayList<>();
+        ToolTooltip.append(stack, null, false, 3.0F, tooltip);
+
+        assertTrue(tooltip.stream().noneMatch(line -> line.toString().contains("modifier.forgeweave.haste.description")),
+                () -> "compact tier should show no modifier description, got " + tooltip);
+    }
+
+    /**
+     * Issue #1102: Shift's detailed tier appends the modifier's own description, in the same
+     * name-colon-description shape a trait's line already has ({@link #traitLine}) -- fixing "a player
+     * hovering a tool can read what every trait does and nothing about any modifier."
+     */
+    @Test
+    void detailedTooltipAppendsTheModifierDescriptionToItsLine() {
+        ItemStack stack = assembledPickaxe(40, List.of());
+        stack.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(HASTE_ID, 51)));
+
+        List<Component> tooltip = new ArrayList<>();
+        ToolTooltip.append(stack, null, true, 3.0F, tooltip);
+
+        Component expected = Component.translatable("modifier.forgeweave.haste.name2")
+                .withStyle(Style.EMPTY.withColor(HASTE_COLOR))
+                .append(Component.literal(" (51/100)").withStyle(ChatFormatting.GRAY))
+                .append(Component.literal(": ").withStyle(ChatFormatting.GRAY))
+                .append(ModifierApplication.description(HASTE_ID).copy().withStyle(ChatFormatting.GRAY));
+        assertTrue(tooltip.contains(expected), () -> "expected " + expected + " in " + tooltip);
     }
 
     /**

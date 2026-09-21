@@ -30,6 +30,7 @@ import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.material.MaterialDisplay;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.MiningLevel; // #968
 import dev.gkissel.forgeweave.tool.ToolLevel;
@@ -174,7 +175,7 @@ final class ToolTooltip {
         // The M1 tool innate retrofit (issue #164): fixed per-tool-type, so it's shown compact like
         // Attack Damage rather than gated behind Shift like traits, which are per-material.
         ForgeweaveInnates.innateId(stack).ifPresent(id -> tooltip.add(innateLine(id)));
-        appendModifiers(stack, tooltip);
+        appendModifiers(stack, detailed, tooltip);
 
         if (!detailed) {
             // Issue #955: a trait's live state that fits on one line (bloodtally, evolved) is worth
@@ -264,9 +265,9 @@ final class ToolTooltip {
      * 1.12 puts them ({@code ToolCore#getTooltip} lists each modifier then the free-modifier count,
      * and shows the count only while it is above zero).
      */
-    private static void appendModifiers(ItemStack stack, List<Component> tooltip) {
+    private static void appendModifiers(ItemStack stack, boolean detailed, List<Component> tooltip) {
         for (ModifierEntry entry : ForgeweaveModifiers.of(stack)) {
-            tooltip.add(modifierLine(entry));
+            tooltip.add(modifierLine(entry, detailed));
             if (ApotheosisSockets.SOCKETED_ID.equals(entry.id())) {
                 // #969: the sockets themselves, one indented row each, under the modifier that
                 // granted them. The station panel shows the same lines as that row's hover text
@@ -282,20 +283,26 @@ final class ToolTooltip {
     }
 
     /**
-     * {@code Haste II (51/100)}: the modifier's name for its current level ({@code
+     * {@code Haste II (51/100): Digs faster.}: the modifier's name for its current level ({@code
      * StationText#modifierName} -- since parity audit T26/issue #457 that is upstream's leveled name
      * where one exists, "Haster" rather than "Haste II"), in the modifier's own colour ({@code
-     * ForgeweaveModifiers#color}, upstream's {@code ModifierNBT#getColorString}), and -- for a
-     * modifier whose levels take several applications -- how far into the current one it is, which is
-     * upstream's {@code ModifierNBT.IntegerNBT#extraInfo}.
+     * ForgeweaveModifiers#color}, upstream's {@code ModifierNBT#getColorString}), how far into the
+     * current level it is for a modifier whose levels take several applications (upstream's {@code
+     * ModifierNBT.IntegerNBT#extraInfo}), and -- issue #1102, only once Shift asks for the detailed
+     * tier -- its description ({@link ModifierApplication#description}), the same name-colon-
+     * description shape {@link #traitLine} already gives a trait.
      */
-    private static Component modifierLine(ModifierEntry entry) {
+    private static Component modifierLine(ModifierEntry entry, boolean detailed) {
         MutableComponent line = StationText.modifierName(entry)
                 .withStyle(Style.EMPTY.withColor(ForgeweaveModifiers.color(entry.id())));
         int levelEnd = ForgeweaveModifiers.unitsForDisplayLevel(entry.id(), entry.level());
         if (levelEnd > 1) {
             line.append(Component.literal(" (" + entry.level() + "/" + levelEnd + ")")
                     .withStyle(ChatFormatting.GRAY));
+        }
+        if (detailed) {
+            line.append(Component.literal(": ").withStyle(ChatFormatting.GRAY))
+                    .append(ModifierApplication.description(entry.id()).copy().withStyle(ChatFormatting.GRAY));
         }
         return line;
     }
