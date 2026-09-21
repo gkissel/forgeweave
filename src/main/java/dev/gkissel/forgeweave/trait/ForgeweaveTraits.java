@@ -2638,7 +2638,7 @@ public final class ForgeweaveTraits {
     public static final Trait VOIDREND = new Trait() {
         @Override
         public void combatSeams(Consumer<CombatSeam> out) {
-            out.accept(new ConditionalSeam(HitCondition.ANY, 0.35F,
+            out.accept(new ConditionalSeam(HitCondition.ANY, 0.4F,
                     new PotionEffectOnHitSeam(MobEffects.WEAKNESS, 1, 100)));
         }
     };

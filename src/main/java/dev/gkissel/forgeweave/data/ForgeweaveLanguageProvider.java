@@ -3587,7 +3587,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.leadfoot.name", "Leadfoot");
         add("trait.forgeweave.leadfoot.description", "Dense enough to drag: 10% less movement speed while held.");
         add("trait.forgeweave.voidrend.name", "Voidrend");
-        add("trait.forgeweave.voidrend.description", "A third of your hits leave the target with Weakness II for five seconds.");
+        add("trait.forgeweave.voidrend.description", "Two hits in five leave the target with Weakness II for five seconds.");
         add("trait.forgeweave.seismic.name", "Seismic");
         add("trait.forgeweave.seismic.description", "A heavy, shove-first strike.");
         add("trait.forgeweave.stonewake.name", "Stonewake");
