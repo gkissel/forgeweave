@@ -2675,10 +2675,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Five steps take you from a plank to the deepest metal in the game.\n\n"
                         + "One. Two planks and two sticks make blank patterns. Stamp a pattern at a "
                         + "Stencil Table, carve wood or stone into a part at a Part Builder, and put "
-                        + "the parts together at a Tool Station. No heat, no ore, first day.\n\n"
+                        + "the parts together at a Tool Station. This needs no heat and no ore, so it "
+                        + "all happens on the first day.\n\n"
                         + "Two. Clay, sand and gravel make grout. A furnace bakes grout into seared "
                         + "bricks, and seared bricks build a smeltery. A bucket of lava heats it.\n\n"
-                        + "Three. Metal is never carved, it is poured. Pour molten gold over a carved "
+                        + "Three. Metal is poured rather than carved. Pour molten gold over a carved "
                         + "part on a Casting Table and you keep a reusable cast of that shape. Every "
                         + "metal part you ever make comes out of one of those casts.\n\n"
                         + "Four. Two melts sharing one smeltery mix into a third metal. Rose gold and "
@@ -2844,8 +2845,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "worth 300 durability is thirty shots; firing it empty breaks it, and "
                         + "repairing it at the Tool Station is the reload. It takes modifiers and "
                         + "earns levels like any other tool.\n\n"
-                        + "That is the whole book. Materials is the chapter to come back to as new "
-                        + "metals turn up.");
+                        + "That is every page. From here the book is a reference, and Materials is the "
+                        + "chapter you will open most.");
 
         // M4-7 (issue #682, docs/SCOPE.md D21) -- the armor section. The intro's first lines and the
         // piece pages' Properties bullets are rewritten from the 1.20 clone's book
@@ -2996,7 +2997,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.modifiers.embossing.title", "Embossing");
         add("book.forgeweave.modifiers.embossing.text",
                 "Embossing spends a spare tool part to give a finished tool that part material's "
-                        + "traits, and changes not one of its stats. A bone handle embossed onto a "
+                        + "traits, and changes none of its stats. A bone handle embossed onto a "
                         + "manyullyn tool brings bone's traits to a tool that keeps manyullyn's "
                         + "numbers.\n\n"
                         + "It happens at the Tool Station or the Tool Forge. Lay the tool in, then the "
@@ -3033,13 +3034,14 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // core tiers, entity melting, and the furnace and reservoir.
         add("book.forgeweave.smeltery.intro.title", "The Smeltery");
         add("book.forgeweave.smeltery.intro.text",
-                "The Part Builder carves. It cannot carve metal, and every metal this workshop uses "
-                        + "arrives as a liquid. The smeltery is where that happens.\n\n"
-                        + "Three things come out of it that nothing else gives you. Ore melts into "
-                        + "more metal than a furnace returns, and a better core makes it more still. "
-                        + "Molten metal poured into a cast becomes a tool part in a material no chisel "
-                        + "would touch. And two melts sharing one smeltery mix into a metal that does "
-                        + "not exist as an ore anywhere.\n\n"
+                "The Part Builder carves, and it cannot carve metal. Every metal part in this "
+                        + "workshop starts as a liquid, and the smeltery is where metal becomes "
+                        + "liquid.\n\n"
+                        + "It buys three things nothing else does. Ore melts into more metal than a "
+                        + "furnace returns, and a better core returns more still. Molten metal poured "
+                        + "into a cast becomes a tool part in a material no chisel would touch. And "
+                        + "two melts sharing one smeltery mix into a metal that exists as no ore "
+                        + "anywhere.\n\n"
                         + "It is a multiblock: seared blocks in the shape of a box, a tank of fuel in "
                         + "the wall, and a core to control it. The next page starts with the bricks.");
         add("book.forgeweave.smeltery.grout.title", "Grout and Seared Bricks");
@@ -3075,8 +3077,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "more metal.\n\n"
                         + "Nothing comes out on its own. A Seared Drain in a wall is the outlet, and a "
                         + "Faucet on the drain is what pours. The Casting chapter covers that end.\n\n"
-                        + "A melt that sits at no progress is short of heat, not stuck. The next page "
-                        + "explains what that means.");
+                        + "A melt that sits at no progress is short of heat. The next page is about "
+                        + "fuel, which is where heat comes from.");
         add("book.forgeweave.smeltery.fuel.title", "Fuel and Heat");
         add("book.forgeweave.smeltery.fuel.text",
                 "A Seared Tank in the wall holds the fuel: four buckets in one tank. Right-click it "
@@ -3085,10 +3087,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "twenty seconds of melting. A full tank is therefore something like "
                         + "twenty-five minutes of work, and it only burns while there is something to "
                         + "melt.\n\n"
-                        + "Fuel is measured in degrees, and 300 degrees is cold. A fuel's working heat "
-                        + "is its temperature minus 300, and a recipe melts only if the working heat "
-                        + "reaches what the recipe asks. Fall short and the core says so: not enough "
-                        + "heat to melt this item. Run dry and it says that instead.\n\n"
+                        + "Every melt has a temperature it needs, and every fuel has one it gives. "
+                        + "The fuel's has to reach the melt's or nothing happens, and the core says "
+                        + "which of the two went wrong: not enough heat to melt this item, or no "
+                        + "valid fuel in the smeltery. An ore or an ingot asks for less than the "
+                        + "metal's own liquid does, which is why lava goes a long way.\n\n"
                         + "The ladder, coldest first. Lava at 1300 degrees, from anywhere. Blazing "
                         + "blood at 1500, melted out of blazes. Molten magma at 1700, from magma "
                         + "blocks. Molten brimspar at 1900, from brimspar crystals in the Nether. "
@@ -3115,8 +3118,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "Pouring is one way only, and the wrong fluid on a core is simply refused. "
                         + "The smeltery stays formed through an upgrade and keeps its melt and its "
                         + "fuel; its walls just take on the new core's look, spreading out from it.\n\n"
-                        + "Doubling your ore yield is the biggest single step in this chapter. Do it "
-                        + "before you mine the late ores, not after.");
+                        + "A Deep Core returns twice what a Standard Core does, so it is worth "
+                        + "upgrading before you mine the late ores rather than after.");
         add("book.forgeweave.smeltery.entity_melting.title", "Melting What Walks In");
         add("book.forgeweave.smeltery.entity_melting.text",
                 "A living thing standing inside a formed smeltery is treated as an input. Once a "
@@ -3127,10 +3130,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "of blazing blood per heart, an iron golem 18 of molten iron, a villager or "
                         + "an illager 6 of molten emerald, a snow golem 100 of water, a warden 20 of "
                         + "deep blood.\n\n"
-                        + "Blood and blazing blood are both alloy inputs, and deep blood and blazing "
-                        + "blood are how cores are upgraded, so this is a real production line rather "
-                        + "than a curiosity. A warden has enough hearts to pay for a Deep Core on its "
-                        + "own.\n\n"
+                        + "Blood is an alloy input, blazing blood is both an alloy input and a fuel, "
+                        + "and deep blood and blazing blood are what upgrade a core. A warden has "
+                        + "enough hearts to pay for a Deep Core twice over.\n\n"
                         + "The core's tier changes nothing here. A Nether Core does not make a "
                         + "villager worth more emerald.");
         // #972 (M8, D-M8-11): the energized tank's page. Original Forgeweave content -- the block
@@ -3143,8 +3145,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // book page, so a Forgeweave-only install had no way to learn they exist.
         add("book.forgeweave.smeltery.furnace.title", "The Furnace and the Reservoir");
         add("book.forgeweave.smeltery.furnace.text",
-                "Two more seared multiblocks share the smeltery's fuel and neither shares its "
-                        + "purpose.\n\n"
+                "Seared blocks build two other multiblocks, and neither of them melts anything.\n\n"
                         + "A Seared Furnace is a sealed box: seared blocks under the interior, plain "
                         + "seared walls, a ceiling, at least one tank, and a Seared Furnace Controller "
                         + "in a wall facing out. It cooks whatever a vanilla furnace cooks and returns "
@@ -3176,11 +3177,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "blocks, at 1296 each, which is nine ingots.\n\n"
                         + "Keep pouring until the table or basin is full, let it cool, then "
                         + "right-click to take the result. The cast stays behind for the next pour.\n\n"
-                        + "Everything above needs a cast, and the next page is how you get one.");
+                        + "A cast is the one thing on this page you cannot buy or mine. The next page "
+                        + "is how one is made.");
         add("book.forgeweave.casting.first_cast.title", "Making a Cast");
         add("book.forgeweave.casting.first_cast.text",
-                "This is the page the whole mod turns on. A cast is made by pouring gold over the "
-                        + "thing you want to copy.\n\n"
+                "A cast is made by pouring gold over the thing you want to copy.\n\n"
                         + "Carve the part you want out of a non-metal at the Part Builder: a pickaxe "
                         + "head out of wood or stone will do. Set that part alone on a Casting Table "
                         + "and pour 288 of molten gold over it, which is two gold ingots. The part is "
@@ -3244,28 +3245,29 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "same time, it mixes into a metal that no ore in the world produces.\n\n"
                         + "There is nothing to build and no button to press. Melt the inputs into the "
                         + "same smeltery and the alloy appears as a new layer, with the inputs gone.\n\n"
-                        + "Two things to know. Alloying works in whole batches, so an input short of "
-                        + "the ratio simply sits there. And some recipes lose volume: three metals in "
-                        + "can come out as one, and the amount out is often less than the amount "
-                        + "in.\n\n"
+                        + "Two things to know. Alloying works in whole batches, so an input that is "
+                        + "short of its share of the ratio simply sits there. And most recipes give "
+                        + "back less than went in, sometimes far less, so an alloy is always dearer "
+                        + "than its inputs suggest.\n\n"
                         + "Ratios below are quoted in the units the smeltery counts, where 144 is one "
                         + "ingot's worth. The next page is the three you can make on day one.");
         add("book.forgeweave.alloys.first_alloys.title", "The First Three");
         add("book.forgeweave.alloys.first_alloys.text",
                 "Rose gold. One copper to one gold, out two. The cheapest alloy in the game, and one "
                         + "of the fastest-mining head materials in it at 10.0 mining speed, though 90 "
-                        + "durability means it wears out quickly. Worth a pickaxe far earlier than it "
-                        + "sounds.\n\n"
+                        + "durability means it wears out quickly. That makes it worth a pickaxe far "
+                        + "earlier than it sounds.\n\n"
                         + "Steel. Two iron to one carbon, out two. Carbon is what coal and charcoal "
                         + "melt into, at 72 each, so one coal and one iron ingot make one steel "
                         + "ingot.\n\n"
-                        + "Obsidian. 125 water to 125 lava, out 36. Wasteful on purpose, and the "
-                        + "easiest way to keep obsidian coming without a diamond pickaxe.\n\n"
+                        + "Obsidian. 125 water to 125 lava, out 36. The ratio is deliberately poor, "
+                        + "and it is still the easiest way to keep obsidian coming without a diamond "
+                        + "pickaxe.\n\n"
                         + "All three are reachable the day the smeltery lights. Try rose gold first: "
                         + "one copper ingot and one gold ingot is the whole cost.");
         add("book.forgeweave.alloys.classic_alloys.title", "The Classics");
         add("book.forgeweave.alloys.classic_alloys.text",
-                "The next tier up, in rough order of what they cost.\n\n"
+                "The next tier up. Every one of them needs a smeltery.\n\n"
                         + "Manyullyn. One cobalt to one ardite, out one. Both come out of the Nether, "
                         + "and manyullyn is the standard endgame melee head.\n\n"
                         + "Hepatizon. 180 copper, 90 cobalt and 100 molten quartz, out 180.\n\n"
@@ -3291,20 +3293,22 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "ambercinder mix into 72 of ironbrand, which four of the second-tier alloys "
                         + "take.\n\n"
                         + "A catalyst measure is 32, so one glowstone dust is exactly one dose. That "
-                        + "is what makes the long chains affordable: the deep recipes are mostly ore, "
-                        + "with a pinch of something odd.");
+                        + "is what keeps the long chains affordable: the deep recipes are mostly ore, "
+                        + "with a pinch of one of these.");
         add("book.forgeweave.alloys.chains.title", "The Long Chains");
         add("book.forgeweave.alloys.chains.text",
                 "An alloy can be the input to another alloy. Four of them sit three and four stages "
                         + "deep, and each one is a path you can walk from ore.\n\n"
-                        + "Truesteel, the deepest. Riftalloy is 144 murkiron, 144 nightshale and 144 "
+                        + "Truesteel, at the end of the longest chain in the game. Riftalloy is 144 murkiron, 144 nightshale and 144 "
                         + "voltcinder, out 216. Glowveil is 216 riftalloy, 32 sparkalloy and 32 "
                         + "brimspar, out 216. Sunsteel is 144 warspar, 144 hollowstone and 144 "
                         + "glowveil, out 216. Truesteel is 144 resonite, 216 sunsteel and 32 "
-                        + "sparkalloy, out 216. Four stages, six ores, one crystal and two glowstone "
-                        + "dust.\n\n"
-                        + "Hollowsteel shares the first three stages and stops one short: 144 resonite "
-                        + "and 216 sunsteel, out 216, with no catalyst at the end.\n\n"
+                        + "sparkalloy, out 216. Four stages, and the raw cost is one ingot's worth of "
+                        + "each of six ores, one brimspar crystal and two glowstone dust.\n\n"
+                        + "Hollowsteel is the same chain with the last catalyst left out: 144 resonite "
+                        + "and 216 sunsteel, out 216. If a tank holds resonite, sunsteel and "
+                        + "sparkalloy at once, truesteel is the one that forms; leave the sparkalloy "
+                        + "out to get hollowsteel.\n\n"
                         + "Stormalloy. Quakestone is 144 fulmenite and 144 basalt, out 144. Shardline "
                         + "is 144 quakestone, 144 obsidian and 32 deepalloy, out 144. Faultsteel is "
                         + "144 obsidian, 144 quakestone and 144 voltcinder, out 216. Stormalloy is 144 "
@@ -3315,7 +3319,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "gives 144 glowveil. Whichever ores you have found first decides which of "
                         + "the two you use.\n\n"
                         + "Pyrealloy, the top fuel, is its own two-stage chain: 192 molten magma and "
-                        + "32 flarealloy, out 144. Magma blocks and blaze powder, nothing mined.\n\n"
+                        + "32 flarealloy, out 144. Magma blocks and blaze powder, both of which the "
+                        + "Nether hands out, and no ore at all.\n\n"
                         + "What next: the ladder all these metals climb, and what each one is good "
                         + "for. Read Materials.");
 
