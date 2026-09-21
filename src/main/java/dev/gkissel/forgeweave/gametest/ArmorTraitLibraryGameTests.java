@@ -91,7 +91,11 @@ public class ArmorTraitLibraryGameTests {
         helper.getLevel().updateSkyBrightness();
     }
 
-    /** {@code blightward}: a quarter of direct blows weaken the attacker. Rolled often enough that a miss is impossible in practice. */
+    /**
+     * {@code blightward}: one direct blow in five leaves the attacker with Weakness II (issue #1114
+     * sized the roll by what a full set totals: four pieces roll separately, so a set procs on about
+     * three blows in five). Rolled often enough here that a miss is impossible in practice.
+     */
     @GameTest(template = "empty")
     public static void hexwardWeakensDirectAttackers(GameTestHelper helper) {
         Player player = wearing(helper, "blightward");
@@ -101,7 +105,7 @@ public class ArmorTraitLibraryGameTests {
             lost(player, source, 1.0F);
         }
         helper.assertTrue(attacker.getEffect(MobEffects.WEAKNESS) != null,
-                "60 blows at a 25% chance must have weakened the attacker at least once");
+                "60 blows at a 20% chance must have weakened the attacker at least once");
         attacker.discard();
         helper.succeed();
     }
