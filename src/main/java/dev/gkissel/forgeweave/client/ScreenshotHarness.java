@@ -656,7 +656,9 @@ public final class ScreenshotHarness {
             new BookScene("book_material_stages", -1, "materials.listing"),
             new BookScene("book_material_stage_grid", -1, "materials.first_smeltery"),
             new BookScene("book_material_manyullyn", -1, "materials.manyullyn"),
-            new BookScene("book_trait_evolved", -1, "traits.evolved"));
+            // "alien" because a Forgeweave-only install has to carry the family: endstone grants
+            // level one and voidglass level two, and neither is gated on another mod.
+            new BookScene("book_trait_alien", -1, "traits.alien"));
 
     private ScreenshotHarness() {}
 

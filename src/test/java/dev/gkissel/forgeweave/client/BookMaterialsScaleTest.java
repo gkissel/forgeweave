@@ -39,15 +39,18 @@ import dev.gkissel.forgeweave.material.Material;
 
 /**
  * Issue #846 (M6 UI/schema hardening), pressure point 2: {@code BookContent#withMaterials} builds
- * the guide book's materials section as one {@link IconGridPage} holding a {@link BookLink} per
- * material -- at the real 128-material roster (the M6 epic's own final tally) that page's blocks
- * (one grid row per {@code BookScreen#iconGridBlocks}) hold far more content than one leaf. This
- * pins two things at the real roster: {@link BookContent#sections(List)} still produces one correct
- * {@link IconGridPage}, every link resolving to its own material's page; and {@link BookLayout},
- * the block-level paginator issue #428 gave every generated page, actually spreads that many grid
- * rows across several leaves rather than truncating or overflowing one -- the general mechanism
+ * the guide book's materials section out of {@link IconGridPage}s holding a {@link BookLink} per
+ * material -- at the real 216-material roster those pages' blocks (one grid row per
+ * {@code BookScreen#iconGridBlocks}) hold far more content than one leaf. This pins two things at
+ * the real roster: {@link BookContent#sections(List)} still produces correct grids, every link
+ * resolving to its own material's page; and {@link BookLayout}, the block-level paginator issue
+ * #428 gave every generated page, actually spreads that many grid rows across several leaves rather
+ * than truncating or overflowing one -- the general mechanism
  * {@code BookScreen#blocksOf}/{@code #iconGridBlocks} already routes an oversized grid through
  * (feat/479-book-listing-pages), verified here against real numbers instead of a synthetic case.
+ *
+ * <p>Issue #1104 split the one grid into one per progression stage, so the roster-wide counts here
+ * are the sum across the stage grids and the pagination case is the biggest single stage.
  */
 class BookMaterialsScaleTest {
 

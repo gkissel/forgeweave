@@ -43,9 +43,15 @@ import dev.gkissel.forgeweave.recipe.AlloyRecipe;
  * <h2>The override</h2>
  *
  * <p>A pack that disagrees puts the material in one of the seven {@code forgeweave:stage/<id>}
- * material tags ({@link #tag()}) and that wins. Registry tags sync to the client the same way the
- * registry does, they cost nothing for the materials nobody overrides, and they need no change to
- * {@link Material} itself.
+ * material tags ({@link #tag()}) and that wins. The tags cost nothing for the materials nobody
+ * overrides and they need no change to {@link Material} itself.
+ *
+ * <p>ponytail: the override rides on registry tags, which is the cheapest carrier that needs no new
+ * field and no new sync payload, but no shipped pack uses it yet and it has not been exercised in a
+ * client. If a tag on a datapack registry turns out not to reach the client, the derivation still
+ * stands and only the override goes quiet; the next carrier to try would be a small
+ * {@code stage_override} datapack registry of its own, which syncs the same way {@code material}
+ * does.
  */
 public enum MaterialStage {
 

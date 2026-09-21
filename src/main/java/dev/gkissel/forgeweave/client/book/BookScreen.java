@@ -1025,7 +1025,7 @@ public class BookScreen extends Screen {
 
         blocks.add(hoverLineBlock(MaterialPageContent.stageLine(page.stage()), TEXT_COLOR));
         displayBarBlock(blocks, page);
-        madeFromBlocks(blocks, page.id());
+        madeFromBlocks(blocks, page);
 
         for (StatGroup group : MaterialPageContent.statGroups(material)) {
             statGroupBlocks(blocks, page, group);
@@ -1040,12 +1040,12 @@ public class BookScreen extends Screen {
      * truesteel can be walked back a step at a time, or the items that melt into it. Nothing at all
      * for a material the Part Builder is the only route to, whose display-bar icon already says so.
      */
-    private void madeFromBlocks(List<Block> blocks, ResourceLocation id) {
+    private void madeFromBlocks(List<Block> blocks, MaterialPage page) {
         HolderLookup.Provider registries = registries();
         if (registries == null) {
             return;
         }
-        MaterialPageContent.madeFrom(registries, id).ifPresent(made -> {
+        MaterialPageContent.madeFrom(registries, page.id(), page.material()).ifPresent(made -> {
             Component header = Component.translatable(made.headerKey()).withStyle(ChatFormatting.UNDERLINE);
             blocks.add(new Block(this.font.lineHeight + 4, (graphics, x, y) ->
                     graphics.drawString(this.font, header, x, y + 2, TITLE_COLOR, false)));

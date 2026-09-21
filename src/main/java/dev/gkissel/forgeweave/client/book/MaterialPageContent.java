@@ -249,7 +249,7 @@ public final class MaterialPageContent {
      * @return the header key and its rows, or an empty optional for a material made no other way
      *         than in the Part Builder (the display bar's own icon already says so)
      */
-    public static Optional<Made> madeFrom(HolderLookup.Provider registries, ResourceLocation id) {
+    public static Optional<Made> madeFrom(HolderLookup.Provider registries, ResourceLocation id, Material material) {
         Fluid fluid = moltenFluid(id).orElse(null);
         if (fluid == null) {
             return Optional.empty();
@@ -258,7 +258,7 @@ public final class MaterialPageContent {
         if (!alloy.isEmpty()) {
             return Optional.of(new Made(MADE_BY_ALLOYING, alloy));
         }
-        List<Source> melting = meltingInputs(registries, fluid);
+        List<Source> melting = meltingInputs(registries, fluid, material);
         return melting.isEmpty() ? Optional.empty() : Optional.of(new Made(MADE_BY_MELTING, melting));
     }
 
@@ -299,19 +299,43 @@ public final class MaterialPageContent {
     }
 
     /**
-     * What melts into this fluid, capped at {@link #DISPLAY_ITEMS} rows so a metal with an ore, a
-     * raw ore, an ingot, a nugget, a block and every compat variant does not bury the stat blocks.
-     * Ore recipes come last: the ingot is the row a player recognises.
+     * How many melting sources a page shows. Iron melts from nineteen things -- its ingot, its
+     * block, its ore, a chain, an anvil, a crossbow, four pieces of chainmail -- and listing them
+     * all pushed the stat blocks onto the next leaf. Three is the ingot, the ore and one more.
      */
-    private static List<Source> meltingInputs(HolderLookup.Provider registries, Fluid result) {
+    public static final int MELTING_SOURCES = 3;
+
+    /**
+     * Where one melting recipe sorts in the "melts from" list: the material's own repair item
+     * first, then the ore melts, then everything else. Split out from {@link #meltingInputs} so the
+     * ordering is testable without a datapack registry.
+     *
+     * @param representative the material's repair item, or an empty stack when its ingredient has
+     *                       no item on this install
+     */
+    public static int meltingRank(MeltingRecipe recipe, ItemStack representative) {
+        if (!representative.isEmpty() && recipe.input().test(representative)) {
+            return 0;
+        }
+        return recipe.ore() ? 1 : 2;
+    }
+
+    /**
+     * What melts into this fluid: the material's own repair item first, then the ore melts, then
+     * whatever else, capped at {@link #MELTING_SOURCES}. The repair item leads because it is the
+     * form a player actually holds ("iron ingot"), not a thing they could recycle into it; JEI is
+     * still where the full list of melts lives.
+     */
+    private static List<Source> meltingInputs(HolderLookup.Provider registries, Fluid result, Material material) {
+        ItemStack representative = representativeItem(material);
         List<Source> sources = new ArrayList<>();
         registries.lookupOrThrow(MeltingRecipe.REGISTRY).listElements()
                 .map(Holder::value)
                 .filter(recipe -> recipe.fluid() == result)
-                .sorted(Comparator.comparing(MeltingRecipe::ore))
+                .sorted(Comparator.comparingInt(recipe -> meltingRank(recipe, representative)))
                 .forEach(recipe -> {
                     ItemStack[] items = recipe.input().getItems();
-                    if (items.length > 0 && sources.size() < DISPLAY_ITEMS) {
+                    if (items.length > 0 && sources.size() < MELTING_SOURCES) {
                         sources.add(new Source(items[0], items[0].getHoverName(), null));
                     }
                 });

@@ -2775,16 +2775,16 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.materials.stages", "The Material Ladder");
         add("book.forgeweave.stage.first_day.name", "First day");
         add("book.forgeweave.stage.first_day.unlock",
-                "Wood, stone, flint and bone. Carve these at the Part Builder on the first day; none of them needs a smeltery.");
+                "Wood, stone, flint and bone, carved at the Part Builder. Nothing here needs a smeltery.");
         add("book.forgeweave.stage.first_smeltery.name", "First smeltery");
         add("book.forgeweave.stage.first_smeltery.unlock",
-                "Iron and the other early metals. Build a smeltery, melt the ore, pour it into a cast.");
+                "Iron and the early metals. Build a smeltery, melt the ore, pour it into a cast.");
         add("book.forgeweave.stage.deeper_mining.name", "Deeper mining");
         add("book.forgeweave.stage.deeper_mining.unlock",
-                "Materials that mine what iron cannot, and the first alloys poured from early metals.");
+                "Materials that mine what iron cannot, and the first alloys of early metals.");
         add("book.forgeweave.stage.nether_metals.name", "Nether metals");
         add("book.forgeweave.stage.nether_metals.unlock",
-                "Cobalt, ardite and the rest of the nether rung, and alloys of the rung below them.");
+                "Cobalt, ardite and the rest of the nether rung, and alloys of the rung below.");
         add("book.forgeweave.stage.past_netherite.name", "Past netherite");
         add("book.forgeweave.stage.past_netherite.unlock",
                 "This workshop's own ores above netherite, and alloys of nether metals.");
@@ -2793,7 +2793,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "The top rung of the ladder, and the alloys that need a fuel hotter than lava.");
         add("book.forgeweave.stage.endgame.name", "Endgame");
         add("book.forgeweave.stage.endgame.unlock",
-                "Alloys poured out of other alloys. Each of these is two or more smeltery loads deep.");
+                "Alloys poured out of other alloys, two or more smeltery loads deep.");
         // #1104: the per-material-page lines. A page used to say "Can be cast from Molten Glowveil"
         // and never that molten glowveil is three other alloys.
         add("book.forgeweave.material.stage", "Stage: %s");
@@ -2805,9 +2805,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.trait.granted_by", "Granted by:");
         add("book.forgeweave.traits.intro.title", "Traits");
         add("book.forgeweave.traits.intro.text",
-                "A material brings more than numbers. Every part made from it grants the traits listed on "
-                        + "its own page, and the pages after this one read the other way round: one page per "
-                        + "trait, what each of its levels does, and every material that grants it.\n\n"
+                "Every material gives a part stats and traits. A material's page lists the traits it "
+                        + "grants; the pages after this one read the other way round, one page per trait, "
+                        + "with what each of its levels does and every material that grants it.\n\n"
                         + "A trait name on a material page is a link. Click it to land on that trait's page.");
         add("book.forgeweave.modifiers.intro.title", "Modifiers");
         add("book.forgeweave.modifiers.intro.text",

@@ -30,6 +30,10 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.Bootstrap;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.material.Fluids;
 
 import dev.gkissel.forgeweave.client.book.BookContent;
 import dev.gkissel.forgeweave.client.book.BookLink;
@@ -40,9 +44,11 @@ import dev.gkissel.forgeweave.client.book.BookPage.MaterialPage;
 import dev.gkissel.forgeweave.client.book.BookPage.TraitPage;
 import dev.gkissel.forgeweave.client.book.BookSection;
 import dev.gkissel.forgeweave.client.book.BookTraits;
+import dev.gkissel.forgeweave.client.book.MaterialPageContent;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.material.MaterialStage;
 import dev.gkissel.forgeweave.recipe.AlloyRecipe;
+import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 
 /**
  * Issue #1104: the guide book's materials chapter was one alphabetical run of 216 pages, so nothing
@@ -226,6 +232,28 @@ class BookMaterialStagesTest {
             }
         }
         return 0;
+    }
+
+    /**
+     * Iron melts from nineteen things, most of them scrap (a chain, an anvil, a crossbow, four
+     * pieces of chainmail). The page shows {@link MaterialPageContent#MELTING_SOURCES} of them and
+     * leads with the form a player holds, so the list says how the material is made rather than
+     * what can be recycled into it.
+     */
+    @Test
+    void theMeltsFromListLeadsWithTheRepairItemThenTheOre() {
+        ItemStack ingot = new ItemStack(Items.IRON_INGOT);
+        MeltingRecipe fromIngot = new MeltingRecipe(Ingredient.of(Items.IRON_INGOT), Fluids.LAVA, 144, 1200, false);
+        MeltingRecipe fromOre = new MeltingRecipe(Ingredient.of(Items.IRON_ORE), Fluids.LAVA, 144, 1200, true);
+        MeltingRecipe fromScrap = new MeltingRecipe(Ingredient.of(Items.CROSSBOW), Fluids.LAVA, 144, 1200, false);
+
+        assertEquals(0, MaterialPageContent.meltingRank(fromIngot, ingot));
+        assertEquals(1, MaterialPageContent.meltingRank(fromOre, ingot));
+        assertEquals(2, MaterialPageContent.meltingRank(fromScrap, ingot));
+        assertEquals(1, MaterialPageContent.meltingRank(fromOre, ItemStack.EMPTY),
+                "with no repair item to lead with, the ore still sorts ahead of the scrap");
+        assertEquals(3, MaterialPageContent.MELTING_SOURCES,
+                "three rows: the repair item, the ore, and one more");
     }
 
     @Test
