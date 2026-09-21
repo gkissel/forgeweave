@@ -2247,11 +2247,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // description key; TraitFamilies appends the roman numeral and fills in the rung's own
         // numbers, so "Keen Edge II" and "Keen Edge IV" quote 3 and 5 from this one string.
         add("trait.forgeweave.fireward.name", "Fireward");
-        add("trait.forgeweave.fireward.description", "The wearer takes no damage from fire at all: not lava, not a blaze, not standing in it.");
+        add("trait.forgeweave.fireward.description", "The wearer takes no damage from fire, lava or a blaze.");
         add("trait.forgeweave.heft.name", "Heft");
         add("trait.forgeweave.heft.description", "Plants whoever holds it: knockback shoves you %s% less, and a full worn set the same.");
         add("trait.forgeweave.keen_edge.name", "Keen Edge");
-        add("trait.forgeweave.keen_edge.description", "Every hit lands %s extra damage, with no condition to meet.");
+        add("trait.forgeweave.keen_edge.description", "Every hit lands %s extra damage, whatever it hits.");
         add("trait.forgeweave.sure_footing.name", "Sure Footing");
         add("trait.forgeweave.sure_footing.description", "Steps up half a block per piece worn without jumping, a full two blocks in a set.");
         add("trait.forgeweave.witherward.name", "Witherward");
