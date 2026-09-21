@@ -158,11 +158,11 @@ class ExtraInfoTest {
     @Test
     void constantValuedTraitsReportTheirBonus() {
         ItemStack stack = tool();
-        assertEquals(List.of(traitLine("crude", "5%")), ForgeweaveTraits.extraInfo(id("crude"), stack));
-        assertEquals(List.of(traitLine("crude2", "10%")), ForgeweaveTraits.extraInfo(id("crude2"), stack));
+        assertEquals(List.of(traitLine("crude", "15%")), ForgeweaveTraits.extraInfo(id("crude"), stack));
+        assertEquals(List.of(traitLine("crude2", "30%")), ForgeweaveTraits.extraInfo(id("crude2"), stack));
         assertEquals(List.of(traitLine("hellish", "4")), ForgeweaveTraits.extraInfo(id("hellish"), stack));
         assertEquals(List.of(traitLine("holy", "5")), ForgeweaveTraits.extraInfo(id("holy"), stack));
-        assertEquals(List.of(traitLine("lightweight", "10%")),
+        assertEquals(List.of(traitLine("lightweight", "15%")),
                 ForgeweaveTraits.extraInfo(id("lightweight"), stack));
         assertEquals(List.of(traitLine("superheat", "35%")),
                 ForgeweaveTraits.extraInfo(id("superheat"), stack));

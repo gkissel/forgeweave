@@ -23,7 +23,13 @@
   "maille": true,
   "incorrect_for_tool": "forgeweave:incorrect_for_warspar_tool",
   "traits": {
-    "general": ["forgeweave:fallout"]
+    "general": [
+      "forgeweave:luminous",
+      "forgeweave:fallout"
+    ],
+    "armor": [
+      "forgeweave:duskward"
+    ]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:glowveil_ingot" }, "value": 144 },

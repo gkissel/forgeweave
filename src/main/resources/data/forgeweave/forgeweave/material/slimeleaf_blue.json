@@ -4,7 +4,12 @@
     "modifier": 1.25
   },
   "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
-  "traits": {},
+  "traits": {
+    "general": [
+      "forgeweave:skyborne",
+      "forgeweave:ecological"
+    ]
+  },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:blue_slime_leaves" }, "value": 72 }
   ],

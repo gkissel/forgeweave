@@ -40,7 +40,8 @@
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
     "general": [
-      "forgeweave:voidward2"
+      "forgeweave:voidward2",
+      "forgeweave:chaosmark"
     ]
   },
   "crafting_items": [

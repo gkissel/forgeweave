@@ -131,6 +131,7 @@ import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.particle.ForgeweaveParticles;
+import dev.gkissel.forgeweave.tool.ArmorStats;
 import dev.gkissel.forgeweave.tool.ToolStats;
 
 /**
@@ -205,16 +206,18 @@ public final class ForgeweaveTraits {
      * Stone, general (issue #493 split; this id used to also carry {@code cheapskate}'s
      * head-durability effect, folded in because M1's material schema gave a material exactly one
      * trait id -- issue #94 lifted that limit, and stone's material JSON now carries the two ids
-     * separately). Upstream {@code TraitCheap#onToolHeal}:
-     * {@code newAmount + amount * 5 / 100}, i.e. 5% more durability per repair, integer-truncated
-     * exactly as upstream truncates it. Upstream grants this on every part <em>except</em> the head
+     * separately). Upstream {@code TraitCheap#onToolHeal} is
+     * {@code newAmount + amount * 5 / 100}; issue #1114 raised the 5% to 25%, because a repair is a
+     * discrete event a player compares before and after, and 5% of one repair item never showed.
+     * Integer-truncated exactly as upstream truncates it. Upstream grants this on every part
+     * <em>except</em> the head
      * ({@code stone.addTrait(cheap)}, the default trait a head-scoped list replaces rather than
      * adds to -- see {@link #CHEAPSKATE}), so a stone head alone grants no repair bonus.
      */
     public static final Trait CHEAP = new Trait() {
         @Override
         public int repairBonus(int amount) {
-            return amount * 5 / 100;
+            return amount * 25 / 100;
         }
     };
 
@@ -234,17 +237,21 @@ public final class ForgeweaveTraits {
     /**
      * Flint. Upstream {@code TraitCrude#damage}: {@code newDamage += damage * 0.05f * level} when
      * {@code target.getTotalArmorValue() == 0}. Upstream flint grants {@code crude2} (level 2) on the
-     * head part and {@code crude} (level 1) elsewhere, so an all-flint tool stacks to level 3 (+15%
-     * vs unarmored) -- issue #231's retrofit ports that pair the way {@link #MAGNETIC}/
-     * {@link #MAGNETIC2} already ports iron's.
+     * head part and {@code crude} (level 1) elsewhere, so an all-flint tool stacks to level 3 --
+     * issue #231's retrofit ports that pair the way {@link #MAGNETIC}/{@link #MAGNETIC2} already
+     * ports iron's.
+     *
+     * <p>Issue #1114 raised the fraction from upstream's 0.05 to 0.15 a level, so the pair reads
+     * +15% and +30% and an all-flint tool stacks to +45% against an unarmoured target. On a
+     * 3-damage flint sword upstream's own 5% was a sixth of a heart, which no player could see.
      */
     public static final Trait CRUDE = crude(1);
 
     /** Flint, head part only. Upstream's {@code crude2}: the same trait at level 2. */
     public static final Trait CRUDE2 = crude(2);
 
-    /** Upstream {@code TraitCrude#bonusModifier}: {@code 0.05f * level} of the blow's own damage. */
-    private static final float CRUDE_FRACTION_PER_LEVEL = 0.05F;
+    /** Upstream {@code TraitCrude#bonusModifier}'s shape, at issue #1114's raised fraction a level. */
+    private static final float CRUDE_FRACTION_PER_LEVEL = 0.15F;
 
     private static Trait crude(int level) {
         return new Trait() {
@@ -425,12 +432,14 @@ public final class ForgeweaveTraits {
         }
     };
 
-    private static final float LIGHTWEIGHT_BONUS = 0.1F;
+    private static final float LIGHTWEIGHT_BONUS = 0.15F;
 
     /**
      * Cobalt. Upstream {@code TraitLightweight}: flat +10% mining speed ({@code miningSpeed}) and
      * +10% attack speed ({@code applyEffect} scaling {@code attackSpeedMultiplier} at build time),
-     * unconditional -- unlike {@link #STONEBOUND}, no effectiveness check.
+     * unconditional -- unlike {@link #STONEBOUND}, no effectiveness check. Issue #1114 raised the
+     * 10% to 15%, the floor every speed bonus in the mod now shares ({@code steelfast},
+     * {@code skyborne}, {@code quick}); recorded in the PR.
      *
      * <p>Upstream scales the tool's own computed attack-speed stat; Forgeweave's attack speed is a
      * fixed per-tool-type constant with no material contribution ({@code ToolItem}), so this instead
@@ -450,7 +459,7 @@ public final class ForgeweaveTraits {
 
         @Override
         public float drawSpeedBonus() {
-            // M3.5 #396: TraitLightweight#applyEffect's Category.LAUNCHER branch, the same 10%.
+            // M3.5 #396: TraitLightweight#applyEffect's Category.LAUNCHER branch, the same fraction.
             return LIGHTWEIGHT_BONUS;
         }
     };
@@ -1915,6 +1924,21 @@ public final class ForgeweaveTraits {
         }
     };
 
+    /**
+     * The smallest protection a material trait may pay per worn piece, for the two singles issue
+     * #1113 did not set itself (issue #1114). One point blocks a twenty-fifth of the post-armor
+     * blow, so {@code consecrated} and {@code depth_protection} at the 1.20 clone's 1.25 were
+     * blocking 5% each, under the noise floor of a fight.
+     *
+     * <p>Three rather than the 4.0 the type-specific singles above pay, for the reason
+     * {@link #MELEE_PROTECTION} is also three: both of these cover a wide class of blow.
+     * {@code consecrated} answers every undead attacker whatever it swings, and
+     * {@code depth_protection} answers everything at all while the wearer is deep enough. The
+     * clone's own numbers are a <em>modifier's</em> per-level pay and a modifier can be applied
+     * several times; a material trait is granted once and has no ladder to climb.
+     */
+    private static final float PROTECTION_FLOOR = 3.0F;
+
     private static final float PROJECTILE_PROTECTION_PER_LEVEL = 4.0F;
     private static final float PROJECTILE_PROTECTION_KNOCKBACK_RESISTANCE = 0.05F;
 
@@ -1979,7 +2003,7 @@ public final class ForgeweaveTraits {
     public static final Trait MELEE_PROTECTION = defendTrait(
             Protection.against(Protection.MELEE_PROTECTION, MELEE_PROTECTION_PER_LEVEL).directOnly());
 
-    private static final float CONSECRATED_PER_LEVEL = 1.25F;
+    private static final float CONSECRATED_PER_LEVEL = PROTECTION_FLOOR;
 
     /** Silver plating/maille. {@code ModifierIds.consecrated}: {@link Protection} 1.25 against undead attackers. */
     public static final Trait CONSECRATED = defendTrait(
@@ -1999,7 +2023,7 @@ public final class ForgeweaveTraits {
         }
     };
 
-    private static final float DEPTH_PROTECTION_PER_LEVEL = 1.25F;
+    private static final float DEPTH_PROTECTION_PER_LEVEL = PROTECTION_FLOOR;
     private static final float DEPTH_BASELINE_HEIGHT = 64.0F;
     private static final float DEPTH_NEUTRAL_RANGE = 32.0F;
 
@@ -2017,9 +2041,11 @@ public final class ForgeweaveTraits {
 
     /**
      * Manyullyn plating/maille. {@code ModifierIds.warded}'s {@code AdjustDamageModule}: at full
-     * health, one damage per level comes off <em>after</em> armor, never below 1 and never above
-     * what the blow was. The clone's lang row says 0.5 per level; its formula
-     * ({@code VALUE - LEVEL, max 1, min VALUE}) is 1, and the formula is what is ported.
+     * health, a flat amount comes off <em>after</em> armor, never below 1 and never above what the
+     * blow was. The clone's lang row says 0.5 per level; its formula
+     * ({@code VALUE - LEVEL, max 1, min VALUE}) is 1, and the formula is what is ported -- at issue
+     * #1114's 2.0, a whole heart, because half a heart off the first blow of a fight is not
+     * something a player attributes to their armour.
      */
     public static final Trait WARDED = new Trait() {
         @Override
@@ -2031,10 +2057,11 @@ public final class ForgeweaveTraits {
         }
     };
 
-    private static final float WARDED_REDUCTION_PER_LEVEL = 1.0F;
+    private static final float WARDED_REDUCTION_PER_LEVEL = 2.0F;
 
     /**
-     * Amethyst bronze plating/maille. {@code ModifierIds.crystalstrike}: +5% attack speed per level
+     * Amethyst bronze plating/maille. {@code ModifierIds.crystalstrike}: +15% attack speed (issue
+     * #1114 raised the clone's +5% per level to the mod's 15% speed floor; recorded in the PR)
      * ({@code AttributeModule}, multiply total) and, summed across worn pieces
      * ({@code ArmorLevelModule} + {@code ModifierEvents#onKnockback}), knockback taken snaps to one
      * of {@code max(4, 2^(6 - level))} directions ({@link #onArmorKnockback}). The clone's +5% bad
@@ -2049,7 +2076,7 @@ public final class ForgeweaveTraits {
         }
     };
 
-    private static final float CRYSTALSTRIKE_ATTACK_SPEED = 0.05F;
+    private static final float CRYSTALSTRIKE_ATTACK_SPEED = 0.15F;
 
     /**
      * Knightslime plating/maille. {@code OvershieldModule} ({@code ModifierProvider}: 1.25
@@ -2190,7 +2217,7 @@ public final class ForgeweaveTraits {
     };
 
     private static final int OVERGROWTH_TICK_PERIOD = 20;
-    private static final float OVERGROWTH_CHANCE = 0.05F;
+    private static final float OVERGROWTH_CHANCE = 0.25F;
 
     /**
      * Queen's slime general trait (issue #843, closes #180). Upstream's {@code overlord.json} pairs
@@ -2527,6 +2554,58 @@ public final class ForgeweaveTraits {
     }
 
     /**
+     * {@link Trait#shotInaccuracyFactor}'s driver: what the launcher's own traits multiply a shot's
+     * spread by, read off the <em>bow</em> in {@code BowItem#shoot}. Multiplied together rather than
+     * summed, so two tightening traits compose the way {@code endspeed}'s own factor does with
+     * either of them.
+     */
+    public static float shotInaccuracyFactor(ItemStack bow, float drawProgress) {
+        float factor = 1.0F;
+        for (Trait trait : of(bow)) {
+            factor *= trait.shotInaccuracyFactor(drawProgress);
+        }
+        return factor;
+    }
+
+    /**
+     * {@link Trait#projectileGravityFactor}'s driver: what the ammo's own traits multiply a fired
+     * arrow's gravity by, read off the arrow's origin stack in {@code ArrowEntity#getDefaultGravity}.
+     * Multiplied together, same reasoning as {@link #shotInaccuracyFactor}.
+     */
+    public static float projectileGravityFactor(ItemStack ammo) {
+        float factor = 1.0F;
+        for (Trait trait : of(ammo)) {
+            factor *= trait.projectileGravityFactor();
+        }
+        return factor;
+    }
+
+    /**
+     * {@link Trait#ammoSaveChance}'s driver, roll included: whether firing {@code ammo} leaves it
+     * unspent. The highest chance offered wins and is rolled once, rather than each trait rolling in
+     * turn -- the rule {@link Trait#dropDestroyChance} already states -- and the trait that offered
+     * it is the {@link TraitFeedback} source, so a datapack's {@code particle}/{@code sound}
+     * override on that definition is what plays.
+     */
+    public static boolean savesAmmo(ItemStack ammo, Player shooter) {
+        Trait best = null;
+        float chance = 0.0F;
+        for (Trait trait : of(ammo)) {
+            if (trait.ammoSaveChance() > chance) {
+                chance = trait.ammoSaveChance();
+                best = trait;
+            }
+        }
+        if (best == null || shooter.getRandom().nextFloat() >= chance) {
+            return false;
+        }
+        if (shooter.level() instanceof ServerLevel level) {
+            TraitFeedback.fire(best, TraitFeedback.Kind.HARVEST, level, shooter);
+        }
+        return true;
+    }
+
+    /**
      * Total FE capacity every trait on {@code stack} contributes ({@link Trait#energyCapacity}),
      * summed the same way {@link #maxDurabilityBonus} is. Zero for a tool with no energy trait --
      * what keeps {@code Capabilities.EnergyStorage.ITEM} absent for it (issue #830 deliverable 1,
@@ -2625,8 +2704,8 @@ public final class ForgeweaveTraits {
     public static final Trait VOIDREND = new Trait() {
         @Override
         public void combatSeams(Consumer<CombatSeam> out) {
-            out.accept(new ConditionalSeam(HitCondition.ANY, 0.25F,
-                    new PotionEffectOnHitSeam(MobEffects.WEAKNESS, 0, 60)));
+            out.accept(new ConditionalSeam(HitCondition.ANY, 0.4F,
+                    new PotionEffectOnHitSeam(MobEffects.WEAKNESS, 1, 100)));
         }
     };
 
@@ -2675,8 +2754,8 @@ public final class ForgeweaveTraits {
     public static final Trait AMBERFLOW = new Trait() {
         @Override
         public void combatSeams(Consumer<CombatSeam> out) {
-            out.accept(new ConditionalSeam(HitCondition.ANY, 0.2F,
-                    new PotionEffectOnHitSeam(MobEffects.MOVEMENT_SPEED, 0, 60)));
+            out.accept(new ConditionalSeam(HitCondition.ANY, 0.4F,
+                    new PotionEffectOnHitSeam(MobEffects.MOVEMENT_SPEED, 1, 100)));
         }
     };
 
@@ -2693,8 +2772,8 @@ public final class ForgeweaveTraits {
     public static final Trait CHAOSMARK = new Trait() {
         @Override
         public void combatSeams(Consumer<CombatSeam> out) {
-            out.accept(new ConditionalSeam(HitCondition.ANY, 0.15F,
-                    new PotionEffectOnHitSeam(MobEffects.CONFUSION, 0, 60)));
+            out.accept(new ConditionalSeam(HitCondition.ANY, 0.35F,
+                    new PotionEffectOnHitSeam(MobEffects.CONFUSION, 0, 140)));
         }
     };
 
@@ -2737,24 +2816,46 @@ public final class ForgeweaveTraits {
     public static final Trait SPARKFORGE = new Trait() {
         @Override
         public void combatSeams(Consumer<CombatSeam> out) {
-            out.accept(new ConditionalSeam(HitCondition.ANY, 0.2F,
-                    new PotionEffectOnHitSeam(MobEffects.DIG_SPEED, 0, 60)));
+            out.accept(new ConditionalSeam(HitCondition.ANY, 0.4F,
+                    new PotionEffectOnHitSeam(MobEffects.DIG_SPEED, 1, 100)));
         }
     };
 
-    /** M6 dedupe batch (issue #876): a stable, oversized durability pool. Original Forgeweave content, no upstream port. */
+    /** A fifth on top of what the materials built, {@link #STEADFAST}'s share (issue #1114). */
+    private static final int STEADFAST_PERCENT = 20;
+
+    /**
+     * M6 dedupe batch (issue #876): a stable, oversized durability pool -- a fifth more than the
+     * materials built, {@link #STEADFAST_PERCENT}. Original Forgeweave content, no upstream port.
+     *
+     * <p>Issue #1114 turned the flat +80 into a share. A flat number cannot be right twice on a
+     * ladder whose heads run from 35 (wood) to 1800 (truesteel after issue #1113's curve): +80 was
+     * more than half a tin tool and under a twentieth of a truesteel one, and a material's identity
+     * should not evaporate as the ladder climbs. Read off the built stat block rather than off
+     * {@code max_damage}, because {@code max_damage} already includes this bonus and reading it
+     * would compound on every rebuild.
+     */
     public static final Trait STEADFAST = new Trait() {
         @Override
         public int maxDurabilityBonus(ItemStack stack) {
-            return 80;
+            ToolStats.Stats tool = stack.get(ForgeweaveDataComponents.TOOL_STATS.get());
+            if (tool != null) {
+                return tool.durability() * STEADFAST_PERCENT / 100;
+            }
+            ArmorStats armor = stack.get(ForgeweaveDataComponents.ARMOR_STATS.get());
+            return armor == null ? 0 : armor.durability() * STEADFAST_PERCENT / 100;
         }
     };
 
-    /** M6 dedupe batch (issue #876): sky stone takes a repair especially well. Original Forgeweave content, no upstream port. */
+    /**
+     * M6 dedupe batch (issue #876): sky stone takes a repair especially well -- a quarter more
+     * durability out of every repair item, raised from a tenth by issue #1114 on the same reasoning
+     * as {@link #CHEAP}. Original Forgeweave content, no upstream port.
+     */
     public static final Trait STARFORGED = new Trait() {
         @Override
         public int repairBonus(int amount) {
-            return amount * 10 / 100;
+            return amount * 25 / 100;
         }
     };
 
@@ -2854,7 +2955,8 @@ public final class ForgeweaveTraits {
         }
     };
 
-    private static final float MAGMAFORGE_CHANCE = 0.05F;
+    /** Issue #1114: one block in four, up from one in twenty, which nobody ever saw fire. */
+    private static final float MAGMAFORGE_CHANCE = 0.25F;
 
     /** Cinderforge. #841 gap 10: mining stone sometimes leaves molten lava in its place. */
     public static final Trait MAGMAFORGE = new Trait() {

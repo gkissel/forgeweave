@@ -1,7 +1,7 @@
 {
   "behavior": "forgeweave:effect_on_attacker",
   "effect": "minecraft:poison",
-  "duration": 60,
-  "amplifier": 0,
-  "chance": 0.5
+  "duration": 100,
+  "amplifier": 1,
+  "chance": 0.2
 }

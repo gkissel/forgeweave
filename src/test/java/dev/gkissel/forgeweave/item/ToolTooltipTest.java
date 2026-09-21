@@ -639,8 +639,9 @@ class ToolTooltipTest {
     }
 
     /**
-     * The other half of {@code BowItem#drawSpeed}: {@code TraitLightweight}'s launcher branch, also
-     * +10%. Haste and lightweight together are 1.1 * 1.1 = 1.21, so 12 / (20 * 1.21) = 0.5 (issue
+     * The other half of {@code BowItem#drawSpeed}: {@code TraitLightweight}'s launcher branch, at
+     * issue #1114's +15%. Haste and lightweight together are 1.1 * 1.15 = 1.265, so
+     * 12 / (20 * 1.265) = 0.47 (issue
      * #424 -- the playtest report was "redstone does not increase draw speed", and neither source
      * showed).
      */
@@ -648,11 +649,11 @@ class ToolTooltipTest {
     void launcherDrawSpeedLineFollowsLightweightAndHasteTogether() {
         ItemStack stack = assembledShortbow();
         stack.set(ForgeweaveDataComponents.TRAITS.get(), List.of(LIGHTWEIGHT_TRAIT));
-        assertTrue(StationText.toolStats(stack).contains(guiStat("drawspeed", "0.55", DRAWSPEED_COLOR)),
-                "lightweight alone is the same +10%");
+        assertTrue(StationText.toolStats(stack).contains(guiStat("drawspeed", "0.52", DRAWSPEED_COLOR)),
+                "lightweight alone is +15%, so 12 / (20 * 1.15)");
 
         stack.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(HASTE_ID, 50)));
-        assertTrue(StationText.toolStats(stack).contains(guiStat("drawspeed", "0.5", DRAWSPEED_COLOR)),
+        assertTrue(StationText.toolStats(stack).contains(guiStat("drawspeed", "0.47", DRAWSPEED_COLOR)),
                 "and the two stack");
     }
 

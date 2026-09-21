@@ -23,7 +23,13 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:unstable_core"]
+    "general": [
+      "forgeweave:unstable_core",
+      "forgeweave:arcing"
+    ],
+    "armor": [
+      "forgeweave:stormward"
+    ]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:fulmenite_ingot" }, "value": 144 },

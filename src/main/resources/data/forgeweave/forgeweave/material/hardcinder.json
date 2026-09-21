@@ -44,7 +44,8 @@
   "incorrect_for_tool": "forgeweave:incorrect_for_hardcinder_tool",
   "traits": {
     "general": [
-      "forgeweave:leanharvest"
+      "forgeweave:leanharvest",
+      "forgeweave:netherkeen"
     ],
     "armor": [
       "forgeweave:depth_protection"

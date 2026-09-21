@@ -40,7 +40,8 @@
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
     "general": [
-      "forgeweave:steadfast"
+      "forgeweave:steadfast",
+      "forgeweave:stonewake"
     ]
   },
   "crafting_items": [

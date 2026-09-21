@@ -129,10 +129,16 @@ public class ArrowEntity extends net.minecraft.world.entity.projectile.AbstractA
         return ForgeweaveTraits.has(getPickupItemStackOrigin(), trait);
     }
 
-    /** {@code TraitHovering#onMovement}: 5% of gravity; everything else keeps the arrow's 0.05. */
+    /**
+     * {@code TraitHovering#onMovement}: 5% of gravity; everything else keeps the arrow's 0.05.
+     * Issue #1114's {@code projectile_glide} (feather's own fletching effect) then scales whichever
+     * of the two applies, so a flatter-flight fletching compounds with a hovering shaft rather than
+     * replacing it.
+     */
     @Override
     protected double getDefaultGravity() {
-        return hasTrait(ForgeweaveTraits.HOVERING) ? HOVERING_GRAVITY : GRAVITY;
+        double gravity = hasTrait(ForgeweaveTraits.HOVERING) ? HOVERING_GRAVITY : GRAVITY;
+        return gravity * ForgeweaveTraits.projectileGravityFactor(getPickupItemStackOrigin());
     }
 
     /** Fins beats water; hovering compensates water back to air drag. See the class javadoc. */

@@ -68,8 +68,8 @@ class LauncherBranchesTest {
      * bonus} with {@code bonus = 0.1f} -- the same 10% it gives attack speed.
      */
     @Test
-    void lightweightSpeedsTheDrawByTenPercent() {
-        assertEquals(0.1f, ForgeweaveTraits.LIGHTWEIGHT.drawSpeedBonus(), DELTA);
+    void lightweightSpeedsTheDrawByFifteenPercent() {
+        assertEquals(0.15f, ForgeweaveTraits.LIGHTWEIGHT.drawSpeedBonus(), DELTA);
         assertEquals(0.0f, ForgeweaveTraits.MOMENTUM.drawSpeedBonus(), DELTA);
         assertEquals(0.0f, ForgeweaveTraits.SQUEAKY.drawSpeedBonus(), DELTA);
     }

@@ -17,7 +17,8 @@
   "incorrect_for_tool": "minecraft:incorrect_for_wooden_tool",
   "traits": {
     "general": [
-      "forgeweave:slimey_blue"
+      "forgeweave:slimey_blue",
+      "forgeweave:ecological"
     ]
   },
   "crafting_items": [

@@ -132,7 +132,12 @@ class TraitReachabilityTest {
             Map.entry("dropDestroyChance", TOOL),
             Map.entry("healingMultiplier", ARMOR),
             Map.entry("visibilityMultiplier", ARMOR),
-            Map.entry("stateLines", BOTH));
+            Map.entry("stateLines", BOTH),
+            // #1114's three ranged hooks: BowItem#shoot reads the launcher's, ArrowEntity and
+            // BowItem#consumeAmmo read the ammo's. Bow, bowstring and fletching are all TOOL_KINDS.
+            Map.entry("shotInaccuracyFactor", TOOL),
+            Map.entry("projectileGravityFactor", TOOL),
+            Map.entry("ammoSaveChance", TOOL));
 
     /** The same map for {@link CombatSeam}, reached through {@link Trait#combatSeams}. */
     private static final Map<String, Set<Side>> SEAM_HOOK_SIDES = Map.of(

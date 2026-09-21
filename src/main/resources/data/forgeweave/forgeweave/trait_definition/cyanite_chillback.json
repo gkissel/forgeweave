@@ -1,7 +1,7 @@
 {
   "behavior": "forgeweave:effect_on_attacker",
   "effect": "minecraft:slowness",
-  "duration": 80,
-  "amplifier": 0,
-  "chance": 0.4
+  "duration": 100,
+  "amplifier": 1,
+  "chance": 0.2
 }

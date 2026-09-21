@@ -1,0 +1,5 @@
+{
+  "behavior": "forgeweave:conditional_mining_speed",
+  "condition": "nether",
+  "bonus": 0.3
+}

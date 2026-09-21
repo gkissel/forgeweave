@@ -378,6 +378,24 @@ public final class ForgeweaveDataComponents {
                     builder -> builder.persistent(TraitStacks.CODEC).networkSynchronized(TraitStacks.STREAM_CODEC));
 
     /**
+     * {@code trait.BankedStrike}'s bank of unspent kills (issue #1114): {@link TraitStacks} again,
+     * {@code level} holding the charges and {@code ticksRemaining} the lapse the bank is on. Absent
+     * means an empty bank, the same reading {@link #RESISTANCE_STACKS} gives.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<TraitStacks>> BANKED_CHARGES =
+            DATA_COMPONENTS.registerComponentType("banked_charges",
+                    builder -> builder.persistent(TraitStacks.CODEC).networkSynchronized(TraitStacks.STREAM_CODEC));
+
+    /**
+     * {@code trait.StoredRetaliation}'s running total of blows taken on one worn piece (issue
+     * #1114): {@link TraitStacks} with {@code level} in damage rather than in stacks, which is why
+     * it is its own component and not {@link #RESISTANCE_STACKS}. Absent means nothing stored.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<TraitStacks>> STORED_BLOW =
+            DATA_COMPONENTS.registerComponentType("stored_blow",
+                    builder -> builder.persistent(TraitStacks.CODEC).networkSynchronized(TraitStacks.STREAM_CODEC));
+
+    /**
      * The mob a {@code DuskCageItem} holds (issue #886, murkiron's {@code dusksnare}): the entity's
      * registry id plus its full saved NBT -- see {@link CapturedMob} for the shape and
      * {@code fixtures/save_compat/m886_dusk_cage.snbt} for the save-compat promise it carries.

@@ -137,7 +137,7 @@ public class ArmorRealPathGameTests {
     /**
      * A real zombie bite on a real server player wearing a cobalt chestplate: the piece's armor is
      * on the player's attribute (what the vanilla HUD draws), the bite is cut by cobalt's ARMOR
-     * trait (melee_protection 2: {@code 1 - 2/25}) on top of that, and the plating pays durability.
+     * trait (melee_protection 3: {@code 1 - 3/25}) on top of that, and the plating pays durability.
      */
     @GameTest(template = "empty")
     public static void realZombieBiteOnAServerPlayerRunsTheArmorPipeline(GameTestHelper helper) {

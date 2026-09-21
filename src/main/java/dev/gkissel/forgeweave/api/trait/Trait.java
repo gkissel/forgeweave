@@ -397,6 +397,45 @@ public interface Trait {
         return 1.0F;
     }
 
+    // #1114 -- the three ranged hooks. Upstream 1.12 says all of this through
+    // TinkerToolEvent.OnBowShoot and AbstractProjectileTrait's flight callbacks; Forgeweave has
+    // neither, and the five ported ammo traits (breakable, endspeed, hovering, splitting, freezing)
+    // are read by id at their own call sites instead. These three are the same three moments made
+    // parameterized, so a bowstring or fletching material can carry a real effect rather than
+    // nothing (issue #1114 item 4).
+
+    /**
+     * What this trait multiplies the shot's spread by, for a trait on the <em>launcher</em>
+     * ({@code bowstring}'s own side) -- {@code 1} for no change, and multiplied together across the
+     * bow's traits by {@code ForgeweaveTraits#shotInaccuracyFactor}. Read in {@code BowItem#shoot},
+     * at the same moment {@code endspeed}'s hardcoded two-thirds is applied, so the two compose.
+     *
+     * @param drawProgress how far the shot was drawn, 0 to 1, so a trait can ask for a full draw
+     */
+    default float shotInaccuracyFactor(float drawProgress) {
+        return 1.0F;
+    }
+
+    /**
+     * What this trait multiplies the fired arrow's gravity by, for a trait on the <em>ammo</em>
+     * ({@code fletching}'s own side) -- {@code 1} for no change, multiplied together across the
+     * arrow's traits by {@code ForgeweaveTraits#projectileGravityFactor} and read from
+     * {@code ArrowEntity#getDefaultGravity}, where {@code hovering}'s own 5% already lives. Less
+     * gravity is a flatter flight, which is what an archer feels on a long shot.
+     */
+    default float projectileGravityFactor() {
+        return 1.0F;
+    }
+
+    /**
+     * The chance, 0..1, that firing this arrow does not spend it, for a trait on the <em>ammo</em>
+     * -- read in {@code BowItem#consumeAmmo}, and the highest chance across the arrow's traits wins
+     * rather than each rolling in turn, the rule {@link #dropDestroyChance} already uses.
+     */
+    default float ammoSaveChance() {
+        return 0.0F;
+    }
+
     // #955 -- live state on a kill-counting/tiered trait, shown in the tooltip.
 
     /**

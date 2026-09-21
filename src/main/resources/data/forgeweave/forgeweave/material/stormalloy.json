@@ -44,10 +44,12 @@
   "incorrect_for_tool": "forgeweave:incorrect_for_hardcinder_tool",
   "traits": {
     "general": [
-      "forgeweave:unraveling"
+      "forgeweave:unraveling",
+      "forgeweave:stormfed"
     ],
     "armor": [
-      "forgeweave:voidward"
+      "forgeweave:voidward",
+      "forgeweave:stormward"
     ]
   },
   "crafting_items": [

@@ -126,7 +126,8 @@ public class ForgeBowGameTests {
                         && materials.binding().equals(java.util.Optional.of(id("iron")))
                         && materials.head().equals(id("iron")),
                 "a longbow has a grip but still no handle slot, got " + materials);
-        helper.assertTrue(List.of(id("magnetic"), id("magnetic2"), id("fractured"), id("splintering"))
+        helper.assertTrue(List.of(id("magnetic"), id("magnetic2"), id("fractured"), id("splintering"),
+                        id("truestring"))
                         .equals(bow.get(ForgeweaveDataComponents.TRAITS.get())),
                 "got " + bow.get(ForgeweaveDataComponents.TRAITS.get()));
         helper.succeed();

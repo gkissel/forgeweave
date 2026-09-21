@@ -36,7 +36,8 @@
   "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
   "traits": {
     "general": [
-      "forgeweave:steadfast"
+      "forgeweave:steadfast",
+      "forgeweave:quick"
     ]
   },
   "crafting_items": [

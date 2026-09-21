@@ -159,7 +159,7 @@ public class ArmorTraitGameTests {
         helper.succeed();
     }
 
-    /** Silver -&gt; consecrated: 1.25 against an undead attacker, nothing against a player. */
+    /** Silver -&gt; consecrated: 3 against an undead attacker, nothing against a player. */
     @GameTest(template = "empty")
     public static void consecratedAgainstTheUndead(GameTestHelper helper) {
         // "gametest_silver", not "silver": issue #826 existence-gates silver on
@@ -170,7 +170,7 @@ public class ArmorTraitGameTests {
         Player player = wearing(helper, "gametest_silver", "gametest_silver");
         Zombie zombie = zombie(helper);
         DamageSource bite = helper.getLevel().damageSources().mobAttack(zombie);
-        assertRatio(helper, lost(player, bite, BLOW), lostWithoutTraits(player, bite, BLOW), 1.25F, "zombie");
+        assertRatio(helper, lost(player, bite, BLOW), lostWithoutTraits(player, bite, BLOW), 3.0F, "zombie");
         Player attacker = helper.makeMockPlayer(GameType.SURVIVAL);
         DamageSource punch = helper.getLevel().damageSources().playerAttack(attacker);
         assertRatio(helper, lost(player, punch, BLOW), lostWithoutTraits(player, punch, BLOW), 0.0F, "player");
@@ -178,25 +178,25 @@ public class ArmorTraitGameTests {
         helper.succeed();
     }
 
-    /** Copper -&gt; depth_protection: 1.25 at Y=0, -1.25 at Y=160 and above. */
+    /** Copper -&gt; depth_protection: 3 at Y=0, -3 at Y=160 and above. */
     @GameTest(template = "empty")
     public static void depthProtectionScalesWithDepth(GameTestHelper helper) {
         Player player = wearing(helper, "copper", "copper");
         player.setPos(player.getX(), 0.0, player.getZ());
-        assertRatio(helper, lost(player, explosion(helper), BLOW), lostWithoutTraits(player, explosion(helper), BLOW), 1.25F, "at y=0");
+        assertRatio(helper, lost(player, explosion(helper), BLOW), lostWithoutTraits(player, explosion(helper), BLOW), 3.0F, "at y=0");
         player.setPos(player.getX(), 200.0, player.getZ());
-        assertRatio(helper, lost(player, explosion(helper), BLOW), lostWithoutTraits(player, explosion(helper), BLOW), -1.25F, "at y=200");
+        assertRatio(helper, lost(player, explosion(helper), BLOW), lostWithoutTraits(player, explosion(helper), BLOW), -3.0F, "at y=200");
         helper.succeed();
     }
 
-    /** Manyullyn -&gt; warded: one damage off after armor at full health, none once hurt. */
+    /** Manyullyn -&gt; warded: two damage off after armor at full health, none once hurt. */
     @GameTest(template = "empty")
     public static void wardedCutsOneAtFullHealth(GameTestHelper helper) {
         Player player = wearing(helper, "manyullyn", "manyullyn");
         float without = lostWithoutTraits(player, explosion(helper), BLOW);
         float full = lost(player, explosion(helper), BLOW);
-        helper.assertTrue(Math.abs(full - (without - 1.0F)) < 0.01F,
-                "at full health expected " + (without - 1.0F) + ", lost " + full);
+        helper.assertTrue(Math.abs(full - (without - 2.0F)) < 0.01F,
+                "at full health expected " + (without - 2.0F) + ", lost " + full);
         player.setHealth(player.getMaxHealth() - 2.0F);
         player.invulnerableTime = 0;
         float before = player.getHealth();
@@ -206,7 +206,7 @@ public class ArmorTraitGameTests {
         helper.succeed();
     }
 
-    /** Amethyst bronze -&gt; crystalstrike: +5% attack speed, and knockback taken snaps to one of 32 directions. */
+    /** Amethyst bronze -&gt; crystalstrike: +15% attack speed, and knockback taken snaps to one of 32 directions. */
     @GameTest(template = "empty")
     public static void crystalstrikeSpeedsAttacksAndSnapsKnockback(GameTestHelper helper) {
         Player player = wearing(helper, "amethyst_bronze", "amethyst_bronze");

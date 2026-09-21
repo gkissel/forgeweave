@@ -311,7 +311,10 @@ public class BowItem extends ToolItem {
                 EnergyBuffer.extract(bow, DraconicModules.shotEnergyCost(bow), false);
             }
             // TinkerToolEvent.OnBowShoot, as the two ammo-trait adjustments it exists for.
-            float inaccuracy = this.baseInaccuracy * (1.0F - projectile.accuracy());
+            // #1114: a launcher-side accuracy trait (string's shot_accuracy) multiplies the
+            // spread here, beside endspeed's own hardcoded factor below, so the two compose.
+            float inaccuracy = this.baseInaccuracy * (1.0F - projectile.accuracy())
+                    * ForgeweaveTraits.shotInaccuracyFactor(bow, progress);
             int projectileCount = 1;
             if (ForgeweaveTraits.has(ammo, ForgeweaveTraits.ENDSPEED)) {
                 inaccuracy *= ENDSPEED_INACCURACY_FACTOR;
@@ -428,6 +431,11 @@ public class BowItem extends ToolItem {
     protected boolean consumeAmmo(ItemStack ammo, Player player) {
         if (player.hasInfiniteMaterials()) {
             return false;
+        }
+        // #1114: an ammo-side save trait (leaf's save_ammo). The arrow still flies and still counts
+        // as drawn from the stack, so the caller's usedAmmo stays true and the shot stays pickable.
+        if (ForgeweaveTraits.savesAmmo(ammo, player)) {
+            return true;
         }
         if (ammo.getItem() instanceof MaterialArrowItem materialArrow) {
             return materialArrow.consumeShot(ammo, player);

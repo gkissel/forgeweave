@@ -169,10 +169,11 @@ public class TraitGameTests {
     }
 
     /**
-     * Stone's binding -&gt; {@code forgeweave:cheap}, general (issue #493 split): 5% more durability
-     * per repair item wherever stone isn't the head. A wood-headed pickaxe with a stone binding
-     * repairs (with the wood head's own repair item, planks) for its head material's 35 durability
-     * plus {@code 35 * 5 / 100 = 1}, so one plank takes 36 off instead of 35 -- the general repair
+     * Stone's binding -&gt; {@code forgeweave:cheap}, general (issue #493 split, at issue #1114's
+     * 25%): more durability per repair item wherever stone isn't the head. A wood-headed pickaxe
+     * with a stone binding repairs (with the wood head's own repair item, planks) for its head
+     * material's 35 durability plus {@code 35 * 25 / 100 = 8}, so one plank takes 43 off instead of
+     * 35 -- the general repair
      * bonus {@link #cheapskateOnTheHeadAddsNoRepairBonus} shows a stone <em>head</em> alone does not
      * carry.
      */
@@ -192,8 +193,8 @@ public class TraitGameTests {
         ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
         menu.broadcastChanges();
 
-        helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().getDamageValue() == 43,
-                "expected 79 - (35 + 5%) = 43 damage left with cheap off the head, got "
+        helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().getDamageValue() == 36,
+                "expected 79 - (35 + 25%) = 36 damage left with cheap off the head, got "
                         + menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().getDamageValue());
 
         helper.succeed();
@@ -201,8 +202,9 @@ public class TraitGameTests {
 
     /**
      * Flint -&gt; {@code forgeweave:crude}/{@code crude2} (issue #231 retrofit): the head part grants
-     * level-2 {@code crude2} (+10%) and the other flint parts level-1 {@code crude} (+5%), stacking
-     * to upstream flint's level 3 -- +15% bonus damage, but only against a target with no armor.
+     * level-2 {@code crude2} (+30%) and the other flint parts level-1 {@code crude} (+15%), stacking
+     * to upstream flint's level 3 -- +45% bonus damage at issue #1114's raised fraction, but only
+     * against a target with no armor.
      * Both comparisons hit an otherwise identical target with an otherwise identical tool (stone's
      * {@code cheap} touches nothing about damage), so the difference is the traits and nothing else
      * -- built as shovels rather than pickaxes so the M1 pierce innate (issue #164, a flat rather
@@ -219,8 +221,8 @@ public class TraitGameTests {
 
         float unarmoredWithCrude = hit(helper, player, flint, false);
         float unarmoredWithout = hit(helper, player, stone, false);
-        helper.assertTrue(Math.abs(unarmoredWithCrude - unarmoredWithout * 1.15F) < 0.01F,
-                "crude2 (head) + crude should deal 15% more to an unarmored target: " + unarmoredWithCrude
+        helper.assertTrue(Math.abs(unarmoredWithCrude - unarmoredWithout * 1.45F) < 0.01F,
+                "crude2 (head) + crude should deal 45% more to an unarmored target: " + unarmoredWithCrude
                         + " vs " + unarmoredWithout);
 
         float armoredWithCrude = hit(helper, player, flint, true);

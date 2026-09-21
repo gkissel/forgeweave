@@ -299,17 +299,17 @@ public class MetalTraitGameTests {
         helper.succeed();
     }
 
-    /** Cobalt -&gt; {@code forgeweave:lightweight}: flat +10% mining and attack speed. */
+    /** Cobalt -&gt; {@code forgeweave:lightweight}: flat +15% mining and attack speed (issue #1114). */
     @GameTest(template = "empty")
     public static void lightweightBoostsMiningAndAttackSpeed(GameTestHelper helper) {
         ItemStack pickaxe = pickaxe(List.of(traitId("lightweight")), 100, 2.0F, 1.0F);
 
         float speed = ForgeweaveTraits.miningSpeed(pickaxe, true, 2.0F);
-        helper.assertTrue(Math.abs(speed - 2.2F) < 0.001F, "expected 10% mining speed bonus, got " + speed);
+        helper.assertTrue(Math.abs(speed - 2.3F) < 0.001F, "expected 15% mining speed bonus, got " + speed);
 
         float attackSpeedBonus = ForgeweaveTraits.attackSpeedBonus(pickaxe);
-        helper.assertTrue(Math.abs(attackSpeedBonus - 0.1F) < 0.001F,
-                "expected 10% attack speed bonus, got " + attackSpeedBonus);
+        helper.assertTrue(Math.abs(attackSpeedBonus - 0.15F) < 0.001F,
+                "expected 15% attack speed bonus, got " + attackSpeedBonus);
 
         helper.succeed();
     }

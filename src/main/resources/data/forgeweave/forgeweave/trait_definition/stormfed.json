@@ -1,0 +1,5 @@
+{
+  "behavior": "forgeweave:conditional_mining_speed",
+  "condition": "raining",
+  "bonus": 0.35
+}

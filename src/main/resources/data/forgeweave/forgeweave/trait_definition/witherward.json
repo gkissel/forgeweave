@@ -3,5 +3,5 @@
   "effect": "minecraft:wither",
   "duration": 100,
   "amplifier": 0,
-  "chance": 0.6
+  "chance": 0.2
 }
