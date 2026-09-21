@@ -128,9 +128,9 @@ public class LauncherBranchGameTests {
 
     /**
      * {@code TraitLightweight#applyEffect}: {@code if(hasCategory(LAUNCHER)) drawSpeed += drawSpeed *
-     * 0.1f}. Cobalt limbs are lightweight (general scope) at 0.75 draw speed, so the bow draws at
-     * 0.825 -- and with haste I on top the two multiply, as upstream's two {@code +=} on the same tag
-     * do, to 0.9075.
+     * bonus}, at issue #1114's 0.15. Cobalt limbs are lightweight (general scope) at 0.75 draw
+     * speed, so the bow draws at 0.8625 -- and with haste I on top the two multiply, as upstream's
+     * two {@code +=} on the same tag do, to 0.948750.
      */
     @GameTest(template = "empty")
     public static void lightweightLimbsSpeedTheDrawAndStackWithHaste(GameTestHelper helper) {
@@ -143,12 +143,12 @@ public class LauncherBranchGameTests {
         LauncherStats stored = BowItem.launcherStats(bow);
         helper.assertTrue(stored != null && Math.abs(stored.drawSpeed() - 0.75F) < EPSILON,
                 "two cobalt limbs store draw speed 0.75, got " + stored);
-        helper.assertTrue(Math.abs(item.drawSpeed(bow) - 0.825F) < EPSILON,
-                "lightweight makes that 0.825, got " + item.drawSpeed(bow));
+        helper.assertTrue(Math.abs(item.drawSpeed(bow) - 0.8625F) < EPSILON,
+                "lightweight makes that 0.8625, got " + item.drawSpeed(bow));
 
         withModifier(bow, HASTE, 50);
-        helper.assertTrue(Math.abs(item.drawSpeed(bow) - 0.9075F) < EPSILON,
-                "haste I on top multiplies to 0.9075, got " + item.drawSpeed(bow));
+        helper.assertTrue(Math.abs(item.drawSpeed(bow) - 0.948750F) < EPSILON,
+                "haste I on top multiplies to 0.948750, got " + item.drawSpeed(bow));
         helper.succeed();
     }
 

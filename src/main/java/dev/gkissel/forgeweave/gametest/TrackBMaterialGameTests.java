@@ -99,7 +99,9 @@ public class TrackBMaterialGameTests {
             Map.entry("faultsteel", "cascading"),
             Map.entry("skipalloy", "quickstep"),
             Map.entry("mendalloy", "merciful"),
-            Map.entry("mendstone", "ecological"),
+            // Issue #1114: the material named for mending now carries the fastest rung of the
+            // ladder rather than its slowest, one point every five seconds.
+            Map.entry("mendstone", "ecological3"),
             // #993 (D-M8-13, D-M8-15): energized4 is the metal's own instance of the #830 energized
             // behavior, which is the buffer Mekanism's module container draws from.
             Map.entry("atomic_matter_alloy", "energized4"));

@@ -137,7 +137,7 @@ public class ArmorRealPathGameTests {
     /**
      * A real zombie bite on a real server player wearing a cobalt chestplate: the piece's armor is
      * on the player's attribute (what the vanilla HUD draws), the bite is cut by cobalt's ARMOR
-     * trait (melee_protection 2: {@code 1 - 2/25}) on top of that, and the plating pays durability.
+     * trait (melee_protection 3: {@code 1 - 3/25}) on top of that, and the plating pays durability.
      */
     @GameTest(template = "empty")
     public static void realZombieBiteOnAServerPlayerRunsTheArmorPipeline(GameTestHelper helper) {
@@ -164,7 +164,7 @@ public class ArmorRealPathGameTests {
         worn.remove(ForgeweaveDataComponents.TRAITS.get());
         float without = bitten(helper, player, zombie);
         worn.set(ForgeweaveDataComponents.TRAITS.get(), traits);
-        float expected = without * (1.0F - 2.0F / 25.0F);
+        float expected = without * (1.0F - 3.0F / 25.0F);
         helper.assertTrue(Math.abs(with - expected) < 0.01F,
                 "melee_protection must cut the bite to " + expected + " (from " + without + "), lost " + with);
         helper.succeed();
