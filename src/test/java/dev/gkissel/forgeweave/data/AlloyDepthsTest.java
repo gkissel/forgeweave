@@ -35,7 +35,7 @@ class AlloyDepthsTest {
     @Test
     void anAlloyThatNeedsAnotherAlloyIsDeeperThanIt() {
         // truesteel takes sunsteel, which takes daybrass: the two tags exist to tell those apart, so
-        // a change that flattened them would quietly make "deepest" mean nothing.
+        // a change that flattened them would leave "deepest" meaning nothing.
         assertTrue(DEPTHS.get("truesteel") > DEPTHS.get("sunsteel"),
                 "truesteel alloys from sunsteel, so it must read deeper: " + DEPTHS);
         assertTrue(DEPTHS.get("sunsteel") >= 3,

@@ -39,7 +39,7 @@ import dev.gkissel.forgeweave.recipe.AlloyRecipe;
  * shallower route wins, because that is the one a player will actually take. A fluid no {@code
  * alloy_recipe} produces is depth 0, and a recipe cycle is read as depth 0 on the edge that closes
  * it -- {@link AlloyRecipe}'s own parse-time rules already refuse the single-recipe case, and
- * nothing shipped forms a longer loop, so this is a guard rather than a behaviour.
+ * nothing shipped forms a longer loop, so this is a guard rather than a behavior.
  *
  * <p>Datagen only. The directory is read straight off the classpath, which is a plain directory in
  * every dev run {@code runData} happens in.

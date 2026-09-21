@@ -67,7 +67,8 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
  * issue, each fired from the single server-side path that already handles the event; see that class
  * for where. Every criterion here therefore fires on a dedicated server with no client involvement.
  *
- * <p>Alloy depth is data, not a list: {@link ForgeweaveItemTagsProvider#ALLOYS_DEEP} and {@link
+ * <p>Alloy depth comes from the data rather than a hand list: {@link
+ * ForgeweaveItemTagsProvider#ALLOYS_DEEP} and {@link
  * ForgeweaveItemTagsProvider#ALLOYS_DEEPEST} are built from the shipped {@code alloy_recipe} JSON
  * ({@link AlloyDepths}), so rebalancing the alloy graph moves the two alloy advancements with it.
  *
@@ -217,7 +218,7 @@ public final class ForgeweaveAdvancementProvider implements AdvancementProvider.
         AdvancementHolder firstAlloy = save.triggered(firstCast, "smeltery/first_alloy", "first_alloy",
                 Items.NETHERITE_INGOT, AdvancementType.TASK, ForgeweaveCriteriaTriggers.FIRST_ALLOY);
 
-        // Icons only: which metals actually sit at each depth is whatever the alloy_recipe graph says
+        // Icons only: which metals sit at each depth is whatever the alloy_recipe graph says
         // today, and the tag is what decides the criterion.
         AdvancementHolder deepAlloy = save.finish(save.advancement(firstAlloy, "deep_alloy",
                 ForgeweaveItems.trackBAlloyIngot("tideiron").get(), AdvancementType.GOAL)

@@ -301,7 +301,7 @@ public class AdvancementGameTests {
      * #1106's "every slot spent": enough redstone to push haste into the tool's last slot. Haste
      * charges a slot every {@code unitsPerLevel} units, so the units that occupy exactly the tool's
      * free slot count are {@code 1 + (free - 1) * unitsPerLevel} -- read off the tool rather than
-     * written out, so a slot-granting trait on the test material cannot quietly make this a no-op.
+     * written out, so a slot-granting trait on the test material cannot turn it into a no-op.
      */
     @GameTest(template = "empty")
     public static void fillingEveryModifierSlotGrantsSlotsFilledAdvancement(GameTestHelper helper) {

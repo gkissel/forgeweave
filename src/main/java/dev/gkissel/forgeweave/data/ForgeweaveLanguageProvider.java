@@ -2233,8 +2233,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("advancements.forgeweave.repair.title", "Good as New");
         add("advancements.forgeweave.repair.description", "Repair a worn tool with more of its own material");
         add("advancements.forgeweave.part_exchange.title", "Swap a Part");
-        add("advancements.forgeweave.part_exchange.description",
-                "Put a new part in the station with a tool to replace the old one");
+        add("advancements.forgeweave.part_exchange.description", "Swap a part on an assembled tool at the station");
 
         add("advancements.forgeweave.armor_piece.title", "Plated");
         add("advancements.forgeweave.armor_piece.description", "Assemble an armor piece from plating and maille");
@@ -2246,7 +2245,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("advancements.forgeweave.bow.title", "Drawn");
         add("advancements.forgeweave.bow.description", "Assemble a bow from two limbs and a bowstring");
         add("advancements.forgeweave.battlesign.title", "Hold the Line");
-        add("advancements.forgeweave.battlesign.description", "Assemble a battlesign, the sign that blocks");
+        add("advancements.forgeweave.battlesign.description", "Assemble a battlesign at the Tool Station");
 
         add("advancements.forgeweave.slots_filled.title", "Nothing Spare");
         add("advancements.forgeweave.slots_filled.description", "Spend every modifier slot on one tool");
