@@ -1364,8 +1364,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.crude.name", "Crude");
         add("trait.forgeweave.crude.description", "Bonus damage against unarmored targets.");
         // #231 flint retrofit: upstream's head-scoped crude2, named like magnetic2/writable2 are.
+        // Issue #1102: crude2 used to share crude's own sentence word for word, so a player reading
+        // the tooltip could not tell the two tiers apart -- ForgeweaveTraits#CRUDE_FRACTION_PER_LEVEL
+        // is 0.05F per level, so level 2 is 10%, twice crude's own +5%. crude's own description is
+        // untouched here; the wider trait-description pass is a separate issue (#1101 wave 2).
         add("trait.forgeweave.crude2.name", "Crude II");
-        add("trait.forgeweave.crude2.description", "Bonus damage against unarmored targets.");
+        add("trait.forgeweave.crude2.description", "Deals 10% more damage to unarmored targets.");
         add("trait.forgeweave.fractured.name", "Fractured");
         add("trait.forgeweave.fractured.description", "Your tool's damage is increased.");
 
@@ -1463,8 +1467,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.dense.description", "Your tool lasts longer when it has less durability.");
         add("trait.forgeweave.writable.name", "Writable");
         add("trait.forgeweave.writable.description", "More words. More modifiers. It's only logical!");
+        // Issue #1102: writable2 used to repeat writable's own flavour line with no mechanism stated
+        // at either tier. ForgeweaveTraits#WRITABLE2 is extraModifierSlots(2), a flat +2 free modifier
+        // slots next to writable's own +1 (an all-paper tool totals +3).
         add("trait.forgeweave.writable2.name", "Writable II");
-        add("trait.forgeweave.writable2.description", "More words. More modifiers. It's only logical!");
+        add("trait.forgeweave.writable2.description", "More words. More modifiers. Grants 2 extra modifier slots.");
         add("trait.forgeweave.squeaky.name", "Squeaky");
         add("trait.forgeweave.squeaky.description",
                 "Your tool is so soft and squeaky it gained Silk Touch, but deals no damage.");
@@ -2435,12 +2442,14 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.armor_breaker.description", "Deals bonus damage to armored targets.");
         add("trait.forgeweave.opportunist.name", "Opportunist");
         add("trait.forgeweave.opportunist.description", "Deals bonus damage to targets already suffering a harmful effect.");
+        // Issue #1102: all three levels used to say only "extra"/"even more extra"/"a lot of extra"
+        // damage, though ForgeweaveTraits#CHARGED_BONUS_PER_LEVEL (1.5F) already fixes the amount.
         add("trait.forgeweave.surging.name", "Surging");
-        add("trait.forgeweave.surging.description", "A fully-charged swing deals extra damage.");
+        add("trait.forgeweave.surging.description", "A fully-charged swing deals 1.5 extra damage.");
         add("trait.forgeweave.surging2.name", "Surging II");
-        add("trait.forgeweave.surging2.description", "A fully-charged swing deals even more extra damage.");
+        add("trait.forgeweave.surging2.description", "A fully-charged swing deals 3 extra damage.");
         add("trait.forgeweave.surging3.name", "Surging III");
-        add("trait.forgeweave.surging3.description", "A fully-charged swing deals a lot of extra damage.");
+        add("trait.forgeweave.surging3.description", "A fully-charged swing deals 4.5 extra damage.");
         add("trait.forgeweave.ruthless.name", "Ruthless");
         add("trait.forgeweave.ruthless.description", "Critical hits deal even more damage.");
 
@@ -2463,12 +2472,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.evolved3.name", "Evolved III");
         add("trait.forgeweave.evolved3.description",
                 "Chaotic tier. Made of a Draconic core, fusion crafting upgrades this tool; made of a weld, it hosts Draconic modules. Chaotic hits damage the Chaos Guardian's crystals.");
+        // Issue #1102: all three levels used to say only "a share"/"a larger share"/"a big share" of
+        // the damage dealt, though trait_definition/soulrend{,2,3}.json already carries an exact
+        // fraction and cap per level (forgeweave:lifesteal, Lifesteal#fraction/#cap).
         add("trait.forgeweave.soulrend.name", "Soul Rend");
-        add("trait.forgeweave.soulrend.description", "Heals the wielder for a share of the damage dealt.");
+        add("trait.forgeweave.soulrend.description", "Heals the wielder for 10% of the damage dealt, up to 3.");
         add("trait.forgeweave.soulrend2.name", "Soul Rend II");
-        add("trait.forgeweave.soulrend2.description", "Heals the wielder for a larger share of the damage dealt.");
+        add("trait.forgeweave.soulrend2.description", "Heals the wielder for 18% of the damage dealt, up to 5.");
         add("trait.forgeweave.soulrend3.name", "Soul Rend III");
-        add("trait.forgeweave.soulrend3.description", "Heals the wielder for a big share of the damage dealt.");
+        add("trait.forgeweave.soulrend3.description", "Heals the wielder for 26% of the damage dealt, up to 7.");
         // #965 -- duskweld's own on-hit trait and the draconium core's, both datapack definitions
         // over behaviours TraitBehaviors already ships, the same shape soul rend uses above. A
         // material never shares a trait id with another material, so the inert tier gets its own
@@ -2641,12 +2653,14 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.merciful.description", "Regenerates whatever it strikes. Not a helpful trait.");
         add("trait.forgeweave.quickstep.name", "Quickstep");
         add("trait.forgeweave.quickstep.description", "A fully-charged hit grants the wielder a burst of speed.");
+        // Issue #1102: all three levels used to say only "a chance"/"a better chance"/"very likely",
+        // though ForgeweaveTraits#UNRAVELING_CHANCE_PER_LEVEL (0.25F) already fixes the chance per level.
         add("trait.forgeweave.unraveling.name", "Unraveling");
-        add("trait.forgeweave.unraveling.description", "A fully-charged hit has a chance to strip a beneficial effect from the target.");
+        add("trait.forgeweave.unraveling.description", "A fully-charged hit has a 25% chance to strip a beneficial effect from the target.");
         add("trait.forgeweave.unraveling2.name", "Unraveling II");
-        add("trait.forgeweave.unraveling2.description", "A fully-charged hit has a better chance to strip a beneficial effect from the target.");
+        add("trait.forgeweave.unraveling2.description", "A fully-charged hit has a 50% chance to strip a beneficial effect from the target.");
         add("trait.forgeweave.unraveling3.name", "Unraveling III");
-        add("trait.forgeweave.unraveling3.description", "A fully-charged hit is very likely to strip a beneficial effect from the target.");
+        add("trait.forgeweave.unraveling3.description", "A fully-charged hit has a 75% chance to strip a beneficial effect from the target.");
         add("trait.forgeweave.grievous.name", "Grievous");
         add("trait.forgeweave.grievous.description", "Wounds struck by this weapon resist healing for a short time.");
         add("trait.forgeweave.harrying.name", "Harrying");
