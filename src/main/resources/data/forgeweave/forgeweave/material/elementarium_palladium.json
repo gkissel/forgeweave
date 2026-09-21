@@ -1,8 +1,8 @@
 {
   "head": {
-    "durability": 395,
+    "durability": 400,
     "mining_speed": 5.72,
-    "attack_damage": 4.92
+    "attack_damage": 4.94
   },
   "handle": {
     "durability_modifier": 0.99,
@@ -12,7 +12,7 @@
   "bow": {
     "drawspeed": 0.43,
     "range": 1.45,
-    "bonus_damage": 6.54
+    "bonus_damage": 6.57
   },
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {

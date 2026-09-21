@@ -3,5 +3,6 @@
     "tag": "c:small_dusts/daybrass"
   },
   "fluid": "forgeweave:molten_daybrass",
-  "amount": 48
+  "amount": 48,
+  "temperature": 1400
 }

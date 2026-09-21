@@ -1880,9 +1880,16 @@ public final class ForgeweaveTraits {
     // level 1, so every magnitude below is the clone's eachLevel constant times one.
 
     /**
-     * Iron plating/maille. {@code ModifierIds.projectileProtection}: {@link Protection} 2 against
+     * Iron plating/maille. {@code ModifierIds.projectileProtection}: {@link Protection} against
      * {@code #forgeweave:projectile_protection}, plus the clone's {@code MaxArmorAttributeModule}
      * of +0.05 knockback resistance.
+     *
+     * <p>Issue #1113 raised the protection half from the clone's own 2 to 4 a piece, the maintainer's
+     * floor for a type-specific protection trait: 4 points is a free Protection IV against that
+     * damage type, the reference a player already has. The deviation from parity is deliberate and is
+     * recorded in that issue; it applies the same way to {@link #BLAST_PROTECTION} and
+     * {@link #FIRE_PROTECTION}, and {@link #MELEE_PROTECTION} takes 3 because it covers every direct
+     * blow rather than one type.
      *
      * <p>The knockback half used to be its own {@code armorAttributes} override paying a flat 0.05
      * per piece, so four iron pieces reached 0.2 where the clone gives 0.05. Issue #1097 dropped
@@ -1908,21 +1915,26 @@ public final class ForgeweaveTraits {
         }
     };
 
-    private static final float PROJECTILE_PROTECTION_PER_LEVEL = 2.0F;
+    private static final float PROJECTILE_PROTECTION_PER_LEVEL = 4.0F;
     private static final float PROJECTILE_PROTECTION_KNOCKBACK_RESISTANCE = 0.05F;
 
-    private static final float BLAST_PROTECTION_PER_LEVEL = 2.5F;
+    private static final float BLAST_PROTECTION_PER_LEVEL = 4.0F;
 
-    /** Obsidian plating/maille. {@code ModifierIds.blastProtection}: {@link Protection} 2.5 against {@code #forgeweave:blast_protection}. */
+    /**
+     * Obsidian plating/maille. {@code ModifierIds.blastProtection}: {@link Protection} against
+     * {@code #forgeweave:blast_protection}, at issue #1113's 4-a-piece floor rather than the clone's
+     * 2.5 -- see {@link #PROJECTILE_PROTECTION}.
+     */
     public static final Trait BLAST_PROTECTION = defendTrait(Protection.against(Protection.BLAST_PROTECTION, BLAST_PROTECTION_PER_LEVEL));
 
-    private static final float FIRE_PROTECTION_PER_LEVEL = 2.5F;
+    private static final float FIRE_PROTECTION_PER_LEVEL = 4.0F;
 
     /**
      * Seared stone plating/maille. {@code MaterialTraitsDataProvider}'s
-     * {@code addTraits(searedStone, ARMOR, fireProtection)}: {@link Protection} 2.5 against
-     * {@code #forgeweave:fire_protection}, the same {@code PROTECTION_STRONG_PER_LEVEL} the
-     * {@code fire_protection} modifier pays per level and the same shape as {@link #BLAST_PROTECTION}.
+     * {@code addTraits(searedStone, ARMOR, fireProtection)}: {@link Protection} against
+     * {@code #forgeweave:fire_protection}, the same shape as {@link #BLAST_PROTECTION} and at the
+     * same 4-a-piece floor issue #1113 set for both. It used to pay the clone's 2.5, which is what
+     * {@code PROTECTION_STRONG_PER_LEVEL} still pays the {@code fire_protection} modifier per level.
      *
      * <p>Issue #1092: seared stone has named {@code forgeweave:fire_protection} on its armor list
      * since #843, but only the modifier of that id existed, so the grant resolved to nothing and the
@@ -1955,12 +1967,14 @@ public final class ForgeweaveTraits {
     public static final Trait NECROTIC =
             seamTrait(new LifestealOnHitSeam(ForgeweaveModifiers.necroticLifestealFraction(1)));
 
-    private static final float MELEE_PROTECTION_PER_LEVEL = 2.0F;
+    private static final float MELEE_PROTECTION_PER_LEVEL = 3.0F;
 
     /**
-     * Cobalt plating/maille. {@code ModifierIds.meleeProtection}: {@link Protection} 2 against
-     * direct {@code #forgeweave:melee_protection} blows. The clone's +5% use-item speed per level
-     * rides a Tinkers'-only attribute with no vanilla counterpart and is not ported.
+     * Cobalt plating/maille. {@code ModifierIds.meleeProtection}: {@link Protection} against
+     * direct {@code #forgeweave:melee_protection} blows, 3 a piece rather than the clone's 2 (issue
+     * #1113, one point under the type-specific floor because this one covers every direct blow). The
+     * clone's +5% use-item speed per level rides a Tinkers'-only attribute with no vanilla
+     * counterpart and is not ported.
      */
     public static final Trait MELEE_PROTECTION = defendTrait(
             Protection.against(Protection.MELEE_PROTECTION, MELEE_PROTECTION_PER_LEVEL).directOnly());

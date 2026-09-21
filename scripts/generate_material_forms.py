@@ -84,6 +84,7 @@ from PIL import Image
 
 from generate_track_b_alloy_textures import ALLOYS
 from generate_track_b_ore_textures import ORES, full_mask, hex_to_rgb, recolor_pixels
+from generate_track_b_recipes import melt_temperature
 
 ROOT = Path(__file__).resolve().parent.parent
 ITEM_DIR = ROOT / "src/main/resources/assets/forgeweave/textures/item"
@@ -192,6 +193,11 @@ def write_melting_rows() -> None:
                 "fluid": f"forgeweave:molten_{mat_id}",
                 "amount": amount,
             }
+            # Issue #1113: a dust of a deep alloy asks for the same fuel its ingot does, so the fuel
+            # ladder cannot be walked around by grinding the ingot first.
+            temperature = melt_temperature(mat_id)
+            if temperature is not None:
+                data["temperature"] = temperature
             (MELTING_DIR / f"{name}.json").write_text(json.dumps(data, indent=2) + "\n")
             written += 1
     print(f"wrote {written} dust melting rows")

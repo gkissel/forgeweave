@@ -62,17 +62,28 @@ public class ArmorPartGameTests {
         return menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem();
     }
 
-    /** Obsidian is a plating material and not {@code cast_only}: six blocks pay the chestplate's 6 ingots. */
+    /**
+     * Seared stone is a plating material and not {@code cast_only}: six seared bricks pay the
+     * chestplate's 6 ingots. It is the cheapest Part Builder plating there is, baked in the same
+     * furnace the smeltery's own bricks come out of, which is why the guide book's first-set page
+     * teaches it (issue #1113). Obsidian, which this test used to run on, still stamps too.
+     */
     @GameTest(template = "empty")
-    public static void partBuilderStampsObsidianChestplatePlating(GameTestHelper helper) {
+    public static void partBuilderStampsSearedStoneChestplatePlating(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack output = craft(helper, player, ForgeweaveItems.PATTERN_PLATING_CHESTPLATE.get(),
-                new ItemStack(Items.OBSIDIAN, 6));
+                new ItemStack(ForgeweaveItems.SEARED_BRICK.get(), 6));
 
         helper.assertTrue(output.is(ForgeweaveItems.PART_PLATING_CHESTPLATE.get()),
-                "expected an obsidian chestplate plating, got " + output);
-        helper.assertTrue(materialId("obsidian").equals(output.get(ForgeweaveDataComponents.MATERIAL.get())),
-                "expected forgeweave:obsidian, got " + output.get(ForgeweaveDataComponents.MATERIAL.get()));
+                "expected a seared stone chestplate plating, got " + output);
+        helper.assertTrue(materialId("seared_stone").equals(output.get(ForgeweaveDataComponents.MATERIAL.get())),
+                "expected forgeweave:seared_stone, got " + output.get(ForgeweaveDataComponents.MATERIAL.get()));
+
+        ItemStack fromObsidian = craft(helper, player, ForgeweaveItems.PATTERN_PLATING_CHESTPLATE.get(),
+                new ItemStack(Items.OBSIDIAN, 6));
+        helper.assertTrue(materialId("obsidian").equals(fromObsidian.get(ForgeweaveDataComponents.MATERIAL.get())),
+                "obsidian is craftable as well as castable upstream, so six blocks must stamp a"
+                        + " plating too, got " + fromObsidian);
         helper.succeed();
     }
 

@@ -3,5 +3,6 @@
     "tag": "c:ingots/faultsteel"
   },
   "fluid": "forgeweave:molten_faultsteel",
-  "amount": 144
+  "amount": 144,
+  "temperature": 1400
 }
