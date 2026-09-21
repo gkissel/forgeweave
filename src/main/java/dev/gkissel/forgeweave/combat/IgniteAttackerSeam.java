@@ -4,6 +4,7 @@ import net.minecraft.world.entity.LivingEntity;
 
 import dev.gkissel.forgeweave.api.combat.CombatDefense;
 import dev.gkissel.forgeweave.api.combat.CombatSeam;
+import dev.gkissel.forgeweave.trait.TraitFeedback;
 
 /**
  * Whoever hits the tool's holder catches fire -- flammable's offensive-by-retaliation half (issue
@@ -19,6 +20,8 @@ public record IgniteAttackerSeam(int fireSeconds) implements CombatSeam {
         LivingEntity attacker = defense.attacker();
         if (attacker != null && attacker != defense.defender()) {
             attacker.igniteForSeconds(fireSeconds);
+            // #1112: the heart IgniteOnHitSeam already spawns on its own target, on this side too.
+            TraitFeedback.fire(this, TraitFeedback.Kind.BURN, defense.level(), attacker);
         }
         return damage;
     }

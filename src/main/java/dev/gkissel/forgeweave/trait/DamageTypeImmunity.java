@@ -24,6 +24,7 @@ public record DamageTypeImmunity(TagKey<DamageType> damageType) implements Trait
     public void onDefend(CombatDefense defense, DefendedBlow blow) {
         if (defense.source().is(damageType)) {
             blow.setDamage(0.0F);
+            TraitFeedback.fire(this, TraitFeedback.Kind.WARD, defense.level(), defense.defender());
         }
     }
 }

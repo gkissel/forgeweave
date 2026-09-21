@@ -30,8 +30,10 @@ public record SelfRepairWhen(SelfRepairCondition condition, int ticksPerPoint) i
         }
         // 1.21's ItemStack#setDamageValue clamps to [0, maxDamage], same as ecological's own
         // pre-generalization comment already recorded: healing an undamaged tool needs no guard.
-        if (level.getRandom().nextInt(ticksPerPoint) == 0) {
+        if (level.getRandom().nextInt(ticksPerPoint) == 0 && stack.getDamageValue() > 0) {
             stack.setDamageValue(stack.getDamageValue() - 1);
+            // #1112: only when a point actually came back -- an undamaged tool says nothing.
+            TraitFeedback.fire(this, TraitFeedback.Kind.MEND, level, holder);
         }
     }
 }

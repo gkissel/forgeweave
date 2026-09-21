@@ -6,6 +6,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 
 import dev.gkissel.forgeweave.api.combat.CombatHit;
 import dev.gkissel.forgeweave.api.combat.CombatSeam;
+import dev.gkissel.forgeweave.trait.TraitFeedback;
 
 /**
  * The self-buff mirror of {@link EffectOnHit}: a landed hit applies a {@link MobEffectInstance} to
@@ -33,6 +34,7 @@ public record EffectOnSelfOnHit(Holder<MobEffect> effect, int durationTicks, int
     public void onHit(CombatHit hit, float damageDealt) {
         if (hit.attacker() != null) {
             hit.attacker().addEffect(new MobEffectInstance(effect, durationTicks, amplifier));
+            TraitFeedback.fire(this, TraitFeedback.Kind.AFFLICT, hit.level(), hit.attacker());
         }
     }
 }

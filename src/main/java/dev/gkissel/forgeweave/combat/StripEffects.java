@@ -10,6 +10,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 
 import dev.gkissel.forgeweave.api.combat.CombatHit;
 import dev.gkissel.forgeweave.api.combat.CombatSeam;
+import dev.gkissel.forgeweave.trait.TraitFeedback;
 
 /**
  * A landed hit removes up to {@code count} of the target's positive status effects -- ADR-0004's M6
@@ -45,8 +46,12 @@ public record StripEffects(int count) implements CombatSeam {
                 }
             }
         }
+        if (positive.isEmpty()) {
+            return;
+        }
         for (Holder<MobEffect> effect : positive) {
             hit.target().removeEffect(effect);
         }
+        TraitFeedback.fire(this, TraitFeedback.Kind.AFFLICT, hit.level(), hit.target());
     }
 }

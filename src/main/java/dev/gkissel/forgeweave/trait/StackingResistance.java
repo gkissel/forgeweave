@@ -1,5 +1,9 @@
 package dev.gkissel.forgeweave.trait;
 
+import java.util.function.Consumer;
+
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -7,6 +11,7 @@ import net.minecraft.world.item.ItemStack;
 import dev.gkissel.forgeweave.api.combat.CombatDefense;
 import dev.gkissel.forgeweave.api.combat.DefendedBlow;
 import dev.gkissel.forgeweave.api.trait.Trait;
+import dev.gkissel.forgeweave.client.StationText;
 import dev.gkissel.forgeweave.combat.Protection;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 
@@ -49,4 +54,26 @@ public record StackingResistance(float perHit, int cap, int decayTicks) implemen
     public void inventoryTick(ItemStack stack, ServerLevel level, LivingEntity holder) {
         ForgeweaveTraits.decayStack(stack, ForgeweaveDataComponents.RESISTANCE_STACKS.get());
     }
+
+    /**
+     * Issue #1112: how braced the piece is right now, and how much further it can get. Quoted as a
+     * percentage of the post-armor blow, the unit {@code bracingplate}'s own description already
+     * uses, because the raw point is meaningless to a player ({@code 1} point is a
+     * {@value #PERCENT_PER_POINT}th). No line at all while the stacks have lapsed -- there is no
+     * number to report, and this trait deliberately gets no proc cue (see {@link TraitFeedback}: a
+     * cue on every blow taken would be noise).
+     */
+    @Override
+    public void stateLines(ItemStack stack, Consumer<Component> out) {
+        int stacks = ForgeweaveTraits.stackLevel(stack, ForgeweaveDataComponents.RESISTANCE_STACKS.get());
+        if (stacks <= 0) {
+            return;
+        }
+        out.accept(Component.translatable("tooltip.forgeweave.trait.resistance_stacks",
+                        StationText.formatNumber(perHit * stacks * PERCENT_PER_POINT), stacks, cap)
+                .withStyle(ChatFormatting.GRAY));
+    }
+
+    /** {@link Protection}'s own unit: one point blocks a twenty-fifth of the post-armor blow. */
+    private static final float PERCENT_PER_POINT = 4.0F;
 }

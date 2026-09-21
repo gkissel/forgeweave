@@ -1,5 +1,9 @@
 package dev.gkissel.forgeweave.trait;
 
+import java.util.function.Consumer;
+
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -7,6 +11,7 @@ import net.minecraft.world.item.ItemStack;
 import dev.gkissel.forgeweave.api.combat.CombatDefense;
 import dev.gkissel.forgeweave.api.combat.DefendedBlow;
 import dev.gkissel.forgeweave.api.trait.Trait;
+import dev.gkissel.forgeweave.client.StationText;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 
 /**
@@ -52,10 +57,27 @@ public record DeathSave(int cooldownTicks, int durabilityCost) implements Trait 
         blow.setDamage(0.0F);
         piece.hurtAndBreak(durabilityCost, defender, defense.slot());
         piece.set(ForgeweaveDataComponents.DEATH_SAVE_COOLDOWN.get(), new TraitStacks(1, cooldownTicks));
+        TraitFeedback.fire(this, TraitFeedback.Kind.SAVE, defense.level(), defender);
     }
 
     @Override
     public void inventoryTick(ItemStack stack, ServerLevel level, LivingEntity holder) {
         ForgeweaveTraits.decayStack(stack, ForgeweaveDataComponents.DEATH_SAVE_COOLDOWN.get());
+    }
+
+    /**
+     * Issue #1112: how long until the piece can save again. Nothing while it is ready, which is the
+     * state a player assumes anyway -- the line exists to explain a save that did <em>not</em> fire.
+     */
+    @Override
+    public void stateLines(ItemStack stack, Consumer<Component> out) {
+        int remaining = ForgeweaveTraits.stackTicksRemaining(stack,
+                ForgeweaveDataComponents.DEATH_SAVE_COOLDOWN.get());
+        if (remaining <= 0) {
+            return;
+        }
+        out.accept(Component.translatable("tooltip.forgeweave.trait.death_save.cooldown",
+                        StationText.formatNumber(remaining / 20.0F))
+                .withStyle(ChatFormatting.GRAY));
     }
 }
