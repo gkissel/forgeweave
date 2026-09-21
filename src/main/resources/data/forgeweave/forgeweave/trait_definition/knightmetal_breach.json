@@ -1,5 +1,0 @@
-{
-  "behavior": "forgeweave:bonus_damage_vs",
-  "condition": "armored",
-  "amount": 2.5
-}

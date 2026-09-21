@@ -35,8 +35,13 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
-    "general": ["forgeweave:ferricore_grip"],
-    "armor": ["forgeweave:ferricore_footing", "forgeweave:ferricore_grip"]
+    "general": [
+      "forgeweave:heft"
+    ],
+    "armor": [
+      "forgeweave:sure_footing",
+      "forgeweave:heft"
+    ]
   },
   "crafting_items": [
     {

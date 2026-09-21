@@ -15,19 +15,51 @@
     "bonus_damage": 8.3
   },
   "plating": {
-    "helmet": { "durability": 385, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.12 },
-    "chestplate": { "durability": 566, "armor": 9.0, "toughness": 3.5, "knockback_resistance": 0.12 },
-    "leggings": { "durability": 530, "armor": 7.0, "toughness": 3.5, "knockback_resistance": 0.12 },
-    "boots": { "durability": 460, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.12 }
+    "helmet": {
+      "durability": 385,
+      "armor": 3.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.12
+    },
+    "chestplate": {
+      "durability": 566,
+      "armor": 9.0,
+      "toughness": 3.5,
+      "knockback_resistance": 0.12
+    },
+    "leggings": {
+      "durability": 530,
+      "armor": 7.0,
+      "toughness": 3.5,
+      "knockback_resistance": 0.12
+    },
+    "boots": {
+      "durability": 460,
+      "armor": 3.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.12
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:ignitium_blaze"]
+    "general": [
+      "forgeweave:fireward"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "cataclysm:ignitium_ingot" }, "value": 144 },
-    { "ingredient": { "item": "cataclysm:ignitium_block" }, "value": 1296 }
+    {
+      "ingredient": {
+        "item": "cataclysm:ignitium_ingot"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "item": "cataclysm:ignitium_block"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "item": "cataclysm:ignitium_ingot"

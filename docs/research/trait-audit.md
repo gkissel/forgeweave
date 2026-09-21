@@ -1,5 +1,13 @@
 # Java trait audit: does each trait do what its name and description say, and can it fire where it is used
 
+> **Dated audit, 2026-09-20; ids and magnitudes moved the next day (issue #1103).** The verdicts
+> below are still the record of what each trait did on that commit, and the text-versus-code findings
+> are what #1095 and #1098 acted on. The names are not current: #1103 merged 123 ids into the
+> families that already did the same thing, and raised every surviving level I to the magnitude
+> floors in `04-impact.md` -- so a row here naming `tinseeker`, `verdant_ward` or `leeching` is
+> describing what is now Ecological I, Heft II and Soul Rend II. `TraitFamilies` holds the retired
+> id to surviving rung map.
+
 Issue #1092, 2026-09-20. Companion to PR #1094, which audited the 52 datapack `trait_definition`
 files after three of them sold the armor library's drawback as protection. This one covers the rest:
 the 197 hardcoded traits in `trait/ForgeweaveTraits.java`, the 21 named combat innates in

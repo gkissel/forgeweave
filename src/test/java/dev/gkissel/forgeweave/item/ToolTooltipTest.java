@@ -50,6 +50,9 @@ import dev.gkissel.forgeweave.tool.ToolLevel;
 import dev.gkissel.forgeweave.tool.ToolLeveling;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
+import javax.annotation.Nullable;
+
+import dev.gkissel.forgeweave.trait.TraitFamilies;
 import dev.gkissel.forgeweave.trait.WarMemory;
 
 /**
@@ -935,10 +938,21 @@ class ToolTooltipTest {
     }
 
     private static Component traitLine(String path, TextColor color) {
-        return Component.translatable("trait.forgeweave." + path + ".name")
+        return traitLine(path, color, TraitFamilies.of(ResourceLocation.fromNamespaceAndPath("forgeweave", path)));
+    }
+
+    /**
+     * The same line, built the way {@code TraitFamilies} builds it: a family's rung renders the
+     * family's own keys with that rung's numbers interpolated (issue #1103).
+     */
+    private static Component traitLine(String path, TextColor color, @Nullable TraitFamilies.Rung rung) {
+        String base = rung == null ? path : rung.family();
+        Object[] args = rung == null ? new Object[0] : rung.descriptionArgs().toArray();
+        return Component.translatable("trait.forgeweave." + base + ".name")
                 .withStyle(Style.EMPTY.withColor(color))
                 .append(Component.literal(": ").withStyle(ChatFormatting.GRAY))
-                .append(Component.translatable("trait.forgeweave." + path + ".description").withStyle(ChatFormatting.GRAY));
+                .append(Component.translatable("trait.forgeweave." + base + ".description", args)
+                        .withStyle(ChatFormatting.GRAY));
     }
 
     /** Mirrors {@code ToolTooltip#durabilityColor}: upstream's {@code CustomFontColor#valueToColorCode}. */

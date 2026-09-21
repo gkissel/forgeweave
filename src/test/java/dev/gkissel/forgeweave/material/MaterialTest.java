@@ -972,31 +972,28 @@ class MaterialTest {
 
     /**
      * Issue #876 (M6 dedupe batch) reverses #837's design note: the seven Actually Additions crystals
-     * used to share one damage-scaling trait ({@code forgeweave:pristine}), the exact pattern the
-     * maintainer's "no repeated traits across materials" directive rules out. {@code pristine} now
-     * belongs to {@code emerald} alone (also crystalline, and not part of this AA septet); each of
-     * these seven gets its own id instead -- still mostly the same reused ADR-0004 seams (a couple of
-     * different parameters apiece), just no longer the identical instance under the identical id.
+     * used to share one damage-scaling trait, then #876 split them onto seven invented ids, and
+     * #1103 folded those ids back into the families they were clones of -- {@code unyielding} and
+     * {@code keenedge} were both Pristine, {@code bloodgem} was Colossal, {@code stormglass} was
+     * Kinetic. What this row still guards is the thing that actually mattered: each of the seven
+     * carries an effect of its own, rather than seven materials all reading the same line.
      */
     @ParameterizedTest
     @CsvSource({
-            "black_quartz,unyielding",
-            "restonia_crystal,bloodgem",
-            "palis_crystal,stormglass",
-            "diamatine_crystal,radiant_edge",
-            "void_crystal,voidtouched",
-            "emeradic_crystal,verdant_ward",
+            "black_quartz,pristine",
+            "restonia_crystal,colossal",
+            "palis_crystal,kinetic",
+            "diamatine_crystal,surging2",
+            "void_crystal,fractured",
+            "emeradic_crystal,heft2",
             "enori_crystal,luminous",
     })
-    void actuallyAdditionsCrystalsCarryDistinctTraits(String name, String expectedTrait) {
+    void actuallyAdditionsCrystalsCarryTheirOwnEffect(String name, String expectedTrait) {
         Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
-        ResourceLocation pristine = ResourceLocation.fromNamespaceAndPath("forgeweave", "pristine");
         ResourceLocation expected = ResourceLocation.fromNamespaceAndPath("forgeweave", expectedTrait);
 
         assertTrue(material.traits().general().contains(expected),
-                name + " must carry forgeweave:" + expectedTrait + " (issue #876), got " + material.traits().general());
-        assertFalse(material.traits().general().contains(pristine),
-                name + " must no longer carry forgeweave:pristine -- that id now belongs to emerald alone (issue #876)");
+                name + " must carry forgeweave:" + expectedTrait + ", got " + material.traits().general());
     }
 
     /**
@@ -1082,61 +1079,27 @@ class MaterialTest {
     }
 
     /**
-     * Issue #876's regression guard: no two materials may claim the same trait id, except two shared
-     * system mechanics -- discovered necessary while landing the batch, not assumed up front:
-     * <ul>
-     *   <li>the {@code *_protection} armor family (armor needs to cover melee/depth/blast/projectile/
-     *       fire/recurrent independently, one material each);
-     *   <li>{@code overslime} (issue #728): {@code ForgeweaveTraits#overslimeCapacity}/{@code
-     *       #overslimeArmorPenalty} grant a shared durability-shield pool keyed on this exact id, not a
-     *       per-material flavor -- knightslime, queens_slime and slimewood all need the real pool
-     *       {@link net.minecraft.gametest.framework.GameTest}-covered elsewhere
-     *       ({@code M615MaterialGameTests#newMaterialsExposeTheirTraitWiring}), and cloning the
-     *       mechanic under new ids per material would need {@code overslimeCapacity} to recognize a
-     *       whole set of ids for no material-identity benefit (contrast {@code overslime_friend}, a
-     *       pure marker this batch *did* split per material -- see {@code ForgeweaveTraits#VINEWARDEN}).
-     * </ul>
-     * Walks every shipped material JSON directly (not the codec) so a future material with a typo'd or
-     * copy-pasted trait id fails this test the moment its JSON lands, the same "catch it before it
-     * ships" shape {@link #noShippedMaterialConditionsOnEnderIosRemovedElectricalSteel} already uses.
+     * Issue #1103 withdrew #876's rule that no two materials may name the same trait id (maintainer
+     * delegated the call, 2026-09-21). The rule forced a renamed clone per material: 29 groups of
+     * byte-identical behaviour under 70 ids, fire immunity under six names, 29 ids ending in
+     * {@code -ward} across eight unrelated mechanics. Its own exemption list had grown three times
+     * (#876 to #1093 to #1097) to escape its own consequences.
      *
-     * <p>Leveled variants of one material's own ladder ({@code surging}/{@code surging2}/{@code
-     * surging3}, {@code crude}/{@code crude2}, ...) are not a special case here: each id is still
-     * claimed by exactly one material under this rule, the same as every other id -- the ladder lives
-     * in one material naming multiple ids, not in two materials sharing one id.
+     * <p>What is left of it is the part that ever caught a real mistake: a material naming one id
+     * twice. That is always a copy-paste slip, because {@code ForgeweaveTraits#resolve} de-duplicates
+     * the list anyway, so the second entry is dead text in a synced payload. The other half of the
+     * old guard's job -- "is this a clone of a trait that already exists?" -- moved to
+     * {@code TraitDefinitionAuditTest#noTwoTraitsShareABehaviourAndItsParameters}, which compares
+     * behaviour and parameters instead of names and therefore catches the clone the old rule
+     * created.
+     *
+     * <p>Walks every shipped material JSON directly rather than the codec, the same "catch it before
+     * it ships" shape {@link #noShippedMaterialConditionsOnEnderIosRemovedElectricalSteel} uses.
      */
     @Test
-    void noTwoMaterialsShareANonExemptTraitId() throws Exception {
+    void noMaterialNamesTheSameTraitIdTwice() throws Exception {
         Path materialDir = projectRoot().resolve("src/main/resources/data/forgeweave/forgeweave/material");
-        java.util.Set<String> exempt = java.util.Set.of("forgeweave:overslime",
-                // #953 (maintainer directive): evolved I-III is a gate, not a flavor.
-                // ForgeweaveDraconicCompat#evolvedLevel reads these three exact ids off a finished
-                // tool to decide which fusion upgrade rung will take it, so the tier has to be
-                // spelled the same way wherever it is granted -- by a fusion metal (#946) or by the
-                // Draconic core material at the matching tier. Same shape as overslime above: a
-                // shared mechanic keyed on one id, not a per-material name. #965 added the inert
-                // tier's marker, which the draconium core and duskweld share for the same reason.
-                "forgeweave:evolving",
-                "forgeweave:evolved", "forgeweave:evolved2", "forgeweave:evolved3",
-                // #1093 (maintainer directive on the issue): "many materials in one family can
-                // share one companion trait when the theme truly matches; do not write 200 unique
-                // traits for their own sake". These eleven are the companions that give a family
-                // its missing side -- the worn half of a quick edge, of a venom, of a void-forged
-                // edge -- and each one's lang text names the pairing rather than the material, so
-                // splitting it per material would buy a different id and the same sentence.
-                // docs/research/trait-pairing.md lists which materials share which.
-                "forgeweave:swiftward", "forgeweave:deadweight", "forgeweave:bloodward",
-                "forgeweave:vigorward", "forgeweave:blightward", "forgeweave:venomward",
-                "forgeweave:revealward", "forgeweave:stormward", "forgeweave:voidward",
-                "forgeweave:unravelward", "forgeweave:surgeward",
-                // #1097, the same directive applied to three more companions. `warded` is
-                // manyullyn's ported clone trait and is now also the answer for the three materials
-                // whose tool trait scales with remaining durability (emerald, black quartz,
-                // shardline): a blade at its best while the tool is whole, a plate at its best while
-                // the wearer is. `mendward` and `temperward` each cover two materials whose tool
-                // traits are the same idea. docs/research/trait-pairing.md lists which is which.
-                "forgeweave:warded", "forgeweave:mendward", "forgeweave:temperward");
-        java.util.Map<String, List<String>> claimants = new java.util.TreeMap<>();
+        List<String> violations = new java.util.ArrayList<>();
 
         try (Stream<Path> files = Files.list(materialDir)) {
             for (Path file : files.filter(p -> p.toString().endsWith(".json")).sorted().toList()) {
@@ -1146,35 +1109,27 @@ class MaterialTest {
                 if (!json.has("traits")) {
                     continue;
                 }
-                java.util.Set<String> idsOnThisMaterial = new java.util.LinkedHashSet<>();
                 JsonElement traits = json.get("traits");
+                java.util.List<java.util.Map.Entry<String, JsonElement>> lists = new java.util.ArrayList<>();
                 if (traits.isJsonObject()) {
-                    for (var entry : traits.getAsJsonObject().entrySet()) {
-                        for (JsonElement id : entry.getValue().getAsJsonArray()) {
-                            idsOnThisMaterial.add(id.getAsString());
+                    lists.addAll(traits.getAsJsonObject().entrySet());
+                } else if (traits.isJsonArray()) {
+                    lists.add(java.util.Map.entry("traits", traits));
+                }
+                for (var list : lists) {
+                    java.util.Set<String> seen = new java.util.LinkedHashSet<>();
+                    for (JsonElement id : list.getValue().getAsJsonArray()) {
+                        if (!seen.add(id.getAsString())) {
+                            violations.add(materialName + "." + list.getKey() + " names " + id.getAsString()
+                                    + " twice");
                         }
                     }
-                } else if (traits.isJsonArray()) {
-                    for (JsonElement id : traits.getAsJsonArray()) {
-                        idsOnThisMaterial.add(id.getAsString());
-                    }
-                }
-                for (String id : idsOnThisMaterial) {
-                    claimants.computeIfAbsent(id, k -> new java.util.ArrayList<>()).add(materialName);
                 }
             }
         }
 
-        List<String> violations = new java.util.ArrayList<>();
-        claimants.forEach((id, materials) -> {
-            if (materials.size() > 1 && !id.endsWith("_protection") && !exempt.contains(id)) {
-                violations.add(id + " -> " + materials);
-            }
-        });
-
-        assertTrue(violations.isEmpty(),
-                "these trait ids are claimed by more than one material (issue #876's dedupe policy -- "
-                        + "*_protection and overslime are the only exemptions): " + violations);
+        assertTrue(violations.isEmpty(), "a material names one trait id twice, which resolve() drops "
+                + "anyway -- almost certainly a copy-paste slip: " + violations);
     }
 
     /**

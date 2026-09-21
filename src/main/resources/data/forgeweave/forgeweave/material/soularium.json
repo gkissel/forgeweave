@@ -43,8 +43,12 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:leeching"],
-    "armor": ["forgeweave:bloodward"]
+    "general": [
+      "forgeweave:soulrend2"
+    ],
+    "armor": [
+      "forgeweave:bloodward"
+    ]
   },
   "crafting_items": [
     {

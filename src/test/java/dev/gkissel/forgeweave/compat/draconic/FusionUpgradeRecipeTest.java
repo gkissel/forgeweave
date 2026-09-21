@@ -67,7 +67,7 @@ class FusionUpgradeRecipeTest {
      */
     private static final List<String> TIER_TRAITS = List.of("evolving", "evolved", "evolved2", "evolved3");
     /** The core marker beside each tier: fusion only takes a core tool (maintainer decision 2026-09-06). */
-    private static final List<String> CORE_TRAITS = List.of("coremend", "stonewake", "ruthless", "chaosmark");
+    private static final List<String> CORE_TRAITS = List.of("ecological3", "stonewake", "shieldbreaker", "chaosmark");
 
     /**
      * A pickaxe carrying the tier marker for {@code level} -- what a tool built out of one of the

@@ -15,19 +15,47 @@
     "bonus_damage": 5.8
   },
   "plating": {
-    "helmet": { "durability": 245, "armor": 3.0, "toughness": 1.0 },
-    "chestplate": { "durability": 360, "armor": 7.0, "toughness": 1.0 },
-    "leggings": { "durability": 338, "armor": 6.0, "toughness": 1.0 },
-    "boots": { "durability": 292, "armor": 3.0, "toughness": 1.0 }
+    "helmet": {
+      "durability": 245,
+      "armor": 3.0,
+      "toughness": 1.0
+    },
+    "chestplate": {
+      "durability": 360,
+      "armor": 7.0,
+      "toughness": 1.0
+    },
+    "leggings": {
+      "durability": 338,
+      "armor": 6.0,
+      "toughness": 1.0
+    },
+    "boots": {
+      "durability": 292,
+      "armor": 3.0,
+      "toughness": 1.0
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
-    "general": ["forgeweave:compressed_iron_heft"]
+    "general": [
+      "forgeweave:heft"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:ingots/compressed_iron" }, "value": 144 },
-    { "ingredient": { "tag": "c:storage_blocks/compressed_iron" }, "value": 1296 }
+    {
+      "ingredient": {
+        "tag": "c:ingots/compressed_iron"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/compressed_iron"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/compressed_iron"

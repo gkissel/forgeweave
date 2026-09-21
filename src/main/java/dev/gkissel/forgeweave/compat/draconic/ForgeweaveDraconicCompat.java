@@ -20,6 +20,7 @@ import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.compat.draconic.modules.DraconicModuleHost;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig; // #968
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
+import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes; // #968
 
 /**
@@ -259,38 +260,48 @@ public final class ForgeweaveDraconicCompat {
     }
 
     /**
-     * The trait each fusion metal grants beside its tier marker, in {@link #FUSION_METALS} order --
-     * duskweld's soulwick, then emberweld, starweld and voidweld's soul rend ranks. Present on a tool
-     * means "built from a weld"; the parts themselves are gone by the time a stack sits in a crafting
-     * core or a module screen (see {@link #evolvedLevel}), so this is the record that is left.
-     * {@code FusionUpgradeRecipeTest} pins both lists against the shipped material JSON.
+     * The trait each fusion metal grants beside its tier marker, in {@link #FUSION_METALS} order:
+     * the four Soul Rend rungs, one per weld. Present on a tool means "built from a weld"; the parts
+     * themselves are gone by the time a stack sits in a crafting core or a module screen (see
+     * {@link #evolvedLevel}), so this is the record that is left. {@code FusionUpgradeRecipeTest}
+     * pins both lists against the shipped material JSON.
+     *
+     * <p>Issue #1103 made these ids shareable, so a marker alone no longer proves what a tool was
+     * built from: Soul Rend I is also soulium's and unobtainium-vibranium's trait, and the awakened
+     * core's old marker {@code ruthless} is now azure silver's and steeleaf's too. Both checks below
+     * therefore ask for the {@code evolved} ladder as well, which only a weld or a core grants -- and
+     * the awakened rung moved to {@code shieldbreaker}, which is still that material's alone.
      */
     public static final List<ResourceLocation> WELD_MARKERS = List.of(
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "soulwick"),
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "soulrend"),
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "soulrend2"),
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "soulrend3"));
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "soulrend3"),
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "soulrend4"));
 
     /** The same for the four Draconic core materials: draconium core, wyvern, awakened, chaotic. */
     public static final List<ResourceLocation> CORE_MARKERS = List.of(
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "coremend"),
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "ecological3"),
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "stonewake"),
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "ruthless"),
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "shieldbreaker"),
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "chaosmark"));
 
     /** Whether any part of {@code tool} is a fusion metal (a weld) -- the tools that host Draconic modules. */
     public static boolean isWeldTool(ItemStack tool) {
-        return carriesAny(tool, WELD_MARKERS);
+        return evolvedLevel(tool) > 0 && carriesAny(tool, WELD_MARKERS);
     }
 
     /** Whether any part of {@code tool} is a Draconic core -- the tools fusion crafting upgrades. */
     public static boolean isCoreTool(ItemStack tool) {
-        return carriesAny(tool, CORE_MARKERS);
+        return evolvedLevel(tool) > 0 && carriesAny(tool, CORE_MARKERS);
     }
 
     private static boolean carriesAny(ItemStack tool, List<ResourceLocation> markers) {
         List<ResourceLocation> traits = tool.get(ForgeweaveDataComponents.TRAITS.get());
-        return traits != null && markers.stream().anyMatch(traits::contains);
+        if (traits == null) {
+            return false;
+        }
+        List<ResourceLocation> canonical = ForgeweaveTraits.canonical(traits);
+        return markers.stream().anyMatch(canonical::contains);
     }
 
     /**

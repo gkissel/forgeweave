@@ -43,8 +43,12 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:colossal"],
-    "armor": ["forgeweave:deadweight"]
+    "general": [
+      "forgeweave:colossal"
+    ],
+    "armor": [
+      "forgeweave:heft2"
+    ]
   },
   "crafting_items": [
     {

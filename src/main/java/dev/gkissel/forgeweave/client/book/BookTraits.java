@@ -10,6 +10,7 @@ import java.util.TreeMap;
 import net.minecraft.resources.ResourceLocation;
 
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.trait.TraitFamilies;
 
 /**
  * The guide book's traits reference, read out of the material registry at book-open time (issue
@@ -19,9 +20,9 @@ import dev.gkissel.forgeweave.material.Material;
  *
  * <p>Nothing here holds a list of trait ids. The reference is whatever the loaded materials
  * actually name, so it follows a datapack that adds traits, a partner mod that registers them
- * ({@code TraitRegistry}), and issue #1103's merge of the duplicate ids into leveled families --
- * that merge shows up here as fewer entries with more materials under each, with no edit to this
- * class.
+ * ({@code TraitRegistry}), and issue #1103's leveled families -- that merge shows up here as fewer
+ * entries with more materials under each, and the families themselves come from
+ * {@link TraitFamilies}, so a rung is grouped by what it declares rather than by how it is spelled.
  */
 public final class BookTraits {
 
@@ -49,12 +50,12 @@ public final class BookTraits {
         }
 
         /**
-         * The family's display name: the lowest level's own {@code .name} string. Keyed off the id
-         * rather than off {@link #path} so a family whose lowest shipped level is level two still
-         * names a string that exists.
+         * The family's display name. A declared family has one name key for all its rungs, which is
+         * what {@link TraitFamilies#langBase} returns; an undeclared id keys off itself, so a family
+         * whose lowest shipped level is level two still names a string that exists.
          */
         public String nameKey() {
-            return "trait." + id().getNamespace() + "." + id().getPath() + ".name";
+            return TraitFamilies.langBase(id()) + ".name";
         }
 
         public int maxLevel() {
@@ -93,17 +94,34 @@ public final class BookTraits {
     }
 
     /**
-     * The family a trait id belongs to: its path with a trailing level number taken off, which is
-     * the shape upstream 1.12's {@code AbstractTraitLeveled} instances already have and the shape
-     * Forgeweave's twelve graded ids ship with today ({@code magnetic}/{@code magnetic2}).
+     * The family a trait id belongs to: the one it was declared in ({@link TraitFamilies#of}) where
+     * there is one, otherwise its path with a trailing level number taken off.
      *
-     * <p>ponytail: string-derived, not declared. Issue #1103 is adding
-     * {@code TraitFamilies.of(id)}, which returns the family a trait was declared in and so also
-     * catches the members whose names do not share a stem (a ported 1.12 name renamed in place).
-     * Swap the two lines below for that call once #1103 is merged; until then a family member with
-     * an unrelated name reads as its own one-level family, which is exactly what it reads as today.
+     * <p>Issue #1103 made the declaration the authority, which is what closes the gap the
+     * string-derived version left: a family whose members do not share a stem now groups correctly,
+     * and a rung that was renamed in place is found by its declared family rather than by its
+     * spelling. The trailing-digit reading stays as the fallback because two shipped ladders never
+     * declared themselves and do not need to -- {@code evolving}/{@code evolved}/{@code evolved2}/
+     * {@code evolved3} is a gate read by id ({@code ForgeweaveDraconicCompat#evolvedLevel}) and
+     * {@code alien}/{@code alien2} is a stateful pair -- and because the reference is built from
+     * whatever the loaded materials name, which can include a datapack's own undeclared ladder.
      */
     public static String familyOf(ResourceLocation trait) {
+        TraitFamilies.Rung declared = TraitFamilies.of(trait);
+        return declared != null ? declared.family() : trailingDigitFamily(trait);
+    }
+
+    /** The level a trait id carries: its declared level, or its trailing number, or 1. */
+    public static int levelOf(ResourceLocation trait) {
+        TraitFamilies.Rung declared = TraitFamilies.of(trait);
+        if (declared != null) {
+            return declared.level();
+        }
+        String digits = trait.getPath().substring(trailingDigitFamily(trait).length());
+        return digits.isEmpty() ? 1 : Integer.parseInt(digits);
+    }
+
+    private static String trailingDigitFamily(ResourceLocation trait) {
         String path = trait.getPath();
         int end = path.length();
         // At most two digits, so a level always parses and an id that simply ends in a year keeps
@@ -112,12 +130,5 @@ public final class BookTraits {
             end--;
         }
         return path.substring(0, end);
-    }
-
-    /** The level a trait id carries: its trailing number, or 1 when it has none. */
-    public static int levelOf(ResourceLocation trait) {
-        String path = trait.getPath();
-        String digits = path.substring(familyOf(trait).length());
-        return digits.isEmpty() ? 1 : Integer.parseInt(digits);
     }
 }

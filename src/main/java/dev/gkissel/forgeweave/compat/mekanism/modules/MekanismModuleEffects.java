@@ -278,7 +278,7 @@ public final class MekanismModuleEffects {
 
     /**
      * The FE an installed energy unit adds to {@code ForgeweaveTraits#energyCapacity}, so one buffer
-     * serves the metal's own {@code infused} trait and the module alike. Clamped to {@code int} because
+     * serves the metal's own {@code energized4} trait and the module alike. Clamped to {@code int} because
      * Mekanism counts energy in {@code long} and Forgeweave's buffer does not.
      */
     public static int moduleEnergyCapacity(ItemStack stack) {

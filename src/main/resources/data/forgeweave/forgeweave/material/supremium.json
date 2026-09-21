@@ -43,8 +43,12 @@
   "maille": true,
   "incorrect_for_tool": "forgeweave:incorrect_for_hardcinder_tool",
   "traits": {
-    "armor": ["forgeweave:supremium_ward"],
-    "general": ["forgeweave:supremium_edge"]
+    "armor": [
+      "forgeweave:magic_protection2"
+    ],
+    "general": [
+      "forgeweave:keen_edge2"
+    ]
   },
   "crafting_items": [
     {

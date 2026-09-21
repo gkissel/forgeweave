@@ -15,21 +15,52 @@
     "bonus_damage": 9.0
   },
   "plating": {
-    "helmet": { "durability": 250, "armor": 2.0 },
-    "chestplate": { "durability": 363, "armor": 7.0 },
-    "leggings": { "durability": 340, "armor": 5.0 },
-    "boots": { "durability": 295, "armor": 2.0 }
+    "helmet": {
+      "durability": 250,
+      "armor": 2.0
+    },
+    "chestplate": {
+      "durability": 363,
+      "armor": 7.0
+    },
+    "leggings": {
+      "durability": 340,
+      "armor": 5.0
+    },
+    "boots": {
+      "durability": 295,
+      "armor": 2.0
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:keenedge"],
-    "armor": ["forgeweave:warded"]
+    "general": [
+      "forgeweave:pristine"
+    ],
+    "armor": [
+      "forgeweave:warded"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:shardline_ingot" }, "value": 144 },
-    { "ingredient": { "item": "forgeweave:shardline_nugget" }, "value": 16 },
-    { "ingredient": { "item": "forgeweave:shardline_block" }, "value": 1296 }
+    {
+      "ingredient": {
+        "item": "forgeweave:shardline_ingot"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "item": "forgeweave:shardline_nugget"
+      },
+      "value": 16
+    },
+    {
+      "ingredient": {
+        "item": "forgeweave:shardline_block"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/shardline"

@@ -34,12 +34,12 @@ import dev.gkissel.forgeweave.material.Material;
  *   <li><b>{@code ferricore}</b> (the mod's own ingot, iron-equivalent harvest tier in the mod's
  *       own {@code GooTier}): the entry tier carries no Forge Energy battery at all -- its kit
  *       (ore/mob scanning, auto-mine assist, tree/leaf clearing, movement tweaks) spends durability,
- *       not energy. Echoed here with {@code forgeweave:ferricore_footing}, a datapack {@code
+ *       not energy. Echoed here with {@code forgeweave:sure_footing}, a datapack {@code
  *       trait_definition} over the existing {@code movement_bonus} behavior (step height), not a
  *       copy of the mod's own ability code.
  *   <li><b>{@code blazegold}</b> (the mod's own ingot, diamond-equivalent): every Blazegold item is
  *       fire-resistant and its signature abilities are an auto-smelter and lava-repair. Echoed with
- *       {@code forgeweave:blazegold_ember}, a {@code trait_definition} over {@code
+ *       {@code forgeweave:fireward}, a {@code trait_definition} over {@code
  *       damage_type_immunity} against {@code minecraft:is_fire}.
  *   <li><b>{@code celestigem}</b> (the mod's own gem item, diamond-equivalent): the mod's first
  *       FE-powered tier ({@code PoweredTool}), and the one gem-shaped material of the four -- the
@@ -48,12 +48,12 @@ import dev.gkissel.forgeweave.material.Material;
  *       Powah's crystals key on a concrete item id in {@code MaterialTest}. No molten fluid either,
  *       so celestigem is Part Builder only (no {@code cast_only}, no melting or casting rows), the
  *       same shape {@code blazing_crystal.json} already ships. Echoed with {@code
- *       forgeweave:celestigem_charge}, a {@code trait_definition} over {@code energized}.
+ *       forgeweave:energized2}, a {@code trait_definition} over {@code energized}.
  *   <li><b>{@code eclipsealloy}</b> (the mod's own ingot, netherite-equivalent): the top tier,
  *       {@code PoweredTool}/{@code PoweredItem} throughout with the largest FE reserves the mod
  *       ships, plus a death-protection ability on its chestplate. Echoed with two traits: {@code
- *       forgeweave:eclipsealloy_charge} ({@code energized} at the roster's largest capacity) and
- *       {@code forgeweave:eclipsealloy_ward} ({@code death_save}).
+ *       forgeweave:energized3} ({@code energized} at the roster's largest capacity) and
+ *       {@code forgeweave:lastbreath} ({@code death_save}).
  * </ul>
  *
  * <p>No nugget item exists for any of the four tiers, and the mod's storage-block tag is one flat

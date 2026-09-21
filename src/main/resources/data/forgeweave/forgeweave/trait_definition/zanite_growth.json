@@ -1,5 +1,0 @@
-{
-  "behavior": "forgeweave:stat_scales_with_wear",
-  "stat": "mining_speed",
-  "coefficient": 1.0
-}

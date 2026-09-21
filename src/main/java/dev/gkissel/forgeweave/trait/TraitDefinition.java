@@ -33,10 +33,21 @@ import dev.gkissel.forgeweave.api.trait.Trait;
  * into the static lookup every trait hook reads from, since those hooks get a bare {@code
  * ItemStack} and no registry access (see {@code ForgeweaveTraits}' class javadoc).
  *
+ * <p>Since issue #1103 a definition may also declare itself a rung of a leveled family, with the
+ * four optional fields {@link TraitFamilies.Rung}'s codec reads ({@code family}, {@code level},
+ * {@code max_level}, {@code description_args}). Leave them out for a trait that has its own name,
+ * which is what most of them are.
+ *
  * @param behavior which {@link TraitBehaviors} entry built {@link #trait}
  * @param trait the runtime behaviour, wired into every seam like a Java-registered trait
+ * @param rung the family and level this definition is, or {@link TraitFamilies.Rung#NONE}
  */
-public record TraitDefinition(ResourceLocation behavior, Trait trait) {
+public record TraitDefinition(ResourceLocation behavior, Trait trait, TraitFamilies.Rung rung) {
+
+    /** A definition with no family, which is the common case and what every test writes. */
+    public TraitDefinition(ResourceLocation behavior, Trait trait) {
+        this(behavior, trait, TraitFamilies.Rung.NONE);
+    }
 
     public static final ResourceKey<Registry<TraitDefinition>> REGISTRY =
             ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "trait_definition"));

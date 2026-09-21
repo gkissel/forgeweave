@@ -44,7 +44,7 @@
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
     "general": [
-      "forgeweave:fiery_ember"
+      "forgeweave:fireward"
     ]
   },
   "crafting_items": [

@@ -15,19 +15,43 @@
     "bonus_damage": 2.2
   },
   "plating": {
-    "helmet": { "durability": 238, "armor": 2.0 },
-    "chestplate": { "durability": 350, "armor": 5.0 },
-    "leggings": { "durability": 329, "armor": 4.0 },
-    "boots": { "durability": 280, "armor": 2.0 }
+    "helmet": {
+      "durability": 238,
+      "armor": 2.0
+    },
+    "chestplate": {
+      "durability": 350,
+      "armor": 5.0
+    },
+    "leggings": {
+      "durability": 329,
+      "armor": 4.0
+    },
+    "boots": {
+      "durability": 280,
+      "armor": 2.0
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:verdant_ward"]
+    "general": [
+      "forgeweave:heft2"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "actuallyadditions:emeradic_crystal" }, "value": 144 },
-    { "ingredient": { "tag": "c:storage_blocks/emeradic_crystal" }, "value": 1296 }
+    {
+      "ingredient": {
+        "item": "actuallyadditions:emeradic_crystal"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/emeradic_crystal"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "item": "actuallyadditions:emeradic_crystal"
@@ -35,6 +59,9 @@
   "enchantability": 16,
   "color": "#3FBF6B",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "actuallyadditions:emeradic_crystal" }
+    {
+      "type": "neoforge:item_exists",
+      "item": "actuallyadditions:emeradic_crystal"
+    }
   ]
 }

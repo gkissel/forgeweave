@@ -39,7 +39,7 @@ import dev.gkissel.forgeweave.material.Material;
  * dragon-scale {@code DRACO_ARCANUS} tier, which is not an ingot metal and is out of this batch's
  * scope. Forgeweave's own numbers sit at the netherite tier, inside the existing Track A envelope,
  * rather than a direct port of the mod's own unit scale. Echoed with {@code
- * forgeweave:deorum_temper}, a {@code stacking_resistance} matching the "reinforced by repeated
+ * forgeweave:bracingplate3}, a {@code stacking_resistance} matching the "reinforced by repeated
  * forge work" theme.
  */
 @GameTestHolder(Forgeweave.MODID)

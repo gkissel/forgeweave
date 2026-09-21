@@ -2,10 +2,17 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
   "traits": {
-    "general": ["forgeweave:vine_weave"]
+    "general": [
+      "forgeweave:ecological"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:vine" }, "value": 144 }
+    {
+      "ingredient": {
+        "item": "minecraft:vine"
+      },
+      "value": 144
+    }
   ],
   "repair_item": {
     "item": "minecraft:vine"

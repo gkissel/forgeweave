@@ -108,7 +108,7 @@ class MetalMaterialTest {
         assertEquals(List.of(id("lightweight")), cobalt.traits().general());
         // Issue #876 M6 dedupe batch: cobalt's head trait moved off the shared momentum to its own
         // voidwoven id (hepatizon keeps momentum).
-        assertEquals(List.of(id("voidwoven")), cobalt.traits().head());
+        assertEquals(List.of(id("fractured")), cobalt.traits().head());
     }
 
     // new HeadMaterialStats(990, 3.50f, 3.60f, COBALT), new HandleMaterialStats(1.40f, -200), new
@@ -158,7 +158,7 @@ class MetalMaterialTest {
         assertEquals(Optional.of(350), netherite.extraDurability());
         // #447 retired the `fireproof` trait this material used to carry: its only effect was fire
         // immunity for the dropped item entity, and every dropped tool is indestructible now.
-        assertEquals(List.of(id("reinforced_core")), netherite.traits().general());
+        assertEquals(List.of(id("writable2")), netherite.traits().general());
     }
 
     /**

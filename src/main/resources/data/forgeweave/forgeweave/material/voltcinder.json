@@ -15,21 +15,60 @@
     "bonus_damage": 3.0
   },
   "plating": {
-    "helmet": { "durability": 347, "armor": 2.0, "toughness": 1.0, "knockback_resistance": 0.05 },
-    "chestplate": { "durability": 504, "armor": 7.0, "toughness": 1.0, "knockback_resistance": 0.05 },
-    "leggings": { "durability": 473, "armor": 5.0, "toughness": 1.0, "knockback_resistance": 0.05 },
-    "boots": { "durability": 410, "armor": 2.0, "toughness": 1.0, "knockback_resistance": 0.05 }
+    "helmet": {
+      "durability": 347,
+      "armor": 2.0,
+      "toughness": 1.0,
+      "knockback_resistance": 0.05
+    },
+    "chestplate": {
+      "durability": 504,
+      "armor": 7.0,
+      "toughness": 1.0,
+      "knockback_resistance": 0.05
+    },
+    "leggings": {
+      "durability": 473,
+      "armor": 5.0,
+      "toughness": 1.0,
+      "knockback_resistance": 0.05
+    },
+    "boots": {
+      "durability": 410,
+      "armor": 2.0,
+      "toughness": 1.0,
+      "knockback_resistance": 0.05
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:overburdened"],
-    "armor": ["forgeweave:deadweight"]
+    "general": [
+      "forgeweave:overburdened"
+    ],
+    "armor": [
+      "forgeweave:heft2"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:voltcinder_ingot" }, "value": 144 },
-    { "ingredient": { "item": "forgeweave:voltcinder_nugget" }, "value": 16 },
-    { "ingredient": { "item": "forgeweave:voltcinder_block" }, "value": 1296 }
+    {
+      "ingredient": {
+        "item": "forgeweave:voltcinder_ingot"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "item": "forgeweave:voltcinder_nugget"
+      },
+      "value": 16
+    },
+    {
+      "ingredient": {
+        "item": "forgeweave:voltcinder_block"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/voltcinder"

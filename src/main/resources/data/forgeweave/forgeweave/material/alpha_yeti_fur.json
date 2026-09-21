@@ -40,7 +40,7 @@
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
     "general": [
-      "forgeweave:alpha_yeti_resilience"
+      "forgeweave:surgeward"
     ]
   },
   "crafting_items": [

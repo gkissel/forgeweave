@@ -17,7 +17,7 @@
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
     "general": [
-      "forgeweave:obsidian_heart"
+      "forgeweave:dominant"
     ]
   },
   "crafting_items": [

@@ -15,21 +15,60 @@
     "bonus_damage": 3.0
   },
   "plating": {
-    "helmet": { "durability": 360, "armor": 2.0, "toughness": 1.0, "knockback_resistance": 0.05 },
-    "chestplate": { "durability": 523, "armor": 7.0, "toughness": 1.0, "knockback_resistance": 0.05 },
-    "leggings": { "durability": 490, "armor": 5.0, "toughness": 1.0, "knockback_resistance": 0.05 },
-    "boots": { "durability": 425, "armor": 2.0, "toughness": 1.0, "knockback_resistance": 0.05 }
+    "helmet": {
+      "durability": 360,
+      "armor": 2.0,
+      "toughness": 1.0,
+      "knockback_resistance": 0.05
+    },
+    "chestplate": {
+      "durability": 523,
+      "armor": 7.0,
+      "toughness": 1.0,
+      "knockback_resistance": 0.05
+    },
+    "leggings": {
+      "durability": 490,
+      "armor": 5.0,
+      "toughness": 1.0,
+      "knockback_resistance": 0.05
+    },
+    "boots": {
+      "durability": 425,
+      "armor": 2.0,
+      "toughness": 1.0,
+      "knockback_resistance": 0.05
+    }
   },
   "maille": true,
   "incorrect_for_tool": "forgeweave:incorrect_for_hardcinder_tool",
   "traits": {
-    "general": ["forgeweave:leanharvest"],
-    "armor": ["forgeweave:depth_protection"]
+    "general": [
+      "forgeweave:leanharvest"
+    ],
+    "armor": [
+      "forgeweave:depth_protection"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:hardcinder_ingot" }, "value": 144 },
-    { "ingredient": { "item": "forgeweave:hardcinder_nugget" }, "value": 16 },
-    { "ingredient": { "item": "forgeweave:hardcinder_block" }, "value": 1296 }
+    {
+      "ingredient": {
+        "item": "forgeweave:hardcinder_ingot"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "item": "forgeweave:hardcinder_nugget"
+      },
+      "value": 16
+    },
+    {
+      "ingredient": {
+        "item": "forgeweave:hardcinder_block"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/hardcinder"

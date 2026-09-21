@@ -33,7 +33,7 @@ import dev.gkissel.forgeweave.material.Material;
  * toughness {@code 1.0f}, knockback resistance {@code 0.075f}, durability factor {@code 24}, between
  * vanilla iron's {@code 15} and diamond's {@code 33}) -- so Forgeweave's tool-part stats sit at the
  * iron tier by placement, not by a ported number. Echoed with {@code
- * forgeweave:compressed_iron_heft}, a {@code damage_floor} guaranteeing a minimum hit, matching the
+ * forgeweave:heft}, a {@code damage_floor} guaranteeing a minimum hit, matching the
  * "compressed, heavy metal" theme the armor's above-iron toughness implies.
  */
 @GameTestHolder(Forgeweave.MODID)
