@@ -43,8 +43,12 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "armor": ["forgeweave:ludicrite_meltdown"],
-    "general": ["forgeweave:ludicrite_surge"]
+    "armor": [
+      "forgeweave:witherward"
+    ],
+    "general": [
+      "forgeweave:arcing"
+    ]
   },
   "crafting_items": [
     {

@@ -43,8 +43,12 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:dragonsteel_lightning_surge"],
-    "armor": ["forgeweave:stormward"]
+    "general": [
+      "forgeweave:surging2"
+    ],
+    "armor": [
+      "forgeweave:stormward"
+    ]
   },
   "crafting_items": [
     {

@@ -15,19 +15,47 @@
     "bonus_damage": 6.5
   },
   "plating": {
-    "helmet": { "durability": 300, "armor": 3.0, "toughness": 2.0 },
-    "chestplate": { "durability": 440, "armor": 8.0, "toughness": 2.0 },
-    "leggings": { "durability": 410, "armor": 6.0, "toughness": 2.0 },
-    "boots": { "durability": 356, "armor": 3.0, "toughness": 2.0 }
+    "helmet": {
+      "durability": 300,
+      "armor": 3.0,
+      "toughness": 2.0
+    },
+    "chestplate": {
+      "durability": 440,
+      "armor": 8.0,
+      "toughness": 2.0
+    },
+    "leggings": {
+      "durability": 410,
+      "armor": 6.0,
+      "toughness": 2.0
+    },
+    "boots": {
+      "durability": 356,
+      "armor": 3.0,
+      "toughness": 2.0
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:celestigem_charge"]
+    "general": [
+      "forgeweave:energized2"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "justdirethings:celestigem" }, "value": 144 },
-    { "ingredient": { "item": "justdirethings:celestigem_block" }, "value": 1296 }
+    {
+      "ingredient": {
+        "item": "justdirethings:celestigem"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "item": "justdirethings:celestigem_block"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "item": "justdirethings:celestigem"

@@ -15,19 +15,47 @@
     "bonus_damage": 6.2
   },
   "plating": {
-    "helmet": { "durability": 230, "armor": 3.0, "toughness": 1.0 },
-    "chestplate": { "durability": 340, "armor": 7.0, "toughness": 1.0 },
-    "leggings": { "durability": 318, "armor": 6.0, "toughness": 1.0 },
-    "boots": { "durability": 276, "armor": 3.0, "toughness": 1.0 }
+    "helmet": {
+      "durability": 230,
+      "armor": 3.0,
+      "toughness": 1.0
+    },
+    "chestplate": {
+      "durability": 340,
+      "armor": 7.0,
+      "toughness": 1.0
+    },
+    "leggings": {
+      "durability": 318,
+      "armor": 6.0,
+      "toughness": 1.0
+    },
+    "boots": {
+      "durability": 276,
+      "armor": 3.0,
+      "toughness": 1.0
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
-    "general": ["forgeweave:blaze_gold_cinder"]
+    "general": [
+      "forgeweave:fireward"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:ingots/blaze_gold" }, "value": 144 },
-    { "ingredient": { "tag": "c:storage_blocks/blaze_gold" }, "value": 1296 }
+    {
+      "ingredient": {
+        "tag": "c:ingots/blaze_gold"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/blaze_gold"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/blaze_gold"

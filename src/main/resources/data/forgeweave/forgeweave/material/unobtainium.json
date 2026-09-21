@@ -15,19 +15,48 @@
     "bonus_damage": 4.5
   },
   "plating": {
-    "helmet": { "durability": 360, "armor": 3.0, "toughness": 1.5, "knockback_resistance": 0.05 },
-    "chestplate": { "durability": 520, "armor": 8.0, "toughness": 1.5, "knockback_resistance": 0.05 },
-    "leggings": { "durability": 490, "armor": 6.0, "toughness": 1.5, "knockback_resistance": 0.05 },
-    "boots": { "durability": 425, "armor": 3.0, "toughness": 1.5, "knockback_resistance": 0.05 }
+    "helmet": {
+      "durability": 360,
+      "armor": 3.0,
+      "toughness": 1.5,
+      "knockback_resistance": 0.05
+    },
+    "chestplate": {
+      "durability": 520,
+      "armor": 8.0,
+      "toughness": 1.5,
+      "knockback_resistance": 0.05
+    },
+    "leggings": {
+      "durability": 490,
+      "armor": 6.0,
+      "toughness": 1.5,
+      "knockback_resistance": 0.05
+    },
+    "boots": {
+      "durability": 425,
+      "armor": 3.0,
+      "toughness": 1.5,
+      "knockback_resistance": 0.05
+    }
   },
   "maille": true,
   "incorrect_for_tool": "forgeweave:incorrect_for_resonite_tool",
   "traits": {
-    "general": ["forgeweave:unraveling3"],
-    "armor": ["forgeweave:unravelward"]
+    "general": [
+      "forgeweave:unraveling3"
+    ],
+    "armor": [
+      "forgeweave:voidward"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:ingots/unobtainium" }, "value": 144 }
+    {
+      "ingredient": {
+        "tag": "c:ingots/unobtainium"
+      },
+      "value": 144
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/unobtainium"
@@ -36,6 +65,9 @@
   "enchantability": 10,
   "color": "#C724B1",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "allthemodium:unobtainium_ingot" }
+    {
+      "type": "neoforge:item_exists",
+      "item": "allthemodium:unobtainium_ingot"
+    }
   ]
 }

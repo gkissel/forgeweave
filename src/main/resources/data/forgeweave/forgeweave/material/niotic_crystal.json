@@ -15,18 +15,45 @@
     "bonus_damage": 5.4
   },
   "plating": {
-    "helmet": { "durability": 370, "armor": 3.0, "toughness": 1.5, "knockback_resistance": 0.07 },
-    "chestplate": { "durability": 540, "armor": 8.0, "toughness": 1.5, "knockback_resistance": 0.07 },
-    "leggings": { "durability": 505, "armor": 6.0, "toughness": 1.5, "knockback_resistance": 0.07 },
-    "boots": { "durability": 430, "armor": 3.0, "toughness": 1.5, "knockback_resistance": 0.07 }
+    "helmet": {
+      "durability": 370,
+      "armor": 3.0,
+      "toughness": 1.5,
+      "knockback_resistance": 0.07
+    },
+    "chestplate": {
+      "durability": 540,
+      "armor": 8.0,
+      "toughness": 1.5,
+      "knockback_resistance": 0.07
+    },
+    "leggings": {
+      "durability": 505,
+      "armor": 6.0,
+      "toughness": 1.5,
+      "knockback_resistance": 0.07
+    },
+    "boots": {
+      "durability": 430,
+      "armor": 3.0,
+      "toughness": 1.5,
+      "knockback_resistance": 0.07
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:niotic_charge"]
+    "general": [
+      "forgeweave:energized2"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "powah:crystal_niotic" }, "value": 144 }
+    {
+      "ingredient": {
+        "item": "powah:crystal_niotic"
+      },
+      "value": 144
+    }
   ],
   "repair_item": {
     "item": "powah:crystal_niotic"
@@ -34,6 +61,9 @@
   "enchantability": 14,
   "color": "#8B5FBF",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "powah:crystal_niotic" }
+    {
+      "type": "neoforge:item_exists",
+      "item": "powah:crystal_niotic"
+    }
   ]
 }

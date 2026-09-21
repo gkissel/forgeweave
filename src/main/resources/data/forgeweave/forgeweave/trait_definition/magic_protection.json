@@ -1,5 +1,10 @@
 {
   "behavior": "forgeweave:protection",
   "damage_type": "forgeweave:magic_protection",
-  "amount": 2.5
+  "amount": 3.0,
+  "family": "magic_protection",
+  "max_level": 3,
+  "description_args": [
+    "3"
+  ]
 }

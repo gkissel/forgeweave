@@ -44,8 +44,8 @@
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
     "general": [
-      "forgeweave:eclipsealloy_charge",
-      "forgeweave:eclipsealloy_ward"
+      "forgeweave:energized3",
+      "forgeweave:lastbreath"
     ]
   },
   "crafting_items": [

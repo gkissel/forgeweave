@@ -1,0 +1,9 @@
+{
+  "behavior": "forgeweave:bonus_damage_vs",
+  "amount": 2.0,
+  "family": "keen_edge",
+  "max_level": 4,
+  "description_args": [
+    "2"
+  ]
+}

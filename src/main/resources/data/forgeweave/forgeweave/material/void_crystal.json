@@ -15,20 +15,46 @@
     "bonus_damage": 2.2
   },
   "plating": {
-    "helmet": { "durability": 238, "armor": 2.0 },
-    "chestplate": { "durability": 350, "armor": 5.0 },
-    "leggings": { "durability": 329, "armor": 4.0 },
-    "boots": { "durability": 280, "armor": 2.0 }
+    "helmet": {
+      "durability": 238,
+      "armor": 2.0
+    },
+    "chestplate": {
+      "durability": 350,
+      "armor": 5.0
+    },
+    "leggings": {
+      "durability": 329,
+      "armor": 4.0
+    },
+    "boots": {
+      "durability": 280,
+      "armor": 2.0
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:voidtouched"],
-    "armor": ["forgeweave:voidward"]
+    "general": [
+      "forgeweave:fractured"
+    ],
+    "armor": [
+      "forgeweave:voidward"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "actuallyadditions:void_crystal" }, "value": 144 },
-    { "ingredient": { "tag": "c:storage_blocks/void_crystal" }, "value": 1296 }
+    {
+      "ingredient": {
+        "item": "actuallyadditions:void_crystal"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/void_crystal"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "item": "actuallyadditions:void_crystal"
@@ -36,6 +62,9 @@
   "enchantability": 16,
   "color": "#241933",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "actuallyadditions:void_crystal" }
+    {
+      "type": "neoforge:item_exists",
+      "item": "actuallyadditions:void_crystal"
+    }
   ]
 }

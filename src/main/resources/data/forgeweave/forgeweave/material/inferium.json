@@ -35,8 +35,12 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
   "traits": {
-    "armor": ["forgeweave:inferium_ward"],
-    "general": ["forgeweave:inferium_edge"]
+    "armor": [
+      "forgeweave:magic_protection"
+    ],
+    "general": [
+      "forgeweave:keen_edge"
+    ]
   },
   "crafting_items": [
     {

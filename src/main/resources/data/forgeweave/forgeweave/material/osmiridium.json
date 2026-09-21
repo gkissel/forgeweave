@@ -15,20 +15,57 @@
     "bonus_damage": 5.0
   },
   "plating": {
-    "helmet": { "durability": 400, "armor": 3.0, "toughness": 1.0, "knockback_resistance": 0.05 },
-    "chestplate": { "durability": 580, "armor": 8.0, "toughness": 1.0, "knockback_resistance": 0.05 },
-    "leggings": { "durability": 545, "armor": 6.0, "toughness": 1.0, "knockback_resistance": 0.05 },
-    "boots": { "durability": 470, "armor": 3.0, "toughness": 1.0, "knockback_resistance": 0.05 }
+    "helmet": {
+      "durability": 400,
+      "armor": 3.0,
+      "toughness": 1.0,
+      "knockback_resistance": 0.05
+    },
+    "chestplate": {
+      "durability": 580,
+      "armor": 8.0,
+      "toughness": 1.0,
+      "knockback_resistance": 0.05
+    },
+    "leggings": {
+      "durability": 545,
+      "armor": 6.0,
+      "toughness": 1.0,
+      "knockback_resistance": 0.05
+    },
+    "boots": {
+      "durability": 470,
+      "armor": 3.0,
+      "toughness": 1.0,
+      "knockback_resistance": 0.05
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:ballast"]
+    "general": [
+      "forgeweave:heft2"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:osmiridium_ingot" }, "value": 144 },
-    { "ingredient": { "item": "forgeweave:osmiridium_nugget" }, "value": 16 },
-    { "ingredient": { "item": "forgeweave:osmiridium_block" }, "value": 1296 }
+    {
+      "ingredient": {
+        "item": "forgeweave:osmiridium_ingot"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "item": "forgeweave:osmiridium_nugget"
+      },
+      "value": 16
+    },
+    {
+      "ingredient": {
+        "item": "forgeweave:osmiridium_block"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/osmiridium"
@@ -37,7 +74,13 @@
   "enchantability": 16,
   "color": "#C0A4D5",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "mekanism:ingot_osmium" },
-    { "type": "neoforge:item_exists", "item": "modern_industrialization:iridium_ingot" }
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:ingot_osmium"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "modern_industrialization:iridium_ingot"
+    }
   ]
 }

@@ -15,19 +15,44 @@
     "bonus_damage": 6.2
   },
   "plating": {
-    "helmet": { "durability": 310, "armor": 3.0, "toughness": 2.0 },
-    "chestplate": { "durability": 455, "armor": 8.0, "toughness": 2.0 },
-    "leggings": { "durability": 426, "armor": 6.0, "toughness": 2.0 },
-    "boots": { "durability": 369, "armor": 3.0, "toughness": 2.0 }
+    "helmet": {
+      "durability": 310,
+      "armor": 3.0,
+      "toughness": 2.0
+    },
+    "chestplate": {
+      "durability": 455,
+      "armor": 8.0,
+      "toughness": 2.0
+    },
+    "leggings": {
+      "durability": 426,
+      "armor": 6.0,
+      "toughness": 2.0
+    },
+    "boots": {
+      "durability": 369,
+      "armor": 3.0,
+      "toughness": 2.0
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:gravitite_dive"],
-    "armor": ["forgeweave:gravitite_levity"]
+    "general": [
+      "forgeweave:kinetic"
+    ],
+    "armor": [
+      "forgeweave:gravitite_levity"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "aether:enchanted_gravitite" }, "value": 144 }
+    {
+      "ingredient": {
+        "item": "aether:enchanted_gravitite"
+      },
+      "value": 144
+    }
   ],
   "repair_item": {
     "item": "aether:enchanted_gravitite"

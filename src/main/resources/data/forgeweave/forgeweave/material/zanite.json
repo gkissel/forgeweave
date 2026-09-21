@@ -15,19 +15,47 @@
     "bonus_damage": 6.4
   },
   "plating": {
-    "helmet": { "durability": 225, "armor": 3.0, "toughness": 1.0 },
-    "chestplate": { "durability": 330, "armor": 7.0, "toughness": 1.0 },
-    "leggings": { "durability": 310, "armor": 6.0, "toughness": 1.0 },
-    "boots": { "durability": 268, "armor": 3.0, "toughness": 1.0 }
+    "helmet": {
+      "durability": 225,
+      "armor": 3.0,
+      "toughness": 1.0
+    },
+    "chestplate": {
+      "durability": 330,
+      "armor": 7.0,
+      "toughness": 1.0
+    },
+    "leggings": {
+      "durability": 310,
+      "armor": 6.0,
+      "toughness": 1.0
+    },
+    "boots": {
+      "durability": 268,
+      "armor": 3.0,
+      "toughness": 1.0
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
-    "general": ["forgeweave:zanite_growth"]
+    "general": [
+      "forgeweave:stonebound"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "aether:zanite_gemstone" }, "value": 144 },
-    { "ingredient": { "item": "aether:zanite_block" }, "value": 1296 }
+    {
+      "ingredient": {
+        "item": "aether:zanite_gemstone"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "item": "aether:zanite_block"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "item": "aether:zanite_gemstone"

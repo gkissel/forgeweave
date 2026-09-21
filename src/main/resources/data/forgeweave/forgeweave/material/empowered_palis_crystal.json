@@ -15,20 +15,50 @@
     "bonus_damage": 5.0
   },
   "plating": {
-    "helmet": { "durability": 380, "armor": 3.0, "toughness": 2.0 },
-    "chestplate": { "durability": 555, "armor": 8.0, "toughness": 2.0 },
-    "leggings": { "durability": 520, "armor": 7.0, "toughness": 2.0 },
-    "boots": { "durability": 450, "armor": 3.0, "toughness": 2.0 }
+    "helmet": {
+      "durability": 380,
+      "armor": 3.0,
+      "toughness": 2.0
+    },
+    "chestplate": {
+      "durability": 555,
+      "armor": 8.0,
+      "toughness": 2.0
+    },
+    "leggings": {
+      "durability": 520,
+      "armor": 7.0,
+      "toughness": 2.0
+    },
+    "boots": {
+      "durability": 450,
+      "armor": 3.0,
+      "toughness": 2.0
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:empowered_palis_tempest"],
-    "armor": ["forgeweave:swiftward"]
+    "general": [
+      "forgeweave:kinetic2"
+    ],
+    "armor": [
+      "forgeweave:swiftward"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "actuallyadditions:empowered_palis_crystal" }, "value": 144 },
-    { "ingredient": { "tag": "c:storage_blocks/empowered_palis_crystal" }, "value": 1296 }
+    {
+      "ingredient": {
+        "item": "actuallyadditions:empowered_palis_crystal"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/empowered_palis_crystal"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "item": "actuallyadditions:empowered_palis_crystal"
@@ -36,6 +66,9 @@
   "enchantability": 20,
   "color": "#5171FF",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "actuallyadditions:empowered_palis_crystal" }
+    {
+      "type": "neoforge:item_exists",
+      "item": "actuallyadditions:empowered_palis_crystal"
+    }
   ]
 }

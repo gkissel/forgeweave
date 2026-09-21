@@ -15,19 +15,51 @@
     "bonus_damage": 8.5
   },
   "plating": {
-    "helmet": { "durability": 360, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 },
-    "chestplate": { "durability": 530, "armor": 8.0, "toughness": 3.0, "knockback_resistance": 0.1 },
-    "leggings": { "durability": 497, "armor": 6.0, "toughness": 3.0, "knockback_resistance": 0.1 },
-    "boots": { "durability": 432, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 }
+    "helmet": {
+      "durability": 360,
+      "armor": 3.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
+    },
+    "chestplate": {
+      "durability": 530,
+      "armor": 8.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
+    },
+    "leggings": {
+      "durability": 497,
+      "armor": 6.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
+    },
+    "boots": {
+      "durability": 432,
+      "armor": 3.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:crimson_steel_temper"]
+    "general": [
+      "forgeweave:fireward"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:ingots/crimson_steel" }, "value": 144 },
-    { "ingredient": { "tag": "c:storage_blocks/crimson_steel" }, "value": 1296 }
+    {
+      "ingredient": {
+        "tag": "c:ingots/crimson_steel"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/crimson_steel"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/crimson_steel"

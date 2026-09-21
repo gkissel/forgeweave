@@ -15,19 +15,51 @@
     "bonus_damage": 8.0
   },
   "plating": {
-    "helmet": { "durability": 375, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 },
-    "chestplate": { "durability": 552, "armor": 8.0, "toughness": 3.0, "knockback_resistance": 0.1 },
-    "leggings": { "durability": 517, "armor": 6.0, "toughness": 3.0, "knockback_resistance": 0.1 },
-    "boots": { "durability": 449, "armor": 3.0, "toughness": 3.0, "knockback_resistance": 0.1 }
+    "helmet": {
+      "durability": 375,
+      "armor": 3.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
+    },
+    "chestplate": {
+      "durability": 552,
+      "armor": 8.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
+    },
+    "leggings": {
+      "durability": 517,
+      "armor": 6.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
+    },
+    "boots": {
+      "durability": 449,
+      "armor": 3.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:deorum_temper"]
+    "general": [
+      "forgeweave:bracingplate3"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:ingots/deorum" }, "value": 144 },
-    { "ingredient": { "tag": "c:storage_blocks/deorum" }, "value": 1296 }
+    {
+      "ingredient": {
+        "tag": "c:ingots/deorum"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/deorum"
+      },
+      "value": 1296
+    }
   ],
   "repair_item": {
     "tag": "c:ingots/deorum"

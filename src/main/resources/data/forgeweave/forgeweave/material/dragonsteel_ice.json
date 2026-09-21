@@ -44,7 +44,7 @@
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
     "general": [
-      "forgeweave:dragonsteel_ice_calm"
+      "forgeweave:bracingplate"
     ]
   },
   "crafting_items": [

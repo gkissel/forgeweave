@@ -15,18 +15,45 @@
     "bonus_damage": 5.0
   },
   "plating": {
-    "helmet": { "durability": 340, "armor": 3.0, "toughness": 1.0, "knockback_resistance": 0.05 },
-    "chestplate": { "durability": 500, "armor": 8.0, "toughness": 1.0, "knockback_resistance": 0.05 },
-    "leggings": { "durability": 470, "armor": 6.0, "toughness": 1.0, "knockback_resistance": 0.05 },
-    "boots": { "durability": 400, "armor": 3.0, "toughness": 1.0, "knockback_resistance": 0.05 }
+    "helmet": {
+      "durability": 340,
+      "armor": 3.0,
+      "toughness": 1.0,
+      "knockback_resistance": 0.05
+    },
+    "chestplate": {
+      "durability": 500,
+      "armor": 8.0,
+      "toughness": 1.0,
+      "knockback_resistance": 0.05
+    },
+    "leggings": {
+      "durability": 470,
+      "armor": 6.0,
+      "toughness": 1.0,
+      "knockback_resistance": 0.05
+    },
+    "boots": {
+      "durability": 400,
+      "armor": 3.0,
+      "toughness": 1.0,
+      "knockback_resistance": 0.05
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:blazing_charge"]
+    "general": [
+      "forgeweave:energized"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "powah:crystal_blazing" }, "value": 144 }
+    {
+      "ingredient": {
+        "item": "powah:crystal_blazing"
+      },
+      "value": 144
+    }
   ],
   "repair_item": {
     "item": "powah:crystal_blazing"
@@ -34,6 +61,9 @@
   "enchantability": 13,
   "color": "#FF7A29",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "powah:crystal_blazing" }
+    {
+      "type": "neoforge:item_exists",
+      "item": "powah:crystal_blazing"
+    }
   ]
 }

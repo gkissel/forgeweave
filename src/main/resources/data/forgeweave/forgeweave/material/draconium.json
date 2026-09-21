@@ -43,8 +43,12 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:batteredge"],
-    "armor": ["forgeweave:surgeward"]
+    "general": [
+      "forgeweave:surging2"
+    ],
+    "armor": [
+      "forgeweave:surgeward"
+    ]
   },
   "crafting_items": [
     {

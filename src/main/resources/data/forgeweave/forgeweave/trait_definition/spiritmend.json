@@ -1,5 +1,0 @@
-{
-  "behavior": "forgeweave:self_repair_when",
-  "condition": "night",
-  "ticks_per_point": 600
-}

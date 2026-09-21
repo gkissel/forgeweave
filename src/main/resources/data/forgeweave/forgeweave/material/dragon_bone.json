@@ -35,8 +35,12 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
   "traits": {
-    "general": ["forgeweave:dragonbone_edge"],
-    "armor": ["forgeweave:surgeward"]
+    "general": [
+      "forgeweave:ruthless"
+    ],
+    "armor": [
+      "forgeweave:surgeward"
+    ]
   },
   "crafting_items": [
     {

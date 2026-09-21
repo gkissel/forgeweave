@@ -15,19 +15,40 @@
     "bonus_damage": 0.0
   },
   "plating": {
-    "helmet": { "durability": 58, "armor": 1.0 },
-    "chestplate": { "durability": 85, "armor": 3.0 },
-    "leggings": { "durability": 80, "armor": 2.0 },
-    "boots": { "durability": 68, "armor": 1.0 }
+    "helmet": {
+      "durability": 58,
+      "armor": 1.0
+    },
+    "chestplate": {
+      "durability": 85,
+      "armor": 3.0
+    },
+    "leggings": {
+      "durability": 80,
+      "armor": 2.0
+    },
+    "boots": {
+      "durability": 68,
+      "armor": 1.0
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_wooden_tool",
   "traits": {
-    "general": ["forgeweave:buoyant"],
-    "armor": ["forgeweave:swiftward"]
+    "general": [
+      "forgeweave:steelfast"
+    ],
+    "armor": [
+      "forgeweave:swiftward"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:rods/plastic" }, "value": 144 }
+    {
+      "ingredient": {
+        "tag": "c:rods/plastic"
+      },
+      "value": 144
+    }
   ],
   "repair_item": {
     "tag": "c:rods/plastic"
@@ -35,6 +56,9 @@
   "enchantability": 10,
   "color": "#EDE7D9",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "mekanism:hdpe_stick" }
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:hdpe_stick"
+    }
   ]
 }

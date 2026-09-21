@@ -1,0 +1,9 @@
+{
+  "behavior": "forgeweave:knockback_resistance",
+  "resistance": 0.25,
+  "family": "heft",
+  "max_level": 3,
+  "description_args": [
+    "25"
+  ]
+}

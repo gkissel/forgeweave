@@ -39,8 +39,12 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:steeleaf_precision"],
-    "armor": ["forgeweave:surgeward"]
+    "general": [
+      "forgeweave:ruthless"
+    ],
+    "armor": [
+      "forgeweave:surgeward"
+    ]
   },
   "crafting_items": [
     {

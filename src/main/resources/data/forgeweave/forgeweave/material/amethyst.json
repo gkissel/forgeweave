@@ -15,18 +15,37 @@
     "bonus_damage": 1.5
   },
   "plating": {
-    "helmet": { "durability": 170, "armor": 1.0 },
-    "chestplate": { "durability": 245, "armor": 4.0 },
-    "leggings": { "durability": 230, "armor": 3.0 },
-    "boots": { "durability": 200, "armor": 1.0 }
+    "helmet": {
+      "durability": 170,
+      "armor": 1.0
+    },
+    "chestplate": {
+      "durability": 245,
+      "armor": 4.0
+    },
+    "leggings": {
+      "durability": 230,
+      "armor": 3.0
+    },
+    "boots": {
+      "durability": 200,
+      "armor": 1.0
+    }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
   "traits": {
-    "general": ["forgeweave:prismward"]
+    "general": [
+      "forgeweave:heft"
+    ]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:gems/amethyst" }, "value": 100 }
+    {
+      "ingredient": {
+        "tag": "c:gems/amethyst"
+      },
+      "value": 100
+    }
   ],
   "repair_item": {
     "tag": "c:gems/amethyst"
