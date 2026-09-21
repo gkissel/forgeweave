@@ -5,6 +5,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 
 import dev.gkissel.forgeweave.api.combat.CombatHit;
 import dev.gkissel.forgeweave.api.combat.CombatSeam;
+import dev.gkissel.forgeweave.trait.TraitFeedback;
 
 /**
  * A landed hit temporarily attenuates healing the target receives -- ADR-0004's M6 on-hit effect
@@ -31,5 +32,6 @@ public record ReduceTargetHealing(float fraction, int durationTicks) implements 
         int percent = Math.round(Mth.clamp(fraction, 0.0F, 1.0F) * 100.0F);
         hit.target().addEffect(
                 new MobEffectInstance(ForgeweaveMobEffects.REDUCED_HEALING, durationTicks, percent));
+        TraitFeedback.fire(this, TraitFeedback.Kind.AFFLICT, hit.level(), hit.target());
     }
 }

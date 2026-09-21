@@ -72,6 +72,16 @@ public final class ForgeweaveClientConfig {
      */
     public static final ModConfigSpec.EnumValue<StationPreviewModel> STATION_PREVIEW_MODEL;
 
+    /**
+     * Issue #1112, Forgeweave's own (no upstream counterpart): whether a trait firing draws its
+     * particle and plays its sound. Read only by
+     * {@code dev.gkissel.forgeweave.trait.TraitFeedbackPayload}'s client-bound handler, which is why
+     * the feedback rides a payload of ours rather than a vanilla particle broadcast -- a server has
+     * no access to this value and a vanilla particle carries nothing a client could filter on. See
+     * that class's javadoc.
+     */
+    public static final ModConfigSpec.BooleanValue TRAIT_FEEDBACK;
+
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
@@ -98,6 +108,10 @@ public final class ForgeweaveClientConfig {
                 .comment("What the Tool Station, Tool Forge and Modifier Worktable preview their result on.",
                         "ARMOR_STAND is an armor stand; PLAYER is your own character, in your skin.")
                 .defineEnum("stationPreviewModel", StationPreviewModel.DEFAULT);
+        TRAIT_FEEDBACK = builder
+                .comment("If true, a trait firing draws a small particle and plays a quiet sound. Set to false to",
+                        "see and hear nothing when a trait fires.")
+                .define("traitFeedback", true);
 
         SPEC = builder.build();
     }

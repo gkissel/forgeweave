@@ -3756,6 +3756,7 @@ public final class ForgeweaveTraits {
     public static void onTagsUpdated(TagsUpdatedEvent event) {
         Map<ResourceLocation, Trait> loaded = new LinkedHashMap<>();
         Map<ResourceLocation, TraitFamilies.Rung> rungs = new LinkedHashMap<>();
+        Map<ResourceLocation, TraitDefinition> definitions = new LinkedHashMap<>();
         event.getRegistryAccess().registry(TraitDefinition.REGISTRY).ifPresent(registry -> registry.entrySet()
                 .forEach(entry -> {
                     ResourceLocation id = entry.getKey().location();
@@ -3765,10 +3766,13 @@ public final class ForgeweaveTraits {
                     } else {
                         loaded.put(id, entry.getValue().trait());
                         rungs.put(id, entry.getValue().rung());
+                        definitions.put(id, entry.getValue());
                     }
                 }));
         DATAPACK = Map.copyOf(loaded);
         TraitFamilies.datapack(rungs);
+        // #1112: the particle/sound overrides, keyed by the behaviour object a proc site hands back.
+        TraitFeedback.datapack(definitions);
         WARNED_UNKNOWN.clear();
         if (!loaded.isEmpty()) {
             LOGGER.info("Loaded {} datapack trait definitions: {}", loaded.size(), loaded.keySet());

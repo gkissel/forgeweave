@@ -8,6 +8,7 @@ import net.minecraft.world.phys.AABB;
 
 import dev.gkissel.forgeweave.api.combat.CombatHit;
 import dev.gkissel.forgeweave.api.combat.CombatSeam;
+import dev.gkissel.forgeweave.trait.TraitFeedback;
 
 /**
  * A landed hit arcs on to the nearest other enemies around the target -- ADR-0004's M6 on-hit effect
@@ -59,6 +60,7 @@ public record ChainArc(double range, float damageFraction, int maxTargets) imple
                     break;
                 }
                 victim.hurt(hit.source(), splash);
+                TraitFeedback.fire(this, TraitFeedback.Kind.SHOCK, hit.level(), victim);
                 struck++;
             }
         } finally {
