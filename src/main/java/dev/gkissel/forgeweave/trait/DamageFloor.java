@@ -32,7 +32,7 @@ public record DamageFloor(float minimumHearts) implements Trait {
         float floor = Math.min(minimumHearts * 2.0F, blow.originalDamage());
         if (blow.damage() < floor) {
             blow.setDamage(floor);
-            // #1112: a drawback the wearer should be able to feel, not just read.
+            // #1112: the wearer should be able to tell their own armor made the blow worse.
             TraitFeedback.fire(this, TraitFeedback.Kind.STRIKE, defense.level(), defense.defender());
         }
     }

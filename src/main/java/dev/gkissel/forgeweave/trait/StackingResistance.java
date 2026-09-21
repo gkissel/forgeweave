@@ -58,10 +58,9 @@ public record StackingResistance(float perHit, int cap, int decayTicks) implemen
     /**
      * Issue #1112: how braced the piece is right now, and how much further it can get. Quoted as a
      * percentage of the post-armor blow, the unit {@code bracingplate}'s own description already
-     * uses, because the raw point is meaningless to a player ({@code 1} point is a
-     * {@value #PERCENT_PER_POINT}th). No line at all while the stacks have lapsed -- there is no
-     * number to report, and this trait deliberately gets no proc cue (see {@link TraitFeedback}: a
-     * cue on every blow taken would be noise).
+     * uses, because one protection point on its own means nothing to a player. No line at all while
+     * the stacks have lapsed -- there is no number to report, and this trait deliberately gets no
+     * proc cue (see {@link TraitFeedback}: a cue on every blow taken would be noise).
      */
     @Override
     public void stateLines(ItemStack stack, Consumer<Component> out) {

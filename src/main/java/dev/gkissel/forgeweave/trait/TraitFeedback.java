@@ -26,10 +26,10 @@ import dev.gkissel.forgeweave.particle.ForgeweaveParticles;
  * The one call a trait makes when it actually does something: a particle and a quiet sound over
  * whoever it happened to, rate-limited, broadcast to everyone nearby (issue #1112).
  *
- * <p>Before this, 14 of 303 trait ids gave the player any signal at all, so a working trait and a
- * missing one looked the same. The fix is one helper rather than 300 edits: every proc goes through
- * {@link #fire}, called from the shared behaviour and seam classes the whole roster is built out of,
- * so a trait id that never appears in this package still announces itself.
+ * <p>One helper rather than one edit per trait id: every proc goes through {@link #fire}, called
+ * from the shared behaviour and seam classes the whole roster is built out of, so a trait id that
+ * never appears in this package still announces itself. Issue #1112 measured 14 of 303 ids giving
+ * the player any signal, which is why the call sites are the seams and not the traits.
  *
  * <h2>What gets feedback and what does not</h2>
  *

@@ -110,7 +110,7 @@ public final class ForgeweaveClientConfig {
                 .defineEnum("stationPreviewModel", StationPreviewModel.DEFAULT);
         TRAIT_FEEDBACK = builder
                 .comment("If true, a trait firing draws a small particle and plays a quiet sound. Set to false to",
-                        "see and hear nothing when a trait procs.")
+                        "see and hear nothing when a trait fires.")
                 .define("traitFeedback", true);
 
         SPEC = builder.build();

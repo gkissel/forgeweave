@@ -53,8 +53,8 @@ public record FertilizeOnUse(int durabilityCost, float chance) implements Trait 
         bonemealable.performBonemeal(serverLevel, serverLevel.getRandom(), pos, state);
         level.levelEvent(GROWTH_PARTICLES_EVENT, pos, GROWTH_PARTICLES_DATA);
         stack.hurtAndBreak(durabilityCost, player, EquipmentSlot.MAINHAND);
-        // #1112: vanilla's growth particles above are silent and identical to a hand-held bone
-        // meal, so the cue is what says the trait rather than the item did it.
+        // #1112: vanilla's growth particles above are silent and look the same as a hand-held bone
+        // meal's, so the sound is what tells the player a trait did this.
         TraitFeedback.fire(this, TraitFeedback.Kind.HARVEST, serverLevel, player);
         return InteractionResult.sidedSuccess(level.isClientSide);
     }

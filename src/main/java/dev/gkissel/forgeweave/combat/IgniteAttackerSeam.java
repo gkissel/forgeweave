@@ -20,7 +20,8 @@ public record IgniteAttackerSeam(int fireSeconds) implements CombatSeam {
         LivingEntity attacker = defense.attacker();
         if (attacker != null && attacker != defense.defender()) {
             attacker.igniteForSeconds(fireSeconds);
-            // #1112: the heart IgniteOnHitSeam already spawns on its own target, on this side too.
+            // #1112: the same fire heart IgniteOnHitSeam gives its target, for the attacker this
+            // seam burns instead.
             TraitFeedback.fire(this, TraitFeedback.Kind.BURN, defense.level(), attacker);
         }
         return damage;
