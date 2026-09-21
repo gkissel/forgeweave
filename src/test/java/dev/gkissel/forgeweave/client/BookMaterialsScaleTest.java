@@ -100,12 +100,18 @@ class BookMaterialsScaleTest {
                 .orElseThrow(() -> new AssertionError("no materials section"));
     }
 
-    /** Every icon of every stage grid, in chapter order (issue #1104 split the one grid per stage). */
-    private static List<BookLink> stageGridIcons(BookSection materials) {
+    /** Every stage grid of the chapter, in ladder order (issue #1104 split the one grid per stage). */
+    private static List<IconGridPage> stageGrids(BookSection materials) {
         return ((BookPage.ListingPage) materials.pages().get(0)).links().stream()
-                .map(row -> (IconGridPage) materials.pages().get(row.targetPage()))
-                .flatMap(grid -> grid.links().stream())
+                .map(row -> materials.pages().get(row.targetPage()))
+                // The ladder's last row opens the traits reference's listing, not a grid.
+                .filter(IconGridPage.class::isInstance)
+                .map(IconGridPage.class::cast)
                 .toList();
+    }
+
+    private static List<BookLink> stageGridIcons(BookSection materials) {
+        return stageGrids(materials).stream().flatMap(grid -> grid.links().stream()).toList();
     }
 
     @Test
@@ -131,8 +137,7 @@ class BookMaterialsScaleTest {
     @Test
     void theBiggestStageGridSpansSeveralLeavesAndDropsNothingAtRealRosterScale() throws Exception {
         BookSection materials = materialsSection(BookContent.sections(shippedMaterials()));
-        int materialCount = ((BookPage.ListingPage) materials.pages().get(0)).links().stream()
-                .map(row -> (IconGridPage) materials.pages().get(row.targetPage()))
+        int materialCount = stageGrids(materials).stream()
                 .mapToInt(grid -> grid.links().size())
                 .max()
                 .orElseThrow();

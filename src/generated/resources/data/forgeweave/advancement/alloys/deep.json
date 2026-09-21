@@ -1,0 +1,34 @@
+{
+  "parent": "forgeweave:smeltery/first_alloy",
+  "criteria": {
+    "deep_alloy": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#forgeweave:alloys/deep"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.forgeweave.deep_alloy.description"
+    },
+    "frame": "goal",
+    "icon": {
+      "count": 1,
+      "id": "forgeweave:tideiron_ingot"
+    },
+    "title": {
+      "translate": "advancements.forgeweave.deep_alloy.title"
+    }
+  },
+  "requirements": [
+    [
+      "deep_alloy"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

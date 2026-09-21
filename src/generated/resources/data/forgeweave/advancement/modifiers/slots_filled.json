@@ -1,0 +1,27 @@
+{
+  "parent": "forgeweave:smeltery/first_modifier",
+  "criteria": {
+    "triggered": {
+      "trigger": "forgeweave:modifier_slots_filled"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.forgeweave.slots_filled.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "forgeweave:extra_modifier"
+    },
+    "title": {
+      "translate": "advancements.forgeweave.slots_filled.title"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

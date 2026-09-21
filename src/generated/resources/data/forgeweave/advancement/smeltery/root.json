@@ -1,6 +1,7 @@
 {
+  "parent": "forgeweave:root",
   "criteria": {
-    "seared_brick": {
+    "has_item": {
       "conditions": {
         "items": [
           {
@@ -12,7 +13,6 @@
     }
   },
   "display": {
-    "background": "minecraft:textures/gui/advancements/backgrounds/stone.png",
     "description": {
       "translate": "advancements.forgeweave.smeltery_root.description"
     },
@@ -26,7 +26,7 @@
   },
   "requirements": [
     [
-      "seared_brick"
+      "has_item"
     ]
   ],
   "sends_telemetry_event": true

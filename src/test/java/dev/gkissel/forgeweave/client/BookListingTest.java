@@ -105,6 +105,13 @@ class BookListingTest {
                 .orElseThrow(() -> new AssertionError("no section " + titleKey));
     }
 
+    /** The ladder page's stage rows, i.e. every row but the last one (the traits reference). */
+    private static List<BookLink> stageRows(BookSection chapter, ListingPage ladder) {
+        return ladder.links().stream()
+                .filter(row -> chapter.pages().get(row.targetPage()) instanceof IconGridPage)
+                .toList();
+    }
+
     /** Every link must land on a real page of its own section, never on the listing page itself. */
     private static void assertTargetsAreInSection(BookSection section, List<BookLink> links) {
         for (BookLink link : links) {
@@ -128,7 +135,7 @@ class BookListingTest {
 
         assertEquals("book.forgeweave.section.index", index.titleKey());
         assertEquals(1, index.pages().size(),
-                "five sections fit one nine-button ContentSectionList page");
+                "#1105's nine sections are exactly what one nine-button ContentSectionList page holds");
         BookPage.SectionListPage page = assertInstanceOf(BookPage.SectionListPage.class,
                 index.pages().get(0), "the index page is upstream's ContentSectionList");
         assertEquals("page1", page.name(), "IndexTranformer names its pages page1, page2, ...");
@@ -160,8 +167,10 @@ class BookListingTest {
         assertTargetsAreInSection(tools, listing.links());
 
         List<String> labels = listing.links().stream().map(BookLink::labelKey).toList();
-        assertEquals("book.forgeweave.tools.repairing.title", labels.get(0),
-                "the static repairing page keeps its own title as its row");
+        assertEquals(List.of("book.forgeweave.tools.intro.title", "book.forgeweave.tools.ranged.title"),
+                labels.subList(0, 2),
+                "#1105: the chapter's two authored pages keep their own titles as their rows, and "
+                        + "repairing is no longer one of them (it moved to the Introduction)");
         for (Supplier<? extends Item> tool : BookContent.TOOLS) {
             assertTrue(labels.contains(tool.get().getDescriptionId()),
                     "no listing row for " + tool.get().getDescriptionId());
@@ -223,17 +232,17 @@ class BookListingTest {
         ListingPage ladder = assertInstanceOf(ListingPage.class, materials.pages().get(0),
                 "the materials chapter opens on its progression ladder");
         assertEquals(BookContent.MATERIAL_STAGES_TITLE, ladder.titleKey());
-        assertEquals(List.of(MaterialStage.FIRST_DAY.nameKey(), MaterialStage.FIRST_SMELTERY.nameKey()),
+        assertEquals(List.of(MaterialStage.FIRST_DAY.nameKey(), MaterialStage.FIRST_SMELTERY.nameKey(),
+                        BookContent.TRAITS_TITLE),
                 ladder.links().stream().map(BookLink::labelKey).toList(),
                 "wood and stone are first-day materials, iron needs the smeltery; no other stage has "
-                        + "a material here, so no other stage gets a row");
+                        + "a material here, so no other stage gets a row, and the traits reference "
+                        + "closes the list");
         assertTargetsAreInSection(materials, ladder.links());
 
-        for (BookLink row : ladder.links()) {
+        for (BookLink row : stageRows(materials, ladder)) {
             assertNotNull(row.descriptionKey(), "a stage row says what unlocks the stage");
             assertEquals(row.labelKey().replace(".name", ".unlock"), row.descriptionKey());
-            assertInstanceOf(IconGridPage.class, materials.pages().get(row.targetPage()),
-                    "a stage row jumps to that stage's icon grid");
         }
     }
 
@@ -247,7 +256,7 @@ class BookListingTest {
         ListingPage ladder = (ListingPage) materials.pages().get(0);
 
         int icons = 0;
-        for (BookLink row : ladder.links()) {
+        for (BookLink row : stageRows(materials, ladder)) {
             IconGridPage grid = (IconGridPage) materials.pages().get(row.targetPage());
             assertEquals(row.labelKey(), grid.titleKey(), "a stage's grid is titled with the stage");
             assertFalse(grid.links().isEmpty(), grid.titleKey() + " has an empty grid");
@@ -289,7 +298,7 @@ class BookListingTest {
 
         List<ResourceLocation> pageOrder = materials.pages().stream()
                 .filter(MaterialPage.class::isInstance).map(page -> ((MaterialPage) page).id()).toList();
-        List<ResourceLocation> gridOrder = ladder.links().stream()
+        List<ResourceLocation> gridOrder = stageRows(materials, ladder).stream()
                 .flatMap(row -> ((IconGridPage) materials.pages().get(row.targetPage())).links().stream())
                 .map(link -> ((MaterialPage) materials.pages().get(link.targetPage())).id()).toList();
 

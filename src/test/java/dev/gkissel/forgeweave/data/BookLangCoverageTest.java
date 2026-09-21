@@ -83,6 +83,44 @@ class BookLangCoverageTest {
     }
 
     /**
+     * Issue #1105: the book reads as one path, so every chapter but the last ends by naming the next
+     * one. The pointer lives on the chapter's last authored text page -- three chapters (materials,
+     * modifiers, tools) have registry-generated pages behind their authored ones, and those carry no
+     * authored prose to put it on.
+     *
+     * <p>This is the check that catches a reorder: move a chapter in {@code index.json} and forget
+     * its neighbours' pointers, and the trail silently sends the reader to the wrong chapter.
+     */
+    @Test
+    void everyChapterButTheLastNamesTheNextOne() throws IOException {
+        JsonObject lang = lang();
+        List<BookStructure.SectionDef> sections = BookStructure.load().sections();
+        List<String> problems = new ArrayList<>();
+
+        for (int i = 0; i < sections.size() - 1; i++) {
+            BookStructure.SectionDef chapter = sections.get(i);
+            String nextTitle = lang.get("book.forgeweave.section." + sections.get(i + 1).name()).getAsString();
+            String lastTextPage = chapter.pages().stream()
+                    .filter(page -> !page.type().equals("tool") && !page.type().equals("structure"))
+                    .map(BookStructure.PageDef::name)
+                    .reduce((first, second) -> second)
+                    .orElseThrow(() -> new AssertionError(chapter.name() + " has no authored text page"));
+            String key = "book.forgeweave." + chapter.name() + "." + lastTextPage + ".text";
+            String text = lang.get(key).getAsString();
+
+            if (!text.contains("What next")) {
+                problems.add(key + " must end the chapter with a \"What next\" line");
+            }
+            if (!text.contains(nextTitle)) {
+                problems.add(key + " must name the next chapter, \"" + nextTitle + "\"");
+            }
+        }
+
+        assertTrue(sections.size() >= 9, "expected the full tutorial spine, saw " + sections.size());
+        assertTrue(problems.isEmpty(), String.join("\n", problems));
+    }
+
+    /**
      * Issue #651: the tool pages' "Properties:" bullets (upstream {@code ContentTool#properties},
      * ported per tool from {@code book/en_us/tools/*.json}) and the modifier pages' "Effects:"
      * bullets ({@code ContentModifier#effects}, {@code book/en_us/modifiers/*.json}). The screen

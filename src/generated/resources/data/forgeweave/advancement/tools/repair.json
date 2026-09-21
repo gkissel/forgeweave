@@ -1,0 +1,26 @@
+{
+  "parent": "forgeweave:tools/first_tool",
+  "criteria": {
+    "triggered": {
+      "trigger": "forgeweave:tool_repaired"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.forgeweave.repair.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "forgeweave:sharpening_kit"
+    },
+    "title": {
+      "translate": "advancements.forgeweave.repair.title"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

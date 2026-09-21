@@ -55,6 +55,10 @@ public final class BookContent {
     /** The materials chapter's opening page: the progression ladder, one row per stage (#1104). */
     public static final String MATERIAL_STAGES_TITLE = "book.forgeweave.materials.stages";
 
+    /** The traits reference at the back of the materials chapter, and its row on the ladder page. */
+    public static final String TRAITS_TITLE = "book.forgeweave.materials.traits";
+    public static final String TRAITS_INDEX_TEXT = "book.forgeweave.materials.traits_index";
+
     /** {@code IndexTranformer}: one {@code ContentSectionList} page holds at most nine sections. */
     private static final int SECTIONS_PER_INDEX_PAGE = 9;
 
@@ -121,8 +125,7 @@ public final class BookContent {
             // SectionTransformers ("tools"/"materials"/"modifiers", TinkerBook:37-40).
             List<BookPage> pages = switch (def.name()) {
                 case "tools" -> withListing(titleKey, authored);
-                case "materials" -> withMaterials(authored, ladder, stages);
-                case "traits" -> withTraits(titleKey, authored, traits);
+                case "materials" -> withMaterials(authored, ladder, traits);
                 case "modifiers" -> {
                     ForgeweaveModifiers.ids().stream()
                             .sorted(Comparator.comparing(ResourceLocation::getPath))
@@ -199,19 +202,25 @@ public final class BookContent {
      *
      * <ol>
      *   <li>the chapter's opening page: one row per stage, with the sentence saying what unlocks
-     *       it, jumping to that stage's grid;
+     *       it, jumping to that stage's grid, and a last row for the traits reference;
      *   <li>the authored intro pages;
      *   <li>per stage, in ladder order: the stage's icon grid, then its material pages in
-     *       {@link BookMaterialOrder}'s order.
+     *       {@link BookMaterialOrder}'s order;
+     *   <li>the traits reference: its own listing page, then one page per trait family.
      * </ol>
      *
-     * <p>A grid link is section-relative, so the page indices are counted as the list is built --
-     * the same arithmetic the old single grid did, once per stage.
+     * <p>A link is section-relative, so the page indices are counted as the list is built -- the
+     * same arithmetic the old single grid did, once per stage.
+     *
+     * <p>The traits reference sits at the back of this chapter rather than in a section of its own
+     * because the chapter list is the tutorial order (issue #1105) and holds exactly the nine
+     * sections one generated index page fits. It is the same material data read the other way
+     * round, so this is where it belongs anyway.
      */
     private static List<BookPage> withMaterials(List<BookPage> authored,
-            List<BookMaterialOrder.Stage> ladder, MaterialStage.Lookup stages) {
+            List<BookMaterialOrder.Stage> ladder, List<BookTraits.Family> families) {
         // Page 0 is the stage listing; the authored pages follow, then one grid plus its material
-        // pages per stage.
+        // pages per stage, then the traits reference.
         int firstStagePage = 1 + authored.size();
         List<BookLink> stageRows = new ArrayList<>();
         List<BookPage> stagePages = new ArrayList<>();
@@ -231,25 +240,26 @@ public final class BookContent {
             stagePages.add(new IconGridPage(stage.stage().nameKey(), List.copyOf(grid)));
             stagePages.addAll(materialPages);
         }
+
+        // One page per family rather than one long roster page, so a trait name on a material page
+        // jumps to that trait and nothing else. Its listing page leads, the way every other
+        // generated listing in this book does (upstream's ContentListing shape).
+        int traitsIndexPage = firstStagePage + stagePages.size();
+        stageRows.add(new BookLink(TRAITS_TITLE, null, null, traitsIndexPage, TRAITS_INDEX_TEXT));
+        List<BookLink> traitRows = new ArrayList<>();
+        List<BookPage> traitPages = new ArrayList<>();
+        for (BookTraits.Family family : families) {
+            traitRows.add(new BookLink(family.nameKey(), traitsIndexPage + 1 + traitPages.size()));
+            traitPages.add(new BookPage.TraitPage(family));
+        }
+
         List<BookPage> pages = new ArrayList<>();
         pages.add(new ListingPage(MATERIAL_STAGES_TITLE, List.copyOf(stageRows)));
         pages.addAll(authored);
         pages.addAll(stagePages);
+        pages.add(new ListingPage(TRAITS_TITLE, List.copyOf(traitRows)));
+        pages.addAll(traitPages);
         return List.copyOf(pages);
-    }
-
-    /**
-     * The traits reference (issue #1104): one page per trait family, behind the listing page every
-     * generated section opens with. One page per family rather than one long roster page so a trait
-     * name on a material page can jump to that trait and nothing else -- 1.12's book has no trait
-     * section at all to copy, and its {@code ContentListing} row-per-page shape is what the rest of
-     * this book already uses.
-     */
-    private static List<BookPage> withTraits(String titleKey, List<BookPage> authored,
-            List<BookTraits.Family> families) {
-        List<BookPage> content = new ArrayList<>(authored);
-        families.forEach(family -> content.add(new BookPage.TraitPage(family)));
-        return withListing(titleKey, content);
     }
 
     /**
@@ -324,6 +334,8 @@ public final class BookContent {
                 // Issue #1104: the materials chapter's ladder page and the per-material-page lines
                 // that say which stage it sits in and how it is made.
                 MATERIAL_STAGES_TITLE,
+                TRAITS_TITLE,
+                TRAITS_INDEX_TEXT,
                 MaterialPageContent.STAGE_LINE,
                 MaterialPageContent.MADE_BY_MELTING,
                 MaterialPageContent.MADE_BY_ALLOYING,

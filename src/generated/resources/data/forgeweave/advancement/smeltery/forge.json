@@ -1,7 +1,7 @@
 {
-  "parent": "forgeweave:smeltery/first_modifier",
+  "parent": "forgeweave:smeltery/first_cast",
   "criteria": {
-    "tool_forge": {
+    "has_item": {
       "conditions": {
         "items": [
           {
@@ -26,7 +26,7 @@
   },
   "requirements": [
     [
-      "tool_forge"
+      "has_item"
     ]
   ],
   "sends_telemetry_event": true

@@ -11,6 +11,7 @@ import net.minecraft.world.item.ItemStack;
 
 import mezz.jei.api.gui.builder.IIngredientAcceptor;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
+import mezz.jei.api.gui.builder.ITooltipBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.helpers.IGuiHelper;
@@ -161,6 +162,22 @@ final class ModifierApplicationCategory implements IRecipeCategory<ModifierRecip
         JeiCategoryChrome.drawCentered(guiGraphics, font,
                 JeiCategoryChrome.trimToWidth(font, levelCap, ModifierPanel.LEVEL_WIDTH),
                 ModifierPanel.LEVEL_CENTER_X, ModifierPanel.LEVEL_Y, ModifierPanel.TEXT_COLOR, false);
+    }
+
+    /**
+     * Issue #1102: the name and level-cap text {@link #draw} paints has no ingredient slot of its own
+     * to hang a rich tooltip callback off, so this is the same mouse-region idiom {@link
+     * EntityMeltingCategory#getTooltip} uses for its own drawn-not-slotted line -- hovering the name
+     * or the level line shows the modifier's description ({@link ModifierApplication#description}, the
+     * same key the item tooltip and Tool Station hover already read), which used to require opening
+     * the guide book to find.
+     */
+    @Override
+    public void getTooltip(ITooltipBuilder tooltip, ModifierRecipe recipe, IRecipeSlotsView recipeSlotsView,
+            double mouseX, double mouseY) {
+        if (mouseY >= ModifierPanel.NAME_Y && mouseY < ModifierPanel.LEVEL_Y + 9) {
+            tooltip.add(ModifierApplication.description(recipe.modifier()));
+        }
     }
 
     /**

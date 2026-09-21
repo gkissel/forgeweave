@@ -1,0 +1,33 @@
+{
+  "criteria": {
+    "guide_book": {
+      "conditions": {
+        "items": [
+          {
+            "items": "forgeweave:guide_book"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "background": "minecraft:textures/gui/advancements/backgrounds/stone.png",
+    "description": {
+      "translate": "advancements.forgeweave.guide_book.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "forgeweave:guide_book"
+    },
+    "title": {
+      "translate": "advancements.forgeweave.guide_book.title"
+    }
+  },
+  "requirements": [
+    [
+      "guide_book"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

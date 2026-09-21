@@ -1,5 +1,5 @@
 {
-  "parent": "forgeweave:smeltery/first_alloy",
+  "parent": "forgeweave:tools/first_tool",
   "criteria": {
     "triggered": {
       "trigger": "forgeweave:first_modifier"

@@ -81,5 +81,39 @@ public final class ForgeweaveCriteriaTriggers {
     public static final DeferredHolder<CriterionTrigger<?>, SimpleForgeweaveTrigger> COMBAT_MODIFIER_APPLIED =
             TRIGGERS.register("combat_modifier_applied", SimpleForgeweaveTrigger::new);
 
+    /**
+     * Issue #1106's six, added when the advancement tree grew a branch per system. Each one covers a
+     * step no vanilla criterion can see, and each fires from the single server-side path that already
+     * handles the event -- the rest of the new tree keeps to {@code InventoryChangeTrigger}, so
+     * "own a Part Builder" or "have a bucket of a fuel hotter than lava" adds no trigger here.
+     *
+     * <ul>
+     *   <li>{@link #TOOL_ASSEMBLED} and {@link #TOOL_REPAIRED} from {@code
+     *       ToolStationMenu.OutputSlot#grantAdvancements}, next to the four that already fire there:
+     *       a fresh assembly that is not an armor piece, and a take whose outcome was {@code
+     *       ToolAssemblyRecipes#resolveRepair} (the first thing {@code resolve} tries on an assembled
+     *       tool, so "repair resolved" is exactly "this take was a repair").
+     *   <li>{@link #PART_EXCHANGED} from {@code ToolStationMenu.OutputSlot#onTake}, off the displaced
+     *       parts it already reads before the inputs are spent (issue #813).
+     *   <li>{@link #MODIFIER_SLOTS_FILLED} alongside {@link #FIRST_MODIFIER}, when the tool being
+     *       taken has no free slot left ({@code ForgeweaveModifiers#freeSlots}).
+     *   <li>{@link #TOOL_LEVEL_UP} and {@link #ARMOR_LEVEL_UP} from {@code ToolLeveling#addXp}, the
+     *       one seam every mining, melee, ranged, utility and armor XP grant lands on, in the same
+     *       branch that already rings the level-up chime.
+     * </ul>
+     */
+    public static final DeferredHolder<CriterionTrigger<?>, SimpleForgeweaveTrigger> TOOL_ASSEMBLED =
+            TRIGGERS.register("tool_assembled", SimpleForgeweaveTrigger::new);
+    public static final DeferredHolder<CriterionTrigger<?>, SimpleForgeweaveTrigger> TOOL_REPAIRED =
+            TRIGGERS.register("tool_repaired", SimpleForgeweaveTrigger::new);
+    public static final DeferredHolder<CriterionTrigger<?>, SimpleForgeweaveTrigger> PART_EXCHANGED =
+            TRIGGERS.register("part_exchanged", SimpleForgeweaveTrigger::new);
+    public static final DeferredHolder<CriterionTrigger<?>, SimpleForgeweaveTrigger> MODIFIER_SLOTS_FILLED =
+            TRIGGERS.register("modifier_slots_filled", SimpleForgeweaveTrigger::new);
+    public static final DeferredHolder<CriterionTrigger<?>, SimpleForgeweaveTrigger> TOOL_LEVEL_UP =
+            TRIGGERS.register("tool_level_up", SimpleForgeweaveTrigger::new);
+    public static final DeferredHolder<CriterionTrigger<?>, SimpleForgeweaveTrigger> ARMOR_LEVEL_UP =
+            TRIGGERS.register("armor_level_up", SimpleForgeweaveTrigger::new);
+
     private ForgeweaveCriteriaTriggers() {}
 }

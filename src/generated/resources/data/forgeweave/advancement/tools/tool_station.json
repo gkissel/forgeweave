@@ -1,0 +1,33 @@
+{
+  "parent": "forgeweave:tools/part_builder",
+  "criteria": {
+    "has_item": {
+      "conditions": {
+        "items": [
+          {
+            "items": "forgeweave:tool_station"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.forgeweave.tool_station.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "forgeweave:tool_station"
+    },
+    "title": {
+      "translate": "advancements.forgeweave.tool_station.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_item"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

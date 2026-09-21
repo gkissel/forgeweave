@@ -1,0 +1,33 @@
+{
+  "parent": "forgeweave:smeltery/first_cast",
+  "criteria": {
+    "cast": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#forgeweave:casts/gold"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.forgeweave.cast.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "forgeweave:cast_pickaxe_head"
+    },
+    "title": {
+      "translate": "advancements.forgeweave.cast.title"
+    }
+  },
+  "requirements": [
+    [
+      "cast"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

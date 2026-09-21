@@ -1,0 +1,33 @@
+{
+  "parent": "forgeweave:tools/pattern",
+  "criteria": {
+    "has_item": {
+      "conditions": {
+        "items": [
+          {
+            "items": "forgeweave:part_builder"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.forgeweave.part_builder.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "forgeweave:part_builder"
+    },
+    "title": {
+      "translate": "advancements.forgeweave.part_builder.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_item"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

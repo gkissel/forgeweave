@@ -99,12 +99,17 @@ class SavedPageTest {
         // real section.page string index.page1, no longer screen chrome.
         assertEquals("index.page1", SavedPage.name(sections, 0));
         assertEquals("intro.welcome", SavedPage.name(sections, sections.get(0).pages().size()));
-        // The tools section opens with its generated listing page (#479), then repairing, then
-        // the tools in BookContent.TOOLS order -- pickaxe first.
-        int tools = sections.get(0).pages().size() + sections.get(1).pages().size();
+        // The tools section opens with its generated listing page (#479), then its two authored
+        // pages, then the tools in BookContent.TOOLS order -- pickaxe first. #1105 moved the
+        // chapter to the back of the book, so it is the last section rather than the second.
+        int tools = 0;
+        for (int i = 0; i < sections.size() - 1; i++) {
+            tools += sections.get(i).pages().size();
+        }
         assertEquals("tools.listing", SavedPage.name(sections, tools));
-        assertEquals("tools.repairing", SavedPage.name(sections, tools + 1));
-        assertEquals("tools.pickaxe", SavedPage.name(sections, tools + 2));
+        assertEquals("tools.intro", SavedPage.name(sections, tools + 1));
+        assertEquals("tools.ranged", SavedPage.name(sections, tools + 2));
+        assertEquals("tools.pickaxe", SavedPage.name(sections, tools + 3));
         // A material page is named by the material's registry path.
         assertTrue(SavedPage.find(sections, "materials.iron") >= 0, "no materials.iron page");
     }

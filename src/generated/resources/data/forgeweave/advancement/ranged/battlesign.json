@@ -1,0 +1,33 @@
+{
+  "parent": "forgeweave:ranged/bow",
+  "criteria": {
+    "has_item": {
+      "conditions": {
+        "items": [
+          {
+            "items": "forgeweave:battlesign"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.forgeweave.battlesign.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "forgeweave:battlesign"
+    },
+    "title": {
+      "translate": "advancements.forgeweave.battlesign.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_item"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

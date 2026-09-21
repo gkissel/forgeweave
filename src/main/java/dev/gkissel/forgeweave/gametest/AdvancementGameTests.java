@@ -1,6 +1,8 @@
 package dev.gkissel.forgeweave.gametest;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.BlockPos;
@@ -25,7 +27,10 @@ import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
+import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.ponder.ForgeweavePonderHint;
+import dev.gkissel.forgeweave.tool.ToolConstants;
+import dev.gkissel.forgeweave.tool.ToolLeveling;
 
 /**
  * Issue #110's GameTest coverage: the advancement grants that have a real hook to exercise
@@ -46,6 +51,21 @@ import dev.gkissel.forgeweave.ponder.ForgeweavePonderHint;
 @GameTestHolder(Forgeweave.MODID)
 @PrefixGameTestTemplate(false)
 public class AdvancementGameTests {
+
+    /**
+     * #1106: the ten M2/M3 ids the re-rooted tree keeps, so a world that already earned one does not
+     * lose it. Re-parenting is invisible to {@code PlayerAdvancements}, which keys progress by id.
+     */
+    private static final List<String> M2_M3_IDS = List.of(
+            "smeltery/root", "smeltery/build_smeltery", "smeltery/first_melt", "smeltery/first_cast",
+            "smeltery/first_alloy", "smeltery/first_modifier", "smeltery/forge", "smeltery/large_tool",
+            "smeltery/emboss", "smeltery/combat_modifier");
+
+    /** The ten above, the new root, and the eighteen branch steps #1106 adds. */
+    private static final int EXPECTED_TREE_SIZE = 29;
+
+    /** Comfortably past the first level-up's cost at any {@code baseXp} a Forgeweave tool carries. */
+    private static final int LEVEL_UP_XP = 100_000;
 
     @GameTest(template = "smeltery")
     public static void formingTheStructureGrantsBuildSmelteryAdvancement(GameTestHelper helper) {
@@ -189,14 +209,187 @@ public class AdvancementGameTests {
         helper.succeed();
     }
 
-    /** #166: the four M3-17 steps exist and chain onto {@code first_modifier} in the documented order. */
+    /**
+     * #166's four M3-17 steps still exist and still chain, at the parents #1106 gave them: the forge
+     * line hangs off the first cast (where its seared bricks come from) rather than off the first
+     * modifier, and the combat modifier sits next to the other modifier ends rather than after
+     * embossing.
+     */
     @GameTest(template = "empty")
     public static void theM317ChainAdvancementsExistAndParentCorrectly(GameTestHelper helper) {
-        assertParent(helper, "smeltery/forge", "smeltery/first_modifier");
+        assertParent(helper, "smeltery/forge", "smeltery/first_cast");
         assertParent(helper, "smeltery/large_tool", "smeltery/forge");
         assertParent(helper, "smeltery/emboss", "smeltery/large_tool");
-        assertParent(helper, "smeltery/combat_modifier", "smeltery/emboss");
+        assertParent(helper, "smeltery/combat_modifier", "smeltery/first_modifier");
         helper.succeed();
+    }
+
+    /**
+     * #1106: every M2/M3 id survived the re-rooting (a world that earned one keeps it), the tree has
+     * exactly one root, and that root is the guide book.
+     */
+    @GameTest(template = "empty")
+    public static void theTreeHasOneRootAndNoOrphans(GameTestHelper helper) {
+        List<AdvancementHolder> tree = progressionAdvancements(helper);
+        helper.assertTrue(tree.size() >= EXPECTED_TREE_SIZE,
+                "expected at least " + EXPECTED_TREE_SIZE + " advancements in the tree, got " + tree.size());
+
+        List<ResourceLocation> roots = tree.stream()
+                .filter(holder -> holder.value().parent().isEmpty())
+                .map(AdvancementHolder::id)
+                .toList();
+        helper.assertTrue(roots.equals(List.of(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "root"))),
+                "expected the guide book to be the tree's only root, got " + roots);
+
+        for (AdvancementHolder holder : tree) {
+            holder.value().parent().ifPresent(parent -> helper.assertTrue(
+                    helper.getLevel().getServer().getAdvancements().get(parent) != null,
+                    holder.id() + " is an orphan: its parent " + parent + " does not exist"));
+        }
+
+        for (String id : M2_M3_IDS) {
+            helper.assertTrue(helper.getLevel().getServer().getAdvancements()
+                            .get(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, id)) != null,
+                    "the M2/M3 id " + id + " must survive the re-rooting so earned progress is kept");
+        }
+        helper.succeed();
+    }
+
+    /** #1106's "first tool": {@link ToolAssembly#pickaxe} takes the output, which is what grants it. */
+    @GameTest(template = "empty")
+    public static void assemblingAToolGrantsFirstToolAdvancement(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+
+        ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+
+        helper.assertTrue(isGranted(helper, player, "tools/first_tool"),
+                "expected assembling a tool at the Tool Station to grant the advancement");
+        helper.succeed();
+    }
+
+    /** #1106's "repair": a fully damaged iron pickaxe plus one iron ingot, upstream's own repair shape. */
+    @GameTest(template = "empty")
+    public static void repairingAToolGrantsRepairAdvancement(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "iron", "wood", "wood");
+        pickaxe.setDamageValue(pickaxe.getMaxDamage() / 2);
+
+        take(helper, player, pos, pickaxe, new ItemStack(Items.IRON_INGOT));
+
+        helper.assertTrue(isGranted(helper, player, "tools/repair"),
+                "expected repairing a tool with its own material to grant the advancement");
+        helper.succeed();
+    }
+
+    /** #1106's "part exchange": an iron head over a stone one, {@link PartExchangeGameTests}' own swap. */
+    @GameTest(template = "empty")
+    public static void exchangingAPartGrantsPartExchangeAdvancement(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+
+        take(helper, player, pos, pickaxe, ToolAssembly.part(ForgeweaveItems.PART_PICKAXE_HEAD.get(), "iron"));
+
+        helper.assertTrue(isGranted(helper, player, "tools/part_exchange"),
+                "expected swapping a tool part to grant the advancement");
+        helper.succeed();
+    }
+
+    /**
+     * #1106's "every slot spent": enough redstone to push haste into the tool's last slot. Haste
+     * charges a slot every {@code unitsPerLevel} units, so the units that occupy exactly the tool's
+     * free slot count are {@code 1 + (free - 1) * unitsPerLevel} -- read off the tool rather than
+     * written out, so a slot-granting trait on the test material cannot turn it into a no-op.
+     */
+    @GameTest(template = "empty")
+    public static void fillingEveryModifierSlotGrantsSlotsFilledAdvancement(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+        int free = ForgeweaveModifiers.freeSlots(pickaxe);
+        helper.assertTrue(free > 0, "the test needs a tool with at least one free slot, got " + free);
+
+        ItemStack hasted = take(helper, player, pos, pickaxe,
+                redstone(1 + (free - 1) * ForgeweaveModifiers.HASTE.unitsPerLevel()));
+
+        helper.assertTrue(ForgeweaveModifiers.freeSlots(hasted) <= 0,
+                "the test needs an application that spends every slot, got "
+                        + ForgeweaveModifiers.freeSlots(hasted) + " free");
+        helper.assertTrue(isGranted(helper, player, "modifiers/slots_filled"),
+                "expected spending a tool's last modifier slot to grant the advancement");
+        helper.succeed();
+    }
+
+    /** {@code units} redstone, split into stack-sized piles for as many station slots as it takes. */
+    private static ItemStack[] redstone(int units) {
+        List<ItemStack> stacks = new ArrayList<>();
+        for (int left = units; left > 0; left -= Items.REDSTONE.getDefaultMaxStackSize()) {
+            stacks.add(new ItemStack(Items.REDSTONE, Math.min(Items.REDSTONE.getDefaultMaxStackSize(), left)));
+        }
+        return stacks.toArray(ItemStack[]::new);
+    }
+
+    /** #1106's "first level": {@code ToolLeveling#addXp} is the one seam every XP grant lands on. */
+    @GameTest(template = "empty")
+    public static void levelingAToolGrantsFirstLevelAdvancement(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+
+        boolean leveled = ToolLeveling.addXp(pickaxe, LEVEL_UP_XP, player);
+
+        helper.assertTrue(leveled, "the test needs enough XP to cross a level");
+        helper.assertTrue(isGranted(helper, player, "leveling/first_level"),
+                "expected a tool level-up to grant the advancement");
+        helper.assertFalse(isGranted(helper, player, "armor/leveled"),
+                "a tool is not an armor piece, so the armor branch must stay unearned");
+        helper.succeed();
+    }
+
+    /** #1106's "armor level": armor levels through the same seam, so the stack is what tells them apart. */
+    @GameTest(template = "empty")
+    public static void levelingAnArmorPieceGrantsArmorLevelAdvancement(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        ItemStack helmet = ToolAssembly.assemble(helper, player, pos,
+                ToolAssembly.entryOf(ToolConstants.HELMET), List.of("iron", "iron"));
+        helper.assertTrue(helmet.is(ForgeweaveItems.ARMOR_HELMET.get()),
+                "expected the station to build the helmet under test, got " + helmet);
+
+        boolean leveled = ToolLeveling.addXp(helmet, LEVEL_UP_XP, player);
+
+        helper.assertTrue(leveled, "the test needs enough XP to cross a level");
+        helper.assertTrue(isGranted(helper, player, "armor/leveled"),
+                "expected an armor piece level-up to grant the advancement");
+        helper.succeed();
+    }
+
+    /** Loads the station with a tool and its free-slot inputs and takes whatever it resolves. */
+    private static ItemStack take(GameTestHelper helper, ServerPlayer player, BlockPos pos, ItemStack tool,
+            ItemStack... inputs) {
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        blockEntity.container().clearContent();
+        blockEntity.container().setItem(ToolStationMenu.HEAD_SLOT, tool);
+        for (int i = 0; i < inputs.length; i++) {
+            blockEntity.container().setItem(ToolStationMenu.HEAD_SLOT + 1 + i, inputs[i]);
+        }
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
+        menu.broadcastChanges();
+        ItemStack output = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().copy();
+        helper.assertFalse(output.isEmpty(), "expected the station to produce an output"
+                + (menu.rejection() == null ? "" : "; it says: " + menu.rejection().message().getString()));
+        menu.getSlot(ToolStationMenu.OUTPUT_SLOT).onTake(player, output);
+        return output;
+    }
+
+    /** Every Forgeweave advancement that is part of the tree, i.e. not a vanilla recipe unlock. */
+    private static List<AdvancementHolder> progressionAdvancements(GameTestHelper helper) {
+        return helper.getLevel().getServer().getAdvancements().getAllAdvancements().stream()
+                .filter(holder -> holder.id().getNamespace().equals(Forgeweave.MODID))
+                .filter(holder -> !holder.id().getPath().startsWith("recipes/"))
+                .toList();
     }
 
     /** #166's "large tool": {@link ToolAssembly#assembleAtForge} already calls {@code onTake} for us. */

@@ -122,6 +122,13 @@ class BookMaterialStagesTest {
         return BookContent.sections(shippedMaterials(), shippedLookup());
     }
 
+    /** The ladder page's stage rows, i.e. every row but the last one (the traits reference). */
+    private static List<BookLink> stageRows(BookSection chapter, ListingPage ladder) {
+        return ladder.links().stream()
+                .filter(row -> chapter.pages().get(row.targetPage()) instanceof IconGridPage)
+                .toList();
+    }
+
     @Test
     void everyShippedMaterialLandsInExactlyOneStage() throws Exception {
         List<Map.Entry<ResourceLocation, Material>> materials = shippedMaterials();
@@ -131,7 +138,7 @@ class BookMaterialStagesTest {
         ListingPage ladder = assertInstanceOf(ListingPage.class, chapter.pages().get(0));
 
         Set<ResourceLocation> seen = new HashSet<>();
-        for (BookLink row : ladder.links()) {
+        for (BookLink row : stageRows(chapter, ladder)) {
             for (BookLink icon : ((IconGridPage) chapter.pages().get(row.targetPage())).links()) {
                 MaterialPage page = (MaterialPage) chapter.pages().get(icon.targetPage());
                 assertTrue(seen.add(page.id()), page.id() + " appears in more than one stage grid");
@@ -300,24 +307,31 @@ class BookMaterialStagesTest {
 
     @Test
     void everyCrossReferenceInTheChapterResolves() throws Exception {
-        List<BookSection> book = shippedBook();
-        BookSection chapter = section(book, "materials");
-        BookSection traits = section(book, "traits");
+        BookSection chapter = section(shippedBook(), "materials");
+        ListingPage ladder = assertInstanceOf(ListingPage.class, chapter.pages().get(0));
 
-        // The traits section's listing reaches every trait page, and no other kind of page.
-        ListingPage listing = assertInstanceOf(ListingPage.class, traits.pages().get(0));
-        assertEquals(traits.pages().size() - 1, listing.links().size());
-        for (BookLink row : listing.links()) {
-            BookPage target = traits.pages().get(row.targetPage());
-            assertTrue(target instanceof TraitPage || target instanceof BookPage.TextPage,
-                    "a traits listing row must open a trait page or the section's own intro");
+        // The ladder's last row opens the traits reference, whose listing reaches every trait page.
+        BookLink traitsRow = ladder.links().get(ladder.links().size() - 1);
+        assertEquals(BookContent.TRAITS_TITLE, traitsRow.labelKey());
+        assertEquals(BookContent.TRAITS_INDEX_TEXT, traitsRow.descriptionKey());
+        ListingPage traitsIndex = assertInstanceOf(ListingPage.class, chapter.pages().get(traitsRow.targetPage()),
+                "the traits reference opens on its own listing");
+        assertFalse(traitsIndex.links().isEmpty());
+        for (BookLink row : traitsIndex.links()) {
+            TraitPage target = assertInstanceOf(TraitPage.class, chapter.pages().get(row.targetPage()),
+                    "a traits listing row must open a trait page");
+            assertEquals(target.family().nameKey(), row.labelKey());
         }
 
         // Every trait a material page shows has a reference entry to jump to, which is what
         // BookScreen resolves through BookTraits#familyOf.
-        Set<String> families = traits.pages().stream()
+        Set<String> families = chapter.pages().stream()
                 .filter(TraitPage.class::isInstance)
                 .map(page -> ((TraitPage) page).family().path())
+                .collect(java.util.stream.Collectors.toSet());
+        Set<ResourceLocation> pages = chapter.pages().stream()
+                .filter(MaterialPage.class::isInstance)
+                .map(page -> ((MaterialPage) page).id())
                 .collect(java.util.stream.Collectors.toSet());
         for (BookPage page : chapter.pages()) {
             if (page instanceof MaterialPage material) {
@@ -326,14 +340,7 @@ class BookMaterialStagesTest {
                             trait + " on " + material.id() + "'s page has no reference entry to link to");
                 }
             }
-        }
-
-        // Every material a trait entry lists has a page in the chapter to jump back to.
-        Set<ResourceLocation> pages = chapter.pages().stream()
-                .filter(MaterialPage.class::isInstance)
-                .map(page -> ((MaterialPage) page).id())
-                .collect(java.util.stream.Collectors.toSet());
-        for (BookPage page : traits.pages()) {
+            // And every material a trait entry lists has a page to jump back to.
             if (page instanceof TraitPage trait) {
                 trait.family().rungs().forEach(rung -> rung.materials().forEach(material ->
                         assertTrue(pages.contains(material),
