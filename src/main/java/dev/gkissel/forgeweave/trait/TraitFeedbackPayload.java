@@ -11,6 +11,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
@@ -95,9 +96,21 @@ public record TraitFeedbackPayload(Optional<ResourceLocation> particle, Optional
                 at.getX(), at.getY() + at.getBbHeight() * 0.5, at.getZ());
     }
 
-    /** Sends this to every player close enough to see or hear it, the sender included. */
+    /**
+     * Sends this to every player close enough to see or hear it, the sender included.
+     *
+     * <p>Skips a listener that never negotiated this channel rather than using
+     * {@code PacketDistributor#sendToPlayersNear}, which throws for one. That is not a theoretical
+     * case: a GameTest's mock player has a connection with no channels at all, and so does a vanilla
+     * client connected to a server running Forgeweave.
+     */
     void broadcast(ServerLevel level) {
-        PacketDistributor.sendToPlayersNear(level, null, x, y, z, RADIUS, this);
+        double rangeSqr = RADIUS * RADIUS;
+        for (ServerPlayer player : level.players()) {
+            if (player.distanceToSqr(x, y, z) <= rangeSqr && player.connection.hasChannel(TYPE)) {
+                PacketDistributor.sendToPlayer(player, this);
+            }
+        }
     }
 
     /**
