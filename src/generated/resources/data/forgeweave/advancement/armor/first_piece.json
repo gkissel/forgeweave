@@ -1,0 +1,42 @@
+{
+  "parent": "forgeweave:tools/first_tool",
+  "criteria": {
+    "armor_piece": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "forgeweave:helmet",
+              "forgeweave:chestplate",
+              "forgeweave:leggings",
+              "forgeweave:boots",
+              "forgeweave:heavy_helmet",
+              "forgeweave:heavy_chestplate",
+              "forgeweave:heavy_leggings",
+              "forgeweave:heavy_boots"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.forgeweave.armor_piece.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "forgeweave:helmet"
+    },
+    "title": {
+      "translate": "advancements.forgeweave.armor_piece.title"
+    }
+  },
+  "requirements": [
+    [
+      "armor_piece"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

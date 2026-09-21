@@ -1,11 +1,10 @@
 {
-  "parent": "forgeweave:root",
   "criteria": {
-    "has_item": {
+    "guide_book": {
       "conditions": {
         "items": [
           {
-            "items": "forgeweave:seared_brick"
+            "items": "forgeweave:guide_book"
           }
         ]
       },
@@ -13,20 +12,21 @@
     }
   },
   "display": {
+    "background": "minecraft:textures/gui/advancements/backgrounds/stone.png",
     "description": {
-      "translate": "advancements.forgeweave.smeltery_root.description"
+      "translate": "advancements.forgeweave.guide_book.description"
     },
     "icon": {
       "count": 1,
-      "id": "forgeweave:seared_brick"
+      "id": "forgeweave:guide_book"
     },
     "title": {
-      "translate": "advancements.forgeweave.smeltery_root.title"
+      "translate": "advancements.forgeweave.guide_book.title"
     }
   },
   "requirements": [
     [
-      "has_item"
+      "guide_book"
     ]
   ],
   "sends_telemetry_event": true

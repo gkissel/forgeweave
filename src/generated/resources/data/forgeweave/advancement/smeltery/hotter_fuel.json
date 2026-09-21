@@ -1,0 +1,38 @@
+{
+  "parent": "forgeweave:smeltery/first_cast",
+  "criteria": {
+    "hotter_fuel": {
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "forgeweave:blazing_blood_bucket",
+              "forgeweave:molten_magma_bucket",
+              "forgeweave:molten_brimspar_bucket",
+              "forgeweave:molten_pyrealloy_bucket"
+            ]
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.forgeweave.hotter_fuel.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "forgeweave:blazing_blood_bucket"
+    },
+    "title": {
+      "translate": "advancements.forgeweave.hotter_fuel.title"
+    }
+  },
+  "requirements": [
+    [
+      "hotter_fuel"
+    ]
+  ],
+  "sends_telemetry_event": true
+}

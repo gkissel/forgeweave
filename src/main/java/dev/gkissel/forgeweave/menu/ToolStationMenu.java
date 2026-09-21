@@ -37,6 +37,7 @@ import net.neoforged.neoforge.network.registration.NetworkRegistry;
 
 import dev.gkissel.forgeweave.advancement.ForgeweaveCriteriaTriggers;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.item.ArmorPieceItem;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.item.ToolItem;
@@ -779,7 +780,7 @@ public class ToolStationMenu extends StationMenu {
             // Recomputed rather than remembered from updateResult(): the inputs haven't changed
             // since the output was built, and a stateless read can't go stale.
             if (player instanceof ServerPlayer serverPlayer) {
-                grantAdvancements(serverPlayer);
+                grantAdvancements(serverPlayer, stack);
                 grantVanillaStoryAdvancements(serverPlayer, stack);
             }
             // #813: a part exchange bumps a part out of the tool; read before consume() below shrinks
@@ -789,6 +790,11 @@ public class ToolStationMenu extends StationMenu {
                     .resolveExchange(registries, slots.get(HEAD_SLOT).getItem(), freeSlotContents(), forge)
                     .map(ToolAssemblyRecipes.Exchange::displacedParts)
                     .orElse(List.of());
+            // #1106 -- "part exchange". Read off the same displaced parts, before consume() spends
+            // the slots: a non-empty list is exactly an exchange that resolved and is about to pay out.
+            if (!displacedParts.isEmpty() && player instanceof ServerPlayer exchanger) {
+                ForgeweaveCriteriaTriggers.PART_EXCHANGED.get().trigger(exchanger);
+            }
             resolve().ifPresent(result -> {
                 List<Integer> used = result.slotsUsed();
                 for (int i = 0; i < used.size(); i++) {
@@ -834,7 +840,7 @@ public class ToolStationMenu extends StationMenu {
          * the current slots rather than remembering a result, same reasoning as this class's other
          * rejection/result reads.
          */
-        private void grantAdvancements(ServerPlayer player) {
+        private void grantAdvancements(ServerPlayer player, ItemStack taken) {
             ItemStack head = slots.get(HEAD_SLOT).getItem();
 
             // #110 -- "first modifier"; #166 -- "combat modifier", alongside it. Only when
@@ -845,6 +851,11 @@ public class ToolStationMenu extends StationMenu {
                     .filter(output -> !output.isEmpty())
                     .isPresent()) {
                 ForgeweaveCriteriaTriggers.FIRST_MODIFIER.get().trigger(player);
+                // #1106 -- "every slot spent": the tool as taken, not the tool as it went in, so the
+                // application that spends the last slot is what grants it.
+                if (ForgeweaveModifiers.freeSlots(taken) <= 0) {
+                    ForgeweaveCriteriaTriggers.MODIFIER_SLOTS_FILLED.get().trigger(player);
+                }
                 // Every free slot, not first-match: since issue #340 a craft can land several
                 // modifiers at once, and a combat one in any slot still counts.
                 if (freeSlotContents().stream()
@@ -872,6 +883,15 @@ public class ToolStationMenu extends StationMenu {
                         .flatMap(ToolAssemblyRecipes::entryFor)
                         .filter(ToolAssemblyRecipes::isLargeTool)
                         .ifPresent(entry -> ForgeweaveCriteriaTriggers.LARGE_TOOL_ASSEMBLED.get().trigger(player));
+                // #1106 -- "first tool". The same fresh-assembly gate, minus the large-tool filter
+                // and minus armor, which has its own branch of the tree keyed off owning the pieces.
+                resolve().map(ToolAssemblyRecipes.Result::output)
+                        .filter(output -> !(output.getItem() instanceof ArmorPieceItem))
+                        .ifPresent(output -> ForgeweaveCriteriaTriggers.TOOL_ASSEMBLED.get().trigger(player));
+            } else if (ToolAssemblyRecipes.resolveRepair(registries, head, freeSlotContents(), forge).isPresent()) {
+                // #1106 -- "repair". resolve() tries repair first on an assembled tool, so a repair
+                // that resolves is the outcome this take produced.
+                ForgeweaveCriteriaTriggers.TOOL_REPAIRED.get().trigger(player);
             }
         }
 

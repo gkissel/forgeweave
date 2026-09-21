@@ -1,0 +1,27 @@
+{
+  "parent": "forgeweave:armor/full_set",
+  "criteria": {
+    "triggered": {
+      "trigger": "forgeweave:armor_level_up"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.forgeweave.armor_level.description"
+    },
+    "frame": "challenge",
+    "icon": {
+      "count": 1,
+      "id": "forgeweave:heavy_chestplate"
+    },
+    "title": {
+      "translate": "advancements.forgeweave.armor_level.title"
+    }
+  },
+  "requirements": [
+    [
+      "triggered"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
