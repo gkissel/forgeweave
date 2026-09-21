@@ -38,15 +38,21 @@ import dev.gkissel.forgeweave.api.trait.Trait;
  * {@code max_level}, {@code description_args}). Leave them out for a trait that has its own name,
  * which is what most of them are.
  *
+ * <p>Since issue #1112 it may also pick what a proc of it looks and sounds like, with the three
+ * optional fields {@link TraitFeedback.Feedback}'s codec reads ({@code particle}, {@code sound},
+ * {@code silent}). Leave them out and the behaviour's own default pair is used.
+ *
  * @param behavior which {@link TraitBehaviors} entry built {@link #trait}
  * @param trait the runtime behaviour, wired into every seam like a Java-registered trait
  * @param rung the family and level this definition is, or {@link TraitFamilies.Rung#NONE}
+ * @param feedback what a proc announces itself with, or {@link TraitFeedback.Feedback#DEFAULTS}
  */
-public record TraitDefinition(ResourceLocation behavior, Trait trait, TraitFamilies.Rung rung) {
+public record TraitDefinition(ResourceLocation behavior, Trait trait, TraitFamilies.Rung rung,
+        TraitFeedback.Feedback feedback) {
 
-    /** A definition with no family, which is the common case and what every test writes. */
+    /** A definition with no family and default feedback, which is what every test writes. */
     public TraitDefinition(ResourceLocation behavior, Trait trait) {
-        this(behavior, trait, TraitFamilies.Rung.NONE);
+        this(behavior, trait, TraitFamilies.Rung.NONE, TraitFeedback.Feedback.DEFAULTS);
     }
 
     public static final ResourceKey<Registry<TraitDefinition>> REGISTRY =
