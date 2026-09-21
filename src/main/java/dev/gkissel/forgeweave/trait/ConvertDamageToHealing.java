@@ -29,5 +29,6 @@ public record ConvertDamageToHealing(TagKey<DamageType> damageType, float fracti
         }
         defense.defender().heal(blow.damage() * fraction);
         blow.setDamage(0.0F);
+        TraitFeedback.fire(this, TraitFeedback.Kind.MEND, defense.level(), defense.defender());
     }
 }

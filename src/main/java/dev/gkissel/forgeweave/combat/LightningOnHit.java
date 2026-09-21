@@ -7,6 +7,7 @@ import net.minecraft.world.entity.LivingEntity;
 
 import dev.gkissel.forgeweave.api.combat.CombatHit;
 import dev.gkissel.forgeweave.api.combat.CombatSeam;
+import dev.gkissel.forgeweave.trait.TraitFeedback;
 
 /**
  * A landed hit calls down a real lightning bolt on the target -- ADR-0004's M6 on-hit effect library
@@ -40,5 +41,6 @@ public final class LightningOnHit implements CombatSeam {
             bolt.setCause(player);
         }
         hit.level().addFreshEntity(bolt);
+        TraitFeedback.fire(this, TraitFeedback.Kind.SHOCK, hit.level(), target);
     }
 }

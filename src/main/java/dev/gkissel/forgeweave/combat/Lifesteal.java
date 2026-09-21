@@ -2,6 +2,7 @@ package dev.gkissel.forgeweave.combat;
 
 import dev.gkissel.forgeweave.api.combat.CombatHit;
 import dev.gkissel.forgeweave.api.combat.CombatSeam;
+import dev.gkissel.forgeweave.trait.TraitFeedback;
 
 /**
  * Heals the attacker for a share of the damage just dealt, capped -- ADR-0004's M6 on-hit effect
@@ -22,6 +23,7 @@ public record Lifesteal(float fraction, float cap) implements CombatSeam {
     public void onHit(CombatHit hit, float damageDealt) {
         if (hit.attacker() != null && damageDealt > 0.0F) {
             hit.attacker().heal(Math.min(damageDealt * fraction, cap));
+            TraitFeedback.fire(this, TraitFeedback.Kind.DRAIN, hit.level(), hit.attacker());
         }
     }
 }

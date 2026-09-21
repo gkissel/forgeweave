@@ -20,6 +20,8 @@ public record Evasion(float chance) implements Trait {
     public void onDefend(CombatDefense defense, DefendedBlow blow) {
         if (blow.damage() > 0.0F && defense.level().getRandom().nextFloat() < chance) {
             blow.setDamage(0.0F);
+            // #1112: an unexplained dodge reads as a bug, so this one always announces itself.
+            TraitFeedback.fire(this, TraitFeedback.Kind.DODGE, defense.level(), defense.defender());
         }
     }
 }

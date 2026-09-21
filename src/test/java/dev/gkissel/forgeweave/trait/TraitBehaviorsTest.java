@@ -99,7 +99,11 @@ class TraitBehaviorsTest {
             "{\"behavior\":\"forgeweave:knockback_resistance\",\"resistance\":0.3}",
             // #1093, both shapes: a tagged protection and the untagged one.
             "{\"behavior\":\"forgeweave:protection\",\"damage_type\":\"forgeweave:magic_protection\",\"amount\":2.5}",
-            "{\"behavior\":\"forgeweave:protection\",\"amount\":1.5}" })
+            "{\"behavior\":\"forgeweave:protection\",\"amount\":1.5}",
+            // #1112's proc-feedback fields: an override of both, and silencing.
+            "{\"behavior\":\"forgeweave:evasion\",\"particle\":\"minecraft:poof\","
+                    + "\"sound\":\"minecraft:item.shield.block\",\"chance\":0.15}",
+            "{\"behavior\":\"forgeweave:lifesteal\",\"silent\":true,\"fraction\":0.15,\"cap\":4.0}" })
     void everyBehaviorRoundTrips(String json) {
         JsonElement input = JsonParser.parseString(json);
         TraitDefinition definition = TraitDefinition.CODEC.parse(ops, input).getOrThrow();

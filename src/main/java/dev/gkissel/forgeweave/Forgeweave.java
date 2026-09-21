@@ -100,6 +100,7 @@ import dev.gkissel.forgeweave.tool.AoeHarvest;
 import dev.gkissel.forgeweave.tool.VeinmineKey;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 import dev.gkissel.forgeweave.trait.TraitDefinition; // #832
+import dev.gkissel.forgeweave.trait.TraitFeedbackPayload; // #1112
 import dev.gkissel.forgeweave.worldgen.MagmaSlimeIslandPiece; // #450
 import dev.gkissel.forgeweave.worldgen.MagmaSlimeIslandStructure; // #450
 import dev.gkissel.forgeweave.worldgen.NetherOrePlacement; // #276
@@ -443,11 +444,15 @@ public class Forgeweave {
         event.dataPackRegistry(ModifierDefinition.REGISTRY, ModifierDefinition.CODEC, ModifierDefinition.CODEC);
     }
 
-    /** The Tool Station's rename field and the guide book's bookmark ride custom payloads. */
+    /**
+     * The Tool Station's rename field, the guide book's bookmark, the veinmine key and a trait
+     * proc's particle/sound cue ride custom payloads.
+     */
     private void registerPayloads(final RegisterPayloadHandlersEvent event) {
         RenameStationItemPayload.register(event.registrar("1"));
         SavedBookPagePayload.register(event.registrar("1"));
         VeinmineKey.Payload.register(event.registrar("1"));
+        TraitFeedbackPayload.register(event.registrar("1"));
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
