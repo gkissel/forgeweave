@@ -40,6 +40,7 @@ import dev.gkissel.forgeweave.tool.ToolStats;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
 import dev.gkissel.forgeweave.trait.EnergyBuffer;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
+import dev.gkissel.forgeweave.trait.TraitFamilies;
 import dev.gkissel.forgeweave.api.trait.Trait;
 
 /**
@@ -458,13 +459,15 @@ final class ToolTooltip {
      * trait two materials share is attributed to the part actually being described.
      */
     private static Component traitLine(ResourceLocation traitId, TextColor color) {
-        String base = "trait." + traitId.getNamespace() + "." + traitId.getPath();
-        MutableComponent name = Component.translatable(base + ".name");
+        // #1103: one name key and one description key per leveled family, the numeral appended and
+        // the rung's own numbers interpolated; see TraitFamilies.
+        traitId = ForgeweaveTraits.canonical(traitId);
+        MutableComponent name = TraitFamilies.name(traitId);
         if (color != null) {
             name = name.withStyle(Style.EMPTY.withColor(color));
         }
         return name.append(Component.literal(": ").withStyle(ChatFormatting.GRAY))
-                .append(Component.translatable(base + ".description").withStyle(ChatFormatting.GRAY));
+                .append(TraitFamilies.description(traitId).withStyle(ChatFormatting.GRAY));
     }
 
     /**

@@ -26,6 +26,8 @@ import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.PartBuilderRecipes;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
+import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
+import dev.gkissel.forgeweave.trait.TraitFamilies;
 
 /**
  * What a material's book page shows, as data: the display-item bar, the per-stat-block groups and
@@ -137,10 +139,10 @@ public final class MaterialPageContent {
     }
 
     private static Component traitLine(Material material, ResourceLocation id) {
-        String base = "trait." + id.getNamespace() + "." + id.getPath();
-        Component hover = Component.translatable(base + ".description")
-                .withStyle(Style.EMPTY.withColor(material.color()));
-        return Component.translatable(base + ".name")
+        // #1103: family name plus roman numeral, family description with this rung's numbers.
+        id = ForgeweaveTraits.canonical(id);
+        Component hover = TraitFamilies.description(id).withStyle(Style.EMPTY.withColor(material.color()));
+        return TraitFamilies.name(id)
                 .withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.UNDERLINE)
                 .withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover)));
     }

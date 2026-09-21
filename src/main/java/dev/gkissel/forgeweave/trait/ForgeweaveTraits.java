@@ -4011,10 +4011,29 @@ public final class ForgeweaveTraits {
         if (trait == null) {
             trait = TraitRegistry.trait(id);
         }
+        if (trait == null && ForgeweaveConfig.enabled(ForgeweaveConfig.KUBEJS_TRAITS)) {
+            trait = SCRIPTED.get(id);
+        }
         if (trait != null) {
             return trait;
         }
-        return ForgeweaveConfig.enabled(ForgeweaveConfig.KUBEJS_TRAITS) ? SCRIPTED.get(id) : null;
+        // #1103: last, so a live id is never shadowed by an alias that happens to share its name.
+        ResourceLocation canonical = TraitFamilies.canonical(id);
+        return canonical.equals(id) ? null : lookup(canonical);
+    }
+
+    /**
+     * What a stored trait id means in this version: itself, or the rung that replaced it when #1103
+     * merged its name away. Every read of {@code forgeweave:traits} off a stack goes through this,
+     * so a tool built before the merge keeps the behaviour it was assembled with.
+     */
+    public static ResourceLocation canonical(ResourceLocation id) {
+        return TraitFamilies.canonical(id);
+    }
+
+    /** {@link #canonical} over a whole stored list, dropping the duplicates a merge creates. */
+    public static List<ResourceLocation> canonical(List<ResourceLocation> ids) {
+        return TraitFamilies.canonical(ids);
     }
 
     /**
@@ -4060,6 +4079,7 @@ public final class ForgeweaveTraits {
      */
     public static void onTagsUpdated(TagsUpdatedEvent event) {
         Map<ResourceLocation, Trait> loaded = new LinkedHashMap<>();
+        Map<ResourceLocation, TraitFamilies.Rung> rungs = new LinkedHashMap<>();
         event.getRegistryAccess().registry(TraitDefinition.REGISTRY).ifPresent(registry -> registry.entrySet()
                 .forEach(entry -> {
                     ResourceLocation id = entry.getKey().location();
@@ -4068,9 +4088,11 @@ public final class ForgeweaveTraits {
                                 + "behavior wins and the definition is ignored (issue #832).", id);
                     } else {
                         loaded.put(id, entry.getValue().trait());
+                        rungs.put(id, entry.getValue().rung());
                     }
                 }));
         DATAPACK = Map.copyOf(loaded);
+        TraitFamilies.datapack(rungs);
         WARNED_UNKNOWN.clear();
         if (!loaded.isEmpty()) {
             LOGGER.info("Loaded {} datapack trait definitions: {}", loaded.size(), loaded.keySet());
@@ -4210,6 +4232,10 @@ public final class ForgeweaveTraits {
         if (ids == null || ids.isEmpty()) {
             return List.of();
         }
+        // #1103: canonical() folds the ids this version retired onto their surviving rungs and
+        // drops the duplicate a merge can create (a head and a handle material that used to grant
+        // two names for one mechanic now name the same rung, and every hook would run twice).
+        ids = canonical(ids);
         List<Trait> traits = new ArrayList<>(ids.size());
         for (ResourceLocation id : ids) {
             Trait trait = lookup(id);

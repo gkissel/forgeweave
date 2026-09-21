@@ -369,9 +369,16 @@ public final class TraitBehaviors {
         TYPES.put(id, wrap(id, codec));
     }
 
-    /** A behaviour's own codec, carrying the id it was registered under. */
+    /**
+     * A behaviour's own codec, carrying the id it was registered under, plus the optional family
+     * fields every definition may declare (issue #1103) -- added here rather than per behaviour so
+     * one change covers all of them, addon behaviours included.
+     */
     private static <T extends Trait> MapCodec<TraitDefinition> wrap(ResourceLocation id, MapCodec<T> codec) {
-        return codec.xmap(trait -> new TraitDefinition(id, trait), TraitBehaviors::trait);
+        return RecordCodecBuilder.mapCodec(instance -> instance.group(
+                TraitFamilies.Rung.CODEC.forGetter(TraitDefinition::rung),
+                codec.forGetter(TraitBehaviors::<T>trait))
+                .apply(instance, (rung, trait) -> new TraitDefinition(id, trait, rung)));
     }
 
     private static <S extends CombatSeam> void seam(String name, MapCodec<S> seamCodec) {
