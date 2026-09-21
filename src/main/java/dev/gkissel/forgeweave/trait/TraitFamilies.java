@@ -121,9 +121,14 @@ public final class TraitFamilies {
             Map.entry(id("ecological"), rung("ecological", 1, 3, "10")),
             Map.entry(id("ecological2"), rung("ecological", 2, 3, "6.5")),
             Map.entry(id("ecological3"), rung("ecological", 3, 3, "5")),
-            Map.entry(id("bracingplate"), rung("bracingplate", 1, 3, "4")),
-            Map.entry(id("bracingplate2"), rung("bracingplate", 2, 3, "6")),
-            Map.entry(id("bracingplate3"), rung("bracingplate", 3, 3, "10")));
+            Map.entry(id("bracingplate"), rung("bracingplate", 1, 3, "3")),
+            Map.entry(id("bracingplate2"), rung("bracingplate", 2, 3, "4")),
+            Map.entry(id("bracingplate3"), rung("bracingplate", 3, 3, "5")),
+            // Arcing I is the Java trait (a fully charged swing only) and Arcing II is a
+            // trait_definition that arcs on every hit, so this family is declared from both
+            // sides. Its two rungs differ in kind as well as in magnitude, which is why its one
+            // sentence names both levels.
+            Map.entry(id("arcing"), rung("arcing", 1, 2, "35")));
 
     /** Retired ids a stored trait list may still carry, each pointing at the rung that replaced it. */
     private static final Map<ResourceLocation, ResourceLocation> ALIASES = Map.ofEntries(
@@ -258,8 +263,8 @@ public final class TraitFamilies {
             Map.entry(id("ironwood_footing"), id("sure_footing")),
             Map.entry(id("ferricore_footing"), id("sure_footing")),
             Map.entry(id("zanite_growth"), id("stonebound")),
-            Map.entry(id("fluix_arc"), id("arcing")),
-            Map.entry(id("ludicrite_surge"), id("arcing")),
+            Map.entry(id("fluix_arc"), id("arcing2")),
+            Map.entry(id("ludicrite_surge"), id("arcing2")),
             Map.entry(id("brasswind"), id("skyborne")),
             Map.entry(id("buoyant"), id("steelfast")),
             Map.entry(id("voidtouched"), id("fractured")),

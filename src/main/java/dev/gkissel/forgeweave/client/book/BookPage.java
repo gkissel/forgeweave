@@ -8,6 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.material.MaterialStage;
 
 /**
  * One page of the guide book -- the Forgeweave equivalents of the page types the 1.12 book's
@@ -39,8 +40,19 @@ public sealed interface BookPage {
      */
     record ToolPage(Item tool) implements BookPage {}
 
-    /** A material's stat page, rendered live from the datapack {@link Material} registry. */
-    record MaterialPage(ResourceLocation id, Material material) implements BookPage {}
+    /**
+     * A material's stat page, rendered live from the datapack {@link Material} registry. The stage
+     * is the chapter's ladder rung (issue #1104): shown on the page, and the reason the page sits
+     * where it does.
+     */
+    record MaterialPage(ResourceLocation id, Material material, MaterialStage stage) implements BookPage {}
+
+    /**
+     * One trait family's reference entry (issue #1104): its levels, what each level does, and the
+     * materials that grant it. Built from {@link BookTraits}, i.e. from whatever traits the loaded
+     * materials actually name, so nothing here is a hardcoded roster.
+     */
+    record TraitPage(BookTraits.Family family) implements BookPage {}
 
     /**
      * A modifier's page, upstream's {@code ContentModifier} (issue #651): the coloured name,

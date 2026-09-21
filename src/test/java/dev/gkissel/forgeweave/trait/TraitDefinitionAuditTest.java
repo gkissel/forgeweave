@@ -205,6 +205,44 @@ class TraitDefinitionAuditTest {
         return seams.isEmpty() ? trait : List.copyOf(seams);
     }
 
+    /**
+     * A worn trait's magnitude is sized by what a full set totals, not by what one piece pays
+     * (maintainer directive, 2026-09-21). {@code evasion} is the one behaviour where that is not
+     * obvious: {@code CombatSeams#armorPass} calls {@code onDefend} once per worn piece, so four
+     * pieces roll the dodge independently and a full set misses 1 - (1 - chance)^4 of the blows.
+     * A 25% per-piece rung would make a full set dodge 68% of everything, which is why the shipped
+     * rungs are 7% and 10% (a set of 25% and 34%).
+     *
+     * <p>The ceiling here is 40% for a full set. Raise a rung past it only with a maintainer
+     * decision, and do the arithmetic on the set rather than on the piece.
+     */
+    @Test
+    void noEvasionRungLetsAFullSetDodgeMoreThanFortyPercent() throws IOException {
+        List<String> tooHigh = new ArrayList<>();
+        for (Path dataDir : List.of(projectRoot().resolve("src/main/resources/data"),
+                projectRoot().resolve("src/generated/resources/data"))) {
+            if (!Files.isDirectory(dataDir)) {
+                continue;
+            }
+            try (Stream<Path> files = Files.walk(dataDir)) {
+                for (Path file : files.filter(TraitDefinitionAuditTest::isTraitDefinition).sorted().toList()) {
+                    JsonElement root = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8));
+                    if (!root.isJsonObject() || !"forgeweave:evasion".equals(behaviorOf(file))) {
+                        continue;
+                    }
+                    double chance = root.getAsJsonObject().get("chance").getAsDouble();
+                    double fullSet = 1.0 - Math.pow(1.0 - chance, 4);
+                    if (fullSet > 0.40) {
+                        tooHigh.add(file.getFileName() + " rolls " + chance + " a piece, so a full set dodges "
+                                + Math.round(fullSet * 100) + "%");
+                    }
+                }
+            }
+        }
+        assertTrue(tooHigh.isEmpty(), "evasion is rolled once per worn piece, so a full set compounds: "
+                + tooHigh);
+    }
+
     private static boolean isTraitDefinition(Path file) {
         String path = file.toString().replace('\\', '/');
         return path.contains("/forgeweave/trait_definition/") && path.endsWith(".json");

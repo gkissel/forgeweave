@@ -1,9 +1,9 @@
 {
   "behavior": "forgeweave:evasion",
-  "chance": 0.25,
+  "chance": 0.07,
   "family": "voidward",
   "max_level": 2,
   "description_args": [
-    "25"
+    "7"
   ]
 }

@@ -149,8 +149,8 @@ public class MaterialTraitCorrectionGameTests {
 
         helper.assertTrue(last < first, "the fifth blow must cost less than the first, " + last + " vs " + first);
         TraitStacks stacks = worn(player).get(ForgeweaveDataComponents.RESISTANCE_STACKS.get());
-        helper.assertTrue(stacks != null && stacks.level() == 4,
-                "five blows must leave the stacks at Bracing Plate I's cap of 4, got " + stacks);
+        helper.assertTrue(stacks != null && stacks.level() == 3,
+                "five blows must leave the stacks at Bracing Plate I's cap of 3, got " + stacks);
         helper.succeed();
     }
 
@@ -179,8 +179,8 @@ public class MaterialTraitCorrectionGameTests {
             capped = lost(player, source, BLOW);
         }
         TraitStacks stacks = worn(player).get(ForgeweaveDataComponents.RESISTANCE_STACKS.get());
-        helper.assertTrue(stacks != null && stacks.level() == 4,
-                "four blows must leave the stacks at Bracing Plate I's cap of 4, got " + stacks);
+        helper.assertTrue(stacks != null && stacks.level() == 3,
+                "four blows must leave the stacks at Bracing Plate I's cap of 3, got " + stacks);
         // The fourth blow arrives with three stacks standing: 3/25 of it, 12%.
         helper.assertTrue(capped < first && Math.abs(capped - first * 0.88F) < 0.2F,
                 "with three stacks standing the blow must cost 12% less, " + capped + " against " + first);

@@ -2353,10 +2353,10 @@ public final class ForgeweaveTraits {
     public static final Trait EMBERDRINK = new ConvertDamageToHealing(DamageTypeTags.IS_FIRE, EMBERDRINK_FRACTION);
 
     private static final float BRACINGPLATE_PER_HIT = 1.0F;
-    private static final int BRACINGPLATE_CAP = 4;
+    private static final int BRACINGPLATE_CAP = 3;
     private static final int BRACINGPLATE_DECAY_TICKS = 120;
-    private static final float BRACINGPLATE3_PER_HIT = 0.75F;
-    private static final int BRACINGPLATE2_CAP = 6;
+    private static final float BRACINGPLATE3_PER_HIT = 0.5F;
+    private static final int BRACINGPLATE2_CAP = 4;
     private static final int BRACINGPLATE3_CAP = 10;
 
     /**
@@ -2370,7 +2370,7 @@ public final class ForgeweaveTraits {
     public static final Trait BRACINGPLATE2 =
             new StackingResistance(BRACINGPLATE_PER_HIT, BRACINGPLATE2_CAP, BRACINGPLATE_DECAY_TICKS);
 
-    /** Bracing Plate III: slower per blow but it keeps climbing far past the other two. */
+    /** Bracing Plate III: half a point a blow, so it takes a long fight to reach the highest cap. */
     public static final Trait BRACINGPLATE3 =
             new StackingResistance(BRACINGPLATE3_PER_HIT, BRACINGPLATE3_CAP, BRACINGPLATE_DECAY_TICKS);
 

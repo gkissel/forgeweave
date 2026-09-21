@@ -150,8 +150,8 @@ public class ArmorTraitLibraryGameTests {
         }
         helper.assertTrue(last < first, "the seventh blow must cost less than the first, " + last + " vs " + first);
         TraitStacks stacks = worn(player).get(ForgeweaveDataComponents.RESISTANCE_STACKS.get());
-        helper.assertTrue(stacks != null && stacks.level() == 4,
-                "seven blows must leave the stacks at Bracing Plate I's cap of 4, got " + stacks);
+        helper.assertTrue(stacks != null && stacks.level() == 3,
+                "seven blows must leave the stacks at Bracing Plate I's cap of 3, got " + stacks);
         helper.succeed();
     }
 
@@ -201,7 +201,10 @@ public class ArmorTraitLibraryGameTests {
         helper.succeed();
     }
 
-    /** {@code voidward}: one blow in ten misses. 200 rolls; zero misses is a 7e-10 event. */
+    /**
+     * {@code voidward}: Voidward I is 7% per worn piece, sized so a full set turns aside about a
+     * quarter of the blows that reach it. 200 rolls on one piece; zero misses is a 4e-7 event.
+     */
     @GameTest(template = "empty")
     public static void windstepSometimesAvoidsABlowEntirely(GameTestHelper helper) {
         Player player = wearing(helper, "voidward");
@@ -212,7 +215,7 @@ public class ArmorTraitLibraryGameTests {
                 misses++;
             }
         }
-        helper.assertTrue(misses > 0, "200 blows at a 10% dodge must have missed at least once");
+        helper.assertTrue(misses > 0, "200 blows at a 7% dodge must have missed at least once");
         helper.assertTrue(misses < 200, "and must not have missed all of them");
         helper.succeed();
     }

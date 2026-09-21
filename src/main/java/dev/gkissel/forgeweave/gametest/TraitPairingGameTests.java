@@ -54,7 +54,7 @@ public class TraitPairingGameTests {
             "heft", "heft", "kinetic", "soulrend", "ecological",
             "keen_edge", "keen_edge", "keen_edge", "keen_edge2", "keen_edge2",
             "keen_edge3", "keen_edge4", "prosperity_bloom", "soulrend", "blutonium_pulse",
-            "cyanite_chill", "arcing", "grievous", "arcing", "writable",
+            "cyanite_chill", "arcing2", "grievous", "arcing2", "writable",
             "keen_edge", "enfeebling", "energized", "ecological",
             // #1097: the companions that replaced melee_protection and magic_protection where those
             // two had stopped answering the material's own idea.

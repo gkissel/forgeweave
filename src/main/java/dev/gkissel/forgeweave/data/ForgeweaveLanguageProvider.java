@@ -2554,7 +2554,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.harrying.name", "Harrying");
         add("trait.forgeweave.harrying.description", "Shortens the target's invulnerability after being hit, letting follow-up blows land sooner.");
         add("trait.forgeweave.arcing.name", "Arcing");
-        add("trait.forgeweave.arcing.description", "A fully-charged hit has a one-in-three chance to arc to two more enemies nearby.");
+        add("trait.forgeweave.arcing.description", "The hit arcs to two more enemies nearby for %s% of its "
+                + "damage. Level I needs a fully charged swing; level II fires on every hit.");
         add("trait.forgeweave.stormcaller.name", "Stormcaller");
         add("trait.forgeweave.stormcaller.description", "Strikes lightning on enemies hit while the wielder is at full health.");
         add("effect.forgeweave.reduced_healing", "Grievous Wound");
@@ -2886,6 +2887,44 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.materials.tier_equivalence.title", "Beyond Resonite");
         add("book.forgeweave.materials.tier_equivalence.text",
                 "Allthemodium adds three metals above netherite of its own, and this workshop's tools reach the same three rungs. The two ladders line up: Allthemodium, Vibranium and Unobtainium ore mine and are mined by Hardcinder, Warspar and Resonite tools respectively, in either direction, with no rung skipped.\n\nA Resonite pick mining Unobtainium ore is expected, not a bug: the two sit at the same rung. The same tools also find this workshop's ores generating in Allthemodium's own mining dimension.\n\nWhat next: a finished tool is never finished. Read Modifiers.");
+        // #1104: the materials chapter is a ladder now, so it opens on the ladder itself -- one row
+        // per stage saying what a player needs before that stage opens.
+        add("book.forgeweave.materials.stages", "The Material Ladder");
+        add("book.forgeweave.stage.first_day.name", "First day");
+        add("book.forgeweave.stage.first_day.unlock",
+                "Wood, stone, flint and bone, carved at the Part Builder. Nothing here needs a smeltery.");
+        add("book.forgeweave.stage.first_smeltery.name", "First smeltery");
+        add("book.forgeweave.stage.first_smeltery.unlock",
+                "Iron and the early metals. Build a smeltery, melt the ore, pour it into a cast.");
+        add("book.forgeweave.stage.deeper_mining.name", "Deeper mining");
+        add("book.forgeweave.stage.deeper_mining.unlock",
+                "Materials that mine what iron cannot, and the first alloys of early metals.");
+        add("book.forgeweave.stage.nether_metals.name", "Nether metals");
+        add("book.forgeweave.stage.nether_metals.unlock",
+                "Cobalt, ardite and the rest of the nether rung, and alloys of the rung below.");
+        add("book.forgeweave.stage.past_netherite.name", "Past netherite");
+        add("book.forgeweave.stage.past_netherite.unlock",
+                "This workshop's own ores above netherite, and alloys of nether metals.");
+        add("book.forgeweave.stage.deep_alloys.name", "Deep alloys");
+        add("book.forgeweave.stage.deep_alloys.unlock",
+                "The top rung of the ladder, and the alloys that need a fuel hotter than lava.");
+        add("book.forgeweave.stage.endgame.name", "Endgame");
+        add("book.forgeweave.stage.endgame.unlock",
+                "Alloys poured out of other alloys, two or more smeltery loads deep.");
+        // #1104: the per-material-page lines. A page used to say "Can be cast from Molten Glowveil"
+        // and never that molten glowveil is three other alloys.
+        add("book.forgeweave.material.stage", "Stage: %s");
+        add("book.forgeweave.material.made_by_melting", "Melts from:");
+        add("book.forgeweave.material.made_by_alloying", "Alloyed from:");
+        add("book.forgeweave.material.alloy_input", "%1$s parts %2$s");
+        // #1104: the traits reference at the back of the chapter, the other direction from a
+        // material page's trait list.
+        add("book.forgeweave.trait.level", "Level %s");
+        add("book.forgeweave.trait.granted_by", "Granted by:");
+        add("book.forgeweave.materials.traits", "Traits");
+        add("book.forgeweave.materials.traits_index",
+                "One page per trait, with what each of its levels does and every material that grants it. "
+                        + "A trait name on a material page is a link to its page here.");
         add("book.forgeweave.modifiers.intro.title", "Modifiers");
         add("book.forgeweave.modifiers.intro.text",
                 "A finished tool is never truly finished. At the Tool Station or Tool Forge, spend "
@@ -3611,8 +3650,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.emberdrink.name", "Emberdrink");
         add("trait.forgeweave.emberdrink.description", "Fire does not burn you; it feeds you.");
         add("trait.forgeweave.bracingplate.name", "Bracing Plate");
-        add("trait.forgeweave.bracingplate.description", "Protection builds with every blow taken, up to %s points, and lapses five seconds after "
-                + "they stop.");
+        add("trait.forgeweave.bracingplate.description", "Protection builds on every piece worn with every "
+                + "blow taken, up to %s points each, and lapses six seconds after they stop.");
         add("trait.forgeweave.lastbreath.name", "Last Breath");
         add("trait.forgeweave.lastbreath.description",
                 "A killing blow is spent on the armor instead, at a heavy cost in durability, once in a long while.");
@@ -3671,7 +3710,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.stormward.description",
                 "The worn side of a lightning edge: lightning passes through the wearer harmlessly.");
         add("trait.forgeweave.voidward.name", "Voidward");
-        add("trait.forgeweave.voidward.description", "The worn side of a void-forged edge: a %s% chance that a blow misses the wearer outright.");
+        add("trait.forgeweave.voidward.description", "The worn side of a void-forged edge: every piece worn "
+                + "has a %s% chance of its own to make a blow miss, so a full set turns aside about a "
+                + "quarter of them.");
         add("trait.forgeweave.surgeward.name", "Surgeward");
         add("trait.forgeweave.surgeward.description", "The worn side of a wound-up swing: after a hit the wearer stays untouchable for two seconds "
                 + "instead of vanilla's one.");

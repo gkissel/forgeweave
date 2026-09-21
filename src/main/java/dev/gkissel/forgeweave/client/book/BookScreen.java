@@ -3,6 +3,7 @@ package dev.gkissel.forgeweave.client.book;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
@@ -177,6 +178,16 @@ public class BookScreen extends Screen {
     private int[] slotPage = new int[0];
 
     /**
+     * Where a cross-reference lands (issue #1104): the book-global page index of each material's
+     * own page and of each trait family's reference entry. Built in {@link #init} before anything
+     * is measured, because a material page's alloy inputs and trait lines are links to pages that
+     * may sit in a later section -- the listing pages get the same arithmetic from
+     * {@code sectionStartPage}, but only for links inside their own section.
+     */
+    private final Map<ResourceLocation, Integer> materialPages = new HashMap<>();
+    private final Map<String, Integer> traitFamilyPages = new HashMap<>();
+
+    /**
      * The hand holding the book this screen was opened from, so closing can bookmark the open page
      * on it (issue #623); {@code null} when the screen was opened without an item (the screenshot
      * harness), which saves nothing -- upstream {@code GuiBook} likewise takes a nullable item.
@@ -240,6 +251,7 @@ public class BookScreen extends Screen {
         this.structureBodies.clear();
         this.structureToggles.clear();
         this.draggedStructure = null;
+        indexCrossReferences();
         List<List<Block>> blocks = new ArrayList<>();
         int[] sectionStartPage = new int[this.sections.size()];
         for (int i = 0; i < this.sections.size(); i++) {
@@ -530,6 +542,33 @@ public class BookScreen extends Screen {
     }
 
     /**
+     * Walks the whole page tree once, recording the book-global index of every material page and
+     * every trait reference entry, so the blocks measured right after can link to them. The index
+     * here is the same running count {@link #init}'s measuring loop produces, since every page
+     * contributes exactly one entry to it.
+     */
+    private void indexCrossReferences() {
+        this.materialPages.clear();
+        this.traitFamilyPages.clear();
+        int page = 0;
+        for (BookSection section : this.sections) {
+            for (BookPage content : section.pages()) {
+                if (content instanceof MaterialPage material) {
+                    this.materialPages.put(material.id(), page);
+                } else if (content instanceof BookPage.TraitPage trait) {
+                    this.traitFamilyPages.put(trait.family().path(), page);
+                }
+                page++;
+            }
+        }
+    }
+
+    /** The page a trait id's reference entry sits on, or {@link #NO_TARGET} if it has none. */
+    private int traitTarget(ResourceLocation trait) {
+        return this.traitFamilyPages.getOrDefault(BookTraits.familyOf(trait), NO_TARGET);
+    }
+
+    /**
      * Measures one page into the blocks {@link BookLayout} then spreads across leaves. A page's
      * title, image and tool icon are its leading blocks, so a continuation leaf -- which starts
      * part-way down the list -- never repeats them, exactly as upstream's hand-split
@@ -558,6 +597,8 @@ public class BookScreen extends Screen {
             toolBlocks(blocks, tool.tool());
         } else if (page instanceof MaterialPage material) {
             materialBlocks(blocks, material);
+        } else if (page instanceof BookPage.TraitPage trait) {
+            traitBlocks(blocks, trait.family());
         } else if (page instanceof ModifierPage modifier) {
             modifierBlocks(blocks, modifier.id());
         }
@@ -914,6 +955,12 @@ public class BookScreen extends Screen {
                 graphics.drawString(this.font, label, x + this.font.width(bullet), y,
                         over ? LINK_COLOR : TEXT_COLOR, false);
             }, List.of(region)));
+            // Issue #1104: a row may carry a sentence under it -- the materials chapter's stage
+            // listing says what unlocks each stage there, since the stage name alone does not.
+            if (link.descriptionKey() != null) {
+                bodyBlocks(blocks, Component.translatable(link.descriptionKey())
+                        .withStyle(ChatFormatting.ITALIC));
+            }
         }
     }
 
@@ -976,13 +1023,90 @@ public class BookScreen extends Screen {
                 .translatable("material." + page.id().getNamespace() + "." + page.id().getPath())
                 .withStyle(Style.EMPTY.withColor(material.color())));
 
+        blocks.add(hoverLineBlock(MaterialPageContent.stageLine(page.stage()), TEXT_COLOR));
         displayBarBlock(blocks, page);
+        madeFromBlocks(blocks, page);
 
         for (StatGroup group : MaterialPageContent.statGroups(material)) {
             statGroupBlocks(blocks, page, group);
         }
 
         flavourBlocks(blocks, page.id());
+    }
+
+    /**
+     * How the material is made (issue #1104): the underlined header, then one row per source --
+     * an alloy's molten inputs, each linking to the input material's own page so a chain like
+     * truesteel can be walked back a step at a time, or the items that melt into it. Nothing at all
+     * for a material the Part Builder is the only route to, whose display-bar icon already says so.
+     */
+    private void madeFromBlocks(List<Block> blocks, MaterialPage page) {
+        HolderLookup.Provider registries = registries();
+        if (registries == null) {
+            return;
+        }
+        MaterialPageContent.madeFrom(registries, page.id(), page.material()).ifPresent(made -> {
+            Component header = Component.translatable(made.headerKey()).withStyle(ChatFormatting.UNDERLINE);
+            blocks.add(new Block(this.font.lineHeight + 4, (graphics, x, y) ->
+                    graphics.drawString(this.font, header, x, y + 2, TITLE_COLOR, false)));
+            for (MaterialPageContent.Source source : made.sources()) {
+                blocks.add(sourceRowBlock(source));
+            }
+        });
+    }
+
+    /** One "how it is made" row: the source's icon at half scale, its label, and its link. */
+    private Block sourceRowBlock(MaterialPageContent.Source source) {
+        int target = source.material() == null ? NO_TARGET
+                : this.materialPages.getOrDefault(source.material(), NO_TARGET);
+        Region region = Region.of(0, 0, 10 + this.font.width(source.label()), this.font.lineHeight,
+                target, null);
+        return new Block(this.font.lineHeight + 2, (graphics, x, y) -> {
+            graphics.pose().pushPose();
+            graphics.pose().translate(x, y, 0.0F);
+            graphics.pose().scale(0.5F, 0.5F, 1.0F);
+            graphics.renderItem(source.icon(), 0, 0);
+            graphics.pose().popPose();
+            graphics.drawString(this.font, source.label(), x + 10, y,
+                    target == NO_TARGET ? TEXT_COLOR : this.hovered == region ? LINK_COLOR : TEXT_COLOR, false);
+        }, List.of(region));
+    }
+
+    /**
+     * One trait family's reference entry (issue #1104): the family's name, then per level its
+     * description and the materials that grant it, each material row linking to its own page. A
+     * single-level family draws no level heading, since there is nothing to tell it apart from.
+     */
+    private void traitBlocks(List<Block> blocks, BookTraits.Family family) {
+        titleBlock(blocks, Component.translatable(family.nameKey()).withStyle(ChatFormatting.DARK_GRAY));
+        for (BookTraits.Rung rung : family.rungs()) {
+            if (family.maxLevel() > 1) {
+                blocks.add(lineBlock(MaterialPageContent.traitLevel(rung.level()), TITLE_COLOR));
+            }
+            bodyBlocks(blocks, MaterialPageContent.traitDescription(rung.id()));
+            Component header = Component.translatable(MaterialPageContent.TRAIT_GRANTED_BY)
+                    .withStyle(ChatFormatting.UNDERLINE);
+            blocks.add(new Block(this.font.lineHeight + 4, (graphics, x, y) ->
+                    graphics.drawString(this.font, header, x, y + 2, TITLE_COLOR, false)));
+            for (ResourceLocation material : rung.materials()) {
+                blocks.add(materialRowBlock(material));
+            }
+        }
+    }
+
+    /** One material row of a trait entry: a listing row that jumps to that material's page. */
+    private Block materialRowBlock(ResourceLocation material) {
+        Component label = Component.translatable(
+                "material." + material.getNamespace() + "." + material.getPath());
+        int target = this.materialPages.getOrDefault(material, NO_TARGET);
+        Region region = Region.of(0, 0, PAGE_TEXT_W, this.font.lineHeight, target, null);
+        return new Block(this.font.lineHeight + 1, (graphics, x, y) -> {
+            boolean over = this.hovered == region;
+            String bullet = over ? " > " : "- ";
+            graphics.drawString(this.font, bullet, x, y, LINK_COLOR, false);
+            graphics.drawString(this.font, label, x + this.font.width(bullet), y,
+                    over ? LINK_COLOR : TEXT_COLOR, false);
+        }, List.of(region));
     }
 
     /**
@@ -1040,8 +1164,11 @@ public class BookScreen extends Screen {
         for (Component stat : group.stats()) {
             blocks.add(hoverLineBlock(stat, TEXT_COLOR));
         }
-        for (Component trait : group.traits()) {
-            blocks.add(hoverLineBlock(trait, TEXT_COLOR));
+        for (MaterialPageContent.TraitLine trait : group.traits()) {
+            // Issue #1104: the line still explains itself on hover, and now also jumps to the
+            // trait's reference entry, which is where its other levels and the other materials that
+            // grant it are.
+            blocks.add(hoverLineBlock(trait.line(), TEXT_COLOR, traitTarget(trait.id())));
         }
     }
 
@@ -1098,11 +1225,17 @@ public class BookScreen extends Screen {
      * the drawn text, not the whole leaf width, exactly as a {@code TextData} tooltip's is.
      */
     private Block hoverLineBlock(Component line, int color) {
+        return hoverLineBlock(line, color, NO_TARGET);
+    }
+
+    /** As above, and a jump to {@code targetPage} when the line is also a cross-reference (#1104). */
+    private Block hoverLineBlock(Component line, int color, int targetPage) {
         Component tooltip = line.getStyle().getHoverEvent() == null ? null
                 : line.getStyle().getHoverEvent().getValue(HoverEvent.Action.SHOW_TEXT);
         Block block = lineBlock(line, color);
-        return tooltip == null ? block : new Block(block.height(), block.drawer(), List.of(Region.of(
-                0, 0, this.font.width(line), this.font.lineHeight, NO_TARGET, tooltip)));
+        return tooltip == null && targetPage == NO_TARGET ? block
+                : new Block(block.height(), block.drawer(), List.of(Region.of(
+                        0, 0, this.font.width(line), this.font.lineHeight, targetPage, tooltip)));
     }
 
     private boolean hasPrev() {
