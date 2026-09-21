@@ -62,9 +62,39 @@ VALUE_NUGGET = 16
 VALUE_INGOT = 144
 VALUE_BLOCK = VALUE_INGOT * 9
 
+# Issue #1113, the fuel ladder. A melt happens when the fuel's own temperature reaches the recipe's,
+# so 1400 needs blazing blood (1500) and 1600 needs molten magma (1700); plain lava is 1300 and an
+# ingot's derived temperature can never pass 1045, which is why lava used to clear every one of this
+# mod's own metals and the four hotter fuels gated nothing but other mods' materials (review
+# 06-progression.md section 3, "does the fuel/temperature system gate anything in practice").
+#
+# The bands are Track A's own (scripts/_compat_smeltery_data.py TIER_MELT_TEMPERATURE), so one fuel
+# step opens one band of compat ores and one depth of this mod's own chains together. Pinned once per
+# alloy and applied to every form of it, the same call issue #954 made for Track A: a nugget of
+# truesteel asks for the same fuel its block does.
+MELT_TEMPERATURE_BY_DEPTH = {2: 1400, 3: 1600, 4: 1600}
+
 
 def write_json(path: Path, data: dict) -> None:
     path.write_text(json.dumps(data, indent=2) + "\n")
+
+
+def alloy_depth(alloy_id: str, path: tuple[str, ...] = ()) -> int:
+    """How many alloying steps deep this alloy is: 1 for an alloy of plain metals, 2 for an alloy one
+    of whose inputs is itself an alloy, and so on. Mirrors MaterialStage.Lookup#alloyDepth, which the
+    guide book derives its stages from, and carries the path so a cycle terminates."""
+    if alloy_id in path:
+        return 0
+    inputs = next((variants[0][0] for output, variants in ALLOY_RECIPES if output == alloy_id), None)
+    if inputs is None:
+        return 0
+    return 1 + max((alloy_depth(input_id, path + (alloy_id,)) for input_id, _amount in inputs), default=0)
+
+
+def melt_temperature(alloy_id: str) -> int | None:
+    """The explicit `temperature` an alloy's melting rows carry, or None to derive it from the fluid
+    (which is what everything at depth 1 and below still does -- lava melts those)."""
+    return MELT_TEMPERATURE_BY_DEPTH.get(alloy_depth(alloy_id))
 
 
 def clone_casting_recipes() -> None:
@@ -116,16 +146,21 @@ def crystal_melting_recipes() -> None:
 
 
 def alloy_melting_recipes() -> None:
-    """Ingot/nugget/block melting rows for the 18 alloy-only metals -- no ore/raw form."""
+    """Ingot/nugget/block melting rows for the 18 alloy-only metals -- no ore/raw form. A depth-2 or
+    deeper alloy also carries an explicit temperature, so re-melting it needs a hotter fuel than lava
+    (issue #1113, see MELT_TEMPERATURE_BY_DEPTH)."""
+    gated = 0
     for alloy_id in ALLOYS:
         fluid = f"forgeweave:molten_{alloy_id}"
-        write_json(MELTING_DIR / f"{alloy_id}_ingot.json",
-                   {"input": {"tag": f"c:ingots/{alloy_id}"}, "fluid": fluid, "amount": VALUE_INGOT})
-        write_json(MELTING_DIR / f"{alloy_id}_nugget.json",
-                   {"input": {"tag": f"c:nuggets/{alloy_id}"}, "fluid": fluid, "amount": VALUE_NUGGET})
-        write_json(MELTING_DIR / f"{alloy_id}_block.json",
-                   {"input": {"tag": f"c:storage_blocks/{alloy_id}"}, "fluid": fluid, "amount": VALUE_BLOCK})
-    print(f"wrote {len(ALLOYS) * 3} alloy melting recipes")
+        temperature = melt_temperature(alloy_id)
+        gated += temperature is not None
+        for form, tag, amount in (("ingot", "ingots", VALUE_INGOT), ("nugget", "nuggets", VALUE_NUGGET),
+                                  ("block", "storage_blocks", VALUE_BLOCK)):
+            data = {"input": {"tag": f"c:{tag}/{alloy_id}"}, "fluid": fluid, "amount": amount}
+            if temperature is not None:
+                data["temperature"] = temperature
+            write_json(MELTING_DIR / f"{alloy_id}_{form}.json", data)
+    print(f"wrote {len(ALLOYS) * 3} alloy melting recipes ({gated} alloys on a hotter fuel than lava)")
 
 
 def catalyst_melting_recipes() -> None:

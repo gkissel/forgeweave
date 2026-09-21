@@ -3,5 +3,6 @@
     "tag": "c:dusts/sunsteel"
   },
   "fluid": "forgeweave:molten_sunsteel",
-  "amount": 144
+  "amount": 144,
+  "temperature": 1600
 }

@@ -380,13 +380,24 @@ class MaterialTest {
             "fulmenite,diamond", "quakestone,diamond", "shardline,diamond",
             "duskspar,netherite", "voltcinder,netherite", "starfall_stone,netherite", "voidglass,netherite",
             "ironbrand,netherite", "embercast,netherite", "tideiron,netherite", "cinderforge,netherite",
-            "daybrass,netherite", "faultsteel,netherite", "skipalloy,netherite", "mendalloy,netherite",
-            "mendstone,netherite",
+            "faultsteel,netherite", "skipalloy,netherite",
             "murkiron,hardcinder", "hardcinder,hardcinder", "nightshale,hardcinder",
             "riftalloy,hardcinder", "dreadalloy,hardcinder", "stormalloy,hardcinder",
-            "manyullyn,hardcinder", "ancient,hardcinder",
-            "warspar,warspar", "hollowstone,warspar", "hollowsteel,warspar", "glowveil,warspar",
+            "manyullyn,hardcinder",
+            "warspar,warspar", "hollowstone,warspar", "glowveil,warspar",
             "resonite,resonite", "sunsteel,resonite", "truesteel,resonite",
+            // Issue #1113 moved four of the rows above. `ancient` left the hardcinder rung for
+            // netherite, which closed the Part Builder skip past the whole rung-5 ore trio
+            // (review 06-progression.md section 3, "break 3") and puts netherite scrap in the
+            // same book stage as the netherite it makes. `hollowsteel` left warspar for
+            // resonite, because a depth-4 alloy of resonite was landing a book stage earlier
+            // than its own depth-3 ingredient. `mendalloy`, `mendstone` and `daybrass` left
+            // netherite for the rung of the ores they are poured from, because the payoff rule
+            // lifts them past every rung-6 ore and a netherite-rung tag on those numbers said
+            // nothing true.
+            "ancient,netherite",
+            "mendalloy,hardcinder", "daybrass,hardcinder", "mendstone,warspar",
+            "hollowsteel,resonite",
             // #993 (D-M8-10): atomic matter alloy sits on the top resonite rung with them. The
             // "compat metals stay within vanilla rungs" call in the batch 4 comment above does not
             // apply -- the ingot is a Forgeweave item cast from a Forgeweave fluid, so a
@@ -741,9 +752,10 @@ class MaterialTest {
      * {@code MaterialIntegration:100-108} sets {@code castable} for any material handed a fluid and
      * {@code craftable} only for the ones without -- so the whole metal roster is cast-only by
      * default. Forgeweave carries the same information in one field: {@code cast_only} is exactly
-     * upstream's {@code castable && !craftable}, which is why obsidian and knightslime -- the two
-     * upstream materials that set <em>both</em> flags ({@code TinkerMaterials:236-237,299}) -- do
-     * not carry it.
+     * upstream's {@code castable && !craftable}, which is why knightslime -- one of the two
+     * upstream materials that set <em>both</em> flags ({@code TinkerMaterials:236-237,299}) -- does
+     * not carry it. Obsidian, the other, carries it anyway since issue #1113; see
+     * {@link #castableMetalsAreCastOnly} for why.
      */
     @Test
     void castOnlyDefaultsToFalseAndRoundTrips() {
@@ -772,6 +784,15 @@ class MaterialTest {
     @ParameterizedTest
     @ValueSource(strings = { "iron", "copper", "cobalt", "ardite", "manyullyn", "pig_iron", "steel",
             "amethyst_bronze", "rose_gold", "netherite",
+            // Issue #1113 (maintainer directive): obsidian joins them. Two obsidian blocks at
+            // the Part Builder used to give a netherite-rung head with no smeltery, no cast and
+            // no alloy, which is the widest skip the harvest ladder had (review
+            // 06-progression.md section 3, "break 3"). Note this is a deliberate deviation from
+            // 1.12 rather than a parity fix: upstream really does set both flags on obsidian
+            // ({@code TinkerMaterials:236-237}) and really does give its head the top COBALT
+            // harvest level, so the skip is upstream behaviour. Knightslime, the other
+            // both-flags material, keeps the Part Builder.
+            "obsidian",
             // issue #843 (closes #180): the alloy-only half of the 1.20-branch material gap --
             // queen's slime and hepatizon have no raw form, same as amethyst bronze/rose gold above;
             // slimewood has no wood item of its own either (audit table), same cast-only shape.
@@ -816,8 +837,10 @@ class MaterialTest {
     }
 
     /**
-     * The deliberate exceptions. Obsidian and knightslime set <em>both</em> upstream flags
-     * ({@code TinkerMaterials:236-237,299}), so they stay craftable however the config is set.
+     * The deliberate exceptions. Knightslime sets <em>both</em> upstream flags
+     * ({@code TinkerMaterials:299}), so it stays craftable however the config is set. Obsidian set
+     * both too and no longer does -- issue #1113 made it cast-only to close the harvest-ladder
+     * skip, which is a maintainer decision against parity rather than a parity fix.
      *
      * <p>#873 (M6 epic #824's JC3 reversal) removed the compat-metal exception this javadoc used to
      * document: every compat metal now gets full smeltery integration and moved to
@@ -826,7 +849,7 @@ class MaterialTest {
      * as meltable) plus a few non-metal survivors from earlier milestones.
      */
     @ParameterizedTest
-    @ValueSource(strings = { "obsidian", "knightslime",
+    @ValueSource(strings = { "knightslime",
             "ancient", "chorus", "wood", "stone", "nahuatl",
             // issue #843 (closes #180): seared stone and necrotic bone both keep the Part Builder
             // item-based route the audit found already sourceable -- seared stone additionally sets

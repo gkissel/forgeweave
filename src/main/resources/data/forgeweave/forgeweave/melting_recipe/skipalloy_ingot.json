@@ -3,5 +3,6 @@
     "tag": "c:ingots/skipalloy"
   },
   "fluid": "forgeweave:molten_skipalloy",
-  "amount": 144
+  "amount": 144,
+  "temperature": 1400
 }
