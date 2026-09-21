@@ -2,20 +2,36 @@ package dev.gkissel.forgeweave.trait;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import com.mojang.serialization.JsonOps;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+
+import net.minecraft.SharedConstants;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.RegistryOps;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.Bootstrap;
+
+import dev.gkissel.forgeweave.api.combat.CombatSeam;
+import dev.gkissel.forgeweave.api.trait.Trait;
 
 /**
  * {@code damage_floor} is a drawback, and a shipped {@code trait_definition} may only name it on
@@ -29,9 +45,12 @@ import org.junit.jupiter.api.Test;
  * fourth: every definition naming {@code damage_floor} has to be listed in {@link #DRAWBACKS_ON_PURPOSE}
  * below, with a line saying what the trait costs its wearer and why that is the design.
  *
- * <p>The list is empty today. {@code bloodtoll}, the one honest user of the behaviour, is a Java
- * trait ({@code ForgeweaveTraits#BLOODTOLL}) rather than a definition file, so it never appears
- * here.
+ * <p>The list is empty today: {@code bloodtoll}, the one honest user of the behaviour, went away
+ * with issue #1103's unreachable-id sweep, so nothing in the tree names {@code damage_floor}.
+ *
+ * <p>{@link #noTwoTraitsShareABehaviourAndItsParameters} lives here too. It is what replaced
+ * #876's "no two materials may name the same trait id" rule (issue #1103): materials share traits
+ * now, and what is forbidden instead is two <em>traits</em> that do the same thing under two names.
  */
 class TraitDefinitionAuditTest {
 
@@ -73,6 +92,117 @@ class TraitDefinitionAuditTest {
                         + "meant to protect, reach for a defensive behaviour instead (stacking_resistance, "
                         + "damage_type_immunity, evasion, invulnerability_window, death_save) or, for a tool, "
                         + "knockback_resistance");
+    }
+
+    private static RegistryOps<JsonElement> ops;
+
+    @BeforeAll
+    static void bootstrapMinecraft() {
+        SharedConstants.tryDetectVersion();
+        Bootstrap.bootStrap();
+        ops = RegistryOps.create(JsonOps.INSTANCE,
+                RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+    }
+
+    /**
+     * No two registered traits do the same thing under different names -- the guard that took over
+     * from {@code MaterialTest#noTwoMaterialsShareANonExemptTraitId} when issue #1103 withdrew
+     * #876's uniqueness rule.
+     *
+     * <p>The old rule forbade the wrong thing. It banned two materials from <em>naming</em> one id,
+     * which forced a renamed clone per material and produced exactly what it was meant to prevent:
+     * 29 groups of byte-identical behaviour under 70 ids. This one bans the clone itself, by
+     * behaviour and parameters rather than by name, over both sources at once -- the Java roster and
+     * the shipped {@code trait_definition} files -- so it catches a Java trait cloning a pack one
+     * too, which the old rule could not see at all.
+     *
+     * <p>How a trait reduces to a signature: the parameterised behaviour classes are all records, so
+     * value equality is the signature. A combat-seam trait reduces to the seams it emits, which puts
+     * {@code ForgeweaveTraits#seamTrait}'s anonymous wrapper and {@code TraitBehaviors.SeamTrait}'s
+     * record on the same footing. Everything else is a bespoke anonymous {@code Trait} body, which
+     * compares by identity and so is never a duplicate of anything -- those are the mod's real
+     * content and this test deliberately says nothing about them.
+     */
+    @Test
+    void noTwoTraitsShareABehaviourAndItsParameters() throws Exception {
+        Map<Object, List<String>> bySignature = new LinkedHashMap<>();
+        javaRoster().forEach((id, trait) ->
+                bySignature.computeIfAbsent(signature(trait), key -> new ArrayList<>()).add(id + " (Java)"));
+
+        for (Path dataDir : List.of(projectRoot().resolve("src/main/resources/data"),
+                projectRoot().resolve("src/generated/resources/data"))) {
+            if (!Files.isDirectory(dataDir)) {
+                continue;
+            }
+            try (Stream<Path> files = Files.walk(dataDir)) {
+                for (Path file : files.filter(TraitDefinitionAuditTest::isTraitDefinition).sorted().toList()) {
+                    JsonElement json = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8));
+                    TraitDefinition definition = TraitDefinition.CODEC.parse(ops, json).getOrThrow();
+                    bySignature.computeIfAbsent(signature(definition.trait()), key -> new ArrayList<>())
+                            .add(file.getFileName().toString().replace(".json", "") + " (pack)");
+                }
+            }
+        }
+
+        List<List<String>> clones = bySignature.values().stream().filter(ids -> ids.size() > 1).toList();
+        assertTrue(bySignature.size() > 50, "expected the whole roster, reduced only " + bySignature.size()
+                + " signatures");
+        assertTrue(clones.isEmpty(), "these trait ids are the same behaviour with the same parameters under "
+                + "different names, which is what issue #1103 merged away: " + clones + ". Make them one id, or "
+                + "one leveled family in TraitFamilies with an alias from the retired name");
+    }
+
+    /** Every alias points at a live id, and never at another alias. */
+    @Test
+    void everyRetiredTraitIdPointsAtALiveOne() throws Exception {
+        Set<String> live = new LinkedHashSet<>(javaRoster().keySet());
+        for (Path dataDir : List.of(projectRoot().resolve("src/main/resources/data"),
+                projectRoot().resolve("src/generated/resources/data"))) {
+            if (!Files.isDirectory(dataDir)) {
+                continue;
+            }
+            try (Stream<Path> files = Files.walk(dataDir)) {
+                files.filter(TraitDefinitionAuditTest::isTraitDefinition)
+                        .forEach(file -> live.add("forgeweave:"
+                                + file.getFileName().toString().replace(".json", "")));
+            }
+        }
+
+        List<String> broken = new ArrayList<>();
+        TraitFamilies.aliases().forEach((retired, replacement) -> {
+            if (live.contains(retired.toString())) {
+                broken.add(retired + " is still registered, so it cannot also be an alias");
+            }
+            if (!live.contains(replacement.toString())) {
+                broken.add(retired + " points at " + replacement + ", which nothing registers");
+            }
+            if (TraitFamilies.aliases().containsKey(replacement)) {
+                broken.add(retired + " points at " + replacement + ", which is itself an alias");
+            }
+        });
+
+        assertFalse(TraitFamilies.aliases().isEmpty(), "expected #1103's retired ids");
+        assertTrue(broken.isEmpty(), "a saved tool carrying a retired trait id would lose the trait: " + broken);
+    }
+
+    /** {@code ForgeweaveTraits.REGISTRY}, by reflection, the way {@code TraitReachabilityTest} reads it. */
+    @SuppressWarnings("unchecked")
+    private static Map<String, Trait> javaRoster() throws Exception {
+        var field = ForgeweaveTraits.class.getDeclaredField("REGISTRY");
+        field.setAccessible(true);
+        Map<String, Trait> roster = new LinkedHashMap<>();
+        ((Map<ResourceLocation, Trait>) field.get(null))
+                .forEach((id, trait) -> roster.put(id.toString(), trait));
+        return roster;
+    }
+
+    private static Object signature(Trait trait) {
+        if (trait instanceof TraitBehaviors.SeamTrait seamTrait) {
+            return List.of(seamTrait.gated());
+        }
+        List<CombatSeam> seams = new ArrayList<>();
+        trait.combatSeams(seams::add);
+        return seams.isEmpty() ? trait : List.copyOf(seams);
     }
 
     private static boolean isTraitDefinition(Path file) {

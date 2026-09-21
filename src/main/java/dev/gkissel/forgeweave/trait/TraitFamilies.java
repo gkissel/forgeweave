@@ -71,7 +71,7 @@ public final class TraitFamilies {
         public static final MapCodec<Rung> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
                 Codec.STRING.optionalFieldOf("family", "").forGetter(Rung::family),
                 ExtraCodecs.POSITIVE_INT.optionalFieldOf("level", 1).forGetter(Rung::level),
-                ExtraCodecs.NON_NEGATIVE_INT.optionalFieldOf("max_level", 0).forGetter(Rung::maxLevel),
+                ExtraCodecs.POSITIVE_INT.optionalFieldOf("max_level", 1).forGetter(Rung::maxLevel),
                 Codec.STRING.listOf().optionalFieldOf("description_args", List.of())
                         .forGetter(Rung::descriptionArgs))
                 .apply(instance, Rung::new));

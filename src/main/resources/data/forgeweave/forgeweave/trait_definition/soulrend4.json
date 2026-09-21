@@ -1,12 +1,12 @@
 {
   "behavior": "forgeweave:lifesteal",
-  "fraction": 0.22,
-  "cap": 4.0,
+  "fraction": 0.35,
+  "cap": 7.0,
   "family": "soulrend",
-  "level": 2,
+  "level": 4,
   "max_level": 4,
   "description_args": [
-    "22",
-    "4"
+    "35",
+    "7"
   ]
 }
