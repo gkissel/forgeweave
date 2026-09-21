@@ -1443,7 +1443,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 + "cooked porkchop.");
         add("trait.forgeweave.tasty.name", "Tasty");
         add("trait.forgeweave.tasty.description", "You'd rather eat your tool than starve: while you are hungry it bites off "
-                + "1 food for 5 durability, about 1% of the time each tick.");
+                + "1 food for 5 durability, about once every 5 seconds.");
         add("trait.forgeweave.vintage.name", "Vintage");
         add("trait.forgeweave.vintage.description", "Adds 1 modifier slot, and takes 10% movement speed while the tool is "
                 + "held.");
@@ -1610,8 +1610,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // the projectiles makes them travel like normal underwater"), the flavour line folded into
         // the description as glowing's is.
         add("modifier.forgeweave.fins.name", "Fins");
-        add("modifier.forgeweave.fins.description", "Projectiles keep 99% of their speed a tick underwater instead of "
-                + "vanilla's 60%, so they fly as if in air.");
+        add("modifier.forgeweave.fins.description", "Projectiles barely slow underwater: they keep 99% of their speed a step "
+                + "instead of vanilla's 60%, so they fly as if in air.");
 
         // M4-6 (#681) -- the seven armor modifiers, ported from the 1.20 clone's
         // assets/tconstruct/lang/en_us.json (modifier.tconstruct.<id>.flavor + .description, the
@@ -2292,7 +2292,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.prickly.description", "Nobody is safe from those thorns: every hit puts 0.5 damage on average "
                 + "straight past armor.");
         add("trait.forgeweave.spiky.name", "Spiky");
-        add("trait.forgeweave.spiky.description", "Blocking and getting hurt deals damage to the attacker.");
+        add("trait.forgeweave.spiky.description", "Blocking sends the tool's whole attack damage back at the attacker, past "
+                + "their armor, and taking the hit unblocked sends 50% of it.");
         add("trait.forgeweave.hellish.name", "Hellish");
         add("trait.forgeweave.hellish.description", "Deals 4 more damage to anything that is not fire-immune.");
         add("trait.forgeweave.superheat.name", "Superheat");
@@ -2345,7 +2346,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.breakable.name", "Breakable");
         add("trait.forgeweave.breakable.description", "Projectiles have a 50% chance to break on impact.");
         add("trait.forgeweave.endspeed.name", "Endspeed");
-        add("trait.forgeweave.endspeed.description", "The arrow crosses up to 6.3 blocks a tick, so a shot lands almost at "
+        add("trait.forgeweave.endspeed.description", "The arrow flies about 126 blocks a second, so a shot lands almost at "
                 + "once, and strays 33% less.");
         add("trait.forgeweave.freezing.name", "Freezing");
         add("trait.forgeweave.freezing.description", "Each hit deepens the target's Slowness by one level, up to Slowness V, "
@@ -3737,8 +3738,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.blastvent.name", "Blastvent");
         add("trait.forgeweave.blastvent.description", "Explosions throw you clear instead of tearing into you.");
         add("trait.forgeweave.unstable_core.name", "Unstable Core");
-        add("trait.forgeweave.unstable_core.description", "While the tool is in use, a 1-in-400 chance a tick of a burst that "
-                + "deals 2 damage to the wielder and 1 to everything within 2 blocks.");
+        add("trait.forgeweave.unstable_core.description", "While the tool is in use it bursts about once every 20 seconds, "
+                + "dealing 2 damage to the wielder and 1 to everything within 2 blocks.");
         add("trait.forgeweave.overburdened.name", "Overburdened");
         add("trait.forgeweave.overburdened.description", "Mining has a 15% chance to saddle the wielder with 3 seconds of "
                 + "slower digging.");
