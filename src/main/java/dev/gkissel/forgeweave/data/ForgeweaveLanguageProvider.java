@@ -1360,11 +1360,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 + "%s seconds.");
         add("trait.forgeweave.cheap.name", "Cheap");
         // Upstream modifier.cheap.desc, mechanical line only (flavor text dropped, as elsewhere).
-        add("trait.forgeweave.cheap.description", "A repair gives back a quarter more durability than the material is worth.");
+        add("trait.forgeweave.cheap.description", "A repair gives back 25% more durability than the material is worth.");
         // Issue #493 split cheapskate out of cheap onto its own head-scoped id; see ForgeweaveTraits
         // and NOTICE.md. Upstream modifier.cheapskate.desc, mechanical line only.
         add("trait.forgeweave.cheapskate.name", "Cheapskate");
-        add("trait.forgeweave.cheapskate.description", "Stone is bad. Your tool has less durability.");
+        add("trait.forgeweave.cheapskate.description", "Stone is cheap: the head is worth 20% less durability.");
         add("trait.forgeweave.crude.name", "Crude");
         add("trait.forgeweave.crude.description", "Deals %s% more damage to unarmored targets.");
         // #231 flint retrofit: upstream's head-scoped crude2, named like magnetic2/writable2 are.
@@ -1389,34 +1389,37 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // M2 metal traits (issue #102; material wiring is issue #103). Wording follows upstream
         // 1.12's modifier.<id>.name/.desc entries, same as the M1 traits above.
         add("trait.forgeweave.magnetic.name", "Magnetic");
-        add("trait.forgeweave.magnetic.description", "Pulls nearby item drops toward you.");
+        add("trait.forgeweave.magnetic.description", "Pulls item drops within %s blocks toward you for 1.5 seconds after a "
+                + "hit or a block break.");
         add("trait.forgeweave.momentum.name", "Momentum");
-        add("trait.forgeweave.momentum.description", "Mining speed increases the longer you mine continuously.");
+        add("trait.forgeweave.momentum.description", "Mining without pause builds speed, 1.25% a block up to 40% after 32.");
         add("trait.forgeweave.lightweight.name", "Lightweight");
         add("trait.forgeweave.lightweight.description", "15% more mining, attack and bow draw speed.");
         add("trait.forgeweave.stonebound.name", "Stonebound");
-        add("trait.forgeweave.stonebound.description", "Mining speed increases as the tool's durability drops.");
+        add("trait.forgeweave.stonebound.description", "Mining speed rises as the tool wears: about 4 more once 500 "
+                + "durability points are gone.");
         add("trait.forgeweave.petramor.name", "Petramor");
-        add("trait.forgeweave.petramor.description", "Chance to repair itself when mining stone.");
+        add("trait.forgeweave.petramor.description", "A 10% chance per stone block mined to repair 5 durability.");
         add("trait.forgeweave.insatiable.name", "Insatiable");
-        add("trait.forgeweave.insatiable.description",
-                "Consecutive hits deal more damage, at the cost of extra durability.");
+        add("trait.forgeweave.insatiable.description", "Consecutive hits stack up to 10 within 5 seconds, worth up to 3.3 "
+                + "more damage and 3 more durability a hit.");
         add("trait.forgeweave.coldblooded.name", "Coldblooded");
-        add("trait.forgeweave.coldblooded.description", "Bonus damage against undamaged targets.");
+        add("trait.forgeweave.coldblooded.description", "Deals 50% more damage to a target still at full health.");
         add("trait.forgeweave.established.name", "Established");
-        add("trait.forgeweave.established.description", "Grants bonus experience from kills and block breaking.");
+        add("trait.forgeweave.established.description", "A 33% chance of 1 more experience from a broken block, and 25% more "
+                + "plus 1 from a kill.");
 
         // Rose gold and netherite (issue #103): maintainer decision recorded on the issue, no upstream
         // 1.12 counterpart for either material or trait, so wording is this PR's own.
         add("trait.forgeweave.quick.name", "Quick");
-        add("trait.forgeweave.quick.description", "Greatly increases mining and attack speed.");
+        add("trait.forgeweave.quick.description", "25% more mining speed and 20% more attack speed.");
 
         // M3.2 stateful/special traits (issue #230). Wording follows upstream 1.12's
         // modifier.<id>.name/.desc entries where the trait is a port; vintage is a Forgeweave
         // adaptation (maintainer decision on the issue), so its wording is this PR's own.
         add("trait.forgeweave.alien.name", "Alien");
-        add("trait.forgeweave.alien.description",
-                "The stats feel off... as if they're changing! Maybe time will tell?");
+        add("trait.forgeweave.alien.description", "Carried, it grows: one of 800 stat points lands every 3.6 seconds, adding "
+                + "1 durability, 0.007 mining speed or 0.005 attack damage.");
         add("trait.forgeweave.shocking.name", "Shocking");
         // Verbatim upstream en_us.lang:697 (issue #415 -- the prior wording had drifted); the italic
         // "Bzzzzzt!" opener is upstream's own §o/§r markup, kept as-is since the tooltip that renders
@@ -1428,45 +1431,52 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // Upstream shows both slimey ids under the one "Slimey" name (TraitSlimey#getLocalizedName);
         // two Forgeweave keys, same display, so the ids stay distinct for the info panel.
         add("trait.forgeweave.slimey_green.name", "Slimey");
-        add("trait.forgeweave.slimey_green.description", "Eww, gooey! Sometimes spawns a little slime.");
+        add("trait.forgeweave.slimey_green.description", "Eww, gooey! A 0.33% chance per effective block break or kill to "
+                + "spawn a little slime.");
         add("trait.forgeweave.slimey_blue.name", "Slimey");
-        add("trait.forgeweave.slimey_blue.description", "Eww, gooey! Sometimes spawns a little slime.");
+        add("trait.forgeweave.slimey_blue.description", "Eww, gooey! A 0.33% chance per effective block break or kill to "
+                + "spawn a little blue slime.");
         add("trait.forgeweave.baconlicious.name", "Baconlicious");
-        add("trait.forgeweave.baconlicious.description", "Breaking blocks and hitting things sometimes gives bacon.");
+        add("trait.forgeweave.baconlicious.description", "A 0.5% chance per block broken and a 5% chance per kill to drop a "
+                + "cooked porkchop.");
         add("trait.forgeweave.tasty.name", "Tasty");
-        add("trait.forgeweave.tasty.description",
-                "You'd rather eat your tool than starve: it feeds you when you're hungry, at a durability cost.");
+        add("trait.forgeweave.tasty.description", "You'd rather eat your tool than starve: while you are hungry it bites off "
+                + "1 food for 5 durability, about 1% of the time each tick.");
         add("trait.forgeweave.vintage.name", "Vintage");
-        add("trait.forgeweave.vintage.description",
-                "Adds an extra modifier slot, but slows you down while the tool is held.");
+        add("trait.forgeweave.vintage.description", "Adds 1 modifier slot, and takes 10% movement speed while the tool is "
+                + "held.");
 
         // M3.2 mining/durability-economy traits (issue #228). Wording follows upstream 1.12's
         // modifier.<id>.name/.desc entries, same as the trait batches above ("Duritae" is upstream's
         // own display name for the duritos id).
         add("trait.forgeweave.duritos.name", "Duritae");
-        add("trait.forgeweave.duritos.description", "Your tool lasts longer... most of the time.");
+        add("trait.forgeweave.duritos.description", "Each durability loss has a 40% chance to cost nothing and a 10% chance "
+                + "to cost double, so it averages 70%.");
         add("trait.forgeweave.jagged.name", "Jagged");
-        add("trait.forgeweave.jagged.description", "Every point of durability lost increases damage.");
+        add("trait.forgeweave.jagged.description", "Every point of durability lost adds damage: about 4 more once 500 points "
+                + "are gone.");
         add("trait.forgeweave.aquadynamic.name", "Aquadynamic");
-        add("trait.forgeweave.aquadynamic.description",
-                "The tool is unhindered by water and loves rainy evenings.");
+        add("trait.forgeweave.aquadynamic.description", "Mines twice as fast on land, 7.5 times as fast with your head "
+                + "underwater, and up to 63% faster again while rain falls on you.");
         add("trait.forgeweave.aridiculous.name", "Aridiculous");
-        add("trait.forgeweave.aridiculous.description", "The tool works better in hotter environments.");
+        add("trait.forgeweave.aridiculous.description", "Mines faster and hits harder the hotter and drier the biome: about "
+                + "47% more mining speed and 9 more damage in a desert, and a small penalty in a cold or wet one.");
         add("trait.forgeweave.crumbling.name", "Crumbling");
-        add("trait.forgeweave.crumbling.description", "The tool breaks soft blocks that don't need a tool faster.");
+        add("trait.forgeweave.crumbling.description", "On a block that needs no tool, multiplies break speed by half the "
+                + "tool's own mining speed, so a speed-7 tool goes 3.5 times as fast.");
         add("trait.forgeweave.unnatural.name", "Unnatural");
-        add("trait.forgeweave.unnatural.description",
-                "The tool mines faster the higher its mining level is above the required one.");
+        add("trait.forgeweave.unnatural.description", "Adds 1 break speed for every mining tier the tool sits above the "
+                + "block's requirement.");
         add("trait.forgeweave.dense.name", "Dense");
-        add("trait.forgeweave.dense.description", "Your tool lasts longer when it has less durability.");
+        add("trait.forgeweave.dense.description", "A chance to pay half the durability, growing as the tool wears: about 42% "
+                + "on a nearly broken tool.");
         add("trait.forgeweave.writable.name", "Writable");
         add("trait.forgeweave.writable.description",
                 "More words. More modifiers. Grants %s extra modifier slots.");
         add("trait.forgeweave.squeaky.name", "Squeaky");
-        add("trait.forgeweave.squeaky.description",
-                "Your tool is so soft and squeaky it gained Silk Touch, but deals no damage.");
+        add("trait.forgeweave.squeaky.description", "So soft and squeaky it gained Silk Touch, and its attack damage is 0.");
         add("trait.forgeweave.autosmelt.name", "Autosmelt");
-        add("trait.forgeweave.autosmelt.description", "Harvested blocks get smelted.");
+        add("trait.forgeweave.autosmelt.description", "Harvested blocks drop their furnace-smelted result.");
 
         // #108 batch: modern-vanilla modifiers (issue #108) -- Forgeweave originals, not upstream
         // ports, so these names and descriptions are this PR's own wording rather than a translation.
@@ -2281,17 +2291,19 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // lacerating has no upstream row (nahuatl is a 1.20-branch material) and reuses the
         // scimitar innate's wording.
         add("trait.forgeweave.prickly.name", "Prickly");
-        add("trait.forgeweave.prickly.description", "Nobody is safe from those thorns, they always hurt.");
+        add("trait.forgeweave.prickly.description", "Nobody is safe from those thorns: every hit puts 0.5 damage on average "
+                + "straight past armor.");
         add("trait.forgeweave.spiky.name", "Spiky");
         add("trait.forgeweave.spiky.description", "Blocking and getting hurt deals damage to the attacker.");
         add("trait.forgeweave.hellish.name", "Hellish");
-        add("trait.forgeweave.hellish.description", "Deal bonus damage to non-Nether mobs.");
+        add("trait.forgeweave.hellish.description", "Deals 4 more damage to anything that is not fire-immune.");
         add("trait.forgeweave.superheat.name", "Superheat");
-        add("trait.forgeweave.superheat.description", "Deal bonus damage to enemies on fire.");
+        add("trait.forgeweave.superheat.description", "Deals 35% more damage to a burning enemy.");
         add("trait.forgeweave.holy.name", "Holy");
-        add("trait.forgeweave.holy.description", "Deal bonus damage to undead enemies.");
+        add("trait.forgeweave.holy.description", "Deals 5 more damage to undead and leaves them with Weakness for 2.5 "
+                + "seconds.");
         add("trait.forgeweave.poisonous.name", "Poisonous");
-        add("trait.forgeweave.poisonous.description", "Poisons enemies on hit.");
+        add("trait.forgeweave.poisonous.description", "Every hit poisons the target for 5 seconds.");
 
         // #1103: the families and the merged survivors. A family has one name key and one
         // description key; TraitFamilies appends the roman numeral and fills in the rung's own
@@ -2310,20 +2322,24 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 + "when struck to leave the attacker withering for %s seconds, so a full set answers about %s% of blows.");
 
         add("trait.forgeweave.heavy.name", "Heavy");
-        add("trait.forgeweave.heavy.description", "Prevents knockback while held; a full worn set does the same.");
+        add("trait.forgeweave.heavy.description", "Plants whoever holds it: complete knockback immunity while held, and 25% a "
+                + "piece worn for the same total across a full set.");
         add("trait.forgeweave.stiff.name", "Stiff");
-        add("trait.forgeweave.stiff.description", "Blocking reduces the damage taken even more.");
+        add("trait.forgeweave.stiff.description", "Blocking takes 1 more damage off the blow, never below 1.");
         add("trait.forgeweave.sharp.name", "Sharp");
-        add("trait.forgeweave.sharp.description", "Hitting an enemy leaves them bleeding for a short time.");
+        add("trait.forgeweave.sharp.description", "A hit opens a bleed that armor cannot stop: a third of a damage point "
+                + "every 0.75 seconds for 6 seconds.");
         add("trait.forgeweave.splintering.name", "Splintering");
-        add("trait.forgeweave.splintering.description", "Hit them more to deal more damage.");
+        add("trait.forgeweave.splintering.description", "Each hit marks the target for 2 seconds and adds 0.3 damage, "
+                + "stacking up to 6 marks.");
         add("trait.forgeweave.flammable.name", "Flammable");
-        add("trait.forgeweave.flammable.description",
-                "Blocking blocks fire damage and getting hit sets the attacker on fire.");
+        add("trait.forgeweave.flammable.description", "Blocking absorbs fire damage for 3 durability, and whoever hits the "
+                + "holder burns for 3 seconds.");
         add("trait.forgeweave.enderference.name", "Enderference");
-        add("trait.forgeweave.enderference.description", "Prevents Endermen from teleporting around for a short time.");
+        add("trait.forgeweave.enderference.description", "A hit stops the target teleporting for 5 seconds.");
         add("trait.forgeweave.lacerating.name", "Lacerate");
-        add("trait.forgeweave.lacerating.description", "Hits open a bleeding wound that stacks and ticks over time.");
+        add("trait.forgeweave.lacerating.description", "Hits open a wound that deals 1 damage a second for 4 seconds, "
+                + "stacking up to 3 wounds at once.");
         // #626 (parity audit T17): the five ammo-side traits, upstream's modifier.<id>.name/.desc
         // (TinkerTraits:106-110). Same mechanic-sentence convention as every family above -- the
         // leading italic flavor line each upstream .desc opens with is dropped, as splintering's
@@ -2331,14 +2347,17 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.breakable.name", "Breakable");
         add("trait.forgeweave.breakable.description", "Projectiles have a 50% chance to break on impact.");
         add("trait.forgeweave.endspeed.name", "Endspeed");
-        add("trait.forgeweave.endspeed.description", "Projectiles instantly travel to their destination.");
+        add("trait.forgeweave.endspeed.description", "The arrow crosses up to 6.3 blocks a tick, so a shot lands almost at "
+                + "once, and strays 33% less.");
         add("trait.forgeweave.freezing.name", "Freezing");
-        add("trait.forgeweave.freezing.description", "Successful hits slow your target more and more.");
+        add("trait.forgeweave.freezing.description", "Each hit deepens the target's Slowness by one level, up to Slowness V, "
+                + "1.5 seconds at a time.");
         add("trait.forgeweave.hovering.name", "Hovering");
-        add("trait.forgeweave.hovering.description", "Projectiles move slower but don't mind gravity as much.");
+        add("trait.forgeweave.hovering.description", "The arrow leaves the bow at 50% speed but falls at 5% of normal "
+                + "gravity.");
         add("trait.forgeweave.splitting.name", "Splitting");
-        add("trait.forgeweave.splitting.description",
-                "The sudden acceleration of releasing an arrow might cause it to split into two.");
+        add("trait.forgeweave.splitting.description", "A 50% chance a shot splits into a second arrow, which flies with 3 "
+                + "more spread.");
         // The two visible status effects those traits apply (splinter and the enderference mark are
         // markers, but they still show in the HUD, so they get names too).
         add("effect.forgeweave.bleed", "Bleeding");
@@ -2351,8 +2370,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.projectile_protection.description", "Turns arrows aside: 4 protection against projectile damage "
                 + "per piece worn, 16 across a full set, and 5% knockback resistance for the set.");
         add("trait.forgeweave.depth_protection.name", "Depth Protection");
-        add("trait.forgeweave.depth_protection.description", "3 protection a piece at Y=0, twice that at the bottom of the "
-                + "world, nothing above Y=96, and a penalty of up to 3 a piece at Y=160.");
+        add("trait.forgeweave.depth_protection.description", "3 protection a piece at Y=0, twice that at Y=-64 and below, "
+                + "nothing between Y=64 and Y=96, and up to 3 a piece against you from Y=160 down.");
         add("trait.forgeweave.blast_protection.name", "Blast Protection");
         add("trait.forgeweave.blast_protection.description", "Soaks up a blast: 4 protection against explosion damage per "
                 + "piece worn, 16 across a full set.");
@@ -2366,26 +2385,27 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.fire_protection.description", "Shrugs off heat: 4 protection against fire and lava damage per "
                 + "piece worn, 16 across a full set.");
         add("trait.forgeweave.searing.name", "Searing");
-        add("trait.forgeweave.searing.description", "Blocks you mine come out already smelted.");
+        add("trait.forgeweave.searing.description", "Blocks you mine drop their furnace-smelted result.");
         add("trait.forgeweave.necrotic.name", "Necrotic");
-        add("trait.forgeweave.necrotic.description", "Heals you for a tenth of the damage you deal.");
+        add("trait.forgeweave.necrotic.description", "Heals the wielder 10% of the damage it deals.");
         add("trait.forgeweave.warded.name", "Warded");
-        add("trait.forgeweave.warded.description",
-                "While you are at full health, a whole heart comes off the blow after armor.");
+        add("trait.forgeweave.warded.description", "While the wearer is at full health, 2 damage comes off the blow after "
+                + "armor.");
         add("trait.forgeweave.crystalstrike.name", "Crystalstrike");
         add("trait.forgeweave.crystalstrike.description", "15% more attack speed per piece worn, and the knockback you take snaps to a fixed direction.");
         add("trait.forgeweave.consecrated.name", "Consecrated");
         add("trait.forgeweave.consecrated.description", "Hallowed silver: 3 protection against the undead per piece worn, 12 "
                 + "across a full set.");
         add("trait.forgeweave.overshield.name", "Overshield");
-        add("trait.forgeweave.overshield.description", "Consumes overslime to reduce all sources of damage.");
+        add("trait.forgeweave.overshield.description", "Spends up to 2 overslime a blow for up to 1.25 protection.");
         // #728: modifier.tconstruct.overslime/.description and the overslime_friend marker (which the
         // clone never shows -- TooltipDisplay.NEVER -- but a trait list here names every id).
         add("trait.forgeweave.overslime.name", "Overslime");
-        add("trait.forgeweave.overslime.description",
-                "Armor consumes overslime instead of durability, until it runs out! Not friendly towards armor lacking slime");
+        add("trait.forgeweave.overslime.description", "A 50-point overslime pool the piece spends before its own durability, "
+                + "at the cost of 0.5 armor without a slime part aboard.");
         add("trait.forgeweave.overslime_friend.name", "Overslime Friend");
-        add("trait.forgeweave.overslime_friend.description", "Slime feels at home here: overslime costs no armor.");
+        add("trait.forgeweave.overslime_friend.description", "Slime feels at home here: overslime costs the piece none of its "
+                + "0.5 armor.");
         // The refill recipe's JEI/rejection name (modifier.tconstruct.overslime), the at-capacity
         // refusal (recipe.tconstruct.overslime.at_capacity) and the tool_stat.tconstruct.overslime row.
         add("modifier.forgeweave.overslime.name", "Overslime");
@@ -2417,7 +2437,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // simplified level-1-only mechanics (see ForgeweaveTraits for the exact numbers and the
         // deviations from the clone's leveled/persistent-buff versions).
         add("trait.forgeweave.overgrowth.name", "Overgrowth");
-        add("trait.forgeweave.overgrowth.description", "A one-in-four chance each second of regrowing a point of overslime.");
+        add("trait.forgeweave.overgrowth.description", "A 25% chance each second to regrow 1 point of overslime.");
         add("trait.forgeweave.overlord.name", "Overlord");
         add("trait.forgeweave.overlord.description",
                 "Cuts the tool's durability by 15% and turns a tenth of what is left into overslime capacity.");
@@ -2425,25 +2445,30 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.restore.description",
                 "Has a 15% chance when hit to heal a portion of the damage taken, consuming durability.");
         add("trait.forgeweave.recurrent_protection.name", "Recurrent");
-        add("trait.forgeweave.recurrent_protection.description",
-                "Converts half of a blow's damage into flat damage reduction for that hit.");
+        add("trait.forgeweave.recurrent_protection.description", "Turns 50% of a blow's damage into flat damage reduction for "
+                + "that hit.");
         add("trait.forgeweave.piercing_guard.name", "Piercing Guard");
-        add("trait.forgeweave.piercing_guard.description", "Cancels out some of the attacker's armor after they hit you.");
+        add("trait.forgeweave.piercing_guard.description", "A direct blow costs the piece 1 durability and takes 1 armor off "
+                + "the attacker for 4 seconds.");
         add("trait.forgeweave.thorns.name", "Thorns");
-        add("trait.forgeweave.thorns.description", "Attackers sometimes take damage.");
+        add("trait.forgeweave.thorns.description", "A 15% chance when struck to put 1 to 4 damage back on the attacker, for 1 "
+                + "durability.");
         add("trait.forgeweave.enderclearance.name", "Enderclearance");
-        add("trait.forgeweave.enderclearance.description", "Has a chance to teleport attackers away.");
+        add("trait.forgeweave.enderclearance.description", "A 25% chance when struck to teleport the attacker to a random "
+                + "spot within 16 blocks.");
         add("trait.forgeweave.skyfall.name", "Skyfall");
-        add("trait.forgeweave.skyfall.description", "Reduces the effect of gravity.");
+        add("trait.forgeweave.skyfall.description", "Reduces gravity 15% and adds 1 safe fall distance per piece worn, 60% "
+                + "and 4 across a full set.");
         add("effect.forgeweave.pierce", "Pierced");
         // #827 -- the M6 damage-scaling trait behavior library (ADR-0004). Own names, own wording;
         // not assigned to a material yet, so no ported upstream row applies here.
         add("trait.forgeweave.pristine.name", "Pristine");
         add("trait.forgeweave.pristine.description", "Deals up to 4 extra damage while the tool is still in good repair.");
         add("trait.forgeweave.vigorous.name", "Vigorous");
-        add("trait.forgeweave.vigorous.description", "Deals more damage while the wielder is healthy.");
+        add("trait.forgeweave.vigorous.description", "Deals up to 2 more damage while the wielder is healthy.");
         add("trait.forgeweave.predatory.name", "Predatory");
-        add("trait.forgeweave.predatory.description", "Deals more damage to targets that are already hurt.");
+        add("trait.forgeweave.predatory.description", "Deals 0.15 more damage per point of health the target has already "
+                + "lost, up to 4.");
         add("trait.forgeweave.colossal.name", "Colossal");
         add("trait.forgeweave.colossal.description", "Deals up to 6 extra damage to targets with a lot of health.");
         add("trait.forgeweave.kinetic.name", "Kinetic");
@@ -2453,7 +2478,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.armor_breaker.name", "Armor Breaker");
         add("trait.forgeweave.armor_breaker.description", "Deals %s extra damage to anything wearing armor.");
         add("trait.forgeweave.opportunist.name", "Opportunist");
-        add("trait.forgeweave.opportunist.description", "Deals bonus damage to targets already suffering a harmful effect.");
+        add("trait.forgeweave.opportunist.description", "Deals 2 more damage to a target already under a harmful effect.");
         // Issue #1102: all three levels used to say only "extra"/"even more extra"/"a lot of extra"
         // damage, though ForgeweaveTraits#CHARGED_BONUS_PER_LEVEL (1.5F) already fixes the amount.
         add("trait.forgeweave.surging.name", "Surging");
@@ -2490,16 +2515,17 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // material never shares a trait id with another material, so the inert tier gets its own
         // pair rather than borrowing the tier above's.
         add("trait.forgeweave.escalating.name", "Escalating");
-        add("trait.forgeweave.escalating.description",
-                "Consecutive fully-charged hits deal more and more damage, fading if you stop landing them.");
+        add("trait.forgeweave.escalating.description", "Consecutive fully charged hits add 15% damage each, up to 60%, and "
+                + "lapse 4 seconds after the last one.");
         // #830 -- the M6 energy buffer trait behavior library (ADR-0004). Own names, own wording;
         // not assigned to a material yet, so no ported upstream row applies here.
         add("trait.forgeweave.energized.name", "Energized");
         add("trait.forgeweave.energized.description", "Carries a %s FE buffer and spends it before durability.");
         add("trait.forgeweave.solar_recharge.name", "Solar Recharge");
-        add("trait.forgeweave.solar_recharge.description", "Slowly refills its energy buffer in daylight.");
+        add("trait.forgeweave.solar_recharge.description", "Refills the tool's energy buffer at 40 FE a second while the "
+                + "holder stands in daylight.");
         add("trait.forgeweave.kinetic_charge.name", "Kinetic Charge");
-        add("trait.forgeweave.kinetic_charge.description", "Converts a share of damage dealt into stored energy.");
+        add("trait.forgeweave.kinetic_charge.description", "Stores 5 FE for every point of damage it deals.");
         // Issue #996 (D-M8-17): datapack trait_definition instances of the #830 energized behavior,
         // one per Powah crystal, ascending capacity (see trait_definition/*_charge.json).
         // #997 (D-M8-18) -- the spirit attuned gem's own trait. A datapack trait_definition instance
@@ -2537,37 +2563,43 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.duskmend.name", "Duskmend");
         add("trait.forgeweave.duskmend.description", "Mends one point every 8 seconds after dark.");
         add("trait.forgeweave.cascading.name", "Cascading");
-        add("trait.forgeweave.cascading.description", "Breaks the whole column of falling blocks above what you mine.");
+        add("trait.forgeweave.cascading.description", "Breaks the whole column of falling blocks above what you mine, up to "
+                + "256 of them.");
         add("trait.forgeweave.fertilizing.name", "Fertilizing");
-        add("trait.forgeweave.fertilizing.description", "Right-click can fertilize crops, at a durability cost.");
+        add("trait.forgeweave.fertilizing.description", "Right-click a crop for a 50% chance to fertilize it, at 1 "
+                + "durability.");
         // #828 -- the M6 on-hit effect trait behavior library (ADR-0004). Own names, own wording;
         // not assigned to a material yet, so no ported upstream row applies here.
         add("trait.forgeweave.blighted.name", "Blighted");
-        add("trait.forgeweave.blighted.description", "Repeated hits stack a withering effect on the target.");
+        add("trait.forgeweave.blighted.description", "Each hit leaves Wither for 3 seconds, stacking to Wither III on repeat "
+                + "hits.");
         add("trait.forgeweave.enfeebling.name", "Enfeebling");
-        add("trait.forgeweave.enfeebling.description", "Weakens enemies for five seconds on hit.");
+        add("trait.forgeweave.enfeebling.description", "Each hit leaves Weakness for 5 seconds.");
         add("trait.forgeweave.shackling.name", "Shackling");
-        add("trait.forgeweave.shackling.description", "Briefly roots enemies on hit.");
+        add("trait.forgeweave.shackling.description", "Each hit roots the target with Slowness IV for 1 second.");
         add("trait.forgeweave.revealing.name", "Revealing");
-        add("trait.forgeweave.revealing.description", "Marks struck enemies with a glow, revealing their position.");
+        add("trait.forgeweave.revealing.description", "A struck target glows for 10 seconds.");
         add("trait.forgeweave.merciful.name", "Merciful");
-        add("trait.forgeweave.merciful.description", "Regenerates whatever it strikes. Not a helpful trait.");
+        add("trait.forgeweave.merciful.description", "Every hit gives the target Regeneration for 5 seconds. Not a helpful "
+                + "trait.");
         add("trait.forgeweave.quickstep.name", "Quickstep");
-        add("trait.forgeweave.quickstep.description", "A fully-charged hit grants the wielder a burst of speed.");
+        add("trait.forgeweave.quickstep.description", "A fully charged hit grants the wielder Speed II for 3 seconds.");
         // Issue #1102: all three levels used to say only "a chance"/"a better chance"/"very likely",
         // though ForgeweaveTraits#UNRAVELING_CHANCE_PER_LEVEL (0.25F) already fixes the chance per level.
         add("trait.forgeweave.unraveling.name", "Unraveling");
         add("trait.forgeweave.unraveling.description",
                 "A fully-charged hit has a %s% chance to strip a beneficial effect from the target.");
         add("trait.forgeweave.grievous.name", "Grievous");
-        add("trait.forgeweave.grievous.description", "Wounds struck by this weapon resist healing for a short time.");
+        add("trait.forgeweave.grievous.description", "A struck target heals 50% less for 5 seconds.");
         add("trait.forgeweave.harrying.name", "Harrying");
-        add("trait.forgeweave.harrying.description", "Shortens the target's invulnerability after being hit, letting follow-up blows land sooner.");
+        add("trait.forgeweave.harrying.description", "Cuts the target's post-hit immunity from 1 second to 0.5, so follow-up "
+                + "blows land sooner.");
         add("trait.forgeweave.arcing.name", "Arcing");
         add("trait.forgeweave.arcing.description", "The hit arcs to two more enemies nearby for %s% of its "
                 + "damage. Level I needs a fully charged swing; level II fires on every hit.");
         add("trait.forgeweave.stormcaller.name", "Stormcaller");
-        add("trait.forgeweave.stormcaller.description", "Strikes lightning on enemies hit while the wielder is at full health.");
+        add("trait.forgeweave.stormcaller.description", "Calls a real lightning bolt down on every enemy hit while the "
+                + "wielder is at full health: vanilla's own 5 damage, and it burns.");
         add("effect.forgeweave.reduced_healing", "Grievous Wound");
 
         // The guide book (issue #273). The item name, book title/subtitle and the static pages'
@@ -3604,7 +3636,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // M6 dedupe batch (issue #876): every material gets a distinct trait id. Own
         // names, own wording -- see ForgeweaveTraits for the mechanics.
         add("trait.forgeweave.luminous.name", "Luminous");
-        add("trait.forgeweave.luminous.description", "A landed hit leaves the target glowing.");
+        add("trait.forgeweave.luminous.description", "A landed hit leaves the target glowing for 5 seconds.");
         add("trait.forgeweave.skyborne.name", "Skyborne");
         add("trait.forgeweave.skyborne.description", "Draws a bow 15% faster.");
         add("trait.forgeweave.featherfall.name", "Featherlight");
@@ -3612,101 +3644,117 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.leadfoot.name", "Leadfoot");
         add("trait.forgeweave.leadfoot.description", "Dense enough to drag: 10% less movement speed while held.");
         add("trait.forgeweave.voidrend.name", "Voidrend");
-        add("trait.forgeweave.voidrend.description", "Two hits in five leave the target with Weakness II for five seconds.");
+        add("trait.forgeweave.voidrend.description", "A 40% chance on hit to leave the target with Weakness II for 5 seconds.");
         add("trait.forgeweave.seismic.name", "Seismic");
-        add("trait.forgeweave.seismic.description", "A heavy, shove-first strike.");
+        add("trait.forgeweave.seismic.description", "A heavy, shove-first strike: every hit adds 0.6 knockback strength.");
         add("trait.forgeweave.stonewake.name", "Stonewake");
-        add("trait.forgeweave.stonewake.description", "Opens a fight with a harder first strike.");
+        add("trait.forgeweave.stonewake.description", "Opens a fight with a harder first strike: 2 more damage while the "
+                + "wielder is at full health.");
         add("trait.forgeweave.steelfast.name", "Steelfast");
         add("trait.forgeweave.steelfast.description", "A quick, disciplined swing: 15% more attack speed.");
         add("trait.forgeweave.amberflow.name", "Amberflow");
-        add("trait.forgeweave.amberflow.description", "Two hits in five spark Speed II for five seconds.");
+        add("trait.forgeweave.amberflow.description", "A 40% chance on hit to grant the wielder Speed II for 5 seconds.");
         add("trait.forgeweave.emberwake.name", "Emberwake");
-        add("trait.forgeweave.emberwake.description", "Striking a burning target quickens the follow-up.");
+        add("trait.forgeweave.emberwake.description", "Striking a burning target grants the wielder Speed for 2 seconds.");
         add("trait.forgeweave.shieldbreaker.name", "Shieldbreaker");
-        add("trait.forgeweave.shieldbreaker.description", "Each hit tears four times its damage out of a Draconic shield.");
+        add("trait.forgeweave.shieldbreaker.description", "Each hit takes 4 times the wielder's attack damage off a Draconic "
+                + "shield.");
         add("trait.forgeweave.chaosmark.name", "Chaosmark");
-        add("trait.forgeweave.chaosmark.description", "A third of your hits leave the target reeling for seven seconds.");
+        add("trait.forgeweave.chaosmark.description", "A 35% chance on hit to leave the target reeling for 7 seconds.");
         add("trait.forgeweave.vinewarden.name", "Vinewarden");
-        add("trait.forgeweave.vinewarden.description", "Armor with overslime pays no armor penalty for it.");
+        add("trait.forgeweave.vinewarden.description", "Armor with overslime pays none of its 0.5 armor penalty.");
         add("trait.forgeweave.quartzheart.name", "Quartzheart");
-        add("trait.forgeweave.quartzheart.description", "Hits harder while the wielder is still healthy.");
+        add("trait.forgeweave.quartzheart.description", "Deals up to 3 more damage while the wielder is still healthy.");
         add("trait.forgeweave.sparkforge.name", "Sparkforge");
-        add("trait.forgeweave.sparkforge.description", "Two hits in five spark Haste II for five seconds.");
+        add("trait.forgeweave.sparkforge.description", "A 40% chance on hit to grant the wielder Haste II for 5 seconds.");
         add("trait.forgeweave.steadfast.name", "Steadfast");
-        add("trait.forgeweave.steadfast.description", "A stable, oversized durability pool: a fifth more durability than the parts built.");
+        add("trait.forgeweave.steadfast.description", "A stable, oversized durability pool: 20% more than the parts built.");
         add("trait.forgeweave.starforged.name", "Starforged");
-        add("trait.forgeweave.starforged.description", "Sky stone takes a repair especially well: a quarter more durability out of every repair.");
+        add("trait.forgeweave.starforged.description", "Sky stone takes a repair especially well: 25% more durability out of "
+                + "every repair.");
         add("trait.forgeweave.wellspring.name", "Wellspring");
-        add("trait.forgeweave.wellspring.description", "Mining a stone-type block has a chance to heal the wielder.");
+        add("trait.forgeweave.wellspring.description", "Mining stone has an 8% chance to heal the wielder 1 health.");
 
         // Issue #884: TAIGA-faithful trait pass.
         add("trait.forgeweave.earthmend.name", "Earthmend");
-        add("trait.forgeweave.earthmend.description", "Digging a dirt-like block has a chance to heal the wielder.");
+        add("trait.forgeweave.earthmend.description", "Digging dirt, gravel or sand has an 8% chance to heal the wielder 1 "
+                + "health.");
         add("trait.forgeweave.duskgrasp.name", "Duskgrasp");
-        add("trait.forgeweave.duskgrasp.description", "Landing a hit blinds the target with darkness.");
+        add("trait.forgeweave.duskgrasp.description", "A hit blinds the target with 5 seconds of darkness.");
         // Issue #886: duskgrasp's capture half.
         add("trait.forgeweave.dusksnare.name", "Dusksnare");
-        add("trait.forgeweave.dusksnare.description",
-                "Sneaking while landing a hit on a badly wounded, non-boss mob snares it into a Dusk Cage.");
+        add("trait.forgeweave.dusksnare.description", "A sneaking hit on a non-boss mob at or below 15% health snares it into "
+                + "a Dusk Cage.");
         add("trait.forgeweave.leanharvest.name", "Lean Harvest");
-        add("trait.forgeweave.leanharvest.description", "Mined blocks sometimes drop nothing, but always grant bonus XP.");
+        add("trait.forgeweave.leanharvest.description", "Mined blocks have a 35% chance to drop nothing, but always grant 2 "
+                + "more experience.");
         add("trait.forgeweave.warmemory.name", "War Memory");
-        add("trait.forgeweave.warmemory.description", "Remembers the entity types it has fought and deals growing bonus damage to them.");
+        add("trait.forgeweave.warmemory.description", "Remembers the entity types it has fought: 0.15 more damage per counted "
+                + "fight, up to 3.0 after 20.");
         add("trait.forgeweave.hollowyield.name", "Hollow Yield");
-        add("trait.forgeweave.hollowyield.description", "Mined blocks always yield bonus XP instead of their loot.");
+        add("trait.forgeweave.hollowyield.description", "Mined blocks drop nothing at all and grant 3 more experience "
+                + "instead.");
         add("trait.forgeweave.swiftdig.name", "Swiftdig");
-        add("trait.forgeweave.swiftdig.description", "Faster on blocks that need no tool at all.");
+        add("trait.forgeweave.swiftdig.description", "Adds 2 break speed on blocks that need no tool at all.");
         add("trait.forgeweave.alien2.name", "Alien II");
-        add("trait.forgeweave.alien2.description", "Slowly, powerfully grows stronger the longer it is carried.");
+        add("trait.forgeweave.alien2.description", "Carried, it grows fast: one of 2,400 stat points lands every 3.6 seconds, "
+                + "adding 3 durability, 0.021 mining speed or 0.015 attack damage.");
         add("trait.forgeweave.quakecrumble.name", "Quakecrumble");
-        add("trait.forgeweave.quakecrumble.description", "Mining a block has a chance to crack its neighbors loose too.");
+        add("trait.forgeweave.quakecrumble.description", "Mining a block gives each of its six neighbours a 25% chance to "
+                + "crack loose too.");
         add("trait.forgeweave.riftstep.name", "Riftstep");
-        add("trait.forgeweave.riftstep.description", "Landing a hit sometimes teleports the target, sometimes the wielder.");
+        add("trait.forgeweave.riftstep.description", "A 12% chance on hit to teleport the target or the wielder up to 6 "
+                + "blocks, a coin flip which.");
         add("trait.forgeweave.dreadgrip.name", "Dreadgrip");
-        add("trait.forgeweave.dreadgrip.description", "Landing a hit slows and weakens the target, and can break a beast's focus.");
+        add("trait.forgeweave.dreadgrip.description", "A hit leaves Slowness II and Weakness for 3 seconds, and makes a mob "
+                + "forget its target.");
         add("trait.forgeweave.bloodtally.name", "Blood Tally");
-        add("trait.forgeweave.bloodtally.description", "Permanently, slightly stronger with every kill.");
+        add("trait.forgeweave.bloodtally.description", "Every kill adds 0.03 attack damage for good, up to 6.0 after 200 "
+                + "kills.");
         add("trait.forgeweave.gamedrop.name", "Gamedrop");
-        add("trait.forgeweave.gamedrop.description", "Kills grant no experience, but sometimes drop meat instead.");
+        add("trait.forgeweave.gamedrop.description", "Kills grant no experience, but 50% of them drop a cooked steak instead.");
         // #831 M6-7: the armor trait behavior library on the M4 defense seam.
         add("trait.forgeweave.bloodtoll.name", "Blood Toll");
         add("trait.forgeweave.bloodtoll.description", "No blow can ever be reduced to nothing; something always gets through.");
         add("trait.forgeweave.emberdrink.name", "Emberdrink");
-        add("trait.forgeweave.emberdrink.description", "Fire does not burn you; it feeds you.");
+        add("trait.forgeweave.emberdrink.description", "Fire does not burn the wearer: it heals 50% of what the fire would "
+                + "have dealt.");
         add("trait.forgeweave.bracingplate.name", "Bracing Plate");
         add("trait.forgeweave.bracingplate.description", "Protection builds on every piece worn with every blow taken, up to "
                 + "%s points each, and lapses 6 seconds after they stop.");
         add("trait.forgeweave.lastbreath.name", "Last Breath");
-        add("trait.forgeweave.lastbreath.description",
-                "A killing blow is spent on the armor instead, at a heavy cost in durability, once in a long while.");
+        add("trait.forgeweave.lastbreath.description", "A killing blow is spent on the armor instead, for 100 durability, "
+                + "once every 5 minutes.");
         add("trait.forgeweave.aegispulse.name", "Aegis Pulse");
         add("trait.forgeweave.aegispulse.description", "Struck at full health, you shrug off everything for a moment longer.");
         add("trait.forgeweave.battleworn.name", "Battleworn");
-        add("trait.forgeweave.battleworn.description", "Protects better the more battered it gets.");
+        add("trait.forgeweave.battleworn.description", "Protects more the more battered it gets: about 2 protection on a "
+                + "half-worn piece, and more as it nears breaking.");
         add("trait.forgeweave.blastvent.name", "Blastvent");
         add("trait.forgeweave.blastvent.description", "Explosions throw you clear instead of tearing into you.");
         add("trait.forgeweave.unstable_core.name", "Unstable Core");
-        add("trait.forgeweave.unstable_core.description",
-                "Using the tool has a small chance of an unstable burst that hurts nearby entities, including the wielder.");
+        add("trait.forgeweave.unstable_core.description", "While the tool is in use, a 1-in-400 chance a tick of a burst that "
+                + "deals 2 damage to the wielder and 1 to everything within 2 blocks.");
         add("trait.forgeweave.overburdened.name", "Overburdened");
-        add("trait.forgeweave.overburdened.description",
-                "Mining has a chance to slow the wielder's own digging speed briefly.");
+        add("trait.forgeweave.overburdened.description", "Mining has a 15% chance to saddle the wielder with 3 seconds of "
+                + "slower digging.");
         add("trait.forgeweave.nocturnal_edge.name", "Nocturnal Edge");
-        add("trait.forgeweave.nocturnal_edge.description", "Deals bonus damage at night, and a little less by day.");
+        add("trait.forgeweave.nocturnal_edge.description", "Deals 2 more damage at night and 1 less by day.");
         add("trait.forgeweave.obliterate.name", "Obliterate");
-        add("trait.forgeweave.obliterate.description", "Mined blocks sometimes drop nothing at all.");
+        add("trait.forgeweave.obliterate.description", "Mined blocks have a 35% chance to drop nothing at all.");
         add("trait.forgeweave.tidebreaker.name", "Tidebreaker");
-        add("trait.forgeweave.tidebreaker.description", "Clears the water around a block as you mine it.");
+        add("trait.forgeweave.tidebreaker.description", "Clears the water from all 6 sides of a block as you mine it.");
         add("trait.forgeweave.magmaforge.name", "Magmaforge");
-        add("trait.forgeweave.magmaforge.description", "One stone block in four melts into lava where it stood.");
+        add("trait.forgeweave.magmaforge.description", "A 25% chance that a mined stone block leaves lava where it stood.");
         add("trait.forgeweave.fallout.name", "Fallout");
-        add("trait.forgeweave.fallout.description", "The price of the glow: it poisons the wielder now and then, and mutates the stone it passes.");
+        add("trait.forgeweave.fallout.description", "The price of the glow: about one 2-second poisoning a minute while "
+                + "carried, and a 3% chance per mined block to turn the stone above it to deepslate.");
         add("trait.forgeweave.daybound.name", "Daybound");
-        add("trait.forgeweave.daybound.description", "Glows by day; sometimes grants night vision after dark.");
+        add("trait.forgeweave.daybound.description", "Checked every 5 seconds: by day the holder glows for 6 seconds, and "
+                + "after dark there is a 30% chance of 11 seconds of night vision.");
         add("trait.forgeweave.berserker_stance.name", "Berserker Stance");
-        add("trait.forgeweave.berserker_stance.description",
-                "Crouch to channel a stance: bonus damage at the cost of extra wear.");
+        add("trait.forgeweave.berserker_stance.description", "Crouch through the swing for 4 more damage, at 1 extra "
+                + "durability a hit.");
 
         // #1093 -- the companion traits that give every material a side it works on. The armor
         // companions come first, each shared by the family whose idea they turn around; then the

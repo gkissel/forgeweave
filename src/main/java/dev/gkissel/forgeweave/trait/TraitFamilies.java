@@ -99,8 +99,10 @@ public final class TraitFamilies {
             // apart, and a rung's arguments say the same thing from one key.
             Map.entry(id("crude"), rung("crude", 1, 2, "5")),
             Map.entry(id("crude2"), rung("crude", 2, 2, "10")),
-            Map.entry(id("magnetic"), rung("magnetic", 1, 2)),
-            Map.entry(id("magnetic2"), rung("magnetic", 2, 2)),
+            // The pull radius each rung reaches, ForgeweaveTraits' MAGNETIC_BASE_RANGE plus its
+            // MAGNETIC_RANGE_PER_LEVEL times the rung: 1.8 + 0.3, then 1.8 + 0.6.
+            Map.entry(id("magnetic"), rung("magnetic", 1, 2, "2.1")),
+            Map.entry(id("magnetic2"), rung("magnetic", 2, 2, "2.4")),
             Map.entry(id("writable"), rung("writable", 1, 2, "1")),
             Map.entry(id("writable2"), rung("writable", 2, 2, "2")),
             // Forgeweave ladders that were already several ids of one mechanic.
