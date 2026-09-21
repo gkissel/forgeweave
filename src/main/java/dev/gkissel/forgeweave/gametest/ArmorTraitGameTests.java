@@ -99,12 +99,12 @@ public class ArmorTraitGameTests {
         helper.succeed();
     }
 
-    /** Iron -&gt; projectile_protection: 2 against projectile-tagged blows (a falling anvil), nothing against an explosion. */
+    /** Iron -&gt; projectile_protection: 4 against projectile-tagged blows (a falling anvil), nothing against an explosion. */
     @GameTest(template = "empty")
     public static void projectileProtectionOnlyAgainstProjectiles(GameTestHelper helper) {
         Player player = wearing(helper, "iron", "iron");
         DamageSource anvil = helper.getLevel().damageSources().anvil(null);
-        assertRatio(helper, lost(player, anvil, BLOW), lostWithoutTraits(player, anvil, BLOW), 2.0F, "anvil");
+        assertRatio(helper, lost(player, anvil, BLOW), lostWithoutTraits(player, anvil, BLOW), 4.0F, "anvil");
         assertRatio(helper, lost(player, explosion(helper), BLOW), lostWithoutTraits(player, explosion(helper), BLOW), 0.0F, "explosion");
         helper.assertTrue(player.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE) > 0.0F,
                 "the piece grants knockback resistance");
@@ -141,21 +141,21 @@ public class ArmorTraitGameTests {
         helper.succeed();
     }
 
-    /** Obsidian -&gt; blast_protection: 2.5 against explosions. */
+    /** Obsidian -&gt; blast_protection: 4 against explosions. */
     @GameTest(template = "empty")
     public static void blastProtectionAgainstExplosions(GameTestHelper helper) {
         Player player = wearing(helper, "obsidian", "obsidian");
-        assertRatio(helper, lost(player, explosion(helper), BLOW), lostWithoutTraits(player, explosion(helper), BLOW), 2.5F, "explosion");
+        assertRatio(helper, lost(player, explosion(helper), BLOW), lostWithoutTraits(player, explosion(helper), BLOW), 4.0F, "explosion");
         helper.succeed();
     }
 
-    /** Cobalt -&gt; melee_protection: 2 against a direct player attack. */
+    /** Cobalt -&gt; melee_protection: 3 against a direct player attack. */
     @GameTest(template = "empty")
     public static void meleeProtectionAgainstDirectBlows(GameTestHelper helper) {
         Player player = wearing(helper, "cobalt", "cobalt");
         Player attacker = helper.makeMockPlayer(GameType.SURVIVAL);
         DamageSource punch = helper.getLevel().damageSources().playerAttack(attacker);
-        assertRatio(helper, lost(player, punch, BLOW), lostWithoutTraits(player, punch, BLOW), 2.0F, "punch");
+        assertRatio(helper, lost(player, punch, BLOW), lostWithoutTraits(player, punch, BLOW), 3.0F, "punch");
         helper.succeed();
     }
 

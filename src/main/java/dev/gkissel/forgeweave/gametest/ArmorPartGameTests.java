@@ -62,17 +62,28 @@ public class ArmorPartGameTests {
         return menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem();
     }
 
-    /** Obsidian is a plating material and not {@code cast_only}: six blocks pay the chestplate's 6 ingots. */
+    /**
+     * Seared stone is a plating material and not {@code cast_only}: six seared bricks pay the
+     * chestplate's 6 ingots. This test used to run on obsidian, which issue #1113 made cast-only to
+     * close the harvest-ladder skip; seared stone is what the guide book's first-set page teaches
+     * instead, and it is the cheapest Part Builder plating there is, baked in the same furnace the
+     * smeltery's own bricks come out of.
+     */
     @GameTest(template = "empty")
-    public static void partBuilderStampsObsidianChestplatePlating(GameTestHelper helper) {
+    public static void partBuilderStampsSearedStoneChestplatePlating(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack output = craft(helper, player, ForgeweaveItems.PATTERN_PLATING_CHESTPLATE.get(),
-                new ItemStack(Items.OBSIDIAN, 6));
+                new ItemStack(ForgeweaveItems.SEARED_BRICK.get(), 6));
 
         helper.assertTrue(output.is(ForgeweaveItems.PART_PLATING_CHESTPLATE.get()),
-                "expected an obsidian chestplate plating, got " + output);
-        helper.assertTrue(materialId("obsidian").equals(output.get(ForgeweaveDataComponents.MATERIAL.get())),
-                "expected forgeweave:obsidian, got " + output.get(ForgeweaveDataComponents.MATERIAL.get()));
+                "expected a seared stone chestplate plating, got " + output);
+        helper.assertTrue(materialId("seared_stone").equals(output.get(ForgeweaveDataComponents.MATERIAL.get())),
+                "expected forgeweave:seared_stone, got " + output.get(ForgeweaveDataComponents.MATERIAL.get()));
+
+        // And obsidian, which used to be this test's subject, now stamps nothing.
+        helper.assertTrue(craft(helper, player, ForgeweaveItems.PATTERN_PLATING_CHESTPLATE.get(),
+                        new ItemStack(Items.OBSIDIAN, 6)).isEmpty(),
+                "obsidian is cast_only since #1113, so the Part Builder must stamp no plating");
         helper.succeed();
     }
 
