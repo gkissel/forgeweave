@@ -1375,7 +1375,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // behavior is Java, the recipe that applies it is data). Wording follows upstream 1.12's
         // modifier.<id>.name/.desc entries.
         add("modifier.forgeweave.haste.name", "Haste");
-        add("modifier.forgeweave.haste.description", "Redstone speeds the tool up. Every 50 pieces is another level.");
+        add("modifier.forgeweave.haste.description", "Each redstone dust adds up to 0.15 mining speed, less the faster the "
+                + "tool already is. Every 50 dust is another level, worth 0.5 more mining speed, 20% attack speed and 10% "
+                + "draw speed.");
         // Parity audit T26 (issue #457), upstream modifier.haste.name2..name5: the leveled names a
         // modifier shows instead of "Haste II" (Modifier#getLeveledTooltip).
         add("modifier.forgeweave.haste.name2", "Haster");
@@ -1485,33 +1487,34 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("modifier.forgeweave.magnetic_pull.name", "Magnetic Pull");
         add("modifier.forgeweave.magnetic_pull.description", "Block drops go straight into your inventory.");
         add("modifier.forgeweave.aquadynamic.name", "Aquadynamic");
-        add("modifier.forgeweave.aquadynamic.description", "No mining speed penalty while your head is underwater.");
+        add("modifier.forgeweave.aquadynamic.description", "Restores full mining speed with your head underwater, where "
+                + "vanilla leaves you 20%.");
         add("modifier.forgeweave.resonant.name", "Resonant");
-        add("modifier.forgeweave.resonant.description", "Bonus experience from blocks that drop it. Every level adds 50%.");
+        add("modifier.forgeweave.resonant.description", "Blocks that drop experience drop 50% more per level, up to 3 levels.");
         add("modifier.forgeweave.far_reach.name", "Far Reach");
-        add("modifier.forgeweave.far_reach.description", "Extends how far you can reach to mine blocks. Every level adds one block.");
+        add("modifier.forgeweave.far_reach.description", "Adds 1 block of block-mining reach per level, up to 2.");
 
         // #107 batch: reinforced, mending moss, silky, soulbound, extra-slot (docs/SCOPE.md M2 issue
         // #107), wording ported from upstream 1.12's modifier.<id>.name/.desc entries.
         add("modifier.forgeweave.reinforced.name", "Reinforced");
-        add("modifier.forgeweave.reinforced.description",
-                "Gives a chance to completely negate durability damage. Every level is another 20% chance.");
+        add("modifier.forgeweave.reinforced.description", "A 20% chance per level to negate durability damage outright, so "
+                + "level 5 never wears at all.");
         // Parity audit T26 (issue #457), upstream modifier.reinforced.extra / .unbreakable: the
         // chance the tool currently negates damage with, and the word that replaces it -- and the
         // modifier's whole name -- once that chance reaches 100% (ModReinforced#getTooltip).
         add("modifier.forgeweave.reinforced.extra", "Reinforced: %s");
         add("modifier.forgeweave.reinforced.unbreakable", "Unbreakable");
         add("modifier.forgeweave.mending_moss.name", "Mending Moss");
-        add("modifier.forgeweave.mending_moss.description",
-                "Stores experience and slowly uses it to repair the tool while it is carried.");
+        add("modifier.forgeweave.mending_moss.description", "Banks the experience it picks up, 100 points at level 1 and 900 "
+                + "at level 3, and spends one about every 7.5 seconds to repair 3 durability, 5 at level 3.");
         // Upstream modifier.mending_moss.extra ("Stored XP: %d"), parity audit T26 (issue #457).
         add("modifier.forgeweave.mending_moss.extra", "Stored XP: %s");
         add("modifier.forgeweave.silky.name", "Silky");
-        add("modifier.forgeweave.silky.description", "Grants Silk Touch, at the cost of some mining speed and attack damage.");
+        add("modifier.forgeweave.silky.description", "Grants Silk Touch, at the cost of 3 mining speed and 3 attack damage.");
         add("modifier.forgeweave.soulbound.name", "Soulbound");
         add("modifier.forgeweave.soulbound.description", "The tool stays with you even after you die.");
         add("modifier.forgeweave.extra_slot.name", "Extra Modifier");
-        add("modifier.forgeweave.extra_slot.description", "Adds an extra modifier slot to the tool.");
+        add("modifier.forgeweave.extra_slot.description", "Adds 1 modifier slot per level, up to 5.");
 
         // Mending moss's acquisition (issue #107): shown when a player right-clicks a bookshelf with
         // moss but fewer than 10 XP levels, ported from upstream's message.mending_moss.not_enough_levels.
@@ -1561,11 +1564,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
 
         // #106 batch: luck, sharpness, diamond, emerald.
         add("modifier.forgeweave.luck.name", "Luck");
-        add("modifier.forgeweave.luck.description",
-                "Lapis lazuli grants Fortune, and Looting to weapons. Each level takes more than the last.");
+        add("modifier.forgeweave.luck.description", "Grants Fortune on any tool and Looting on weapons, up to 3 levels. The "
+                + "first level takes 60 lapis lazuli, the second 120 and the third 180.");
         add("modifier.forgeweave.sharpness.name", "Sharpness");
-        add("modifier.forgeweave.sharpness.description",
-                "Quartz increases attack damage. Every 72 pieces is another level.");
+        add("modifier.forgeweave.sharpness.description", "Each quartz adds up to 0.05 attack damage, less the sharper the "
+                + "weapon already is. Every 72 quartz is another level, worth 0.25 more on top.");
         // Upstream modifier.sharpness.name2..name5, parity audit T26 (issue #457). Level 1 keeps
         // Forgeweave's own "Sharpness" rather than upstream's "Sharp", which is already the shipped
         // name and collides with the sharp trait.
@@ -1574,120 +1577,113 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("modifier.forgeweave.sharpness.name4", "Sharpester");
         add("modifier.forgeweave.sharpness.name5", "Sharpestest");
         add("modifier.forgeweave.diamond.name", "Diamond");
-        add("modifier.forgeweave.diamond.description", "Adds 500 durability and raises the tool's tier.");
+        add("modifier.forgeweave.diamond.description", "Adds 500 durability, 1 attack damage and 0.5 mining speed, and raises "
+                + "the tool 1 mining tier.");
         add("modifier.forgeweave.emerald.name", "Emerald");
-        add("modifier.forgeweave.emerald.description", "Adds 50% durability and raises the tool's tier.");
+        add("modifier.forgeweave.emerald.description", "Adds 50% durability and raises the tool's mining tier to iron.");
 
         // #223 -- wind burst. Breeze rod, one per level, up to vanilla's own Wind Burst III cap.
         // #438 -- Width++ / Height++, descriptions ported from upstream's modifier.harvestwidth.desc
         // and modifier.harvestheight.desc ("Increases the width/height of the area affected by your
         // tool. The effect is tool specific.").
         add("modifier.forgeweave.harvest_width.name", "Width++");
-        add("modifier.forgeweave.harvest_width.description",
-                "Increases the width of the area your tool affects. The effect is tool specific.");
+        add("modifier.forgeweave.harvest_width.description", "Widens the area the tool breaks by 1 block on a pickaxe, "
+                + "shovel, hatchet, kama or mattock, and by 2 on a hammer, excavator, lumber axe or scythe.");
         add("modifier.forgeweave.harvest_height.name", "Height++");
-        add("modifier.forgeweave.harvest_height.description",
-                "Increases the height of the area your tool affects. The effect is tool specific.");
+        add("modifier.forgeweave.harvest_height.description", "Raises the area the tool breaks by 1 block on a pickaxe, "
+                + "shovel, hatchet, kama or mattock, and by 2 on a hammer, excavator, lumber axe or scythe.");
 
         // T24 (#455) -- blasting. Description follows upstream's modifier.blasting.desc ("Ka-Boom!
         // You can break non-effective blocks like normal blocks, but they might get destroyed"), and
         // the extra line is its modifier.blasting.extra verbatim.
         add("modifier.forgeweave.blasting.name", "Blasting");
-        add("modifier.forgeweave.blasting.description",
-                "Ka-Boom! Breaks blocks this tool isn't normally effective on, but every level is "
-                        + "another one-in-three chance the drops don't survive.");
+        add("modifier.forgeweave.blasting.description", "Breaks blocks this tool is not normally effective on, and each level "
+                + "adds a 33% chance the drops do not survive. Up to 3 levels.");
         add("modifier.forgeweave.blasting.extra", "Blast Power: %s");
 
         // #719 -- veinmine. No upstream counterpart; the wording is this PR's own.
         add("modifier.forgeweave.veinmine.name", "Veinmine");
-        add("modifier.forgeweave.veinmine.description",
-                "Hold the Vein Mine key to take a whole run of ore, logs or soil in one swing; "
-                        + "each level adds four more blocks.");
+        add("modifier.forgeweave.veinmine.description", "Hold the Vein Mine key to take a whole run of ore, logs or soil in "
+                + "one swing: 4 blocks a level, up to 20 at level 5.");
 
         // #653 -- fins. Upstream modifier.fins.name/.desc ("Something's fishy... Attaching fins to
         // the projectiles makes them travel like normal underwater"), the flavour line folded into
         // the description as glowing's is.
         add("modifier.forgeweave.fins.name", "Fins");
-        add("modifier.forgeweave.fins.description",
-                "Something's fishy... Attaching fins to the projectiles makes them travel like "
-                        + "normal underwater.");
+        add("modifier.forgeweave.fins.description", "Projectiles keep 99% of their speed a tick underwater instead of "
+                + "vanilla's 60%, so they fly as if in air.");
 
         // M4-6 (#681) -- the seven armor modifiers, ported from the 1.20 clone's
         // assets/tconstruct/lang/en_us.json (modifier.tconstruct.<id>.flavor + .description, the
         // flavour line folded into the description as fins' is).
         add("modifier.forgeweave.fire_protection.name", "Fire Protection");
-        add("modifier.forgeweave.fire_protection.description",
-                "Become the smeltery! Protects against damage from fire.");
+        add("modifier.forgeweave.fire_protection.description", "Takes 10% off fire and lava damage per level, up to 8 levels "
+                + "a piece and 80% across a worn set.");
         add("modifier.forgeweave.blast_protection.name", "Blast Protection");
-        add("modifier.forgeweave.blast_protection.description",
-                "Aw man! Protects against explosion damage.");
+        add("modifier.forgeweave.blast_protection.description", "Takes 10% off explosion damage per level, up to 8 levels a "
+                + "piece and 80% across a worn set.");
         add("modifier.forgeweave.magic_protection.name", "Magic Protection");
-        add("modifier.forgeweave.magic_protection.description",
-                "Powerful magic requires powerful magic! Protects against damage from magical sources.");
+        add("modifier.forgeweave.magic_protection.description", "Takes 10% off magic damage per level, up to 8 levels a piece "
+                + "and 80% across a worn set.");
         add("modifier.forgeweave.melee_protection.name", "Melee Protection");
-        add("modifier.forgeweave.melee_protection.description",
-                "Thwack! Increases protection against direct physical damage.");
+        add("modifier.forgeweave.melee_protection.description", "Takes 8% off direct physical damage per level, up to 10 "
+                + "levels a piece and 80% across a worn set.");
         add("modifier.forgeweave.projectile_protection.name", "Projectile Protection");
-        add("modifier.forgeweave.projectile_protection.description",
-                "Ding! Protects against damage from projectiles.");
+        add("modifier.forgeweave.projectile_protection.description", "Takes 8% off projectile damage per level, up to 10 "
+                + "levels a piece and 80% across a worn set.");
         add("modifier.forgeweave.knockback_resistance.name", "Knockback Resistance");
-        add("modifier.forgeweave.knockback_resistance.description",
-                "A weighty subject. Anvils are heavy, so it should keep you from being knocked back, right?");
+        add("modifier.forgeweave.knockback_resistance.description", "Reduces knockback taken by 10% a piece, 40% across a "
+                + "worn set. One level a piece.");
         add("modifier.forgeweave.thorns.name", "Thorns");
-        add("modifier.forgeweave.thorns.description",
-                "Quite metal. Harness the power of the guardian, causing attackers to sometimes take damage.");
+        add("modifier.forgeweave.thorns.description", "A 15% chance per level to put 1 to 4 damage back on whoever strikes "
+                + "the wearer, up to 3 levels.");
         // #736, the 1.20 clone's modifier.tconstruct.netherite rows.
         add("modifier.forgeweave.netherite.name", "Netherite");
-        add("modifier.forgeweave.netherite.description",
-                "Refined! Harness the power of ancient metal, making the tool stronger and immune to external damage such as fire.");
+        add("modifier.forgeweave.netherite.description", "Adds 20% durability, 20% attack damage, 25% mining speed, 5% "
+                + "knockback resistance and 1 armor toughness, raises the tool to netherite tier and keeps it from burning "
+                + "when dropped.");
 
         // #737 (epic #730 slice 2) -- Forgeweave originals, no upstream counterpart: elytra flight and
         // creative flight, both chestplate-only. #1005 widened both off heavy-only to any weight.
         add("modifier.forgeweave.elytra_flight.name", "Elytra Flight");
-        add("modifier.forgeweave.elytra_flight.description",
-                "Sacrifice a real elytra to teach the plate to glide just the same, wings or not.");
+        add("modifier.forgeweave.elytra_flight.description", "Spends a real elytra to teach the chestplate to glide exactly "
+                + "as a worn elytra does.");
         add("modifier.forgeweave.creative_flight.name", "Creative Flight");
-        add("modifier.forgeweave.creative_flight.description",
-                "A fallen star's power, bound to the whole set. Soar freely while every piece "
-                        + "stays worn and unbroken; requires Elytra Flight first.");
+        add("modifier.forgeweave.creative_flight.description", "Grants creative-style flight while all 4 armor pieces stay "
+                + "worn and unbroken. Needs Elytra Flight first.");
 
         // #1007 (docs/SCOPE.md M8, Create compat) -- Forgeweave original, no upstream counterpart.
         add("modifier.forgeweave.goggles.name", "Goggles");
-        add("modifier.forgeweave.goggles.description",
-                "Mounts a pair of Create's goggles on the helmet, so its overlays show while the "
-                        + "helmet is worn. A utility: no modifier slot spent.");
+        add("modifier.forgeweave.goggles.description", "Mounts a pair of Create's goggles on the helmet, so its overlays show "
+                + "while the helmet is worn.");
 
         // Issue #996 (D-M8-17): Powah's crystal ladder, one level a step, energy capacity and mining
         // speed rising with each crystal.
         add("modifier.forgeweave.surgebound.name", "Surgebound");
-        add("modifier.forgeweave.surgebound.description",
-                "Powah's crystal ladder, applied one level at a time: energized steel, then blazing, "
-                        + "niotic, spirited and nitro crystal. Each level raises the tool's energy "
-                        + "capacity and mining speed; the nitro step is worth double the rest.");
+        add("modifier.forgeweave.surgebound.description", "Raises the tool's energy capacity 25% and its mining speed 5% per "
+                + "level, and the nitro step at level 5 doubles both instead. Five levels, applied in crystal order.");
         add("modifier.forgeweave.surgebound.extra", "Energy Capacity: +%s, Mining Speed: +%s");
 
         // Issue #994 (M8-10): lead lining against radiation, four levels to a fully shielded piece.
         add("modifier.forgeweave.rayward.name", "Rayward");
-        add("modifier.forgeweave.rayward.description",
-                "Lines the armor piece with lead. Each level blocks another quarter of the radiation "
-                        + "a mod that models it would deal, so four levels stop it entirely.");
+        add("modifier.forgeweave.rayward.description", "Lines the armor piece with lead: each level blocks another 25% of the "
+                + "radiation a mod that models it would deal, so 4 levels stop it entirely.");
         add("modifier.forgeweave.rayward.extra", "Radiation Blocked: %s");
 
         add("modifier.forgeweave.wind_burst.name", "Wind Burst");
-        add("modifier.forgeweave.wind_burst.description",
-                "Grants Wind Burst on the warmace. Each breeze rod raises it another level, up to III.");
+        add("modifier.forgeweave.wind_burst.description", "Grants Wind Burst on the warmace, 1 level per breeze rod, up to 3.");
 
         // Parity audit T25 (issue #456) -- glowing. Wording follows upstream 1.12's
         // modifier.glowing.name/.desc; its italic "Shine bright" flavour line has no key
         // family here, so the description carries the sentence that follows it.
         add("modifier.forgeweave.glowing.name", "Glowing");
-        add("modifier.forgeweave.glowing.description",
-                "Whenever it gets too dark your tool sacrifices a part of itself to light up your way.");
+        add("modifier.forgeweave.glowing.description", "Below light level 8 the held tool drops a light source beside you, "
+                + "for 1 durability.");
 
         // #158 -- beheading. The 10% per level is the clone's own chance curve (combat.Beheading).
         add("modifier.forgeweave.beheading.name", "Beheading");
-        add("modifier.forgeweave.beheading.description",
-                "A killing blow may drop the victim's head. Every level adds 10%, certain at ten.");
+        add("modifier.forgeweave.beheading.description", "A killing blow may drop the victim's head: 10% a level, certain at "
+                + "10.");
 
         // #154 -- embossing. One shared pair of keys for every material, because the modifier ids are
         // generated per material and a datapack can add materials this mod has never heard of; the
@@ -1707,8 +1703,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // names the family rather than any one material, which is what the JEI entry for the shared
         // `forgeweave:fortification` recipe shows (there is one recipe, not one per material).
         add("modifier.forgeweave.fortification.name", "Fortified");
-        add("modifier.forgeweave.fortification.description",
-                "A sharpening kit and a flint raise the tool's mining level to the kit material's.");
+        add("modifier.forgeweave.fortification.description", "A sharpening kit and a flint raise the tool's mining level to "
+                + "the kit material's.");
         add("modifier.forgeweave.fortification.material", "Fortified (%s)");
         add("modifier.forgeweave.fortification.material_description",
                 "Mining level increased to the same level as %s.");
@@ -1725,27 +1721,29 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // Combat modifiers batch 2 (issue #163, docs/SCOPE.md M3): knockback, shulking, webbed.
         // Wording follows upstream 1.12's modifier.<id>.name/.desc entries.
         add("modifier.forgeweave.knockback.name", "Knockback");
-        add("modifier.forgeweave.knockback.description", "Hits push targets back further. Every piston adds more.");
+        add("modifier.forgeweave.knockback.description", "Each piston adds 0.1 knockback to every hit, and every 10 pistons "
+                + "is another level.");
         add("modifier.forgeweave.shulking.name", "Shulking");
-        add("modifier.forgeweave.shulking.description", "Hits briefly make the target levitate.");
+        add("modifier.forgeweave.shulking.description", "Hits give the target 1.75 seconds of Levitation.");
         // Upstream modifier.shulking.extra ("Float Duration: %ss"), parity audit T26 (issue #457).
         add("modifier.forgeweave.shulking.extra", "Float Duration: %ss");
         add("modifier.forgeweave.webbed.name", "Webbed");
-        add("modifier.forgeweave.webbed.description", "Hits slow the target. Every level adds another second.");
+        add("modifier.forgeweave.webbed.description", "Hits give the target Slowness II for 1 second per level, up to 3 "
+                + "seconds.");
 
         // #162 batch: combat modifiers batch 1 (smite, bane of arthropods, fiery, necrotic), wording
         // ported from upstream 1.12's modifier.<id>.name/.desc entries.
         add("modifier.forgeweave.smite.name", "Smite");
-        add("modifier.forgeweave.smite.description", "Bonus damage against undead. Every 24 pieces is another level.");
+        add("modifier.forgeweave.smite.description", "Deals 7 more damage to undead per level, up to 5 levels. Every 24 "
+                + "consecrated soil is another level.");
         add("modifier.forgeweave.bane_of_arthropods.name", "Bane of Arthropods");
-        add("modifier.forgeweave.bane_of_arthropods.description",
-                "Bonus damage against arthropods. Every 24 pieces is another level.");
+        add("modifier.forgeweave.bane_of_arthropods.description", "Deals 7 more damage to spiders and silverfish per level, "
+                + "up to 5 levels. Every 24 fermented spider eyes is another level.");
         add("modifier.forgeweave.fiery.name", "Fiery");
-        add("modifier.forgeweave.fiery.description",
-                "Sets targets on fire and deals bonus fire damage. Every 25 pieces is another level.");
+        add("modifier.forgeweave.fiery.description", "Sets targets alight: 1.7 more fire damage and 3 more seconds of burning "
+                + "per level, reaching 8.3 damage and 16 seconds at level 5. Every 25 blaze powder is another level.");
         add("modifier.forgeweave.necrotic.name", "Necrotic");
-        add("modifier.forgeweave.necrotic.description",
-                "Heals you for a portion of the damage you deal. Every level adds 10%.");
+        add("modifier.forgeweave.necrotic.description", "Heals you 10% of the damage you deal per level, up to 10 levels.");
         // Parity audit T26 (issue #457): upstream's modifier.<id>.extra lines for the same four,
         // verbatim from the clone's en_us.lang ("Vs Spiders" is upstream's own wording for bane).
         add("modifier.forgeweave.smite.extra", "Vs Undead: +%s");
@@ -2409,8 +2407,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // The refill recipe's JEI/rejection name (modifier.tconstruct.overslime), the at-capacity
         // refusal (recipe.tconstruct.overslime.at_capacity) and the tool_stat.tconstruct.overslime row.
         add("modifier.forgeweave.overslime.name", "Overslime");
-        add("modifier.forgeweave.overslime.description",
-                "Refills the piece's overslime with slime balls, congealed slime or slime blocks.");
+        add("modifier.forgeweave.overslime.description", "Refills the piece's overslime: 20 points a slime ball, 80 a "
+                + "congealed slime block and 180 a slime block.");
         add("gui.forgeweave.modifier.overslime_full", "Armor has no more space for overslime.");
         add("gui.forgeweave.modifier.overslime_unsupported", "Only armor with the overslime trait takes overslime.");
 
@@ -2419,11 +2417,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // read overslime's above), the socket rows on the tooltip and the station panel, and the
         // four refusals the station can hand back.
         add("modifier.forgeweave.socketed.name", "Socketed");
-        add("modifier.forgeweave.socketed.description",
-                "Adds an empty gem socket. Each socket holds one gem and costs a modifier slot.");
+        add("modifier.forgeweave.socketed.description", "Adds 1 empty gem socket per level, up to 3. Each socket holds one "
+                + "gem and costs 1 modifier slot.");
         add("modifier.forgeweave.socket_gem.name", "Seat Gem");
-        add("modifier.forgeweave.socket_gem.description",
-                "Seats a gem in the tool's first empty socket. Costs no modifier slot: the socket already paid for it.");
+        add("modifier.forgeweave.socket_gem.description", "Seats 1 gem in the tool's first empty socket. The socket already "
+                + "paid the modifier slot, so this costs none.");
         add("tooltip.forgeweave.socket", "Socket %s: %s");
         add("tooltip.forgeweave.socket.empty", "empty");
         add("gui.forgeweave.modifier.no_sockets", "This tool has no sockets. Add one with Socketed first.");
@@ -3470,74 +3468,79 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Knocks armored targets back harder");
         modifierEffects("haste",
                 "Each redstone dust increases mining speed by a small amount",
-                "Increases attack speed", "Multiple levels");
+                "Increases attack speed", "Up to 5 levels", "Costs 1 modifier slot per level");
         modifierEffects("sharpness",
-                "Increases attack damage", "Different weapons scale differently", "Multiple levels");
+                "Increases attack damage", "Different weapons scale differently", "Up to 5 levels",
+                "Costs 1 modifier slot per level");
         modifierEffects("diamond",
                 "Extra durability", "Minor stat increase",
-                "Mining level increased by one, up to Obsidian", "Single use", "Fabulous!");
+                "Mining level increased by one, up to Obsidian", "One level only", "Fabulous!", "Costs 1 modifier slot");
         modifierEffects("emerald",
-                "50% base durability increase", "Mining level increased to Iron", "Single use",
-                "Outrageous!");
+                "50% base durability increase", "Mining level increased to Iron", "One level only",
+                "Outrageous!", "Costs 1 modifier slot");
         modifierEffects("reinforced",
                 "Adds a chance to not consume durability",
-                "Stacks with previous levels of Reinforced", "Multiple levels");
+                "Stacks with previous levels of Reinforced", "Up to 5 levels", "Costs 1 modifier slot per level");
         modifierEffects("mending_moss",
                 "Stores XP picked up", "Max. Amount stored increases with modifier level",
-                "Slowly repairs the tool over time", "Multiple levels");
+                "Slowly repairs the tool over time", "Up to 3 levels", "Costs 1 modifier slot per level");
         modifierEffects("silky",
-                "Allows blocks to be harvested directly", "Single use");
+                "Allows blocks to be harvested directly", "One level only", "Costs 1 modifier slot");
         modifierEffects("soulbound",
-                "Tool remains in your inventory after death", "Single use",
-                "Does NOT require a modifier");
+                "Tool remains in your inventory after death", "One level only",
+                "Costs no modifier slot");
         modifierEffects("luck",
                 "Adds fortune or looting", "Tool use has a chance to increase the luck",
-                "Adding more lapis only uses one modifier");
+                "Costs 1 modifier slot in total, whatever the level");
         modifierEffects("smite",
-                "Deals massive damage to undead enemies", "Multiple levels");
+                "Deals massive damage to undead enemies", "Up to 5 levels", "Costs 1 modifier slot per level");
         modifierEffects("bane_of_arthropods",
-                "Deals massive damage to spiders and silverfish", "Multiple levels");
+                "Deals massive damage to spiders and silverfish", "Up to 5 levels", "Costs 1 modifier slot per level");
         modifierEffects("fiery",
-                "Sets enemies on fire", "Deals additional fire damage on hit", "Multiple levels");
+                "Sets enemies on fire", "Deals additional fire damage on hit", "Up to 5 levels",
+                "Costs 1 modifier slot per level");
         modifierEffects("necrotic",
-                "Heal when dealing damage", "Add more bones to increase the heal", "Multiple levels");
+                "Heal when dealing damage", "Add more bones to increase the heal", "Up to 10 levels",
+                "Costs 1 modifier slot per level");
         modifierEffects("knockback",
                 "Adds extra knockback", "Each piston increases the knockback distance",
-                "Multiple levels");
+                "Up to 99 levels", "Costs 1 modifier slot per level");
         modifierEffects("shulking",
                 "Each point increases floating duration", "Causes enemies to float away",
-                "Hilarious", "Single level");
+                "Hilarious", "One level only", "Costs 1 modifier slot");
         modifierEffects("webbed",
-                "Each level increases slow duration", "Slow-motion", "Multi level");
+                "Each level increases slow duration", "Slow-motion", "Up to 3 levels", "Costs 1 modifier slot per level");
         modifierEffects("blasting",
                 "Breaks blocks fast", "AOE Tools harvest uneffective blocks too",
-                "Will likely destroy harvested blocks", "Requires only 1 modifier",
-                "Multiple levels");
+                "Will likely destroy harvested blocks", "Costs 1 modifier slot in total, whatever the level",
+                "Up to 3 levels");
         modifierEffects("veinmine",
                 "Hold the Vein Mine key to mine connected blocks", "Ores, logs and soil only",
-                "4 blocks per level", "Does not work for weapons", "Multiple levels");
+                "4 blocks per level", "Does not work for weapons", "Up to 5 levels", "Costs 1 modifier slot per level");
         modifierEffects("beheading",
                 "Enemies drop their heads",
-                "Adding more Obsidian increases the chance of decapitation", "Multiple levels");
+                "Adding more Obsidian increases the chance of decapitation", "Up to 10 levels",
+                "Costs 1 modifier slot per level");
         modifierEffects("glowing",
-                "Places a lightsource on low light level", "Costs durability");
+                "Places a lightsource on low light level", "Costs durability", "Costs 1 modifier slot");
         modifierEffects("harvest_width",
                 "Increases the width of the area affected", "Only affects blocks",
-                "Does not work for weapons", "Can be combined with Height++");
+                "Does not work for weapons", "Can be combined with Height++", "Costs 1 modifier slot");
         modifierEffects("harvest_height",
                 "Increases the height of the area affected", "Only affects blocks",
-                "Does not work for weapons", "Can be combined with Width++");
+                "Does not work for weapons", "Can be combined with Width++", "Costs 1 modifier slot");
         // The #651 content tail -- the modifiers upstream's book has no bullets for (the #108
         // modern-vanilla batch, #223's wind burst, the extra slot). Original wording off each
         // modifier's implementation and its modifier_recipe's max_level (ForgeweaveModifiers).
         modifierEffects("searing",
-                "Mined blocks drop their smelted result", "Single use");
+                "Mined blocks drop their smelted result", "One level only", "Costs 1 modifier slot");
         modifierEffects("magnetic_pull",
-                "Block drops go straight into your inventory", "Single use");
+                "Block drops go straight into your inventory", "One level only", "Costs 1 modifier slot");
         modifierEffects("aquadynamic",
-                "No mining speed penalty underwater", "Single use");
+                "No mining speed penalty underwater", "One level only", "Costs 1 modifier slot");
         modifierEffects("resonant",
-                "Blocks that drop experience drop more", "Each level adds 50%", "Multiple levels");
+                "Blocks that drop experience drop more", "Each level adds 50%", "Up to 3 levels",
+                "Costs 1 modifier slot per level");
         // M4-6 (#681): the 1.20 clone's book pages (book/encyclopedia/en_us/defense/protection/*,
         // defense/special/tconstruct_knockback_resistance, upgrades/armor/general/tconstruct_thorns),
         // minus the secondary effects Forgeweave does not port (fire time, potion duration, use
@@ -3545,88 +3548,89 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         modifierEffects("fire_protection",
                 "Grants +10% resistance against fire damage, such as from lava or blazes",
                 "Caps at 80% across the whole set", "Can apply levels incrementally",
-                "Requires 1 modifier slot per level");
+                "Costs 1 modifier slot per level");
         modifierEffects("blast_protection",
                 "Grants +10% resistance against explosion damage, such as from creepers or TNT",
                 "Caps at 80% across the whole set", "Can apply levels incrementally",
-                "Requires 1 modifier slot per level");
+                "Costs 1 modifier slot per level");
         modifierEffects("magic_protection",
                 "Grants +10% resistance against magic damage, such as from poison or thorns",
                 "Caps at 80% across the whole set", "Can apply levels incrementally",
-                "Requires 1 modifier slot per level");
+                "Costs 1 modifier slot per level");
         modifierEffects("melee_protection",
                 "Grants +8% resistance against melee damage, such as from zombies and swords",
                 "Caps at 80% across the whole set", "Can apply levels incrementally",
-                "Requires 1 modifier slot per level");
+                "Costs 1 modifier slot per level");
         modifierEffects("projectile_protection",
                 "Grants +8% resistance against projectile damage, such as arrows from skeletons",
                 "Caps at 80% across the whole set", "Can apply levels incrementally",
-                "Requires 1 modifier slot per level");
+                "Costs 1 modifier slot per level");
         modifierEffects("knockback_resistance",
                 "Reduces the amount of knockback received by 10%", "Maximum of 1 level per piece",
-                "Requires 1 modifier slot");
+                "Costs 1 modifier slot");
         modifierEffects("thorns",
                 "Has a 15% chance per level to apply 1 to 4 damage to the attacker",
-                "Multiple pieces will stack the effect", "Maximum of 3 levels",
-                "Requires 1 modifier slot per level");
+                "Multiple pieces will stack the effect", "Up to 3 levels",
+                "Costs 1 modifier slot per level");
         // #736: the clone's upgrades/general/tconstruct_netherite.json, minus velocity and the
         // upgrade slot (slotless here, maintainer decision).
         modifierEffects("netherite",
                 "Grants +20% durability, +20% attack damage, +25% mining speed, +5% knockback resistance, and +1 armor toughness",
                 "Increases the mining level to netherite, and makes the tool immune to fire when dropped",
                 "Tools and armor will only receive applicable stat boosts",
-                "Maximum of 1 level", "Requires no modifier slot");
+                "One level only", "Costs no modifier slot");
         // #737 (epic #730 slice 2) -- Forgeweave originals, no upstream source. #1005 widened both
         // off heavy-only to any weight.
         modifierEffects("elytra_flight",
                 "Grants gliding, exactly like a worn elytra", "Consumes the elytra reagent outright",
-                "Only fits the chestplate", "Maximum of 1 level");
+                "Only fits the chestplate", "One level only", "Costs 1 modifier slot");
         modifierEffects("creative_flight",
                 "Grants creative-style flight while a full set of armor is worn",
                 "Lost the instant a piece is removed or breaks", "Requires Elytra Flight first",
-                "Only fits the chestplate", "Maximum of 1 level");
+                "Only fits the chestplate", "One level only", "Costs 1 modifier slot");
         // #1007 -- Forgeweave original, no upstream counterpart.
         modifierEffects("goggles",
                 "Makes the helmet count as wearing Create's goggles", "Only fits a helmet, heavy or light",
-                "Requires no modifier slot", "Maximum of 1 level");
+                "Costs no modifier slot", "One level only");
         modifierEffects("far_reach",
-                "Reach further to mine blocks", "Each level adds one block", "Multiple levels");
+                "Reach further to mine blocks", "Each level adds one block", "Up to 2 levels",
+                "Costs 1 modifier slot per level");
         modifierEffects("extra_slot",
-                "Adds an extra modifier slot", "Multiple levels");
+                "Adds an extra modifier slot", "Up to 5 levels");
         modifierEffects("wind_burst",
                 "Grants the Wind Burst enchantment", "Each breeze rod is one level",
-                "Only fits the Warmace", "Multiple levels");
+                "Only fits the Warmace", "Up to 3 levels", "Costs 1 modifier slot per level");
         // #969 (M8, D-M8-1) -- the guide book's Socketed page, built like every other modifier page
         // from these bullets plus the name and description above. Covers what a socket is, how a gem
         // gets in and what a seated gem grants; the unmapped effects are recorded in
         // ApotheosisSockets.EFFECT_MAP rather than promised to a player here.
         modifierEffects("socketed",
                 "Adds one empty gem socket per level",
-                "Each socket costs a modifier slot, so a slot earned by levelling up can buy one",
+                "Costs 1 modifier slot per socket, so a slot earned by levelling up can buy one",
                 "Seat a gem by putting it in the Tool Station beside a socketed tool",
                 "A seated gem adds its bonus to the tool's own attack damage, mining speed, "
                         + "durability, armor or protection",
                 "Sockets and gems are kept if Apotheosis is removed, and work again when it is back",
-                "Needs Apotheosis installed", "Maximum of 3 levels");
+                "Needs Apotheosis installed", "Up to 3 levels");
         // Fins is the one gap with an upstream source (book/en_us/modifiers/fins.json, added to the
         // registry by #654 after #658's port): its three bullets, verbatim -- the first is exactly
         // what ArrowEntity#getWaterInertia implements, the other two are upstream's own jokes.
         modifierEffects("fins",
-                "Projectiles ignore water", "Logical", "Makes sense");
+                "Projectiles ignore water", "Logical", "Makes sense", "Costs 1 modifier slot");
         // Issue #996 (D-M8-17) -- Forgeweave original built on Powah's own crystal ladder.
         modifierEffects("surgebound",
                 "Grants +25% energy capacity and +5% mining speed per level",
                 "The nitro step (level V) doubles both instead of adding a fifth flat step",
                 "Applied in crystal order: energized steel, then blazing, niotic, spirited, nitro crystal",
-                "Each level requires the one before it, and costs its own modifier slot",
-                "Five levels");
+                "Each level needs the one before it, and costs 1 modifier slot",
+                "Up to 5 levels");
         // Issue #994 (M8-10) -- Forgeweave original. The one page a player without Mekanism can still
         // read and use: the modifier applies either way, and a mod that models radiation reads it.
         modifierEffects("rayward",
                 "Blocks a quarter of incoming radiation per level",
                 "Four levels on one piece stop it entirely",
-                "Each level costs a lead ingot and a modifier slot",
-                "Fits any armor piece", "Four levels");
+                "Costs 1 lead ingot and 1 modifier slot per level",
+                "Fits any armor piece", "Up to 4 levels");
 
         // Issue #796: the built-in Legacy resource pack's display name (Options > Resource Packs).
         // Not an item/block/trait key family -- ForgeweaveResourcePacks#addPackFinders is the only
