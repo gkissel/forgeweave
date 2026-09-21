@@ -90,6 +90,21 @@ public final class SavedPage {
         return lastSegment(section.titleKey());
     }
 
+    /**
+     * What a generated navigation page (a listing or an icon grid) bookmarks as. A page titled with
+     * its own section's name is that section's opening listing, so it keeps the name it has always
+     * had; anything else names itself after its title, which issue #1104 needs because the
+     * materials chapter now holds one grid per progression stage and a second listing for the
+     * traits reference ({@code book.forgeweave.stage.first_day.name} -> {@code first_day}).
+     */
+    private static String navName(String titleKey) {
+        if (titleKey.startsWith("book.forgeweave.section.")) {
+            return "listing";
+        }
+        return lastSegment(titleKey.endsWith(".name")
+                ? titleKey.substring(0, titleKey.length() - ".name".length()) : titleKey);
+    }
+
     private static String pageName(BookPage page) {
         return switch (page) {
             // book.forgeweave.intro.welcome.title -> welcome
@@ -99,9 +114,13 @@ public final class SavedPage {
             }
             case ToolPage tool -> BuiltInRegistries.ITEM.getKey(tool.tool()).getPath();
             case MaterialPage material -> material.id().getPath();
+            // Issue #1104: the trait reference bookmarks under the family, so a bookmark survives a
+            // datapack adding another level to it. Prefixed because the reference lives in the
+            // materials chapter, where a bare family path could collide with a material's.
+            case BookPage.TraitPage trait -> "trait_" + trait.family().path();
             case ModifierPage modifier -> modifier.id().getPath();
-            case ListingPage listing -> "listing";
-            case IconGridPage grid -> "listing";
+            case ListingPage listing -> navName(listing.titleKey());
+            case IconGridPage grid -> navName(grid.titleKey());
             // IndexTranformer names its generated pages page1, page2, ... itself.
             case BookPage.SectionListPage sectionList -> sectionList.name();
             // The structure page carries its authored JSON name, upstream's own source for it.
