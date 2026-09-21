@@ -1854,6 +1854,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addFluid(ForgeweaveFluids.CARBON, "Molten Carbon");
         // #231: upstream 1.12's fluid.tconstruct.obsidian.name.
         addFluid(ForgeweaveFluids.OBSIDIAN, "Molten Obsidian");
+        addFluid(ForgeweaveFluids.BASALT, "Molten Basalt");
         // #235 -- amethyst and amethyst bronze (M3.2), the 1.20 clone's fluid.tconstruct.* names.
         addFluid(ForgeweaveFluids.AMETHYST, "Molten Amethyst");
         addFluid(ForgeweaveFluids.AMETHYST_BRONZE, "Molten Amethyst Bronze");
