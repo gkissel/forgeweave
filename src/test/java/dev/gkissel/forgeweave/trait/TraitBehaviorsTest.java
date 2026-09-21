@@ -99,7 +99,14 @@ class TraitBehaviorsTest {
             "{\"behavior\":\"forgeweave:knockback_resistance\",\"resistance\":0.3}",
             // #1093, both shapes: a tagged protection and the untagged one.
             "{\"behavior\":\"forgeweave:protection\",\"damage_type\":\"forgeweave:magic_protection\",\"amount\":2.5}",
-            "{\"behavior\":\"forgeweave:protection\",\"amount\":1.5}" })
+            "{\"behavior\":\"forgeweave:protection\",\"amount\":1.5}",
+            // #1114 signature behaviours.
+            "{\"behavior\":\"forgeweave:vein_break\",\"max_blocks\":12,\"durability_per_block\":1}",
+            "{\"behavior\":\"forgeweave:banked_strike\",\"per_charge\":1.5,\"cap\":4,\"decay\":400}",
+            "{\"behavior\":\"forgeweave:stored_retaliation\",\"stored_fraction\":0.25,\"threshold\":20,"
+                    + "\"radius\":4.0,\"release_fraction\":1.0}",
+            "{\"behavior\":\"forgeweave:conditional_mining_speed\",\"condition\":\"sunlit\",\"bonus\":0.4,"
+                    + "\"penalty\":0.1}" })
     void everyBehaviorRoundTrips(String json) {
         JsonElement input = JsonParser.parseString(json);
         TraitDefinition definition = TraitDefinition.CODEC.parse(ops, input).getOrThrow();
@@ -112,7 +119,7 @@ class TraitBehaviorsTest {
     /** Every registered behaviour id has a row above -- a new entry without a round-trip case fails here. */
     @Test
     void everyRegisteredBehaviorIsCoveredAbove() {
-        assertEquals(34, TraitBehaviors.ids().size(), "add a round-trip case for the new behaviour: " + TraitBehaviors.ids());
+        assertEquals(38, TraitBehaviors.ids().size(), "add a round-trip case for the new behaviour: " + TraitBehaviors.ids());
     }
 
     /**
