@@ -60,7 +60,7 @@
     "item": "draconicevolution:chaotic_core"
   },
   "enchantability": 17,
-  "color": "#6A1B9A",
+  "color": "#999999",
   "neoforge:conditions": [
     {
       "type": "neoforge:item_exists",

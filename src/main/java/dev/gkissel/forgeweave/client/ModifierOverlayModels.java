@@ -39,17 +39,21 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.model.BakedModelWrapper;
+import net.neoforged.neoforge.client.model.IQuadTransformer;
 import net.neoforged.neoforge.client.model.QuadTransformers;
 import net.neoforged.neoforge.client.model.geometry.UnbakedGeometryHelper;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.BowItem;
+import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.Fortification;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ModifierArt;
 import dev.gkissel.forgeweave.tool.ToolArt;
+import dev.gkissel.forgeweave.tool.ToolMaterials;
 
 /**
  * Renders what a tool's item model draws on top of its own layers: applied modifiers as overlay
@@ -77,6 +81,10 @@ import dev.gkissel.forgeweave.tool.ToolArt;
  * layer would bake to). The overlay sprites are stitched by the existing {@code derived/tools}
  * directory atlas source ({@code assets/minecraft/atlases/blocks.json}), which walks its
  * subdirectories.
+ *
+ * <p>The broadsword, pickaxe and warmace also select a baked finish sprite for each material layer
+ * before modifiers are added. Unknown materials, broken tools and the Legacy resource pack keep
+ * their normal tint and model art.
  *
  * <p><b>Z-fighting:</b> upstream scales every modifier layer up slightly in depth so it always sits
  * above the tool's own layers ({@code ModifierModel#bakeModels}, {@code s = 0.025}); the {@link
@@ -114,6 +122,9 @@ public final class ModifierOverlayModels {
      * cached quads hold sprites of the previous atlas.
      */
     private static final Map<CacheKey, BakedModel> COMPOSED = new ConcurrentHashMap<>();
+    private static final Map<FinishKey, BakedModel> FINISHED = new ConcurrentHashMap<>();
+
+    private record FinishKey(BakedModel base, String tool, List<ResourceLocation> materials) {}
 
     /**
      * {@code ammo} is the ammo's <em>resolved model</em> rather than the stack (upstream keys on
@@ -146,6 +157,7 @@ public final class ModifierOverlayModels {
     @SubscribeEvent
     static void onModifyBakingResult(ModelEvent.ModifyBakingResult event) {
         COMPOSED.clear();
+        FINISHED.clear();
         for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
             ModelResourceLocation key =
                     ModelResourceLocation.inventory(BuiltInRegistries.ITEM.getKey(entry.tool().get()));
@@ -172,6 +184,7 @@ public final class ModifierOverlayModels {
                 if (resolved == null) {
                     resolved = originalModel;
                 }
+                resolved = materialFinish(tool, resolved, stack);
                 int stage = drawStage(tool, stack, entity);
                 List<TintedOverlay> overlays = overlaySprites(tool, stack, stage);
                 ItemStack ammo = nockedAmmo(tool, stack, entity, stage);
@@ -197,6 +210,91 @@ public final class ModifierOverlayModels {
         public ItemOverrides getOverrides() {
             return overrides;
         }
+    }
+
+    private static BakedModel materialFinish(String tool, BakedModel base, ItemStack stack) {
+        if (!tool.equals("warmace") && !tool.equals("broadsword") && !tool.equals("pickaxe")) {
+            return base;
+        }
+        if (ToolItem.isBroken(stack)) {
+            return base;
+        }
+        if (Minecraft.getInstance().getResourcePackRepository().getSelectedIds().stream()
+                .anyMatch(id -> id.contains("forgeweave") && id.contains("legacy"))) {
+            return base;
+        }
+        ToolMaterials materials = stack.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
+        if (materials == null) {
+            return base;
+        }
+        return FINISHED.computeIfAbsent(new FinishKey(base, tool, List.copyOf(materials.parts())),
+                key -> finishedModel(key.base(), key.tool(), key.materials()));
+    }
+
+    private static BakedModel finishedModel(BakedModel base, String tool, List<ResourceLocation> materials) {
+        ToolAssemblyRecipes.Entry entry = ToolAssemblyRecipes.ENTRIES.stream()
+                .filter(candidate -> candidate.constants().id().equals(tool)).findFirst().orElse(null);
+        if (entry == null) {
+            return base;
+        }
+        List<Integer> slots = ToolArt.layerSlots(entry.constants().parts());
+        List<String> layers = ToolArt.layers(entry.constants().parts());
+        List<BakedQuad> quads = new ArrayList<>();
+        for (BakedQuad quad : base.getQuads(null, null, RandomSource.create(0L))) {
+            int index = quad.getTintIndex();
+            if (index < 0 || index >= slots.size() || slots.get(index) >= materials.size()) {
+                quads.add(quad);
+                continue;
+            }
+            ResourceLocation material = materials.get(slots.get(index));
+            if (!material.getNamespace().equals(Forgeweave.MODID)) {
+                quads.add(quad);
+                continue;
+            }
+            ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID,
+                    "material_finishes/" + tool + "/" + material.getPath() + "/" + layers.get(index));
+            TextureAtlasSprite target = blockAtlasSprite(texture);
+            quads.add(target.contents().name().equals(MissingTextureAtlasSprite.getLocation())
+                    ? quad : remapFinish(quad, target));
+        }
+        List<BakedQuad> baked = List.copyOf(quads);
+        return new BakedModelWrapper<>(base) {
+            @Override
+            public List<BakedQuad> getQuads(@Nullable BlockState state, @Nullable Direction side, RandomSource rand) {
+                return side == null ? baked : super.getQuads(state, side, rand);
+            }
+
+            @Override
+            public ItemOverrides getOverrides() {
+                return ItemOverrides.EMPTY;
+            }
+
+            @Override
+            public BakedModel applyTransform(ItemDisplayContext context, PoseStack poseStack, boolean leftHand) {
+                super.applyTransform(context, poseStack, leftHand);
+                return this;
+            }
+
+            @Override
+            public List<BakedModel> getRenderPasses(ItemStack stack, boolean fabulous) {
+                return List.of(this);
+            }
+        };
+    }
+
+    private static BakedQuad remapFinish(BakedQuad quad, TextureAtlasSprite target) {
+        TextureAtlasSprite source = quad.getSprite();
+        int[] vertices = quad.getVertices().clone();
+        for (int vertex = 0; vertex < 4; vertex++) {
+            int offset = vertex * IQuadTransformer.STRIDE + IQuadTransformer.UV0;
+            float u = Float.intBitsToFloat(vertices[offset]);
+            float v = Float.intBitsToFloat(vertices[offset + 1]);
+            float u01 = (u - source.getU0()) / (source.getU1() - source.getU0());
+            float v01 = (v - source.getV0()) / (source.getV1() - source.getV0());
+            vertices[offset] = Float.floatToRawIntBits(target.getU0() + u01 * (target.getU1() - target.getU0()));
+            vertices[offset + 1] = Float.floatToRawIntBits(target.getV0() + v01 * (target.getV1() - target.getV0()));
+        }
+        return new BakedQuad(vertices, -1, quad.getDirection(), target, quad.isShade(), quad.hasAmbientOcclusion());
     }
 
     /**

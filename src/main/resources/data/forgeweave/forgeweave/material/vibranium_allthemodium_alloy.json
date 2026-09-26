@@ -33,7 +33,7 @@
   },
   "cast_only": true,
   "enchantability": 10,
-  "color": "#5F4FA8",
+  "color": "#8CA65A",
   "neoforge:conditions": [
     { "type": "neoforge:item_exists", "item": "allthemodium:vibranium_allthemodium_alloy_ingot" }
   ]

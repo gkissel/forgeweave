@@ -59,7 +59,7 @@
     "item": "powah:crystal_spirited"
   },
   "enchantability": 15,
-  "color": "#3FD9C7",
+  "color": "#00BD00",
   "neoforge:conditions": [
     {
       "type": "neoforge:item_exists",

@@ -3,6 +3,7 @@
     {"type": "directory", "source": "derived/item", "prefix": "derived/item/"},
     {"type": "directory", "source": "derived/tools", "prefix": "derived/tools/"},
     {"type": "directory", "source": "derived/block", "prefix": "derived/block/"},
-    {"type": "directory", "source": "tools", "prefix": "tools/"}
+    {"type": "directory", "source": "tools", "prefix": "tools/"},
+    {"type": "directory", "source": "material_finishes", "prefix": "material_finishes/"}
   ]
 }

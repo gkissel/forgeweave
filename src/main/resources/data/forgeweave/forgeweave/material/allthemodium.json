@@ -34,7 +34,7 @@
   },
   "cast_only": true,
   "enchantability": 10,
-  "color": "#2FBF71",
+  "color": "#E98219",
   "neoforge:conditions": [
     { "type": "neoforge:item_exists", "item": "allthemodium:allthemodium_ingot" }
   ]

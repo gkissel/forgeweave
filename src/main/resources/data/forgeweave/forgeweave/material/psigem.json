@@ -33,7 +33,7 @@
     "tag": "c:gems/psigem"
   },
   "enchantability": 16,
-  "color": "#B7E8DC",
+  "color": "#9574D5",
   "neoforge:conditions": [
     { "type": "neoforge:item_exists", "item": "psi:psigem" }
   ]

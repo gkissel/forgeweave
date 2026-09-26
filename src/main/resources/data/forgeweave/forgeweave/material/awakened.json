@@ -61,7 +61,7 @@
     "item": "draconicevolution:awakened_core"
   },
   "enchantability": 17,
-  "color": "#D8A32A",
+  "color": "#D7510A",
   "neoforge:conditions": [
     {
       "type": "neoforge:item_exists",
