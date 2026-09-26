@@ -71,7 +71,7 @@
   },
   "cast_only": true,
   "enchantability": 20,
-  "color": "#4FD8B0",
+  "color": "#D6F079",
   "neoforge:conditions": [
     {
       "type": "neoforge:item_exists",

@@ -33,7 +33,7 @@
   },
   "cast_only": true,
   "enchantability": 10,
-  "color": "#8A5FC2",
+  "color": "#B75A75",
   "neoforge:conditions": [
     { "type": "neoforge:item_exists", "item": "allthemodium:unobtainium_allthemodium_alloy_ingot" }
   ]

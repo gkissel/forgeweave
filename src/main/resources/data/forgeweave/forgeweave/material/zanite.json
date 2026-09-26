@@ -61,7 +61,7 @@
     "item": "aether:zanite_gemstone"
   },
   "enchantability": 15,
-  "color": "#2FBFA0",
+  "color": "#7A36E0",
   "neoforge:conditions": [
     {
       "type": "neoforge:item_exists",

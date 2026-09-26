@@ -58,7 +58,7 @@
     "item": "aether:enchanted_gravitite"
   },
   "enchantability": 12,
-  "color": "#C9C9E8",
+  "color": "#A52F9A",
   "neoforge:conditions": [
     {
       "type": "neoforge:item_exists",

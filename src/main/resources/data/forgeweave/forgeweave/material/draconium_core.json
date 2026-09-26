@@ -60,7 +60,7 @@
     "item": "draconicevolution:draconium_core"
   },
   "enchantability": 15,
-  "color": "#3E4A63",
+  "color": "#315AAB",
   "neoforge:conditions": [
     {
       "type": "neoforge:item_exists",

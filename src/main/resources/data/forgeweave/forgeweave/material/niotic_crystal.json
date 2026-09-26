@@ -59,7 +59,7 @@
     "item": "powah:crystal_niotic"
   },
   "enchantability": 14,
-  "color": "#8B5FBF",
+  "color": "#00A4BD",
   "neoforge:conditions": [
     {
       "type": "neoforge:item_exists",

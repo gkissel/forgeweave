@@ -61,7 +61,7 @@
     "item": "justdirethings:celestigem"
   },
   "enchantability": 16,
-  "color": "#8F5FE8",
+  "color": "#19B1AD",
   "neoforge:conditions": [
     {
       "type": "neoforge:item_exists",
