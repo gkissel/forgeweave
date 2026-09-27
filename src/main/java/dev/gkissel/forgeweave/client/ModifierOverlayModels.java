@@ -46,6 +46,7 @@ import net.neoforged.neoforge.client.model.geometry.UnbakedGeometryHelper;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.BowItem;
+import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
@@ -82,9 +83,9 @@ import dev.gkissel.forgeweave.tool.ToolMaterials;
  * directory atlas source ({@code assets/minecraft/atlases/blocks.json}), which walks its
  * subdirectories.
  *
- * <p>The broadsword, pickaxe and warmace also select a baked finish sprite for each material layer
- * before modifiers are added. Unknown materials, broken tools and the Legacy resource pack keep
- * their normal tint and model art.
+ * <p>Every non-armor tool selects a baked finish sprite for each material layer before modifiers
+ * are added. Loose part items use the same finishes. Unknown materials, broken tools and the Legacy
+ * resource pack keep their normal tint and model art.
  *
  * <p><b>Z-fighting:</b> upstream scales every modifier layer up slightly in depth so it always sits
  * above the tool's own layers ({@code ModifierModel#bakeModels}, {@code s = 0.025}); the {@link
@@ -123,8 +124,10 @@ public final class ModifierOverlayModels {
      */
     private static final Map<CacheKey, BakedModel> COMPOSED = new ConcurrentHashMap<>();
     private static final Map<FinishKey, BakedModel> FINISHED = new ConcurrentHashMap<>();
+    private static final Map<PartFinishKey, BakedModel> FINISHED_PARTS = new ConcurrentHashMap<>();
 
-    private record FinishKey(BakedModel base, String tool, List<ResourceLocation> materials) {}
+    private record FinishKey(BakedModel base, String tool, List<ResourceLocation> materials, int stage) {}
+    private record PartFinishKey(BakedModel base, String part, ResourceLocation material) {}
 
     /**
      * {@code ammo} is the ammo's <em>resolved model</em> rather than the stack (upstream keys on
@@ -158,12 +161,27 @@ public final class ModifierOverlayModels {
     static void onModifyBakingResult(ModelEvent.ModifyBakingResult event) {
         COMPOSED.clear();
         FINISHED.clear();
+        FINISHED_PARTS.clear();
         for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
             ModelResourceLocation key =
                     ModelResourceLocation.inventory(BuiltInRegistries.ITEM.getKey(entry.tool().get()));
             BakedModel base = event.getModels().get(key);
             if (base != null) {
                 event.getModels().put(key, new OverlayAwareModel(base, entry.constants().id()));
+            }
+        }
+        for (var item : BuiltInRegistries.ITEM) {
+            if (!(item instanceof PartItem)) {
+                continue;
+            }
+            ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
+            if (!id.getNamespace().equals(Forgeweave.MODID)) {
+                continue;
+            }
+            ModelResourceLocation key = ModelResourceLocation.inventory(id);
+            BakedModel base = event.getModels().get(key);
+            if (base != null) {
+                event.getModels().put(key, new PartFinishAwareModel(base, id.getPath()));
             }
         }
     }
@@ -184,8 +202,8 @@ public final class ModifierOverlayModels {
                 if (resolved == null) {
                     resolved = originalModel;
                 }
-                resolved = materialFinish(tool, resolved, stack);
                 int stage = drawStage(tool, stack, entity);
+                resolved = materialFinish(tool, resolved, stack, stage);
                 List<TintedOverlay> overlays = overlaySprites(tool, stack, stage);
                 ItemStack ammo = nockedAmmo(tool, stack, entity, stage);
                 BakedModel ammoModel = ammo.isEmpty() ? null
@@ -212,26 +230,31 @@ public final class ModifierOverlayModels {
         }
     }
 
-    private static BakedModel materialFinish(String tool, BakedModel base, ItemStack stack) {
-        if (!tool.equals("warmace") && !tool.equals("broadsword") && !tool.equals("pickaxe")) {
+    private static BakedModel materialFinish(String tool, BakedModel base, ItemStack stack, int stage) {
+        if (tool.equals("helmet") || tool.equals("chestplate") || tool.equals("leggings") || tool.equals("boots")
+                || tool.startsWith("heavy_")) {
             return base;
         }
         if (ToolItem.isBroken(stack)) {
             return base;
         }
-        if (Minecraft.getInstance().getResourcePackRepository().getSelectedIds().stream()
-                .anyMatch(id -> id.contains("forgeweave") && id.contains("legacy"))) {
+        if (legacySelected()) {
             return base;
         }
         ToolMaterials materials = stack.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
         if (materials == null) {
             return base;
         }
-        return FINISHED.computeIfAbsent(new FinishKey(base, tool, List.copyOf(materials.parts())),
-                key -> finishedModel(key.base(), key.tool(), key.materials()));
+        return FINISHED.computeIfAbsent(new FinishKey(base, tool, List.copyOf(materials.parts()), stage),
+                key -> finishedModel(key.base(), key.tool(), key.materials(), key.stage()));
     }
 
-    private static BakedModel finishedModel(BakedModel base, String tool, List<ResourceLocation> materials) {
+    private static boolean legacySelected() {
+        return Minecraft.getInstance().getResourcePackRepository().getSelectedIds().stream()
+                .anyMatch(id -> id.contains("forgeweave") && id.contains("legacy"));
+    }
+
+    private static BakedModel finishedModel(BakedModel base, String tool, List<ResourceLocation> materials, int stage) {
         ToolAssemblyRecipes.Entry entry = ToolAssemblyRecipes.ENTRIES.stream()
                 .filter(candidate -> candidate.constants().id().equals(tool)).findFirst().orElse(null);
         if (entry == null) {
@@ -252,11 +275,61 @@ public final class ModifierOverlayModels {
                 continue;
             }
             ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID,
-                    "material_finishes/" + tool + "/" + material.getPath() + "/" + layers.get(index));
+                    "material_finishes/" + tool + "/" + material.getPath() + "/" + layers.get(index)
+                            + (stage > 0 ? "_draw" + stage : ""));
             TextureAtlasSprite target = blockAtlasSprite(texture);
             quads.add(target.contents().name().equals(MissingTextureAtlasSprite.getLocation())
                     ? quad : remapFinish(quad, target));
         }
+        return finishedQuadsModel(base, quads);
+    }
+
+    private static final class PartFinishAwareModel extends BakedModelWrapper<BakedModel> {
+        private final String part;
+        private final ItemOverrides overrides = new ItemOverrides() {
+            @Override
+            public BakedModel resolve(BakedModel model, ItemStack stack, @Nullable ClientLevel level,
+                    @Nullable LivingEntity entity, int seed) {
+                BakedModel resolved = originalModel.getOverrides().resolve(originalModel, stack, level, entity, seed);
+                if (resolved == null) {
+                    resolved = originalModel;
+                }
+                ResourceLocation material = stack.get(ForgeweaveDataComponents.MATERIAL.get());
+                if (material == null || !material.getNamespace().equals(Forgeweave.MODID) || legacySelected()) {
+                    return resolved;
+                }
+                BakedModel base = resolved;
+                return FINISHED_PARTS.computeIfAbsent(new PartFinishKey(base, part, material),
+                        key -> finishedPartModel(key.base(), key.part(), key.material()));
+            }
+        };
+
+        private PartFinishAwareModel(BakedModel base, String part) {
+            super(base);
+            this.part = part;
+        }
+
+        @Override
+        public ItemOverrides getOverrides() {
+            return overrides;
+        }
+    }
+
+    private static BakedModel finishedPartModel(BakedModel base, String part, ResourceLocation material) {
+        ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID,
+                "material_finishes/parts/" + material.getPath() + "/" + part);
+        TextureAtlasSprite target = blockAtlasSprite(texture);
+        if (target.contents().name().equals(MissingTextureAtlasSprite.getLocation())) {
+            return base;
+        }
+        List<BakedQuad> quads = new ArrayList<>();
+        for (BakedQuad quad : base.getQuads(null, null, RandomSource.create(0L))) {
+            quads.add(quad.getTintIndex() == 0 ? remapFinish(quad, target) : quad);
+        }
+        return finishedQuadsModel(base, quads);
+    }
+
+    private static BakedModel finishedQuadsModel(BakedModel base, List<BakedQuad> quads) {
         List<BakedQuad> baked = List.copyOf(quads);
         return new BakedModelWrapper<>(base) {
             @Override

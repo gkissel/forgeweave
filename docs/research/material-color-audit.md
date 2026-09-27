@@ -2,7 +2,7 @@
 
 The registry currently contains 216 material JSON files. A material's `color` is a single RGB tint applied to grayscale part sprites in the general renderer, so it cannot reproduce two colors, metallic highlights, or animated textures on its own. A matching hue is a useful approximation, not proof of texture parity.
 
-The selected Forged finishes for broadsword, pickaxe and warmace are baked from these colors with `python3 scripts/generate_material_finishes.py`. Regenerate the committed sprites after changing a material color or one of those three tool layers. Broken tools and the Legacy resource pack continue to use their normal tint.
+The selected Forged finishes for every tool and loose part are baked from these colors with `python3 scripts/generate_material_finishes.py`. Regenerate the committed sprites after changing a material color or a tool or part layer. Broken tools and the Legacy resource pack continue to use their normal tint.
 
 ## Verified against Tinkers' Construct 1.12
 
