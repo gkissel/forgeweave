@@ -2,20 +2,9 @@
 
 from PIL import Image, ImageDraw, ImageFont
 
-from preview_material_families import FAMILIES, OUT, TITLES, render
+from generate_material_finishes import SELECTED, selected_variant
+from preview_material_families import FAMILIES, OUT, render
 from preview_material_filters import sprite, tool_layers
-
-
-SELECTED = {
-    "cristal": "Facetado",
-    "energia": "Pulsante",
-    "ligas_duplas": "Veios",
-    "madeira": "Fibras finas",
-    "metal": "Escovada",
-    "organico": "Trama",
-    "pedra": "Rugosa",
-    "slime": "Gel",
-}
 
 
 def main():
@@ -30,11 +19,12 @@ def main():
         y = 80 + row * 94
         draw.rectangle((8, y, 582, y + 86), fill="#29333f")
         draw.text((17, y + 10), family.replace("_", " ").title(), font=font, fill="white")
-        draw.text((17, y + 36), title, font=font, fill="#b9cee2")
+        label = f"{title} / picareta: Gotas" if family == "slime" else title
+        draw.text((17, y + 36), label, font=font, fill="#b9cee2")
         material = FAMILIES[family][0]
-        variant = TITLES[family].index(title)
         draw.text((17, y + 62), material, font=font, fill="#9baab9")
         for col, (tool, layers) in enumerate(tools.items()):
+            variant = selected_variant(family, tool)
             image = Image.new("RGBA", (16, 16))
             for layer in layers:
                 image.alpha_composite(render(sprite("Forged", tool, layer), material, family, variant))

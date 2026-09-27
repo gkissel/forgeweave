@@ -10,18 +10,23 @@ from preview_material_filters import DEFAULT, MATERIALS, ROOT, sprite, tool_laye
 
 
 SELECTED = {
-    "cristal": "Facetado",
+    "cristal": "Prismatico",
     "energia": "Pulsante",
     "ligas_duplas": "Veios",
-    "madeira": "Fibras finas",
-    "metal": "Escovada",
-    "organico": "Trama",
+    "madeira": "Veios largos",
+    "metal": "Metal ZIP",
+    "organico": "Poros",
     "pedra": "Rugosa",
-    "slime": "Gel",
+    "slime": "Bolhas",
 }
 OUTPUT = ROOT / "src/main/resources/assets/forgeweave/textures/material_finishes"
 ARMOR = {"helmet", "chestplate", "leggings", "boots"}
 DRAW_TOOLS = {"shortbow", "longbow", "crossbow"}
+
+
+def selected_variant(family, tool=None):
+    finish = "Gotas" if family == "slime" and tool == "pickaxe" else SELECTED[family]
+    return TITLES[family].index(finish)
 
 
 def part_names():
@@ -53,7 +58,7 @@ def main():
     for tool in tools:
         for material in materials:
             family = family_of(material)
-            variant = TITLES[family].index(SELECTED[family])
+            variant = selected_variant(family, tool)
             for layer in layers[tool]:
                 target = OUTPUT / tool / material / f"{layer}.png"
                 target.parent.mkdir(parents=True, exist_ok=True)
@@ -68,7 +73,7 @@ def main():
         source = part_sprite(part)
         for material in materials:
             family = family_of(material)
-            variant = TITLES[family].index(SELECTED[family])
+            variant = selected_variant(family)
             target = OUTPUT / "parts" / material / f"{part}.png"
             target.parent.mkdir(parents=True, exist_ok=True)
             render(source, material, family, variant).save(target)

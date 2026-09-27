@@ -837,10 +837,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
 
         // The Modifier Worktable (issue #1057).
         add("gui.forgeweave.worktable.info",
-                "Put a tool or an armor piece in the top slot and a wet sponge or a compass below it, "
-                        + "then pick one of the tool's modifiers. The sponge takes a level off it and "
-                        + "gives the slots back. The compass moves it up or down the list instead, and "
-                        + "is not used up.");
+                "Put a tool or an armor piece in the top slot and a wet sponge, compass, paper or glass below it. "
+                        + "Pick a modifier for the sponge or compass. The sponge takes a level off it and "
+                        + "gives the slots back. The compass moves it up or down the list and is not used up. "
+                        + "Paper hides modifier visuals; glass shows them again. Their effects stay active.");
         add("gui.forgeweave.worktable.no_modifiers", "Nothing on this tool can be taken off here.");
         add("gui.forgeweave.worktable.not_enough_modifiers", "Sorting needs at least two modifiers.");
         // The Draconic fusion case: ForgeweaveDataComponents#GRANTED_SLOTS is a bare count with no
@@ -1779,6 +1779,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("jei.category.forgeweave.modifier_worktable", "Modifier Worktable");
         add("jei.category.forgeweave.modifier_worktable.remove", "Take a level off a modifier");
         add("jei.category.forgeweave.modifier_worktable.sort", "Move a modifier up or down the list");
+        add("jei.category.forgeweave.modifier_worktable.hide_visuals", "Hide modifier visuals");
+        add("jei.category.forgeweave.modifier_worktable.show_visuals", "Show modifier visuals");
 
         // #109 -- smeltery/casting/modifier JEI categories (docs/SCOPE.md M2 issue #109).
         add("jei.category.forgeweave.melting", "Melting");

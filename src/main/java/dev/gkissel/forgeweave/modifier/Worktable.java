@@ -138,6 +138,9 @@ public final class Worktable {
      * {@link #isRemovable} explains.
      */
     public static List<ModifierEntry> options(ItemStack tool, WorktableRecipe.Kind kind) {
+        if (kind == WorktableRecipe.Kind.HIDE_VISUALS || kind == WorktableRecipe.Kind.SHOW_VISUALS) {
+            return List.of();
+        }
         List<ModifierEntry> entries = ForgeweaveModifiers.of(tool);
         if (kind == WorktableRecipe.Kind.SORT) {
             return entries.size() < MIN_MODIFIERS_TO_SORT ? List.of() : entries;
@@ -177,6 +180,21 @@ public final class Worktable {
             return Result.rejected(null);
         }
         WorktableRecipe recipe = found.get();
+        if (recipe.kind() == WorktableRecipe.Kind.HIDE_VISUALS
+                || recipe.kind() == WorktableRecipe.Kind.SHOW_VISUALS) {
+            boolean hidden = recipe.kind() == WorktableRecipe.Kind.HIDE_VISUALS;
+            if (!isModifiable(tool) || tool.getOrDefault(
+                    ForgeweaveDataComponents.HIDE_MODIFIER_VISUALS.get(), false) == hidden) {
+                return Result.rejected(null);
+            }
+            ItemStack output = tool.copy();
+            if (hidden) {
+                output.set(ForgeweaveDataComponents.HIDE_MODIFIER_VISUALS.get(), true);
+            } else {
+                output.remove(ForgeweaveDataComponents.HIDE_MODIFIER_VISUALS.get());
+            }
+            return Result.of(output, spend(inputs, recipe), recipe.leftovers());
+        }
         List<ModifierEntry> options = options(tool, recipe.kind());
         if (options.isEmpty()) {
             return Result.rejected(Component.translatable(recipe.kind() == WorktableRecipe.Kind.SORT

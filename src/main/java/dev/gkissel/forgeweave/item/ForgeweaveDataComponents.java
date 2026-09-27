@@ -150,6 +150,11 @@ public final class ForgeweaveDataComponents {
                     builder -> builder.persistent(ModifierEntry.CODEC.listOf())
                             .networkSynchronized(ModifierEntry.STREAM_CODEC.apply(ByteBufCodecs.list())));
 
+    /** Hides modifier model overlays while leaving the modifier list and its effects intact. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> HIDE_MODIFIER_VISUALS =
+            DATA_COMPONENTS.registerComponentType("hide_modifier_visuals",
+                    builder -> builder.persistent(Codec.BOOL).networkSynchronized(ByteBufCodecs.BOOL));
+
     /**
      * Set once a tool runs out of durability. CONTEXT.md: a Broken tool is unusable but never
      * destroyed, and only a Tool Station repair clears this.

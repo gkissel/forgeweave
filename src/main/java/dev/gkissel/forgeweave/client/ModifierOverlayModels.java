@@ -377,6 +377,9 @@ public final class ModifierOverlayModels {
      * {@code ModifierArtTest} is what makes that unreachable for shipped modifiers.
      */
     private static List<TintedOverlay> overlaySprites(String tool, ItemStack stack, int stage) {
+        if (stack.getOrDefault(ForgeweaveDataComponents.HIDE_MODIFIER_VISUALS.get(), false)) {
+            return List.of();
+        }
         List<TintedOverlay> overlays = List.of();
         for (ModifierEntry entry : ForgeweaveModifiers.of(stack)) {
             String texture = ModifierArt.overlay(tool, entry.id(), stage);

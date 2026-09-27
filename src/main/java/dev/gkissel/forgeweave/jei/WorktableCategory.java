@@ -116,9 +116,9 @@ final class WorktableCategory implements IRecipeCategory<WorktableDisplay> {
         JeiCategoryChrome.drawSlotFrame(slotFrame, guiGraphics, FIRST_INPUT_X, SLOT_Y);
         JeiCategoryChrome.drawSlotFrame(slotFrame, guiGraphics, SECOND_INPUT_X, SLOT_Y);
         JeiCategoryChrome.drawSlotFrame(slotFrame, guiGraphics, RESULT_X, SLOT_Y);
-        Component title = Component.translatable(display.recipe().kind() == WorktableRecipe.Kind.SORT
-                ? "jei.category.forgeweave.modifier_worktable.sort"
-                : "jei.category.forgeweave.modifier_worktable.remove");
+        Component title = Component.translatable(
+                "jei.category.forgeweave.modifier_worktable."
+                        + display.recipe().kind().getSerializedName());
         guiGraphics.drawString(Minecraft.getInstance().font,
                 JeiCategoryChrome.trimToWidth(Minecraft.getInstance().font, title, TITLE_WIDTH),
                 TITLE_X, TITLE_Y, TITLE_COLOR, false);
