@@ -98,6 +98,35 @@ public class ModifierWorktableGameTests {
 
     // ------------------------------------------------------------------ removal
 
+    @GameTest(template = "empty")
+    public static void modifierVisualsCanBeHiddenAndRestored(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack tool = withModifiers(
+                ToolAssembly.pickaxe(helper, player, STATION, "stone", "wood", "wood"), entry("haste", 1));
+        ItemStack original = tool.copy();
+
+        ModifierWorktableMenu hide = load(helper, player, tool, new ItemStack(Items.PAPER), ItemStack.EMPTY);
+        ItemStack hidden = hide.getSlot(ModifierWorktableMenu.RESULT_SLOT).getItem().copy();
+        helper.assertTrue(hidden.getOrDefault(ForgeweaveDataComponents.HIDE_MODIFIER_VISUALS.get(), false),
+                "paper must hide modifier overlays");
+        helper.assertTrue(ForgeweaveModifiers.of(hidden).equals(ForgeweaveModifiers.of(original)),
+                "hiding visuals must retain modifier levels");
+        helper.assertTrue(hidden.get(ForgeweaveDataComponents.TOOL_STATS.get())
+                .equals(original.get(ForgeweaveDataComponents.TOOL_STATS.get())),
+                "hiding visuals must retain baked tool stats");
+        hide.getSlot(ModifierWorktableMenu.RESULT_SLOT).onTake(player, hidden);
+        helper.assertTrue(hide.getSlot(ModifierWorktableMenu.INPUT_START).getItem().isEmpty(),
+                "paper must be consumed");
+
+        ModifierWorktableMenu show = load(helper, player, hidden, new ItemStack(Items.GLASS), ItemStack.EMPTY);
+        ItemStack restored = show.getSlot(ModifierWorktableMenu.RESULT_SLOT).getItem().copy();
+        helper.assertFalse(restored.getOrDefault(ForgeweaveDataComponents.HIDE_MODIFIER_VISUALS.get(), false),
+                "glass must restore modifier overlays");
+        helper.assertTrue(ForgeweaveModifiers.of(restored).equals(ForgeweaveModifiers.of(original)),
+                "restoring visuals must retain modifier levels");
+        helper.succeed();
+    }
+
     /**
      * The headline case: a plain one-slot modifier comes off whole, the slot it held comes back, and
      * the wet sponge comes back dry (upstream's {@code remove_modifier_sponge.json} leftovers).

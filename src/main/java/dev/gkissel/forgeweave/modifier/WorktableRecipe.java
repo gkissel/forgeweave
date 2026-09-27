@@ -52,7 +52,11 @@ public record WorktableRecipe(Kind kind, Ingredient input, List<ItemStack> lefto
         /** Takes one level off a chosen modifier and hands its slots back. The input is spent. */
         REMOVE,
         /** Swaps a chosen modifier with its neighbour in the tool's list. The input is never spent. */
-        SORT;
+        SORT,
+        /** Hides modifier overlays without changing the modifiers themselves. */
+        HIDE_VISUALS,
+        /** Restores modifier overlays. */
+        SHOW_VISUALS;
 
         public static final Codec<Kind> CODEC = StringRepresentable.fromEnum(Kind::values);
 
@@ -70,6 +74,6 @@ public record WorktableRecipe(Kind kind, Ingredient input, List<ItemStack> lefto
 
     /** Whether taking the result spends one of the input item. Sorting never does, upstream's rule too. */
     public boolean consumesInput() {
-        return kind == Kind.REMOVE;
+        return kind != Kind.SORT;
     }
 }
