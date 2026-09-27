@@ -27,7 +27,7 @@ SELECTED = (
     "atomic_matter_alloy",
 )
 TOOL_LABELS = {"warmace": "maça", "broadsword": "espada", "pickaxe": "picareta"}
-LAYER_ORDER = ("maille", "plating", "shaft", "handle", "head", "head2", "head3",
+LAYER_ORDER = ("maille", "plating", "shaft", "handle", "handle2", "head", "head2", "head3",
                "head4", "body", "limb", "limb2", "binding", "string", "fletching")
 
 

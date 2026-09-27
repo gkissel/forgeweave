@@ -2,7 +2,7 @@
 
 Três materiais por família, cinco filtros por material, na warmace, espada e picareta. Madeira e pedra usam “Tinta ZIP”, o filtro de tinta do ZIP fornecido. As outras famílias mostram “Metal ZIP”. Os quatro filtros restantes em cada imagem são opções visuais para escolher.
 
-[Acabamentos escolhidos](filtros-escolhidos.png): cristal facetado, energia pulsante, ligas duplas com veios, madeira com fibras finas, metal escovado, orgânico com trama, pedra rugosa e slime gel. Esses oito acabamentos foram gerados para espada, picareta e warmace no conjunto Forged.
+[Acabamentos escolhidos](filtros-escolhidos.png): cristal facetado, energia pulsante, ligas duplas com veios, madeira com fibras finas, metal escovado, orgânico com trama, pedra rugosa e slime gel. A imagem usa três ferramentas para facilitar a comparação. No jogo, os acabamentos foram gerados para todas as ferramentas e peças soltas no conjunto Forged.
 
 - [Madeira](filtros-madeira.png)
 - [Pedra](filtros-pedra.png)
