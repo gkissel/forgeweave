@@ -56,6 +56,8 @@ public final class TraitFeedback {
      * What a proc looks and sounds like by default, one constant per flavour of thing a trait does.
      * The particles are the five heart effects {@link ForgeweaveParticles} already ships plus four
      * vanilla ones; every sound is vanilla, played quietly. Nothing new is authored (issue #1112).
+     * {@code MEND} names no sound: self-repair procs every few seconds and the anvil it used to play
+     * wore thin in playtest, so its particle speaks alone.
      */
     public enum Kind {
         /** An extra bite the weapon took out of the target: armor breaking, a banked strike. */
@@ -73,7 +75,7 @@ public final class TraitFeedback {
         /** A blow that missed entirely: evasion. */
         DODGE(() -> ParticleTypes.POOF, () -> SoundEvents.SHIELD_BLOCK),
         /** Durability or health coming back: self-repair, damage converted to healing. */
-        MEND(() -> ParticleTypes.HAPPY_VILLAGER, () -> SoundEvents.ANVIL_USE),
+        MEND(() -> ParticleTypes.HAPPY_VILLAGER, () -> null),
         /** A death spent on the gear instead of the wearer. */
         SAVE(() -> ParticleTypes.TOTEM_OF_UNDYING, () -> SoundEvents.TOTEM_USE),
         /** Something grew, spread or dropped: fertilizing, a cascading break, a bonus drop. */
@@ -92,7 +94,7 @@ public final class TraitFeedback {
          * are a {@code DeferredRegister} entry and are not resolvable while this enum loads.
          */
         public Feedback defaults() {
-            return new Feedback(Optional.of(particle.get()), Optional.of(sound.get()), false);
+            return new Feedback(Optional.of(particle.get()), Optional.ofNullable(sound.get()), false);
         }
     }
 

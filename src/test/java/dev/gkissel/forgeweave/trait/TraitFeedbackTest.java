@@ -60,12 +60,21 @@ class TraitFeedbackTest {
     /** The five kinds whose particle is a vanilla one; the other five are the GameTest's. */
     @ParameterizedTest
     @EnumSource(value = TraitFeedback.Kind.class,
-            names = {"AFFLICT", "DODGE", "MEND", "SAVE", "HARVEST"})
+            names = {"AFFLICT", "DODGE", "SAVE", "HARVEST"})
     void aKindNamesBothAParticleAndASound(TraitFeedback.Kind kind) {
         TraitFeedback.Feedback defaults = kind.defaults();
         assertTrue(defaults.particle().isPresent(), kind + " must name a particle");
         assertTrue(defaults.sound().isPresent(), kind + " must name a sound");
         assertFalse(defaults.isEmpty());
+    }
+
+    /** Self-repair procs too often for a sound: the particle alone, never the anvil it once played. */
+    @Test
+    void mendingDrawsItsParticleAndPlaysNoSound() {
+        TraitFeedback.Feedback mend = TraitFeedback.Kind.MEND.defaults();
+        assertEquals(Optional.of(ParticleTypes.HAPPY_VILLAGER), mend.particle());
+        assertEquals(Optional.empty(), mend.sound());
+        assertFalse(mend.isEmpty());
     }
 
     @Test
