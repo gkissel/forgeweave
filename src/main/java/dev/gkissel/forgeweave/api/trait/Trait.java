@@ -238,6 +238,11 @@ public interface Trait {
         return 0;
     }
 
+    /** Chance per worn piece to prevent armor durability loss, summed across unbroken pieces. */
+    default float armorDurabilityNegationChance() {
+        return 0.0F;
+    }
+
     // #228 mining/durability-economy traits (duritos, dense, aquadynamic, aridiculous, crumbling,
     // unnatural, squeaky, autosmelt).
 

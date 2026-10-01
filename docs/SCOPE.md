@@ -883,6 +883,19 @@ Each empowered crystal's trait is the plain crystal's own trait family at a high
 
 No item forms (D-M8-6), no toggle (D-M8-5), no Java import of Actually Additions. `MaterialTest`/`ArmorMaterialTest` extend their existing rosters; `EmpoweredCrystalsGameTests` gives the six new materials the same negative-existence proof `PresetBatch5GameTests` gives the plain seven, since `actuallyadditions` is not a build/test dependency.
 
+### Create materials (maintainer decision, 2026-10-01)
+
+Create adds four existence-gated tool and armor materials: zinc, brass, andesite alloy and rose quartz. Andesite alloy and rose quartz parts are made at the Part Builder. Zinc and brass parts are cast; both metals melt at 1200, within lava's 1300 temperature. Create supplies the repair items and metal ingots, nuggets and blocks. Forgeweave adds no solid item forms for these materials.
+
+| Material | Head durability / mining speed / attack damage | Tool tier | Tool trait | Armor trait |
+| --- | --- | --- | --- | --- |
+| Zinc | 180 / 5.0 / 2.5 | Stone | Galvanized: 15% chance to avoid durability loss | Galvanized Guard: 5% chance per worn piece to avoid armor durability loss, 20% with a full set |
+| Brass | 360 / 6.5 / 4.0 | Iron | Precision: 10% faster effective mining above 75% durability | Clockwork Stride: 3% movement speed per piece, 12% with a full set |
+| Andesite alloy | 280 / 5.5 / 3.5 | Iron | Industrial: 15% faster mining on the stone ore-replaceable tag | Anchored: 5% extra knockback resistance per piece, in addition to the plating's 5% |
+| Rose quartz | 190 / 6.0 / 5.0 | Iron | Focused: attacks ignore 10% of armor points, retaining toughness | Crystal Ward: 1 magic protection per piece, 4% reduction per piece and 16% with a full set before the shared protection cap |
+
+Trait ids are deduplicated across parts. Galvanized Guard sums contributions from worn, unbroken Forgeweave pieces and protects the wearer's Forgeweave armor. Focused uses the combat pipeline's armor-penetration hook to adjust vanilla armor mitigation; it leaves armor durability, enchantments and toughness intact. Clockwork Stride adds a fraction of base movement speed, so four pieces add exactly 12%. Materials and recipes require the corresponding Create item to exist. Molten buckets are hidden when their provider item is absent. No new compatibility toggle is added.
+
 ### Datapack modifier definitions (#973, ADR-0004 item 3 closed 2026-09-18)
 
 ADR-0004 item 3's second half, delivered for modifiers and closing the ADR. One file per modifier under `data/<namespace>/forgeweave/modifier_definition/<name>.json`, flat, shaped exactly like M6's `trait_definition` so a pack author learns one idiom: `behavior` picks a parameterized class from the library (`ModifierLibrary`), the other fields are its parameters. Optional `neoforge:conditions` existence-gates it exactly like a material. Built-in ids always win a collision. A wrong `behavior` id, a missing parameter or an unknown enum value fails the data load with the known ids listed, never a silent no-op modifier. The pack supplies the id's `modifier.<namespace>.<path>.name` / `.description` lang keys, which is all tooltips, the Tool Station panel and the guide book need.

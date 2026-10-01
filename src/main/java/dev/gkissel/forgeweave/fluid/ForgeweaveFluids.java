@@ -404,7 +404,11 @@ public final class ForgeweaveFluids {
     public static final MoltenMetal IGNITIUM = register("ignitium", 0xFF4500, 1260);
     public static final MoltenMetal CURSIUM = register("cursium", 0x5B2C6F, 1240);
 
+    public static final MoltenMetal ZINC = register("zinc", 0xA9C7C2, 1200);
+    public static final MoltenMetal BRASS = register("brass", 0xCCB66A, 1200);
+
     private static final Map<String, MoltenMetal> COMPAT_METAL_FLUIDS = Map.ofEntries(
+            Map.entry("zinc", ZINC), Map.entry("brass", BRASS),
             Map.entry("aluminium", ALUMINIUM), Map.entry("bronze", BRONZE),
             Map.entry("conductive_alloy", CONDUCTIVE_ALLOY), Map.entry("constantan", CONSTANTAN),
             Map.entry("dark_steel", DARK_STEEL), Map.entry("draconium_awakened", DRACONIUM_AWAKENED),

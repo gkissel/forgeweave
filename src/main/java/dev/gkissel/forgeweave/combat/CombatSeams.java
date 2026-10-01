@@ -1,5 +1,9 @@
 package dev.gkissel.forgeweave.combat;
 
+import net.neoforged.neoforge.common.damagesource.DamageContainer;
+import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.damagesource.CombatRules;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -117,6 +121,20 @@ public final class CombatSeams {
         damage = ((ToolItem) hit.weapon().getItem()).cutoffDamage(damage * crit) * cooldown;
         if (damage != event.getAmount()) {
             event.setAmount(damage);
+        }
+        float penetration = Mth.clamp((float) seams.stream().mapToDouble(CombatSeam::armorPenetration).sum(), 0.0F, 1.0F);
+        if (penetration > 0.0F && !hit.source().is(DamageTypeTags.BYPASSES_ARMOR)) {
+            event.addReductionModifier(DamageContainer.Reduction.ARMOR,
+                    (container, reduction) -> {
+                        float incoming = container.getNewDamage();
+                        float armor = hit.target().getArmorValue();
+                        float toughness = (float) hit.target().getAttributeValue(Attributes.ARMOR_TOUGHNESS);
+                        float normal = CombatRules.getDamageAfterAbsorb(
+                                hit.target(), incoming, hit.source(), armor, toughness);
+                        float pierced = CombatRules.getDamageAfterAbsorb(
+                                hit.target(), incoming, hit.source(), armor * (1.0F - penetration), toughness);
+                        return Math.max(0.0F, reduction - (pierced - normal));
+                    });
         }
     }
 

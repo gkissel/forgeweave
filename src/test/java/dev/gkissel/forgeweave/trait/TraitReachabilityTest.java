@@ -116,6 +116,7 @@ class TraitReachabilityTest {
             Map.entry("energyCapacity", BOTH),
             // ToolItem#damageKeepingItem, which ArmorPieceItem#damageItem delegates to (#721).
             Map.entry("durabilityDamage", BOTH),
+            Map.entry("armorDurabilityNegationChance", ARMOR),
             Map.entry("breakSpeed", TOOL),
             Map.entry("grantsSilkTouch", TOOL),
             Map.entry("zeroesAttackDamage", TOOL),
@@ -142,6 +143,7 @@ class TraitReachabilityTest {
     /** The same map for {@link CombatSeam}, reached through {@link Trait#combatSeams}. */
     private static final Map<String, Set<Side>> SEAM_HOOK_SIDES = Map.of(
             "preHit", TOOL,
+            "armorPenetration", TOOL,
             "onHit", TOOL,
             "postKill", TOOL,
             "knockback", TOOL,

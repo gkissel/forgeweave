@@ -32,6 +32,10 @@ public final class CompatMaterialAvailability {
     // Mirrors each material JSON's own `neoforge:conditions`. Multi-entry lists are an
     // `neoforge:or` (any one provider is enough); every other entry is a plain `item_exists`.
     private static final Map<String, List<ResourceLocation>> ANY_OF = Map.ofEntries(
+            entry("zinc", "create:zinc_ingot"),
+            entry("brass", "create:brass_ingot"),
+            entry("andesite_alloy", "create:andesite_alloy"),
+            entry("rose_quartz", "create:rose_quartz"),
             entry("aluminium", "immersiveengineering:ingot_aluminum"),
             entry("bronze", "mekanism:ingot_bronze"),
             entry("conductive_alloy", "enderio:conductive_alloy_ingot"),

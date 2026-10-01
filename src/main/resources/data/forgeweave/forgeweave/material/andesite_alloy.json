@@ -1,0 +1,68 @@
+{
+  "head": {
+    "durability": 280,
+    "mining_speed": 5.5,
+    "attack_damage": 3.5
+  },
+  "handle": {
+    "durability_modifier": 1.15,
+    "durability": 40
+  },
+  "extra_durability": 90,
+  "bow": {
+    "drawspeed": 0.7,
+    "range": 1.1,
+    "bonus_damage": 3.5
+  },
+  "plating": {
+    "helmet": {
+      "durability": 220,
+      "armor": 2,
+      "knockback_resistance": 0.05
+    },
+    "chestplate": {
+      "durability": 320,
+      "armor": 5,
+      "knockback_resistance": 0.05
+    },
+    "leggings": {
+      "durability": 300,
+      "armor": 4,
+      "knockback_resistance": 0.05
+    },
+    "boots": {
+      "durability": 260,
+      "armor": 2,
+      "knockback_resistance": 0.05
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
+  "traits": {
+    "general": [
+      "forgeweave:industrial"
+    ],
+    "armor": [
+      "forgeweave:anchored"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "create:andesite_alloy"
+      },
+      "value": 144
+    }
+  ],
+  "repair_item": {
+    "item": "create:andesite_alloy"
+  },
+  "enchantability": 18,
+  "color": "#829579",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "create:andesite_alloy"
+    }
+  ]
+}

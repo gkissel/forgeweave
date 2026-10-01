@@ -1,0 +1,14 @@
+{
+  "input": {
+    "item": "create:zinc_block"
+  },
+  "fluid": "forgeweave:molten_zinc",
+  "amount": 1296,
+  "temperature": 1200,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "create:zinc_ingot"
+    }
+  ]
+}

@@ -1,0 +1,64 @@
+{
+  "head": {
+    "durability": 190,
+    "mining_speed": 6,
+    "attack_damage": 5
+  },
+  "handle": {
+    "durability_modifier": 0.85,
+    "durability": 25
+  },
+  "extra_durability": 35,
+  "bow": {
+    "drawspeed": 0.7,
+    "range": 1.1,
+    "bonus_damage": 5
+  },
+  "plating": {
+    "helmet": {
+      "durability": 165,
+      "armor": 1
+    },
+    "chestplate": {
+      "durability": 240,
+      "armor": 4
+    },
+    "leggings": {
+      "durability": 225,
+      "armor": 3
+    },
+    "boots": {
+      "durability": 195,
+      "armor": 1
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
+  "traits": {
+    "general": [
+      "forgeweave:focused"
+    ],
+    "armor": [
+      "forgeweave:crystal_ward"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "create:rose_quartz"
+      },
+      "value": 144
+    }
+  ],
+  "repair_item": {
+    "item": "create:rose_quartz"
+  },
+  "enchantability": 18,
+  "color": "#E997B7",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "create:rose_quartz"
+    }
+  ]
+}

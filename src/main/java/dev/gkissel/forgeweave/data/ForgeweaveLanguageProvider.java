@@ -1045,6 +1045,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // #833 -- M6 Track A batch 1: generic tech metals, existence-gated (neoforge:conditions) on
         // every known 1.21.1 provider's ingot rather than tag-obtainability alone (issue #826). Like
         // the four compat metals above, these have no Forgeweave item/fluid of their own.
+        add("material.forgeweave.zinc", "Zinc");
+        add("material.forgeweave.brass", "Brass");
+        add("material.forgeweave.andesite_alloy", "Andesite Alloy");
+        add("material.forgeweave.rose_quartz", "Rose Quartz");
         add("material.forgeweave.tin", "Tin");
         add("material.forgeweave.aluminium", "Aluminium");
         add("material.forgeweave.nickel", "Nickel");
@@ -1407,6 +1411,22 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 + "more damage and 3 more durability a hit.");
         add("trait.forgeweave.coldblooded.name", "Coldblooded");
         add("trait.forgeweave.coldblooded.description", "Deals 50% more damage to a target still at full health.");
+        add("trait.forgeweave.galvanized.name", "Galvanized");
+        add("trait.forgeweave.galvanized.description", "A 15% chance to avoid durability loss.");
+        add("trait.forgeweave.galvanized_guard.name", "Galvanized Guard");
+        add("trait.forgeweave.galvanized_guard.description", "A 5% chance per piece worn to avoid armor durability loss, 20% with a full set.");
+        add("trait.forgeweave.precision.name", "Precision");
+        add("trait.forgeweave.precision.description", "Mines 10% faster while above 75% durability.");
+        add("trait.forgeweave.clockwork_stride.name", "Clockwork Stride");
+        add("trait.forgeweave.clockwork_stride.description", "Moves 3% faster per piece worn, 12% with a full set.");
+        add("trait.forgeweave.industrial.name", "Industrial");
+        add("trait.forgeweave.industrial.description", "Mines blocks in the stone ore-replaceable tag 15% faster.");
+        add("trait.forgeweave.anchored.name", "Anchored");
+        add("trait.forgeweave.anchored.description", "Adds 5% knockback resistance per piece worn, 20% with a full set.");
+        add("trait.forgeweave.focused.name", "Focused");
+        add("trait.forgeweave.focused.description", "Attacks ignore 10% of the target's armor points.");
+        add("trait.forgeweave.crystal_ward.name", "Crystal Ward");
+        add("trait.forgeweave.crystal_ward.description", "Adds 1 magic protection per piece worn: 4% less magic damage, 16% with a full set.");
         add("trait.forgeweave.established.name", "Established");
         add("trait.forgeweave.established.description", "A 33% chance of 1 more experience from a broken block, and 25% more "
                 + "plus 1 from a kill.");
@@ -1997,6 +2017,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addFluid(ForgeweaveFluids.DRAGONSTEEL_FIRE, "Molten Dragonsteel (Fire)");
         addFluid(ForgeweaveFluids.DRAGONSTEEL_ICE, "Molten Dragonsteel (Ice)");
         addFluid(ForgeweaveFluids.DRAGONSTEEL_LIGHTNING, "Molten Dragonsteel (Lightning)");
+        addFluid(ForgeweaveFluids.ZINC, "Molten Zinc");
+        addFluid(ForgeweaveFluids.BRASS, "Molten Brass");
         addFluid(ForgeweaveFluids.FERRICORE, "Molten Ferricore");
         addFluid(ForgeweaveFluids.BLAZEGOLD, "Molten Blazegold");
         addFluid(ForgeweaveFluids.ECLIPSEALLOY, "Molten Eclipse Alloy");
