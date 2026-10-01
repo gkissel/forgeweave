@@ -3578,6 +3578,14 @@ public final class ForgeweaveTraits {
     }
 
     private static final Map<ResourceLocation, Trait> REGISTRY = Map.ofEntries(
+            Map.entry(id("galvanized"), CreateMaterialTraits.GALVANIZED),
+            Map.entry(id("galvanized_guard"), CreateMaterialTraits.GALVANIZED_GUARD),
+            Map.entry(id("precision"), CreateMaterialTraits.PRECISION),
+            Map.entry(id("clockwork_stride"), CreateMaterialTraits.CLOCKWORK_STRIDE),
+            Map.entry(id("industrial"), CreateMaterialTraits.INDUSTRIAL),
+            Map.entry(id("anchored"), CreateMaterialTraits.ANCHORED),
+            Map.entry(id("focused"), CreateMaterialTraits.FOCUSED),
+            Map.entry(id("crystal_ward"), CreateMaterialTraits.CRYSTAL_WARD),
             Map.entry(id("ecological"), ECOLOGICAL),
             Map.entry(id("ecological2"), ECOLOGICAL2),
             Map.entry(id("ecological3"), ECOLOGICAL3),

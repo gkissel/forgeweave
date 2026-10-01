@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.item;
 
+import dev.gkissel.forgeweave.api.trait.Trait;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -202,7 +203,26 @@ public class ArmorPieceItem extends ArmorItem {
      */
     @Override
     public <T extends LivingEntity> int damageItem(ItemStack stack, int amount, @Nullable T entity, Consumer<Item> onBroken) {
+        if (entity != null && amount > 0 && !ToolItem.isBroken(stack)) {
+            float chance = durabilityNegationChance(entity);
+            if (chance > 0.0F && entity.getRandom().nextFloat() < chance) {
+                return 0;
+            }
+        }
         return ToolItem.damageKeepingItem(stack, amount, entity);
+    }
+
+    /** Sums durability protection from worn, unbroken Forgeweave armor. */
+    public static float durabilityNegationChance(LivingEntity entity) {
+        float chance = 0.0F;
+        for (ItemStack piece : entity.getArmorSlots()) {
+            if (piece.getItem() instanceof ArmorPieceItem && !ToolItem.isBroken(piece)) {
+                for (Trait trait : ForgeweaveTraits.of(piece)) {
+                    chance += trait.armorDurabilityNegationChance();
+                }
+            }
+        }
+        return Math.min(1.0F, chance);
     }
 
     // #728: while there is overslime, the bar is its light-blue gauge (the clone's

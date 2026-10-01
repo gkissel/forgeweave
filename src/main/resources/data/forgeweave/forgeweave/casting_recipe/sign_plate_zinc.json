@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_sign_plate"
+  },
+  "fluid": "forgeweave:molten_zinc",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:sign_plate",
+    "components": {
+      "forgeweave:material": "forgeweave:zinc"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "create:zinc_ingot"
+    }
+  ]
+}

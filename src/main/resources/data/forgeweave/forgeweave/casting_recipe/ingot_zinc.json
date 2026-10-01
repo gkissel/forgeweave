@@ -1,0 +1,17 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_zinc",
+  "amount": 144,
+  "result": {
+    "id": "create:zinc_ingot"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "create:zinc_ingot"
+    }
+  ]
+}

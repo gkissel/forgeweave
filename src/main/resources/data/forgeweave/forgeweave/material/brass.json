@@ -1,0 +1,77 @@
+{
+  "head": {
+    "durability": 360,
+    "mining_speed": 6.5,
+    "attack_damage": 4
+  },
+  "handle": {
+    "durability_modifier": 1.1,
+    "durability": 60
+  },
+  "extra_durability": 75,
+  "bow": {
+    "drawspeed": 0.55,
+    "range": 1.4,
+    "bonus_damage": 4
+  },
+  "plating": {
+    "helmet": {
+      "durability": 253,
+      "armor": 2
+    },
+    "chestplate": {
+      "durability": 368,
+      "armor": 6
+    },
+    "leggings": {
+      "durability": 345,
+      "armor": 5
+    },
+    "boots": {
+      "durability": 299,
+      "armor": 2
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_iron_tool",
+  "traits": {
+    "general": [
+      "forgeweave:precision"
+    ],
+    "armor": [
+      "forgeweave:clockwork_stride"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "create:brass_ingot"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "item": "create:brass_nugget"
+      },
+      "value": 16
+    },
+    {
+      "ingredient": {
+        "item": "create:brass_block"
+      },
+      "value": 1296
+    }
+  ],
+  "repair_item": {
+    "item": "create:brass_ingot"
+  },
+  "enchantability": 12,
+  "color": "#CCB66A",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "create:brass_ingot"
+    }
+  ],
+  "cast_only": true
+}

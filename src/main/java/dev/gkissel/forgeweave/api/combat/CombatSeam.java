@@ -24,6 +24,11 @@ import dev.gkissel.forgeweave.api.trait.Trait;
  */
 public interface CombatSeam {
 
+    /** Fraction of the target's armor points ignored by this hit; toughness stays intact. */
+    default float armorPenetration() {
+        return 0.0F;
+    }
+
     /**
      * This blow's damage after this seam has adjusted it, called before any mitigation (armor,
      * resistance, absorption) is applied -- upstream 1.12 runs its {@code ITrait#damage} hook at the
