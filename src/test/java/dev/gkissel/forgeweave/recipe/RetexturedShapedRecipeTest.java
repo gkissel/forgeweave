@@ -2,9 +2,11 @@ package dev.gkissel.forgeweave.recipe;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -19,6 +21,8 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.ShapedRecipePattern;
 
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
+import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.jei.SubtypeKeys;
 
 /** {@link RetexturedShapedRecipe#displayResults}: one textured result per block the texture ingredient accepts. */
 class RetexturedShapedRecipeTest {
@@ -42,6 +46,19 @@ class RetexturedShapedRecipeTest {
                 .map(stack -> stack.get(ForgeweaveDataComponents.TEXTURE.get()))
                 .map(ResourceLocation::toString)
                 .toList());
+    }
+
+    @Test
+    void recipeLookupIncludesTheUntexturedCreativeTabEntry() {
+        ItemStack bare = new ItemStack(ForgeweaveItems.TOOL_FORGE.get());
+        ShapedRecipePattern pattern = ShapedRecipePattern.of(
+                Map.of('M', Ingredient.of(Items.IRON_BLOCK, Items.GOLD_BLOCK)), "M");
+        RetexturedShapedRecipe recipe = new RetexturedShapedRecipe(
+                "", CraftingBookCategory.MISC, pattern, bare);
+
+        assertTrue(recipe.displayResults().stream().anyMatch(stack ->
+                Objects.equals(SubtypeKeys.texture(stack), SubtypeKeys.texture(bare))),
+                "JEI cannot find the crafting recipe from the untextured creative-tab entry");
     }
 
     @Test

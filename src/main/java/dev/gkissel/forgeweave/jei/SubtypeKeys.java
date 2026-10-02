@@ -4,6 +4,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
+import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
 
 /**
@@ -59,6 +60,10 @@ public final class SubtypeKeys {
      */
     public static String texture(ItemStack stack) {
         ResourceLocation textureId = stack.get(ForgeweaveDataComponents.TEXTURE.get());
+        // The plain creative-tab forge renders as iron and must find the iron crafting output.
+        if (textureId == null && stack.is(ForgeweaveItems.TOOL_FORGE.get())) {
+            return "minecraft:iron_block";
+        }
         return textureId == null ? null : textureId.toString();
     }
 
