@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:small_dusts/fiery"
+  },
+  "fluid": "forgeweave:molten_fiery",
+  "amount": 36,
+  "temperature": 1600,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "twilightforest:fiery_ingot"
+    }
+  ]
+}

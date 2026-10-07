@@ -32,11 +32,22 @@
         "tag": "c:storage_blocks/graphite"
       },
       "value": 1296
+    },
+    {
+      "ingredient": {
+        "tag": "c:ingots/hop_graphite"
+      },
+      "value": 144
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/graphite"
-  },
+  "repair_item": [
+    {
+      "tag": "c:ingots/graphite"
+    },
+    {
+      "tag": "c:ingots/hop_graphite"
+    }
+  ],
   "cast_only": true,
   "enchantability": 6,
   "color": "#36393B",
@@ -51,6 +62,10 @@
         {
           "type": "neoforge:item_exists",
           "item": "eternalores:graphite_ingot"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "immersiveengineering:ingot_hop_graphite"
         }
       ]
     }

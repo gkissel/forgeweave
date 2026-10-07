@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:small_dusts/ludicrite"
+  },
+  "fluid": "forgeweave:molten_ludicrite",
+  "amount": 36,
+  "temperature": 1600,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "bigreactors:ludicrite_ingot"
+    }
+  ]
+}

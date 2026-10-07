@@ -1,0 +1,18 @@
+{
+  "input": {
+    "item": "neovitae:hellforged_block"
+  },
+  "fluid": "forgeweave:molten_hellforged",
+  "amount": 1296,
+  "temperature": 1600,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "neovitae:hellforged_block"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "neovitae:ingot_hellforged"
+    }
+  ]
+}

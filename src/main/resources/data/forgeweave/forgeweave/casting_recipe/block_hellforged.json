@@ -1,0 +1,14 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_hellforged",
+  "amount": 1296,
+  "result": {
+    "id": "neovitae:hellforged_block"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "neovitae:ingot_hellforged"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "input": {
+    "tag": "c:tiny_dusts/silver"
+  },
+  "fluid": "forgeweave:molten_silver",
+  "amount": 16,
+  "temperature": 1200,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "immersiveengineering:ingot_silver"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:silver_ingot"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "occultism:silver_ingot"
+        }
+      ]
+    }
+  ]
+}

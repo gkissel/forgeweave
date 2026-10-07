@@ -37,7 +37,10 @@ MELTING_DIR = ROOT / "src/main/resources/data/forgeweave/forgeweave/melting_reci
 # exactly as Immersive Engineering does, so the preset is the same material with a widened gate, not
 # a second one. JC2's "gate by material name, not by mod" is the whole point -- a pack with Occultism
 # and no IE still gets silver.
-OR_MATERIALS = {"lead", "uranium", "silver"}
+OR_MATERIALS = {
+    material_id for material_id, info in build_table().items()
+    if len(info["provider_items"]) > 1
+}
 
 # The three new alumite/osgloglas/osmiridium alloys: Forgeweave-owned ingot/nugget/block items (added
 # to dev.gkissel.forgeweave.trackb.TrackBAlloy.ALL), so their full 73-file casting template needs no
@@ -81,10 +84,12 @@ def write_json(path: Path, data: dict) -> None:
     path.write_text(json.dumps(data, indent=2) + "\n")
 
 
-def form_suffix(ingredient: dict) -> str:
+def form_suffix(ingredient: dict | list[dict]) -> str:
     """Melting-recipe filename suffix for a crafting_items ingredient, or "" for a material's one
     and only form (a plain concrete item, or a tag with no ingots/nuggets/storage_blocks/raw_materials
     family segment -- e.g. silicon's bare c:silicon)."""
+    if isinstance(ingredient, list):
+        return form_suffix(ingredient[0])
     tag = ingredient.get("tag")
     if tag is None:
         return ""
@@ -135,10 +140,13 @@ def melting_recipes() -> None:
         for entry in info["crafting_items"]:
             suffix = form_suffix(entry["ingredient"])
             name = f"{material_id}{suffix}.json"
+            if isinstance(entry["ingredient"], dict) and entry["ingredient"].get("tag") == "c:ingots/hop_graphite":
+                name = f"{material_id}{suffix}_immersiveengineering.json"
             write_json(MELTING_DIR / name, {
                 "input": entry["ingredient"],
                 "fluid": fluid,
                 "amount": entry["value"],
+                **({"ore": True} if suffix == "_raw" else {}),
                 "temperature": temperature,
                 "neoforge:conditions": info["condition"],
             })

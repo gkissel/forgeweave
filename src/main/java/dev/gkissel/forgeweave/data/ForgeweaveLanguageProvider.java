@@ -1301,6 +1301,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // provider's own item name. Refined Storage's quartz_enriched_iron/silicon are not shipped
         // here -- see PresetBatch2GameTests' class javadoc for why.
         add("material.forgeweave.osmium", "Osmium");
+        add("material.forgeweave.infused_alloy", "Infused Alloy");
+        add("material.forgeweave.reinforced_alloy", "Reinforced Alloy");
+        add("material.forgeweave.atomic_alloy", "Atomic Alloy");
+        add("material.forgeweave.hellforged", "Hellforged Metal");
         add("material.forgeweave.refined_obsidian", "Refined Obsidian");
         add("material.forgeweave.refined_glowstone", "Refined Glowstone");
         add("material.forgeweave.hdpe", "HDPE");
@@ -1933,6 +1937,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addFluid(ForgeweaveFluids.SILVER, "Molten Silver");
         addFluid(ForgeweaveFluids.SOULARIUM, "Molten Soularium");
         addFluid(ForgeweaveFluids.TIN, "Molten Tin");
+        addFluid(ForgeweaveFluids.HELLFORGED, "Molten Hellforged Metal");
         addFluid(ForgeweaveFluids.TITANIUM, "Molten Titanium");
         addFluid(ForgeweaveFluids.TUNGSTEN, "Molten Tungsten");
         addFluid(ForgeweaveFluids.URANIUM, "Molten Uranium");
@@ -2535,6 +2540,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // the damage dealt, though trait_definition/soulrend{,2,3}.json already carries an exact
         // fraction and cap per level (forgeweave:lifesteal, Lifesteal#fraction/#cap).
         add("trait.forgeweave.soulrend.name", "Soul Rend");
+        add("trait.forgeweave.vitae_siphon.name", "Vitae Siphon");
+        add("trait.forgeweave.vitae_siphon.description", "Heals for %s%% of damage dealt, up to %s health per hit.");
         add("trait.forgeweave.soulrend.description", "Drinks %s%% of the damage it deals back as health, up to %s a hit.");
         // #965 -- duskweld's own on-hit trait and the draconium core's, both datapack definitions
         // over behaviours TraitBehaviors already ships, the same shape soul rend uses above. A

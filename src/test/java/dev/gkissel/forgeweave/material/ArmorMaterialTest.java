@@ -141,7 +141,8 @@ class ArmorMaterialTest {
             // maille shape as #837's own plain-crystal roster above.
             Stream.of("empowered_restonia_crystal", "empowered_palis_crystal", "empowered_diamatine_crystal",
                     "empowered_void_crystal", "empowered_emeradic_crystal", "empowered_enori_crystal"),
-            Stream.of("zinc", "brass", "andesite_alloy", "rose_quartz"))
+            Stream.of("zinc", "brass", "andesite_alloy", "rose_quartz"),
+            Stream.of("infused_alloy", "reinforced_alloy", "atomic_alloy", "hellforged"))
             .flatMap(java.util.function.Function.identity())
             .collect(java.util.stream.Collectors.toSet());
 

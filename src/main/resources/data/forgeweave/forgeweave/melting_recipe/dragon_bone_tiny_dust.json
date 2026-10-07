@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:tiny_dusts/dragon_bone"
+  },
+  "fluid": "forgeweave:molten_dragon_bone",
+  "amount": 16,
+  "temperature": 1200,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "iceandfire:dragonbone"
+    }
+  ]
+}

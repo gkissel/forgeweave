@@ -1,0 +1,18 @@
+{
+  "input": {
+    "tag": "c:small_dusts/hellforged"
+  },
+  "fluid": "forgeweave:molten_hellforged",
+  "amount": 36,
+  "temperature": 1600,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "neovitae:ingot_hellforged"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "neovitae:ingot_hellforged"
+    }
+  ]
+}

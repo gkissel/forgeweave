@@ -1,0 +1,82 @@
+{
+  "head": {
+    "durability": 1100,
+    "mining_speed": 8.0,
+    "attack_damage": 6.0
+  },
+  "handle": {
+    "durability_modifier": 0.85,
+    "durability": 60
+  },
+  "extra_durability": 220,
+  "bow": {
+    "drawspeed": 0.45,
+    "range": 1.4,
+    "bonus_damage": 5.0
+  },
+  "plating": {
+    "helmet": {
+      "durability": 612,
+      "armor": 3.0,
+      "toughness": 1.5,
+      "knockback_resistance": 0.1
+    },
+    "chestplate": {
+      "durability": 900,
+      "armor": 8.0,
+      "toughness": 1.5,
+      "knockback_resistance": 0.1
+    },
+    "leggings": {
+      "durability": 846,
+      "armor": 6.0,
+      "toughness": 1.5,
+      "knockback_resistance": 0.1
+    },
+    "boots": {
+      "durability": 720,
+      "armor": 3.0,
+      "toughness": 1.5,
+      "knockback_resistance": 0.1
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": [
+      "forgeweave:stiff"
+    ],
+    "head": [
+      "forgeweave:vitae_siphon"
+    ],
+    "armor": [
+      "forgeweave:magic_protection2"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "neovitae:ingot_hellforged"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "item": "neovitae:hellforged_block"
+      },
+      "value": 1296
+    }
+  ],
+  "repair_item": {
+    "item": "neovitae:ingot_hellforged"
+  },
+  "cast_only": true,
+  "enchantability": 8,
+  "color": "#99D6CB",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "neovitae:ingot_hellforged"
+    }
+  ]
+}

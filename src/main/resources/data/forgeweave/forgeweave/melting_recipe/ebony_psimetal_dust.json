@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:dusts/ebony_psimetal"
+  },
+  "fluid": "forgeweave:molten_ebony_psimetal",
+  "amount": 144,
+  "temperature": 1400,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "psi:ebony_psimetal"
+    }
+  ]
+}

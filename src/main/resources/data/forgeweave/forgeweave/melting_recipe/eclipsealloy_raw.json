@@ -10,5 +10,6 @@
       "type": "neoforge:item_exists",
       "item": "justdirethings:eclipsealloy_ingot"
     }
-  ]
+  ],
+  "ore": true
 }

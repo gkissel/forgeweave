@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:tiny_dusts/soularium"
+  },
+  "fluid": "forgeweave:molten_soularium",
+  "amount": 16,
+  "temperature": 1400,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "enderio:soularium_ingot"
+    }
+  ]
+}

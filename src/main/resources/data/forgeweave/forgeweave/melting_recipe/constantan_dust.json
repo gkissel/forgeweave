@@ -1,0 +1,23 @@
+{
+  "input": {
+    "tag": "c:dusts/constantan"
+  },
+  "fluid": "forgeweave:molten_constantan",
+  "amount": 144,
+  "temperature": 1200,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "immersiveengineering:ingot_constantan"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:constantan_ingot"
+        }
+      ]
+    }
+  ]
+}

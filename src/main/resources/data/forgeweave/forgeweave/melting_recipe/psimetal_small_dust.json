@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:small_dusts/psimetal"
+  },
+  "fluid": "forgeweave:molten_psimetal",
+  "amount": 36,
+  "temperature": 1200,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "psi:psimetal"
+    }
+  ]
+}

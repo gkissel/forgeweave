@@ -1,0 +1,23 @@
+{
+  "input": {
+    "tag": "c:tiny_dusts/titanium"
+  },
+  "fluid": "forgeweave:molten_titanium",
+  "amount": 16,
+  "temperature": 1400,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "modern_industrialization:titanium_ingot"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:titanium_ingot"
+        }
+      ]
+    }
+  ]
+}

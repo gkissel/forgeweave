@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:dusts/draconium_awakened"
+  },
+  "fluid": "forgeweave:molten_draconium_awakened",
+  "amount": 144,
+  "temperature": 1800,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "draconicevolution:awakened_draconium_ingot"
+    }
+  ]
+}

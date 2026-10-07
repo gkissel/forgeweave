@@ -1,0 +1,10 @@
+{
+  "behavior": "forgeweave:lifesteal",
+  "fraction": 0.1,
+  "cap": 2.0,
+  "family": "vitae_siphon",
+  "description_args": [
+    "10",
+    "2"
+  ]
+}

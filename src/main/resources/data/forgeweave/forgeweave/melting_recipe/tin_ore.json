@@ -1,0 +1,24 @@
+{
+  "input": {
+    "tag": "c:ores/tin"
+  },
+  "fluid": "forgeweave:molten_tin",
+  "amount": 144,
+  "ore": true,
+  "temperature": 1200,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "mekanism:ingot_tin"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:tin_ingot"
+        }
+      ]
+    }
+  ]
+}

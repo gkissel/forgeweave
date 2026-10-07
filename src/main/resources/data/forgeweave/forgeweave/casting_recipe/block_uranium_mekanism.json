@@ -1,0 +1,14 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_uranium",
+  "amount": 1296,
+  "result": {
+    "id": "mekanism:block_uranium"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:block_uranium"
+    }
+  ]
+}

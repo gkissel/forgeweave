@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:small_dusts/cursium"
+  },
+  "fluid": "forgeweave:molten_cursium",
+  "amount": 36,
+  "temperature": 1600,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "cataclysm:cursium_ingot"
+    }
+  ]
+}

@@ -127,14 +127,13 @@ class BasicAlloyClassifierTest {
     }
 
     @Test
-    void theShippedAlloyRecipesClassifyToExactlyFourBasicAlloys() throws IOException {
+    void theShippedAlloyRecipesIncludeTheFourProviderOwnedBasicAlloys() throws IOException {
         List<ParsedRecipe> recipes = parseAll();
         Set<String> basic = classifyBasicAlloys(recipes);
 
-        assertEquals(Set.of("manyullyn", "rose_gold", "embercast", "osmiridium"), basic,
+        assertEquals(Set.of("manyullyn", "rose_gold", "embercast", "osmiridium",
+                "bronze", "constantan", "electrum", "invar"), basic,
                 "the basic-alloy classifier, run over every shipped alloy_recipe file, must return "
-                        + "exactly this set -- a change here is either a new catalyst-free two-ingot "
-                        + "alloy (decide whether it also belongs in Create/IE/EnderIO) or a roster edit "
-                        + "that needs scripts/generate_compat_processing.py updated alongside it");
+                        + "exactly this set; bronze, constantan, electrum and invar use provider-owned ingots");
     }
 }

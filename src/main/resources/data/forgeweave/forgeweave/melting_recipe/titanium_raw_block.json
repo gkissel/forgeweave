@@ -1,0 +1,24 @@
+{
+  "input": {
+    "tag": "c:storage_blocks/raw_titanium"
+  },
+  "fluid": "forgeweave:molten_titanium",
+  "amount": 1296,
+  "ore": true,
+  "temperature": 1400,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "modern_industrialization:titanium_ingot"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:titanium_ingot"
+        }
+      ]
+    }
+  ]
+}

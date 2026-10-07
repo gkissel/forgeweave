@@ -10,5 +10,6 @@
       "type": "neoforge:item_exists",
       "item": "justdirethings:blazegold_ingot"
     }
-  ]
+  ],
+  "ore": true
 }

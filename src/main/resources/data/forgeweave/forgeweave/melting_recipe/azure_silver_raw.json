@@ -10,5 +10,6 @@
       "type": "neoforge:item_exists",
       "item": "silentgear:azure_silver_ingot"
     }
-  ]
+  ],
+  "ore": true
 }

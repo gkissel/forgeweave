@@ -1,0 +1,15 @@
+{
+  "input": {
+    "tag": "c:ores/hellforged"
+  },
+  "fluid": "forgeweave:molten_hellforged",
+  "amount": 144,
+  "temperature": 1600,
+  "ore": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "neovitae:ingot_hellforged"
+    }
+  ]
+}
