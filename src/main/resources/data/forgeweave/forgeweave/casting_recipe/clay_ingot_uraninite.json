@@ -22,6 +22,10 @@
           "item": "eternalores:uraninite_ingot"
         }
       ]
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "powah:uraninite_raw"
     }
   ]
 }

@@ -24,6 +24,9 @@ trait assignments and crafting path. Shared metals remain one material across pr
   Its Hop Graphite ingot and dust use the existing Graphite material, with a separate ingot
   casting output. Shared-material bucket visibility now recognizes the Eternal Ores providers
   already accepted by the material definitions.
+- Casting recipes require their own concrete output item, even when the molten material accepts
+  several providers. The live server caught a clay Graphite cast naming an absent Big Reactors
+  ingot with only Immersive Engineering installed; the same guard now covers every foreign output.
 - Constantan and Invar now improve on their alloy ingredients in two head stats. Their plating
   durability increases with the head durability. Electrum retains its established 50 durability /
   12 mining speed specialist tradeoff.

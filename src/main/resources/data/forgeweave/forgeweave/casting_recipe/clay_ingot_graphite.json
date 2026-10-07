@@ -26,6 +26,10 @@
           "item": "immersiveengineering:ingot_hop_graphite"
         }
       ]
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "bigreactors:graphite_ingot"
     }
   ]
 }

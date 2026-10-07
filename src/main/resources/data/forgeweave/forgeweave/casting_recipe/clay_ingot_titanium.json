@@ -22,6 +22,10 @@
           "item": "eternalores:titanium_ingot"
         }
       ]
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "modern_industrialization:titanium_ingot"
     }
   ]
 }

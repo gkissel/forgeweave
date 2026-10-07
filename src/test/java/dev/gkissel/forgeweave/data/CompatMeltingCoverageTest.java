@@ -20,6 +20,27 @@ class CompatMeltingCoverageTest {
             .resolve("src/main/resources/data/forgeweave/forgeweave");
 
     @Test
+    void castingNeverNamesAnAbsentProviderOutput() throws IOException {
+        try (var files = Files.list(DATA.resolve("casting_recipe"))) {
+            for (Path path : files.filter(p -> p.toString().endsWith(".json")).toList()) {
+                JsonObject recipe = JsonParser.parseString(Files.readString(path)).getAsJsonObject();
+                String output = recipe.getAsJsonObject("result").get("id").getAsString();
+                if (output.startsWith("forgeweave:") || output.startsWith("minecraft:")) {
+                    continue;
+                }
+                assertTrue(recipe.has("neoforge:conditions"), path.toString());
+                boolean guarded = false;
+                for (var condition : recipe.getAsJsonArray("neoforge:conditions")) {
+                    var object = condition.getAsJsonObject();
+                    guarded |= object.get("type").getAsString().equals("neoforge:item_exists")
+                            && object.has("item") && object.get("item").getAsString().equals(output);
+                }
+                assertTrue(guarded, path + " must require its own output item " + output);
+            }
+        }
+    }
+
+    @Test
     void everyMekanismOreChainMeltsWithoutMultiplyingProcessedMetal() throws IOException {
         for (String metal : List.of("iron", "gold", "copper", "osmium", "tin", "lead", "uranium")) {
             for (String family : List.of("ores", "raw_materials", "storage_blocks/raw_",

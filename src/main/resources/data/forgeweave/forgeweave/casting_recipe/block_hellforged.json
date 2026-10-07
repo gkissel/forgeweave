@@ -9,6 +9,10 @@
     {
       "type": "neoforge:item_exists",
       "item": "neovitae:ingot_hellforged"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "neovitae:hellforged_block"
     }
   ]
 }
