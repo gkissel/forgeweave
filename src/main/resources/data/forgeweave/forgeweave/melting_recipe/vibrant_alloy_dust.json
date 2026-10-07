@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:dusts/vibrant_alloy"
+  },
+  "fluid": "forgeweave:molten_vibrant_alloy",
+  "amount": 144,
+  "temperature": 1400,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "enderio:vibrant_alloy_ingot"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:clumps/iesnium"
+  },
+  "fluid": "forgeweave:molten_iesnium",
+  "amount": 144,
+  "temperature": 1600,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "occultism:iesnium_ingot"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_bronze",
+  "amount": 1296,
+  "result": {
+    "id": "mekanism:block_bronze"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:block_bronze"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:dusts/cyanite"
+  },
+  "fluid": "forgeweave:molten_cyanite",
+  "amount": 144,
+  "temperature": 1400,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "bigreactors:cyanite_ingot"
+    }
+  ]
+}

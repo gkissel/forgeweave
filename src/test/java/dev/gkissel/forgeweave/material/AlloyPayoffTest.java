@@ -89,7 +89,8 @@ class AlloyPayoffTest {
      *       cobalt.
      * </ul>
      */
-    private static final Set<String> PARITY_SPECIALISTS = Set.of("rose_gold", "manyullyn", "queens_slime", "hepatizon");
+    // Electrum keeps its existing 50 durability / 12 speed specialist tradeoff.
+    private static final Set<String> PARITY_SPECIALISTS = Set.of("rose_gold", "manyullyn", "queens_slime", "hepatizon", "electrum");
 
     private static RegistryOps<JsonElement> ops;
     private static Map<String, Material> materials;

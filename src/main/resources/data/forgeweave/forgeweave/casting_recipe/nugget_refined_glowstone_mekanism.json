@@ -1,0 +1,17 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_nugget"
+  },
+  "fluid": "forgeweave:molten_refined_glowstone",
+  "amount": 16,
+  "result": {
+    "id": "mekanism:nugget_refined_glowstone"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:nugget_refined_glowstone"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "input": {
+    "tag": "c:ores/iesnium"
+  },
+  "fluid": "forgeweave:molten_iesnium",
+  "amount": 144,
+  "ore": true,
+  "temperature": 1600,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "occultism:iesnium_ingot"
+    }
+  ]
+}

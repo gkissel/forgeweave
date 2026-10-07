@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:small_dusts/energetic_alloy"
+  },
+  "fluid": "forgeweave:molten_energetic_alloy",
+  "amount": 36,
+  "temperature": 1200,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "enderio:energetic_alloy_ingot"
+    }
+  ]
+}

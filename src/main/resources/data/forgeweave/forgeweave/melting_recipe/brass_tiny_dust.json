@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:tiny_dusts/brass"
+  },
+  "fluid": "forgeweave:molten_brass",
+  "amount": 16,
+  "temperature": 1200,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "create:brass_ingot"
+    }
+  ]
+}

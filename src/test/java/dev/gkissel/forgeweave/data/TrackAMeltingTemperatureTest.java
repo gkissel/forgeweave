@@ -60,7 +60,9 @@ class TrackAMeltingTemperatureTest {
      * concrete-item input can't safely gain an {@code neoforge:or} branch (see {@code
      * quartz_enriched_iron_eternalores.json}'s sibling file and {@code EternalOresGameTests}).
      */
-    private static final List<String> FORM_SUFFIXES = List.of("_ingot", "_nugget", "_block", "_raw", "_eternalores");
+    private static final List<String> FORM_SUFFIXES = List.of("_raw_block", "_small_dust", "_tiny_dust",
+            "_dirty_dust", "_ingot", "_nugget", "_block", "_raw", "_ore", "_dust", "_clump",
+            "_shard", "_crystal", "_fragment", "_gravel", "_eternalores");
 
     @Test
     void everyTrackAMeltingRecipeCarriesItsTableTemperature() throws IOException {
@@ -97,6 +99,7 @@ class TrackAMeltingTemperatureTest {
 
     private static String materialIdFor(String fileName) {
         String stem = fileName.substring(0, fileName.length() - ".json".length());
+        stem = stem.replace("_immersiveengineering", "");
         for (String suffix : FORM_SUFFIXES) {
             if (stem.endsWith(suffix)) {
                 return stem.substring(0, stem.length() - suffix.length());

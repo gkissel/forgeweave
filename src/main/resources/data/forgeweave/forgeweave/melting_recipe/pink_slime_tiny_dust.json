@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:tiny_dusts/pink_slime"
+  },
+  "fluid": "forgeweave:molten_pink_slime",
+  "amount": 16,
+  "temperature": 1400,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "industrialforegoing:pink_slime_ingot"
+    }
+  ]
+}

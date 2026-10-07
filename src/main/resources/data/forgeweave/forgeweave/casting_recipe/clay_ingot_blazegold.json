@@ -13,6 +13,10 @@
     {
       "type": "neoforge:item_exists",
       "item": "justdirethings:blazegold_ingot"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:ingot_tin"
     }
   ]
 }

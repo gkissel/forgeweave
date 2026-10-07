@@ -13,6 +13,10 @@
     {
       "type": "neoforge:item_exists",
       "item": "justdirethings:eclipsealloy_ingot"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:ingot_tin"
     }
   ]
 }

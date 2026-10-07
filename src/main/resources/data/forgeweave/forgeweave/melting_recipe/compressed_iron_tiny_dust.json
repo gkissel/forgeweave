@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:tiny_dusts/compressed_iron"
+  },
+  "fluid": "forgeweave:molten_compressed_iron",
+  "amount": 16,
+  "temperature": 1200,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "pneumaticcraft:ingot_iron_compressed"
+    }
+  ]
+}

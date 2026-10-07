@@ -22,6 +22,10 @@
           "item": "eternalores:quartz_enriched_iron_ingot"
         }
       ]
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "refinedstorage:quartz_enriched_iron"
     }
   ]
 }

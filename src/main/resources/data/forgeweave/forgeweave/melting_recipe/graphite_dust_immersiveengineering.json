@@ -1,0 +1,27 @@
+{
+  "input": {
+    "tag": "c:dusts/hop_graphite"
+  },
+  "fluid": "forgeweave:molten_graphite",
+  "amount": 144,
+  "temperature": 1200,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "bigreactors:graphite_ingot"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:graphite_ingot"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "immersiveengineering:ingot_hop_graphite"
+        }
+      ]
+    }
+  ]
+}

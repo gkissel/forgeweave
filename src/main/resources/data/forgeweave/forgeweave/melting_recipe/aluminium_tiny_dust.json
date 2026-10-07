@@ -1,0 +1,28 @@
+{
+  "input": [
+    {
+      "tag": "c:tiny_dusts/aluminium"
+    },
+    {
+      "tag": "c:tiny_dusts/aluminum"
+    }
+  ],
+  "fluid": "forgeweave:molten_aluminium",
+  "amount": 16,
+  "temperature": 1200,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "immersiveengineering:ingot_aluminum"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:aluminum_ingot"
+        }
+      ]
+    }
+  ]
+}

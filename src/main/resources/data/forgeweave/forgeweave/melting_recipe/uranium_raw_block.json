@@ -1,0 +1,32 @@
+{
+  "input": {
+    "tag": "c:storage_blocks/raw_uranium"
+  },
+  "fluid": "forgeweave:molten_uranium",
+  "amount": 1296,
+  "ore": true,
+  "temperature": 1400,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "mekanism:ingot_uranium"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "immersiveengineering:ingot_uranium"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "bigreactors:yellorium_ingot"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:uranium_ingot"
+        }
+      ]
+    }
+  ]
+}

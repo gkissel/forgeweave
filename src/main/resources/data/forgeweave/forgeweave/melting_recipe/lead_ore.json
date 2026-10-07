@@ -1,0 +1,28 @@
+{
+  "input": {
+    "tag": "c:ores/lead"
+  },
+  "fluid": "forgeweave:molten_lead",
+  "amount": 144,
+  "ore": true,
+  "temperature": 1200,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "mekanism:ingot_lead"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "immersiveengineering:ingot_lead"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:lead_ingot"
+        }
+      ]
+    }
+  ]
+}

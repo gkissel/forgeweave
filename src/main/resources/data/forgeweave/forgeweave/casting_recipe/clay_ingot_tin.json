@@ -22,6 +22,10 @@
           "item": "eternalores:tin_ingot"
         }
       ]
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "mekanism:ingot_tin"
     }
   ]
 }

@@ -71,7 +71,8 @@ def family_of(material: str) -> str:
         return "organico"
     if material in {"draconium", "draconium_awakened", "draconium_core", "wyvern",
                     "awakened", "chaotic", "dark_matter", "red_matter", "infinity",
-                    "cosmic_neutronium", "awakened_supremium"}:
+                    "cosmic_neutronium", "awakened_supremium", "infused_alloy",
+                    "reinforced_alloy", "atomic_alloy"}:
         return "energia"
     return "metal"
 

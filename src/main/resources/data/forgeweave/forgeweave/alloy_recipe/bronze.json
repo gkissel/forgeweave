@@ -1,0 +1,44 @@
+{
+  "inputs": [
+    {
+      "fluid": "forgeweave:molten_copper",
+      "amount": 3
+    },
+    {
+      "fluid": "forgeweave:molten_tin",
+      "amount": 1
+    }
+  ],
+  "result": {
+    "fluid": "forgeweave:molten_bronze",
+    "amount": 4
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "mekanism:ingot_bronze"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:bronze_ingot"
+        }
+      ]
+    },
+    {
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "mekanism:ingot_tin"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:tin_ingot"
+        }
+      ]
+    }
+  ]
+}

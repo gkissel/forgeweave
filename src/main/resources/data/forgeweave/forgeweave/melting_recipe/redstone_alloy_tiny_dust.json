@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:tiny_dusts/redstone_alloy"
+  },
+  "fluid": "forgeweave:molten_redstone_alloy",
+  "amount": 16,
+  "temperature": 1200,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "enderio:redstone_alloy_ingot"
+    }
+  ]
+}

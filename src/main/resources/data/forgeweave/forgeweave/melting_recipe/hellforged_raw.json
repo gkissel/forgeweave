@@ -1,0 +1,19 @@
+{
+  "input": {
+    "item": "neovitae:raw_demonite"
+  },
+  "fluid": "forgeweave:molten_hellforged",
+  "amount": 144,
+  "temperature": 1600,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "neovitae:raw_demonite"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "neovitae:ingot_hellforged"
+    }
+  ],
+  "ore": true
+}

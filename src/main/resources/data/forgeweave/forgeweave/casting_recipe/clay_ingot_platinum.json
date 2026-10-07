@@ -22,6 +22,10 @@
           "item": "eternalores:platinum_ingot"
         }
       ]
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "modern_industrialization:platinum_ingot"
     }
   ]
 }

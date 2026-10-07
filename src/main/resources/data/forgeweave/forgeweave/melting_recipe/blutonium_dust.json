@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:dusts/blutonium"
+  },
+  "fluid": "forgeweave:molten_blutonium",
+  "amount": 144,
+  "temperature": 1400,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "bigreactors:blutonium_ingot"
+    }
+  ]
+}

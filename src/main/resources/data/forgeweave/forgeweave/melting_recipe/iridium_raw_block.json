@@ -1,0 +1,24 @@
+{
+  "input": {
+    "tag": "c:storage_blocks/raw_iridium"
+  },
+  "fluid": "forgeweave:molten_iridium",
+  "amount": 1296,
+  "ore": true,
+  "temperature": 1600,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:or",
+      "values": [
+        {
+          "type": "neoforge:item_exists",
+          "item": "modern_industrialization:iridium_ingot"
+        },
+        {
+          "type": "neoforge:item_exists",
+          "item": "eternalores:iridium_ingot"
+        }
+      ]
+    }
+  ]
+}

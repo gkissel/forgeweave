@@ -22,6 +22,10 @@
           "item": "eternalores:nickel_ingot"
         }
       ]
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "immersiveengineering:ingot_nickel"
     }
   ]
 }
