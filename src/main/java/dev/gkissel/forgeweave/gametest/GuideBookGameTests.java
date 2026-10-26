@@ -5,6 +5,7 @@ import java.util.List;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
@@ -23,6 +24,8 @@ import dev.gkissel.forgeweave.client.StationText;
 import dev.gkissel.forgeweave.client.book.BookContent;
 import dev.gkissel.forgeweave.client.book.BookPage;
 import dev.gkissel.forgeweave.client.book.BookSection;
+import dev.gkissel.forgeweave.client.book.MaterialPageContent;
+import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.SavedBookPagePayload;
@@ -86,6 +89,88 @@ public class GuideBookGameTests {
         helper.assertFalse(StationText.bowStats(iron.material()).isEmpty(),
                 "iron carries the BOW block, so its book page must show the bow limb rows");
         helper.succeed();
+    }
+
+    /**
+     * Playtest checklist 1.0.0, line 100, the manyullyn half: the page reads "Stage: Deep alloys"
+     * and "Alloyed from:" over "2 parts Molten Cobalt" and "2 parts Molten Ardite", and each row
+     * links to its input's page. The rows come from the shipped {@code alloy_recipe/manyullyn.json}
+     * through the server's own registries, the same ones the client receives on join. A row links
+     * when its material id names a page in the materials chapter, so both ids must have one.
+     */
+    @GameTest(template = "empty")
+    public static void theManyullynPageShowsItsStageAndLinkedAlloyInputs(GameTestHelper helper) {
+        List<BookPage> materialPages = pagesOf(helper, "book.forgeweave.section.materials");
+        BookPage.MaterialPage manyullyn = materialPage(helper, materialPages, "manyullyn");
+
+        helper.assertValueEqual(MaterialPageContent.stageLine(manyullyn.stage()).getString(), "Stage: Deep alloys",
+                "manyullyn's stage line");
+        MaterialPageContent.Made made = madeFrom(helper, manyullyn);
+        helper.assertValueEqual(made.headerKey(), MaterialPageContent.MADE_BY_ALLOYING, "manyullyn's made-from header");
+        helper.assertValueEqual(Component.translatable(made.headerKey()).getString(), "Alloyed from:",
+                "manyullyn's made-from header text");
+        helper.assertValueEqual(made.sources().stream().map(source -> source.label().getString()).toList(),
+                List.of("2 parts Molten Cobalt", "2 parts Molten Ardite"), "manyullyn's alloy rows");
+        for (MaterialPageContent.Source source : made.sources()) {
+            helper.assertTrue(source.material() != null, "the row " + source.label().getString() + " links nowhere");
+            materialPage(helper, materialPages, source.material().getPath());
+        }
+        helper.assertValueEqual(made.sources().stream().map(source -> source.material().getPath()).toList(),
+                List.of("cobalt", "ardite"), "the pages manyullyn's rows link to");
+        helper.succeed();
+    }
+
+    /**
+     * Playtest checklist 1.0.0, line 100, the iron half: iron is not an alloy, so its page reads
+     * "Melts from:" instead. The iron ingot leads because it is iron's repair item, and the list
+     * stops at {@link MaterialPageContent#MELTING_SOURCES} (3) rows even though iron melts out
+     * of far more items than that. Melting rows are plain text, not links.
+     */
+    @GameTest(template = "empty")
+    public static void theIronPageListsTheIngotFirstAndAtMostThreeMelts(GameTestHelper helper) {
+        BookPage.MaterialPage iron = materialPage(helper, pagesOf(helper, "book.forgeweave.section.materials"), "iron");
+
+        MaterialPageContent.Made made = madeFrom(helper, iron);
+
+        helper.assertValueEqual(made.headerKey(), MaterialPageContent.MADE_BY_MELTING, "iron's made-from header");
+        helper.assertValueEqual(Component.translatable(made.headerKey()).getString(), "Melts from:",
+                "iron's made-from header text");
+        helper.assertTrue(!made.sources().isEmpty() && made.sources().size() <= 3,
+                "expected 1 to 3 melting rows on the iron page, got " + made.sources().size());
+        helper.assertTrue(made.sources().get(0).icon().is(Items.IRON_INGOT),
+                "expected the iron ingot first, got " + made.sources().get(0).icon());
+        helper.assertTrue(made.sources().stream().allMatch(source -> source.material() == null),
+                "melting rows are not links");
+        helper.succeed();
+    }
+
+    /**
+     * Playtest checklist 1.0.0, line 58: the quakestone page's second "Alloyed from" row reads "144
+     * parts Molten Basalt", and the bucket's name is "Molten Basalt Bucket". Before #1121 the fluid
+     * had no lang key and the row showed {@code fluid_type.forgeweave.molten_basalt}. The row comes
+     * from the shipped {@code alloy_recipe/quakestone.json} (144 fulmenite, 144 basalt); quakestone
+     * also has a second recipe with brimspar, and the page must show the basalt one.
+     */
+    @GameTest(template = "empty")
+    public static void theQuakestonePageNamesMoltenBasalt(GameTestHelper helper) {
+        BookPage.MaterialPage quakestone = materialPage(helper,
+                pagesOf(helper, "book.forgeweave.section.materials"), "quakestone");
+
+        MaterialPageContent.Made made = madeFrom(helper, quakestone);
+
+        helper.assertValueEqual(made.headerKey(), MaterialPageContent.MADE_BY_ALLOYING, "quakestone's made-from header");
+        helper.assertTrue(made.sources().size() >= 2, "expected at least 2 alloy rows, got " + made.sources().size());
+        helper.assertValueEqual(made.sources().get(1).label().getString(), "144 parts Molten Basalt",
+                "quakestone's second alloy row");
+        helper.assertValueEqual(
+                new ItemStack(ForgeweaveFluids.BASALT.bucket().get()).getHoverName().getString(),
+                "Molten Basalt Bucket", "the molten basalt bucket's name");
+        helper.succeed();
+    }
+
+    private static MaterialPageContent.Made madeFrom(GameTestHelper helper, BookPage.MaterialPage page) {
+        return MaterialPageContent.madeFrom(helper.getLevel().registryAccess(), page.id(), page.material())
+                .orElseThrow(() -> new AssertionError("the " + page.id() + " page has no made-from block"));
     }
 
     private static List<BookPage> pagesOf(GameTestHelper helper, String sectionKey) {
