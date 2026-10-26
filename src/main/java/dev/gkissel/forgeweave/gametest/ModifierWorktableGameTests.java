@@ -11,7 +11,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.level.GameType;
 
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -22,6 +21,7 @@ import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.ModifierWorktableBlockEntity;
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
+import dev.gkissel.forgeweave.compat.apotheosis.GemSockets;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.menu.ModifierWorktableMenu;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
@@ -250,7 +250,7 @@ public class ModifierWorktableGameTests {
 
         ItemStack seated = empty.copy();
         seated.set(ForgeweaveDataComponents.SOCKETS.get(),
-                ItemContainerContents.fromItems(List.of(new ItemStack(Items.DIAMOND))));
+                GemSockets.of(List.of(new ItemStack(Items.DIAMOND))));
         helper.assertTrue(Worktable.options(seated, WorktableRecipe.Kind.REMOVE).isEmpty(),
                 "a socket holding a gem must not be offered, got "
                         + Worktable.options(seated, WorktableRecipe.Kind.REMOVE));
