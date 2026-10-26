@@ -1,0 +1,15 @@
+# Log lines the screenshot harness's log scan ignores (client/HarnessChecks.java).
+#
+# The scan fails the run on any WARN or ERROR line in the harness's own logs/latest.log that names
+# Forgeweave: a forgeweave logger, or "forgeweave" anywhere in the line. List known noise here, one
+# Java regular expression per line, matched anywhere in the log line. Keep each entry narrow and say
+# why it is here, so it can be deleted the day the noise goes away.
+
+# The fluid blocks (molten_*, blood, blazing_blood, deep_blood, blue_slime, purple_slime) have no
+# blockstate file, so every level of every one warns at model load. Being fixed separately (checklist
+# line 8); delete this entry once their blockstates land.
+BlockStateModelLoader.*'forgeweave:blockstates/[a-z_]+\.json' missing model for variant: 'forgeweave:[a-z_]+#level=\d+'
+
+# Upstream 1.12's liquid_stone strip has 32 frames and its .mcmeta plays 20 of them; the derived copy
+# keeps both as they are (NOTICE.md row, issue #233), and 1.21 warns about the 12 unused frames.
+SpriteContents.*Unused frames in sprite forgeweave:derived/block/liquid_stone:
