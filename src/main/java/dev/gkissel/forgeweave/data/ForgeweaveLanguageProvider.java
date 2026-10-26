@@ -2424,8 +2424,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.projectile_protection.description", "Turns arrows aside: 4 protection against projectile damage "
                 + "per piece worn, 16 across a full set, and 5% knockback resistance for the set.");
         add("trait.forgeweave.depth_protection.name", "Depth Protection");
-        add("trait.forgeweave.depth_protection.description", "3 protection a piece at Y=0, twice that at Y=-64 and below, "
-                + "nothing between Y=64 and Y=96, and up to 3 a piece against you from Y=160 down.");
+        add("trait.forgeweave.depth_protection.description", "3 protection a piece at Y=0 and 12 across a full set, twice that "
+                + "at Y=-64 and below, nothing between Y=64 and Y=96, and above that a penalty that grows to 3 a "
+                + "piece, 12 across a full set, at Y=160 and up.");
         add("trait.forgeweave.blast_protection.name", "Blast Protection");
         add("trait.forgeweave.blast_protection.description", "Soaks up a blast: 4 protection against explosion damage per "
                 + "piece worn, 16 across a full set.");
@@ -2446,7 +2447,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.warded.description", "While the wearer is at full health, 2 damage comes off the blow after "
                 + "armor.");
         add("trait.forgeweave.crystalstrike.name", "Crystalstrike");
-        add("trait.forgeweave.crystalstrike.description", "15% more attack speed per piece worn, and the knockback you take snaps to a fixed direction.");
+        add("trait.forgeweave.crystalstrike.description", "15% more attack speed per piece worn, 60% with a full set, and the knockback you take "
+                + "snaps to a fixed direction.");
         add("trait.forgeweave.consecrated.name", "Consecrated");
         add("trait.forgeweave.consecrated.description", "Hallowed silver: 3 protection against the undead per piece worn, 12 "
                 + "across a full set.");
@@ -3556,7 +3558,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Tool remains in your inventory after death", "One level only",
                 "Costs no modifier slot");
         modifierEffects("luck",
-                "Adds fortune or looting", "Tool use has a chance to increase the luck",
+                "Adds fortune or looting", "Tool use has a chance to increase the luck", "Up to 3 levels",
                 "Costs 1 modifier slot in total, whatever the level");
         modifierEffects("smite",
                 "Deals massive damage to undead enemies", "Up to 5 levels", "Costs 1 modifier slot per level");
@@ -3588,13 +3590,16 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Adding more Obsidian increases the chance of decapitation", "Up to 10 levels",
                 "Costs 1 modifier slot per level");
         modifierEffects("glowing",
-                "Places a lightsource on low light level", "Costs durability", "Costs 1 modifier slot");
+                "Places a lightsource on low light level", "Costs durability", "One level only",
+                "Costs 1 modifier slot");
         modifierEffects("harvest_width",
                 "Increases the width of the area affected", "Only affects blocks",
-                "Does not work for weapons", "Can be combined with Height++", "Costs 1 modifier slot");
+                "Does not work for weapons", "Can be combined with Height++", "One level only",
+                "Costs 1 modifier slot");
         modifierEffects("harvest_height",
                 "Increases the height of the area affected", "Only affects blocks",
-                "Does not work for weapons", "Can be combined with Width++", "Costs 1 modifier slot");
+                "Does not work for weapons", "Can be combined with Width++", "One level only",
+                "Costs 1 modifier slot");
         // The #651 content tail -- the modifiers upstream's book has no bullets for (the #108
         // modern-vanilla batch, #223's wind burst, the extra slot). Original wording off each
         // modifier's implementation and its modifier_recipe's max_level (ForgeweaveModifiers).
@@ -3613,23 +3618,23 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // speed, explosion knockback) and with the single slot pool in place of defense slots.
         modifierEffects("fire_protection",
                 "Grants +10% resistance against fire damage, such as from lava or blazes",
-                "Caps at 80% across the whole set", "Can apply levels incrementally",
+                "Caps at 80% across the whole set", "Up to 8 levels, applied incrementally",
                 "Costs 1 modifier slot per level");
         modifierEffects("blast_protection",
                 "Grants +10% resistance against explosion damage, such as from creepers or TNT",
-                "Caps at 80% across the whole set", "Can apply levels incrementally",
+                "Caps at 80% across the whole set", "Up to 8 levels, applied incrementally",
                 "Costs 1 modifier slot per level");
         modifierEffects("magic_protection",
                 "Grants +10% resistance against magic damage, such as from poison or thorns",
-                "Caps at 80% across the whole set", "Can apply levels incrementally",
+                "Caps at 80% across the whole set", "Up to 8 levels, applied incrementally",
                 "Costs 1 modifier slot per level");
         modifierEffects("melee_protection",
                 "Grants +8% resistance against melee damage, such as from zombies and swords",
-                "Caps at 80% across the whole set", "Can apply levels incrementally",
+                "Caps at 80% across the whole set", "Up to 10 levels, applied incrementally",
                 "Costs 1 modifier slot per level");
         modifierEffects("projectile_protection",
                 "Grants +8% resistance against projectile damage, such as arrows from skeletons",
-                "Caps at 80% across the whole set", "Can apply levels incrementally",
+                "Caps at 80% across the whole set", "Up to 10 levels, applied incrementally",
                 "Costs 1 modifier slot per level");
         modifierEffects("knockback_resistance",
                 "Reduces the amount of knockback received by 10%", "Maximum of 1 level per piece",
@@ -3682,7 +3687,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // registry by #654 after #658's port): its three bullets, verbatim -- the first is exactly
         // what ArrowEntity#getWaterInertia implements, the other two are upstream's own jokes.
         modifierEffects("fins",
-                "Projectiles ignore water", "Logical", "Makes sense", "Costs 1 modifier slot");
+                "Projectiles ignore water", "Logical", "Makes sense", "One level only", "Costs 1 modifier slot");
         // Issue #996 (D-M8-17) -- Forgeweave original built on Powah's own crystal ladder.
         modifierEffects("surgebound",
                 "Grants +25% energy capacity and +5% mining speed per level",
@@ -3794,7 +3799,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 + "have dealt.");
         add("trait.forgeweave.bracingplate.name", "Bracing Plate");
         add("trait.forgeweave.bracingplate.description", "Protection builds on every piece worn with every blow taken, up to "
-                + "%s points each, and lapses 6 seconds after they stop.");
+                + "%s points each and %s across a full set, and lapses 6 seconds after they stop.");
         add("trait.forgeweave.lastbreath.name", "Last Breath");
         add("trait.forgeweave.lastbreath.description", "A killing blow is spent on the armor instead, for 100 durability, "
                 + "once every 5 minutes.");
@@ -3903,7 +3908,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.warcharge.description", "Every kill banks a charge, up to %s. Your next blow spends the whole "
                 + "bank for %s damage a charge, so a full bank is worth %s. Lapses after 20 seconds.");
         add("trait.forgeweave.backlash.name", "Backlash");
-        add("trait.forgeweave.backlash.description", "Each piece worn stores %s%% of every blow it takes. At %s damage stored "
+        add("trait.forgeweave.backlash.description", "Each piece worn stores %s%% of every blow it takes, %s%% across a full set. At %s damage "
+                + "stored "
                 + "the piece erupts, dealing the whole store to everything within %s blocks and shoving it back.");
         add("trait.forgeweave.sunforged.name", "Sunforged");
         add("trait.forgeweave.sunforged.description", "Mines %s%% faster under open daylight, and %s%% slower out of the sun.");
