@@ -159,7 +159,7 @@ or a SKIP whose reason you accept (a CurseForge-only jar you don't have). `scrip
 lists the passes and the checklist lines each one covers. The `Compat matrix` workflow runs the same
 thing on every push to a `release/**` branch, for the packs whose jars all download from Modrinth, so
 the packs that need a jar Modrinth doesn't carry (Just Dire Things, Twilight Forest, Ice and Fire,
-Elementarium's corelib) only ever run locally.
+Catalyst-Studios' Eternal Ores, Elementarium's corelib) only ever run locally.
 
 ## Publishing
 

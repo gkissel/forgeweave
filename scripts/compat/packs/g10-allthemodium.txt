@@ -8,3 +8,5 @@ mod modrinth geckolib 4.9.3 8dfa5f8c57224a5e34e5098367ea9819ca6dc9c11357cd3062c1
 
 material forgeweave:allthemodium forgeweave:vibranium forgeweave:unobtainium forgeweave:vibranium_allthemodium_alloy
 material forgeweave:unobtainium_allthemodium_alloy forgeweave:unobtainium_vibranium_alloy
+recipes 2098
+materials 86

@@ -1,7 +1,10 @@
 # Group 12 (line 228): JEI, Eternal Ores and Mekanism: both provide tin, which stays one material.
 
 mod modrinth jei 19.43.0.393 04ea7c24a00b980851a34b71899c44731df5b830feafe4172641ae5f42432aabd34ba2ea57fa8f0577823bed0212c4214d409a8ea2060038deed0e8e7e237e81 jei-1.21.1-neoforge-19.43.0.393.jar
-mod modrinth eternal-ores 1.0.32 6a509e6e34a5ecd6256bb90813d7a4aa80d7da92be3bb7ade9d36e265f709d6000fbf837c89f41e2384ec302cd015c3ab04ac35067322850752f1eadf135846b eternalores-1.0.32-neoforge-1.21.1.jar
+# Eternal Ores here is Catalyst-Studios/Eternal-Ores 2.1 (docs/SCOPE.md D-M8-21), a CurseForge jar. The
+# Modrinth project "eternal-ores" 1.0.32 in partner-mods/ shares its mod id but is a different mod, with
+# none of the metals Forgeweave dedupes, so it is not used. A SKIP until the real jar is staged.
+mod local - *ernal*res*2.1*.jar
 mod modrinth mekanism 10.7.19.85 66745825330a98f3e4a5ea3a44aff8b00870f715c144edc38dd2f61b4240589600b58ae89efac3b54dbb5aa430b1059dac1a28fd71cac5cc9002bbeb5ba3f22b Mekanism-1.21.1-10.7.19.85.jar
 
 material forgeweave:tin forgeweave:osmium forgeweave:lead forgeweave:uranium forgeweave:bronze

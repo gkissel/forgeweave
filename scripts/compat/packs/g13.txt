@@ -35,3 +35,6 @@ material forgeweave:empowered_restonia_crystal forgeweave:empowered_palis_crysta
 material forgeweave:empowered_void_crystal forgeweave:empowered_emeradic_crystal forgeweave:empowered_enori_crystal
 material forgeweave:blutonium forgeweave:cyanite forgeweave:ludicrite forgeweave:silver
 no-material forgeweave:alumite forgeweave:constantan forgeweave:electrum forgeweave:nickel
+recipes 5508
+recipes-off 5508
+materials 122

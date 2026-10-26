@@ -59,10 +59,15 @@ One directive per line; `#` starts a comment.
 The runner refuses a pack that loads JEI with EMI, Jade with WTHIT, or Better Combat with Epic Fight. A
 count the pack doesn't pin still shows in the summary, which is how to pin a new pack: run it once and
 copy the numbers in. The jar hashes come from `fw-release-1.0.0/partner-mods/MANIFEST.md`'s
-Modrinth-verified files; Just Dire Things and Twilight Forest are local-only. Two packs stay a SKIP until
-someone stages a jar: `g13-iceandfire.txt` (Ice and Fire) and `g10.txt` (Elementarium 1.2.0 requires
-`navaronee_corelib`, which Modrinth doesn't carry). `g10-allthemodium.txt` runs group 10's Allthemodium
-half meanwhile.
+Modrinth-verified files; Just Dire Things and Twilight Forest are local-only. Four packs stay a SKIP
+until someone stages a jar:
+
+- `g10.txt`: Elementarium 1.2.0 requires `navaronee_corelib`, which Modrinth doesn't carry.
+  `g10-allthemodium.txt` runs group 10's Allthemodium half meanwhile.
+- `g11.txt` and `g12.txt`: they need Catalyst-Studios' Eternal Ores 2.1. The Modrinth `eternal-ores`
+  1.0.32 jar in `partner-mods/` has the same mod id but is a different mod, with none of the metals
+  Forgeweave dedupes. `g11-justdirethings.txt` runs group 11's Just Dire Things half meanwhile.
+- `g13-iceandfire.txt`: no Ice and Fire jar is staged.
 
 ## The previous-release world
 
