@@ -197,25 +197,26 @@ public final class ForgeweaveConfig {
     public static final ModConfigSpec.BooleanValue MELEE_WEAPONS;
 
     /**
-     * Registered now, with no behavior behind it yet: docs/SCOPE.md M3.5 is what adds the bows and
-     * crossbows this would gate, and it wires this key up when it lands. Shipping the key early
-     * keeps a pack's config file stable across that milestone instead of growing a new section.
+     * The ranged family: the shortbow, longbow, crossbow, shuriken and arrows, gated the same way
+     * as {@link #HARVEST_TOOLS}.
      *
      * @see #HARVEST_TOOLS
      */
     public static final ModConfigSpec.BooleanValue RANGED_WEAPONS;
 
     /**
-     * Registered now, with no behavior behind it yet -- docs/SCOPE.md M4 (armor) wires it up.
+     * The armor family: the plate and heavy helmet, chestplate, leggings and boots, and the parts that
+     * serve only them, gated the same way as {@link #HARVEST_TOOLS}.
      *
-     * @see #RANGED_WEAPONS
+     * @see #HARVEST_TOOLS
      */
     public static final ModConfigSpec.BooleanValue ARMOR;
 
     /**
-     * Registered now, with no behavior behind it yet -- docs/SCOPE.md M5 (gadgets) wires it up.
+     * The gadgets family, which is the Slimesling in every colour. Off, its crafting recipes stop
+     * matching and it leaves the creative tab; a sling already in a world still works.
      *
-     * @see #RANGED_WEAPONS
+     * @see #HARVEST_TOOLS
      */
     public static final ModConfigSpec.BooleanValue GADGETS;
 
@@ -954,15 +955,15 @@ public final class ForgeweaveConfig {
                         "battleaxe, scimitar, katana, warmace, cleaver) can be assembled and obtained.")
                 .define("meleeWeapons", true);
         RANGED_WEAPONS = builder
-                .comment("If true, ranged weapons (shortbow) can be assembled and obtained.")
+                .comment("If true, ranged weapons (shortbow, longbow, crossbow, shuriken, arrows) can be assembled",
+                        "and obtained.")
                 .define("rangedWeapons", true);
         ARMOR = builder
-                .comment("If true, armor can be assembled and obtained. Reserved: Forgeweave ships no armor yet,",
-                        "so this has no effect until it lands.")
+                .comment("If true, armor (helmet, chestplate, leggings and boots, plate and heavy) can be assembled",
+                        "and obtained.")
                 .define("armor", true);
         GADGETS = builder
-                .comment("If true, gadgets can be assembled and obtained. Reserved: Forgeweave ships no gadgets",
-                        "yet, so this has no effect until they land.")
+                .comment("If true, gadgets (the Slimesling, in every colour) can be crafted and obtained.")
                 .define("gadgets", true);
         SMELTERY = builder
                 .comment("If true, the smeltery melts, alloys and casts. With this off its blocks stay placeable",

@@ -54,7 +54,7 @@ import dev.gkissel.forgeweave.config.ForgeweaveConfig;
  * the reason {@code ForgeweaveItems} gives for every other vanilla tool class it declined. So a
  * Forgeweave bow never matches {@code bow}: assembled it falls through to {@code melee_weapon} on its
  * melee attack damage and would roll sword affixes, and bare it is {@code none}.
- * {@code data/apotheosis/data_maps/item/loot_category_overrides.json} names exactly the shortbow,
+ * {@code datapacks/apotheosis/data/apotheosis/data_maps/item/loot_category_overrides.json} names exactly the shortbow,
  * longbow and crossbow and nothing else, through Apotheosis' own documented override seam. Every
  * other shape is left to the walk, which lands each one where the vanilla tool of the same kind
  * lands: an axe and a hoe are {@code melee_weapon} in a vanilla world too, for the same missing

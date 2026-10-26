@@ -1868,6 +1868,14 @@ public final class ForgeweaveModifiers {
     }
 
     /**
+     * Ids a {@code modifier_recipe} names that are never stored on a tool, so have no behavior:
+     * fortification's flint half, the overslime refill and seating an Apotheosis gem. JEI and the
+     * Tool Station still look them up, and that must not log them as unknown (playtest 1.0.0 line 8).
+     */
+    public static final Set<ResourceLocation> RECIPE_MARKERS =
+            Set.of(Fortification.RECIPE_ID, OverslimeRefill.ID, ApotheosisSockets.SEAT_GEM_ID);
+
+    /**
      * The behavior for {@code id}, or {@code null} if this version doesn't implement it.
      *
      * <p><b>Unknown ids are kept, not dropped</b> (issue #105, favoring save safety): the entry stays
@@ -1892,7 +1900,7 @@ public final class ForgeweaveModifiers {
         if (modifier == null) {
             modifier = ModifierRegistry.modifier(id); // #1065: a partner mod's, ungated.
         }
-        if (modifier == null && WARNED_UNKNOWN.add(id)) {
+        if (modifier == null && !RECIPE_MARKERS.contains(id) && WARNED_UNKNOWN.add(id)) {
             LOGGER.warn("Unknown modifier '{}' on a tool; keeping it as inert data so it works again if a "
                     + "later version implements it (ADR-0004).", id);
         }

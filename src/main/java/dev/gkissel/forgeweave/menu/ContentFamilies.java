@@ -10,6 +10,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.ArmorPieceItem;
 import dev.gkissel.forgeweave.item.PartItem;
+import dev.gkissel.forgeweave.item.SlimeSlingItem;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 
@@ -83,8 +84,9 @@ public final class ContentFamilies {
 
     /**
      * Whether {@code item} is obtainable under the current family toggles: false for a tool of an off
-     * family, and for the parts, patterns and casts that serve only off families. Anything else --
-     * every block, ingot, fluid bucket and modifier item -- answers true, since no family owns it.
+     * family, for the parts, patterns and casts that serve only off families, and for a Slimesling
+     * while {@code gadgets} is off. Anything else -- every block, ingot, fluid bucket and modifier
+     * item -- answers true, since no family owns it.
      *
      * <p>Matched off the item's own registry name rather than off an item-to-family map: part items
      * are registered under the same id {@link ToolConstants.PartSlot#partId()} names, and their
@@ -98,6 +100,9 @@ public final class ContentFamilies {
                     .findFirst()
                     .map(ContentFamilies::toolEnabled)
                     .orElse(true);
+        }
+        if (item instanceof SlimeSlingItem) {
+            return ForgeweaveConfig.enabled(ForgeweaveConfig.GADGETS);
         }
         ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
         if (!id.getNamespace().equals(Forgeweave.MODID)) {

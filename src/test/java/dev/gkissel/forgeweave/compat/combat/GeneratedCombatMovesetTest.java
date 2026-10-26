@@ -64,10 +64,13 @@ class GeneratedCombatMovesetTest {
     private static final Set<String> EXPECTED_AMMO_IDS = Set.of("shuriken", "arrow");
 
     /**
-     * Vanilla parity (maintainer decision, 2026-09-18): Epic Fight ships no capability for vanilla's
-     * mace, the war mace delegates to that item, so it must have no Epic Fight weapons file either.
+     * Vanilla parity (maintainer decision, 2026-09-18): the war mace fights like vanilla's mace under
+     * both mods. Epic Fight 21.17.3.1 ships {@code data/minecraft/capabilities/weapons/mace.json} as an
+     * axe with armor_negation 50 and impact 3.5, so the war mace's own file carries the same values.
      */
-    private static final Set<String> NO_EPIC_FIGHT_FILE = Set.of("warmace");
+    private static final String WARMACE = "warmace";
+    private static final double VANILLA_MACE_ARMOR_NEGATION = 50.0;
+    private static final double VANILLA_MACE_IMPACT = 3.5;
 
     @BeforeAll
     static void bootstrapMinecraft() {
@@ -136,10 +139,6 @@ class GeneratedCombatMovesetTest {
             assertTrue(BC_PRESETS.contains(bcPreset), id + ": " + bcPreset + " is not a confirmed Better Combat preset");
 
             Path efFile = EF_WEAPON_DIR.resolve(id + ".json");
-            if (NO_EPIC_FIGHT_FILE.contains(id)) {
-                assertFalse(Files.isRegularFile(efFile), id + ": must fight like vanilla's mace under Epic Fight, with no capability file");
-                continue;
-            }
             assertTrue(Files.isRegularFile(efFile), "missing Epic Fight capabilities/weapons file for " + id);
             JsonObject ef = parse(efFile);
             assertTrue(ef.has("type"), id + ": capabilities/weapons file has no \"type\"");
@@ -181,9 +180,18 @@ class GeneratedCombatMovesetTest {
 
         // No orphan file for an id the registry doesn't know (a removed tool, a typo'd filename).
         assertEquals(weaponIds, idsInDir(BC_DIR), "weapon_attributes directory has files with no matching registered tool");
-        Set<String> epicFightIds = new java.util.TreeSet<>(weaponIds);
-        epicFightIds.removeAll(NO_EPIC_FIGHT_FILE);
-        assertEquals(epicFightIds, idsInDir(EF_WEAPON_DIR), "capabilities/weapons directory has files with no matching registered tool");
+        assertEquals(weaponIds, idsInDir(EF_WEAPON_DIR), "capabilities/weapons directory has files with no matching registered tool");
         assertEquals(armorIds, idsInDir(EF_ARMOR_DIR), "capabilities/armors directory has files with no matching registered armor piece");
+    }
+
+    @Test
+    void theWarmaceFightsLikeVanillasMaceUnderBothMods() throws IOException {
+        assertEquals("bettercombat:vanilla_mace", parse(BC_DIR.resolve(WARMACE + ".json")).get("parent").getAsString());
+
+        JsonObject ef = parse(EF_WEAPON_DIR.resolve(WARMACE + ".json"));
+        assertEquals("epicfight:axe", ef.get("type").getAsString());
+        JsonObject common = ef.getAsJsonObject("attributes").getAsJsonObject("common");
+        assertEquals(VANILLA_MACE_ARMOR_NEGATION, common.get("armor_negation").getAsDouble());
+        assertEquals(VANILLA_MACE_IMPACT, common.get("impact").getAsDouble());
     }
 }

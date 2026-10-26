@@ -36,7 +36,7 @@ class PowahHeatSourceTest {
 
     @Test
     void everyEntryMatchesTheFuelLaddersOwnTemperature() throws IOException {
-        Path file = projectRoot().resolve("src/main/resources/data/powah/data_maps/fluid/heat_source.json");
+        Path file = projectRoot().resolve("src/main/resources/datapacks/powah/data/powah/data_maps/fluid/heat_source.json");
         JsonObject values = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8))
                 .getAsJsonObject().getAsJsonObject("values");
 

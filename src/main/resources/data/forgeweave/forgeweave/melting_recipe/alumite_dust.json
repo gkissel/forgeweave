@@ -3,5 +3,12 @@
     "tag": "c:dusts/alumite"
   },
   "fluid": "forgeweave:molten_alumite",
-  "amount": 144
+  "amount": 144,
+  "temperature": 1400,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "immersiveengineering:ingot_aluminum"
+    }
+  ]
 }

@@ -2814,18 +2814,22 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // on day one), part exchange and leveling's teaser are new.
         add("book.forgeweave.intro.first_pickaxe.title", "Your First Pickaxe");
         add("book.forgeweave.intro.first_pickaxe.text",
-                "End to end, with nothing but wood.\n\n"
-                        + "One. Craft two planks and two sticks into four blank patterns.\n\n"
+                "End to end, with nothing but wood. Once the Stencil Table, Part Builder and Tool "
+                        + "Station stand, it takes two logs.\n\n"
+                        + "One. Turn the first log into four planks. Two of them make four sticks, and "
+                        + "the other two planks with two of those sticks make four blank patterns.\n\n"
                         + "Two. At the Stencil Table, stamp three of them: a pickaxe head, a tool "
                         + "handle and a tool binding.\n\n"
-                        + "Three. At the Part Builder, lay each stamped pattern beside a log and take "
-                        + "the carved part. The three parts come to four ingots' worth, which is one "
-                        + "log exactly.\n\n"
+                        + "Three. At the Part Builder, carve the head from the second log. A head costs "
+                        + "two ingots' worth and a log is worth four, so the builder hands back four "
+                        + "wood shards as change. Those shards pay for the handle and the binding, one "
+                        + "ingot's worth each.\n\n"
                         + "Four. At the Tool Station, pick the pickaxe from the sidebar, drop the three "
                         + "parts into their slots, read the stats, and take the finished tool.\n\n"
-                        + "A wooden head gives 35 durability, 2.0 mining speed and 2.0 attack. Swap the "
-                        + "head for cobblestone and it is 120, 4.0 and 3.0 instead, for four "
-                        + "cobblestone. Either one mines well enough to reach iron.");
+                        + "The wooden pickaxe has 75 durability, 2.0 mining speed and 2.0 attack. Carve "
+                        + "the head from two cobblestone instead and the pickaxe has 128 durability, "
+                        + "4.0 mining speed and 3.0 attack. Either one mines well enough to reach "
+                        + "iron.");
         add("book.forgeweave.intro.repairing.title", "Repairing");
         add("book.forgeweave.intro.repairing.text",
                 "As you use your tools they take damage, and once all of their durability is gone they "
@@ -3269,13 +3273,14 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Melting a metal is half the job. Casting is the other half, and it is three "
                         + "blocks.\n\n"
                         + "A Seared Drain in the smeltery's wall is the outlet. A Faucet placed on the "
-                        + "drain is the tap: right-click it and it pours one ingot's worth, 144, of "
-                        + "whichever melt the core has selected. Right-click again for the next 144.\n\n"
+                        + "drain is the tap: right-click it and it pours whichever melt the core has "
+                        + "selected, one ingot's worth (144) at a time, until whatever is below is "
+                        + "full. Right-click it again to stop it once the 144 in flight lands.\n\n"
                         + "Under the faucet goes one of two blocks. A Casting Table holds a cast and "
                         + "makes ingots and tool parts. A Casting Basin holds nothing and makes full "
                         + "blocks, at 1296 each, which is nine ingots.\n\n"
-                        + "Keep pouring until the table or basin is full, let it cool, then "
-                        + "right-click to take the result. The cast stays behind for the next pour.\n\n"
+                        + "Once the table or basin is full, let it cool, then right-click to take the "
+                        + "result. The cast stays behind for the next pour.\n\n"
                         + "A cast is the one thing on this page you cannot buy or mine. The next page "
                         + "is how one is made.");
         add("book.forgeweave.casting.first_cast.title", "Making a Cast");
@@ -3327,8 +3332,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "Three. Put iron ore in the smeltery. A Standard Core gives one and a half "
                         + "ingots' worth per ore, so two ore make 432 of molten iron and that is "
                         + "enough for a head with 144 spare.\n\n"
-                        + "Four. Set the cast on the table, select molten iron at the core, and work "
-                        + "the faucet twice. Take the iron pickaxe head.\n\n"
+                        + "Four. Set the cast on the table, select molten iron at the core, and "
+                        + "right-click the faucet once. It pours 144 twice and stops when the cast is "
+                        + "full. Take the iron pickaxe head.\n\n"
                         + "Five. Assemble at the Tool Station: iron head, stone handle, stone binding. "
                         + "The head is what sets the mining rung, so that is an iron-tier pickaxe even "
                         + "with stone holding it together.\n\n"
@@ -3696,6 +3702,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // Not an item/block/trait key family -- ForgeweaveResourcePacks#addPackFinders is the only
         // reader, via a bare Component.translatable, same as any other lang-keyed Component here.
         add("resourcepack.forgeweave.legacy", "Forgeweave Legacy Art");
+        // CompatDataPacks: the per-mod data packs' names in the data pack list.
+        add("datapack.forgeweave.apotheosis", "Forgeweave for Apotheosis");
+        add("datapack.forgeweave.powah", "Forgeweave for Powah");
 
         // M6 dedupe batch (issue #876): every material gets a distinct trait id. Own
         // names, own wording -- see ForgeweaveTraits for the mechanics.

@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -17,6 +18,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 
 import org.junit.jupiter.api.Test;
+
+import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 
 /**
  * Maintainer report 2026-09-19: the crafting station did not break easily with an axe. It, every other
@@ -50,6 +53,11 @@ class BlockToolCoverageTest {
             collect(root, "minecraft", "mineable/" + tool, covered, new HashSet<>());
         }
 
+        // Fluid blocks, like vanilla's water and lava: nothing mines a fluid. They have blockstates
+        // since playtest 1.0.0 line 8's missing-model WARNs.
+        Set<String> fluids = new HashSet<>();
+        ForgeweaveFluids.all().forEach(fluid -> fluids.add(fluid.block().getId().getPath()));
+
         List<String> uncovered = new ArrayList<>();
         for (String assets : List.of("src/generated/resources/assets", "src/main/resources/assets")) {
             Path states = root.resolve(assets).resolve("forgeweave/blockstates");
@@ -59,7 +67,8 @@ class BlockToolCoverageTest {
             try (Stream<Path> files = Files.list(states)) {
                 for (Path file : files.filter(p -> p.toString().endsWith(".json")).toList()) {
                     String name = file.getFileName().toString().replace(".json", "");
-                    boolean toolLess = TOOL_LESS.stream().anyMatch(p -> p.matcher(name).matches());
+                    boolean toolLess = fluids.contains(name)
+                            || TOOL_LESS.stream().anyMatch(p -> p.matcher(name).matches());
                     if (!toolLess && !covered.contains("forgeweave:" + name)) {
                         uncovered.add(name);
                     }
@@ -69,6 +78,31 @@ class BlockToolCoverageTest {
         assertTrue(uncovered.isEmpty(), "blocks in no minecraft:mineable/* tag and not listed as tool-less "
                 + "(tag them in ForgeweaveBlockTagsProvider, or add a TOOL_LESS pattern with the vanilla "
                 + "precedent): " + uncovered);
+    }
+
+    /**
+     * Playtest 1.0.0 line 8: atomic matter alloy names {@code forgeweave:incorrect_for_resonite_tool},
+     * which no data file defined, so every world load logged "Not all defined tags ... are present".
+     * Every Forgeweave tag a material's {@code incorrect_for_tool} names needs a file, even an empty one.
+     */
+    @Test
+    void everyIncorrectForToolTagAMaterialNamesIsDefined() throws IOException {
+        Path root = LocalizationAuditTest.projectRoot();
+        Set<String> missing = new TreeSet<>();
+        try (Stream<Path> files = Files.list(root.resolve("src/main/resources/data/forgeweave/forgeweave/material"))) {
+            for (Path file : files.filter(p -> p.toString().endsWith(".json")).toList()) {
+                JsonElement tag = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8))
+                        .getAsJsonObject().get("incorrect_for_tool");
+                if (tag == null || !tag.getAsString().startsWith("forgeweave:")) {
+                    continue;
+                }
+                String path = "forgeweave/tags/block/" + tag.getAsString().substring("forgeweave:".length()) + ".json";
+                if (DATA_ROOTS.stream().noneMatch(data -> Files.isRegularFile(root.resolve(data).resolve(path)))) {
+                    missing.add(tag.getAsString());
+                }
+            }
+        }
+        assertTrue(missing.isEmpty(), "material incorrect_for_tool tags with no tag file: " + missing);
     }
 
     /** Adds every block id the tag names to {@code out}, following nested {@code #} references. */

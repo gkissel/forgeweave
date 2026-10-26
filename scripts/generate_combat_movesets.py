@@ -9,7 +9,7 @@ whatever the stack's live `minecraft:attack_damage`/`attack_speed` attributes al
 `net.bettercombat.network.ServerNetwork`, version 2.3.1+1.21.1-neoforge). Epic Fight reads
 `itemstack.getAttributeModifiers()` directly and layers its own impact/armor-negation stats on top
 (`yesman.epicfight.world.capabilities.item.CapabilityItem#getAttributeModifiersAsWeapon`, version
-21.15.6-mc1.21.1-neoforge). Forgeweave already computes attack damage and speed per stack
+21.15.6-mc1.21.1-neoforge; the warmace row re-checked against the pinned 21.17.3.1-mc1.21.1-neoforge). Forgeweave already computes attack damage and speed per stack
 (`ToolItem#getDefaultAttributeModifiers`), so both mods see the real numbers with no Forgeweave-side
 Java seam -- no `compat/<mod>/` package, no config toggle. This mirrors D-M8-5's own carve-out and the
 Track A material preset precedent (docs/SCOPE.md: "existence gating already does the job a toggle
@@ -74,8 +74,8 @@ WEAPON_MOVESETS = [
      "exact match: Better Combat names the preset katana outright, Epic Fight's uchigatana is literally its katana-style type"),
     ("cleaver", "claymore", "greatsword",
      "a big blade with an extra plate riveted on and a tough handle reads as a heavy two-handed sword on both mods"),
-    ("warmace", "vanilla_mace", None,
-     "WarmaceItem's hurtEnemy/postHurtEnemy delegate straight to vanilla's MaceItem, so Better Combat's vanilla_mace preset (built for that exact vanilla item) is an exact behavioral match. Epic Fight ships no capability for vanilla's own mace at all (no weapons/mace.json, no mace item_keyword regex, no MaceItem case in CommonItemCapabilityProvider#registerWeaponTypesByClass, checked at 21.15.6-mc1.21.1-neoforge), and the maintainer decided on 2026-09-18 that the war mace behaves exactly like vanilla's mace under both mods, so it gets no Epic Fight file either. It stays the first candidate for a Forgeweave-owned move set"),
+    ("warmace", "vanilla_mace", "axe",
+     "WarmaceItem's hurtEnemy/postHurtEnemy delegate straight to vanilla's MaceItem, so Better Combat's vanilla_mace preset (built for that exact vanilla item) is an exact behavioral match. The maintainer decided on 2026-09-18 that the war mace behaves exactly like vanilla's mace under both mods. Epic Fight 21.15.6 shipped no capability for vanilla's mace, but the pinned 21.17.3.1 ships data/minecraft/capabilities/weapons/mace.json as an axe with armor_negation 50 and impact 3.5, so the war mace's file carries the same values (EF_ATTRIBUTES below). It stays the first candidate for a Forgeweave-owned move set"),
     ("battlesign", "staff", "axe",
      "a flat implement on a handle whose innate blocks and reflects. Epic Fight's shield type looked like a thematic match, but its own SHIELD moveset carries no addComboAttacks at all (only BLOCK/BLOCK_SHIELD pose modifiers), confirmed from EpicFightMovesets.java -- a main-hand item given that type could not attack. axe's real one-handed swing is the closest held-weapon animation available; the blocking/reflecting behavior stays Forgeweave's own DEFLECT innate through CombatSeams, off Epic Fight entirely. Better Combat has no shield-shaped preset either, so staff (its closest pole-mounted guard implement) stands in there"),
     ("frying_pan", "hammer", "axe",
@@ -111,6 +111,13 @@ WEAPON_MOVESETS = [
      "the slowest draw of all three launchers (45 ticks) fits Better Combat's heavy crossbow preset; Epic Fight's one crossbow type is an exact match"),
 ]
 
+# Epic Fight stats a weapon file carries on top of its type. The war mace gets the numbers Epic
+# Fight 21.17.3.1 gives vanilla's mace (data/minecraft/capabilities/weapons/mace.json), so the two
+# fight alike (maintainer decision, 2026-09-18). Forgeweave writes its own file with those values.
+EF_ATTRIBUTES = {
+    "warmace": {"armor_negation": 50.0, "impact": 3.5},
+}
+
 # The four light and four heavy armor pieces (Epic Fight only -- Better Combat has no armor schema at
 # all, confirmed from its source: `weapon_attributes` is the entirety of its datapack surface).
 # Weight and stun_armor are Forgeweave's own numbers (Epic Fight's own README: weight shortens stun
@@ -133,16 +140,13 @@ def weapon_files() -> int:
     count = 0
     for item_id, bc_preset, ef_type, _reasoning in WEAPON_MOVESETS:
         assert bc_preset in BC_PRESETS, f"{item_id}: {bc_preset!r} is not a confirmed Better Combat preset"
-        assert ef_type is None or ef_type in EF_TYPES, f"{item_id}: {ef_type!r} is not a confirmed Epic Fight weapon type"
+        assert ef_type in EF_TYPES, f"{item_id}: {ef_type!r} is not a confirmed Epic Fight weapon type"
         write_json(BC_DIR / f"{item_id}.json", {"parent": f"bettercombat:{bc_preset}"})
         count += 1
-        ef_file = EF_WEAPON_DIR / f"{item_id}.json"
-        if ef_type is None:
-            # Vanilla parity (maintainer decision, 2026-09-18): no Epic Fight capability at all, the
-            # same as the vanilla item this one delegates to.
-            ef_file.unlink(missing_ok=True)
-            continue
-        write_json(ef_file, {"type": f"epicfight:{ef_type}"})
+        capability = {"type": f"epicfight:{ef_type}"}
+        if item_id in EF_ATTRIBUTES:
+            capability = {"attributes": {"common": EF_ATTRIBUTES[item_id]}, **capability}
+        write_json(EF_WEAPON_DIR / f"{item_id}.json", capability)
         count += 1
     return count
 

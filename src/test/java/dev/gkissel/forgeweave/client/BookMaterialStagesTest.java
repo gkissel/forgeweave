@@ -37,6 +37,7 @@ import net.minecraft.world.level.material.Fluids;
 
 import dev.gkissel.forgeweave.client.book.BookContent;
 import dev.gkissel.forgeweave.client.book.BookLink;
+import dev.gkissel.forgeweave.client.book.BookMaterialOrder;
 import dev.gkissel.forgeweave.client.book.BookPage;
 import dev.gkissel.forgeweave.client.book.BookPage.IconGridPage;
 import dev.gkissel.forgeweave.client.book.BookPage.ListingPage;
@@ -207,6 +208,16 @@ class BookMaterialStagesTest {
         assertEquals(MaterialStage.ENDGAME,
                 new MaterialStage.Lookup(overrides, Map.of()).of(id, materials.get(id)),
                 "the shipped stage/endgame tag has to move it to the last stage");
+
+        // Playtest 1.0.0 line 102: in the right stage but listed first in it, ahead of truesteel,
+        // because its ingot is Forgeweave's own item and "atomic" sorts early by id.
+        MaterialStage.Lookup shipped = new MaterialStage.Lookup(overrides, shippedLookup().alloyDepth());
+        List<Map.Entry<ResourceLocation, Material>> endgame = BookMaterialOrder.byStage(shippedMaterials(), shipped)
+                .stream().filter(stage -> stage.stage() == MaterialStage.ENDGAME).findFirst().orElseThrow()
+                .materials();
+        assertTrue(endgame.size() > 1, "non-vacuity: the endgame stage holds more than atomic matter alloy");
+        assertEquals(id, endgame.get(endgame.size() - 1).getKey(),
+                "atomic matter alloy must be the last endgame entry, after truesteel");
     }
 
     /** Every {@code forgeweave:stage/<id>} material tag the mod's own datapack ships. */
@@ -248,8 +259,9 @@ class BookMaterialStagesTest {
         Map<ResourceLocation, Material> byId = new java.util.HashMap<>();
         shippedMaterials().forEach(entry -> byId.put(entry.getKey(), entry.getValue()));
 
-        // The documented key order: stage, then ranged-only last, then source mod ("" first), then
-        // the id path. Walking consecutive pairs proves the whole run without restating it.
+        // The documented key order: stage, then ranged-only last, then moved there by a stage tag,
+        // then source mod ("" first), then the id path. Walking consecutive pairs proves the whole
+        // run without restating it.
         for (int i = 1; i < once.size(); i++) {
             List<Comparable<?>> before = sortKey(lookup, byId, once.get(i - 1));
             List<Comparable<?>> after = sortKey(lookup, byId, once.get(i));
@@ -269,8 +281,9 @@ class BookMaterialStagesTest {
             Map<ResourceLocation, Material> byId, ResourceLocation id) {
         Material material = byId.get(id);
         return List.of(lookup.of(id, material).ordinal(),
-                dev.gkissel.forgeweave.client.book.BookMaterialOrder.rangedOnly(material) ? 1 : 0,
-                dev.gkissel.forgeweave.client.book.BookMaterialOrder.sourceMod(material),
+                BookMaterialOrder.rangedOnly(material) ? 1 : 0,
+                BookMaterialOrder.movedByTag(lookup, id) ? 1 : 0,
+                BookMaterialOrder.sourceMod(material),
                 id.getPath());
     }
 

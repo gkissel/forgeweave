@@ -14,6 +14,7 @@ import net.neoforged.neoforge.common.Tags;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SlimeColour;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.menu.ContentFamilies;
 
 /**
  * The Slimesling shape over mixed slime colours into the pink sling (issue #649, parity audit T57).
@@ -38,7 +39,7 @@ public class MixedSlimeSlingRecipe extends CustomRecipe {
 
     @Override
     public boolean matches(CraftingInput input, Level level) {
-        if (input.width() != 3 || input.height() != 3) {
+        if (input.width() != 3 || input.height() != 3 || !ContentFamilies.itemEnabled(ForgeweaveItems.slimeSling(SlimeColour.PINK).get())) {
             return false;
         }
         // The sling shape: string, congealed, string / ball, empty, ball / empty, ball, empty.

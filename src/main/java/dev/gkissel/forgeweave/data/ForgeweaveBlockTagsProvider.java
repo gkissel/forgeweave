@@ -188,6 +188,9 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
         var trackBIncorrectForNetherite = tag(BlockTags.INCORRECT_FOR_NETHERITE_TOOL);
         var trackBIncorrectForHardcinder = tag(TrackBOre.INCORRECT_FOR_HARDCINDER_TOOL);
         var trackBIncorrectForWarspar = tag(TrackBOre.INCORRECT_FOR_WARSPAR_TOOL);
+        // The top rung: nothing is incorrect for a resonite tool, but atomic matter alloy's material
+        // names the tag, and a tag nothing defines logs a WARN on every world load.
+        tag(TrackBOre.INCORRECT_FOR_RESONITE_TOOL);
         var trackBNeedsIron = tag(BlockTags.NEEDS_IRON_TOOL);
         var trackBStorageBlocks = tag(cTag("storage_blocks"));
         for (TrackBOre ore : TrackBOre.ALL) {
