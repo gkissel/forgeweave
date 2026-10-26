@@ -40,3 +40,4 @@ run/
 # Agent worktree mounts and local scratch checkouts
 .claude/
 wt-rebase62/
+__pycache__/

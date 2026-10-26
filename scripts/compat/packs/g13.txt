@@ -1,0 +1,40 @@
+# Group 13 (lines 229-244) without Ice and Fire, which has no 1.21.1 NeoForge jar to hand (g13-iceandfire
+# adds it): JEI, Occultism and its libraries, Twilight Forest (CurseForge only, a local jar), Silent Gear,
+# PneumaticCraft, Forbidden and Arcanus, The Aether, L_Ender's Cataclysm, Actually Additions and Extreme
+# Reactors. No Immersive Engineering, so silver comes from Occultism (line 231).
+
+mod modrinth jei 19.43.0.393 04ea7c24a00b980851a34b71899c44731df5b830feafe4172641ae5f42432aabd34ba2ea57fa8f0577823bed0212c4214d409a8ea2060038deed0e8e7e237e81 jei-1.21.1-neoforge-19.43.0.393.jar
+mod modrinth occultism 1.21.1-neoforge-1.224.4 d58f90b95412892a25e7c7af43ca56d7b4f2baf558bbb14334631e8e74469a2414d3ca25224529c352a03c3b0808ea6fbb8ab93c8efdaf6e88f144c5491f1af2 occultism-1.21.1-neoforge-1.224.4.jar
+mod modrinth geckolib 4.9.3 8dfa5f8c57224a5e34e5098367ea9819ca6dc9c11357cd3062c16da3455c8bd1a483098af7383debc4b9ce8e4d7ab3fdc799b415644eb829da83eb72a7335dfd geckolib-neoforge-1.21.1-4.9.3.jar
+mod modrinth smartbrainlib 1.16.11 bfc76f6fd8c388d01b80601ad1b826f6b3f5ec5ea915e5725af129561e6bc4a10890975e6f6d2a0348d842c13042dcf1a9d0a1574fba76bce60119bee76e2dc2 SmartBrainLib-neoforge-1.21.1-1.16.11.jar
+mod modrinth modonomicon 1.21.1-1.120.7 fdacc0d4323bfc0c3984406cdec747f5079b3cc501d82f8e398a9188e10490764d1d696547c1f16d994839d65baa320e30af639525d1dc55bd52b36dcbc0e6f0 modonomicon-1.21.1-neoforge-1.120.7.jar
+mod modrinth curios 9.5.1+1.21.1 5981a267686b744e7e3c227f78cbcd5267c14ac6979a28e814695f4589273998563147207fef4a5cdb7cdbdc39797cd95d9e4abadb55869f18e02a38d0654ae5 curios-neoforge-9.5.1+1.21.1.jar
+mod modrinth patchouli 1.21.1-93-neoforge 0b5c172db9a6eeecb5ca44b359a83548c3a60be7ff313959acdfc1e5b8039736c18e57e947d435b52d06da31159d2d02ea36e5742668dbc826308a4c99e4039f Patchouli-1.21.1-93-NEOFORGE.jar
+mod local 371dd7079b174091363327df70ed64c84e8e36fcab49b4c33bbcbe39650f6bccc12d3e14818cdfbbaa519a999f64a0a92c03ec981f55a315b044dc7cb5c27ef4 twilightforest-1.21.1-4.8.3345-universal.jar
+mod modrinth silent-gear 4.2.1.1 a9760a18eb1564c546376deb475cd84f668aa76f4b947420902949f5014b675292f7fd808fe51dcfcb915ccebbf4e55f77c9865a013b74034b827dafa7564a98 silent-gear-1.21.1-neoforge-4.2.1.1.jar
+mod modrinth silent-lib 10.6.0 1a3ede879804303c01fbeff84d64ce94c811f6c2670d5b2cadb3260488d609bed4cf1fa5e9609e2b7287ecfe16400ec6c0c436bfbfad9c94234b95a44be0a702 silent-lib-1.21.1-neoforge-10.6.0.jar
+mod modrinth pneumaticcraft-repressurized 8.2.23 1863243c4e76ecdef60c541e332808df48f50e01d7f75f5b1bd52e38f086925aa715a199775cf885746e3869cfc78ee5ac463fd33a1ac55cccab5394d19e2bfa pneumaticcraft-repressurized-8.2.23+mc1.21.1.jar
+mod modrinth forbidden-arcanus 2.6.1 012a1d5c779a0173a5c76ea79f429486753f040dfe59739bc45fd0817182d705a80110032f024757f0ac51a9bd10c546a11a730899aa9adbf7251a5040472724 forbidden_arcanus-2.6.1.jar
+mod modrinth valhelsia-core 1.1.4 787de5659b46ddb188e2960582cb236255e8e4c2dc6d3bfdd033ab1c00bbf61351a38a4f8a9d47035e03f662c982a952c676e6474e6ad9d3dc5815a3c0df2d95 valhelsia_core-neoforge-1.21.1-1.1.4.jar
+mod modrinth aether 1.21.1-1.5.10-neoforge 4b004daed6d09362646e204f068dee28e80523e705e862778036c492775672071ca9cc95f9574a842f34d2e058b46138c6154c6a2f251dcdad7a8803907dad46 aether-1.21.1-1.5.10-neoforge.jar
+mod modrinth owo-lib 0.12.15.6-beta.1+1.21 fc843ef350c4af6748d9fd6ecd3c28f96262cf46d46a8329029f49ea4f9eb87238113a8a415e8bba2c4f346c718bf450194f6f5823dfbf1ae7312529a81c3e5c owo-lib-neoforge-0.12.15.6-beta.1+1.21.jar
+mod modrinth l_enders-cataclysm 3.33 289f6e8364a6e432f34803a47cff8381899a1df0fdc675170323b43fd1c09579b1320d8b4e0de5df65c609b738d450c13c89e240d6d79f607888da26b7724947 L_Ender's Cataclysm 1.21.1-3.33.jar
+mod modrinth lionfish-api 3.1 fdd90f19d0424c3a837111291d6ac1547d62cbcedd43b74d3a8946912f9c5212a5ea239a6969eccf678289bcb77cbb9a937db01fdaf60e57826f9a99893d19cb lionfishapi-3.1.jar
+mod modrinth actually-additions 1.3.26 69c9e919fbe3a4c3478a01d2693a944c72e217737c37d6bb94086e07a962404a089cdccd38372df28dc3726df298f00a5b22a433b1c776b04c979a8a7d12c3c6 actuallyadditions-1.3.26+mc1.21.1.jar
+mod modrinth extreme-reactors 1.21.1-2.4.9 4b934d4479751796a8c26327517f6a31a9f8a299023950947768deb7b9d8c77ac106e07024e0b88109f65fbb13d38b28d7d6a9026ae426c0b8f13a7fd0b33dea ExtremeReactors2-1.21.1-2.4.9.jar
+mod modrinth zerocore 1.21.1-2.4.9 955cbf2729f03e539e069231d0015f5dcc74cecdf1d5de51cc942bc9397e789cae0e5fd941a6a73bc6ce11d046ba7cb66cca02f6fc4fd7f48fa05fe1bd0f5884 ZeroCore2-1.21.1-2.4.9.jar
+
+material forgeweave:alpha_yeti_fur forgeweave:arctic_fur forgeweave:carminite forgeweave:fiery
+material forgeweave:ironwood forgeweave:knightmetal forgeweave:naga_scale forgeweave:steeleaf
+material forgeweave:azure_electrum forgeweave:azure_silver forgeweave:blaze_gold forgeweave:crimson_steel
+material forgeweave:tyrian_steel forgeweave:compressed_iron forgeweave:deorum forgeweave:zanite
+material forgeweave:ambrosium forgeweave:gravitite forgeweave:ignitium forgeweave:cursium
+material forgeweave:black_quartz forgeweave:restonia_crystal forgeweave:palis_crystal forgeweave:diamatine_crystal
+material forgeweave:void_crystal forgeweave:emeradic_crystal forgeweave:enori_crystal
+material forgeweave:empowered_restonia_crystal forgeweave:empowered_palis_crystal forgeweave:empowered_diamatine_crystal
+material forgeweave:empowered_void_crystal forgeweave:empowered_emeradic_crystal forgeweave:empowered_enori_crystal
+material forgeweave:blutonium forgeweave:cyanite forgeweave:ludicrite forgeweave:silver
+no-material forgeweave:alumite forgeweave:constantan forgeweave:electrum forgeweave:nickel
+recipes 5508
+recipes-off 5508
+materials 122

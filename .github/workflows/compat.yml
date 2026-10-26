@@ -1,0 +1,83 @@
+name: Compat matrix
+
+# The dedicated-server compat matrix (scripts/compat/README.md). It runs every pack whose jars all
+# download from Modrinth by hash; packs that need a CurseForge-only jar run locally before a release.
+# Kept out of the PR gate: it boots dozens of servers and downloads about 300 MB of partner jars.
+
+on:
+  workflow_dispatch:
+    inputs:
+      packs:
+        description: Pack names to run, space-separated (for example "g1 g8"). Empty runs every downloadable pack.
+        required: false
+        default: ""
+  push:
+    branches:
+      - "release/**"
+
+concurrency:
+  group: compat-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  matrix:
+    name: Server matrix
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Java
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+
+      - name: Self-check the log checker
+        run: python3 -I scripts/compat/test_pack.py
+
+      - name: Build the jar
+        run: ./gradlew assemble
+
+      - name: Cache partner jars and the NeoForge server
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/forgeweave-compat
+          key: compat-${{ hashFiles('scripts/compat/packs/*.txt', 'gradle.properties') }}
+          restore-keys: compat-
+
+      - name: Run the matrix
+        env:
+          PACKS: ${{ inputs.packs }}
+        run: |
+          packs=()
+          if [ -n "${PACKS}" ]; then
+            for p in ${PACKS}; do packs+=("scripts/compat/packs/${p%.txt}.txt"); done
+          else
+            for p in scripts/compat/packs/g*.txt; do
+              python3 -I scripts/compat/pack.py get "$p" mod | grep -q '^local ' || packs+=("$p")
+            done
+          fi
+          jar=$(ls build/libs/forgeweave-*.jar | grep -v -e sources -e javadoc | head -1)
+          scripts/compat/run_matrix.sh "$jar" "${packs[@]}"
+
+      - name: Publish the summary
+        if: always()
+        run: cat build/compat/summary.md >> "$GITHUB_STEP_SUMMARY" || true
+
+      - name: Upload logs and dumps
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: compat-matrix
+          path: |
+            build/compat
+            !build/compat/*/server
+            !build/compat/*/upgrade
+            !build/compat/*/removed
+          if-no-files-found: ignore

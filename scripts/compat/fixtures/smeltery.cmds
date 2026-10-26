@@ -1,0 +1,31 @@
+# A 3x3x3 smeltery for the spark pass: a seared brick floor and walls, a seared tank, glass, a drain and a
+# standard core facing north. The data merges fill the tank with lava and put an iron and a gold ingot in
+# the core, so the profile covers a smeltery that is formed, fuelled and melting.
+forceload add 32 -16 79 15
+setblock 41 -60 1 forgeweave:seared_bricks replace
+setblock 41 -60 2 forgeweave:seared_bricks replace
+setblock 41 -60 3 forgeweave:seared_bricks replace
+setblock 42 -60 1 forgeweave:seared_bricks replace
+setblock 42 -60 2 forgeweave:seared_bricks replace
+setblock 42 -60 3 forgeweave:seared_bricks replace
+setblock 43 -60 1 forgeweave:seared_bricks replace
+setblock 43 -60 2 forgeweave:seared_bricks replace
+setblock 43 -60 3 forgeweave:seared_bricks replace
+setblock 41 -59 1 forgeweave:seared_bricks replace
+setblock 41 -59 2 forgeweave:seared_tank replace
+setblock 41 -59 3 forgeweave:seared_bricks replace
+setblock 42 -59 1 forgeweave:standard_core[facing=north,active=false] replace
+setblock 42 -59 3 forgeweave:seared_bricks replace
+setblock 43 -59 1 forgeweave:seared_bricks replace
+setblock 43 -59 2 forgeweave:seared_bricks replace
+setblock 43 -59 3 forgeweave:seared_bricks replace
+setblock 41 -58 1 forgeweave:seared_bricks replace
+setblock 41 -58 2 forgeweave:seared_glass replace
+setblock 41 -58 3 forgeweave:seared_bricks replace
+setblock 42 -58 1 forgeweave:seared_drain[facing=north] replace
+setblock 42 -58 3 forgeweave:seared_bricks replace
+setblock 43 -58 1 forgeweave:seared_bricks replace
+setblock 43 -58 2 forgeweave:seared_bricks replace
+setblock 43 -58 3 forgeweave:seared_bricks replace
+data merge block 41 -59 2 {tank:{Fluid:{amount:3950,id:"minecraft:lava"}}}
+data merge block 42 -59 1 {melting:{Items:[{Slot:0b,count:1,id:"minecraft:iron_ingot"},{Slot:1b,count:1,id:"minecraft:gold_ingot"}]}}

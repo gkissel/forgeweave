@@ -1,0 +1,12 @@
+# Group 10's Allthemodium half (lines 219-223), runnable without Elementarium's CurseForge-only
+# dependency: JEI and Allthemodium.
+
+mod modrinth jei 19.70.0.460 2e2221b3979dbda313bd61b09a625d6edfa6c7644a0e9a7a791d25896a1b60c12fdd69aded150609cb1b78946bb9153011b8e4218fb1d535398503e00f429a33 jei-1.21.1-neoforge-19.70.0.460.jar
+mod modrinth allthemodium 3.0.1 964fb9e415a6899b5ebf1664f0eaeecf040c21458c5f3a2bfad906bfe95b0c1dac9d8383a2ce1be7a0c44b694d7fcd505ac532789a8af7ca99bcdac3a09831d3 allthemodium-3.0.1_mc_1.21.1.jar
+# Allthemodium 3.0.1 needs GeckoLib at runtime without declaring it (NoClassDefFoundError on GeoEntity).
+mod modrinth geckolib 4.9.3 8dfa5f8c57224a5e34e5098367ea9819ca6dc9c11357cd3062c16da3455c8bd1a483098af7383debc4b9ce8e4d7ab3fdc799b415644eb829da83eb72a7335dfd geckolib-neoforge-1.21.1-4.9.3.jar
+
+material forgeweave:allthemodium forgeweave:vibranium forgeweave:unobtainium forgeweave:vibranium_allthemodium_alloy
+material forgeweave:unobtainium_allthemodium_alloy forgeweave:unobtainium_vibranium_alloy
+recipes 2098
+materials 86

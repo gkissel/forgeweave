@@ -1,0 +1,8 @@
+# Group 2 (lines 14-109): Forgeweave, JEI and spark. The spark pass covers line 20 (idle server cost).
+
+mod modrinth jei 19.43.0.393 04ea7c24a00b980851a34b71899c44731df5b830feafe4172641ae5f42432aabd34ba2ea57fa8f0577823bed0212c4214d409a8ea2060038deed0e8e7e237e81 jei-1.21.1-neoforge-19.43.0.393.jar
+mod modrinth spark 1.10.124-neoforge-1.21.1 f86ce34f2759c69df82578c397ff55b666c84626229a98f598458b960c21b38c95d6bfef4772af7f963c4f4868e5e2d9aef6b99c1d51bab55bf45e0e6e6b5ed4 spark-1.10.124-neoforge.jar
+
+spark
+recipes 1926
+materials 80

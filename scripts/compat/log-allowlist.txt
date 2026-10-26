@@ -1,0 +1,3 @@
+# Known third-party noise that mentions Forgeweave. One Python regular expression per line, matched with
+# re.search against each flagged log line (a WARN/ERROR/FATAL line that mentions forgeweave, or a stack
+# frame in dev.gkissel.forgeweave). Say why next to each entry. Never list a Forgeweave defect here.
