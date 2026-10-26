@@ -2364,8 +2364,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("trait.forgeweave.fireward.name", "Fireward");
         add("trait.forgeweave.fireward.description", "The wearer takes no damage from fire, lava or a blaze.");
         add("trait.forgeweave.heft.name", "Heft");
-        add("trait.forgeweave.heft.description", "Plants whoever holds it: knockback shoves you %s%% less, and a full worn "
-                + "set the same.");
+        add("trait.forgeweave.heft.description", "Plants whoever holds it: knockback from blows and blasts shoves you %s%% "
+                + "less, and a full worn set the same.");
         add("trait.forgeweave.keen_edge.name", "Keen Edge");
         add("trait.forgeweave.keen_edge.description", "Every hit lands %s extra damage, whatever it hits.");
         add("trait.forgeweave.sure_footing.name", "Sure Footing");

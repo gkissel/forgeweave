@@ -2756,7 +2756,7 @@
   "trait.forgeweave.harrying.name": "Harrying",
   "trait.forgeweave.heavy.description": "Plants whoever holds it: complete knockback immunity while held, and 25% a piece worn for the same total across a full set.",
   "trait.forgeweave.heavy.name": "Heavy",
-  "trait.forgeweave.heft.description": "Plants whoever holds it: knockback shoves you %s%% less, and a full worn set the same.",
+  "trait.forgeweave.heft.description": "Plants whoever holds it: knockback from blows and blasts shoves you %s%% less, and a full worn set the same.",
   "trait.forgeweave.heft.name": "Heft",
   "trait.forgeweave.hellish.description": "Deals 4 more damage to anything that is not fire-immune.",
   "trait.forgeweave.hellish.extra": "Vs Non-Nether: +%s",

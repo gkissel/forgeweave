@@ -11,7 +11,8 @@ import dev.gkissel.forgeweave.api.trait.Trait;
  * for a {@code trait_definition} to reach it, which is why #1077 reached for {@code damage_floor}
  * instead and shipped a drawback under a protective name. One float, added straight onto the
  * vanilla {@code KNOCKBACK_RESISTANCE} attribute by {@code ToolItem#getDefaultAttributeModifiers},
- * where {@code 1} is full immunity.
+ * where {@code 1} is full immunity. The same float goes onto {@code EXPLOSION_KNOCKBACK_RESISTANCE}
+ * too, because since 1.21 a blast's push reads only that one.
  *
  * <p>Held, not worn: this is the tool-side attribute, the same scope {@code heavy} and
  * {@code verdant_ward} have always had. A worn piece gets its knockback resistance from its
@@ -26,6 +27,12 @@ public record KnockbackResistance(float resistance) implements Trait {
 
     @Override
     public float knockbackResistance() {
+        return resistance;
+    }
+
+    /** The same figure against a blast, which 1.21 reads off its own attribute. */
+    @Override
+    public float explosionKnockbackResistance() {
         return resistance;
     }
 }

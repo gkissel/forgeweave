@@ -2499,6 +2499,13 @@ public final class ForgeweaveTraits {
                                 knockback * WORN_KNOCKBACK_RESISTANCE_SHARE, AttributeModifier.Operation.ADD_VALUE),
                         EquipmentSlotGroup.bySlot(slot));
             }
+            float blast = trait.explosionKnockbackResistance();
+            if (blast > 0.0F) {
+                out.add(Attributes.EXPLOSION_KNOCKBACK_RESISTANCE,
+                        new AttributeModifier(modifierId.withSuffix("/explosion_knockback"),
+                                blast * WORN_KNOCKBACK_RESISTANCE_SHARE, AttributeModifier.Operation.ADD_VALUE),
+                        EquipmentSlotGroup.bySlot(slot));
+            }
         }
     }
 
@@ -4165,6 +4172,15 @@ public final class ForgeweaveTraits {
         float resistance = 0.0F;
         for (Trait trait : of(stack)) {
             resistance += trait.knockbackResistance();
+        }
+        return resistance;
+    }
+
+    /** Blast knockback resistance the tool's traits grant while it is held (heft). */
+    public static float explosionKnockbackResistance(ItemStack stack) {
+        float resistance = 0.0F;
+        for (Trait trait : of(stack)) {
+            resistance += trait.explosionKnockbackResistance();
         }
         return resistance;
     }

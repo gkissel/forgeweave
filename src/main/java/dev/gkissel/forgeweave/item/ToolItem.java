@@ -118,6 +118,9 @@ public class ToolItem extends Item {
     /** Id for the trait-driven knockback resistance heavy grants (issue #229), same idiom. */
     private static final ResourceLocation TRAIT_KNOCKBACK_RESISTANCE_ID =
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "trait_knockback_resistance");
+    /** Id for the trait-driven blast knockback resistance heft grants. */
+    private static final ResourceLocation TRAIT_EXPLOSION_KNOCKBACK_RESISTANCE_ID =
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "trait_explosion_knockback_resistance");
     // #108 batch: modern-vanilla attribute modifiers (Aquadynamic, Far Reach -- ForgeweaveModifiers),
     // same idiom as vanilla Item's own BASE_ATTACK_DAMAGE_ID/BASE_ATTACK_SPEED_ID this class already
     // keys its two attribute modifiers on above.
@@ -656,6 +659,13 @@ public class ToolItem extends Item {
         if (knockbackResistance != 0.0F) {
             builder.add(Attributes.KNOCKBACK_RESISTANCE,
                     new AttributeModifier(TRAIT_KNOCKBACK_RESISTANCE_ID, knockbackResistance,
+                            AttributeModifier.Operation.ADD_VALUE),
+                    EquipmentSlotGroup.MAINHAND);
+        }
+        float explosionKnockbackResistance = ForgeweaveTraits.explosionKnockbackResistance(stack);
+        if (explosionKnockbackResistance != 0.0F) {
+            builder.add(Attributes.EXPLOSION_KNOCKBACK_RESISTANCE,
+                    new AttributeModifier(TRAIT_EXPLOSION_KNOCKBACK_RESISTANCE_ID, explosionKnockbackResistance,
                             AttributeModifier.Operation.ADD_VALUE),
                     EquipmentSlotGroup.MAINHAND);
         }
