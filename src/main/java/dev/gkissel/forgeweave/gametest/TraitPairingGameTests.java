@@ -308,12 +308,12 @@ public class TraitPairingGameTests {
     }
 
     /**
-     * Checklist line 73: a full swiftward set is the 32% its sentence quotes. Optional while the
-     * product bug stands: {@code MovementBonus} adds each piece as {@code ADD_MULTIPLIED_TOTAL}, so the
-     * four slots compound to 1.08^4, about 36%. Reported on the checklist-headless-traits PR, with
-     * {@code TraitDefinitionAuditTest#aMovementBonusSetReachesTheFigureItsDescriptionQuotes}.
+     * Checklist line 73: a full swiftward set is the 32% its sentence quotes. Each piece adds its 8%
+     * as {@code ADD_MULTIPLIED_BASE}, so the four slots add rather than compounding to 1.08^4, about
+     * 36%. {@code TraitDefinitionAuditTest#aMovementBonusSetReachesTheFigureItsDescriptionQuotes} holds
+     * every shipped movement bonus to the same rule.
      */
-    @GameTest(template = "empty", required = false)
+    @GameTest(template = "empty")
     public static void aFullSwiftwardSetIsThirtyTwoPercentFaster(GameTestHelper helper) {
         double plain = wearingSet(helper).getAttributeValue(Attributes.MOVEMENT_SPEED);
         double swift = wearingSet(helper, "swiftward").getAttributeValue(Attributes.MOVEMENT_SPEED);

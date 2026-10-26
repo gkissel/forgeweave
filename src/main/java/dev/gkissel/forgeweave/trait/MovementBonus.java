@@ -23,7 +23,9 @@ import dev.gkissel.forgeweave.api.trait.Trait;
  *
  * <p>Additive across pieces, like {@code projectile_protection}'s knockback resistance: four pieces
  * of the same material grant four times the bonus. {@link Kind#operation} is per attribute --
- * speeds read naturally as a percentage, step height and jump strength as flat block counts.
+ * speeds read naturally as a percentage, step height and jump strength as flat block counts. A speed
+ * is {@code ADD_MULTIPLIED_BASE}, not {@code ADD_MULTIPLIED_TOTAL}: each worn slot adds its own
+ * modifier, and only the base form lets four of them add up to the set figure a description quotes.
  *
  * @param kind which attribute is raised
  * @param magnitude by how much, in that kind's own units
@@ -32,10 +34,10 @@ public record MovementBonus(Kind kind, float magnitude) implements Trait {
 
     /** The movement attributes a piece may raise; one constant per vanilla attribute worth granting. */
     public enum Kind {
-        /** Walking and sprinting speed, as a fraction of the wearer's total. */
-        MOVEMENT_SPEED(Attributes.MOVEMENT_SPEED, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL),
+        /** Walking and sprinting speed, as a fraction of the wearer's base. */
+        MOVEMENT_SPEED(Attributes.MOVEMENT_SPEED, AttributeModifier.Operation.ADD_MULTIPLIED_BASE),
         /** Creative/elytra-style flight speed, as a fraction ({@code CreativeFlightHandler}'s grant, #737). */
-        FLYING_SPEED(Attributes.FLYING_SPEED, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL),
+        FLYING_SPEED(Attributes.FLYING_SPEED, AttributeModifier.Operation.ADD_MULTIPLIED_BASE),
         /** How high a block the wearer walks up without jumping, flat. */
         STEP_HEIGHT(Attributes.STEP_HEIGHT, AttributeModifier.Operation.ADD_VALUE),
         /** Jump height, flat. */
