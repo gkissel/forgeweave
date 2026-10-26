@@ -1,5 +1,8 @@
 package dev.gkissel.forgeweave.gametest;
 
+import java.util.List;
+
+import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -13,6 +16,9 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.config.ForgeweaveConfigCondition;
+import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
+import dev.gkissel.forgeweave.material.CompatMaterialAvailability;
+import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.worldgen.TrackBOrePlacement;
 
 /**
@@ -110,6 +116,30 @@ public class AllthemodiumElementariumGameTests {
 
         helper.assertTrue(condition.test(null),
                 "turning elementariumMaterials back on must answer true again with no reload");
+        helper.succeed();
+    }
+
+    /**
+     * The 1.0.0 cast-only fix gave the Elementarium and Allthemodium presets (and the Mystical
+     * Agriculture metals) a molten fluid and a bucket, registered whether or not the mod is there.
+     * None of those mods runs on the GameTest server, so each fluid must exist, its material must
+     * not, and its bucket must stay out of the creative tab and JEI.
+     */
+    @GameTest(template = "empty")
+    public static void unsuppliedCastOnlyPresetsKeepTheirFluidButHideTheirBucket(GameTestHelper helper) {
+        Registry<Material> materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
+        for (String name : List.of("elementarium_vanadium", "elementarium_chromium", "elementarium_molybdenum",
+                "elementarium_palladium", "elementarium_hafnium", "elementarium_tantalum",
+                "allthemodium", "vibranium", "unobtainium", "vibranium_allthemodium_alloy",
+                "unobtainium_allthemodium_alloy", "unobtainium_vibranium_alloy",
+                "inferium", "prudentium", "tertium", "imperium", "supremium", "awakened_supremium",
+                "insanium", "prosperity", "soulium")) {
+            helper.assertTrue(ForgeweaveFluids.compatMetalFluid(name) != null, name + " has no registered molten fluid");
+            helper.assertTrue(materials.get(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name)) == null,
+                    name + " registered with its mod absent");
+            helper.assertFalse(CompatMaterialAvailability.isAvailable(name),
+                    name + "'s bucket would show in the creative tab with its mod absent");
+        }
         helper.succeed();
     }
 }

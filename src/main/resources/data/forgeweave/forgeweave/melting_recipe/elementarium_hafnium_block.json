@@ -1,0 +1,18 @@
+{
+  "input": {
+    "tag": "c:storage_blocks/hafnium"
+  },
+  "fluid": "forgeweave:molten_elementarium_hafnium",
+  "amount": 1296,
+  "temperature": 1400,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "elementarium"
+    },
+    {
+      "type": "forgeweave:compat_toggle",
+      "toggle": "elementariumMaterials"
+    }
+  ]
+}

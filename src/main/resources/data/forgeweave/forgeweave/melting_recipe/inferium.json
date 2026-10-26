@@ -1,0 +1,14 @@
+{
+  "input": {
+    "item": "mysticalagriculture:inferium_ingot"
+  },
+  "fluid": "forgeweave:molten_inferium",
+  "amount": 144,
+  "temperature": 1200,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mysticalagriculture:inferium_ingot"
+    }
+  ]
+}

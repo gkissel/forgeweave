@@ -1,0 +1,19 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_ingot"
+  },
+  "fluid": "forgeweave:molten_lead",
+  "amount": 144,
+  "result": {
+    "id": "eternalores:lead_ingot"
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "eternalores:lead_ingot"
+    }
+  ],
+  "priority": -2
+}

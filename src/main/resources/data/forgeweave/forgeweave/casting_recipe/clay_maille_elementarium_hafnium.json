@@ -1,0 +1,25 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_maille"
+  },
+  "fluid": "forgeweave:molten_elementarium_hafnium",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:maille",
+    "components": {
+      "forgeweave:material": "forgeweave:elementarium_hafnium"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "elementarium"
+    },
+    {
+      "type": "forgeweave:compat_toggle",
+      "toggle": "elementariumMaterials"
+    }
+  ]
+}

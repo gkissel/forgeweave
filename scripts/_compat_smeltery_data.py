@@ -25,7 +25,30 @@ METALS = [
     "red_matter", "cosmic_neutronium", "crystal_matrix", "infinity", "chaotic", "wyvern",
     "quartz_enriched_iron", "silicon", "energised_steel", "blutonium", "cyanite", "ludicrite",
     "uraninite",
+    # 1.0.0 release blocker: these 21 shipped cast_only with no fluid, melting or casting row, so the
+    # Part Builder refused them (craftCastableMaterials off) and nothing else could make a part.
+    # Appended, not inserted, so every existing metal keeps its place in the tier counters below.
+    "elementarium_vanadium", "elementarium_chromium", "elementarium_molybdenum",
+    "elementarium_palladium", "elementarium_hafnium", "elementarium_tantalum",
+    "allthemodium", "vibranium", "unobtainium", "vibranium_allthemodium_alloy",
+    "unobtainium_allthemodium_alloy", "unobtainium_vibranium_alloy",
+    "inferium", "prudentium", "tertium", "imperium", "supremium", "awakened_supremium", "insanium",
+    "prosperity", "soulium",
 ]
+
+# The ingot a casting table pours for a material whose own condition names no item. Elementarium's
+# presets gate on neoforge:mod_loaded plus the elementariumMaterials toggle, so there is no item id
+# to borrow; the mod registers every element's ingot as elementarium:<element>_ingot
+# (Material#formId in its jar: name + "_" + form).
+INGOT_RESULT_OVERRIDES = {
+    f"elementarium_{element}": f"elementarium:{element}_ingot"
+    for element in ("vanadium", "chromium", "molybdenum", "palladium", "hafnium", "tantalum")
+}
+
+# Eternal Ores only dedupes metals other mods already supply, so when it and the original provider
+# are both installed the casting table pours the original provider's ingot. Every other provider
+# keeps the order its material's own neoforge:or lists it in.
+FALLBACK_LAST_NAMESPACES = ("eternalores",)
 
 # Issue #953: the Draconic Evolution core materials are Part Builder only -- no fluid, no melting
 # recipe, no casting recipe, no cast_only flag. They stay in METALS so that the per-tier temperature
@@ -45,12 +68,19 @@ TIER_BAND = {
     "minecraft:incorrect_for_iron_tool": 900,
     "minecraft:incorrect_for_diamond_tool": 1040,
     "minecraft:incorrect_for_netherite_tool": 1160,
+    # The three Forgeweave rungs above netherite, continuing the band past ludicrite's 1328.
+    "forgeweave:incorrect_for_hardcinder_tool": 1340,
+    "forgeweave:incorrect_for_warspar_tool": 1370,
+    "forgeweave:incorrect_for_resonite_tool": 1400,
 }
 TIER_STEP = {
     "minecraft:incorrect_for_stone_tool": 18,
     "minecraft:incorrect_for_iron_tool": 16,
     "minecraft:incorrect_for_diamond_tool": 14,
     "minecraft:incorrect_for_netherite_tool": 12,
+    "forgeweave:incorrect_for_hardcinder_tool": 10,
+    "forgeweave:incorrect_for_warspar_tool": 10,
+    "forgeweave:incorrect_for_resonite_tool": 10,
 }
 
 
@@ -81,6 +111,12 @@ TIER_MELT_TEMPERATURE = {
     "minecraft:incorrect_for_iron_tool": 1200,
     "minecraft:incorrect_for_diamond_tool": 1400,
     "minecraft:incorrect_for_netherite_tool": 1600,
+    # The three rungs #877 minted above netherite (1.0.0 release blocker: Allthemodium and Mystical
+    # Agriculture metals sit on them). Brimspar melts the first two, pyrealloy the top one -- the
+    # rungs draconium_awakened and atomic_matter_alloy (resonite tier) already sit on below.
+    "forgeweave:incorrect_for_hardcinder_tool": 1800,
+    "forgeweave:incorrect_for_warspar_tool": 1800,
+    "forgeweave:incorrect_for_resonite_tool": 2000,
 }
 
 # Materials whose lore tier runs hotter than their harvest tag alone would give them. draconium
@@ -92,10 +128,8 @@ MATERIAL_MELT_TEMPERATURE_OVERRIDES = {
     "emberweld": 1800,  # brimspar
     "starweld": 2000,  # pyrealloy
     "voidweld": 2000,  # pyrealloy
-    # #993: atomic matter alloy sits at the same endgame tier. An entry here is not optional for it
-    # the way it is for draconium -- its `incorrect_for_tool` is forgeweave:incorrect_for_resonite_tool,
-    # one of the three rungs #877 minted above netherite, which TIER_MELT_TEMPERATURE below does not
-    # know, so melt_temperature() would raise a KeyError without this row.
+    # #993: atomic matter alloy sits at the same endgame tier. Its resonite-tier tag now lands on
+    # 2000 through TIER_MELT_TEMPERATURE too; the row stays because it is not a TIER_BAND metal.
     "atomic_matter_alloy": 2000,  # pyrealloy
 }
 
@@ -133,11 +167,16 @@ def build_table():
 
 
 def extract_provider_items(condition) -> list[str]:
-    """Every neoforge:item_exists item id a (possibly neoforge:or) condition list touches."""
+    """Every neoforge:item_exists item id a (possibly neoforge:or) condition list touches, in
+    casting preference order: the condition's own order, with FALLBACK_LAST_NAMESPACES moved last."""
     items = []
     for entry in condition:
         _collect(entry, items)
-    return items
+    return sorted(items, key=lambda item: item.split(":")[0] in FALLBACK_LAST_NAMESPACES)
+
+
+# Gates that name no item. Elementarium's presets use both, so they carry no provider item id.
+ITEMLESS_CONDITIONS = ("neoforge:mod_loaded", "forgeweave:compat_toggle")
 
 
 def _collect(entry: dict, items: list[str]) -> None:
@@ -146,7 +185,7 @@ def _collect(entry: dict, items: list[str]) -> None:
     elif entry["type"] == "neoforge:or":
         for value in entry["values"]:
             _collect(value, items)
-    else:
+    elif entry["type"] not in ITEMLESS_CONDITIONS:
         raise ValueError(f"unhandled condition type: {entry}")
 
 

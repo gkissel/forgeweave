@@ -1,0 +1,18 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_ingot"
+  },
+  "fluid": "forgeweave:molten_imperium",
+  "amount": 144,
+  "result": {
+    "id": "mysticalagriculture:imperium_ingot"
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mysticalagriculture:imperium_ingot"
+    }
+  ]
+}

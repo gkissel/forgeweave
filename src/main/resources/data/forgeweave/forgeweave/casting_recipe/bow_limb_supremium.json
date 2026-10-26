@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_bow_limb"
+  },
+  "fluid": "forgeweave:molten_supremium",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:bow_limb",
+    "components": {
+      "forgeweave:material": "forgeweave:supremium"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mysticalagriculture:supremium_ingot"
+    }
+  ]
+}

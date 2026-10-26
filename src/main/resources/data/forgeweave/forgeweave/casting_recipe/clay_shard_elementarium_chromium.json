@@ -1,0 +1,25 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_shard"
+  },
+  "fluid": "forgeweave:molten_elementarium_chromium",
+  "amount": 72,
+  "result": {
+    "id": "forgeweave:shard",
+    "components": {
+      "forgeweave:material": "forgeweave:elementarium_chromium"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "elementarium"
+    },
+    {
+      "type": "forgeweave:compat_toggle",
+      "toggle": "elementariumMaterials"
+    }
+  ]
+}

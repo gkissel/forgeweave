@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_pan"
+  },
+  "fluid": "forgeweave:molten_vibranium_allthemodium_alloy",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:pan",
+    "components": {
+      "forgeweave:material": "forgeweave:vibranium_allthemodium_alloy"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "allthemodium:vibranium_allthemodium_alloy_ingot"
+    }
+  ]
+}

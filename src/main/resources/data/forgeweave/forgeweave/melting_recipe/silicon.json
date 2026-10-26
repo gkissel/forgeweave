@@ -1,8 +1,7 @@
 {
-  "input": [
-    { "tag": "c:silicon" },
-    { "tag": "c:ingots/silicon" }
-  ],
+  "input": {
+    "tag": "c:silicon"
+  },
   "fluid": "forgeweave:molten_silicon",
   "amount": 144,
   "temperature": 1200,

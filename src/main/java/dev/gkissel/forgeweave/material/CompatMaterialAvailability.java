@@ -6,6 +6,10 @@ import java.util.Map;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 
+import net.neoforged.fml.ModList;
+
+import dev.gkissel.forgeweave.config.ForgeweaveConfig;
+
 /**
  * "Is this compat material's provider mod actually present" -- issue #873 (M6 epic #824's JC3
  * reversal), the runtime mirror of the {@code neoforge:conditions} gate each compat material's own
@@ -132,7 +136,28 @@ public final class CompatMaterialAvailability {
             entry("dragon_bone", "iceandfire:dragonbone"),
             entry("dragonsteel_fire", "iceandfire:dragonsteel_fire_ingot"),
             entry("dragonsteel_ice", "iceandfire:dragonsteel_ice_ingot"),
-            entry("dragonsteel_lightning", "iceandfire:dragonsteel_lightning_ingot"));
+            entry("dragonsteel_lightning", "iceandfire:dragonsteel_lightning_ingot"),
+            // 1.0.0 release blocker: the Allthemodium and Mystical Agriculture metals gained a
+            // fluid and bucket, so their buckets hide behind the same anchor item as the material.
+            entry("allthemodium", "allthemodium:allthemodium_ingot"),
+            entry("vibranium", "allthemodium:vibranium_ingot"),
+            entry("unobtainium", "allthemodium:unobtainium_ingot"),
+            entry("vibranium_allthemodium_alloy", "allthemodium:vibranium_allthemodium_alloy_ingot"),
+            entry("unobtainium_allthemodium_alloy", "allthemodium:unobtainium_allthemodium_alloy_ingot"),
+            entry("unobtainium_vibranium_alloy", "allthemodium:unobtainium_vibranium_alloy_ingot"),
+            entry("inferium", "mysticalagriculture:inferium_ingot"),
+            entry("prudentium", "mysticalagriculture:prudentium_ingot"),
+            entry("tertium", "mysticalagriculture:tertium_ingot"),
+            entry("imperium", "mysticalagriculture:imperium_ingot"),
+            entry("supremium", "mysticalagriculture:supremium_ingot"),
+            entry("awakened_supremium", "mysticalagriculture:awakened_supremium_ingot"),
+            entry("insanium", "mysticalagradditions:insanium_ingot"),
+            entry("prosperity", "mysticalagriculture:prosperity_ingot"),
+            entry("soulium", "mysticalagriculture:soulium_ingot"));
+
+    // Elementarium's six presets gate on neoforge:mod_loaded plus the elementariumMaterials toggle
+    // rather than on an item, so they get this check instead of an ANY_OF row.
+    private static final String ELEMENTARIUM_PREFIX = "elementarium_";
 
     // Deliberately absent from ANY_OF above (issue #1059, repairing #1031): ferricore, blazegold and
     // eclipsealloy now have a registered fluid and bucket (ForgeweaveFluids), but this class cannot
@@ -166,6 +191,10 @@ public final class CompatMaterialAvailability {
      * table (unconditional materials never hide).
      */
     public static boolean isAvailable(String materialId) {
+        if (materialId.startsWith(ELEMENTARIUM_PREFIX)) {
+            return ModList.get().isLoaded("elementarium")
+                    && ForgeweaveConfig.enabled(ForgeweaveConfig.ELEMENTARIUM_MATERIALS);
+        }
         List<ResourceLocation> anyOf = ANY_OF.get(materialId);
         if (anyOf != null) {
             return anyOf.stream().anyMatch(CompatMaterialAvailability::itemRegistered);

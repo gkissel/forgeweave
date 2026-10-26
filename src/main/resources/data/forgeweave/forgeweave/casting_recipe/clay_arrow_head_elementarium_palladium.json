@@ -1,0 +1,25 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_arrow_head"
+  },
+  "fluid": "forgeweave:molten_elementarium_palladium",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:arrow_head",
+    "components": {
+      "forgeweave:material": "forgeweave:elementarium_palladium"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "elementarium"
+    },
+    {
+      "type": "forgeweave:compat_toggle",
+      "toggle": "elementariumMaterials"
+    }
+  ]
+}

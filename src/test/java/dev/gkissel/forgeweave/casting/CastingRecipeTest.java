@@ -79,6 +79,38 @@ class CastingRecipeTest {
         assertFalse(plain.consumesCast(), "a cast survives its own casting cycle unless a recipe says otherwise");
         assertFalse(plain.resultInInput());
         assertTrue(plain.time().isEmpty(), "with no explicit time the cooldown is derived");
+        assertEquals(0, plain.priority(), "every row without a priority ranks the same");
+    }
+
+    /**
+     * Checklist lines 228 and 231: two mods supplying one metal ship two ingot rows for the same
+     * pour. The higher priority wins whatever order the registry lists them in, and among equal
+     * priorities the first one listed still wins, so every single-row pour behaves as before.
+     */
+    @Test
+    void theHighestPriorityMatchWinsAndTiesKeepRegistryOrder() {
+        CastingRecipe fallback = parse("""
+                {"station": "table", "cast": {"item": "forgeweave:cast_ingot"}, "fluid": "minecraft:lava",
+                 "amount": 144, "result": {"id": "minecraft:gold_ingot"}, "priority": -1}
+                """);
+        CastingRecipe preferred = parse("""
+                {"station": "table", "cast": {"item": "forgeweave:cast_ingot"}, "fluid": "minecraft:lava",
+                 "amount": 144, "result": {"id": "minecraft:iron_ingot"}}
+                """);
+        CastingRecipe tie = parse("""
+                {"station": "table", "cast": {"item": "forgeweave:cast_ingot"}, "fluid": "minecraft:lava",
+                 "amount": 144, "result": {"id": "minecraft:copper_ingot"}}
+                """);
+        ItemStack cast = new ItemStack(ForgeweaveItems.CAST_INGOT.get());
+
+        assertEquals(preferred, CastingRecipe.find(List.of(fallback, preferred, tie),
+                CastingRecipe.Station.TABLE, cast, Fluids.LAVA), "priority 0 beats -1 even when listed later");
+        assertEquals(fallback, CastingRecipe.find(List.of(fallback),
+                CastingRecipe.Station.TABLE, cast, Fluids.LAVA), "a fallback still pours when it is the only match");
+        assertEquals(tie, CastingRecipe.find(List.of(tie, preferred),
+                CastingRecipe.Station.TABLE, cast, Fluids.LAVA), "equal priorities keep registry order");
+        assertEquals(-1, CastingRecipe.CODEC.encodeStart(ops, fallback).getOrThrow()
+                .getAsJsonObject().get("priority").getAsInt(), "priority survives a round trip");
     }
 
     @Test

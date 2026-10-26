@@ -1,0 +1,17 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_prudentium",
+  "amount": 144,
+  "result": {
+    "id": "mysticalagriculture:prudentium_ingot"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mysticalagriculture:prudentium_ingot"
+    }
+  ]
+}
