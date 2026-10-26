@@ -18,7 +18,7 @@ import net.minecraft.world.level.material.Fluid;
  * can read the cost off the tooltip instead of a wiki. Both fields are their no-op values for every
  * ordinary fluid row.
  */
-record SmelteryFuelDisplay(Fluid fluid, int amount, int duration, int temperature, int hotterThanLavaBy,
+public record SmelteryFuelDisplay(Fluid fluid, int amount, int duration, int temperature, int hotterThanLavaBy,
         boolean energizedTank, int energizedCost) {
 
     /** An ordinary fluid row: not the energized tank's, so it costs no energy (issue #972). */

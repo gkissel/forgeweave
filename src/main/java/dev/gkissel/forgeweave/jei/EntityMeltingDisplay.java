@@ -21,7 +21,7 @@ import net.minecraft.world.level.material.Fluid;
  * <p>{@code fuels} is every registered smeltery fuel, the same list on every row: upstream's panel
  * has a fuel tank under the arrow (issue #1029) and lists the usable fuels there as a catalyst.
  */
-record EntityMeltingDisplay(List<EntityType<?>> entities, Fluid fluid, int amount, boolean defaultRow,
+public record EntityMeltingDisplay(List<EntityType<?>> entities, Fluid fluid, int amount, boolean defaultRow,
         List<Fluid> fuels) {
 
     /**
@@ -30,7 +30,7 @@ record EntityMeltingDisplay(List<EntityType<?>> entities, Fluid fluid, int amoun
      * issue never asked for ("a live entity render in the slot", singular); add it if a playtest
      * flags a row as misleading.
      */
-    EntityType<?> primaryEntity() {
+    public EntityType<?> primaryEntity() {
         return entities.get(0);
     }
 }

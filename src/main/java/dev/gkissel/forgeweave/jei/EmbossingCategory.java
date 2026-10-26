@@ -25,7 +25,7 @@ import dev.gkissel.forgeweave.modifier.ModifierApplication;
  * the donor's material's traits to any assembled tool, without touching its stats -- {@code
  * modifier.Embossing}'s whole mechanic. Rides the same repair tab, and so the same station icon and
  * {@code RENDER_ONLY} "any tool" slot, as {@link RepairCategory}/{@link ModifierApplicationCategory}
- * ({@link ModifierApplicationCategory#ANY_TOOL}) -- embossing has no recipe-specific tool requirement
+ * ({@link ModifierApplicationRecipes#ANY_TOOL}) -- embossing has no recipe-specific tool requirement
  * either, only "not already embossed" (see the drawn rule below).
  *
  * <p>At most four reagent slots are ever laid out: embossing spends every one of the station's five
@@ -84,7 +84,7 @@ final class EmbossingCategory implements IRecipeCategory<EmbossingDisplay> {
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, EmbossingDisplay recipe, IFocusGroup focuses) {
         builder.addSlot(RecipeIngredientRole.RENDER_ONLY, ModifierPanel.TOOL_X, ModifierPanel.TOOL_Y)
-                .addItemStacks(ModifierApplicationCategory.ANY_TOOL);
+                .addItemStacks(ModifierApplicationRecipes.ANY_TOOL);
         builder.addInputSlot(ModifierPanel.INPUT_SLOTS[DONOR_SLOT][0], ModifierPanel.INPUT_SLOTS[DONOR_SLOT][1])
                 .addItemStacks(recipe.donorParts());
         int shown = Math.min(recipe.reagents().size(), MAX_REAGENT_SLOTS);
@@ -94,7 +94,7 @@ final class EmbossingCategory implements IRecipeCategory<EmbossingDisplay> {
         }
         // The same tool, now embossed; see ModifierApplicationCategory's own note on this slot.
         builder.addSlot(RecipeIngredientRole.RENDER_ONLY, ModifierPanel.RESULT_X, ModifierPanel.RESULT_Y)
-                .addItemStacks(ModifierApplicationCategory.ANY_TOOL);
+                .addItemStacks(ModifierApplicationRecipes.ANY_TOOL);
     }
 
     @Override
@@ -104,11 +104,11 @@ final class EmbossingCategory implements IRecipeCategory<EmbossingDisplay> {
         Font font = Minecraft.getInstance().font;
         Component name = ModifierApplication.name(Embossing.idFor(recipe.material()));
         Component rule = Component.translatable("jei.category.forgeweave.embossing.one_per_tool");
-        JeiCategoryChrome.drawCentered(guiGraphics, font,
-                JeiCategoryChrome.trimToWidth(font, name, ModifierPanel.NAME_WIDTH),
+        JeiCategoryGeometry.drawCentered(guiGraphics, font,
+                JeiCategoryGeometry.trimToWidth(font, name, ModifierPanel.NAME_WIDTH),
                 ModifierPanel.NAME_CENTER_X, ModifierPanel.NAME_Y, ModifierPanel.NAME_COLOR, true);
-        JeiCategoryChrome.drawCentered(guiGraphics, font,
-                JeiCategoryChrome.trimToWidth(font, rule, ModifierPanel.LEVEL_WIDTH),
+        JeiCategoryGeometry.drawCentered(guiGraphics, font,
+                JeiCategoryGeometry.trimToWidth(font, rule, ModifierPanel.LEVEL_WIDTH),
                 ModifierPanel.LEVEL_CENTER_X, ModifierPanel.LEVEL_Y, ModifierPanel.TEXT_COLOR, false);
     }
 }

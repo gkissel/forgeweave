@@ -1,14 +1,9 @@
 package dev.gkissel.forgeweave.jei;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -30,8 +25,6 @@ import mezz.jei.api.runtime.IJeiRuntime;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
 import dev.gkissel.forgeweave.Forgeweave;
-import dev.gkissel.forgeweave.api.modifier.Modifier;
-import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.client.ChestScreen;
 import dev.gkissel.forgeweave.client.CraftingStationScreen;
 import dev.gkissel.forgeweave.client.PartBuilderScreen;
@@ -44,19 +37,9 @@ import dev.gkissel.forgeweave.client.ToolStationScreen;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
-import dev.gkissel.forgeweave.material.Material;
-import dev.gkissel.forgeweave.menu.ContentFamilies;
 import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
 import dev.gkissel.forgeweave.menu.PartBuilderMenu;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
-import dev.gkissel.forgeweave.modifier.EmbossingRecipe;
-import dev.gkissel.forgeweave.modifier.ModifierRecipe;
-import dev.gkissel.forgeweave.modifier.WorktableRecipe; // #1057
-import dev.gkissel.forgeweave.recipe.AlloyRecipe;
-import dev.gkissel.forgeweave.recipe.CoreTransformRecipe;
-import dev.gkissel.forgeweave.recipe.EntityMeltingRecipe;
-import dev.gkissel.forgeweave.recipe.MeltingRecipe;
-import dev.gkissel.forgeweave.recipe.SmelteryFuel;
 
 /**
  * JEI integration (docs/SCOPE.md M1 issue #11): three display-only recipe categories -- part
@@ -191,16 +174,16 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
     }
 
     /**
-     * <b>Content-family toggles ticket.</b> Every list below is filtered against the {@code content}
-     * config section before it is handed to JEI, so a family the server has switched off has no
-     * entries to find. Two things about that are worth stating plainly:
+     * <b>Content-family toggles ticket.</b> Every list comes from {@link RecipeViewerContent}, which
+     * filters it against the {@code content} config section before it is handed to JEI, so a family
+     * the server has switched off has no entries to find. Two things about that are worth stating
+     * plainly:
      *
      * <ul>
-     *   <li>The values read here are the <em>server's</em>. {@link ForgeweaveConfig} is a
-     *       {@code SERVER}-type spec, which NeoForge syncs during login, and this method runs once
-     *       the session is up (see the class javadoc) -- so the filter agrees with what the station
-     *       will actually do, including on a dedicated server whose values differ from the local
-     *       file's.
+     *   <li>The values read are the <em>server's</em>. {@link ForgeweaveConfig} is a {@code
+     *       SERVER}-type spec, which NeoForge syncs during login, and this method runs once the
+     *       session is up (see the class javadoc) -- so the filter agrees with what the station will
+     *       actually do, including on a dedicated server whose values differ from the local file's.
      *   <li><b>Known limit:</b> the toggles are hot-reloadable everywhere else, but JEI builds its
      *       recipe lists once per session. Flipping a family <em>while</em> a world is open leaves
      *       JEI showing the previous roster until the next join. Nothing is wrong when that happens
@@ -210,107 +193,34 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
      *       re-registration hook, and standing up a config listener that rebuilt the runtime would
      *       be a lot of machinery for a case only a pack author editing live ever hits.
      * </ul>
-     *
-     * <p>Repair and part exchange are deliberately <em>not</em> filtered: both act on a tool that
-     * already exists without altering what it is, which the ticket's "items already in the world
-     * keep working" rule keeps available whatever a toggle says. Embossing and fortification are
-     * the other side of that line -- they change the tool -- and go with {@code modifiers}.
      */
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
-        Map<ResourceLocation, Material> materials = currentMaterials();
-        registration.addRecipes(PartCraftingCategory.TYPE, PartCraftingRecipes.build(materials).stream()
-                .filter(recipe -> ContentFamilies.itemEnabled(recipe.result()))
-                .toList());
-
-        // Split by AssemblyRecipes#isLarge (issue #165) so each half lands in the category whose
-        // catalyst list matches where it can actually be built -- see AssemblyCategory's class
-        // javadoc. Since issue #1006 the split carries armor too: the light set is in TYPE with the
-        // small tools, the heavy set in LARGE_TYPE with the large ones.
-        List<AssemblyRecipe> assembly = AssemblyRecipes.build(materials).stream()
-                .filter(recipe -> ContentFamilies.itemEnabled(recipe.tool()))
-                .toList();
-        registration.addRecipes(AssemblyCategory.TYPE,
-                assembly.stream().filter(recipe -> !AssemblyRecipes.isLarge(recipe)).toList());
-        registration.addRecipes(AssemblyCategory.LARGE_TYPE,
-                assembly.stream().filter(AssemblyRecipes::isLarge).toList());
-
-        registration.addRecipes(RepairCategory.TYPE, RepairRecipes.build(materials));
-
-        // #109 -- smeltery/casting/modifier JEI categories (docs/SCOPE.md M2 issue #109). Same
-        // per-session registry read as currentMaterials() above: melting, alloying, casting and
-        // modifier recipes are also NeoForge datapack registries with network codecs
-        // (Forgeweave#registerDataPackRegistries), so the client's synced copy is exactly what a
-        // joined session actually has -- including whatever #104's nether-ore melting recipes land
-        // mid-milestone, with no special-casing needed here.
-        //
-        // The smeltery family gates all four of the smeltery categories at once (melting, alloying
-        // and both casting stations), and the modifier family gates modifier application; the
-        // casting lists are additionally filtered per recipe, since a pour that shapes a part only
-        // an off tool family takes goes with that family rather than with the smeltery.
-        boolean smeltery = ForgeweaveConfig.enabled(ForgeweaveConfig.SMELTERY);
-        Map<ResourceLocation, CastingRecipe> castingRecipes = smeltery ? currentCastingRecipes() : Map.of();
-        // #893: melting's fuel column reads the same smeltery_fuel registry #890's standalone
-        // category below does, so it is read once here and reused rather than re-synced twice.
-        Map<ResourceLocation, SmelteryFuel> smelteryFuels = smeltery ? currentSmelteryFuels() : Map.of();
-        registration.addRecipes(MeltingCategory.TYPE,
-                smeltery ? MeltingRecipes.build(currentMeltingRecipes(), smelteryFuels) : List.of());
-        registration.addRecipes(AlloyingCategory.TYPE,
-                smeltery ? AlloyingRecipes.build(currentAlloyRecipes()) : List.of());
-        registration.addRecipes(CastingTableCategory.TYPE, castingEnabled(CastingRecipes.table(castingRecipes)));
-        registration.addRecipes(CastingBasinCategory.TYPE, castingEnabled(CastingRecipes.basin(castingRecipes)));
-        registration.addRecipes(ModifierApplicationCategory.TYPE, ForgeweaveConfig.enabled(ForgeweaveConfig.MODIFIERS)
-                ? ModifierApplicationRecipes.build(currentModifierRecipes())
-                : List.of());
-        // #1057: the Modifier Worktable's own datapack registry, same per-session read, and gated by
-        // the same modifiers key -- taking a modifier off is one of the things `modifiers` covers.
-        registration.addRecipes(WorktableCategory.TYPE, ForgeweaveConfig.enabled(ForgeweaveConfig.MODIFIERS)
-                ? currentWorktableRecipes()
-                : List.of());
-        // #165: embossing's own datapack registry, same read shape as the other four above --
-        // and gated by the same modifiers key, since embossing is one of the things `modifiers`
-        // covers (maintainer decision: everything that alters a tool at the station beyond repair
-        // and part exchange). Fortification needs no line of its own: its recipe is a
-        // ModifierRecipe, so it rides the ModifierApplicationCategory gate above.
-        registration.addRecipes(EmbossingCategory.TYPE, ForgeweaveConfig.enabled(ForgeweaveConfig.MODIFIERS)
-                ? EmbossingRecipes.build(currentEmbossingRecipes(), materials)
-                : List.of());
-
-        // #890: smeltery fuel and pour-to-transform ride the same smeltery gate as the other four
-        // smeltery categories above -- both are smeltery-only mechanics (SmelteryFuel#find and
-        // CoreTransformRecipe#find both check ForgeweaveConfig#SMELTERY themselves at call time, so
-        // this mirrors what the config would refuse anyway rather than introducing a new rule).
-        // #972: the energized tank's own synthetic row rides its own compat toggle on top of the
-        // smeltery gate -- a bridge that is off has nothing to advertise.
-        registration.addRecipes(SmelteryFuelCategory.TYPE,
-                smeltery ? SmelteryFuelRecipes.build(smelteryFuels,
-                        ForgeweaveConfig.enabled(ForgeweaveConfig.ENERGIZED_TANK)) : List.of());
-        registration.addRecipes(CoreTransformCategory.TYPE,
-                smeltery ? CoreTransformRecipes.build(currentCoreTransformRecipes()) : List.of());
-        // #931: entity melting rides the same smeltery gate -- EntityMeltingRecipe#find checks
-        // ForgeweaveConfig#SMELTERY itself too, same reasoning as the two lines above.
-        registration.addRecipes(EntityMeltingCategory.TYPE,
-                smeltery ? EntityMeltingRecipes.build(currentEntityMeltingRecipes(),
-                        smelteryFuels.values().stream().map(SmelteryFuel::fluid).distinct().toList()) : List.of());
+        ClientLevel level = Minecraft.getInstance().level;
+        RecipeViewerContent content = RecipeViewerContent.build(level == null ? null : level.registryAccess());
+        registration.addRecipes(PartCraftingCategory.TYPE, content.partCrafting());
+        registration.addRecipes(AssemblyCategory.TYPE, content.toolAssembly());
+        registration.addRecipes(AssemblyCategory.LARGE_TYPE, content.largeToolAssembly());
+        registration.addRecipes(RepairCategory.TYPE, content.repair());
+        registration.addRecipes(WorktableCategory.TYPE, content.worktable());
+        registration.addRecipes(MeltingCategory.TYPE, content.melting());
+        registration.addRecipes(AlloyingCategory.TYPE, content.alloying());
+        registration.addRecipes(CastingTableCategory.TYPE, content.castingTable());
+        registration.addRecipes(CastingBasinCategory.TYPE, content.castingBasin());
+        registration.addRecipes(ModifierApplicationCategory.TYPE, content.modifierApplication());
+        registration.addRecipes(EmbossingCategory.TYPE, content.embossing());
+        registration.addRecipes(SmelteryFuelCategory.TYPE, content.smelteryFuel());
+        registration.addRecipes(CoreTransformCategory.TYPE, content.coreTransform());
+        registration.addRecipes(EntityMeltingCategory.TYPE, content.entityMelting());
 
         // Issue #752: Mending Moss (moss + 10 XP levels at a bookshelf, ForgeweaveModifiers#
-        // onRightClickBookshelf) is not produced by any datapack recipe, so it would otherwise have
-        // an empty "Recipes" tab with no clue how it's made -- upstream has the identical gap (its
-        // ToolEvents#onInteract bookshelf trick has no NEI/JEI counterpart either). Text-only
+        // onRightClickBookshelf) is not produced by any datapack recipe -- upstream has the identical
+        // gap (its ToolEvents#onInteract bookshelf trick has no NEI/JEI counterpart either). Text-only
         // ingredient info needs no new category or layout, just this one data line.
-        if (ForgeweaveConfig.enabled(ForgeweaveConfig.MODIFIERS)) {
+        if (content.mendingMossInfo()) {
             registration.addIngredientInfo(ForgeweaveItems.MENDING_MOSS.get(),
                     Component.translatable("tooltip.forgeweave.mending_moss.source"));
         }
-    }
-
-    /** The casting recipes whose cast and result both belong to families that are currently on. */
-    private static List<CastingRecipe> castingEnabled(List<CastingRecipe> recipes) {
-        return recipes.stream()
-                .filter(recipe -> ContentFamilies.itemEnabled(recipe.result())
-                        && recipe.cast().map(cast -> java.util.Arrays.stream(cast.getItems())
-                                .anyMatch(ContentFamilies::itemEnabled)).orElse(true))
-                .toList();
     }
 
     @Override
@@ -429,150 +339,5 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         // #165: embossing's own [+] button, the repair tab's fourth and last recipe kind.
         registration.addRecipeTransferHandler(
                 new EmbossingTransferHandler(registration.getTransferHelper()), EmbossingCategory.TYPE);
-    }
-
-    /** Empty (not an error) at the title screen, before any world is joined and materials are synced. */
-    private static Map<ResourceLocation, Material> currentMaterials() {
-        ClientLevel level = Minecraft.getInstance().level;
-        if (level == null) {
-            return Map.of();
-        }
-
-        Registry<Material> registry = level.registryAccess().registryOrThrow(Material.REGISTRY);
-        Map<ResourceLocation, Material> materials = new LinkedHashMap<>();
-        for (Map.Entry<ResourceKey<Material>, Material> entry : registry.entrySet()) {
-            materials.put(entry.getKey().location(), entry.getValue());
-        }
-        return materials;
-    }
-
-    // #109 -- same per-session synced-registry read as currentMaterials() above, one per datapack
-    // registry this plugin's M2 categories need (docs/SCOPE.md M2 issue #109).
-
-    private static Map<ResourceLocation, MeltingRecipe> currentMeltingRecipes() {
-        ClientLevel level = Minecraft.getInstance().level;
-        if (level == null) {
-            return Map.of();
-        }
-
-        Registry<MeltingRecipe> registry = level.registryAccess().registryOrThrow(MeltingRecipe.REGISTRY);
-        Map<ResourceLocation, MeltingRecipe> recipes = new LinkedHashMap<>();
-        for (Map.Entry<ResourceKey<MeltingRecipe>, MeltingRecipe> entry : registry.entrySet()) {
-            recipes.put(entry.getKey().location(), entry.getValue());
-        }
-        return recipes;
-    }
-
-    private static Map<ResourceLocation, AlloyRecipe> currentAlloyRecipes() {
-        ClientLevel level = Minecraft.getInstance().level;
-        if (level == null) {
-            return Map.of();
-        }
-
-        Registry<AlloyRecipe> registry = level.registryAccess().registryOrThrow(AlloyRecipe.REGISTRY);
-        Map<ResourceLocation, AlloyRecipe> recipes = new LinkedHashMap<>();
-        for (Map.Entry<ResourceKey<AlloyRecipe>, AlloyRecipe> entry : registry.entrySet()) {
-            recipes.put(entry.getKey().location(), entry.getValue());
-        }
-        return recipes;
-    }
-
-    private static Map<ResourceLocation, CastingRecipe> currentCastingRecipes() {
-        ClientLevel level = Minecraft.getInstance().level;
-        if (level == null) {
-            return Map.of();
-        }
-
-        Registry<CastingRecipe> registry = level.registryAccess().registryOrThrow(CastingRecipe.REGISTRY);
-        Map<ResourceLocation, CastingRecipe> recipes = new LinkedHashMap<>();
-        for (Map.Entry<ResourceKey<CastingRecipe>, CastingRecipe> entry : registry.entrySet()) {
-            recipes.put(entry.getKey().location(), entry.getValue());
-        }
-        return recipes;
-    }
-
-    private static Map<ResourceLocation, ModifierRecipe> currentModifierRecipes() {
-        ClientLevel level = Minecraft.getInstance().level;
-        if (level == null) {
-            return Map.of();
-        }
-
-        Registry<ModifierRecipe> registry = level.registryAccess().registryOrThrow(ModifierRecipe.REGISTRY);
-        Map<ResourceLocation, ModifierRecipe> recipes = new LinkedHashMap<>();
-        for (Map.Entry<ResourceKey<ModifierRecipe>, ModifierRecipe> entry : registry.entrySet()) {
-            recipes.put(entry.getKey().location(), entry.getValue());
-        }
-        return recipes;
-    }
-
-    /** #1057: the worktable's functions, in registry order, each paired with its own key for JEI. */
-    private static List<WorktableDisplay> currentWorktableRecipes() {
-        ClientLevel level = Minecraft.getInstance().level;
-        if (level == null) {
-            return List.of();
-        }
-        return level.registryAccess().registryOrThrow(WorktableRecipe.REGISTRY).entrySet().stream()
-                .map(entry -> new WorktableDisplay(entry.getKey().location(), entry.getValue()))
-                .toList();
-    }
-
-    private static Map<ResourceLocation, EmbossingRecipe> currentEmbossingRecipes() {
-        ClientLevel level = Minecraft.getInstance().level;
-        if (level == null) {
-            return Map.of();
-        }
-
-        Registry<EmbossingRecipe> registry = level.registryAccess().registryOrThrow(EmbossingRecipe.REGISTRY);
-        Map<ResourceLocation, EmbossingRecipe> recipes = new LinkedHashMap<>();
-        for (Map.Entry<ResourceKey<EmbossingRecipe>, EmbossingRecipe> entry : registry.entrySet()) {
-            recipes.put(entry.getKey().location(), entry.getValue());
-        }
-        return recipes;
-    }
-
-    // #890 -- same per-session synced-registry read as the others above.
-
-    private static Map<ResourceLocation, SmelteryFuel> currentSmelteryFuels() {
-        ClientLevel level = Minecraft.getInstance().level;
-        if (level == null) {
-            return Map.of();
-        }
-
-        Registry<SmelteryFuel> registry = level.registryAccess().registryOrThrow(SmelteryFuel.REGISTRY);
-        Map<ResourceLocation, SmelteryFuel> fuels = new LinkedHashMap<>();
-        for (Map.Entry<ResourceKey<SmelteryFuel>, SmelteryFuel> entry : registry.entrySet()) {
-            fuels.put(entry.getKey().location(), entry.getValue());
-        }
-        return fuels;
-    }
-
-    private static Map<ResourceLocation, CoreTransformRecipe> currentCoreTransformRecipes() {
-        ClientLevel level = Minecraft.getInstance().level;
-        if (level == null) {
-            return Map.of();
-        }
-
-        Registry<CoreTransformRecipe> registry = level.registryAccess().registryOrThrow(CoreTransformRecipe.REGISTRY);
-        Map<ResourceLocation, CoreTransformRecipe> recipes = new LinkedHashMap<>();
-        for (Map.Entry<ResourceKey<CoreTransformRecipe>, CoreTransformRecipe> entry : registry.entrySet()) {
-            recipes.put(entry.getKey().location(), entry.getValue());
-        }
-        return recipes;
-    }
-
-    // #931 -- same per-session synced-registry read as the others above.
-
-    private static Map<ResourceLocation, EntityMeltingRecipe> currentEntityMeltingRecipes() {
-        ClientLevel level = Minecraft.getInstance().level;
-        if (level == null) {
-            return Map.of();
-        }
-
-        Registry<EntityMeltingRecipe> registry = level.registryAccess().registryOrThrow(EntityMeltingRecipe.REGISTRY);
-        Map<ResourceLocation, EntityMeltingRecipe> recipes = new LinkedHashMap<>();
-        for (Map.Entry<ResourceKey<EntityMeltingRecipe>, EntityMeltingRecipe> entry : registry.entrySet()) {
-            recipes.put(entry.getKey().location(), entry.getValue());
-        }
-        return recipes;
     }
 }

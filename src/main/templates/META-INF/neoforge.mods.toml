@@ -63,6 +63,16 @@ Forgeweave brings modular tool building, material traits, modifiers, melting, al
     ordering="AFTER"
     side="CLIENT"
 
+# EMI integration (issue #971) is optional the same way: without it the mod is unchanged, it only adds
+# Forgeweave's recipe categories to EMI when EMI happens to be installed on the client.
+# ForgeweaveEmiPlugin is found by EMI's own @EmiEntrypoint scan, so nothing in the mod references it.
+[[dependencies.${mod_id}]]
+    modId="emi"
+    type="optional"
+    versionRange="[1.1,)"
+    ordering="AFTER"
+    side="CLIENT"
+
 # Ponder integration (docs/SCOPE.md M2 issue #110; issue #664 embeds it jar-in-jar together with its
 # required client dependency Flywheel, so this entry is always satisfied on a normal install). Still
 # declared optional rather than required: the code guards every Ponder touch behind ModList

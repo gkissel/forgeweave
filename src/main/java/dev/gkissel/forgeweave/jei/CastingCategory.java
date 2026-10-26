@@ -208,7 +208,7 @@ abstract class CastingCategory implements IRecipeCategory<CastingRecipe> {
         Font font = Minecraft.getInstance().font;
         Component cooling = Component.translatable("jei.category.forgeweave.casting.cooling_time",
                 coolingTicks / TICKS_PER_SECOND);
-        JeiCategoryChrome.drawCentered(guiGraphics, font, cooling, COOLING_CENTER_X, COOLING_Y, TEXT_COLOR, false);
+        JeiCategoryGeometry.drawCentered(guiGraphics, font, cooling, COOLING_CENTER_X, COOLING_Y, TEXT_COLOR, false);
     }
 
     /** The pour this row illustrates is the first fluid it displays, the one the tank slot starts on. */

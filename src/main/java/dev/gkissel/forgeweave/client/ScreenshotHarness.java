@@ -101,6 +101,7 @@ import dev.gkissel.forgeweave.item.CrossbowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
+import dev.gkissel.forgeweave.emi.EmiScreenshotHarness;
 import dev.gkissel.forgeweave.jei.JeiScreenshotHarness;
 import dev.gkissel.forgeweave.menu.ModifierWorktableMenu; // #1057
 import dev.gkissel.forgeweave.menu.PartBuilderMenu;
@@ -571,6 +572,8 @@ public final class ScreenshotHarness {
     private static final int PONDER_SCENE_TIMEOUT_TICKS = 1500;
     /** Which of {@link PonderHarnessCaptures#CAPTURES} is playing (#700). */
     private static int ponderCaptureIndex;
+    /** How long the EMI captures (issue #971) wait for EMI's own reload before shooting anyway. */
+    private static final int EMI_RELOAD_TIMEOUT_TICKS = 1200;
     /** Which JEI category (#804) is on screen; see {@link dev.gkissel.forgeweave.jei.JeiScreenshotHarness}. */
     private static int jeiCaptureIndex;
     /** Opt-in: skip straight to the JEI captures, see {@link #settleWorld}. Off unless set. */
@@ -2240,35 +2243,55 @@ public final class ScreenshotHarness {
         }
         // Guard the very first touch of JeiScreenshotHarness: loading it verifies the category
         // classes it names, every one of which pulls JEI's API in. JEI is always present in the dev
-        // runtime this harness runs under, so this only matters for a stripped-down one.
-        if (!ModList.get().isLoaded("jei")) {
+        // runtime this harness runs under, so this only matters for a stripped-down one -- or for
+        // -PemiClient (issue #971), which swaps JEI for EMI and captures EMI's screens instead.
+        boolean emi = !ModList.get().isLoaded("jei") && ModList.get().isLoaded("emi");
+        if (!emi && !ModList.get().isLoaded("jei")) {
             LOGGER.warn("{}JEI is not installed, skipping the JEI category captures", LOG_PREFIX);
             finishHarness(mc);
             advance(Stage.DONE);
             return;
         }
-        if (jeiCaptureIndex >= JeiScreenshotHarness.categoryCount()) {
-            LOGGER.info("{}all {} screens, {} book scenes, {} ponder scenes and {} JEI categories captured, exiting",
+        int count = emi ? EmiScreenshotHarness.categoryCount() : JeiScreenshotHarness.categoryCount();
+        if (jeiCaptureIndex >= count) {
+            LOGGER.info("{}all {} screens, {} book scenes, {} ponder scenes and {} {} categories captured, exiting",
                     LOG_PREFIX, SCREENS.size(), BOOK_SCENES.size(), PonderHarnessCaptures.CAPTURES.size(),
-                    JeiScreenshotHarness.categoryCount());
+                    count, emi ? "EMI" : "JEI");
             finishHarness(mc);
             advance(Stage.DONE);
             return;
         }
-        String fileName = JeiScreenshotHarness.categoryFileName(jeiCaptureIndex);
-        if (!JeiScreenshotHarness.openCategory(jeiCaptureIndex)) {
+        String fileName = viewerFileName(emi);
+        if (emi) {
+            // EMI reloads on its own worker thread once the world is up; wait for it rather than
+            // capturing an empty recipe screen, but not forever.
+            if (!EmiScreenshotHarness.ready()) {
+                if (stageTicks < EMI_RELOAD_TIMEOUT_TICKS) {
+                    return;
+                }
+                LOGGER.error("{}EMI never finished reloading, capturing {} as is", LOG_PREFIX, fileName);
+                FAILED_FRAMES.add(fileName);
+            }
+            EmiScreenshotHarness.openCategory(jeiCaptureIndex);
+        } else if (!JeiScreenshotHarness.openCategory(jeiCaptureIndex)) {
             LOGGER.error("{}JEI runtime not available, skipping {}", LOG_PREFIX, fileName);
             FAILED_FRAMES.add(fileName);
             jeiCaptureIndex++;
             return;
         }
-        LOGGER.info("{}opening JEI category {}", LOG_PREFIX, fileName);
+        LOGGER.info("{}opening recipe category {}", LOG_PREFIX, fileName);
         screenReadyTicks = -1;
         advance(Stage.SETTLE_JEI);
     }
 
+    /** {@code jei_<category>} or, under -PemiClient, {@code emi_<category>}. */
+    private static String viewerFileName(boolean emi) {
+        return emi ? EmiScreenshotHarness.categoryFileName(jeiCaptureIndex)
+                : JeiScreenshotHarness.categoryFileName(jeiCaptureIndex);
+    }
+
     private static void settleJei(Minecraft mc) {
-        String fileName = JeiScreenshotHarness.categoryFileName(jeiCaptureIndex);
+        String fileName = viewerFileName(!ModList.get().isLoaded("jei"));
         // JEI's showTypes (called from openJei) sets the screen synchronously on the client thread,
         // unlike the station menus above -- there is no server round trip to race here, so "some
         // screen is up" is already a strong signal. JEI's own types stay off this class's classpath

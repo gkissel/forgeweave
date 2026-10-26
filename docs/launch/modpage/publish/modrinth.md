@@ -177,7 +177,7 @@ At least 13 recipe categories, including part crafting, tool assembly, tool repa
 
 ### ![EMI](https://raw.githubusercontent.com/gkissel/forgeweave/master/docs/launch/modpage/assets/integration-emi.png)
 
-EMI shows Forgeweave recipes through its JEI bridge. There is no native EMI plugin.
+Forgeweave has its own EMI plugin. Every recipe category and the station fill buttons work in EMI, with or without JEI installed.
 
 ### ![Ponder](https://raw.githubusercontent.com/gkissel/forgeweave/master/docs/launch/modpage/assets/integration-ponder.png)
 

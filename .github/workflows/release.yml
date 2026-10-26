@@ -115,6 +115,7 @@ jobs:
           # jar-in-jar embedded since issue #664, so the store pages mark both as embedded instead.
           dependencies: |
             jei(optional)
+            emi(optional)
             darkmodeeverywhere(optional)
             ponder(embedded)
             flywheel(embedded)
