@@ -22,6 +22,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.SharedConstants;
@@ -32,8 +33,11 @@ import net.minecraft.server.Bootstrap;
 import net.minecraft.util.FormattedCharSequence;
 
 import dev.gkissel.forgeweave.api.trait.Trait;
+import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
+import dev.gkissel.forgeweave.trait.SelfRepairWhen;
+import dev.gkissel.forgeweave.trait.ShippedLanguage;
 import dev.gkissel.forgeweave.trait.TraitFamilies;
 
 /**
@@ -333,6 +337,155 @@ class DescriptionStyleTest {
                 + "they cost in modifier slots; add a \"Costs ...\" bullet to modifierEffects");
     }
 
+    /**
+     * Checklist line 66: no trait reads as a raw {@code trait.forgeweave.x.name} at a station. Every
+     * registered id, Java or datapack, resolves to a name key the shipped lang file has.
+     */
+    @Test
+    void everyTraitShipsAName() throws Exception {
+        JsonObject lang = generatedLang();
+        List<String> nameless = new ArrayList<>();
+        liveTraitLangBases().forEach((id, base) -> {
+            if (!lang.has(base + ".name")) {
+                nameless.add(id + " (" + base + ".name)");
+            }
+        });
+        assertEquals(List.of(), nameless, "these traits would show their raw lang key as their name");
+    }
+
+    /**
+     * Checklist line 67: the battlesign's deflect tooltip covers the melee block as well as the
+     * projectile return, and quotes the same 30% and the same half the code applies.
+     */
+    @Test
+    void deflectDescribesTheMeleeBlockWithTheCodesOwnNumbers() throws IOException {
+        String text = generatedLang().get("tooltip.forgeweave.innate.deflect.description").getAsString();
+        ForgeweaveInnates.Deflect deflect = (ForgeweaveInnates.Deflect) ForgeweaveInnates.DEFLECT.seam();
+        int percent = Math.round((1.0F - deflect.meleeReduction()) * 100.0F);
+
+        assertTrue(text.contains("melee"), "deflect must say what it does to a melee blow: " + text);
+        assertTrue(text.contains(percent + "%"), "deflect takes " + percent + "% off a melee blow: " + text);
+        assertEquals(0.5F, deflect.meleeReflectFraction(), "the text says half is paid back");
+        assertTrue(text.contains("half"), "deflect must say how much it pays back: " + text);
+    }
+
+    /**
+     * Checklist line 70: every self-repair trait's "every N seconds" is its own interval, in seconds.
+     * {@code sunmend} and {@code duskmend} share 160 ticks, which is 8 seconds (the checklist's "22 s"
+     * is out of date).
+     */
+    @Test
+    void everySelfRepairDescriptionStatesItsOwnInterval() throws Exception {
+        Pattern every = Pattern.compile("every ([\\d.]+) seconds");
+        List<String> wrong = new ArrayList<>();
+        int checked = 0;
+        for (Map.Entry<ResourceLocation, Trait> entry : javaTraits().entrySet()) {
+            if (!(entry.getValue() instanceof SelfRepairWhen repair)) {
+                continue;
+            }
+            checked++;
+            String text = ShippedLanguage.render(TraitFamilies.description(entry.getKey()));
+            var matcher = every.matcher(text);
+            double seconds = repair.ticksPerPoint() / 20.0;
+            if (!matcher.find() || Math.abs(Double.parseDouble(matcher.group(1)) - seconds) > 0.001) {
+                wrong.add(entry.getKey().getPath() + " repairs every " + seconds + " seconds but reads \"" + text + "\"");
+            }
+        }
+        assertTrue(checked >= 5, "expected the ecological ladder, sunmend and duskmend, found " + checked);
+        assertEquals(List.of(), wrong, "a self-repair description has to quote its own interval in seconds");
+    }
+
+    /**
+     * Worn traits whose sentence gives a per-piece figure and no full-set total, against rule 5 of
+     * docs/agents/description-style.md. Each one is reported on the checklist-headless-traits PR;
+     * the list is exact, so an entry fixed has to come off it.
+     */
+    private static final Set<String> WORN_WITHOUT_A_SET_TOTAL = Set.of(
+            "backlash", "bracingplate", "crystalstrike", "depth_protection");
+
+    /** A sentence that sizes a worn effect by the piece. */
+    private static final Pattern PER_PIECE = Pattern.compile("\\b(per|each|every|a) piece\\b", Pattern.CASE_INSENSITIVE);
+
+    /**
+     * Checklist line 93: a worn trait that states what one piece does also states what the full set
+     * does. Guards every description outside {@link #WORN_WITHOUT_A_SET_TOTAL}.
+     */
+    @Test
+    void everyPerPieceDescriptionAlsoGivesTheSetTotal() throws Exception {
+        assertEquals(new TreeSet<>(WORN_WITHOUT_A_SET_TOTAL), wornWithoutASetTotal(),
+                "a worn trait's description has to give the full-set total next to the per-piece one "
+                        + "(docs/agents/description-style.md rule 5)");
+    }
+
+    @Test
+    @Disabled("Product text gap, reported on the checklist-headless-traits PR: backlash, bracingplate, "
+            + "crystalstrike and depth_protection give a per-piece figure with no full-set total")
+    void noPerPieceDescriptionLeavesOutTheSetTotal() throws Exception {
+        assertEquals(new TreeSet<>(), wornWithoutASetTotal());
+    }
+
+    private static TreeSet<String> wornWithoutASetTotal() throws Exception {
+        JsonObject lang = generatedLang();
+        TreeSet<String> missing = new TreeSet<>();
+        for (String base : new LinkedHashSet<>(liveTraitLangBases().values())) {
+            String text = lang.get(base + ".description").getAsString();
+            if (PER_PIECE.matcher(text).find() && !text.toLowerCase().contains("set")) {
+                missing.add(base.substring("trait.forgeweave.".length()));
+            }
+        }
+        return missing;
+    }
+
+    /**
+     * Modifiers whose book bullets never say how many levels they take. Each one is reported on the
+     * checklist-headless-traits PR; the list is exact, so an entry fixed has to come off it.
+     */
+    private static final Set<String> MODIFIERS_WITHOUT_A_STATED_CAP = Set.of(
+            "blast_protection", "fins", "fire_protection", "glowing", "harvest_height", "harvest_width", "luck",
+            "magic_protection", "melee_protection", "projectile_protection");
+
+    /** A bullet that states a level cap. */
+    private static final Pattern LEVEL_CAP = Pattern.compile(
+            "one level only|up to \\d+ levels?|maximum of \\d+ levels?", Pattern.CASE_INSENSITIVE);
+
+    /**
+     * Checklist line 93: a modifier's bullets state its level cap next to its slot cost (rule 7 of
+     * docs/agents/description-style.md; {@link #everyModifierWithBulletsSaysWhatItCosts} is the slot
+     * half). Guards every modifier outside {@link #MODIFIERS_WITHOUT_A_STATED_CAP}.
+     */
+    @Test
+    void everyModifierWithBulletsStatesItsLevelCap() throws IOException {
+        assertEquals(new TreeSet<>(MODIFIERS_WITHOUT_A_STATED_CAP), modifiersWithoutAStatedCap(),
+                "a modifier's book bullets have to say how many levels it takes: \"One level only\" or "
+                        + "\"Up to N levels\"");
+    }
+
+    @Test
+    @Disabled("Product text gap, reported on the checklist-headless-traits PR: ten modifiers' book bullets "
+            + "state no level cap")
+    void noModifierLeavesItsLevelCapUnstated() throws IOException {
+        assertEquals(new TreeSet<>(), modifiersWithoutAStatedCap());
+    }
+
+    private static TreeSet<String> modifiersWithoutAStatedCap() throws IOException {
+        JsonObject lang = generatedLang();
+        TreeSet<String> missing = new TreeSet<>();
+        for (ResourceLocation id : ForgeweaveModifiers.ids()) {
+            String base = "modifier." + id.getNamespace() + "." + id.getPath() + ".effect.";
+            if (!lang.has(base + "0")) {
+                continue;
+            }
+            boolean statesCap = false;
+            for (int i = 0; lang.has(base + i); i++) {
+                statesCap |= LEVEL_CAP.matcher(lang.get(base + i).getAsString()).find();
+            }
+            if (!statesCap) {
+                missing.add(id.getPath());
+            }
+        }
+        return missing;
+    }
+
     private static TreeSet<String> numberless(Map<String, String> descriptions) {
         TreeSet<String> out = new TreeSet<>();
         descriptions.forEach((id, text) -> {
@@ -378,11 +531,15 @@ class DescriptionStyleTest {
     }
 
     /** {@code ForgeweaveTraits.REGISTRY}, by reflection, the way {@code TraitDefinitionAuditTest} reads it. */
-    @SuppressWarnings("unchecked")
     private static Set<ResourceLocation> javaTraitIds() throws Exception {
+        return new LinkedHashSet<>(javaTraits().keySet());
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<ResourceLocation, Trait> javaTraits() throws Exception {
         var field = ForgeweaveTraits.class.getDeclaredField("REGISTRY");
         field.setAccessible(true);
-        return new LinkedHashSet<>(((Map<ResourceLocation, Trait>) field.get(null)).keySet());
+        return (Map<ResourceLocation, Trait>) field.get(null);
     }
 
     private static List<Path> traitDefinitionFiles() throws IOException {

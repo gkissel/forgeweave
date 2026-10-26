@@ -275,6 +275,8 @@ class ArmorMaterialTest {
             "ardite,363,2.0,1.0,0.05,528,7.0,1.0,0.05,495,5.0,1.0,0.05,429,2.0,1.0,0.05",
             "netherite,407,3.0,3.0,0.1,592,8.0,3.0,0.1,555,6.0,3.0,0.1,481,3.0,3.0,0.1",
             "nahuatl,151,2.0,0.0,0.1,220,5.0,0.0,0.1,206,4.0,0.0,0.1,179,2.0,0.0,0.1",
+            // Checklist line 86: truesteel's chestplate keeps its head's proportion, 1107 (it was 646).
+            "truesteel,761,3.0,3.0,0.1,1107,8.0,3.0,0.1,1039,6.0,3.0,0.1,900,3.0,3.0,0.1",
     })
     void shippedPlatingMatchesTheCloneOrTheProposedInterpolation(String name,
             int hd, float ha, float ht, float hk,
@@ -299,6 +301,8 @@ class ArmorMaterialTest {
             "cobalt,melee_protection", "manyullyn,warded", "amethyst_bronze,crystalstrike",
             "silver,consecrated", "knightslime,overshield|overslime", "bone,piercing_guard", "cactus,thorns",
             "chorus,enderclearance|overslime_friend", "slimevine_blue,skyfall|vinewarden",
+            // Checklist line 79: faultsteel plating carries backlash.
+            "faultsteel,backlash",
     })
     void armorScopedTraitsApplyToPlatingAndMailleOnly(String name, String traits) {
         Material material = shipped(name);

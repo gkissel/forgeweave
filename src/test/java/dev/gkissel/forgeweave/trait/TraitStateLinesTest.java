@@ -207,6 +207,53 @@ class TraitStateLinesTest {
         assertEquals(List.of(), stateLines(ForgeweaveTraits.EVOLVED3, stack));
     }
 
+    /**
+     * Checklist line 90: bracing plate's line grows with each blow taken, 1 protection point (4% of the
+     * post-armor blow) a stack up to its 3, and clears once the stacks lapse.
+     */
+    @Test
+    void bracingplateReadsHowBracedThePieceIsThenClearsWhenTheStacksLapse() {
+        ItemStack stack = blankStack();
+        for (int stacks = 1; stacks <= 3; stacks++) {
+            stack.set(ForgeweaveDataComponents.RESISTANCE_STACKS.get(), new TraitStacks(stacks, 120));
+            String percent = Integer.toString(4 * stacks);
+            assertEquals(List.of(Component.translatable("tooltip.forgeweave.trait.resistance_stacks", percent, stacks, 3)
+                            .withStyle(ChatFormatting.GRAY)),
+                    stateLines(ForgeweaveTraits.BRACINGPLATE, stack));
+        }
+        assertEquals("Braced: 12% off a blow, 3 of 3 stacks",
+                ShippedLanguage.render(stateLines(ForgeweaveTraits.BRACINGPLATE, stack).get(0)));
+
+        stack.set(ForgeweaveDataComponents.RESISTANCE_STACKS.get(), new TraitStacks(3, 1));
+        ForgeweaveTraits.decayStack(stack, ForgeweaveDataComponents.RESISTANCE_STACKS.get());
+        assertEquals(List.of(), stateLines(ForgeweaveTraits.BRACINGPLATE, stack), "lapsed stacks show nothing");
+    }
+
+    /**
+     * Checklist line 90: last breath's cooldown counts down in seconds, never ticks, and the line goes
+     * once the piece can save again.
+     */
+    @Test
+    void lastbreathCountsTheCooldownDownInSecondsThenClears() {
+        ItemStack stack = blankStack();
+        assertEquals(List.of(), stateLines(ForgeweaveTraits.LASTBREATH, stack), "a ready piece shows nothing");
+
+        stack.set(ForgeweaveDataComponents.DEATH_SAVE_COOLDOWN.get(), new TraitStacks(1, 6000));
+        assertEquals(List.of(Component.translatable("tooltip.forgeweave.trait.death_save.cooldown", "300")
+                        .withStyle(ChatFormatting.GRAY)),
+                stateLines(ForgeweaveTraits.LASTBREATH, stack));
+        assertEquals("Can save again in 300s",
+                ShippedLanguage.render(stateLines(ForgeweaveTraits.LASTBREATH, stack).get(0)));
+
+        stack.set(ForgeweaveDataComponents.DEATH_SAVE_COOLDOWN.get(), new TraitStacks(1, 40));
+        assertEquals("Can save again in 2s",
+                ShippedLanguage.render(stateLines(ForgeweaveTraits.LASTBREATH, stack).get(0)));
+
+        stack.set(ForgeweaveDataComponents.DEATH_SAVE_COOLDOWN.get(), new TraitStacks(1, 1));
+        ForgeweaveTraits.decayStack(stack, ForgeweaveDataComponents.DEATH_SAVE_COOLDOWN.get());
+        assertEquals(List.of(), stateLines(ForgeweaveTraits.LASTBREATH, stack), "a spent cooldown shows nothing");
+    }
+
     private static ResourceLocation id(String path) {
         return ResourceLocation.fromNamespaceAndPath("forgeweave", path);
     }
