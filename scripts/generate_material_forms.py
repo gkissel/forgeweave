@@ -179,6 +179,15 @@ def write_sprites() -> None:
     print(f"wrote {written} material form sprites for {len(materials())} materials")
 
 
+def gated_ingot_row(mat_id: str) -> dict | None:
+    """A material's checked-in ingot melting row, if it carries `neoforge:conditions`."""
+    path = ROOT / "src/main/resources/data/forgeweave/forgeweave/melting_recipe" / f"{mat_id}_ingot.json"
+    if not path.exists():
+        return None
+    row = json.loads(path.read_text())
+    return row if "neoforge:conditions" in row else None
+
+
 def write_melting_rows() -> None:
     MELTING_DIR.mkdir(parents=True, exist_ok=True)
     written = 0
@@ -198,6 +207,13 @@ def write_melting_rows() -> None:
             temperature = melt_temperature(mat_id)
             if temperature is not None:
                 data["temperature"] = temperature
+            # A compat-gated alloy's dusts (alumite, the welds, atomic matter alloy...) load under the
+            # same mod condition as its ingot row and ask for the same fuel, so they never melt
+            # without the mod and TrackAMeltingTemperatureTest's table holds for them too.
+            ingot = gated_ingot_row(mat_id)
+            if ingot is not None:
+                data["temperature"] = ingot["temperature"]
+                data["neoforge:conditions"] = ingot["neoforge:conditions"]
             (MELTING_DIR / f"{name}.json").write_text(json.dumps(data, indent=2) + "\n")
             written += 1
     print(f"wrote {written} dust melting rows")

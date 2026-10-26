@@ -94,6 +94,40 @@ class CompatMeltingCoverageTest {
         assertEquals(2.0, trait.get("cap").getAsDouble());
     }
 
+    /**
+     * A gated alloy's dusts load only when its ingot row does. Release testing (PR #1140) found
+     * {@code atomic_matter_alloy_dust.json} with no Mekanism condition; the dust generator had left
+     * it off every compat alloy's three dusts.
+     */
+    @Test
+    void aGatedMaterialsDustsCarryItsIngotRowsCondition() throws IOException {
+        int gated = 0;
+        try (var files = Files.list(DATA.resolve("melting_recipe"))) {
+            for (Path ingot : files.filter(p -> p.getFileName().toString().endsWith("_ingot.json")).sorted().toList()) {
+                JsonObject ingotRow = JsonParser.parseString(Files.readString(ingot)).getAsJsonObject();
+                if (!ingotRow.has("neoforge:conditions")) {
+                    continue;
+                }
+                String id = ingot.getFileName().toString().replace("_ingot.json", "");
+                for (String form : List.of("dust", "small_dust", "tiny_dust")) {
+                    Path dust = DATA.resolve("melting_recipe/" + id + "_" + form + ".json");
+                    if (!Files.exists(dust)) {
+                        continue;
+                    }
+                    gated++;
+                    JsonObject dustRow = read("melting_recipe/" + id + "_" + form + ".json");
+                    assertTrue(dustRow.has("neoforge:conditions"), dust.getFileName() + " has no condition");
+                    // A dust may ask for more (neovitae's names its own dust item), never less.
+                    for (var condition : ingotRow.getAsJsonArray("neoforge:conditions")) {
+                        assertTrue(dustRow.getAsJsonArray("neoforge:conditions").contains(condition),
+                                dust.getFileName() + " is missing " + condition);
+                    }
+                }
+            }
+        }
+        assertTrue(gated > 0, "expected gated dust rows, atomic matter alloy's among them");
+    }
+
     private static JsonObject findMeltingTag(String tag) throws IOException {
         try (var files = Files.list(DATA.resolve("melting_recipe"))) {
             for (Path path : files.filter(p -> p.toString().endsWith(".json")).sorted().toList()) {

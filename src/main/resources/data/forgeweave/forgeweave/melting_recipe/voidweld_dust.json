@@ -3,5 +3,12 @@
     "tag": "c:dusts/voidweld"
   },
   "fluid": "forgeweave:molten_voidweld",
-  "amount": 144
+  "amount": 144,
+  "temperature": 2000,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "draconicevolution:chaotic_core"
+    }
+  ]
 }
