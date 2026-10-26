@@ -32,9 +32,10 @@ import dev.gkissel.forgeweave.material.MaterialStage;
  * <ol>
  *   <li>{@link MaterialStage}, the progression ladder.
  *   <li>the group inside the stage: Forgeweave's own and vanilla materials first, then one group
- *       per other mod that supplies the material, then the materials that only make bowstrings,
- *       shafts and fletchings -- they have no head, handle or armor stats to compare, so they read
- *       as noise anywhere else.
+ *       per other mod that supplies the material, then the materials a stage tag moved here
+ *       ({@link #movedByTag}), then the materials that only make bowstrings, shafts and
+ *       fletchings -- they have no head, handle or armor stats to compare, so they read as noise
+ *       anywhere else.
  *   <li>the material's own id path, which is the old order, now only a tiebreaker.
  * </ol>
  */
@@ -69,18 +70,31 @@ public final class BookMaterialOrder {
             if (bucket == null) {
                 continue;
             }
-            bucket.sort(insideStage());
+            bucket.sort(insideStage(lookup));
             stages.add(new Stage(stage, bucket));
         }
         return List.copyOf(stages);
     }
 
-    private static Comparator<Map.Entry<ResourceLocation, Material>> insideStage() {
+    private static Comparator<Map.Entry<ResourceLocation, Material>> insideStage(MaterialStage.Lookup lookup) {
         return Comparator
                 .comparingInt((Map.Entry<ResourceLocation, Material> entry) ->
                         rangedOnly(entry.getValue()) ? 1 : 0)
+                .thenComparingInt(entry -> movedByTag(lookup, entry.getKey()) ? 1 : 0)
                 .thenComparing(entry -> sourceMod(entry.getValue()))
                 .thenComparing(entry -> entry.getKey().getPath());
+    }
+
+    /**
+     * True for a material a {@code forgeweave:stage/<id>} tag put in its stage, overriding the rung
+     * and alloy depth. Such a material lists after the ones the rule placed there: the tag says its
+     * own data puts it in the wrong place, so it reads as the stage's last step. Shipped, that is
+     * atomic matter alloy at the end of the endgame (playtest 1.0.0 line 102). Its ingot is
+     * Forgeweave's own item, so {@link #sourceMod} cannot tell it apart, and "atomic" sorted it ahead
+     * of truesteel by id.
+     */
+    public static boolean movedByTag(MaterialStage.Lookup lookup, ResourceLocation id) {
+        return lookup.overrides().containsKey(id);
     }
 
     /**
