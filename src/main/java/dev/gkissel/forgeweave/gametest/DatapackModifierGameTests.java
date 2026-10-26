@@ -1,9 +1,13 @@
 package dev.gkissel.forgeweave.gametest;
 
+import java.util.List;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -11,8 +15,10 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.Pig;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.GameType;
 
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -76,6 +82,30 @@ public class DatapackModifierGameTests {
                 "expected the pack's 100-tick duration, got " + blindness.getDuration());
 
         pig.discard();
+        helper.succeed();
+    }
+
+    /**
+     * Playtest checklist 1.0.0, line 59: the tooltip half of a pack-defined modifier. Once the
+     * pack's own recipe has applied {@code gametest_pack_chill}, the tool's hover text has to carry
+     * a line rooted at {@code modifier.forgeweave.gametest_pack_chill.name}, the key
+     * {@code ModifierApplication#name} gives every modifier. The line is matched on its key rather
+     * than its text because the pack ships no lang entry for it and a dedicated server renders
+     * whatever language it has loaded.
+     */
+    @GameTest(template = "empty")
+    public static void aPackDefinedModifierShowsInTheTooltip(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack chilled = chill(helper, ToolAssembly.pickaxe(helper, player, new BlockPos(1, 1, 1),
+                "iron", "wood", "wood"));
+        helper.assertFalse(chilled.isEmpty(), "expected the Tool Station to apply " + PACK_CHILL);
+
+        String key = "modifier." + PACK_CHILL.getNamespace() + "." + PACK_CHILL.getPath() + ".name";
+        List<Component> lines = chilled.getTooltipLines(Item.TooltipContext.of(helper.getLevel()), player,
+                TooltipFlag.NORMAL);
+        helper.assertTrue(lines.stream().anyMatch(line -> line.getContents() instanceof TranslatableContents contents
+                        && contents.getKey().equals(key)),
+                "expected a tooltip line naming the pack modifier (" + key + "), got " + lines);
         helper.succeed();
     }
 

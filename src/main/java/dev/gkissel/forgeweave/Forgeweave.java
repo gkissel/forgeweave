@@ -381,17 +381,30 @@ public class Forgeweave {
         RegistryAccess.Frozen registries = event.getServer().registryAccess();
         Registry<Material> materials = registries.registryOrThrow(Material.REGISTRY);
         LOGGER.info("Loaded {} materials: {}", materials.size(), materials.keySet());
-        logMaterialSyncSize(registries, materials);
+        MaterialSyncSize sync = materialSyncSize(registries);
+        LOGGER.info("Material registry sync payload: {} of {} materials encode to {} bytes", sync.encoded(),
+                sync.total(), sync.bytes());
     }
+
+    /**
+     * What the startup log line reports about the material registry sync.
+     *
+     * @param encoded how many materials encoded
+     * @param total how many materials the registry holds
+     * @param bytes the encoded payload's size
+     */
+    public record MaterialSyncSize(int encoded, int total, int bytes) {}
 
     /**
      * The real size of the material registry sync, addons included (issue #1065, audit question 6).
      * {@code MaterialSyncSizeTest} budgets the shipped roster, but it walks Forgeweave's own data
      * folder and cannot see a pack's or an addon's materials. This encodes what actually goes out to
-     * a joining client, so a pack author running six addons reads the number here rather than
-     * discovering it as a login timeout.
+     * a joining client, so a pack author running six addons reads the number in the startup log
+     * rather than discovering it as a login timeout. Public so {@code MaterialSyncGameTests} can
+     * assert the counts the log line prints.
      */
-    private static void logMaterialSyncSize(RegistryAccess.Frozen registries, Registry<Material> materials) {
+    public static MaterialSyncSize materialSyncSize(RegistryAccess registries) {
+        Registry<Material> materials = registries.registryOrThrow(Material.REGISTRY);
         RegistryOps<Tag> ops = registries.createSerializationContext(NbtOps.INSTANCE);
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         int encoded = 0;
@@ -402,8 +415,7 @@ public class Forgeweave {
                 encoded++;
             }
         }
-        LOGGER.info("Material registry sync payload: {} of {} materials encode to {} bytes", encoded,
-                materials.size(), buf.readableBytes());
+        return new MaterialSyncSize(encoded, materials.size(), buf.readableBytes());
     }
 
     private void registerDataPackRegistries(final DataPackRegistryEvent.NewRegistry event) {

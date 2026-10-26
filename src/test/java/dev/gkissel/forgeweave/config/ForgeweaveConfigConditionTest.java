@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.config;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -7,12 +8,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 
 import com.electronwill.nightconfig.core.CommentedConfig;
+import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.io.WritingMode;
 import com.electronwill.nightconfig.toml.TomlFormat;
 
+import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.common.conditions.ICondition;
 
 import org.junit.jupiter.api.Test;
@@ -109,5 +113,40 @@ class ForgeweaveConfigConditionTest {
             throws IOException {
         writeCompatToml(configDir, "elementariumMaterials", false);
         assertFalse(ForgeweaveConfigCondition.readToggleFromDisk(configDir, "elementariumMaterials"));
+    }
+
+    /**
+     * Playtest checklist 1.0.0, line 139: the checklist tells a tester to turn off "the twenty
+     * toggles" of {@code compat-server.toml} and lists them by name. This pins that list, in the
+     * checklist's own order, against every on/off option {@link ForgeweaveConfig#COMPAT_SPEC}
+     * defines. The file's numeric tuning values (energy costs, buffer sizes and the like) are not
+     * toggles and are left out. A toggle added to or renamed in the spec fails here until the
+     * checklist line names it too.
+     */
+    @Test
+    void theCompatSpecHasExactlyTheTwentyTogglesTheChecklistNames() {
+        List<String> checklist = List.of("draconicFusion", "draconicModules", "overlays", "kubejsTraits",
+                "createGoggles", "apotheosisSockets", "energizedTank", "powahModifiers", "occultismRituals",
+                "apotheosisAffixes", "apotheosisEnchanting", "createRecipes", "immersiveEngineeringRecipes",
+                "enderIoRecipes", "powahHeatSources", "modifierDefinitions", "allthemodiumTiers",
+                "elementariumMaterials", "mekanismModules", "mysticalAgricultureAugments");
+        List<String> spec = new ArrayList<>();
+        collectOptions(ForgeweaveConfig.COMPAT_SPEC.getSpec(), "", spec);
+
+        assertEquals(20, checklist.size());
+        assertEquals(checklist.stream().map(key -> "compat." + key).sorted().toList(), spec.stream().sorted().toList(),
+                "compat-server.toml's options must be exactly the twenty the checklist names, all under [compat]");
+    }
+
+    private static void collectOptions(UnmodifiableConfig level, String prefix, List<String> out) {
+        for (UnmodifiableConfig.Entry entry : level.entrySet()) {
+            String path = prefix + entry.getKey();
+            if (entry.getRawValue() instanceof UnmodifiableConfig branch) {
+                collectOptions(branch, path + ".", out);
+            } else if (entry.getRawValue() instanceof ModConfigSpec.ValueSpec value
+                    && value.getDefault() instanceof Boolean) {
+                out.add(path);
+            }
+        }
     }
 }

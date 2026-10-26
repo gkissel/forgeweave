@@ -5,6 +5,7 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.Pig;
@@ -14,6 +15,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
 
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -37,6 +39,7 @@ import dev.gkissel.forgeweave.menu.ToolStationTabs;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 import dev.gkissel.forgeweave.tool.ToolConstants;
+import dev.gkissel.forgeweave.worldgen.SlimeIslandStructure;
 
 /**
  * The content-family toggles ticket: each {@code content} config family switched off and back on,
@@ -506,6 +509,83 @@ public class ContentFamilyGameTests {
         return helper.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel())
                 .map(holder -> holder.value().assemble(input, helper.getLevel().registryAccess()))
                 .orElse(ItemStack.EMPTY);
+    }
+
+    /**
+     * Playtest checklist 1.0.0, line 63, the {@code armor} key: off, the Tool Station builds no
+     * helmet from a loaded iron plating and maille and says why; back on, the same loaded parts build
+     * the helmet again in the same world with no reload. The parts never move, so only the key can
+     * explain the difference. The config file's comment for this key still calls it reserved with no
+     * effect, which the shipped behaviour here contradicts.
+     */
+    @GameTest(template = "empty")
+    public static void armorOffRefusesAssemblyAndOnRestoresIt(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        helper.setBlock(POS, ForgeweaveBlocks.TOOL_STATION.get());
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS);
+        ToolAssemblyRecipes.Entry helmet = ToolAssembly.entryOf(ToolConstants.HELMET);
+        for (int i = 0; i < helmet.slotCount(); i++) {
+            blockEntity.container().setItem(i, ToolAssembly.part(helmet.part(i), "iron"));
+        }
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, POS, blockEntity);
+
+        boolean original = ForgeweaveConfig.read(ForgeweaveConfig.ARMOR);
+        ForgeweaveConfig.ARMOR.set(false);
+        try {
+            menu.broadcastChanges();
+            helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                    "with armor off, the station must build no helmet, got "
+                            + menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem());
+            helper.assertTrue(menu.rejection() != null, "and it must say why");
+
+            ForgeweaveConfig.ARMOR.set(true);
+            menu.broadcastChanges();
+            helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().is(ForgeweaveItems.ARMOR_HELMET.get()),
+                    "turning armor back on must build the helmet again, got "
+                            + menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem());
+        } finally {
+            ForgeweaveConfig.ARMOR.set(original);
+        }
+        helper.succeed();
+    }
+
+    /**
+     * Playtest checklist 1.0.0, line 63, the {@code slimeIslandsOnlyGenerateInSurfaceWorlds} key.
+     * The Nether's dimension type is not natural, so with the key on (its default) it gets no
+     * islands; off, it does; back on, it is refused again. The blacklist, which lists the Nether by
+     * default, is emptied for the length of the test so that this key is the only gate in play. The
+     * overworld is natural and must allow islands at every step. Both values are restored in a
+     * finally block.
+     */
+    @GameTest(template = "empty")
+    public static void slimeIslandsOnlyInSurfaceWorldsRoundTrips(GameTestHelper helper) {
+        ServerLevel overworld = helper.getLevel();
+        ServerLevel nether = overworld.getServer().getLevel(Level.NETHER);
+        helper.assertTrue(nether != null, "the GameTest server must load the Nether for this test");
+        helper.assertFalse(nether.dimensionType().natural(), "the Nether must be a non-surface dimension");
+
+        boolean original = ForgeweaveConfig.read(ForgeweaveConfig.SLIME_ISLANDS_ONLY_IN_SURFACE_WORLDS);
+        List<? extends String> blacklist = ForgeweaveConfig.read(ForgeweaveConfig.SLIME_ISLAND_BLACKLIST);
+        ForgeweaveConfig.SLIME_ISLAND_BLACKLIST.set(List.of());
+        try {
+            ForgeweaveConfig.SLIME_ISLANDS_ONLY_IN_SURFACE_WORLDS.set(true);
+            helper.assertFalse(SlimeIslandStructure.enabledIn(nether, false),
+                    "with the key on, the Nether must get no islands");
+            helper.assertTrue(SlimeIslandStructure.enabledIn(overworld, false), "the overworld must always get them");
+
+            ForgeweaveConfig.SLIME_ISLANDS_ONLY_IN_SURFACE_WORLDS.set(false);
+            helper.assertTrue(SlimeIslandStructure.enabledIn(nether, false),
+                    "with the key off, the Nether must allow islands");
+            helper.assertTrue(SlimeIslandStructure.enabledIn(overworld, false), "the overworld must always get them");
+
+            ForgeweaveConfig.SLIME_ISLANDS_ONLY_IN_SURFACE_WORLDS.set(true);
+            helper.assertFalse(SlimeIslandStructure.enabledIn(nether, false),
+                    "turning the key back on must keep the Nether out again");
+        } finally {
+            ForgeweaveConfig.SLIME_ISLANDS_ONLY_IN_SURFACE_WORLDS.set(original);
+            ForgeweaveConfig.SLIME_ISLAND_BLACKLIST.set(blacklist);
+        }
+        helper.succeed();
     }
 
     /** A Tool Station at {@link #POS} with an iron broadsword's three parts in its input slots. */
