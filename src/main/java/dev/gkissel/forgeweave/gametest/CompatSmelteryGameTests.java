@@ -1,11 +1,16 @@
 package dev.gkissel.forgeweave.gametest;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
@@ -13,6 +18,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.flag.FeatureFlags;
+import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -38,6 +44,10 @@ import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveCreativeTab;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.material.MaterialForms;
+import dev.gkissel.forgeweave.recipe.AlloyRecipe;
+import dev.gkissel.forgeweave.recipe.EntityMeltingRecipe;
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 
 /**
@@ -67,20 +77,25 @@ public class CompatSmelteryGameTests {
     private static final BlockPos FAUCET = new BlockPos(2, 3, 1);
     private static final BlockPos CASTING = new BlockPos(2, 2, 1);
 
+    /** Checklist line 9's materials, each gated on an item from a mod this server does not load. */
+    private static final List<String> UNSUPPLIED_MATERIALS = List.of(
+            "zinc", "brass", "andesite_alloy", "rose_quartz",
+            "infused_alloy", "reinforced_alloy", "atomic_alloy",
+            "hellforged");
+
     /**
      * The negative path: bronze's molten fluid exists (unconditional Java registration) but is
-     * unobtainable and unlisted, and neither of its real melting/casting recipes registered.
+     * unobtainable and unlisted, and neither of its real melting/casting recipes registered. The
+     * bucket half reads the Smeltery tab, the one tab that lists buckets. It used to read the General
+     * tab, which never lists one, so that half could not fail.
      */
     @GameTest(template = "empty")
     public static void absentProviderHidesTheCompatBucketAndItsRecipes(GameTestHelper helper) {
         Fluid bronze = ForgeweaveFluids.BRONZE.still().get();
         helper.assertTrue(bronze != null, "expected forgeweave:molten_bronze to be registered unconditionally");
 
-        CreativeModeTab.ItemDisplayParameters parameters = new CreativeModeTab.ItemDisplayParameters(
-                FeatureFlags.VANILLA_SET, true, helper.getLevel().registryAccess());
-        List<ItemStack> displayed = new ArrayList<>();
-        ForgeweaveCreativeTab.addGeneralItems(parameters, (stack, visibility) -> displayed.add(stack), true);
-        boolean bronzeBucketShown = displayed.stream().anyMatch(stack -> stack.is(ForgeweaveFluids.BRONZE.bucket().get()));
+        boolean bronzeBucketShown = smelteryTabItems(helper).stream()
+                .anyMatch(stack -> stack.is(ForgeweaveFluids.BRONZE.bucket().get()));
         helper.assertTrue(!bronzeBucketShown,
                 "expected the bronze bucket to be hidden from the creative tab without mekanism/immersiveengineering");
 
@@ -95,6 +110,150 @@ public class CompatSmelteryGameTests {
                 "expected ingot_bronze's casting recipe to be absent (mekanism:ingot_bronze condition unmet)");
 
         helper.succeed();
+    }
+
+    /**
+     * Playtest checklist 1.0.0, line 9: with none of their mods present, the Create four (zinc,
+     * brass, andesite alloy, rose quartz), Mekanism's three alloys (infused, reinforced, atomic) and
+     * Neo Vitae's hellforged are not in the material registry, and no melting, casting or alloy row
+     * of theirs loaded. A row counts as theirs when its id names the material, or when it pours or
+     * makes the material's own molten fluid. Each material JSON is gated on an item from its
+     * provider, for example {@code neoforge:item_exists mekanism:alloy_infused}.
+     */
+    @GameTest(template = "empty")
+    public static void unsuppliedCompatMaterialsAndTheirSmelteryRowsDoNotLoad(GameTestHelper helper) {
+        RegistryAccess registries = helper.getLevel().registryAccess();
+        Registry<Material> materials = registries.registryOrThrow(Material.REGISTRY);
+        for (String material : UNSUPPLIED_MATERIALS) {
+            helper.assertTrue(materials.get(id(material)) == null,
+                    "expected the " + material + " material to be absent without its mod, found it registered");
+
+            ForgeweaveFluids.MoltenMetal molten = ForgeweaveFluids.compatMetalFluid(material);
+            Fluid fluid = molten == null ? null : molten.still().get();
+            List<String> loaded = new ArrayList<>();
+            for (var entry : registries.registryOrThrow(MeltingRecipe.REGISTRY).entrySet()) {
+                if (namesMaterial(entry.getKey().location(), material) || entry.getValue().fluid() == fluid) {
+                    loaded.add("melting " + entry.getKey().location());
+                }
+            }
+            for (var entry : registries.registryOrThrow(CastingRecipe.REGISTRY).entrySet()) {
+                if (namesMaterial(entry.getKey().location(), material)
+                        || (fluid != null && entry.getValue().fluid().orElse(null) == fluid)) {
+                    loaded.add("casting " + entry.getKey().location());
+                }
+            }
+            for (var entry : registries.registryOrThrow(AlloyRecipe.REGISTRY).entrySet()) {
+                if (namesMaterial(entry.getKey().location(), material)
+                        || (fluid != null && entry.getValue().result().getFluid() == fluid)) {
+                    loaded.add("alloy " + entry.getKey().location());
+                }
+            }
+            helper.assertTrue(loaded.isEmpty(), "expected no smeltery rows for " + material + ", found " + loaded);
+        }
+        helper.succeed();
+    }
+
+    /**
+     * Playtest checklist 1.0.0, line 10: the only buckets the Smeltery tab shows without their mod
+     * are the three known ones, molten ferricore, blazegold and eclipsealloy (#1059, #1062). The
+     * sweep reads the real tab contents and keeps every bucket whose fluid nothing loaded can make:
+     * no melting row (main fluid or byproduct), no alloy row and no entity melting row outputs it,
+     * and it is not made some other way (blood, the default for any entity, and seared stone, which
+     * stone tool parts melt into, both come from code, and blue slime pools in slime island lakes).
+     * Any other bucket in that set shows without its owning mod, which is a defect.
+     */
+    @GameTest(template = "empty")
+    public static void onlyTheThreeKnownBucketsShowWithoutAProvider(GameTestHelper helper) {
+        RegistryAccess registries = helper.getLevel().registryAccess();
+        Set<Fluid> producible = new HashSet<>();
+        producible.add(ForgeweaveFluids.BLOOD.still().get());
+        producible.add(ForgeweaveFluids.SEARED_STONE.still().get());
+        // No recipe makes blue slime: it pools in the blue slime island lakes (SlimeIslandShape),
+        // so a player buckets it from the world.
+        producible.add(ForgeweaveFluids.BLUE_SLIME.still().get());
+        for (MeltingRecipe recipe : registries.registryOrThrow(MeltingRecipe.REGISTRY)) {
+            producible.add(recipe.fluid());
+            recipe.byproduct().ifPresent(byproduct -> producible.add(byproduct.fluid()));
+        }
+        for (AlloyRecipe recipe : registries.registryOrThrow(AlloyRecipe.REGISTRY)) {
+            producible.add(recipe.result().getFluid());
+        }
+        for (EntityMeltingRecipe recipe : registries.registryOrThrow(EntityMeltingRecipe.REGISTRY)) {
+            producible.add(recipe.fluid());
+        }
+
+        Set<Item> providerless = new HashSet<>();
+        for (ItemStack stack : smelteryTabItems(helper)) {
+            if (stack.getItem() instanceof BucketItem bucket && !producible.contains(bucket.content)) {
+                providerless.add(bucket);
+            }
+        }
+
+        Set<Item> expected = Set.of(ForgeweaveFluids.FERRICORE.bucket().get(), ForgeweaveFluids.BLAZEGOLD.bucket().get(),
+                ForgeweaveFluids.ECLIPSEALLOY.bucket().get());
+        helper.assertTrue(providerless.equals(expected), "expected exactly the three known provider-less buckets "
+                + names(expected) + ", found " + names(providerless));
+        helper.succeed();
+    }
+
+    /**
+     * Playtest checklist 1.0.0, line 11: without Mekanism, atomic matter alloy stays in the material
+     * registry, but its ingot, nugget, block, every material form and its bucket are hidden from the
+     * creative tabs. Nothing can make its ingot either: the Mekanism nucleosynthesizer row, the
+     * ingot, nugget and block casting rows and the ingot's melting row all stayed unloaded.
+     */
+    @GameTest(template = "empty")
+    public static void atomicMatterAlloyStaysRegisteredButItsItemFormsAreHidden(GameTestHelper helper) {
+        String material = "atomic_matter_alloy";
+        RegistryAccess registries = helper.getLevel().registryAccess();
+        helper.assertTrue(registries.registryOrThrow(Material.REGISTRY).get(id(material)) != null,
+                "expected atomic_matter_alloy to stay in the material registry without Mekanism");
+
+        List<Item> forms = new ArrayList<>(List.of(ForgeweaveItems.trackBAlloyIngot(material).get(),
+                ForgeweaveItems.trackBAlloyNugget(material).get(), ForgeweaveItems.trackBAlloyBlockItem(material).get(),
+                ForgeweaveFluids.trackBAlloyFluid(material).bucket().get()));
+        MaterialForms.FormedMaterial formed = MaterialForms.ALL.stream()
+                .filter(entry -> entry.id().equals(material)).findFirst()
+                .orElseThrow(() -> new AssertionError("expected atomic_matter_alloy to have material forms"));
+        formed.forms().forEach(form -> forms.add(ForgeweaveItems.materialForm(material, form).get()));
+
+        CreativeModeTab.ItemDisplayParameters parameters = new CreativeModeTab.ItemDisplayParameters(
+                FeatureFlags.VANILLA_SET, true, registries);
+        List<ItemStack> shown = new ArrayList<>(smelteryTabItems(helper));
+        // The 3-argument overload, as ConditionalMaterialGameTests uses: the 2-argument one reads a
+        // client config a GameTest server never loads.
+        ForgeweaveCreativeTab.addGeneralItems(parameters, (stack, visibility) -> shown.add(stack), true);
+        List<Item> leaked = forms.stream().filter(item -> shown.stream().anyMatch(stack -> stack.is(item))).toList();
+        helper.assertTrue(leaked.isEmpty(), "expected every atomic_matter_alloy item form to be hidden, found " + leaked);
+
+        helper.assertTrue(helper.getLevel().getRecipeManager()
+                        .byKey(id("compat/mekanism/atomic_matter_alloy_ingot")).isEmpty(),
+                "expected the nucleosynthesizer row to be absent without Mekanism");
+        Registry<CastingRecipe> casting = registries.registryOrThrow(CastingRecipe.REGISTRY);
+        for (String row : List.of("ingot_", "nugget_", "block_")) {
+            helper.assertTrue(casting.get(id(row + material)) == null,
+                    "expected the " + row + material + " casting row to be absent without Mekanism");
+        }
+        helper.assertTrue(registries.registryOrThrow(MeltingRecipe.REGISTRY).get(id(material + "_ingot")) == null,
+                "expected the atomic_matter_alloy_ingot melting row to be absent without Mekanism");
+        helper.succeed();
+    }
+
+    /** The Forgeweave Smeltery creative tab's real contents, built the way the client builds them. */
+    private static Collection<ItemStack> smelteryTabItems(GameTestHelper helper) {
+        CreativeModeTab tab = ForgeweaveCreativeTab.SMELTERY.get();
+        tab.buildContents(new CreativeModeTab.ItemDisplayParameters(
+                FeatureFlags.VANILLA_SET, true, helper.getLevel().registryAccess()));
+        return tab.getDisplayItems();
+    }
+
+    /** Whether {@code id}'s path holds {@code material} as a whole run of underscore-separated words. */
+    private static boolean namesMaterial(ResourceLocation id, String material) {
+        return ("_" + id.getPath().replace('/', '_') + "_").contains("_" + material + "_");
+    }
+
+    private static List<String> names(Set<Item> items) {
+        return items.stream().map(item -> BuiltInRegistries.ITEM.getKey(item).toString()).sorted().toList();
     }
 
     /**

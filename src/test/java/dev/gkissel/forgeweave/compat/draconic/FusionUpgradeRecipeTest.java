@@ -414,6 +414,43 @@ class FusionUpgradeRecipeTest {
     }
 
     /**
+     * Playtest checklist 1.0.0, line 135: a duskweld tool hosts modules and refuses fusion, wyvern and
+     * awakened tools are accepted, and azure silver and steeleaf are never accepted as a catalyst.
+     * Every tool here carries the traits its shipped material JSON lists, and each refusal is checked
+     * at all four rungs, so no rung can quietly start taking one of them.
+     *
+     * <p>Azure silver and steeleaf list Ruthless and nothing else. The awakened core lists Ruthless
+     * too and is still accepted, so the check also shows that Ruthless is not what refuses a tool.
+     * What refuses one is the missing tier marker.
+     */
+    @Test
+    void duskweldAndTheRuthlessMetalsAreRefusedWhileWyvernAndAwakenedAccept() {
+        FusionUpgradeRecipe draconium = decode(fixture(50, "draconium", 2_000_000L));
+        FusionUpgradeRecipe wyvern = decode(fixture(100, "wyvern", 8_000_000L));
+        FusionUpgradeRecipe draconic = decode(fixture(175, "draconic", 32_000_000L));
+        FusionUpgradeRecipe chaotic = decode(fixture(250, "chaotic", 128_000_000L));
+        ResourceLocation ruthless = ResourceLocation.fromNamespaceAndPath("forgeweave", "ruthless");
+
+        assertTrue(ForgeweaveDraconicCompat.isWeldTool(coreTool("duskweld")), "duskweld is a weld tool");
+        assertFalse(ForgeweaveDraconicCompat.isCoreTool(coreTool("duskweld")), "so it is not a core tool");
+        assertEquals(List.of(ruthless), materialTraits("azure_silver"), "azure silver ships Ruthless alone");
+        assertEquals(List.of(ruthless), materialTraits("steeleaf"), "steeleaf ships Ruthless alone");
+
+        for (FusionUpgradeRecipe rung : List.of(draconium, wyvern, draconic, chaotic)) {
+            String tier = rung.techLevel().getSerializedName();
+            for (String material : List.of("duskweld", "azure_silver", "steeleaf")) {
+                assertTrue(rung.upgrade(null, coreTool(material)).isEmpty(),
+                        "a " + material + " tool must be refused at the " + tier + " rung");
+            }
+        }
+
+        assertTrue(wyvern.upgrade(null, coreTool("wyvern")).isPresent(), "a wyvern-core tool is accepted");
+        assertTrue(materialTraits("awakened").contains(ruthless), "the awakened core carries Ruthless too");
+        assertTrue(draconic.upgrade(null, coreTool("awakened")).isPresent(),
+                "and an awakened-core tool is still accepted");
+    }
+
+    /**
      * A pickaxe carrying whatever {@code traits.general} the shipped material JSON for {@code
      * material} lists -- the trait list an assembled tool made of that material ends up with.
      */
