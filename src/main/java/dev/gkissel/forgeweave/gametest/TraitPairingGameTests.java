@@ -80,7 +80,7 @@ public class TraitPairingGameTests {
     }
 
     /** A survival mock player wearing an iron chestplate whose trait list is exactly {@code traits}. */
-    private static Player wearing(GameTestHelper helper, String... traits) {
+    static Player wearing(GameTestHelper helper, String... traits) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack piece = ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.TOOL_STATION.get(),
                 ToolAssembly.entryOf(ToolConstants.CHESTPLATE), List.of("iron", "iron"));
@@ -90,8 +90,27 @@ public class TraitPairingGameTests {
         return player;
     }
 
+    /**
+     * A survival mock player in a full staged iron set, helmet to boots, each piece carrying exactly
+     * {@code traits}: the checklist's four-piece figures, on the shipped definitions.
+     */
+    static Player wearingSet(GameTestHelper helper, String... traits) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        List<ToolConstants.Entry> pieces = List.of(
+                ToolConstants.HELMET, ToolConstants.CHESTPLATE, ToolConstants.LEGGINGS, ToolConstants.BOOTS);
+        List<EquipmentSlot> slots = List.of(EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET);
+        for (int i = 0; i < pieces.size(); i++) {
+            ItemStack piece = ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.TOOL_STATION.get(),
+                    ToolAssembly.entryOf(pieces.get(i)), List.of("iron", "iron"));
+            piece.set(ForgeweaveDataComponents.TRAITS.get(), ids(traits));
+            player.setItemSlot(slots.get(i), piece);
+        }
+        player.tick();
+        return player;
+    }
+
     /** One blow onto a healed, non-invulnerable player; what it cost them. */
-    private static float lost(Player player, DamageSource source, float amount) {
+    static float lost(Player player, DamageSource source, float amount) {
         player.setHealth(player.getMaxHealth());
         player.invulnerableTime = 0;
         float before = player.getHealth();
@@ -286,6 +305,222 @@ public class TraitPairingGameTests {
         helper.assertTrue(target.getEffect(MobEffects.MOVEMENT_SLOWDOWN) != null,
                 "cyanite chill must slow what it strikes");
         helper.succeed();
+    }
+
+    /**
+     * Checklist line 73: a full swiftward set is the 32% its sentence quotes. Optional while the
+     * product bug stands: {@code MovementBonus} adds each piece as {@code ADD_MULTIPLIED_TOTAL}, so the
+     * four slots compound to 1.08^4, about 36%. Reported on the checklist-headless-traits PR, with
+     * {@code TraitDefinitionAuditTest#aMovementBonusSetReachesTheFigureItsDescriptionQuotes}.
+     */
+    @GameTest(template = "empty", required = false)
+    public static void aFullSwiftwardSetIsThirtyTwoPercentFaster(GameTestHelper helper) {
+        double plain = wearingSet(helper).getAttributeValue(Attributes.MOVEMENT_SPEED);
+        double swift = wearingSet(helper, "swiftward").getAttributeValue(Attributes.MOVEMENT_SPEED);
+
+        helper.assertTrue(Math.abs(swift - plain * 1.32) < 1e-4,
+                "four swiftward pieces must reach the quoted 32%, so " + plain * 1.32 + ", got " + swift);
+        helper.succeed();
+    }
+
+    /**
+     * Checklist line 73's Heft half: one worn piece takes a quarter of Heft I's 25% off a shove. The
+     * control is the same staged chestplate with no trait, shoved the same way.
+     */
+    @GameTest(template = "empty")
+    public static void oneHeftPieceTakesAQuarterOfItsFigureOffAShove(GameTestHelper helper) {
+        double plain = shoved(wearing(helper));
+        double heft = shoved(wearing(helper, "heft"));
+
+        helper.assertTrue(plain > 0.0, "the control must be shoved at all, got " + plain);
+        helper.assertTrue(Math.abs(heft / plain - (1.0 - 0.0625)) < 1e-4,
+                "one Heft I piece must take 6.25% off the shove, got " + heft + " against " + plain);
+        helper.succeed();
+    }
+
+    /**
+     * Checklist line 73 asks for a Heft piece to hold the wearer against a creeper. Optional: 1.21
+     * reads a blast's push off {@code EXPLOSION_KNOCKBACK_RESISTANCE}, a separate attribute from the
+     * {@code KNOCKBACK_RESISTANCE} heft raises, and a heft wearer is pushed exactly as far as an
+     * untraited one. Reported on the checklist-headless-traits PR as a maintainer call.
+     */
+    @GameTest(template = "empty", required = false)
+    public static void oneHeftPieceHoldsTheWearerAgainstABlast(GameTestHelper helper) {
+        double plain = blasted(helper, 2);
+        double heft = blasted(helper, 14, "heft");
+
+        helper.assertTrue(plain > 0.0, "the control must be pushed by the blast, got " + plain);
+        helper.assertTrue(Math.abs(heft / plain - (1.0 - 0.0625)) < 1e-3,
+                "one Heft I piece must take 6.25% off a blast's push, got " + heft + " against " + plain);
+        helper.succeed();
+    }
+
+    /** How far a small blast 1.5 blocks away pushes a zombie wearing a staged chestplate of {@code traits}. */
+    private static double blasted(GameTestHelper helper, int x, String... traits) {
+        net.minecraft.world.entity.monster.Zombie zombie = helper.spawn(EntityType.ZOMBIE, x, 2, 2);
+        zombie.setNoAi(true);
+        Player builder = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack piece = ToolAssembly.assembleAt(helper, builder, STATION, ForgeweaveBlocks.TOOL_STATION.get(),
+                ToolAssembly.entryOf(ToolConstants.CHESTPLATE), List.of("iron", "iron"));
+        piece.set(ForgeweaveDataComponents.TRAITS.get(), ids(traits));
+        zombie.setItemSlot(EquipmentSlot.CHEST, piece);
+        zombie.tick();
+        zombie.setDeltaMovement(net.minecraft.world.phys.Vec3.ZERO);
+        helper.getLevel().explode(null, zombie.getX() - 1.5, zombie.getY(), zombie.getZ(), 1.0F,
+                net.minecraft.world.level.Level.ExplosionInteraction.NONE);
+        double push = zombie.getDeltaMovement().horizontalDistance();
+        zombie.discard();
+        return push;
+    }
+
+    /** How far one vanilla shove moves {@code player} horizontally. */
+    private static double shoved(Player player) {
+        player.setDeltaMovement(net.minecraft.world.phys.Vec3.ZERO);
+        player.knockback(0.4, 1.0, 0.0);
+        return player.getDeltaMovement().horizontalDistance();
+    }
+
+    /**
+     * Checklist lines 211 and 244: a heavy material's knockback resistance reaches the held figure
+     * with four worn pieces and goes no further. Heavy is 1.0 held, Heft I-III 0.25, 0.40 and 0.55
+     * (line 241's heft3), each against the same set worn with no trait.
+     */
+    @GameTest(template = "empty")
+    public static void fourWornPiecesReachTheHeldKnockbackFigureAndNoMore(GameTestHelper helper) {
+        double plainSet = wearingSet(helper).getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
+        double bare = holding(helper).getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
+        String[] traits = {"heavy", "heft", "heft2", "heft3"};
+        double[] figures = {1.0, 0.25, 0.40, 0.55};
+        for (int i = 0; i < traits.length; i++) {
+            double held = holding(helper, traits[i]).getAttributeValue(Attributes.KNOCKBACK_RESISTANCE) - bare;
+            double set = wearingSet(helper, traits[i]).getAttributeValue(Attributes.KNOCKBACK_RESISTANCE) - plainSet;
+            helper.assertTrue(Math.abs(held - figures[i]) < 1e-4,
+                    traits[i] + " held must add " + figures[i] + ", got " + held);
+            helper.assertTrue(Math.abs(set - figures[i]) < 1e-4,
+                    "four " + traits[i] + " pieces must add exactly the held " + figures[i] + ", got " + set);
+        }
+        helper.succeed();
+    }
+
+    /** Checklist line 212: whoever strikes a venomward wearer comes away with Poison II for 5 seconds. */
+    @GameTest(template = "empty")
+    public static void venomwardPoisonsWhoeverStrikesTheWearer(GameTestHelper helper) {
+        assertTheAttackerComesAwayWith(helper, "venomward", MobEffects.POISON, 1);
+        helper.succeed();
+    }
+
+    /** Checklist line 243: whoever strikes a cyanite wearer comes away with Slowness II for 5 seconds. */
+    @GameTest(template = "empty")
+    public static void cyaniteChillbackSlowsWhoeverStrikesTheWearer(GameTestHelper helper) {
+        assertTheAttackerComesAwayWith(helper, "cyanite_chillback", MobEffects.MOVEMENT_SLOWDOWN, 1);
+        helper.succeed();
+    }
+
+    /**
+     * Strikes a {@code trait} wearer until the attacker carries {@code effect} at {@code amplifier}
+     * for the shipped 5 seconds. Each blow rolls the shipped 20%, so 60 blows all missing is about 1
+     * in 600,000. The control is a cow striking a wearer with no trait, which comes away clean.
+     */
+    private static void assertTheAttackerComesAwayWith(GameTestHelper helper, String trait,
+            net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> effect, int amplifier) {
+        LivingEntity control = helper.spawn(EntityType.COW, 2, 2, 2);
+        Player plain = wearing(helper);
+        for (int i = 0; i < 20; i++) {
+            lost(plain, helper.getLevel().damageSources().mobAttack(control), 1.0F);
+        }
+        helper.assertTrue(control.getEffect(effect) == null, "an untraited piece must leave the attacker alone");
+
+        LivingEntity attacker = helper.spawn(EntityType.COW, 3, 2, 3);
+        Player wearer = wearing(helper, trait);
+        for (int i = 0; i < 60 && attacker.getEffect(effect) == null; i++) {
+            lost(wearer, helper.getLevel().damageSources().mobAttack(attacker), 1.0F);
+        }
+        var applied = attacker.getEffect(effect);
+        helper.assertTrue(applied != null, "whoever strikes a " + trait + " wearer must come away affected");
+        helper.assertTrue(applied.getAmplifier() == amplifier && applied.getDuration() == 100,
+                trait + " must leave level " + (amplifier + 1) + " for 5 seconds, got " + applied);
+    }
+
+    /** Checklist line 212: being struck in bloodward grants Regeneration for 6 seconds. */
+    @GameTest(template = "empty")
+    public static void bloodwardRegeneratesTheWearerForSixSeconds(GameTestHelper helper) {
+        LivingEntity attacker = helper.spawn(EntityType.COW, 2, 2, 2);
+        Player plain = wearing(helper);
+        lost(plain, helper.getLevel().damageSources().mobAttack(attacker), 1.0F);
+        helper.assertTrue(plain.getEffect(MobEffects.REGENERATION) == null, "an untraited piece grants nothing");
+
+        Player wearer = wearing(helper, "bloodward");
+        lost(wearer, helper.getLevel().damageSources().mobAttack(attacker), 1.0F);
+        var regeneration = wearer.getEffect(MobEffects.REGENERATION);
+        helper.assertTrue(regeneration != null && regeneration.getDuration() == 120,
+                "a blow taken in bloodward must grant 6 seconds of Regeneration, got " + regeneration);
+        helper.succeed();
+    }
+
+    /**
+     * Checklist line 225, the tooltip half: a tool of each Just Dire Things material, built at the
+     * real assembly path from the shipped material file, shows the trait line the checklist expects in
+     * its Shift tooltip. The materials are existence-gated, so they go into a registry of their own
+     * here; the trait names come from the live datapack families, which is why this is a GameTest.
+     * {@code ferricore}'s sure footing is armor-only and armor tooltips list no traits, so its tool
+     * shows heft.
+     */
+    @GameTest(template = "empty")
+    public static void justDireThingsToolsShowTheirTraitLines(GameTestHelper helper) throws Exception {
+        assertToolShows(helper, "ferricore", "heft", 1);
+        assertToolShows(helper, "blazegold", "fireward", 1);
+        assertToolShows(helper, "celestigem", "energized", 2);
+        assertToolShows(helper, "eclipsealloy", "energized", 3);
+        assertToolShows(helper, "eclipsealloy", "lastbreath", 1);
+        helper.succeed();
+    }
+
+    private static void assertToolShows(GameTestHelper helper, String material, String family, int level)
+            throws Exception {
+        List<net.minecraft.network.chat.Component> tooltip = shiftTooltip(helper, material);
+        String key = "trait.forgeweave." + family + ".name";
+        boolean found = tooltip.stream().anyMatch(line -> line.getContents()
+                instanceof net.minecraft.network.chat.contents.TranslatableContents name
+                && name.getKey().equals(key)
+                && (level == 1 || line.getSiblings().stream().anyMatch(sibling -> sibling.getContents()
+                        instanceof net.minecraft.network.chat.contents.TranslatableContents numeral
+                        && numeral.getKey().equals("enchantment.level." + level))));
+        helper.assertTrue(found, "a " + material + " pickaxe's Shift tooltip must name " + key
+                + (level > 1 ? " at level " + level : "") + ", got " + tooltip);
+    }
+
+    /** The detailed tooltip of a pickaxe assembled from three parts of the shipped {@code material}. */
+    private static List<net.minecraft.network.chat.Component> shiftTooltip(GameTestHelper helper, String material)
+            throws Exception {
+        ResourceLocation materialId = id(material);
+        var ops = net.minecraft.resources.RegistryOps.create(com.mojang.serialization.JsonOps.INSTANCE,
+                helper.getLevel().registryAccess());
+        var resource = helper.getLevel().getServer().getResourceManager()
+                .getResource(id("forgeweave/material/" + material + ".json")).orElseThrow();
+        dev.gkissel.forgeweave.material.Material parsed;
+        try (var reader = resource.openAsReader()) {
+            parsed = dev.gkissel.forgeweave.material.Material.CODEC
+                    .parse(ops, com.google.gson.JsonParser.parseReader(reader)).getOrThrow();
+        }
+        var registry = new net.minecraft.core.MappedRegistry<>(dev.gkissel.forgeweave.material.Material.REGISTRY,
+                com.mojang.serialization.Lifecycle.stable());
+        registry.register(net.minecraft.resources.ResourceKey.create(
+                        dev.gkissel.forgeweave.material.Material.REGISTRY, materialId),
+                parsed, net.minecraft.core.RegistrationInfo.BUILT_IN);
+        var registries = net.minecraft.core.HolderLookup.Provider.create(java.util.stream.Stream.of(registry.asLookup()));
+
+        ItemStack pickaxe = dev.gkissel.forgeweave.menu.ToolAssemblyRecipes.assemble(registries,
+                        ToolAssembly.entryFor(ForgeweaveItems.TOOL_PICKAXE.get()), List.of(materialId, materialId, materialId))
+                .orElseThrow(() -> new AssertionError("a " + material + " pickaxe must assemble"));
+        // ToolTooltip is package-private to item/, and its Shift tier is client-config gated
+        // everywhere else, so the GameTest calls the line assembly itself.
+        var append = Class.forName("dev.gkissel.forgeweave.item.ToolTooltip").getDeclaredMethod("append",
+                ItemStack.class, net.minecraft.core.HolderLookup.Provider.class, boolean.class, float.class,
+                List.class);
+        append.setAccessible(true);
+        List<net.minecraft.network.chat.Component> tooltip = new java.util.ArrayList<>();
+        append.invoke(null, pickaxe, registries, true, 1.0F, tooltip);
+        return tooltip;
     }
 
     /** Every companion id resolves: a renamed or dropped definition fails here rather than in play. */

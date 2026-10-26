@@ -3,6 +3,8 @@ package dev.gkissel.forgeweave.gametest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -15,6 +17,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.tool.MiningLevel;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
 
@@ -97,6 +100,32 @@ public class MiningLevelGameTests {
 
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         assertHeld(helper, ToolAssembly.pickaxe(helper, player, POS, "iron", "wood", "wood"), 2);
+        helper.succeed();
+    }
+
+    /**
+     * Checklist line 85: obsidian keeps upstream 1.12's 139-durability head at the netherite rung,
+     * and {@code ancient} (netherite scrap) stands on that rung too, so a hardcinder ore, which asks
+     * for the rung above, is denied to it.
+     */
+    @GameTest(template = "empty")
+    public static void obsidianAndAncientStandOnTheNetheriteRung(GameTestHelper helper) {
+        var materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
+        Material obsidian = materials.getOrThrow(ResourceKey.create(Material.REGISTRY,
+                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "obsidian")));
+        helper.assertTrue(obsidian.head().orElseThrow().durability() == 139,
+                "obsidian's head must keep upstream's 139 durability, got " + obsidian.head().orElseThrow().durability());
+        helper.assertTrue(obsidian.incorrectForTool().location().equals(
+                        ResourceLocation.withDefaultNamespace("incorrect_for_netherite_tool")),
+                "obsidian must be netherite tier, got " + obsidian.incorrectForTool().location());
+
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        assertHeld(helper, ToolAssembly.pickaxe(helper, player, POS, "obsidian", "wood", "wood"), 4);
+        ItemStack ancient = ToolAssembly.pickaxe(helper, player, POS, "ancient", "wood", "wood");
+        assertHeld(helper, ancient, 4);
+        BlockState hardcinder = ForgeweaveBlocks.trackBOre("hardcinder").get().defaultBlockState();
+        helper.assertFalse(ancient.isCorrectToolForDrops(hardcinder),
+                "an ancient pickaxe must not mine hardcinder ore, which asks for the rung above netherite");
         helper.succeed();
     }
 

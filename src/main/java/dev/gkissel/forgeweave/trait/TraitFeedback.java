@@ -4,12 +4,15 @@ import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+
+import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.ParticleTypes;
@@ -220,6 +223,10 @@ public final class TraitFeedback {
      *     rate limit just swallowed. Call sites ignore this; the GameTests assert on it
      */
     public static boolean fire(Object source, Kind kind, ServerLevel level, Entity at) {
+        BiConsumer<Kind, Entity> sink = recorder;
+        if (sink != null) {
+            sink.accept(kind, at);
+        }
         Feedback feedback = resolve(source, kind);
         if (feedback.isEmpty() || !allow(at.getId(), source, level.getGameTime())) {
             return false;
@@ -247,6 +254,19 @@ public final class TraitFeedback {
         }
         LAST_FIRED.put(key, gameTime);
         return true;
+    }
+
+    /**
+     * Sees every proc {@link #fire} is asked to announce, before the rate limit or any override, so
+     * {@code TraitFeedbackGameTests} can check which behaviour fires which kind on whom. Null outside
+     * that test; the GameTest sets and clears it within one synchronous call on the server thread.
+     */
+    @Nullable
+    private static volatile BiConsumer<Kind, Entity> recorder;
+
+    /** Installs {@link #recorder}, or clears it with {@code null}. For the GameTests only. */
+    public static void record(@Nullable BiConsumer<Kind, Entity> sink) {
+        recorder = sink;
     }
 
     /** Clears the rate limiter, for tests that stage several procs in one tick. */

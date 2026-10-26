@@ -17,10 +17,12 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.SharedConstants;
@@ -29,6 +31,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.Bootstrap;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 
 import dev.gkissel.forgeweave.api.combat.CombatSeam;
 import dev.gkissel.forgeweave.api.trait.Trait;
@@ -241,6 +244,180 @@ class TraitDefinitionAuditTest {
         }
         assertTrue(tooHigh.isEmpty(), "evasion is rolled once per worn piece, so a full set compounds: "
                 + tooHigh);
+    }
+
+    /**
+     * Checklist lines 73, 75, 87 and 93: the set figure a worn trait's sentence quotes is what four
+     * pieces of it reach, worked out again from the trait's own parameters rather than read back from
+     * the {@code description_args} beside them.
+     *
+     * <p>The aggregation is docs/agents/description-style.md rule 5. Protection and movement add a
+     * piece's value four times. Evasion and an effect on the attacker roll once per piece, so a set
+     * answers {@code 1 - (1 - chance)^4} of the blows, quoted as a whole percent. Knockback
+     * resistance pays each piece {@link ForgeweaveTraits#WORN_KNOCKBACK_RESISTANCE_SHARE} of the held
+     * figure, so the one number the sentence gives is the set's as well as the held tool's.
+     */
+    @Test
+    void everyWornSetFigureADescriptionQuotesIsWhatFourPiecesReach() throws IOException {
+        List<String> wrong = new ArrayList<>();
+        int checked = 0;
+        for (Map.Entry<String, TraitDefinition> entry : shippedDefinitions().entrySet()) {
+            List<Double> expected = wornFigures(entry.getValue().trait(), false);
+            if (expected == null) {
+                continue;
+            }
+            checked++;
+            List<String> quoted = entry.getValue().rung().descriptionArgs();
+            if (!sameFigures(quoted, expected)) {
+                wrong.add(entry.getKey() + " quotes " + quoted + ", its own parameters give " + expected);
+            }
+        }
+        assertTrue(checked >= 15, "expected the shipped worn traits, checked only " + checked);
+        assertEquals(List.of(), wrong, "a worn trait's description_args have to be what its parameters add up to "
+                + "on one piece and on a full set (docs/agents/description-style.md rule 5)");
+    }
+
+    /**
+     * The same figures, but with a movement bonus summed the way the attribute system really stacks
+     * it. {@link MovementBonus.Kind#MOVEMENT_SPEED} and {@code FLYING_SPEED} use
+     * {@code ADD_MULTIPLIED_TOTAL}, and each worn slot adds its own modifier, so four pieces multiply
+     * {@code (1 + m)^4} rather than adding {@code 4m}. Swiftward's 8% a piece is 36% for a set, not
+     * the 32% its sentence and checklist line 73 promise; gravitite levity's 15% is 75%, not 60%.
+     */
+    @Test
+    @Disabled("Product bug, reported on the checklist-headless-traits PR: movement_bonus speed kinds use "
+            + "ADD_MULTIPLIED_TOTAL, so a worn set compounds past the set figure the description quotes "
+            + "(swiftward 36% against 32%, gravitite_levity 75% against 60%)")
+    void aMovementBonusSetReachesTheFigureItsDescriptionQuotes() throws IOException {
+        List<String> wrong = new ArrayList<>();
+        for (Map.Entry<String, TraitDefinition> entry : shippedDefinitions().entrySet()) {
+            if (!(entry.getValue().trait() instanceof MovementBonus)) {
+                continue;
+            }
+            List<Double> expected = wornFigures(entry.getValue().trait(), true);
+            List<String> quoted = entry.getValue().rung().descriptionArgs();
+            if (!sameFigures(quoted, expected)) {
+                wrong.add(entry.getKey() + " quotes " + quoted + ", a worn set really reaches " + expected);
+            }
+        }
+        assertEquals(List.of(), wrong, "a movement bonus set must reach the figure its description quotes");
+    }
+
+    /**
+     * Checklist line 149: the essence ladder's tool and armor rungs read their own name and numbers
+     * through {@link TraitFamilies}, the path the tooltip takes, and leave no {@code %s} or bare
+     * {@code %} behind. The three Mystical Agriculture materials name the rungs the checklist expects.
+     */
+    @Test
+    void theEssenceLadderRendersEachRungsOwnNameAndNumbers() throws IOException {
+        Map<ResourceLocation, TraitFamilies.Rung> rungs = new LinkedHashMap<>();
+        shippedDefinitions().forEach((id, definition) -> rungs.put(forgeweave(id), definition.rung()));
+        TraitFamilies.datapack(rungs);
+        try {
+            assertRendered("keen_edge", "Keen Edge", "Every hit lands 2 extra damage, whatever it hits.");
+            assertRendered("keen_edge2", "Keen Edge II", "Every hit lands 3 extra damage, whatever it hits.");
+            assertRendered("keen_edge4", "Keen Edge IV", "Every hit lands 5 extra damage, whatever it hits.");
+            assertRendered("magic_protection", "Magic Protection",
+                    "Turns magic aside: 4 protection on every piece worn, 16 across a full set.");
+            assertRendered("magic_protection2", "Magic Protection II",
+                    "Turns magic aside: 4.5 protection on every piece worn, 18 across a full set.");
+            assertRendered("magic_protection3", "Magic Protection III",
+                    "Turns magic aside: 5 protection on every piece worn, 20 across a full set.");
+        } finally {
+            TraitFamilies.datapack(Map.of());
+        }
+
+        assertMaterialTraits("inferium", "keen_edge", "magic_protection");
+        assertMaterialTraits("imperium", "keen_edge2", "magic_protection2");
+        assertMaterialTraits("insanium", "keen_edge4", "magic_protection3");
+    }
+
+    private static void assertRendered(String id, String name, String description) {
+        String renderedName = ShippedLanguage.render(TraitFamilies.name(forgeweave(id)));
+        String renderedDescription = ShippedLanguage.render(TraitFamilies.description(forgeweave(id)));
+        assertEquals(name, renderedName, id + "'s name");
+        assertEquals(description, renderedDescription, id + "'s description");
+        assertFalse(renderedDescription.contains("%"), id + " left a format marker behind: " + renderedDescription);
+    }
+
+    private static void assertMaterialTraits(String material, String general, String armor) throws IOException {
+        JsonObject traits = JsonParser.parseString(Files.readString(projectRoot().resolve(
+                        "src/main/resources/data/forgeweave/forgeweave/material/" + material + ".json"),
+                        StandardCharsets.UTF_8))
+                .getAsJsonObject().getAsJsonObject("traits");
+        assertEquals("[\"forgeweave:" + general + "\"]", traits.get("general").toString(), material + " tool side");
+        assertEquals("[\"forgeweave:" + armor + "\"]", traits.get("armor").toString(), material + " armor side");
+    }
+
+    /**
+     * What one piece and a full set of {@code trait} come to, in the order its sentence quotes them,
+     * or {@code null} for a behaviour that does not sum across worn pieces. Percentages are whole
+     * numbers of percent; a compounded chance is rounded, the way its sentence says "about".
+     */
+    private static List<Double> wornFigures(Trait trait, boolean compoundMultipliedSpeed) {
+        if (trait instanceof TraitBehaviors.ProtectionDefinition protection) {
+            return List.of((double) protection.amount(), 4.0 * protection.amount());
+        }
+        if (trait instanceof MovementBonus movement) {
+            boolean percent = movement.kind().operation() == AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL;
+            double scale = percent ? 100.0 : 1.0;
+            double set = percent && compoundMultipliedSpeed
+                    ? Math.round(100.0 * (Math.pow(1.0 + movement.magnitude(), 4) - 1.0))
+                    : 4.0 * movement.magnitude() * scale;
+            return List.of(movement.magnitude() * scale, set);
+        }
+        if (trait instanceof Evasion evasion) {
+            return List.of(100.0 * evasion.chance(), (double) Math.round(100.0 * compounded(evasion.chance())));
+        }
+        if (trait instanceof EffectOnAttacker effect) {
+            double seconds = effect.durationTicks() / 20.0;
+            return effect.chance() >= 1.0F ? List.of(seconds) : List.of(100.0 * effect.chance(), seconds,
+                    (double) Math.round(100.0 * compounded(effect.chance())));
+        }
+        if (trait instanceof KnockbackResistance knockback) {
+            return List.of(100.0 * 4 * knockback.resistance() * ForgeweaveTraits.WORN_KNOCKBACK_RESISTANCE_SHARE);
+        }
+        return null;
+    }
+
+    /** What a full set of four independent rolls at {@code chance} answers. */
+    private static double compounded(float chance) {
+        return 1.0 - Math.pow(1.0 - chance, 4);
+    }
+
+    private static boolean sameFigures(List<String> quoted, List<Double> expected) {
+        if (quoted.size() != expected.size()) {
+            return false;
+        }
+        for (int i = 0; i < quoted.size(); i++) {
+            if (Math.abs(Double.parseDouble(quoted.get(i).replace(",", "")) - expected.get(i)) > 0.005) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** Every shipped {@code trait_definition}, parsed, by file name. */
+    private static Map<String, TraitDefinition> shippedDefinitions() throws IOException {
+        Map<String, TraitDefinition> definitions = new LinkedHashMap<>();
+        for (Path dataDir : List.of(projectRoot().resolve("src/main/resources/data"),
+                projectRoot().resolve("src/generated/resources/data"))) {
+            if (!Files.isDirectory(dataDir)) {
+                continue;
+            }
+            try (Stream<Path> files = Files.walk(dataDir)) {
+                for (Path file : files.filter(TraitDefinitionAuditTest::isTraitDefinition).sorted().toList()) {
+                    JsonElement json = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8));
+                    definitions.put(file.getFileName().toString().replace(".json", ""),
+                            TraitDefinition.CODEC.parse(ops, json).getOrThrow());
+                }
+            }
+        }
+        return definitions;
+    }
+
+    private static ResourceLocation forgeweave(String path) {
+        return ResourceLocation.fromNamespaceAndPath("forgeweave", path);
     }
 
     private static boolean isTraitDefinition(Path file) {

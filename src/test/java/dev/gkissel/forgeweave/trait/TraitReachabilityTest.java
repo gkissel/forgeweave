@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.trait;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.stream.Stream;
 
 import com.google.gson.JsonElement;
@@ -25,6 +27,7 @@ import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
 
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.SharedConstants;
@@ -282,6 +285,65 @@ class TraitReachabilityTest {
                 + "build, and the two must belong together (issue #1093; the pairs are in "
                 + "docs/research/trait-pairing.md). Give the material a companion trait on the missing side, in "
                 + "its traits.armor list or in a tool-side list:\n  " + String.join("\n  ", gaps));
+    }
+
+    /**
+     * Checklist line 68, the per-side half: on a material that builds both tools and armor, a trait
+     * shown on one side has a hook that runs on that side. {@link
+     * #everyMaterialTraitCanFireOnSomePartTheMaterialBuilds} only asks for one side out of the two a
+     * trait is granted on, which lets a general tool trait sit idle on every armor part.
+     */
+    @Test
+    @Disabled("Product content gap, reported on the checklist-headless-traits PR: sixteen materials with no "
+            + "traits.armor list show a tool-only general trait on their armor parts (see KNOWN_IDLE_GRANTS)")
+    void noTraitIsShownOnASideWhereItDoesNothing() throws IOException {
+        assertTrue(idleGrants().isEmpty(), "these traits are shown on a side none of their hooks reach, "
+                + "so the station lists a trait that does nothing there:\n  " + String.join("\n  ", idleGrants()));
+    }
+
+    /**
+     * The grants {@link #noTraitIsShownOnASideWhereItDoesNothing} reports today, each a material with no
+     * {@code traits.armor} list whose general tool trait falls through to its armor parts. Exact, so
+     * this guard catches a new one and an entry fixed has to come off.
+     */
+    private static final Set<String> KNOWN_IDLE_GRANTS = Set.of(
+            "awakened shows ruthless on its ARMOR parts", "awakened shows shieldbreaker on its ARMOR parts",
+            "bronze shows stonewake on its ARMOR parts", "carminite shows chaosmark on its ARMOR parts",
+            "chaotic shows chaosmark on its ARMOR parts", "daybrass shows sunforged on its ARMOR parts",
+            "duskweld shows soulrend on its ARMOR parts", "embercast shows netherkeen on its ARMOR parts",
+            "emberweld shows soulrend2 on its ARMOR parts", "lead shows poisonous on its ARMOR parts",
+            "osmium shows leadfoot on its ARMOR parts", "queens_slime shows overlord on its ARMOR parts",
+            "starweld shows soulrend3 on its ARMOR parts", "tin shows quick on its ARMOR parts",
+            "voidweld shows soulrend4 on its ARMOR parts", "wyvern shows stonewake on its ARMOR parts");
+
+    /** {@link #noTraitIsShownOnASideWhereItDoesNothing}, held to today's reported list so it cannot grow. */
+    @Test
+    void noNewTraitIsShownOnASideWhereItDoesNothing() throws IOException {
+        assertEquals(new TreeSet<>(KNOWN_IDLE_GRANTS), new TreeSet<>(idleGrants()),
+                "a material shows a trait on a side none of its hooks reach. Give the material a traits.armor "
+                        + "(or tool-side) list, or swap the trait; a fixed entry comes off KNOWN_IDLE_GRANTS");
+    }
+
+    private static List<String> idleGrants() throws IOException {
+        Map<ResourceLocation, Set<Side>> traitSides = traitSides();
+        List<String> idle = new ArrayList<>();
+        for (MaterialFacts material : materials()) {
+            if (!material.buildsTools() || !material.buildsArmor()) {
+                continue;
+            }
+            material.grantedTraits().forEach((id, grantedOn) -> {
+                Set<Side> works = BEHAVIOUR_BY_ID.getOrDefault(id.getPath(), traitSides.getOrDefault(id, Set.of()));
+                if (works.isEmpty()) {
+                    return; // a marker with no hooks at all, exempt as above
+                }
+                for (Side side : grantedOn) {
+                    if (!works.contains(side)) {
+                        idle.add(material.name() + " shows " + id.getPath() + " on its " + side + " parts");
+                    }
+                }
+            });
+        }
+        return idle;
     }
 
     /**

@@ -141,6 +141,89 @@ public class ArmorTraitGameTests {
         helper.succeed();
     }
 
+    /** Checklist line 71: one iron piece pays a quarter of the set's 0.05, so 0.0125 on its own. */
+    @GameTest(template = "empty")
+    public static void oneIronPieceGivesAQuarterOfTheSetsKnockbackResistance(GameTestHelper helper) {
+        double resistance = wearing(helper, "iron", "iron").getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
+        helper.assertTrue(Math.abs(resistance - 0.0125) < 0.0001,
+                "one iron chestplate must give a quarter of the set's 0.05, got " + resistance);
+        helper.succeed();
+    }
+
+    /**
+     * Checklist line 75: a full set of magic protection is not immunity. Four pieces at 4, 4.5 and 5 a
+     * piece are 16, 18 and 20 protection, which cut a magic blow by 64%, 72% and 80%. Each ratio is
+     * against the same staged set with no trait.
+     */
+    @GameTest(template = "empty")
+    public static void aFullMagicProtectionSetCutsSixtyFourSeventyTwoAndEightyPercent(GameTestHelper helper) {
+        DamageSource wither = helper.getLevel().damageSources().wither();
+        float without = TraitPairingGameTests.lost(TraitPairingGameTests.wearingSet(helper), wither, BLOW);
+        String[] rungs = {"magic_protection", "magic_protection2", "magic_protection3"};
+        float[] totals = {16.0F, 18.0F, 20.0F};
+        for (int i = 0; i < rungs.length; i++) {
+            float with = TraitPairingGameTests.lost(TraitPairingGameTests.wearingSet(helper, rungs[i]), wither, BLOW);
+            assertRatio(helper, with, without, totals[i], "four " + rungs[i] + " pieces");
+        }
+        helper.succeed();
+    }
+
+    /** Checklist line 87: seared stone's fire_protection takes 4 off a fire blow on one worn piece. */
+    @GameTest(template = "empty")
+    public static void searedStoneFireProtectionAgainstFire(GameTestHelper helper) {
+        Player player = wearing(helper, "seared_stone", "seared_stone");
+        DamageSource fire = helper.getLevel().damageSources().inFire();
+        assertRatio(helper, lost(player, fire, BLOW), lostWithoutTraits(player, fire, BLOW), 4.0F, "fire");
+        assertRatio(helper, lost(player, explosion(helper), BLOW), lostWithoutTraits(player, explosion(helper), BLOW),
+                0.0F, "explosion");
+        helper.succeed();
+    }
+
+    /**
+     * Checklist line 201, the two Create traits no other test sums over a set: andesite alloy's
+     * anchored is 0.05 knockback resistance a piece, so 0.20 for four (the checklist's older "40%" is
+     * out of date), and rose quartz's crystal ward is 1 magic protection a piece, 4 for the set, so
+     * 16% off a magic blow.
+     */
+    @GameTest(template = "empty")
+    public static void fourAnchoredAndFourCrystalWardPiecesReachTheirSetFigures(GameTestHelper helper) {
+        double plain = TraitPairingGameTests.wearingSet(helper).getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
+        double anchored = TraitPairingGameTests.wearingSet(helper, "anchored")
+                .getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
+        helper.assertTrue(Math.abs(anchored - plain - 0.20) < 0.0001,
+                "four anchored pieces must add 0.20 knockback resistance, got " + (anchored - plain));
+
+        DamageSource wither = helper.getLevel().damageSources().wither();
+        float without = TraitPairingGameTests.lost(TraitPairingGameTests.wearingSet(helper), wither, BLOW);
+        float with = TraitPairingGameTests.lost(TraitPairingGameTests.wearingSet(helper, "crystal_ward"), wither, BLOW);
+        assertRatio(helper, with, without, 4.0F, "four crystal_ward pieces");
+        helper.succeed();
+    }
+
+    /**
+     * Checklist line 202: a broken worn piece stops paying its bonus. One broken anchored piece out of
+     * four leaves 0.15; a broken crystal ward chestplate takes the magic blow whole.
+     */
+    @GameTest(template = "empty")
+    public static void aBrokenPieceStopsPayingItsBonus(GameTestHelper helper) {
+        double plain = TraitPairingGameTests.wearingSet(helper).getAttributeValue(Attributes.KNOCKBACK_RESISTANCE);
+        Player anchored = TraitPairingGameTests.wearingSet(helper, "anchored");
+        anchored.getItemBySlot(EquipmentSlot.FEET).set(ForgeweaveDataComponents.BROKEN.get(), true);
+        anchored.tick();
+        double resistance = anchored.getAttributeValue(Attributes.KNOCKBACK_RESISTANCE) - plain;
+        helper.assertTrue(Math.abs(resistance - 0.15) < 0.0001,
+                "broken boots must drop their 0.05, leaving 0.15, got " + resistance);
+
+        DamageSource wither = helper.getLevel().damageSources().wither();
+        float whole = TraitPairingGameTests.lost(TraitPairingGameTests.wearing(helper), wither, BLOW);
+        Player warded = TraitPairingGameTests.wearing(helper, "crystal_ward");
+        warded.getItemBySlot(EquipmentSlot.CHEST).set(ForgeweaveDataComponents.BROKEN.get(), true);
+        float broken = TraitPairingGameTests.lost(warded, wither, BLOW);
+        helper.assertTrue(Math.abs(broken - whole) < 0.001F,
+                "a broken crystal ward piece must take the magic blow whole, " + broken + " against " + whole);
+        helper.succeed();
+    }
+
     /** Obsidian -&gt; blast_protection: 4 against explosions. */
     @GameTest(template = "empty")
     public static void blastProtectionAgainstExplosions(GameTestHelper helper) {
