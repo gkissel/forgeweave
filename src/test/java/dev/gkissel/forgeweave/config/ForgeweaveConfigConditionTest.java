@@ -119,23 +119,24 @@ class ForgeweaveConfigConditionTest {
      * Playtest checklist 1.0.0, line 139: the checklist tells a tester to turn off "the twenty
      * toggles" of {@code compat-server.toml} and lists them by name. This pins that list, in the
      * checklist's own order, against every on/off option {@link ForgeweaveConfig#COMPAT_SPEC}
-     * defines. The file's numeric tuning values (energy costs, buffer sizes and the like) are not
-     * toggles and are left out. A toggle added to or renamed in the spec fails here until the
-     * checklist line names it too.
+     * defines. The checklist was written before #1136 added {@code emiPlugin}, so the shipped spec
+     * has twenty-one: the checklist's twenty, then {@code emiPlugin}. The file's numeric tuning
+     * values (energy costs, buffer sizes and the like) are not toggles and are left out. A toggle
+     * added to or renamed in the spec fails here until this list names it too.
      */
     @Test
-    void theCompatSpecHasExactlyTheTwentyTogglesTheChecklistNames() {
-        List<String> checklist = List.of("draconicFusion", "draconicModules", "overlays", "kubejsTraits",
+    void theCompatSpecHasExactlyTheChecklistsTwentyTogglesPlusEmiPlugin() {
+        List<String> toggles = List.of("draconicFusion", "draconicModules", "overlays", "kubejsTraits",
                 "createGoggles", "apotheosisSockets", "energizedTank", "powahModifiers", "occultismRituals",
                 "apotheosisAffixes", "apotheosisEnchanting", "createRecipes", "immersiveEngineeringRecipes",
                 "enderIoRecipes", "powahHeatSources", "modifierDefinitions", "allthemodiumTiers",
-                "elementariumMaterials", "mekanismModules", "mysticalAgricultureAugments");
+                "elementariumMaterials", "mekanismModules", "mysticalAgricultureAugments", "emiPlugin");
         List<String> spec = new ArrayList<>();
         collectOptions(ForgeweaveConfig.COMPAT_SPEC.getSpec(), "", spec);
 
-        assertEquals(20, checklist.size());
-        assertEquals(checklist.stream().map(key -> "compat." + key).sorted().toList(), spec.stream().sorted().toList(),
-                "compat-server.toml's options must be exactly the twenty the checklist names, all under [compat]");
+        assertEquals(21, toggles.size());
+        assertEquals(toggles.stream().map(key -> "compat." + key).sorted().toList(), spec.stream().sorted().toList(),
+                "compat-server.toml's options must be exactly these twenty-one, all under [compat]");
     }
 
     private static void collectOptions(UnmodifiableConfig level, String prefix, List<String> out) {

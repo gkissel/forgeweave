@@ -30,7 +30,6 @@ import dev.gkissel.forgeweave.block.StencilTableBlockEntity;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
-import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.PartBuilderMenu;
 import dev.gkissel.forgeweave.menu.StencilTableMenu;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
@@ -56,16 +55,16 @@ public class TutorialGameTests {
      * two sticks into four blank patterns. Step two stamps three of them. Step three carves the
      * three parts out of a second log: the head takes the whole log and pays back 4 wood shards,
      * and those shards pay for the handle and the binding, so the parts come to exactly one log
-     * with nothing left over, as the page says. Step four assembles the pickaxe.
+     * with nothing left over. That is the page's "it takes two logs". Step four assembles the
+     * pickaxe.
      *
-     * <p>The page's numbers, "35 durability, 2.0 mining speed and 2.0 attack", are the wood head's
-     * own stats from {@code material/wood.json}. The finished pickaxe shows the head's speed and
-     * attack, but its durability is {@code (35 + 15) * 1.0 + 25 = 75}: the binding adds wood's
-     * extra durability and the handle adds its own. Both numbers are pinned here.
+     * <p>The page quotes the finished pickaxe: 75 durability, 2.0 mining speed and 2.0 attack. The
+     * durability is {@code (35 + 15) * 1.0 + 25 = 75}: the wood head's 35, plus the extra durability
+     * the binding adds and the handle's own. {@code BookTutorialPagesTest} checks the page's text
+     * against the same numbers; this test checks that the real stations build that pickaxe.
      */
     @GameTest(template = "empty")
     public static void yourFirstPickaxeWorksAsWritten(GameTestHelper helper) {
-        ServerLevel level = helper.getLevel();
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
         // Step one: one log, then planks, sticks and blank patterns.
@@ -115,8 +114,6 @@ public class TutorialGameTests {
         helper.assertTrue(pickaxe.is(ForgeweaveItems.TOOL_PICKAXE.get()), "expected a pickaxe, got " + pickaxe);
         menu.getSlot(ToolStationMenu.OUTPUT_SLOT).onTake(player, pickaxe);
 
-        Material.Head woodHead = level.registryAccess().registryOrThrow(Material.REGISTRY).get(WOOD).head().orElseThrow();
-        helper.assertValueEqual(woodHead, new Material.Head(35, 2.0F, 2.0F), "the wood head's stats the page quotes");
         ToolStats.Stats stats = pickaxe.get(ForgeweaveDataComponents.TOOL_STATS.get());
         helper.assertTrue(stats != null, "the assembled pickaxe carries no stats");
         helper.assertValueEqual(stats.miningSpeed(), 2.0F, "the pickaxe's mining speed");
