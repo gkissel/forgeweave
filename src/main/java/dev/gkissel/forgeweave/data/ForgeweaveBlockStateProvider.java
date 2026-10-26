@@ -37,6 +37,7 @@ import dev.gkissel.forgeweave.block.SearedChuteBlock;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlock;
 import dev.gkissel.forgeweave.block.SmelteryCore;
 import dev.gkissel.forgeweave.block.SearedTier;
+import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.trackb.TrackBAlloy;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
 
@@ -368,6 +369,22 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         }
 
         slimeIslandBlocks(); // #449 (parity audit T18)
+        moltenFluidBlocks();
+    }
+
+    /**
+     * Every smeltery fluid's {@code LiquidBlock}: one particle-only model for every {@code level},
+     * the way vanilla's water and lava do it, since the fluid renderer draws the fluid itself.
+     * Without it the model bakery logged a missing model per fluid per level, 2352 WARNs on a
+     * world with Forgeweave alone (playtest 1.0.0 line 8).
+     */
+    private void moltenFluidBlocks() {
+        for (ForgeweaveFluids.MoltenMetal fluid : ForgeweaveFluids.all()) {
+            Block block = fluid.block().get();
+            ModelFile model = models().getBuilder("block/" + BuiltInRegistries.BLOCK.getKey(block).getPath())
+                    .texture("particle", fluid.stillTexture());
+            getVariantBuilder(block).partialState().setModels(new ConfiguredModel(model));
+        }
     }
 
     /**
