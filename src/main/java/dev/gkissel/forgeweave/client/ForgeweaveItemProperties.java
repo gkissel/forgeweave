@@ -43,7 +43,7 @@ import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
  * three pull stages) instead of two, and that the values come from the holder rather than from the
  * stack alone. All three are pure static methods here so a unit test can pin them without a client.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public final class ForgeweaveItemProperties {
 
     /** The property id; {@code ForgeweaveItemModelProvider.BROKEN_PREDICATE} is its other half. */

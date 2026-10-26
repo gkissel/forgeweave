@@ -49,7 +49,7 @@ import dev.gkissel.forgeweave.modifier.Worktable;
  * exactly so this screen and the Tool Station share one copy; it shows the result when there is one
  * and the loaded tool otherwise, as upstream's {@code ModifierWorktableScreen#updateDisplay} does.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public class ModifierWorktableScreen extends StationScreen<ModifierWorktableMenu> implements StationExtraAreas {
     private static final Identifier TEXTURE =
             Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/modifier_worktable.png");

@@ -20,7 +20,7 @@ import dev.gkissel.forgeweave.menu.SearedDuctMenu;
  * {@code textures/gui/duct.png} (NOTICE.md), which is where the slot and inventory positions
  * {@link SearedDuctMenu} uses come from.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public class SearedDuctScreen extends AbstractContainerScreen<SearedDuctMenu> {
     private static final Identifier TEXTURE =
             Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/seared_duct.png");

@@ -100,7 +100,7 @@ import dev.gkissel.forgeweave.tool.ToolMaterials;
  * then the offset, which is what Mantle's {@code blockCenterToCorner} amounts to). It draws last, so
  * an arrow lies over both the tool and its overlays.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public final class ModifierOverlayModels {
 
     /** Upstream {@code ModifierModel#bakeModels}'s {@code s}: how much deeper the overlay box is. */

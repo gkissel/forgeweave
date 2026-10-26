@@ -34,7 +34,7 @@ import dev.gkissel.forgeweave.tool.ToolMaterials;
  * {@link #toolMaterialTint} -- per docs/SCOPE.md issue #10 ("reuse the existing greyscale parts +
  * ItemColor layered tint approach").
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public final class ForgeweaveItemColors {
 
     /**

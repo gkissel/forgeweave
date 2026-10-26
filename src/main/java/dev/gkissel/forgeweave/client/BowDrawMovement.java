@@ -59,7 +59,7 @@ import dev.gkissel.forgeweave.item.ToolItem;
  * unit length whenever both axes are engaged, before the multiplier is applied -- a deliberate
  * deviation from vanilla/1.12 (maintainer request, #420), scoped to this bow-drawing path only.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public final class BowDrawMovement {
 
     /** Undoes vanilla's {@code 0.2F}: {@code speed * 5 * 0.2 == speed}. */

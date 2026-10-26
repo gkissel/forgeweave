@@ -75,7 +75,7 @@ import dev.gkissel.forgeweave.recipe.MeltingRecipe;
  * round trip -- {@code handleInventoryButtonClick} is the modern equivalent, so no custom payload is
  * needed.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public class SmelteryScreen extends StationScreen<SmelteryMenu> {
     private static final Identifier TEXTURE =
             Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/smeltery.png");

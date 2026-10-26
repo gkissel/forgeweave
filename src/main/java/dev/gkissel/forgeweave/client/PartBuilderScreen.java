@@ -68,7 +68,7 @@ import dev.gkissel.forgeweave.menu.StencilTableMenu;
  * {@link ToolStationScreen}'s own side panels; {@link dev.gkissel.forgeweave.menu.PartBuilderMenu}
  * owns the coordinates.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements StationExtraAreas {
     private static final Identifier TEXTURE =
             Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/part_builder.png");

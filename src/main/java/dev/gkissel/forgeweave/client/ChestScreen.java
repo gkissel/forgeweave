@@ -34,7 +34,7 @@ import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
  * ({@code GuiDynInventory} and {@code GuiSideInventory} both draw {@code GuiGeneric}'s pieces) and
  * already ported.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public class ChestScreen extends StationScreen<ChestMenu> {
     /** Upstream {@code GuiTinkerStation.BLANK_BACK}; derived unmodified (NOTICE.md). */
     private static final Identifier TEXTURE =

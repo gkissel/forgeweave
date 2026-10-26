@@ -64,7 +64,7 @@ import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
  * branch hands out {@link CrossbowChargeArmPose} instead, which is the same pose over the right
  * clock. The shouldered {@code CROSSBOW_HOLD} is still vanilla's, because it animates nothing.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public final class ForgeweaveItemClientExtensions {
 
     /**

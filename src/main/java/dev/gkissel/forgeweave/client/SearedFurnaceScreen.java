@@ -45,7 +45,7 @@ import dev.gkissel.forgeweave.menu.SmelteryMenu;
  *       {@link Progress}, and upstream's {@code gui.searedfurnace.progress.*} tooltip over the bar.
  * </ul>
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public class SearedFurnaceScreen extends StationScreen<SearedFurnaceMenu> {
     private static final Identifier TEXTURE =
             Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/seared_furnace.png");

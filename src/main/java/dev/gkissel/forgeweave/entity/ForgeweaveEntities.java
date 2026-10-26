@@ -30,7 +30,7 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
  * the blue slime (issue #451). Deliberately just the registry plumbing; see
  * {@link IndestructibleItemEntity} and {@link ShurikenEntity} for what each entity does.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = Forgeweave.MODID)
 public final class ForgeweaveEntities {
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPES =
             DeferredRegister.create(Registries.ENTITY_TYPE, Forgeweave.MODID);

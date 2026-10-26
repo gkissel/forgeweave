@@ -27,7 +27,7 @@ import dev.gkissel.forgeweave.block.FoliageType;
  * the clear stained glass, and walked off {@code ForgeweaveBlocks}' own rosters for the same
  * anti-drift reason: a colour added there cannot render white here.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public final class ForgeweaveFoliageColors {
 
     @SubscribeEvent

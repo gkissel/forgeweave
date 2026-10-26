@@ -51,7 +51,7 @@ import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
  * are printed underneath rather than left to a hover, so the screen answers "can it afford the next
  * cycle" without being touched.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public class EnergizedTankScreen extends AbstractContainerScreen<EnergizedTankMenu> {
     /** Upstream {@code GuiTinkerStation.BLANK_BACK}, shared with {@link ChestScreen} (NOTICE.md). */
     private static final Identifier PANEL =

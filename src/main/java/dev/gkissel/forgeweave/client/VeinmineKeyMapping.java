@@ -21,7 +21,7 @@ import dev.gkissel.forgeweave.tool.VeinmineKey;
  * listener that reports each change of its held state to the server -- vanilla's own sneak idiom,
  * one packet per edge rather than one per tick. {@link VeinmineKey} is the server half.
  */
-@EventBusSubscriber(modid = "forgeweave", bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = "forgeweave", value = Dist.CLIENT)
 public final class VeinmineKeyMapping {
 
     public static final KeyMapping KEY = new KeyMapping("key.forgeweave.veinmine", GLFW.GLFW_KEY_GRAVE_ACCENT,

@@ -18,7 +18,7 @@ import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
  * uses for parts and tools -- upstream's own {@code FluidMolten} shares one still/flowing texture
  * pair across every molten metal and relies on {@code FluidColored}'s color field for the rest.
  */
-@EventBusSubscriber(modid = dev.gkissel.forgeweave.Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = dev.gkissel.forgeweave.Forgeweave.MODID, value = Dist.CLIENT)
 public final class ForgeweaveFluidClientExtensions {
 
     @SubscribeEvent

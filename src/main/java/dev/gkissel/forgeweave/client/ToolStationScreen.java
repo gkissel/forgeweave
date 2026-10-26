@@ -107,7 +107,7 @@ import dev.gkissel.forgeweave.tool.ToolMaterials;
  * {@link ToolStationMenu#isForge()} -- see {@link #panelStyle()}, {@link #beamV()} and
  * {@link #buttonV()}. Which tools each block can build is the menu's business, not the screen's.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public class ToolStationScreen extends StationScreen<ToolStationMenu> implements StationExtraAreas {
     private static final Identifier TEXTURE =
             Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/tool_station.png");

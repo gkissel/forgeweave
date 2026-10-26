@@ -20,7 +20,7 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
  * than a hand list, the same anti-drift shape {@code ForgeweaveFluidClientExtensions} uses for the
  * molten metals.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public final class ForgeweaveGlassColors {
 
     @SubscribeEvent

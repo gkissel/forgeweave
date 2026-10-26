@@ -156,7 +156,7 @@ import dev.gkissel.forgeweave.tool.ToolConstants;
  * implement {@link StationMenuHost} the way every M1 station does, registering them here is one more
  * line in {@link #SCREENS}; nothing else in this class is screen-specific.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public final class ScreenshotHarness {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final String LOG_PREFIX = "[screenshot harness] ";

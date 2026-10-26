@@ -40,7 +40,7 @@ import dev.gkissel.forgeweave.menu.SearedReservoirMenu;
  * {@code SmelteryTankRenderer}, and reuses its own {@code gui.smeltery.*} tooltip keys for this
  * screen for the same reason.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public class SearedReservoirScreen extends AbstractContainerScreen<SearedReservoirMenu> {
     private static final Identifier TEXTURE =
             Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/seared_reservoir.png");

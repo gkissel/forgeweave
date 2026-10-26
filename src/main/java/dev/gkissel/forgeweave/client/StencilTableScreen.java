@@ -57,7 +57,7 @@ import dev.gkissel.forgeweave.menu.StencilTableMenu;
  * pattern buttons already occupy the left; {@link dev.gkissel.forgeweave.menu.StencilTableMenu} owns
  * the coordinates.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public class StencilTableScreen extends StationScreen<StencilTableMenu> implements StationExtraAreas {
     private static final Identifier TEXTURE =
             Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/stencil_table.png");

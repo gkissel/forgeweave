@@ -75,7 +75,7 @@ import dev.gkissel.forgeweave.item.CrossbowItem;
  * {@code event.setCanceled(true)}, ported to 1.21's sprites and its extra "full" state.</li>
  * </ul>
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public final class BowCrosshair {
 
     /** {@code Crosshair#render}: {@code spread = (1 - charge) * 25f}. */

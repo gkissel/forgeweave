@@ -42,7 +42,7 @@ import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
  * its own -- it does not, and issue #75 is the playtest report of the resulting screen with no hover
  * text anywhere.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public class CraftingStationScreen extends StationScreen<CraftingStationMenu> implements StationExtraAreas {
     private static final Identifier TEXTURE = Identifier.withDefaultNamespace("textures/gui/container/crafting_table.png");
     private static final int BASE_WIDTH = 176;
