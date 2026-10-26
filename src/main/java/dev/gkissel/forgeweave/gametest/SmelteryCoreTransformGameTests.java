@@ -11,6 +11,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -191,6 +192,27 @@ public class SmelteryCoreTransformGameTests {
                 "expected the tank's fluid identity to have carried across too");
         helper.assertValueEqual(endCore.currentTemperature(), Fluids.LAVA.getFluidType().getTemperature(),
                 "expected the wall tank's lava fuel to still be feeding the transformed core");
+        helper.succeed();
+    }
+
+    /**
+     * Playtest 1.0.0 line 112: Jade and WTHIT draw a bar for every tank a block's fluid capability
+     * reports, so the transform intake's one empty {@code Integer.MAX_VALUE} tank read as "Empty
+     * 2.14MB" on a core full of metal. The intake reports no tanks at all (the smeltery's real
+     * contents are Forgeweave's own overlay line) and still takes the transform fluid.
+     */
+    @GameTest(template = "smeltery")
+    public static void theCoreFluidCapabilityShowsOverlaysNoTankButStillTakesTheTransformFluid(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = formedSmeltery(helper, ForgeweaveBlocks.STANDARD_CORE.get(), 2);
+        core.tank().fill(new FluidStack(ForgeweaveFluids.IRON.still().get(), MeltingRecipe.VALUE_INGOT * 2),
+                IFluidHandler.FluidAction.EXECUTE);
+
+        IFluidHandler capability = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK,
+                helper.absolutePos(SmelteryGameTests.CORE_POS), null);
+        helper.assertTrue(capability != null, "expected the core to expose a fluid capability for faucets");
+        helper.assertValueEqual(capability.getTanks(), 0, "tanks the core's fluid capability reports to overlays");
+        helper.assertValueEqual(capability.fill(new FluidStack(ForgeweaveFluids.BLAZING_BLOOD.still().get(), 100),
+                IFluidHandler.FluidAction.SIMULATE), 100, "blazing blood a Standard Core accepts");
         helper.succeed();
     }
 

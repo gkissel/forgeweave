@@ -1444,19 +1444,24 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * @see #transformHandler()
      */
     private final class CoreTransformHandler implements IFluidHandler {
+        /**
+         * None: the intake is a running total, not a tank anyone can see or drain back out (#845).
+         * Jade and WTHIT draw a bar per reported tank, and a single empty one drew "Empty 2.14MB" on
+         * a core full of metal (playtest 1.0.0 line 112). {@link #fill} never looks at tanks.
+         */
         @Override
         public int getTanks() {
-            return 1;
+            return 0;
         }
 
         @Override
         public FluidStack getFluidInTank(int tank) {
-            return FluidStack.EMPTY; // #845: a running total, not a fluid anyone can see or drain back out.
+            return FluidStack.EMPTY;
         }
 
         @Override
         public int getTankCapacity(int tank) {
-            return Integer.MAX_VALUE;
+            return 0;
         }
 
         @Override
