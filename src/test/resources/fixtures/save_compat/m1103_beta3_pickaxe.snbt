@@ -1,0 +1,62 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:duskweld",
+                handle: "forgeweave:ironwood",
+                head: "forgeweave:mendstone",
+                parts: [
+                    "forgeweave:mendstone",
+                    "forgeweave:duskweld",
+                    "forgeweave:ironwood"
+                ]
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 6.3f,
+                durability: 1011,
+                mining_speed: 8.4f
+            },
+            "forgeweave:traits": [
+                "forgeweave:tinseeker",
+                "forgeweave:evolving",
+                "forgeweave:soulwick",
+                "forgeweave:ironwood_grip"
+            ],
+            "minecraft:max_damage": 1011
+        },
+        id: "forgeweave:pickaxe"
+    },
+    nbt: {
+        components: {
+            "forgeweave:base_tool_tier": 4,
+            "forgeweave:enchantability": 14,
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:duskweld",
+                handle: "forgeweave:ironwood",
+                head: "forgeweave:mendstone",
+                parts: [
+                    "forgeweave:mendstone",
+                    "forgeweave:duskweld",
+                    "forgeweave:ironwood"
+                ]
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 6.3f,
+                durability: 1011,
+                mining_speed: 8.4f
+            },
+            "forgeweave:traits": [
+                "forgeweave:tinseeker",
+                "forgeweave:evolving",
+                "forgeweave:soulwick",
+                "forgeweave:ironwood_grip"
+            ],
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 1011
+        },
+        count: 1,
+        id: "forgeweave:pickaxe"
+    },
+    what: "#1103 (playtest checklist 1.0.0, line 19): a pickaxe printed by ToolAssemblyRecipes#assemble at tag mc1.21.1-v0.6.0-beta.3, before #1103 merged its trait families. Mendstone head, duskweld binding, ironwood handle, so its stored trait list names tinseeker, soulwick and ironwood_grip, three ids #1103 retired. Trait ids are stored, not re-derived, so the list must come back verbatim and the alias map does the remapping at read time. The vanilla minecraft:tool component is left out: a unit test binds no block tags, so its mining rules printed empty, and they are vanilla's format rather than Forgeweave's."
+}
