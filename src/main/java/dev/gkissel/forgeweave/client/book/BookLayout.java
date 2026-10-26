@@ -30,7 +30,33 @@ public final class BookLayout {
      */
     public static final int PAGE_TEXT_H = BookGeometry.PAGE_HEIGHT - BookGeometry.PAGE_NUMBER_CLEARANCE;
 
+    /** One index button: Mantle's {@code ElementSection.WIDTH == HEIGHT}. */
+    public static final int INDEX_CELL = 42;
+
+    /** One index column: a button plus the 5px gap to the next, the most room a label has. */
+    public static final int INDEX_COLUMN_W = INDEX_CELL + 5;
+
+    /** Upstream's subtitle scale, kept whenever the subtitle fits. */
+    public static final float COVER_SUBTITLE_SCALE = 1.5F;
+
+    /**
+     * How wide the cover subtitle may draw, in pixels. It is centred 7px (scaled) right of the
+     * screen centre and shares its row with the cover's next arrow at +80px, so 146px keeps its
+     * right end left of the arrow at any scale up to 1x. Upstream's subtitle was eight characters,
+     * so 1.5x never had to fit anything longer; Forgeweave's runs to 265px at that scale, off the
+     * 206px cover (playtest 1.0.0 line 98).
+     */
+    public static final int COVER_SUBTITLE_W = 146;
+
     private BookLayout() {
+    }
+
+    /**
+     * The scale to draw a line of text at: {@code preferred}, or smaller when the line would
+     * otherwise run past {@code maxWidth} pixels.
+     */
+    public static float fitScale(int textWidth, int maxWidth, float preferred) {
+        return textWidth * preferred <= maxWidth ? preferred : (float) maxWidth / textWidth;
     }
 
     /**

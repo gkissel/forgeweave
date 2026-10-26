@@ -413,8 +413,9 @@ public class BookScreen extends Screen {
 
     /**
      * Upstream's cover: {@code bookfront.png}'s base tinted with the cover color, the title plate
-     * untinted over it, then the title at 2.5x (2x once it outgrows 67px) and the subtitle at 1.5x,
-     * both gold with a shadow, at {@code GuiBook.drawScreen}'s exact offsets.
+     * untinted over it, then the title at 2.5x (2x once it outgrows 67px) and the subtitle at 1.5x
+     * (smaller when it would run off the cover, see {@link BookLayout#COVER_SUBTITLE_W}), both gold
+     * with a shadow, at {@code GuiBook.drawScreen}'s exact offsets.
      */
     private void renderCover(GuiGraphics graphics) {
         int x = this.width / 2 - BookGeometry.PAGE_WIDTH_UNSCALED / 2;
@@ -438,11 +439,13 @@ public class BookScreen extends Screen {
         graphics.pose().popPose();
 
         Component subtitle = Component.translatable(this.appearance.subtitle());
+        float subtitleScale = BookLayout.fitScale(this.font.width(subtitle), BookLayout.COVER_SUBTITLE_W,
+                BookLayout.COVER_SUBTITLE_SCALE);
         graphics.pose().pushPose();
-        graphics.pose().scale(1.5F, 1.5F, 1F);
+        graphics.pose().scale(subtitleScale, subtitleScale, 1F);
         graphics.drawString(this.font, subtitle,
-                (int) ((this.width / 2) / 1.5F + 7 - this.font.width(subtitle) / 2),
-                (int) ((this.height / 2 + 100 - this.font.lineHeight * 2) / 1.5F),
+                (int) ((this.width / 2) / subtitleScale + 7 - this.font.width(subtitle) / 2),
+                (int) ((this.height / 2 + 100 - this.font.lineHeight * 2) / subtitleScale),
                 BookGeometry.COVER_TEXT_COLOR, true);
         graphics.pose().popPose();
     }
@@ -888,9 +891,9 @@ public class BookScreen extends Screen {
      * same recorded limitation as the material grid's icons.
      */
     private void sectionListBlock(List<Block> blocks, List<BookLink> links, int sectionStartPage) {
-        final int cell = 42;      // ElementSection.WIDTH == HEIGHT
+        final int cell = BookLayout.INDEX_CELL;
         final int icon = 32;      // ElementSection.IMG_SIZE
-        final int pitch = cell + 5;
+        final int pitch = BookLayout.INDEX_COLUMN_W;
         int gridSide = pitch * 3 - 5;
         int ox = (PAGE_TEXT_W - gridSide) / 2;
         int oy = (BookGeometry.PAGE_HEIGHT - gridSide) / 2;
@@ -922,11 +925,17 @@ public class BookScreen extends Screen {
                 graphics.renderItem(stack, 0, 0);
                 graphics.pose().popPose();
                 if (this.appearance.drawSectionListText()) {
+                    // Playtest 1.0.0 line 98: "Introduction" is 62px and ran into "Smeltery", so a
+                    // label wider than its column shrinks to fit it, around the same centre.
                     Component label = Component.translatable(link.labelKey());
-                    graphics.drawString(this.font, label,
-                            cellX + cell / 2 - this.font.width(label) / 2,
-                            cellY + cell - this.font.lineHeight / 2,
+                    int labelWidth = this.font.width(label);
+                    float labelScale = BookLayout.fitScale(labelWidth, pitch, 1.0F);
+                    graphics.pose().pushPose();
+                    graphics.pose().translate(cellX + cell / 2.0F, cellY + cell - this.font.lineHeight / 2.0F, 0.0F);
+                    graphics.pose().scale(labelScale, labelScale, 1.0F);
+                    graphics.drawString(this.font, label, -labelWidth / 2, 0,
                             over ? 0xFF000000 : 0x7F000000, false);
+                    graphics.pose().popPose();
                 }
             }
         }, cells));
