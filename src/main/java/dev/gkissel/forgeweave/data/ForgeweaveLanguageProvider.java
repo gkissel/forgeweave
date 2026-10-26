@@ -3696,6 +3696,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // Not an item/block/trait key family -- ForgeweaveResourcePacks#addPackFinders is the only
         // reader, via a bare Component.translatable, same as any other lang-keyed Component here.
         add("resourcepack.forgeweave.legacy", "Forgeweave Legacy Art");
+        // CompatDataPacks: the per-mod data packs' names in the data pack list.
+        add("datapack.forgeweave.apotheosis", "Forgeweave for Apotheosis");
+        add("datapack.forgeweave.powah", "Forgeweave for Powah");
 
         // M6 dedupe batch (issue #876): every material gets a distinct trait id. Own
         // names, own wording -- see ForgeweaveTraits for the mechanics.

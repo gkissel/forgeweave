@@ -44,7 +44,7 @@ class GeneratedProcessingRecipeTest {
     private static final Path RECIPE_DIR =
             projectRoot().resolve("src/main/resources/data/forgeweave/recipe");
     private static final Path POWAH_DATA_MAP =
-            projectRoot().resolve("src/main/resources/data/powah/data_maps/fluid/heat_source.json");
+            projectRoot().resolve("src/main/resources/datapacks/powah/data/powah/data_maps/fluid/heat_source.json");
     private static final Path LANG =
             projectRoot().resolve("src/generated/resources/assets/forgeweave/lang/en_us.json");
 

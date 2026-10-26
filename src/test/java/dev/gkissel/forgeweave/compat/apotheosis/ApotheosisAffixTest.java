@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
 class ApotheosisAffixTest {
 
     private static final String OVERRIDES =
-            "src/main/resources/data/apotheosis/data_maps/item/loot_category_overrides.json";
+            "src/main/resources/datapacks/apotheosis/data/apotheosis/data_maps/item/loot_category_overrides.json";
 
     private static Path projectRoot() {
         Path dir = Path.of("").toAbsolutePath();

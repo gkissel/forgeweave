@@ -71,7 +71,8 @@ class FluidReferenceAuditTest {
     void everyReferencedForgeweaveFluidIsRegistered() throws IOException {
         Path root = projectRoot();
         Set<String> referenced = new LinkedHashSet<>();
-        for (Path dataDir : List.of(root.resolve("src/main/resources/data"), root.resolve("src/generated/resources/data"))) {
+        for (Path dataDir : List.of(root.resolve("src/main/resources/data"), root.resolve("src/main/resources/datapacks"),
+                root.resolve("src/generated/resources/data"))) {
             if (!Files.isDirectory(dataDir)) {
                 continue;
             }

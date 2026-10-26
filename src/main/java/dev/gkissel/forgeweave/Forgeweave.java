@@ -50,6 +50,7 @@ import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.client.ForgeweaveDarkModeCompat;
 import dev.gkissel.forgeweave.client.ForgeweaveResourcePacks;
+import dev.gkissel.forgeweave.compat.CompatDataPacks;
 import dev.gkissel.forgeweave.combat.AttackSlash;
 import dev.gkissel.forgeweave.combat.Beheading;
 import dev.gkissel.forgeweave.combat.BlockingXpSeam;
@@ -181,6 +182,8 @@ public class Forgeweave {
         // #796 -- the built-in Legacy resource pack (the pre-Forged look, opt-in). PackType filters
         // itself out on a dedicated server, same as every other CLIENT_RESOURCES-only pack finder.
         modEventBus.addListener(ForgeweaveResourcePacks::addPackFinders);
+        // Powah's and Apotheosis' data maps, as built-in data packs that exist only with that mod.
+        modEventBus.addListener(CompatDataPacks::addPackFinders);
         // The Pattern Chest/Part Chest (issue #66) expose their inventory as an IItemHandler so
         // adjacent stations' side-inventory panels pick them up (SideInventory#find).
         modEventBus.addListener(ChestBlockEntity::registerCapabilities);

@@ -29,7 +29,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 RECIPE_DIR = ROOT / "src/main/resources/data/forgeweave/recipe"
-POWAH_DATA_MAP = ROOT / "src/main/resources/data/powah/data_maps/fluid/heat_source.json"
+POWAH_DATA_MAP = ROOT / "src/main/resources/datapacks/powah/data/powah/data_maps/fluid/heat_source.json"
 
 # Issue #995's own confirmed set -- see this module's docstring and BasicAlloyClassifierTest.
 # (output_id, input1_material, input2_material)
