@@ -1,0 +1,12 @@
+# Group 11 (lines 224-227): JEI, Just Dire Things (CurseForge only, a local jar) and Eternal Ores, with
+# none of the original providers. Line 224: the four JDT materials; line 227: the 19 dedupe materials.
+
+mod modrinth jei 19.43.0.393 04ea7c24a00b980851a34b71899c44731df5b830feafe4172641ae5f42432aabd34ba2ea57fa8f0577823bed0212c4214d409a8ea2060038deed0e8e7e237e81 jei-1.21.1-neoforge-19.43.0.393.jar
+mod local 43dad52dc8e54bbe27dff31e7a38ccc5c2dc5868c10cd3b8753b7f8dffddf4afdd21d955f95b8d52ad544a9c7f2722bec86eaf0ea4081246caf6d2acb6802f01 justdirethings-1.5.7.jar
+mod modrinth eternal-ores 1.0.32 6a509e6e34a5ecd6256bb90813d7a4aa80d7da92be3bb7ade9d36e265f709d6000fbf837c89f41e2384ec302cd015c3ab04ac35067322850752f1eadf135846b eternalores-1.0.32-neoforge-1.21.1.jar
+
+material forgeweave:ferricore forgeweave:blazegold forgeweave:eclipsealloy forgeweave:celestigem
+material forgeweave:graphite forgeweave:aluminium forgeweave:constantan forgeweave:electrum forgeweave:nickel
+material forgeweave:silver forgeweave:bronze forgeweave:lead forgeweave:osmium forgeweave:tin forgeweave:uranium
+material forgeweave:invar forgeweave:iridium forgeweave:platinum forgeweave:titanium forgeweave:tungsten
+material forgeweave:uraninite forgeweave:quartz_enriched_iron forgeweave:silicon

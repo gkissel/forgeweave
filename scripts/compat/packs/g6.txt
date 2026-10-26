@@ -1,0 +1,8 @@
+# Group 6 (lines 116-117): JEI, Better Combat, playerAnimator and Cloth Config, no Epic Fight.
+
+mod modrinth jei 19.43.0.393 04ea7c24a00b980851a34b71899c44731df5b830feafe4172641ae5f42432aabd34ba2ea57fa8f0577823bed0212c4214d409a8ea2060038deed0e8e7e237e81 jei-1.21.1-neoforge-19.43.0.393.jar
+mod modrinth better-combat 2.4.0+1.21.1-neoforge db24730a42ae7e2dd546ee031d2f5e0dd6f9896418417a529fa21a44121761ebb29c8b8299db8f20500f7497f7b60a7d793b66c93abf37a8ea0aa3edafd80eb6 bettercombat-neoforge-2.4.0+1.21.1.jar
+mod modrinth playeranimator 2.0.4+1.21.1-forge fc00450fb6c95ec1779021bdc726122dacb5915c6baddaacc981cd221b01b8db35f2a0dfde5d6fa6766d877266dc82f58854f571ea53cc5c4d468b80e1548a5f player-animation-lib-forge-2.0.4+1.21.1.jar
+mod modrinth cloth-config 15.0.140+neoforge aaf9b010955b8cd294e5a92f069985b18729fd5e2cf22d351f1dff9680f15488688803ec41e77e941cbde130ceb535014ca4c868047d80ab69c2d508e216654d cloth-config-15.0.140-neoforge.jar
+recipes 1926
+materials 80

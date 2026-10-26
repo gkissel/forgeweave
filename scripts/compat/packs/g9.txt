@@ -1,0 +1,23 @@
+# Group 9 (lines 142-215): the base pack with JEI, plus Mekanism Generators, Neo Vitae and Mystical
+# Agradditions. Material lines: 145 (nine presets, insanium included), 171 (Mekanism alloys), 183
+# (spirit_attuned_gem), 186 (Powah), 196 (Create), 208 (Hellforged). The `without` pass is line 215:
+# the world relaunched without Apotheosis loses no item.
+
+include base.txt
+mod modrinth jei 19.43.0.393 04ea7c24a00b980851a34b71899c44731df5b830feafe4172641ae5f42432aabd34ba2ea57fa8f0577823bed0212c4214d409a8ea2060038deed0e8e7e237e81 jei-1.21.1-neoforge-19.43.0.393.jar
+mod modrinth mekanism-generators 10.7.19.85 6c3d5b7ea2f67f43c3d169c97de2855a7085f38019cf426e015ccc8ca9bc4f66e96b1cdf4a9afdc92bef7b2e236f16c81415ed5e48736805d5961d29525316d6 MekanismGenerators-1.21.1-10.7.19.85.jar
+mod modrinth neovitae 1.21.1-1.1.48 013e93a11df291efbc389cecc969d9a351852027e541c2f9ad5be2389e0a450010e36c1b7a83991379c29175de09b553f553f304e6d2df8a50cc6e9d9c42197b neovitae-1.21.1-1.1.48.jar
+mod modrinth mystical-agradditions 8.0.15 d42cb3179a6f372bbea9c37ba08c4221ada9ec0e39d7e1d6b33eca7e770abb3526aad33ff903111a1888a63d65d96b3e4cc09f4041a79b37cdb524fe10388c39 MysticalAgradditions-1.21.1-8.0.15.jar
+
+fixture partner-gear.cmds
+material forgeweave:inferium forgeweave:prudentium forgeweave:tertium forgeweave:imperium forgeweave:supremium
+material forgeweave:awakened_supremium forgeweave:prosperity forgeweave:soulium forgeweave:insanium
+material forgeweave:infused_alloy forgeweave:reinforced_alloy forgeweave:atomic_alloy forgeweave:spirit_attuned_gem
+material forgeweave:blazing_crystal forgeweave:niotic_crystal forgeweave:spirited_crystal forgeweave:nitro_crystal
+material forgeweave:energised_steel forgeweave:zinc forgeweave:brass forgeweave:andesite_alloy forgeweave:rose_quartz
+material forgeweave:hellforged forgeweave:alumite forgeweave:dark_steel forgeweave:osmium forgeweave:tin
+without Apotheosis-*.jar Apothic*.jar
+upgrade-from modrinth forgeweave mc1.21.1-v0.6.0-beta.12 90b14bfe45344b014069e87e87790b1be410d4550d79574436cdb69acc61768f558aa5a8ae96cc88579c34702fea79d7638d887a1e0b5ca179eb73f7da06e3fd forgeweave-0.6.0-beta.12.jar
+recipes 10863
+recipes-off 10661
+materials 131

@@ -1,0 +1,8 @@
+# Known third-party noise that mentions Forgeweave. One Python regular expression per line, matched with
+# re.search against each flagged log line (a WARN/ERROR/FATAL line that mentions forgeweave, or a stack
+# frame in dev.gkissel.forgeweave). Say why next to each entry. Never list a Forgeweave defect here.
+
+# Mekanism 10.7.19 records every add_module_container imcMethod in one HashSet and logs an ERROR when a
+# second container asks for the same roster. Its own MekaTool and MekaSuit claim the rosters first, so
+# every third-party container logs this once per item (ModuleHelper#lambda$addModuleContainers$0).
+\[mekanism\.common\.Mekanism/\]: Received IMC message for 'add_module_container' from mod 'forgeweave' for an item 'forgeweave:[a-z_]+' with an imcMethod '[a-z_]+' that that has already been registered\.$

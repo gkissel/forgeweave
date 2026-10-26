@@ -1,0 +1,6 @@
+# Group 7 (lines 118-119): JEI and Epic Fight, no Better Combat.
+
+mod modrinth jei 19.43.0.393 04ea7c24a00b980851a34b71899c44731df5b830feafe4172641ae5f42432aabd34ba2ea57fa8f0577823bed0212c4214d409a8ea2060038deed0e8e7e237e81 jei-1.21.1-neoforge-19.43.0.393.jar
+mod modrinth epic-fight 21.17.3.1-mc1.21.1-neoforge d39c1d4a2198e7f2080cdc98de890d26d658a02b44c8399a301c7c0005d9991ff97cc94881823a9daa8952f3b89eb3d9197c2f83cf0fbba9c7992c77921b2122 epic-fight-21.17.3.1-mc1.21.1-neoforge.jar
+recipes 1957
+materials 80
