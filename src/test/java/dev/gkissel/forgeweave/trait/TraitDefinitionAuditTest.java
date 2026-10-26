@@ -2,6 +2,7 @@ package dev.gkissel.forgeweave.trait;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -22,7 +23,6 @@ import com.google.gson.JsonParser;
 import com.mojang.serialization.JsonOps;
 
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.SharedConstants;
@@ -262,7 +262,7 @@ class TraitDefinitionAuditTest {
         List<String> wrong = new ArrayList<>();
         int checked = 0;
         for (Map.Entry<String, TraitDefinition> entry : shippedDefinitions().entrySet()) {
-            List<Double> expected = wornFigures(entry.getValue().trait(), false);
+            List<Double> expected = wornFigures(entry.getValue().trait());
             if (expected == null) {
                 continue;
             }
@@ -278,29 +278,54 @@ class TraitDefinitionAuditTest {
     }
 
     /**
-     * The same figures, but with a movement bonus summed the way the attribute system really stacks
-     * it. {@link MovementBonus.Kind#MOVEMENT_SPEED} and {@code FLYING_SPEED} use
-     * {@code ADD_MULTIPLIED_TOTAL}, and each worn slot adds its own modifier, so four pieces multiply
-     * {@code (1 + m)^4} rather than adding {@code 4m}. Swiftward's 8% a piece is 36% for a set, not
-     * the 32% its sentence and checklist line 73 promise; gravitite levity's 15% is 75%, not 60%.
+     * Checklist line 73 and docs/agents/description-style.md rule 5: movement adds per piece. Each
+     * worn slot adds its own modifier, so a speed kind on {@code ADD_MULTIPLIED_TOTAL} would multiply
+     * {@code (1 + m)^4} (swiftward's 8% a piece would be 36% for a set, not 32%), and
+     * {@link #wornFigures} works the set out that way for any such kind. The speed kinds use
+     * {@code ADD_MULTIPLIED_BASE}, which adds.
      */
     @Test
-    @Disabled("Product bug, reported on the checklist-headless-traits PR: movement_bonus speed kinds use "
-            + "ADD_MULTIPLIED_TOTAL, so a worn set compounds past the set figure the description quotes "
-            + "(swiftward 36% against 32%, gravitite_levity 75% against 60%)")
     void aMovementBonusSetReachesTheFigureItsDescriptionQuotes() throws IOException {
         List<String> wrong = new ArrayList<>();
+        for (MovementBonus.Kind kind : MovementBonus.Kind.values()) {
+            assertNotEquals(AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL, kind.operation(),
+                    kind + " would compound across worn slots instead of adding");
+        }
         for (Map.Entry<String, TraitDefinition> entry : shippedDefinitions().entrySet()) {
             if (!(entry.getValue().trait() instanceof MovementBonus)) {
                 continue;
             }
-            List<Double> expected = wornFigures(entry.getValue().trait(), true);
+            List<Double> expected = wornFigures(entry.getValue().trait());
             List<String> quoted = entry.getValue().rung().descriptionArgs();
             if (!sameFigures(quoted, expected)) {
                 wrong.add(entry.getKey() + " quotes " + quoted + ", a worn set really reaches " + expected);
             }
         }
         assertEquals(List.of(), wrong, "a movement bonus set must reach the figure its description quotes");
+    }
+
+    /**
+     * Checklist line 77: a vein's extra block costs its own mining point plus
+     * {@code durability_per_block}, and {@code max_blocks} does not count the first block. The
+     * sentence quotes both as they play.
+     */
+    @Test
+    void everyVeinBreakQuotesItsBlocksPastTheFirstAndTheirWholeCost() throws IOException {
+        List<String> wrong = new ArrayList<>();
+        int checked = 0;
+        for (Map.Entry<String, TraitDefinition> entry : shippedDefinitions().entrySet()) {
+            if (!(entry.getValue().trait() instanceof VeinBreak vein)) {
+                continue;
+            }
+            checked++;
+            List<Double> expected = List.of((double) vein.maxBlocks(), vein.durabilityPerBlock() + 1.0);
+            List<String> quoted = entry.getValue().rung().descriptionArgs();
+            if (!sameFigures(quoted, expected)) {
+                wrong.add(entry.getKey() + " quotes " + quoted + ", it plays as " + expected);
+            }
+        }
+        assertTrue(checked >= 2, "expected both veinseeker rungs, checked only " + checked);
+        assertEquals(List.of(), wrong, "a vein break must quote its blocks past the first and each one's whole cost");
     }
 
     /**
@@ -353,15 +378,19 @@ class TraitDefinitionAuditTest {
      * What one piece and a full set of {@code trait} come to, in the order its sentence quotes them,
      * or {@code null} for a behaviour that does not sum across worn pieces. Percentages are whole
      * numbers of percent; a compounded chance is rounded, the way its sentence says "about".
+     *
+     * <p>A movement bonus is summed the way the attribute system stacks four worn slots' modifiers:
+     * {@code ADD_VALUE} and {@code ADD_MULTIPLIED_BASE} add, {@code ADD_MULTIPLIED_TOTAL} multiplies
+     * {@code (1 + m)^4}.
      */
-    private static List<Double> wornFigures(Trait trait, boolean compoundMultipliedSpeed) {
+    private static List<Double> wornFigures(Trait trait) {
         if (trait instanceof TraitBehaviors.ProtectionDefinition protection) {
             return List.of((double) protection.amount(), 4.0 * protection.amount());
         }
         if (trait instanceof MovementBonus movement) {
-            boolean percent = movement.kind().operation() == AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL;
-            double scale = percent ? 100.0 : 1.0;
-            double set = percent && compoundMultipliedSpeed
+            AttributeModifier.Operation operation = movement.kind().operation();
+            double scale = operation == AttributeModifier.Operation.ADD_VALUE ? 1.0 : 100.0;
+            double set = operation == AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
                     ? Math.round(100.0 * (Math.pow(1.0 + movement.magnitude(), 4) - 1.0))
                     : 4.0 * movement.magnitude() * scale;
             return List.of(movement.magnitude() * scale, set);

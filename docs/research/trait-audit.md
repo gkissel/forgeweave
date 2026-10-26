@@ -107,14 +107,15 @@ mapping below is the core of every per-material answer. It is encoded as
 | `bonusSlots` | `ForgeweaveModifiers#freeSlots`, any stack with a modifier list | yes | yes |
 | `onCombatHit` | `COMBAT_SEAM#onHit`, off the weapon | yes | no |
 | `movementSpeedBonus` | `ToolItem#getDefaultAttributeModifiers` | yes | no |
-| `maxDurabilityBonus` | `ModifierApplication#retuneStats`, which handles armor since #721 | yes | yes |
+| `maxDurabilityBonus` | `ModifierApplication#retuneStats`, which handles armor since #721, and assembly through `ModifierApplication#rebake` | yes | yes |
 | `energyCapacity` | `EnergyBuffer`, off any stack | yes | yes |
 | `durabilityDamage` | `ToolItem#damageKeepingItem`, which `ArmorPieceItem#damageItem` delegates to (#721) | yes | yes |
 | `breakSpeed` | `PlayerEvent.BreakSpeed` | yes | no |
 | `grantsSilkTouch` | `ToolAssemblyRecipes#assemble` | yes | no |
 | `zeroesAttackDamage` | `ToolItem`, `COMBAT_SEAM#preHit` | yes | no |
 | `autoSmelt` | `ForgeweaveModifiers#onBlockDrops` | yes | no |
-| `knockbackResistance` | `ToolItem#getDefaultAttributeModifiers`, main hand | yes | no |
+| `knockbackResistance` | `ToolItem#getDefaultAttributeModifiers`, main hand, and `ForgeweaveTraits#armorAttributes`, a quarter a worn piece (#1093) | yes | yes |
+| `explosionKnockbackResistance` | the same two call sites as `knockbackResistance`, on `EXPLOSION_KNOCKBACK_RESISTANCE` | yes | yes |
 | `onDefend` | `CombatSeams#armorPass`: the defender's two hands first (#729), then the four worn slots | yes | yes |
 | `armorAttributes` | `ArmorPieceItem#getDefaultAttributeModifiers` | no | yes |
 | `useOnBlock` | `ToolItem#useOn` | yes | no |

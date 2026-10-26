@@ -193,12 +193,8 @@ public class SignatureTraitGameTests {
     /**
      * Checklist line 78: three kills in a row bank three charges, the tooltip says so, and the next
      * blow is worth 3 x 1.5 = 4.5 more. Each kill is a blow of this sword, the way a player banks.
-     *
-     * <p>Optional while the product bug stands: {@code BankedStrike#afterHit} spends the bank on the
-     * killing blow and then sets a fresh bank of 1, so consecutive kills never bank more than one
-     * charge and the cap of 4 is unreachable. Reported on the checklist-headless-traits PR.
      */
-    @GameTest(template = "empty", required = false)
+    @GameTest(template = "empty")
     public static void warchargeBanksThreeKillsAndTheTooltipSaysSo(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -225,6 +221,17 @@ public class SignatureTraitGameTests {
                         .translatable("tooltip.forgeweave.trait.banked_strike", 3, "4.5")
                         .withStyle(net.minecraft.ChatFormatting.GRAY)),
                 "the tooltip's banked line");
+
+        for (int kill = 0; kill < 2; kill++) {
+            Pig victim = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+            victim.setNoAi(true);
+            victim.setHealth(0.0F);
+            ForgeweaveTraits.afterHit(sword, level, player, victim);
+            victim.discard();
+        }
+        float capped = ForgeweaveTraits.bonusDamageAgainst(sword, target, 4.0F);
+        helper.assertTrue(Math.abs(capped - 6.0F) < 0.001F, "the bank must stop at its cap of 4, worth 6 damage, got "
+                + capped);
         target.discard();
         helper.succeed();
     }

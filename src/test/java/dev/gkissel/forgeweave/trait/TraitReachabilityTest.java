@@ -129,6 +129,7 @@ class TraitReachabilityTest {
             // ToolItem#getDefaultAttributeModifiers, main hand, and since #1093
             // ForgeweaveTraits#armorAttributes pays a worn piece a quarter of the same value.
             Map.entry("knockbackResistance", BOTH),
+            Map.entry("explosionKnockbackResistance", BOTH),
             // CombatSeams#armorPass walks held tools first (#729), then the four worn slots.
             Map.entry("onDefend", BOTH),
             Map.entry("armorAttributes", ARMOR),

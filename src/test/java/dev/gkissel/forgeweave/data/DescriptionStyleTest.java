@@ -22,7 +22,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.SharedConstants;
@@ -395,33 +394,17 @@ class DescriptionStyleTest {
         assertEquals(List.of(), wrong, "a self-repair description has to quote its own interval in seconds");
     }
 
-    /**
-     * Worn traits whose sentence gives a per-piece figure and no full-set total, against rule 5 of
-     * docs/agents/description-style.md. Each one is reported on the checklist-headless-traits PR;
-     * the list is exact, so an entry fixed has to come off it.
-     */
-    private static final Set<String> WORN_WITHOUT_A_SET_TOTAL = Set.of(
-            "backlash", "bracingplate", "crystalstrike", "depth_protection");
-
     /** A sentence that sizes a worn effect by the piece. */
     private static final Pattern PER_PIECE = Pattern.compile("\\b(per|each|every|a) piece\\b", Pattern.CASE_INSENSITIVE);
 
     /**
-     * Checklist line 93: a worn trait that states what one piece does also states what the full set
-     * does. Guards every description outside {@link #WORN_WITHOUT_A_SET_TOTAL}.
+     * Checklist line 93 and docs/agents/description-style.md rule 5: a worn trait that states what
+     * one piece does also states what the full set does.
      */
     @Test
-    void everyPerPieceDescriptionAlsoGivesTheSetTotal() throws Exception {
-        assertEquals(new TreeSet<>(WORN_WITHOUT_A_SET_TOTAL), wornWithoutASetTotal(),
-                "a worn trait's description has to give the full-set total next to the per-piece one "
-                        + "(docs/agents/description-style.md rule 5)");
-    }
-
-    @Test
-    @Disabled("Product text gap, reported on the checklist-headless-traits PR: backlash, bracingplate, "
-            + "crystalstrike and depth_protection give a per-piece figure with no full-set total")
     void noPerPieceDescriptionLeavesOutTheSetTotal() throws Exception {
-        assertEquals(new TreeSet<>(), wornWithoutASetTotal());
+        assertEquals(new TreeSet<>(), wornWithoutASetTotal(),
+                "a worn trait's description has to give the full-set total next to the per-piece one");
     }
 
     private static TreeSet<String> wornWithoutASetTotal() throws Exception {
@@ -436,14 +419,6 @@ class DescriptionStyleTest {
         return missing;
     }
 
-    /**
-     * Modifiers whose book bullets never say how many levels they take. Each one is reported on the
-     * checklist-headless-traits PR; the list is exact, so an entry fixed has to come off it.
-     */
-    private static final Set<String> MODIFIERS_WITHOUT_A_STATED_CAP = Set.of(
-            "blast_protection", "fins", "fire_protection", "glowing", "harvest_height", "harvest_width", "luck",
-            "magic_protection", "melee_protection", "projectile_protection");
-
     /** A bullet that states a level cap. */
     private static final Pattern LEVEL_CAP = Pattern.compile(
             "one level only|up to \\d+ levels?|maximum of \\d+ levels?", Pattern.CASE_INSENSITIVE);
@@ -451,20 +426,13 @@ class DescriptionStyleTest {
     /**
      * Checklist line 93: a modifier's bullets state its level cap next to its slot cost (rule 7 of
      * docs/agents/description-style.md; {@link #everyModifierWithBulletsSaysWhatItCosts} is the slot
-     * half). Guards every modifier outside {@link #MODIFIERS_WITHOUT_A_STATED_CAP}.
+     * half).
      */
     @Test
-    void everyModifierWithBulletsStatesItsLevelCap() throws IOException {
-        assertEquals(new TreeSet<>(MODIFIERS_WITHOUT_A_STATED_CAP), modifiersWithoutAStatedCap(),
+    void noModifierLeavesItsLevelCapUnstated() throws IOException {
+        assertEquals(new TreeSet<>(), modifiersWithoutAStatedCap(),
                 "a modifier's book bullets have to say how many levels it takes: \"One level only\" or "
                         + "\"Up to N levels\"");
-    }
-
-    @Test
-    @Disabled("Product text gap, reported on the checklist-headless-traits PR: ten modifiers' book bullets "
-            + "state no level cap")
-    void noModifierLeavesItsLevelCapUnstated() throws IOException {
-        assertEquals(new TreeSet<>(), modifiersWithoutAStatedCap());
     }
 
     private static TreeSet<String> modifiersWithoutAStatedCap() throws IOException {

@@ -323,6 +323,16 @@ public interface Trait {
         return 0.0F;
     }
 
+    /**
+     * Resistance to a blast's push, as a flat addition to vanilla's
+     * {@code EXPLOSION_KNOCKBACK_RESISTANCE}: since 1.21 an explosion reads that attribute, not
+     * {@code KNOCKBACK_RESISTANCE}. Paid the way {@link #knockbackResistance()} is, in full while
+     * held and a quarter per worn piece ({@code ForgeweaveTraits#WORN_KNOCKBACK_RESISTANCE_SHARE}).
+     */
+    default float explosionKnockbackResistance() {
+        return 0.0F;
+    }
+
     // #680 -- the M4-5 ARMOR traits.
 
     /**

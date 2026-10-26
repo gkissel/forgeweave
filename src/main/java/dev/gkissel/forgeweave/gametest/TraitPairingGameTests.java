@@ -308,12 +308,12 @@ public class TraitPairingGameTests {
     }
 
     /**
-     * Checklist line 73: a full swiftward set is the 32% its sentence quotes. Optional while the
-     * product bug stands: {@code MovementBonus} adds each piece as {@code ADD_MULTIPLIED_TOTAL}, so the
-     * four slots compound to 1.08^4, about 36%. Reported on the checklist-headless-traits PR, with
-     * {@code TraitDefinitionAuditTest#aMovementBonusSetReachesTheFigureItsDescriptionQuotes}.
+     * Checklist line 73: a full swiftward set is the 32% its sentence quotes. Each piece adds its 8%
+     * as {@code ADD_MULTIPLIED_BASE}, so the four slots add rather than compounding to 1.08^4, about
+     * 36%. {@code TraitDefinitionAuditTest#aMovementBonusSetReachesTheFigureItsDescriptionQuotes} holds
+     * every shipped movement bonus to the same rule.
      */
-    @GameTest(template = "empty", required = false)
+    @GameTest(template = "empty")
     public static void aFullSwiftwardSetIsThirtyTwoPercentFaster(GameTestHelper helper) {
         double plain = wearingSet(helper).getAttributeValue(Attributes.MOVEMENT_SPEED);
         double swift = wearingSet(helper, "swiftward").getAttributeValue(Attributes.MOVEMENT_SPEED);
@@ -339,12 +339,11 @@ public class TraitPairingGameTests {
     }
 
     /**
-     * Checklist line 73 asks for a Heft piece to hold the wearer against a creeper. Optional: 1.21
-     * reads a blast's push off {@code EXPLOSION_KNOCKBACK_RESISTANCE}, a separate attribute from the
-     * {@code KNOCKBACK_RESISTANCE} heft raises, and a heft wearer is pushed exactly as far as an
-     * untraited one. Reported on the checklist-headless-traits PR as a maintainer call.
+     * Checklist line 73 asks for a Heft piece to hold the wearer against a creeper. 1.21 reads a
+     * blast's push off {@code EXPLOSION_KNOCKBACK_RESISTANCE}, a separate attribute from
+     * {@code KNOCKBACK_RESISTANCE}, so heft raises both by the same figure.
      */
-    @GameTest(template = "empty", required = false)
+    @GameTest(template = "empty")
     public static void oneHeftPieceHoldsTheWearerAgainstABlast(GameTestHelper helper) {
         double plain = blasted(helper, 2);
         double heft = blasted(helper, 14, "heft");
@@ -398,6 +397,25 @@ public class TraitPairingGameTests {
                     traits[i] + " held must add " + figures[i] + ", got " + held);
             helper.assertTrue(Math.abs(set - figures[i]) < 1e-4,
                     "four " + traits[i] + " pieces must add exactly the held " + figures[i] + ", got " + set);
+        }
+        helper.succeed();
+    }
+
+    /** Heft I-III hold against a blast by the same figure, held or as a full worn set. */
+    @GameTest(template = "empty")
+    public static void everyHeftRungResistsABlastByItsOwnFigure(GameTestHelper helper) {
+        var blast = Attributes.EXPLOSION_KNOCKBACK_RESISTANCE;
+        double plainSet = wearingSet(helper).getAttributeValue(blast);
+        double bare = holding(helper).getAttributeValue(blast);
+        String[] traits = {"heft", "heft2", "heft3"};
+        double[] figures = {0.25, 0.40, 0.55};
+        for (int i = 0; i < traits.length; i++) {
+            double held = holding(helper, traits[i]).getAttributeValue(blast) - bare;
+            double set = wearingSet(helper, traits[i]).getAttributeValue(blast) - plainSet;
+            helper.assertTrue(Math.abs(held - figures[i]) < 1e-4,
+                    traits[i] + " held must add " + figures[i] + " blast resistance, got " + held);
+            helper.assertTrue(Math.abs(set - figures[i]) < 1e-4,
+                    "four " + traits[i] + " pieces must add " + figures[i] + " blast resistance, got " + set);
         }
         helper.succeed();
     }

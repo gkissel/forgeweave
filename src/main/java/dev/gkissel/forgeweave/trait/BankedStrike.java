@@ -24,8 +24,9 @@ import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
  * it cannot be hoarded across a session.
  *
  * <p>One hook does both halves. {@link Trait#bonusDamageAgainst} pays the bank into the blow being
- * calculated and {@link Trait#afterHit} clears it once that blow has landed, so a bank never pays
- * twice; a killing blow spends what was standing and banks one fresh charge on the way out.
+ * calculated and {@link Trait#afterHit} clears it once a blow lands that does not kill. A killing
+ * blow adds a charge to the bank instead, up to {@link #cap}, so a run of kills climbs to the cap
+ * and the first blow that leaves its target standing spends it.
  *
  * @param perCharge damage each banked charge adds to the blow that spends the bank
  * @param cap how many charges the bank holds
@@ -40,13 +41,13 @@ public record BankedStrike(float perCharge, int cap, int decayTicks) implements 
 
     @Override
     public void afterHit(ItemStack stack, ServerLevel level, LivingEntity attacker, LivingEntity target) {
-        boolean killed = target.isDeadOrDying();
-        if (banked(stack) > 0) {
+        int banked = banked(stack);
+        if (target.isDeadOrDying()) {
+            stack.set(ForgeweaveDataComponents.BANKED_CHARGES.get(),
+                    new TraitStacks(Math.min(cap, banked + 1), decayTicks));
+        } else if (banked > 0) {
             stack.remove(ForgeweaveDataComponents.BANKED_CHARGES.get());
             TraitFeedback.fire(this, TraitFeedback.Kind.STRIKE, level, target);
-        }
-        if (killed) {
-            stack.set(ForgeweaveDataComponents.BANKED_CHARGES.get(), new TraitStacks(1, decayTicks));
         }
     }
 

@@ -2062,7 +2062,8 @@ public final class ForgeweaveTraits {
     /**
      * Amethyst bronze plating/maille. {@code ModifierIds.crystalstrike}: +15% attack speed (issue
      * #1114 raised the clone's +5% per level to the mod's 15% speed floor; recorded in the PR)
-     * ({@code AttributeModule}, multiply total) and, summed across worn pieces
+     * ({@code AttributeModule}; the clone multiplies the total, Forgeweave adds a multiple of the
+     * base so four pieces add to 60% instead of compounding to 75%) and, summed across worn pieces
      * ({@code ArmorLevelModule} + {@code ModifierEvents#onKnockback}), knockback taken snaps to one
      * of {@code max(4, 2^(6 - level))} directions ({@link #onArmorKnockback}). The clone's +5% bad
      * effect duration rides a Tinkers'-only attribute and is not ported.
@@ -2071,7 +2072,7 @@ public final class ForgeweaveTraits {
         @Override
         public void armorAttributes(ResourceLocation id, EquipmentSlot slot, ItemAttributeModifiers.Builder out) {
             out.add(Attributes.ATTACK_SPEED,
-                    new AttributeModifier(id, CRYSTALSTRIKE_ATTACK_SPEED, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL),
+                    new AttributeModifier(id, CRYSTALSTRIKE_ATTACK_SPEED, AttributeModifier.Operation.ADD_MULTIPLIED_BASE),
                     EquipmentSlotGroup.bySlot(slot));
         }
     };
@@ -2362,7 +2363,9 @@ public final class ForgeweaveTraits {
 
     /**
      * Blue slime vine maille. {@code ModifierIds.skyfall}: gravity {@code -5% - 10% per level}
-     * (multiply total; -15% at the trait's level 1) and +1 safe fall distance per level -- both
+     * (-15% at the trait's level 1; the clone multiplies the total, Forgeweave adds a multiple of the
+     * base so four pieces add to the 60% the description quotes instead of compounding to 48%) and
+     * +1 safe fall distance per level -- both
      * vanilla attributes in 1.21, so no fall-event handler is needed.
      */
     public static final Trait SKYFALL = new Trait() {
@@ -2370,7 +2373,7 @@ public final class ForgeweaveTraits {
         public void armorAttributes(ResourceLocation id, EquipmentSlot slot, ItemAttributeModifiers.Builder out) {
             EquipmentSlotGroup group = EquipmentSlotGroup.bySlot(slot);
             out.add(Attributes.GRAVITY,
-                    new AttributeModifier(id, SKYFALL_GRAVITY_FLAT + SKYFALL_GRAVITY_PER_LEVEL, AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL), group);
+                    new AttributeModifier(id, SKYFALL_GRAVITY_FLAT + SKYFALL_GRAVITY_PER_LEVEL, AttributeModifier.Operation.ADD_MULTIPLIED_BASE), group);
             out.add(Attributes.SAFE_FALL_DISTANCE,
                     new AttributeModifier(id, SKYFALL_SAFE_FALL_PER_LEVEL, AttributeModifier.Operation.ADD_VALUE), group);
         }
@@ -2494,6 +2497,13 @@ public final class ForgeweaveTraits {
                 out.add(Attributes.KNOCKBACK_RESISTANCE,
                         new AttributeModifier(modifierId.withSuffix("/knockback"),
                                 knockback * WORN_KNOCKBACK_RESISTANCE_SHARE, AttributeModifier.Operation.ADD_VALUE),
+                        EquipmentSlotGroup.bySlot(slot));
+            }
+            float blast = trait.explosionKnockbackResistance();
+            if (blast > 0.0F) {
+                out.add(Attributes.EXPLOSION_KNOCKBACK_RESISTANCE,
+                        new AttributeModifier(modifierId.withSuffix("/explosion_knockback"),
+                                blast * WORN_KNOCKBACK_RESISTANCE_SHARE, AttributeModifier.Operation.ADD_VALUE),
                         EquipmentSlotGroup.bySlot(slot));
             }
         }
@@ -4162,6 +4172,15 @@ public final class ForgeweaveTraits {
         float resistance = 0.0F;
         for (Trait trait : of(stack)) {
             resistance += trait.knockbackResistance();
+        }
+        return resistance;
+    }
+
+    /** Blast knockback resistance the tool's traits grant while it is held (heft). */
+    public static float explosionKnockbackResistance(ItemStack stack) {
+        float resistance = 0.0F;
+        for (Trait trait : of(stack)) {
+            resistance += trait.explosionKnockbackResistance();
         }
         return resistance;
     }
