@@ -143,6 +143,24 @@ of its blocks the release touched, plus these three, which are standing:
 None of the integrated mods is on the build or test classpath (JC-B), so no automated test ever sees
 one. These lines are the only check those integrations get.
 
+## Release-checklist: compat server matrix
+
+Before tagging, run the compat server matrix on the jar you are about to tag:
+
+```bash
+./gradlew build -Pmod_version=<version>
+FW_COMPAT_JAR_DIRS=<partner jar dirs> scripts/compat/run_matrix.sh build/libs/forgeweave-<version>.jar
+```
+
+It boots a dedicated server for each playtest group's mod set and checks the log, the recipe and
+material counts, a restart, the compat toggles off and back on, `toolLeveling = false`, a spark
+profile and a world saved by the previous release. Every row of `build/compat/summary.md` must be PASS,
+or a SKIP whose reason you accept (a CurseForge-only jar you don't have). `scripts/compat/README.md`
+lists the passes and the checklist lines each one covers. The `Compat matrix` workflow runs the same
+thing on every push to a `release/**` branch, for the packs whose jars all download from Modrinth, so
+the packs that need a jar Modrinth doesn't carry (Just Dire Things, Twilight Forest, Ice and Fire,
+Elementarium's corelib) only ever run locally.
+
 ## Publishing
 
 From the branch or commit being released:
