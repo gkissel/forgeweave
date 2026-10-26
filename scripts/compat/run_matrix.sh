@@ -40,10 +40,10 @@ send() { # send <cmds-file>... : every non-comment line to the console
 
 boot() { "$HERE/start.sh" "$SRV" > "$DIR/$1.boot.txt" 2>&1; }
 
-finish() { # finish <label> <phase> : stop, keep the log, check it; sets NOTE and OK
+finish() { # finish <label> <phase> [config-before] : stop, keep the log, check it; sets NOTE and OK
   "$HERE/stop.sh" "$SRV" >> "$DIR/$1.boot.txt" 2>&1 || { OK=FAIL; NOTE+="no clean stop. "; }
   cp "$SRV/logs/latest.log" "$DIR/logs/$1.log"
-  python3 -I "$HERE/pack.py" check "$PACK" "$DIR/logs/$1.log" "$2" > "$DIR/$1.check.txt" || OK=FAIL
+  python3 -I "$HERE/pack.py" check "$PACK" "$DIR/logs/$1.log" "$2" ${3:+"$3"} > "$DIR/$1.check.txt" || OK=FAIL
   NOTE+="$(sed -n 's/^INFO //p; s/^FAIL /FAIL: /p' "$DIR/$1.check.txt" | head -4)"
 }
 
@@ -95,9 +95,12 @@ upgrade_pass() { # the corpus placed under the previous release, then loaded by 
   "$HERE/stop.sh" "$SRV" > /dev/null 2>&1; cp "$SRV/logs/latest.log" "$DIR/logs/upgrade-prev.log"
   local kept; kept=$(python3 -I "$HERE/check_items.py" "$DIR/place.idx" "$DIR/dump-upgrade-prev.txt" | tail -1)
   rm "$SRV/mods/$(basename "$prev")"; cp "$JAR" "$SRV/mods/"
+  # The previous release's config predates newer keys (beta.12 has no emiPlugin), so NeoForge corrects
+  # it on this boot. pack.py allows that WARN only if every old key kept its value.
+  rm -rf "$DIR/upgrade-config-before"; cp -r "$SRV/config/forgeweave" "$DIR/upgrade-config-before"
   boot upgrade || { row upgrade FAIL "no boot on the upgraded world"; return; }
   "$HERE/dump.sh" "$SRV" "$DIR/dump-upgrade.txt" "${PLACE[@]}" > /dev/null
-  finish upgrade on
+  finish upgrade on "$DIR/upgrade-config-before"
   cmp -s "$DIR/dump-upgrade-prev.txt" "$DIR/dump-upgrade.txt" || { OK=FAIL; NOTE="dump differs from the $(basename "$prev") one. $NOTE"; }
   row upgrade "$OK" "from $(basename "$prev") ($kept under it). $NOTE"
 }
@@ -122,7 +125,8 @@ run_pack() {
 
   pass restart on "$DIR/dump-placed.txt" || return
   n=$(set_key compat-server.toml '[A-Za-z]+' false)
-  [ "$n" = 20 ] || row toggles FAIL "compat-server.toml has $n boolean toggles, the checklist (line 139) lists 20"
+  # The checklist (line 139) lists 20; #1136's emiPlugin came after it.
+  [ "$n" = 21 ] || row toggles FAIL "compat-server.toml has $n boolean toggles, expected the checklist's 20 plus emiPlugin"
   pass toggles-off off "$DIR/dump-restart.txt"
   set_key compat-server.toml '[A-Za-z]+' true > /dev/null
   pass toggles-on on "$DIR/dump-restart.txt"

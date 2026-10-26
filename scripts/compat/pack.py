@@ -4,9 +4,13 @@ usage:
   python3 -I pack.py mods  <pack> <mods-dir>         copy every jar into mods-dir (exit 2 = a local jar is missing)
   python3 -I pack.py jar   <pack> <directive>        resolve the jar a directive names (upgrade-from) and print its path
   python3 -I pack.py get   <pack> <directive>        print a directive's values, one line each
-  python3 -I pack.py check <pack> <log> <phase>      check a server log; one PASS/FAIL/INFO line per check, exit 1 on FAIL.
+  python3 -I pack.py check <pack> <log> <phase> [<config-before>]
+                                                     check a server log; one PASS/FAIL/INFO line per check, exit 1 on FAIL.
                                                      phase on/off also checks the counts and material lists
-                                                     (the -off directives for off); any other phase only the log
+                                                     (the -off directives for off); any other phase only the log.
+                                                     With config-before (a copy of config/forgeweave from before the
+                                                     boot), NeoForge's "is not correct. Correcting" WARN for a file
+                                                     is allowed when the correction changed no setting.
 
 Pack format (one directive per line, # starts a comment, see README.md):
   include <pack>
@@ -21,7 +25,7 @@ Environment:
   FW_COMPAT_JAR_DIRS  colon-separated directories searched by file name before downloading,
                       and the only source of `mod local` jars
 """
-import fnmatch, hashlib, json, os, re, shutil, sys, urllib.request
+import fnmatch, hashlib, json, os, re, shutil, sys, tomllib, urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CACHE = os.path.expanduser(os.environ.get('FW_COMPAT_CACHE', '~/.cache/forgeweave-compat'))
@@ -125,7 +129,41 @@ def last(pattern, text):
     return found[-1] if found else None
 
 
-def cmd_check(pack, log, phase):
+# The without pass removes a mod, which takes Forgeweave's built-in data pack for it with it
+# (CompatDataPacks), and vanilla notes the pack it can no longer find. The pack is always active, so it
+# comes back with the mod. Allowed in that pass only.
+REMOVED_MOD_PACK = re.compile(r'\]: Missing data pack mod/forgeweave:datapacks/[a-z0-9_]+$')
+CORRECTING = re.compile(r'Configuration file (\S+) is not correct\. Correcting$')
+
+
+def flat_toml(path):
+    """A TOML file as {'table.key': value}."""
+    def walk(table, prefix):
+        for k, v in table.items():
+            if isinstance(v, dict):
+                yield from walk(v, prefix + k + '.')
+            else:
+                yield prefix + k, v
+    with open(path, 'rb') as f:
+        return dict(walk(tomllib.load(f), ''))
+
+
+def settings_unchanged(before_dir, line):
+    """True when `line` is NeoForge correcting a config file without touching a setting: it added keys
+    a previous release didn't have (beta.12 has no emiPlugin), or refreshed comments that release worded
+    differently (NeoForge rewrites a file whose comments differ). A changed, reset or dropped value is not."""
+    m = CORRECTING.search(line)
+    if not (before_dir and m):
+        return False
+    after = m.group(1)
+    before = os.path.join(before_dir, os.path.basename(after))
+    if not (os.path.isfile(before) and os.path.isfile(after)):
+        return False
+    old, new = flat_toml(before), flat_toml(after)
+    return all(k in new and new[k] == v for k, v in old.items())
+
+
+def cmd_check(pack, log, phase, config_before=None):
     d = parse(pack)
     text = open(log, errors='replace').read()
     allow = [re.compile(l.strip()) for l in open(os.path.join(HERE, 'log-allowlist.txt'))
@@ -140,7 +178,8 @@ def cmd_check(pack, log, phase):
     for line in text.splitlines():
         flagged = (re.search(r'/(WARN|ERROR|FATAL)\]', line) and 'forgeweave' in line.lower()) \
             or re.match(r'\s+at dev\.gkissel\.forgeweave\.', line)
-        if flagged and not any(a.search(line) for a in allow):
+        if (flagged and not any(a.search(line) for a in allow) and not settings_unchanged(config_before, line)
+                and not (phase == 'without' and REMOVED_MOD_PACK.search(line))):
             noisy.append(re.sub(r'^\[[^]]*\] ', '', line)[:300])
     result(not noisy, f'forgeweave WARN/ERROR lines: {len(noisy)}' + ''.join('\n     ' + l for l in noisy[:5]))
 
@@ -180,7 +219,7 @@ def main():
             if kw == sys.argv[3]:
                 print(raw or kw)
     elif cmd == 'check':
-        cmd_check(pack, sys.argv[3], sys.argv[4])
+        cmd_check(pack, sys.argv[3], sys.argv[4], sys.argv[5] if len(sys.argv) > 5 else None)
     else:
         sys.exit(__doc__)
 

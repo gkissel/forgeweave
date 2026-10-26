@@ -22,12 +22,12 @@ Every pack goes through these, in order, on one world:
 | --- | --- | --- |
 | `boot` | Places the SaveCompat corpus (`src/test/resources/fixtures/save_compat/`) and the pack's own fixtures in chests and as block entities, then dumps them. Every corpus item must be placed. | 129 |
 | `restart` | The dump after a restart matches the first one byte for byte. | 17, 18, 129 |
-| `toggles-off` | All boolean keys in `compat-server.toml` set to false (there must be 20) and a restart: the dump still matches. | 128, 139, 140 |
-| `toggles-on` | All twenty back on and a restart: the dump still matches. | 141 |
+| `toggles-off` | All boolean keys in `compat-server.toml` set to false (there must be 21: the checklist's 20 plus `emiPlugin`) and a restart: the dump still matches. | 128, 139, 140 |
+| `toggles-on` | All 21 back on and a restart: the dump still matches. | 141 |
 | `tool-leveling-off` | `toolLeveling = false` and a restart: the dump still matches. | 24 |
-| `without` | Only with a `without` directive: those jars removed and a restart. No item stack vanishes (components owned by the removed mod may go). | 215 |
+| `without` | Only with a `without` directive: those jars removed and a restart. No item stack vanishes (components owned by the removed mod may go). Vanilla's "Missing data pack mod/forgeweave:datapacks/<mod>" WARN is allowed in this pass only: the removed mod's built-in pack goes with it and comes back with it. | 215 |
 | `spark` | Only with `spark`: a formed, fuelled, melting smeltery, a 60 s profile. TPS over the last minute is at least `FW_SPARK_MIN_TPS` (19.5) and Forgeweave's share of the server thread at most `FW_SPARK_MAX_SHARE` percent (2). | 20 |
-| `upgrade` | Only with `upgrade-from`: a second server places the corpus under the previous release, then boots this jar on that world. The two dumps match. | 17, 18 |
+| `upgrade` | Only with `upgrade-from`: a second server places the corpus under the previous release, then boots this jar on that world. The two dumps match. NeoForge's "is not correct. Correcting" WARN for a Forgeweave config is allowed here only when the correction kept every old key and value: it may add keys the previous release didn't have (beta.12 has no `emiPlugin`) and refresh reworded comments, but a changed, reset or dropped value still fails. | 17, 18 |
 
 Every boot's log is also checked against the pack:
 
