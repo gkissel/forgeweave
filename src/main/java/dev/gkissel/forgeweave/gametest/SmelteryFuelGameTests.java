@@ -3,6 +3,7 @@ package dev.gkissel.forgeweave.gametest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
@@ -21,6 +22,7 @@ import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.material.MaterialForm;
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 import dev.gkissel.forgeweave.recipe.SmelteryFuel;
 
@@ -451,7 +453,98 @@ public class SmelteryFuelGameTests {
         helper.succeed();
     }
 
+    /**
+     * Playtest checklist 1.0.0, line 57, first rung: a real glowveil ingot will not melt under lava
+     * and melts under blazing blood. Its shipped recipe ({@code melting_recipe/glowveil_ingot.json})
+     * asks for 1400, above lava's 1300 and below blazing blood's 1500. Under lava the core makes no
+     * progress, and the gap between its heat and the recipe's is the one the smeltery screen reports
+     * as "Not enough heat to melt this item".
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 100)
+    public static void aGlowveilIngotNeedsBlazingBloodNotLava(GameTestHelper helper) {
+        SmelteryGameTests.buildWalls(helper, 1, 1, 2);
+        Item ingot = ForgeweaveItems.trackBAlloyIngot("glowveil").get();
+        assertShippedTemperature(helper, ingot, 1400);
+
+        assertNoHeatFor(helper, Fluids.LAVA, ingot, "lava (1300)");
+        assertMeltsTo(helper, ForgeweaveFluids.BLAZING_BLOOD.still().get(), 1500, ingot,
+                ForgeweaveFluids.trackBAlloyFluid("glowveil").still().get(), "blazing blood");
+        helper.succeed();
+    }
+
+    /**
+     * Playtest checklist 1.0.0, line 57, second rung: a real truesteel ingot needs molten magma. Its
+     * shipped recipe asks for 1600, so blazing blood's 1500 falls short and molten magma's 1700
+     * clears it.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 100)
+    public static void aTruesteelIngotNeedsMoltenMagma(GameTestHelper helper) {
+        SmelteryGameTests.buildWalls(helper, 1, 1, 2);
+        Item ingot = ForgeweaveItems.trackBAlloyIngot("truesteel").get();
+        assertShippedTemperature(helper, ingot, 1600);
+
+        assertNoHeatFor(helper, ForgeweaveFluids.BLAZING_BLOOD.still().get(), ingot, "blazing blood (1500)");
+        assertMeltsTo(helper, ForgeweaveFluids.MOLTEN_MAGMA.still().get(), 1700, ingot,
+                ForgeweaveFluids.trackBAlloyFluid("truesteel").still().get(), "molten magma");
+        helper.succeed();
+    }
+
+    /**
+     * Playtest checklist 1.0.0, line 57, the dust: truesteel dust refuses lava too. Its shipped
+     * recipe ({@code melting_recipe/truesteel_dust.json}) asks for the ingot's 1600, so the dust is
+     * no shortcut past the ladder. Lava and blazing blood both fall short, and molten magma melts it
+     * at the ingot's 144 mB.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 100)
+    public static void truesteelDustRefusesLavaLikeItsIngot(GameTestHelper helper) {
+        SmelteryGameTests.buildWalls(helper, 1, 1, 2);
+        Item dust = ForgeweaveItems.materialForm("truesteel", MaterialForm.DUST).get();
+        assertShippedTemperature(helper, dust, 1600);
+
+        assertNoHeatFor(helper, Fluids.LAVA, dust, "lava (1300)");
+        assertNoHeatFor(helper, ForgeweaveFluids.BLAZING_BLOOD.still().get(), dust, "blazing blood (1500)");
+        assertMeltsTo(helper, ForgeweaveFluids.MOLTEN_MAGMA.still().get(), 1700, dust,
+                ForgeweaveFluids.trackBAlloyFluid("truesteel").still().get(), "molten magma");
+        helper.succeed();
+    }
+
     // ------------------------------------------------------------------ helpers
+
+    /** Pins the melting temperature the shipped recipe for {@code item} resolves to. */
+    private static void assertShippedTemperature(GameTestHelper helper, Item item, int expected) {
+        MeltingRecipe recipe = MeltingRecipe.find(helper.getLevel().registryAccess(), new ItemStack(item))
+                .orElseThrow(() -> new AssertionError("expected a shipped melting recipe for " + item));
+        helper.assertValueEqual(recipe.temperature(), expected, "shipped melting temperature of " + item);
+    }
+
+    /**
+     * {@link #assertCannotMelt} for a real item, plus the test the smeltery screen runs before it
+     * says "Not enough heat": the fuel's heat above ambient sits below what the recipe needs per tick.
+     */
+    private static void assertNoHeatFor(GameTestHelper helper, Fluid colder, Item item, String fuelName) {
+        SmelteryControllerBlockEntity core = assertCannotMelt(helper, colder, item, fuelName);
+        MeltingRecipe recipe = MeltingRecipe.find(helper.getLevel().registryAccess(), new ItemStack(item)).orElseThrow();
+        int heat = core.currentTemperature() - MeltingRecipe.AMBIENT_TEMPERATURE;
+        helper.assertTrue(heat > 0, "expected " + fuelName + " to be burning, so the reason is heat and not fuel");
+        helper.assertTrue(heat < recipe.heatRequired() / MeltingRecipe.TIME_FACTOR,
+                "expected the core to report not enough heat under " + fuelName);
+    }
+
+    /** Melts a real {@code item} under {@code hotter} through to 144 mB of {@code expectedFluid}. */
+    private static void assertMeltsTo(GameTestHelper helper, Fluid hotter, int expectedTemperature, Item item,
+            Fluid expectedFluid, String fuelName) {
+        SmelteryControllerBlockEntity core = refuelledSmeltery(helper, hotter);
+        helper.assertValueEqual(core.currentTemperature(), expectedTemperature,
+                "smeltery temperature with " + fuelName + " in the wall tank");
+        helper.assertTrue(core.insertForMelting(new ItemStack(item)).isEmpty(),
+                "expected " + item + " to go into the smeltery");
+
+        meltToCompletion(helper, core, fuelName);
+
+        helper.assertValueEqual(core.tank().getFluidAmount(), MeltingRecipe.VALUE_INGOT, "molten output from " + item);
+        helper.assertTrue(core.tank().getFluid().getFluid() == expectedFluid,
+                "expected " + expectedFluid + ", got " + core.tank().getFluid().getFluid());
+    }
 
     /** Drives melt ticks until the first slot finishes, then the finish-only tick that fills the tank. */
     private static void meltToCompletion(GameTestHelper helper, SmelteryControllerBlockEntity core, String fuelName) {
@@ -481,12 +574,14 @@ public class SmelteryFuelGameTests {
     }
 
     /** The colder half of a rung comparison: this fuel makes no progress at all on the fixture. */
-    private static void assertCannotMelt(GameTestHelper helper, Fluid colder, net.minecraft.world.item.Item fixture, String fuelName) {
+    private static SmelteryControllerBlockEntity assertCannotMelt(GameTestHelper helper, Fluid colder, Item fixture,
+            String fuelName) {
         SmelteryControllerBlockEntity core = refuelledSmeltery(helper, colder);
         helper.assertTrue(core.insertForMelting(new ItemStack(fixture)).isEmpty(),
                 "expected the fixture item to go into the smeltery");
         helper.assertTrue(!core.meltTick(), fuelName + " must not heat this fixture recipe");
         helper.assertTrue(core.meltProgress(0) == 0f, "expected no melt progress at all under " + fuelName);
+        return core;
     }
 
     /** The hotter half: this fuel burns at {@code expectedTemperature} and melts the fixture through to iron. */

@@ -5,12 +5,23 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
+import net.minecraft.SharedConstants;
+import net.minecraft.server.Bootstrap;
+
 import dev.gkissel.forgeweave.client.book.BookContent;
 import dev.gkissel.forgeweave.client.book.BookGeometry;
+import dev.gkissel.forgeweave.client.book.BookPage;
+import dev.gkissel.forgeweave.client.book.BookSection;
+import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
 import dev.gkissel.forgeweave.client.book.BookStructure;
 import dev.gkissel.forgeweave.client.book.BookStructure.PageDef;
 import dev.gkissel.forgeweave.client.book.BookStructure.SectionDef;
@@ -211,6 +222,55 @@ class BookStructureTest {
         assertEquals("minecraft:experience_bottle", section("leveling").iconItem());
         for (PageDef def : pages) {
             assertEquals("text", def.type(), "leveling page " + def.name());
+        }
+    }
+
+    /**
+     * Playtest checklist 1.0.0, line 130: the guide book covers sockets, the affix and enchanting
+     * rules, and the energized tank. The rules are authored pages ({@code modifiers/enchanting},
+     * {@code modifiers/affixes}, {@code smeltery/energized}); sockets have no authored page, they
+     * get the generated page every modifier gets, so the built modifiers chapter must hold one for
+     * {@code forgeweave:socketed}.
+     */
+    @Test
+    void theBookCoversSocketsAffixesEnchantingAndTheEnergizedTank() {
+        SharedConstants.tryDetectVersion();
+        Bootstrap.bootStrap();
+        List<String> modifierPages = section("modifiers").pages().stream().map(PageDef::name).toList();
+        assertTrue(modifierPages.containsAll(List.of("enchanting", "affixes")),
+                "the modifiers chapter must carry the enchanting and affix rules, has " + modifierPages);
+        assertTrue(section("smeltery").pages().stream().anyMatch(def -> def.name().equals("energized")),
+                "the smeltery chapter must carry the energized tank page");
+
+        BookSection modifiers = BookContent.sections(List.of()).stream()
+                .filter(built -> built.titleKey().equals("book.forgeweave.section.modifiers"))
+                .findFirst().orElseThrow(() -> new AssertionError("the built book has no modifiers chapter"));
+        assertTrue(modifiers.pages().contains(new BookPage.ModifierPage(ApotheosisSockets.SOCKETED_ID)),
+                "the modifiers chapter must have a page for " + ApotheosisSockets.SOCKETED_ID);
+    }
+
+    /**
+     * Playtest checklist 1.0.0, line 130, "No GuideME": milestone M8-6 kept the book engine, so
+     * nothing in the build script, the mod metadata or the shipped resources may name GuideME.
+     */
+    @Test
+    void nothingShipsOrDependsOnGuideMe() throws IOException {
+        Path root = Path.of("").toAbsolutePath();
+        while (!Files.exists(root.resolve("settings.gradle"))) {
+            root = root.getParent();
+            assertNotNull(root, "could not locate the project root");
+        }
+        for (String file : List.of("build.gradle", "settings.gradle", "gradle.properties",
+                "src/main/templates/META-INF/neoforge.mods.toml")) {
+            assertFalse(Files.readString(root.resolve(file)).toLowerCase(Locale.ROOT).contains("guideme"),
+                    file + " names GuideME");
+        }
+        for (String dir : List.of("src/main/resources", "src/generated/resources")) {
+            try (Stream<Path> paths = Files.walk(root.resolve(dir))) {
+                List<Path> hits = paths.filter(path -> path.getFileName().toString().toLowerCase(Locale.ROOT)
+                        .contains("guideme")).toList();
+                assertTrue(hits.isEmpty(), "GuideME files ship: " + hits);
+            }
         }
     }
 

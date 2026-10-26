@@ -170,6 +170,57 @@ class NoticePathAuditTest {
                 "NOTICE.md rows whose Forgeweave path does not exist on disk:\n" + String.join("\n", failures));
     }
 
+    /** The Tinkers' Tool Leveling pin in CLAUDE.md's upstream table, the commit every such row names. */
+    private static final String TOOL_LEVELING_COMMIT = "5d7a2c96801fc539397e94bd9da671aa293b484e";
+
+    /** How a source file says it came from Tinkers' Tool Leveling, in its own comments. */
+    private static final Pattern TOOL_LEVELING_MENTION =
+            Pattern.compile("Tool Leveling|TinkerToolLeveling|slimeknights\\.toolleveling");
+
+    /**
+     * Playtest checklist 1.0.0, line 1: {@code NOTICE.md} has a row for every file derived from
+     * Tinkers' Tool Leveling, the chime included.
+     *
+     * <p>The clone isn't available in CI, so a file's own comments are the record of where it came
+     * from. Every main source file that names Tool Leveling must appear, by file name, in the first
+     * column of a row pinned to {@link #TOOL_LEVELING_COMMIT}. GameTests are skipped because they
+     * test the port and derive nothing. The chime is the one asset: {@code sounds/tool_level_up.ogg}
+     * needs its own row, and that row has to name upstream's {@code chime.ogg}.
+     */
+    @Test
+    void everyToolLevelingDerivedFileHasANoticeRow() throws IOException {
+        Path root = projectRoot();
+        List<String> toolLevelingRows = Files.readAllLines(root.resolve("NOTICE.md")).stream()
+                .filter(line -> line.startsWith("| `") && line.contains(TOOL_LEVELING_COMMIT))
+                .toList();
+        assertTrue(toolLevelingRows.size() > 10, "expected M7's Tool Leveling rows, found " + toolLevelingRows.size());
+        String firstColumns = String.join("\n", toolLevelingRows.stream().map(NoticePathAuditTest::firstColumn).toList());
+
+        List<String> missing = new ArrayList<>();
+        Path gametests = root.resolve("src/main/java/dev/gkissel/forgeweave/gametest");
+        try (Stream<Path> walk = Files.walk(root.resolve("src/main"))) {
+            for (Path file : walk.filter(Files::isRegularFile).filter(p -> !p.startsWith(gametests)).toList()) {
+                String name = file.getFileName().toString();
+                if (!name.endsWith(".java") && !name.endsWith(".json")) {
+                    continue;
+                }
+                if (!TOOL_LEVELING_MENTION.matcher(Files.readString(file)).find()) {
+                    continue;
+                }
+                String stem = name.substring(0, name.lastIndexOf('.'));
+                if (!firstColumns.contains(stem)) {
+                    missing.add(root.relativize(file).toString());
+                }
+            }
+        }
+        assertTrue(missing.isEmpty(), "files that cite Tinkers' Tool Leveling with no NOTICE.md row: " + missing);
+
+        String chime = "src/main/resources/assets/forgeweave/sounds/tool_level_up.ogg";
+        assertTrue(Files.isRegularFile(root.resolve(chime)), chime + " must ship");
+        assertTrue(toolLevelingRows.stream().anyMatch(row -> firstColumn(row).contains(chime) && row.contains("chime.ogg")),
+                "the level-up chime needs a Tool Leveling row naming upstream's sounds/chime.ogg");
+    }
+
     private static boolean matchesAnyFile(Set<Path> allFiles, String globPattern) {
         PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:" + globPattern);
         return allFiles.stream().anyMatch(matcher::matches);

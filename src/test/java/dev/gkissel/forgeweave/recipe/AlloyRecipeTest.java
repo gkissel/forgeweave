@@ -219,12 +219,93 @@ class AlloyRecipeTest {
         assertEquals(2, json.getAsJsonObject("result").get("amount").getAsInt(), "two in, two out");
     }
 
+    /**
+     * Playtest checklist 1.0.0, line 170: bronze alloys at 3 copper to 1 tin, giving 4. The row only
+     * loads when a bronze provider and a tin provider are both present, so the test pins both
+     * conditions along with the ratio.
+     */
+    @Test
+    void bronzeShipsAThreeToOneRatio() {
+        JsonObject json = shipped("bronze");
+
+        assertEquals("forgeweave:molten_copper", input(json, 0).get("fluid").getAsString());
+        assertEquals(3, input(json, 0).get("amount").getAsInt());
+        assertEquals("forgeweave:molten_tin", input(json, 1).get("fluid").getAsString());
+        assertEquals(1, input(json, 1).get("amount").getAsInt());
+        assertEquals("forgeweave:molten_bronze", json.getAsJsonObject("result").get("fluid").getAsString());
+        assertEquals(4, json.getAsJsonObject("result").get("amount").getAsInt(), "four in, four out");
+        assertEquals(List.of(List.of("mekanism:ingot_bronze", "eternalores:bronze_ingot"),
+                        List.of("mekanism:ingot_tin", "eternalores:tin_ingot")),
+                json.getAsJsonArray("neoforge:conditions").asList().stream()
+                        .map(condition -> conditionItems(condition.getAsJsonObject()))
+                        .toList(),
+                "bronze alloys only with a bronze provider and a tin provider");
+    }
+
+    /**
+     * Playtest checklist 1.0.0, line 170, second half: bronze nuggets and blocks melt and are cast.
+     * The melting rows key on the {@code c:} tags and carry the same bronze provider gate as the
+     * ingot row. The casting rows produce Mekanism's own nugget and block, so each one loads only
+     * when that exact item exists. Amounts are a nugget (16 mB) and a block (1296 mB).
+     */
+    @Test
+    void bronzeNuggetsAndBlocksMeltAndCastAtTheirAmounts() {
+        List<String> bronzeProviders = List.of("mekanism:ingot_bronze", "eternalores:bronze_ingot");
+
+        JsonObject nuggetMelt = shippedIn("melting_recipe", "bronze_nugget");
+        assertEquals("c:nuggets/bronze", nuggetMelt.getAsJsonObject("input").get("tag").getAsString());
+        assertEquals("forgeweave:molten_bronze", nuggetMelt.get("fluid").getAsString());
+        assertEquals(MeltingRecipe.VALUE_NUGGET, nuggetMelt.get("amount").getAsInt());
+        assertEquals(bronzeProviders, onlyCondition(nuggetMelt));
+
+        JsonObject blockMelt = shippedIn("melting_recipe", "bronze_block");
+        assertEquals("c:storage_blocks/bronze", blockMelt.getAsJsonObject("input").get("tag").getAsString());
+        assertEquals("forgeweave:molten_bronze", blockMelt.get("fluid").getAsString());
+        assertEquals(MeltingRecipe.VALUE_BLOCK, blockMelt.get("amount").getAsInt());
+        assertEquals(bronzeProviders, onlyCondition(blockMelt));
+
+        JsonObject nuggetCast = shippedIn("casting_recipe", "nugget_bronze_mekanism");
+        assertEquals("table", nuggetCast.get("station").getAsString());
+        assertEquals("forgeweave:cast_nugget", nuggetCast.getAsJsonObject("cast").get("item").getAsString());
+        assertEquals("forgeweave:molten_bronze", nuggetCast.get("fluid").getAsString());
+        assertEquals(MeltingRecipe.VALUE_NUGGET, nuggetCast.get("amount").getAsInt());
+        assertEquals("mekanism:nugget_bronze", nuggetCast.getAsJsonObject("result").get("id").getAsString());
+        assertEquals(List.of("mekanism:nugget_bronze"), onlyCondition(nuggetCast));
+
+        JsonObject blockCast = shippedIn("casting_recipe", "block_bronze_mekanism");
+        assertEquals("basin", blockCast.get("station").getAsString());
+        assertEquals("forgeweave:molten_bronze", blockCast.get("fluid").getAsString());
+        assertEquals(MeltingRecipe.VALUE_BLOCK, blockCast.get("amount").getAsInt());
+        assertEquals("mekanism:block_bronze", blockCast.getAsJsonObject("result").get("id").getAsString());
+        assertEquals(List.of("mekanism:block_bronze"), onlyCondition(blockCast));
+    }
+
+    /** The item ids of a recipe's single condition, a plain {@code item_exists} or an {@code or} of them. */
+    private static List<String> onlyCondition(JsonObject recipe) {
+        assertEquals(1, recipe.getAsJsonArray("neoforge:conditions").size(), "expected one condition");
+        return conditionItems(recipe.getAsJsonArray("neoforge:conditions").get(0).getAsJsonObject());
+    }
+
+    private static List<String> conditionItems(JsonObject condition) {
+        if (condition.get("type").getAsString().equals("neoforge:or")) {
+            return condition.getAsJsonArray("values").asList().stream()
+                    .flatMap(value -> conditionItems(value.getAsJsonObject()).stream())
+                    .toList();
+        }
+        assertEquals("neoforge:item_exists", condition.get("type").getAsString());
+        return List.of(condition.get("item").getAsString());
+    }
+
     private static JsonObject input(JsonObject recipe, int index) {
         return recipe.getAsJsonArray("inputs").get(index).getAsJsonObject();
     }
 
     private static JsonObject shipped(String name) {
-        String path = "/data/forgeweave/forgeweave/alloy_recipe/" + name + ".json";
+        return shippedIn("alloy_recipe", name);
+    }
+
+    private static JsonObject shippedIn(String folder, String name) {
+        String path = "/data/forgeweave/forgeweave/" + folder + "/" + name + ".json";
         try (InputStream in = AlloyRecipeTest.class.getResourceAsStream(path)) {
             assertNotNull(in, "missing shipped alloy recipe: " + path);
             return JsonParser.parseReader(new InputStreamReader(in, StandardCharsets.UTF_8)).getAsJsonObject();

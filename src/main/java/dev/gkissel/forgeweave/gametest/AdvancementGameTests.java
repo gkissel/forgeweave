@@ -6,10 +6,12 @@ import java.util.List;
 
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.material.Fluids;
@@ -24,6 +26,7 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
+import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
@@ -364,6 +367,158 @@ public class AdvancementGameTests {
         helper.assertTrue(isGranted(helper, player, "armor/leveled"),
                 "expected an armor piece level-up to grant the advancement");
         helper.succeed();
+    }
+
+    /**
+     * Playtest checklist 1.0.0, line 104: the pattern, Part Builder and Tool Station steps unlock
+     * the moment their item reaches the inventory, and in that order. The shipped tree chains
+     * {@code root -> tools/pattern -> tools/part_builder -> tools/tool_station -> tools/first_tool},
+     * so this checks the parents first, then hands the three items over one at a time and expects
+     * each pickup to light exactly its own step and nothing further down the chain. Assembling the
+     * pickaxe then lights first tool, the end of the same chain.
+     */
+    @GameTest(template = "empty")
+    public static void theWorkshopStepsUnlockOnPickupInChainOrder(GameTestHelper helper) {
+        assertParent(helper, "tools/pattern", "root");
+        assertParent(helper, "tools/part_builder", "tools/pattern");
+        assertParent(helper, "tools/tool_station", "tools/part_builder");
+        assertParent(helper, "tools/first_tool", "tools/tool_station");
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        List<String> steps = List.of("tools/pattern", "tools/part_builder", "tools/tool_station", "tools/first_tool");
+        List<ItemStack> pickups = List.of(new ItemStack(ForgeweaveItems.PATTERN_BLANK.get()),
+                new ItemStack(ForgeweaveItems.PART_BUILDER.get()), new ItemStack(ForgeweaveItems.TOOL_STATION.get()));
+
+        for (int i = 0; i < pickups.size(); i++) {
+            give(player, pickups.get(i));
+            for (int j = 0; j < steps.size(); j++) {
+                helper.assertTrue(isGranted(helper, player, steps.get(j)) == (j <= i),
+                        "after picking up " + pickups.get(i) + ", expected " + steps.get(j)
+                                + (j <= i ? " to be granted" : " to still be locked"));
+            }
+        }
+        ToolAssembly.pickaxe(helper, player, new BlockPos(1, 1, 1), "wood", "wood", "wood");
+        helper.assertTrue(isGranted(helper, player, "tools/first_tool"),
+                "expected the first assembled tool to grant the last step of the chain");
+        helper.succeed();
+    }
+
+    /**
+     * Playtest checklist 1.0.0, line 105, the mixed set: {@code armor/full_set} has one criterion
+     * per slot and each criterion accepts the light or the heavy piece, so a light helmet and
+     * leggings with a heavy chestplate and boots must count as a full set. Three pieces must not.
+     */
+    @GameTest(template = "empty")
+    public static void aMixedLightAndHeavySetGrantsFullSetAdvancement(GameTestHelper helper) {
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        give(player, new ItemStack(ForgeweaveItems.ARMOR_HELMET.get()));
+        give(player, new ItemStack(ForgeweaveItems.ARMOR_HEAVY_CHESTPLATE.get()));
+        give(player, new ItemStack(ForgeweaveItems.ARMOR_LEGGINGS.get()));
+        helper.assertFalse(isGranted(helper, player, "armor/full_set"),
+                "three pieces are not a full set, so the advancement must wait for the boots");
+
+        give(player, new ItemStack(ForgeweaveItems.ARMOR_HEAVY_BOOTS.get()));
+
+        helper.assertTrue(isGranted(helper, player, "armor/full_set"),
+                "expected two light and two heavy pieces, one per slot, to grant the full set advancement");
+        helper.succeed();
+    }
+
+    /**
+     * Playtest checklist 1.0.0, line 105, the two level-ups: leveling a tool and leveling an armor
+     * piece unlock two advancements on different branches. {@code leveling/first_level} hangs off
+     * the first modifier and {@code armor/leveled} off the full set, so the parents differ and
+     * neither advancement sits above the other, which means earning one never implies the other.
+     */
+    @GameTest(template = "empty")
+    public static void theToolAndArmorLevelAdvancementsSitOnDifferentBranches(GameTestHelper helper) {
+        assertParent(helper, "leveling/first_level", "smeltery/first_modifier");
+        assertParent(helper, "armor/leveled", "armor/full_set");
+        helper.assertFalse(ancestors(helper, "armor/leveled").contains(id("leveling/first_level")),
+                "the armor level advancement must not sit under the tool level one");
+        helper.assertFalse(ancestors(helper, "leveling/first_level").contains(id("armor/leveled")),
+                "the tool level advancement must not sit under the armor level one");
+        helper.succeed();
+    }
+
+    /**
+     * Playtest checklist 1.0.0, line 106, first half: a gold cast, a Nether core and a blazing
+     * blood bucket each give their own advancement ({@code smeltery/cast}, {@code
+     * smeltery/core_tier}, {@code smeltery/hotter_fuel}). All three are inventory criteria, so
+     * picking the item up is the whole trigger, and each pickup must light only its own.
+     */
+    @GameTest(template = "empty")
+    public static void goldCastNetherCoreAndBlazingBloodEachGrantTheirOwnAdvancement(GameTestHelper helper) {
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+
+        give(player, new ItemStack(ForgeweaveItems.CAST_INGOT.get()));
+        helper.assertTrue(isGranted(helper, player, "smeltery/cast"), "expected a gold ingot cast to grant smeltery/cast");
+        helper.assertFalse(isGranted(helper, player, "smeltery/core_tier"), "a cast is not a hotter core");
+
+        give(player, new ItemStack(ForgeweaveItems.NETHER_CORE.get()));
+        helper.assertTrue(isGranted(helper, player, "smeltery/core_tier"),
+                "expected a Nether core to grant smeltery/core_tier");
+        helper.assertFalse(isGranted(helper, player, "smeltery/hotter_fuel"), "a core is not a hotter fuel");
+
+        give(player, new ItemStack(ForgeweaveFluids.BLAZING_BLOOD.bucket().get()));
+        helper.assertTrue(isGranted(helper, player, "smeltery/hotter_fuel"),
+                "expected a blazing blood bucket to grant smeltery/hotter_fuel");
+        helper.succeed();
+    }
+
+    /**
+     * Playtest checklist 1.0.0, line 106, second half: the alloy advancements count the cast
+     * ingot, not the fluid. Tideiron is two steps deep (cobalt plus ironbrand, and ironbrand is an
+     * alloy itself), so its ingot lands in {@code forgeweave:alloys/deep} only; sunsteel is three
+     * steps deep and lands in {@code alloys/deepest} too. Holding each one's molten bucket first
+     * must grant nothing, because both criteria read the ingot tags.
+     */
+    @GameTest(template = "empty")
+    public static void alloyAdvancementsCountTheIngotNotTheMoltenBucket(GameTestHelper helper) {
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+
+        give(player, new ItemStack(item("molten_tideiron_bucket")));
+        give(player, new ItemStack(item("molten_sunsteel_bucket")));
+        helper.assertFalse(isGranted(helper, player, "alloys/deep"),
+                "a molten tideiron or sunsteel bucket alone must not grant alloys/deep");
+        helper.assertFalse(isGranted(helper, player, "alloys/deepest"),
+                "a molten sunsteel bucket alone must not grant alloys/deepest");
+
+        give(player, new ItemStack(item("tideiron_ingot")));
+        helper.assertTrue(isGranted(helper, player, "alloys/deep"), "expected a tideiron ingot to grant alloys/deep");
+        helper.assertFalse(isGranted(helper, player, "alloys/deepest"),
+                "tideiron is two steps deep, so its ingot must not grant alloys/deepest");
+
+        give(player, new ItemStack(item("sunsteel_ingot")));
+        helper.assertTrue(isGranted(helper, player, "alloys/deepest"),
+                "expected a sunsteel ingot, three steps deep, to grant alloys/deepest");
+        helper.succeed();
+    }
+
+    /** Puts {@code stack} in the player's inventory and lets the inventory menu report it, the way a pickup does. */
+    private static void give(ServerPlayer player, ItemStack stack) {
+        player.getInventory().add(stack);
+        player.inventoryMenu.broadcastChanges();
+    }
+
+    private static Item item(String path) {
+        return BuiltInRegistries.ITEM.getOptional(id(path))
+                .orElseThrow(() -> new AssertionError("no item forgeweave:" + path));
+    }
+
+    private static ResourceLocation id(String path) {
+        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    }
+
+    /** Every advancement above {@code path} in the tree, nearest first. */
+    private static List<ResourceLocation> ancestors(GameTestHelper helper, String path) {
+        List<ResourceLocation> chain = new ArrayList<>();
+        AdvancementHolder holder = helper.getLevel().getServer().getAdvancements().get(id(path));
+        while (holder != null && holder.value().parent().isPresent()) {
+            ResourceLocation parent = holder.value().parent().get();
+            chain.add(parent);
+            holder = helper.getLevel().getServer().getAdvancements().get(parent);
+        }
+        return chain;
     }
 
     /** Loads the station with a tool and its free-slot inputs and takes whatever it resolves. */

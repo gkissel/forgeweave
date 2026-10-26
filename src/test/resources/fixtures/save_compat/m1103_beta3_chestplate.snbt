@@ -1,0 +1,55 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:armor_stats": {
+                armor: 5.0f,
+                durability: 256,
+                knockback_resistance: 0.0f,
+                toughness: 0.0f
+            },
+            "forgeweave:tool_materials": {
+                head: "forgeweave:ironwood",
+                parts: [
+                    "forgeweave:ironwood",
+                    "forgeweave:vine"
+                ]
+            },
+            "forgeweave:traits": [
+                "forgeweave:ironwood_footing",
+                "forgeweave:ironwood_grip",
+                "forgeweave:vine_weave"
+            ],
+            "minecraft:max_damage": 256
+        },
+        id: "forgeweave:chestplate"
+    },
+    nbt: {
+        components: {
+            "forgeweave:armor_stats": {
+                armor: 5.0f,
+                durability: 256,
+                knockback_resistance: 0.0f,
+                toughness: 0.0f
+            },
+            "forgeweave:enchantability": 14,
+            "forgeweave:tool_materials": {
+                head: "forgeweave:ironwood",
+                parts: [
+                    "forgeweave:ironwood",
+                    "forgeweave:vine"
+                ]
+            },
+            "forgeweave:traits": [
+                "forgeweave:ironwood_footing",
+                "forgeweave:ironwood_grip",
+                "forgeweave:vine_weave"
+            ],
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 256
+        },
+        count: 1,
+        id: "forgeweave:chestplate"
+    },
+    what: "#1103 (playtest checklist 1.0.0, line 19): a chestplate printed by ToolAssemblyRecipes#assemble at tag mc1.21.1-v0.6.0-beta.3. Ironwood plating over vine maille, so its stored armor traits are ironwood_footing, ironwood_grip and vine_weave, all three ids #1103 retired. The checklist line asks for stored tools and armor both; this is the armor half, and the list must come back verbatim."
+}

@@ -42,6 +42,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.trait.TraitFamilies;
 
 /**
  * The save-compatibility fixture corpus (docs/SCOPE.md, "Save compatibility"): every serialized
@@ -245,6 +246,44 @@ class SaveCompatCorpusTest {
 
         assertThrows(IllegalStateException.class, () -> decodeAndReEncode(corrupt),
                 "a level-0 modifier must not decode -- if this passes, the corpus walk proves nothing");
+    }
+
+    /**
+     * Playtest checklist 1.0.0, line 19: a world saved at 0.6.0-beta.3 or earlier keeps its trait
+     * names and effects, and its retired ids point at their replacement (issue #1103). The alias map
+     * is the whole of that promise, so its size is pinned exactly: a retired id dropped from it
+     * strands every saved tool still carrying it. The checklist says 123; the shipped map holds 124,
+     * and the shipped map is what is asserted.
+     */
+    @Test
+    void exactlyTheShippedHundredAndTwentyFourRetiredTraitIdsAreAliased() {
+        assertEquals(124, TraitFamilies.aliases().size(), "#1103's retired trait ids");
+    }
+
+    /**
+     * Playtest checklist 1.0.0, line 19, from the save side: the two {@code m1103_beta3_*} fixtures
+     * were printed by the real assembly code at tag {@code mc1.21.1-v0.6.0-beta.3}, a pickaxe and a
+     * chestplate whose stored trait lists name ids #1103 later retired. The corpus walk above proves
+     * they decode with those ids kept verbatim; this proves each fixture really carries retired ids,
+     * so the walk is not passing on a stack with nothing to remap, and that every stored id is either
+     * still live or has an alias.
+     */
+    @Test
+    void theBeta3FixturesCarryRetiredTraitIdsThatAllResolve() throws Exception {
+        for (String name : List.of("m1103_beta3_pickaxe.snbt", "m1103_beta3_chestplate.snbt")) {
+            CompoundTag fixture = read(Path.of(SaveCompatCorpusTest.class.getResource(CORPUS + "/" + name).toURI()));
+            ListTag traits = fixture.getCompound("nbt").getCompound("components")
+                    .getList("forgeweave:traits", Tag.TAG_STRING);
+            List<ResourceLocation> retired = traits.stream()
+                    .map(tag -> ResourceLocation.parse(tag.getAsString()))
+                    .filter(TraitFamilies.aliases()::containsKey)
+                    .toList();
+            assertTrue(!retired.isEmpty(), name + " must carry at least one retired trait id, carries " + traits);
+            for (ResourceLocation id : retired) {
+                assertTrue(!TraitFamilies.aliases().containsKey(TraitFamilies.canonical(id)),
+                        name + ": " + id + " must resolve straight to a live id");
+            }
+        }
     }
 
     // ------------------------------------------------------------------ decoding

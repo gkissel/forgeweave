@@ -8,7 +8,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
@@ -103,6 +105,45 @@ class BlockToolCoverageTest {
             }
         }
         assertTrue(missing.isEmpty(), "material incorrect_for_tool tags with no tag file: " + missing);
+    }
+
+    /**
+     * Playtest checklist 1.0.0, lines 38 to 40: which tool each named block breaks fast with. The test
+     * above only proves a block sits in some mineable tag; this pins the right one, and that the block
+     * is in no other. Line 38 is the wooden stations, both chests, the wooden hopper and firewood
+     * (axe), line 39 the slime vines (axe) and the mud brick block (shovel), and line 40 the Tool
+     * Forge and the Modifier Worktable (pickaxe). A tag check is the practical test for the vines,
+     * because a loose vine doesn't stay placed long enough to time a break.
+     */
+    @Test
+    void theChecklistsBlocksBreakWithTheirOwnTool() throws IOException {
+        Map<String, String> expected = new LinkedHashMap<>();
+        for (String block : List.of("crafting_station", "part_builder", "stencil_table", "tool_station",
+                "part_chest", "pattern_chest", "wooden_hopper", "firewood",
+                "blue_slime_vine", "blue_slime_vine_mid", "blue_slime_vine_end",
+                "purple_slime_vine", "purple_slime_vine_mid", "purple_slime_vine_end")) {
+            expected.put(block, "axe");
+        }
+        expected.put("mud_brick_block", "shovel");
+        expected.put("tool_forge", "pickaxe");
+        expected.put("modifier_worktable", "pickaxe");
+
+        Path root = LocalizationAuditTest.projectRoot();
+        Map<String, Set<String>> tagged = new LinkedHashMap<>();
+        for (String tool : MINEABLE) {
+            Set<String> blocks = new HashSet<>();
+            collect(root, "minecraft", "mineable/" + tool, blocks, new HashSet<>());
+            tagged.put(tool, blocks);
+        }
+
+        List<String> wrong = new ArrayList<>();
+        expected.forEach((block, tool) -> {
+            List<String> tools = MINEABLE.stream().filter(t -> tagged.get(t).contains("forgeweave:" + block)).toList();
+            if (!tools.equals(List.of(tool))) {
+                wrong.add(block + " should be in mineable/" + tool + " only, is in " + tools);
+            }
+        });
+        assertTrue(wrong.isEmpty(), "blocks with the wrong mining tool: " + wrong);
     }
 
     /** Adds every block id the tag names to {@code out}, following nested {@code #} references. */

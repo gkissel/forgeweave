@@ -298,6 +298,12 @@ dependencies {
     compileOnly("dev.emi:emi-neoforge:${emi_version}:api") { transitive = false }
     testCompileOnly("dev.emi:emi-neoforge:${emi_version}:api") { transitive = false }
     testRuntimeOnly("dev.emi:emi-neoforge:${emi_version}") { transitive = false }
+    // JeiRecipesScaleTest's category-list pin builds every category against a recording fake
+    // registration. Tests compile against the API jar but run on the full mod jar, which bundles the
+    // same API classes: the API jar has no mods.toml, so FML leaves it on the app class loader, where
+    // its Minecraft references fail with a LinkageError. The full jar loads as a mod, like KubeJS below.
+    testCompileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
+    testRuntimeOnly("mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}") { transitive = false }
 
     // Jade (issue #720): the Jade/WTHIT overlay ticket. compileOnly so the mod compiles against
     // Jade's API without hard-requiring it (see neoforge.mods.toml's "optional" entry and

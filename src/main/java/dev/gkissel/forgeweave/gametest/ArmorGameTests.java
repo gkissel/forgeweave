@@ -1,12 +1,15 @@
 package dev.gkissel.forgeweave.gametest;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
@@ -28,6 +31,8 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
 import dev.gkissel.forgeweave.menu.ToolStationTabs;
+import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ArmorStats;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 
@@ -260,5 +265,73 @@ public class ArmorGameTests {
         helper.assertTrue(repaired.getDamageValue() == 0, "one ingot restores the piece, damage left " + repaired.getDamageValue());
         helper.assertFalse(ToolItem.isBroken(repaired), "a repaired piece is no longer Broken");
         helper.succeed();
+    }
+
+    /**
+     * Playtest checklist 1.0.0, line 31: repair, modify and rename all go through the one repair
+     * tab, for all eight pieces. Each piece is built from iron at the block that builds it (the Tool
+     * Station for the light set, the Tool Forge for the heavy set), worn to half its durability,
+     * then taken through three station results in a row. One iron ingot has to give durability
+     * back, 5 seared bricks have to land fire protection at 5 units, and a typed name has to come
+     * out on the piece with the modifier still on it. The existing tests cover the chestplates only.
+     */
+    @GameTest(template = "empty")
+    public static void everyPieceRepairsModifiesAndRenamesAtItsStation(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ResourceLocation fireProtection = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "fire_protection");
+        for (ToolConstants.Entry entry : allPieces()) {
+            boolean heavy = ToolConstants.HEAVY_ARMOR.contains(entry);
+            Block station = heavy ? ForgeweaveBlocks.TOOL_FORGE.get() : ForgeweaveBlocks.TOOL_STATION.get();
+            ItemStack built = ToolAssembly.assembleAt(helper, player, STATION, station, ToolAssembly.entryOf(entry),
+                    heavy ? List.of("iron", "iron", "iron") : List.of("iron", "iron"));
+            Item kind = built.getItem();
+            helper.assertTrue(BuiltInRegistries.ITEM.getKey(kind).getPath().equals(entry.id()),
+                    "the fixture must be a " + entry.id() + ", got " + built);
+            int damage = built.getMaxDamage() / 2;
+            built.set(DataComponents.DAMAGE, damage);
+
+            ItemStack repaired = take(helper, load(helper, player, built, new ItemStack(Items.IRON_INGOT)), player);
+            helper.assertTrue(repaired.is(kind) && repaired.getDamageValue() < damage,
+                    entry.id() + ": one iron ingot must repair it below " + damage + ", got " + repaired.getDamageValue());
+
+            ItemStack modified = take(helper, load(helper, player, repaired,
+                    new ItemStack(ForgeweaveItems.SEARED_BRICK.get(), 5)), player);
+            ModifierEntry fire = ForgeweaveModifiers.entry(modified, fireProtection);
+            helper.assertTrue(modified.is(kind) && fire != null && fire.level() == 5,
+                    entry.id() + ": 5 seared bricks must apply fire protection at 5 units, got " + fire);
+
+            ToolStationMenu menu = load(helper, player, modified, ItemStack.EMPTY);
+            menu.setToolName("Aegis");
+            ItemStack renamed = take(helper, menu, player);
+            Component name = renamed.get(DataComponents.CUSTOM_NAME);
+            helper.assertTrue(renamed.is(kind) && name != null && "Aegis".equals(name.getString()),
+                    entry.id() + ": the typed name must land on the piece, got " + name);
+            helper.assertTrue(fire.equals(ForgeweaveModifiers.entry(renamed, fireProtection)),
+                    entry.id() + ": a rename must keep the modifier");
+        }
+        helper.succeed();
+    }
+
+    private static List<ToolConstants.Entry> allPieces() {
+        return Stream.concat(ToolConstants.ARMOR.stream(), ToolConstants.HEAVY_ARMOR.stream()).toList();
+    }
+
+    /** The block at {@link #STATION} loaded with {@code piece} in the head slot and {@code reagent} next to it. */
+    private static ToolStationMenu load(GameTestHelper helper, Player player, ItemStack piece, ItemStack reagent) {
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION);
+        blockEntity.container().clearContent();
+        blockEntity.container().setItem(0, piece);
+        blockEntity.container().setItem(1, reagent);
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, STATION, blockEntity);
+        menu.broadcastChanges();
+        return menu;
+    }
+
+    private static ItemStack take(GameTestHelper helper, ToolStationMenu menu, Player player) {
+        ItemStack output = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().copy();
+        helper.assertFalse(output.isEmpty(), "expected the station to produce a result"
+                + (menu.rejection() == null ? "" : "; it says: " + menu.rejection().message().getString()));
+        menu.getSlot(ToolStationMenu.OUTPUT_SLOT).onTake(player, output);
+        return output;
     }
 }
