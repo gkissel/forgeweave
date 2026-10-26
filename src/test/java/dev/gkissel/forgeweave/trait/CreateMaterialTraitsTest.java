@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import net.minecraft.SharedConstants;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -57,7 +57,7 @@ class CreateMaterialTraitsTest {
         ItemAttributeModifiers.Builder out = ItemAttributeModifiers.builder();
         for (EquipmentSlot slot : List.of(EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET)) {
             CreateMaterialTraits.CLOCKWORK_STRIDE.armorAttributes(
-                    ResourceLocation.fromNamespaceAndPath("forgeweave", "clockwork_" + slot.getName()), slot, out);
+                    Identifier.fromNamespaceAndPath("forgeweave", "clockwork_" + slot.getName()), slot, out);
         }
         var entries = out.build().modifiers();
         assertEquals(4, entries.size());

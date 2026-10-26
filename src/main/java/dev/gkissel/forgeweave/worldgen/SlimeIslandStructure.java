@@ -7,7 +7,7 @@ import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.LevelHeightAccessor;
@@ -68,7 +68,7 @@ public class SlimeIslandStructure extends Structure {
 
     /** The datapack structure this class backs, {@code data/forgeweave/worldgen/structure/slime_island.json}. */
     public static final ResourceKey<Structure> KEY = ResourceKey.create(Registries.STRUCTURE,
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "slime_island"));
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "slime_island"));
 
     /** The {@code spacing} of the structure set's {@code random_spread} placement; keep the two in step. */
     public static final int GRID_SPACING = 9;
@@ -92,7 +92,7 @@ public class SlimeIslandStructure extends Structure {
      * <p>Two of them change shape in the port, both because their 1.12 concepts no longer exist.
      * Upstream's {@code isSurfaceWorld()} becomes {@code DimensionType#natural()}, modern Minecraft's
      * own "behaves like the overworld" flag. Upstream's blacklist is a list of numeric dimension ids
-     * ({@code -1, 1} -- the Nether and the End); dimensions are named by {@link ResourceLocation}
+     * ({@code -1, 1} -- the Nether and the End); dimensions are named by {@link Identifier}
      * now, so the option holds ids like {@code minecraft:the_nether} and keeps the same two defaults.
      */
     public static boolean enabledIn(ServerLevel level, boolean superflat) {

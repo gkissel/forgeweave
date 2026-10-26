@@ -28,7 +28,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
@@ -63,21 +63,21 @@ import dev.gkissel.forgeweave.trait.WarMemory;
  */
 class ToolTooltipTest {
 
-    private static final ResourceLocation STONE_ID = ResourceLocation.fromNamespaceAndPath("forgeweave", "stone");
-    private static final ResourceLocation WOOD_ID = ResourceLocation.fromNamespaceAndPath("forgeweave", "wood");
-    private static final ResourceLocation CHEAP_TRAIT = ResourceLocation.fromNamespaceAndPath("forgeweave", "cheap");
+    private static final Identifier STONE_ID = Identifier.fromNamespaceAndPath("forgeweave", "stone");
+    private static final Identifier WOOD_ID = Identifier.fromNamespaceAndPath("forgeweave", "wood");
+    private static final Identifier CHEAP_TRAIT = Identifier.fromNamespaceAndPath("forgeweave", "cheap");
     // Issue #493: stone's head part grants cheapskate, not the general cheap -- see stone().
-    private static final ResourceLocation CHEAPSKATE_TRAIT =
-            ResourceLocation.fromNamespaceAndPath("forgeweave", "cheapskate");
-    private static final ResourceLocation LIGHTWEIGHT_TRAIT =
-            ResourceLocation.fromNamespaceAndPath("forgeweave", "lightweight");
-    private static final ResourceLocation HASTE_ID = ResourceLocation.fromNamespaceAndPath("forgeweave", "haste");
-    private static final ResourceLocation ECOLOGICAL_TRAIT =
-            ResourceLocation.fromNamespaceAndPath("forgeweave", "ecological");
-    private static final ResourceLocation BLOODTALLY_TRAIT =
-            ResourceLocation.fromNamespaceAndPath("forgeweave", "bloodtally");
-    private static final ResourceLocation WARMEMORY_TRAIT =
-            ResourceLocation.fromNamespaceAndPath("forgeweave", "warmemory");
+    private static final Identifier CHEAPSKATE_TRAIT =
+            Identifier.fromNamespaceAndPath("forgeweave", "cheapskate");
+    private static final Identifier LIGHTWEIGHT_TRAIT =
+            Identifier.fromNamespaceAndPath("forgeweave", "lightweight");
+    private static final Identifier HASTE_ID = Identifier.fromNamespaceAndPath("forgeweave", "haste");
+    private static final Identifier ECOLOGICAL_TRAIT =
+            Identifier.fromNamespaceAndPath("forgeweave", "ecological");
+    private static final Identifier BLOODTALLY_TRAIT =
+            Identifier.fromNamespaceAndPath("forgeweave", "bloodtally");
+    private static final Identifier WARMEMORY_TRAIT =
+            Identifier.fromNamespaceAndPath("forgeweave", "warmemory");
 
     private static final ToolStats.Stats PICKAXE_STATS = new ToolStats.Stats(160, 4.0F, 3.0F);
     private static final TextColor STONE_COLOR = TextColor.fromRgb(0x999999);
@@ -142,7 +142,7 @@ class ToolTooltipTest {
     void compactTooltipListsModifiersWithTheirLevelAndProgress() {
         ItemStack stack = assembledPickaxe(40, List.of());
         stack.set(ForgeweaveDataComponents.MODIFIERS.get(),
-                List.of(new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "haste"), 51)));
+                List.of(new ModifierEntry(Identifier.fromNamespaceAndPath("forgeweave", "haste"), 51)));
 
         List<Component> tooltip = new ArrayList<>();
         ToolTooltip.append(stack, null, false, 3.0F, tooltip);
@@ -236,7 +236,7 @@ class ToolTooltipTest {
     void compactTooltipOmitsWarmemorySinceItsStateIsMoreThanOneLine() {
         ItemStack stack = assembledPickaxe(40, List.of(WARMEMORY_TRAIT));
         stack.set(ForgeweaveDataComponents.WAR_MEMORY.get(),
-                WarMemory.EMPTY.with(ResourceLocation.withDefaultNamespace("zombie"), 12));
+                WarMemory.EMPTY.with(Identifier.withDefaultNamespace("zombie"), 12));
 
         List<Component> tooltip = new ArrayList<>();
         ToolTooltip.append(stack, null, false, 3.0F, tooltip);
@@ -676,7 +676,7 @@ class ToolTooltipTest {
     @Test
     void aModifierWithNoSpeedBonusHasNoExtraInfo() {
         assertEquals(List.of(), StationText.modifierExtraInfo(assembledShortbow(),
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "soulbound"), 1)));
+                new ModifierEntry(Identifier.fromNamespaceAndPath("forgeweave", "soulbound"), 1)));
         assertEquals(List.of(), StationText.modifierExtraInfo(assembledPickaxe(40, List.of()),
                 new ModifierEntry(HASTE_ID, 50)),
                 "a pickaxe is neither WEAPON nor LAUNCHER upstream, so haste shows it nothing");
@@ -727,7 +727,7 @@ class ToolTooltipTest {
     void tierLineIsEmptyForGoldAndUnknownTags() {
         assertEquals(Optional.empty(), ToolTooltip.tierLine(incorrectForTool("gold")));
         assertEquals(Optional.empty(), ToolTooltip.tierLine(TagKey.create(Registries.BLOCK,
-                ResourceLocation.fromNamespaceAndPath("somemod", "incorrect_for_osmium_tool"))));
+                Identifier.fromNamespaceAndPath("somemod", "incorrect_for_osmium_tool"))));
     }
 
     @Test
@@ -789,21 +789,21 @@ class ToolTooltipTest {
                 Component.literal(Integer.toString(max)).withStyle(Style.EMPTY.withColor(StationText.DURABILITY_COLOR)));
     }
 
-    private static ItemStack assembledPickaxe(int damage, List<ResourceLocation> traits) {
+    private static ItemStack assembledPickaxe(int damage, List<Identifier> traits) {
         return assembledTool(ForgeweaveItems.TOOL_PICKAXE.get(), damage, traits);
     }
 
     /** Issue #303: the warmace, same fixture shape -- {@link ToolTooltip} doesn't care which tool it is. */
-    private static ItemStack assembledWarmace(int damage, List<ResourceLocation> traits) {
+    private static ItemStack assembledWarmace(int damage, List<Identifier> traits) {
         return assembledTool(ForgeweaveItems.TOOL_WARMACE.get(), damage, traits);
     }
 
-    private static ItemStack assembledTool(Item item, int damage, List<ResourceLocation> traits) {
+    private static ItemStack assembledTool(Item item, int damage, List<Identifier> traits) {
         return assembledTool(item, damage, traits,
                 new ToolMaterials(STONE_ID, Optional.of(WOOD_ID), Optional.of(WOOD_ID), List.of(STONE_ID, WOOD_ID, WOOD_ID)));
     }
 
-    private static ItemStack assembledTool(Item item, int damage, List<ResourceLocation> traits,
+    private static ItemStack assembledTool(Item item, int damage, List<Identifier> traits,
             ToolMaterials materials) {
         ItemStack stack = new ItemStack(item);
         stack.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(), materials);
@@ -846,7 +846,7 @@ class ToolTooltipTest {
     }
 
     private static TagKey<Block> incorrectForTool(String tier) {
-        return TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_" + tier + "_tool"));
+        return TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace("incorrect_for_" + tier + "_tool"));
     }
 
     private static Component durabilityLine(int current, int max) {
@@ -939,7 +939,7 @@ class ToolTooltipTest {
     }
 
     private static Component traitLine(String path, TextColor color) {
-        return traitLine(path, color, TraitFamilies.of(ResourceLocation.fromNamespaceAndPath("forgeweave", path)));
+        return traitLine(path, color, TraitFamilies.of(Identifier.fromNamespaceAndPath("forgeweave", path)));
     }
 
     /**

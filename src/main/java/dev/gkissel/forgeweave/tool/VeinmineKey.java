@@ -9,7 +9,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -63,7 +63,7 @@ public final class VeinmineKey {
 
     /** {@code forgeweave:veinmine/<family>} -- the per-family whitelist tag. */
     public static TagKey<Block> family(String family) {
-        return TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "veinmine/" + family));
+        return TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(Forgeweave.MODID, "veinmine/" + family));
     }
 
     /**
@@ -86,7 +86,7 @@ public final class VeinmineKey {
     /** The one-boolean serverbound payload; untrusted, but all it can do is flip the sender's own flag. */
     public record Payload(boolean held) implements CustomPacketPayload {
         public static final CustomPacketPayload.Type<Payload> TYPE =
-                new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "veinmine_key"));
+                new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "veinmine_key"));
 
         public static final StreamCodec<RegistryFriendlyByteBuf, Payload> STREAM_CODEC =
                 StreamCodec.composite(ByteBufCodecs.BOOL, Payload::held, Payload::new);

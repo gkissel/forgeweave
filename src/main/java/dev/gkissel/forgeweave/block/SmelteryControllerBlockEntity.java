@@ -219,7 +219,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      */
     @Nullable
     public SmelteryStructure structure() {
-        if (level != null && !level.isClientSide
+        if (level != null && !level.isClientSide()
                 && (lastScanTick == NEVER_SCANNED || level.getGameTime() - lastScanTick >= RESCAN_INTERVAL_TICKS)) {
             updateStructure();
         }
@@ -233,7 +233,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
 
     /** Rescans now, regardless of how fresh the cached answer is. Server-side only. */
     public void updateStructure() {
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return;
         }
         BlockState state = getBlockState();
@@ -291,7 +291,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * and every heartbeat tick, so the look follows the fuel within a second either way.
      */
     void syncHot() {
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return;
         }
         BlockState state = getBlockState();
@@ -313,7 +313,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * already keeps a formed core's own heartbeat alive.
      */
     void armSettleWindow() {
-        if (level == null || level.isClientSide || isFormed()) {
+        if (level == null || level.isClientSide() || isFormed()) {
             return;
         }
         settleUntilTick = level.getGameTime() + SETTLE_WINDOW_TICKS;
@@ -458,7 +458,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * the one exercising it today.
      */
     public ItemStack insertForMelting(ItemStack stack, @Nullable ServerPlayer player) {
-        if (level == null || level.isClientSide || stack.isEmpty() || !isFormed()
+        if (level == null || level.isClientSide() || stack.isEmpty() || !isFormed()
                 || MeltingRecipe.find(level.registryAccess(), stack).isEmpty()) {
             return stack;
         }
@@ -517,7 +517,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * only {@link #consumeFuel()} does, and only from inside a melt tick.
      */
     public int currentTemperature() {
-        if (level == null || level.isClientSide || structure == null) {
+        if (level == null || level.isClientSide() || structure == null) {
             return 0;
         }
         refreshFuelDisplay();
@@ -577,7 +577,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * smeltery has simply never progresses.
      */
     public boolean meltTick() {
-        if (level == null || level.isClientSide || structure() == null) {
+        if (level == null || level.isClientSide() || structure() == null) {
             return false;
         }
         // #972: settle which heat source pays before anything is drained. The energized tank and a
@@ -716,7 +716,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      */
     @Override
     public void armMeltTick() {
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return;
         }
         boolean melting = hasMeltableItem();
@@ -754,7 +754,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * @return whether an actual sweep ran (i.e. whether a second's worth of time had actually passed)
      */
     public boolean sweepInterior() {
-        if (level == null || level.isClientSide || structure == null) {
+        if (level == null || level.isClientSide() || structure == null) {
             return false;
         }
         long now = level.getGameTime();
@@ -920,7 +920,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
             }
             if (slot < slots) {
                 resized.set(slot, stack);
-            } else if (level != null && !level.isClientSide) {
+            } else if (level != null && !level.isClientSide()) {
                 BlockPos drop = worldPosition.relative(getBlockState().getValue(SmelteryControllerBlock.FACING));
                 Containers.dropItemStack(level, drop.getX(), drop.getY(), drop.getZ(), stack);
             }
@@ -1195,7 +1195,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * </ul>
      */
     private void alloyTankContents() {
-        if (level == null || level.isClientSide || alloying) {
+        if (level == null || level.isClientSide() || alloying) {
             return;
         }
         boolean alloyed = false;
@@ -1225,7 +1225,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      */
     private boolean alloyOnce() {
         boolean alloyed = false;
-        List<AlloyRecipe> recipes = level.registryAccess().registryOrThrow(AlloyRecipe.REGISTRY).stream()
+        List<AlloyRecipe> recipes = level.registryAccess().lookupOrThrow(AlloyRecipe.REGISTRY).stream()
                 .filter(SmelteryControllerBlockEntity::alloyEnabled)
                 .sorted(Comparator.comparingInt(AlloyRecipe::priority))
                 .toList();
@@ -1304,7 +1304,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      */
     private void syncToClients() {
         setChanged();
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
         }
     }
@@ -1317,7 +1317,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * untrusted and {@link SmelteryTank#moveToBottom} range-checks it.
      */
     public void selectDrainFluid(int index) {
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             tank.moveToBottom(index);
         }
     }
@@ -1423,7 +1423,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * actually inside.
      */
     private void transformTo(Block toBlock) {
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return;
         }
         CompoundTag saved = saveWithoutMetadata(level.registryAccess());
@@ -1480,7 +1480,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
          */
         @Override
         public int fill(FluidStack resource, FluidAction action) {
-            if (level == null || level.isClientSide || resource.isEmpty()) {
+            if (level == null || level.isClientSide() || resource.isEmpty()) {
                 return 0;
             }
             var recipe = CoreTransformRecipe.find(level.registryAccess(), resource.getFluid(), getBlockState().getBlock());

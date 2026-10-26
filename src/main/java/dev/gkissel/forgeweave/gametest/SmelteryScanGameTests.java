@@ -2,7 +2,7 @@ package dev.gkissel.forgeweave.gametest;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
@@ -16,8 +16,8 @@ import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -58,7 +58,7 @@ public class SmelteryScanGameTests {
         SmelteryControllerBlockEntity first = placeCore(helper, CORE_A, Direction.WEST);
         helper.assertTrue(first.isFormed(), "expected the first smeltery to form: " + reason(first));
 
-        SearedTankBlockEntity tank = helper.getBlockEntity(SHARED_TANK);
+        SearedTankBlockEntity tank = helper.getBlockEntity(SHARED_TANK, SearedTankBlockEntity.class);
         BlockPos ownerBefore = tank.core();
         helper.assertTrue(helper.absolutePos(CORE_A).equals(ownerBefore),
                 "expected the shared tank to belong to the first smeltery, but it belonged to " + ownerBefore);
@@ -93,7 +93,7 @@ public class SmelteryScanGameTests {
         second.updateStructure();
         helper.assertTrue(second.isFormed(),
                 "expected the second smeltery to take over the freed tank: " + reason(second));
-        helper.assertTrue(helper.absolutePos(CORE_B).equals(helper.<SearedTankBlockEntity>getBlockEntity(SHARED_TANK).core()),
+        helper.assertTrue(helper.absolutePos(CORE_B).equals(helper.getBlockEntity(SHARED_TANK, SearedTankBlockEntity.class).core()),
                 "expected the freed tank to belong to the second smeltery");
         helper.succeed();
     }

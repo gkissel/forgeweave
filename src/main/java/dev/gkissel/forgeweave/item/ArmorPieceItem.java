@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.Entity;
@@ -23,7 +23,7 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ArmorItem;
-import net.minecraft.world.item.ArmorMaterial;
+import net.minecraft.world.item.equipment.ArmorMaterial;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -76,8 +76,8 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
  */
 public class ArmorPieceItem extends ArmorItem {
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
     /** {@code textures/models/armor/derived/maille_layer_{1,2}.png}, the clone's {@code maille_{armor,leggings}.png}. */
@@ -113,7 +113,7 @@ public class ArmorPieceItem extends ArmorItem {
      * stack without materials (creative-tab dummy, corrupted save), which keeps the gray base.
      */
     @Nullable
-    public static ResourceLocation layerMaterial(ItemStack stack, int layerIdx) {
+    public static Identifier layerMaterial(ItemStack stack, int layerIdx) {
         ToolMaterials materials = stack.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
         if (materials == null || materials.parts().size() < 2) {
             return null;
@@ -146,7 +146,7 @@ public class ArmorPieceItem extends ArmorItem {
         }
         ItemAttributeModifiers.Builder builder = ItemAttributeModifiers.builder();
         EquipmentSlotGroup slot = EquipmentSlotGroup.bySlot(type.getSlot());
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "armor." + type.getName());
+        Identifier id = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "armor." + type.getName());
         // #969: an Apotheosis gem's armour, toughness or knockback-resistance attribute rides the
         // same three lines the plating and the modifiers already share, rather than adding attribute
         // modifiers of its own. 0 without Apotheosis or without sockets.
@@ -190,9 +190,9 @@ public class ArmorPieceItem extends ArmorItem {
         // jetpack, which needs both sides. Does nothing without Mekanism, without an
         // atomic_matter_alloy part, or with the toggle off.
         if (entity instanceof Player player && !ToolItem.isBroken(stack)) {
-            MekanismGearModules.tickModules(stack, player, !level.isClientSide);
+            MekanismGearModules.tickModules(stack, player, !level.isClientSide());
             if (stack == player.getItemBySlot(EquipmentSlot.CHEST)) {
-                MekanismGearModules.jetpackTick(stack, player, !level.isClientSide);
+                MekanismGearModules.jetpackTick(stack, player, !level.isClientSide());
             }
         }
     }
@@ -269,7 +269,7 @@ public class ArmorPieceItem extends ArmorItem {
      */
     @Override
     public boolean elytraFlightTick(ItemStack stack, LivingEntity entity, int flightTicks) {
-        if (!entity.level().isClientSide) {
+        if (!entity.level().isClientSide()) {
             int nextFlightTick = flightTicks + 1;
             if (nextFlightTick % 10 == 0) {
                 if (nextFlightTick % 20 == 0) {

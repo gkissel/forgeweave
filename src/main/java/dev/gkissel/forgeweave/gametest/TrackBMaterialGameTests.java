@@ -6,9 +6,9 @@ import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -17,8 +17,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.player.Player;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
@@ -109,7 +109,7 @@ public class TrackBMaterialGameTests {
     /** Every Track B material is registered with no supplying mod required -- the Track A contrast. */
     @GameTest(template = "empty")
     public static void everyTrackBMaterialExistsUnconditionally(GameTestHelper helper) {
-        Registry<Material> materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
+        Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         for (String name : ROSTER) {
             helper.assertTrue(materials.get(materialId(name)) != null,
                     "expected " + name + " to be registered unconditionally (issue #841, Track B always exists)");
@@ -120,7 +120,7 @@ public class TrackBMaterialGameTests {
     /** Every Track B material has head, handle, bow and armor stat blocks -- a full tool+armor metal. */
     @GameTest(template = "empty")
     public static void everyTrackBMaterialHasFullToolAndArmorStats(GameTestHelper helper) {
-        Registry<Material> materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
+        Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         for (String name : ROSTER) {
             Material material = materials.get(materialId(name));
             helper.assertTrue(material != null, name + " must be registered");
@@ -137,11 +137,11 @@ public class TrackBMaterialGameTests {
     /** Every Track B material carries the general trait this issue assigns it (the PR body's table). */
     @GameTest(template = "empty")
     public static void everyTrackBMaterialCarriesItsAssignedTrait(GameTestHelper helper) {
-        Registry<Material> materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
+        Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         TRAITS.forEach((name, trait) -> {
             Material material = materials.get(materialId(name));
             helper.assertTrue(material != null, name + " must be registered");
-            ResourceLocation traitId = traitId(trait);
+            Identifier traitId = traitId(trait);
             helper.assertTrue(material.traits().general().contains(traitId),
                     name + " must carry forgeweave:" + trait + ", got " + material.traits().general());
         });
@@ -151,7 +151,7 @@ public class TrackBMaterialGameTests {
     /** murkiron's second, head-scoped half of its two-part reference idea (darkness/dread flavor). */
     @GameTest(template = "empty")
     public static void murkironCarriesASecondHeadScopedTrait(GameTestHelper helper) {
-        Registry<Material> materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
+        Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         Material murkiron = materials.get(materialId("murkiron"));
         helper.assertTrue(murkiron != null, "murkiron must be registered");
         helper.assertTrue(murkiron.traits().head().contains(traitId("harrying")),
@@ -191,7 +191,7 @@ public class TrackBMaterialGameTests {
     /** truesteel's ingot repairs an assembled tool -- the repair_item wiring actually works. */
     @GameTest(template = "empty")
     public static void truesteelIngotRepairsTheTool(GameTestHelper helper) {
-        Registry<Material> materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
+        Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         Material truesteel = materials.get(materialId("truesteel"));
         helper.assertTrue(truesteel != null, "truesteel must be registered");
         Ingredient repair = truesteel.repairItem();
@@ -200,12 +200,12 @@ public class TrackBMaterialGameTests {
         helper.succeed();
     }
 
-    private static ResourceLocation materialId(String name) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name);
+    private static Identifier materialId(String name) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, name);
     }
 
-    private static ResourceLocation traitId(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier traitId(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
     private TrackBMaterialGameTests() {}

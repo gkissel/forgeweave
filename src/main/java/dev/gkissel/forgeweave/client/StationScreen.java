@@ -5,13 +5,13 @@ import java.util.List;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
@@ -132,16 +132,16 @@ public abstract class StationScreen<T extends StationMenu> extends AbstractConta
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void render(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
         renderTooltip(graphics, mouseX, mouseY);
     }
 
     /** Draws this station's own panel and chrome; the tab row is layered around it by {@link #renderBg}. */
-    protected abstract void renderPanel(GuiGraphics graphics, float partialTick, int mouseX, int mouseY);
+    protected abstract void renderPanel(GuiGraphicsExtractor graphics, float partialTick, int mouseX, int mouseY);
 
     @Override
-    protected final void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
+    protected final void renderBg(GuiGraphicsExtractor graphics, float partialTick, int mouseX, int mouseY) {
         renderTabs(graphics, false);
         restoreBlending();
         renderPanel(graphics, partialTick, mouseX, mouseY);
@@ -152,7 +152,7 @@ public abstract class StationScreen<T extends StationMenu> extends AbstractConta
      * Turns blending back on for the panel, because {@link #renderTabs} just drew item stacks and
      * that leaves it off (issue #84).
      *
-     * <p>{@link GuiGraphics#renderItem} calls {@code flush()} and draws through the item render
+     * <p>{@link GuiGraphicsExtractor#renderItem} calls {@code flush()} and draws through the item render
      * types, whose {@code clearRenderState} ends in {@code RenderSystem.disableBlend()}. Anything
      * translucent drawn afterwards lands at full opacity instead. That is not a hypothetical: the
      * Tool Station's repair slots turned into solid black squares, because upstream's {@code
@@ -174,7 +174,7 @@ public abstract class StationScreen<T extends StationMenu> extends AbstractConta
         RenderSystem.defaultBlendFunc();
     }
 
-    private void renderTabs(GuiGraphics graphics, boolean selectedPass) {
+    private void renderTabs(GuiGraphicsExtractor graphics, boolean selectedPass) {
         StationGroup group = menu.stationGroup();
         List<BlockPos> members = group.members();
         for (int i = 0; i < members.size(); i++) {
@@ -184,7 +184,7 @@ public abstract class StationScreen<T extends StationMenu> extends AbstractConta
             }
             int x = leftPos + tabX(i);
             int y = topPos + TAB_TOP;
-            graphics.blitSprite(ResourceLocation.withDefaultNamespace(
+            graphics.blitSprite(Identifier.withDefaultNamespace(
                     TAB_SPRITE + (selected ? "selected_" : "unselected_") + (i + 1)), x, y, TAB_WIDTH, TAB_HEIGHT);
             graphics.renderItem(tabIcon(members.get(i)), x + ICON_X, y + ICON_Y);
         }
@@ -215,7 +215,7 @@ public abstract class StationScreen<T extends StationMenu> extends AbstractConta
     }
 
     @Override
-    protected void renderTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
+    protected void renderTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         super.renderTooltip(graphics, mouseX, mouseY);
         int tab = hoveredTab(mouseX, mouseY);
         if (tab >= 0) {

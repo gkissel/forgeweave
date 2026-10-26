@@ -96,7 +96,7 @@ public class FaucetBlockEntity extends BlockEntity {
      * @return whether the faucet is pouring after this call
      */
     public boolean activate() {
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return pouring;
         }
         if (pouring) {
@@ -118,7 +118,7 @@ public class FaucetBlockEntity extends BlockEntity {
             return;
         }
         lastRedstoneState = hasSignal;
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return;
         }
         if (hasSignal) {
@@ -136,7 +136,7 @@ public class FaucetBlockEntity extends BlockEntity {
 
     /** The scheduled tick: one {@value #LIQUID_TRANSFER} mB step, or the handoff to the next transaction. */
     void pourStep() {
-        if (level == null || level.isClientSide || !pouring) {
+        if (level == null || level.isClientSide() || !pouring) {
             return;
         }
         if (buffered.isEmpty()) {
@@ -204,7 +204,7 @@ public class FaucetBlockEntity extends BlockEntity {
     }
 
     private void scheduleNextStep() {
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             level.scheduleTick(worldPosition, getBlockState().getBlock(), 1);
         }
     }
@@ -229,7 +229,7 @@ public class FaucetBlockEntity extends BlockEntity {
     }
 
     private void sync() {
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
         }
     }

@@ -7,7 +7,7 @@ import io.netty.buffer.ByteBuf;
 
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ExtraCodecs;
 
 import dev.gkissel.forgeweave.api.modifier.Modifier;
@@ -31,15 +31,15 @@ import dev.gkissel.forgeweave.api.modifier.Modifier;
  * allows while still reproducing upstream's behavior of accepting redstone one at a time and showing
  * the partial fill, rather than demanding 50 at once.
  */
-public record ModifierEntry(ResourceLocation id, int level) {
+public record ModifierEntry(Identifier id, int level) {
 
     public static final Codec<ModifierEntry> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ResourceLocation.CODEC.fieldOf("id").forGetter(ModifierEntry::id),
+            Identifier.CODEC.fieldOf("id").forGetter(ModifierEntry::id),
             ExtraCodecs.POSITIVE_INT.fieldOf("level").forGetter(ModifierEntry::level))
             .apply(instance, ModifierEntry::new));
 
     public static final StreamCodec<ByteBuf, ModifierEntry> STREAM_CODEC = StreamCodec.composite(
-            ResourceLocation.STREAM_CODEC, ModifierEntry::id,
+            Identifier.STREAM_CODEC, ModifierEntry::id,
             ByteBufCodecs.VAR_INT, ModifierEntry::level,
             ModifierEntry::new);
 

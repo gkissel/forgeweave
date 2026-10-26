@@ -9,7 +9,7 @@ import javax.annotation.Nullable;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -66,16 +66,16 @@ public final class ApotheosisSockets {
     public static final String MODID = "apotheosis";
 
     /** The modifier whose level is the socket count. */
-    public static final ResourceLocation SOCKETED_ID =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "socketed");
+    public static final Identifier SOCKETED_ID =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "socketed");
 
     /**
      * The marker id {@code modifier_recipe/socket_gem.json} names, the way
      * {@code modifier.OverslimeRefill#ID} marks the overslime refill: nothing is ever stored under it
      * on the tool. Seating a gem moves {@link ForgeweaveDataComponents#SOCKETS} and nothing else.
      */
-    public static final ResourceLocation SEAT_GEM_ID =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "socket_gem");
+    public static final Identifier SEAT_GEM_ID =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "socket_gem");
 
     /**
      * The level cap, a hard number rather than "unbounded": three sockets, matching the three
@@ -234,7 +234,7 @@ public final class ApotheosisSockets {
      * registry id plus the modifier itself, so the Apotheosis-free side can route it by id without
      * ever holding an Apotheosis or Apothic Attributes type.
      */
-    public record AttributeGrant(ResourceLocation attribute, AttributeModifier modifier) {}
+    public record AttributeGrant(Identifier attribute, AttributeModifier modifier) {}
 
     /** What {@link ApotheosisGemBonuses} answers once Apotheosis is installed. */
     public interface Bridge {
@@ -358,7 +358,7 @@ public final class ApotheosisSockets {
      * scale. Every gem Apotheosis 8.7.0 ships uses {@code ADD_VALUE} for the five mapped attributes,
      * so nothing in the shipped set takes that path.
      */
-    private static float sum(ItemStack stack, ResourceLocation... attributes) {
+    private static float sum(ItemStack stack, Identifier... attributes) {
         Bridge installed = bridge;
         if (installed == null || socketCount(stack) <= 0) {
             return 0.0F;
@@ -366,7 +366,7 @@ public final class ApotheosisSockets {
         double total = 0.0;
         for (AttributeGrant grant : installed.attributeGrants(stack)) {
             boolean mapped = false;
-            for (ResourceLocation attribute : attributes) {
+            for (Identifier attribute : attributes) {
                 mapped |= attribute.equals(grant.attribute());
             }
             if (!mapped) {
@@ -438,22 +438,22 @@ public final class ApotheosisSockets {
     // ---------------------------------------------------------------- the mapping table
 
     /** Attribute ids, as {@link #EFFECT_MAP}'s rows name them and {@link #sum} routes them. */
-    private static final ResourceLocation MAPPED_ATTACK_DAMAGE =
-            ResourceLocation.withDefaultNamespace("generic.attack_damage");
+    private static final Identifier MAPPED_ATTACK_DAMAGE =
+            Identifier.withDefaultNamespace("generic.attack_damage");
     /** Apothic Attributes' own mining speed attribute, which is what Apotheosis' tool gems grant. */
-    private static final ResourceLocation MAPPED_APOTHIC_MINING_SPEED =
-            ResourceLocation.fromNamespaceAndPath("apothic_attributes", "mining_speed");
+    private static final Identifier MAPPED_APOTHIC_MINING_SPEED =
+            Identifier.fromNamespaceAndPath("apothic_attributes", "mining_speed");
     /** Vanilla 1.21's own dig-speed attribute, mapped alongside it so a datapack gem using it lands too. */
-    private static final ResourceLocation MAPPED_MINING_EFFICIENCY =
-            ResourceLocation.withDefaultNamespace("player.mining_efficiency");
-    private static final ResourceLocation MAPPED_ARMOR =
-            ResourceLocation.withDefaultNamespace("generic.armor");
-    private static final ResourceLocation MAPPED_ARMOR_TOUGHNESS =
-            ResourceLocation.withDefaultNamespace("generic.armor_toughness");
-    private static final ResourceLocation MAPPED_KNOCKBACK_RESISTANCE =
-            ResourceLocation.withDefaultNamespace("generic.knockback_resistance");
+    private static final Identifier MAPPED_MINING_EFFICIENCY =
+            Identifier.withDefaultNamespace("player.mining_efficiency");
+    private static final Identifier MAPPED_ARMOR =
+            Identifier.withDefaultNamespace("generic.armor");
+    private static final Identifier MAPPED_ARMOR_TOUGHNESS =
+            Identifier.withDefaultNamespace("generic.armor_toughness");
+    private static final Identifier MAPPED_KNOCKBACK_RESISTANCE =
+            Identifier.withDefaultNamespace("generic.knockback_resistance");
 
-    private static final ResourceLocation[] MAPPED_MINING_SPEED =
+    private static final Identifier[] MAPPED_MINING_SPEED =
             {MAPPED_APOTHIC_MINING_SPEED, MAPPED_MINING_EFFICIENCY};
 
     /**

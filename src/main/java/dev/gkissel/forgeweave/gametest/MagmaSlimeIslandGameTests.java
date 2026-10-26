@@ -7,7 +7,7 @@ import java.util.Set;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -24,8 +24,8 @@ import net.minecraft.world.level.levelgen.structure.StructureSet;
 import net.minecraft.world.level.levelgen.structure.StructureSpawnOverride;
 import net.minecraft.world.level.levelgen.structure.placement.RandomSpreadStructurePlacement;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -61,12 +61,12 @@ public class MagmaSlimeIslandGameTests {
     public static void theMagmaIslandStructureIsLocatable(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         Structure structure = level.registryAccess()
-                .registryOrThrow(Registries.STRUCTURE)
+                .lookupOrThrow(Registries.STRUCTURE)
                 .get(MagmaSlimeIslandStructure.KEY);
         helper.assertTrue(structure instanceof MagmaSlimeIslandStructure,
                 "expected the magma island structure registered as " + MagmaSlimeIslandStructure.KEY.location());
 
-        StructureSet set = level.registryAccess().registryOrThrow(Registries.STRUCTURE_SET).stream()
+        StructureSet set = level.registryAccess().lookupOrThrow(Registries.STRUCTURE_SET).stream()
                 .filter(candidate -> candidate.structures().stream()
                         .anyMatch(entry -> entry.structure().value() == structure))
                 .findFirst()
@@ -93,7 +93,7 @@ public class MagmaSlimeIslandGameTests {
     @GameTest(template = "empty")
     public static void magmaIslandsSpawnMagmaCubesAndNothingElse(GameTestHelper helper) {
         Structure structure = helper.getLevel().registryAccess()
-                .registryOrThrow(Registries.STRUCTURE)
+                .lookupOrThrow(Registries.STRUCTURE)
                 .get(MagmaSlimeIslandStructure.KEY);
         helper.assertTrue(structure != null, "the magma island structure is not registered");
 

@@ -32,7 +32,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Items;
@@ -186,8 +186,8 @@ class ArmorMaterialTest {
         }
     }
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath("forgeweave", path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath("forgeweave", path);
     }
 
     private static Material armorMaterial(Optional<Material.Plating> plating, boolean maille, Material.Traits traits) {
@@ -195,7 +195,7 @@ class ArmorMaterialTest {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
-                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool")),
+                TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace("incorrect_for_stone_tool")),
                 traits,
                 List.of(new Material.CraftingItem(Ingredient.of(Items.IRON_INGOT), 144)),
                 Ingredient.of(Items.IRON_INGOT),
@@ -309,7 +309,7 @@ class ArmorMaterialTest {
         // #728: knightslime carries the clone's overshield + overslime pair, chorus overslime_friend.
         // Issue #876 M6 dedupe batch: slimevine_blue moved off the shared overslime_friend to its own
         // vinewarden id (chorus keeps overslime_friend).
-        List<ResourceLocation> expected = Arrays.stream(traits.split("\\|")).map(ArmorMaterialTest::id).toList();
+        List<Identifier> expected = Arrays.stream(traits.split("\\|")).map(ArmorMaterialTest::id).toList();
 
         assertEquals(expected, material.traits().forPart(PartItem.Kind.PLATING), name + " plating");
         assertEquals(expected, material.traits().forPart(PartItem.Kind.MAILLE), name + " maille");

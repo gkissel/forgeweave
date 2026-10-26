@@ -16,14 +16,14 @@ import javax.annotation.Nullable;
 import com.mojang.blaze3d.systems.RenderSystem;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
@@ -84,12 +84,12 @@ import dev.gkissel.forgeweave.modifier.ModifierRecipe;
  */
 public class BookScreen extends Screen {
 
-    private static final ResourceLocation TEX_BOOK = ResourceLocation.fromNamespaceAndPath(
+    private static final Identifier TEX_BOOK = Identifier.fromNamespaceAndPath(
             Forgeweave.MODID, "textures/derived/gui/book/book.png");
-    private static final ResourceLocation TEX_COVER = ResourceLocation.fromNamespaceAndPath(
+    private static final Identifier TEX_COVER = Identifier.fromNamespaceAndPath(
             Forgeweave.MODID, "textures/derived/gui/book/bookfront.png");
     /** {@code ClientProxy.BOOK_MODIFY}: the tool/modifier pages' station-diagram sheet (issue #651). */
-    private static final ResourceLocation TEX_MODIFY = ResourceLocation.fromNamespaceAndPath(
+    private static final Identifier TEX_MODIFY = Identifier.fromNamespaceAndPath(
             Forgeweave.MODID, "textures/derived/gui/book/modify.png");
 
     private static final int PAGE_TEXT_W = BookLayout.PAGE_TEXT_W;
@@ -131,7 +131,7 @@ public class BookScreen extends Screen {
     /** Draws one already-measured piece of a page at the origin it was laid out at. */
     @FunctionalInterface
     private interface Drawer {
-        void draw(GuiGraphics graphics, int x, int y);
+        void draw(GuiGraphicsExtractor graphics, int x, int y);
     }
 
     /**
@@ -184,7 +184,7 @@ public class BookScreen extends Screen {
      * may sit in a later section -- the listing pages get the same arithmetic from
      * {@code sectionStartPage}, but only for links inside their own section.
      */
-    private final Map<ResourceLocation, Integer> materialPages = new HashMap<>();
+    private final Map<Identifier, Integer> materialPages = new HashMap<>();
     private final Map<String, Integer> traitFamilyPages = new HashMap<>();
 
     /**
@@ -352,7 +352,7 @@ public class BookScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void render(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
         this.frame++;
         this.hovered = regionAt(mouseX, mouseY);
@@ -417,7 +417,7 @@ public class BookScreen extends Screen {
      * (smaller when it would run off the cover, see {@link BookLayout#COVER_SUBTITLE_W}), both gold
      * with a shadow, at {@code GuiBook.drawScreen}'s exact offsets.
      */
-    private void renderCover(GuiGraphics graphics) {
+    private void renderCover(GuiGraphicsExtractor graphics) {
         int x = this.width / 2 - BookGeometry.PAGE_WIDTH_UNSCALED / 2;
         int y = BookGeometry.spreadTop(this.height);
 
@@ -451,7 +451,7 @@ public class BookScreen extends Screen {
     }
 
     /** Upstream's spread: the cover-tinted 412x200 back, then one untinted parchment leaf per visible slot. */
-    private void renderSpread(GuiGraphics graphics) {
+    private void renderSpread(GuiGraphicsExtractor graphics) {
         int left = BookGeometry.spreadLeft(this.width);
         int top = BookGeometry.spreadTop(this.height);
 
@@ -475,7 +475,7 @@ public class BookScreen extends Screen {
         }
     }
 
-    private void renderSlot(GuiGraphics graphics, int slotIndex, int x, int y) {
+    private void renderSlot(GuiGraphicsExtractor graphics, int slotIndex, int x, int y) {
         graphics.enableScissor(x, y, x + PAGE_TEXT_W, y + PAGE_TEXT_H);
         int cursor = y;
         for (Block block : this.slots.get(slotIndex)) {
@@ -490,7 +490,7 @@ public class BookScreen extends Screen {
                 y + BookGeometry.PAGE_HEIGHT - 10, BookGeometry.PAGE_NUMBER_COLOR, false);
     }
 
-    private void renderArrows(GuiGraphics graphics, int mouseX, int mouseY) {
+    private void renderArrows(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         boolean cover = this.spread < 0;
         if (hasNext()) {
             drawArrow(graphics, BookGeometry.nextArrowX(this.width, cover), BookGeometry.arrowY(this.height),
@@ -518,7 +518,7 @@ public class BookScreen extends Screen {
     }
 
     /** {@code GuiArrow.drawButton}: the sprite from book.png, tinted with the arrow (or hover) color. */
-    private void drawArrow(GuiGraphics graphics, int x, int y, int u, int v, int w, int h,
+    private void drawArrow(GuiGraphicsExtractor graphics, int x, int y, int u, int v, int w, int h,
             int mouseX, int mouseY) {
         boolean hovered = mouseX >= x && mouseY >= y && mouseX < x + w && mouseY < y + h;
         setColor(graphics, hovered ? BookGeometry.ARROW_HOVER_COLOR : BookGeometry.ARROW_COLOR);
@@ -532,14 +532,14 @@ public class BookScreen extends Screen {
      * anti-aliased edge pixels need real alpha blending, and the GL blend state at blit time is
      * whatever the last draw (text rendering included) left behind.
      */
-    private static void chromeBlit(GuiGraphics graphics, ResourceLocation tex, int x, int y,
+    private static void chromeBlit(GuiGraphicsExtractor graphics, Identifier tex, int x, int y,
             int u, int v, int w, int h) {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
         graphics.blit(tex, x, y, u, v, w, h, BookGeometry.TEX_SIZE, BookGeometry.TEX_SIZE);
     }
 
-    private static void setColor(GuiGraphics graphics, int rgb) {
+    private static void setColor(GuiGraphicsExtractor graphics, int rgb) {
         graphics.setColor(((rgb >> 16) & 0xff) / 255.0F, ((rgb >> 8) & 0xff) / 255.0F,
                 (rgb & 0xff) / 255.0F, 1.0F);
     }
@@ -567,7 +567,7 @@ public class BookScreen extends Screen {
     }
 
     /** The page a trait id's reference entry sits on, or {@link #NO_TARGET} if it has none. */
-    private int traitTarget(ResourceLocation trait) {
+    private int traitTarget(Identifier trait) {
         return this.traitFamilyPages.getOrDefault(BookTraits.familyOf(trait), NO_TARGET);
     }
 
@@ -587,7 +587,7 @@ public class BookScreen extends Screen {
             iconGridBlocks(blocks, grid.titleKey(), grid.links(), sectionStartPage);
         } else if (page instanceof TextPage text) {
             titleBlock(blocks, Component.translatable(text.titleKey()));
-            ResourceLocation image = text.image();
+            Identifier image = text.image();
             if (image != null) {
                 int imageH = PAGE_TEXT_W * 9 / 16;
                 blocks.add(new Block(imageH + 4, (graphics, x, y) ->
@@ -684,7 +684,7 @@ public class BookScreen extends Screen {
      * the one-slot plate, the recipe's reagent items cycling in the slot and naming themselves on
      * hover ({@code ElementItem}'s default tooltip).
      */
-    private void modifierBlocks(List<Block> blocks, ResourceLocation id) {
+    private void modifierBlocks(List<Block> blocks, Identifier id) {
         String base = "modifier." + id.getNamespace() + "." + id.getPath();
         titleBlock(blocks, Component.translatable(base + ".name")
                 .withStyle(Style.EMPTY.withColor(ForgeweaveModifiers.color(id))));
@@ -755,7 +755,7 @@ public class BookScreen extends Screen {
      * naming itself on hover; the legacy OR reading still draws a single slot whose accepted items
      * cycle together, exactly as before {@link ModifierRecipe#reagentSlotCount} existed.
      */
-    private void modifierDiagramBlock(List<Block> blocks, ResourceLocation id) {
+    private void modifierDiagramBlock(List<Block> blocks, Identifier id) {
         List<List<ItemStack>> reagentSlots = modifierReagentSlots(id);
         Sprite slot = ModifyPageContent.modifierSlotSprite(reagentSlots.size());
         int sx = (PAGE_TEXT_W - slot.w()) / 2;
@@ -798,7 +798,7 @@ public class BookScreen extends Screen {
     private ItemStack demoTool(ToolAssemblyRecipes.Entry entry) {
         HolderLookup.Provider registries = registries();
         if (registries != null) {
-            List<ResourceLocation> materials = new ArrayList<>();
+            List<Identifier> materials = new ArrayList<>();
             for (int i = 0; i < entry.slotCount(); i++) {
                 materials.add(ModifyPageContent.demoMaterial(entry.part(i).kind(), i));
             }
@@ -820,7 +820,7 @@ public class BookScreen extends Screen {
      * dev.gkissel.forgeweave.modifier.ModifierApplication#acceptsToolShape} -- the Tool Station's own
      * gate -- so the picked entry is compatible by construction.
      */
-    private ItemStack modifierDemoTool(ResourceLocation id) {
+    private ItemStack modifierDemoTool(Identifier id) {
         Modifier modifier = ForgeweaveModifiers.get(id);
         ToolAssemblyRecipes.Entry entry =
                 ModifyPageContent.representativeEntry(registries(), modifier != null ? modifier : new Modifier() {});
@@ -834,11 +834,11 @@ public class BookScreen extends Screen {
      * {@code IModifierDisplay#getItems}. Empty outside a loaded world, which leaves every slot empty
      * exactly as upstream leaves a modifier with no display items.
      */
-    private List<List<ItemStack>> modifierReagentSlots(ResourceLocation id) {
+    private List<List<ItemStack>> modifierReagentSlots(Identifier id) {
         if (this.minecraft == null || this.minecraft.level == null) {
             return List.of();
         }
-        return this.minecraft.level.registryAccess().registryOrThrow(ModifierRecipe.REGISTRY).stream()
+        return this.minecraft.level.registryAccess().lookupOrThrow(ModifierRecipe.REGISTRY).stream()
                 .filter(recipe -> recipe.modifier().equals(id))
                 .findFirst()
                 .map(BookScreen::reagentSlotsOf)
@@ -868,7 +868,7 @@ public class BookScreen extends Screen {
     }
 
     /** A tinted region blit from the modify sheet -- {@code ElementImage} with a colour. */
-    private static void spriteBlit(GuiGraphics graphics, Sprite sprite, int x, int y, int tint) {
+    private static void spriteBlit(GuiGraphicsExtractor graphics, Sprite sprite, int x, int y, int tint) {
         setColor(graphics, tint);
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
@@ -886,7 +886,7 @@ public class BookScreen extends Screen {
      * the section's first page; hovering names the section ({@code ElementSection#drawOverlay}).
      * One indivisible block: the whole grid always fits one leaf.
      *
-     * <p>Deviation: upstream dims an unhovered icon to 50% alpha; {@code GuiGraphics#renderItem}
+     * <p>Deviation: upstream dims an unhovered icon to 50% alpha; {@code GuiGraphicsExtractor#renderItem}
      * takes no colour multiplier in 1.21, so only the hover wash and text colours survive -- the
      * same recorded limitation as the material grid's icons.
      */
@@ -983,7 +983,7 @@ public class BookScreen extends Screen {
      * rather than onto upstream's hand-counted {@code getPagesNeededForItemCount} overview pages,
      * and the cells stay at scale 1 -- which is what upstream's own scale search settles on the
      * moment a grid needs more than one page, as Forgeweave's material roster does. Upstream also
-     * dims an unhovered icon to 50% alpha; {@code GuiGraphics#renderItem} takes no colour
+     * dims an unhovered icon to 50% alpha; {@code GuiGraphicsExtractor#renderItem} takes no colour
      * multiplier in 1.21, so only the hover wash survives.
      */
     private void iconGridBlocks(List<Block> blocks, String titleKey, List<BookLink> links, int sectionStartPage) {
@@ -1097,14 +1097,14 @@ public class BookScreen extends Screen {
                     .withStyle(ChatFormatting.UNDERLINE);
             blocks.add(new Block(this.font.lineHeight + 4, (graphics, x, y) ->
                     graphics.drawString(this.font, header, x, y + 2, TITLE_COLOR, false)));
-            for (ResourceLocation material : rung.materials()) {
+            for (Identifier material : rung.materials()) {
                 blocks.add(materialRowBlock(material));
             }
         }
     }
 
     /** One material row of a trait entry: a listing row that jumps to that material's page. */
-    private Block materialRowBlock(ResourceLocation material) {
+    private Block materialRowBlock(Identifier material) {
         Component label = Component.translatable(
                 "material." + material.getNamespace() + "." + material.getPath());
         int target = this.materialPages.getOrDefault(material, NO_TARGET);
@@ -1186,7 +1186,7 @@ public class BookScreen extends Screen {
      * marks, and nothing at all when the language file defines no such string -- which upstream's own
      * book does for every material but wood and stone.
      */
-    private void flavourBlocks(List<Block> blocks, ResourceLocation id) {
+    private void flavourBlocks(List<Block> blocks, Identifier id) {
         String key = MaterialPageContent.flavourKey(id);
         if (!I18n.exists(key)) {
             return;

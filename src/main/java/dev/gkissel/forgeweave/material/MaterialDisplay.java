@@ -11,7 +11,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Turning a material id into something a player reads: the lookup into the datapack registry and the
@@ -25,7 +25,7 @@ import net.minecraft.resources.ResourceLocation;
  */
 public final class MaterialDisplay {
 
-    public static Optional<Material> lookup(@Nullable HolderLookup.Provider registries, ResourceLocation materialId) {
+    public static Optional<Material> lookup(@Nullable HolderLookup.Provider registries, Identifier materialId) {
         if (registries == null) {
             return Optional.empty();
         }
@@ -43,9 +43,9 @@ public final class MaterialDisplay {
      * tooltip and once per info panel.
      */
     @Nullable
-    public static TextColor traitColor(@Nullable HolderLookup.Provider registries, List<ResourceLocation> materialIds,
-            ResourceLocation traitId) {
-        for (ResourceLocation materialId : materialIds) {
+    public static TextColor traitColor(@Nullable HolderLookup.Provider registries, List<Identifier> materialIds,
+            Identifier traitId) {
+        for (Identifier materialId : materialIds) {
             Optional<Material> material = lookup(registries, materialId);
             if (material.isPresent() && material.get().traits().all().contains(traitId)) {
                 return material.get().color();
@@ -55,7 +55,7 @@ public final class MaterialDisplay {
     }
 
     /** The material's translated name, tinted with its own colour when the registry is reachable. */
-    public static MutableComponent name(@Nullable HolderLookup.Provider registries, ResourceLocation materialId) {
+    public static MutableComponent name(@Nullable HolderLookup.Provider registries, Identifier materialId) {
         MutableComponent name = plainName(materialId);
         TextColor color = lookup(registries, materialId).map(Material::color).orElse(null);
         return color == null ? name : name.withStyle(Style.EMPTY.withColor(color));
@@ -68,7 +68,7 @@ public final class MaterialDisplay {
      * Builder's grey "Material Value" readout and its {@code useless_tool_part} warning both name a
      * material this way upstream (issue #378).
      */
-    public static MutableComponent plainName(ResourceLocation materialId) {
+    public static MutableComponent plainName(Identifier materialId) {
         return Component.translatable("material." + materialId.getNamespace() + "." + materialId.getPath());
     }
 
@@ -93,19 +93,19 @@ public final class MaterialDisplay {
      * arguments -- {@code %1$s} the material name, {@code %2$s} the item name -- and a material
      * with no entry falls back to the {@code "%s %s"} upstream builds by hand.
      */
-    public static MutableComponent prefixed(List<ResourceLocation> materialIds, Component itemName) {
-        List<ResourceLocation> distinct = materialIds.stream().distinct().toList();
+    public static MutableComponent prefixed(List<Identifier> materialIds, Component itemName) {
+        List<Identifier> distinct = materialIds.stream().distinct().toList();
         if (distinct.isEmpty()) {
             return itemName.copy();
         }
         if (distinct.size() == 1) {
-            ResourceLocation materialId = distinct.get(0);
+            Identifier materialId = distinct.get(0);
             return Component.translatableWithFallback(
                     "material." + materialId.getNamespace() + "." + materialId.getPath() + ".prefix",
                     "%s %s", plainName(materialId), itemName);
         }
         MutableComponent names = plainName(distinct.get(0));
-        for (ResourceLocation materialId : distinct.subList(1, distinct.size())) {
+        for (Identifier materialId : distinct.subList(1, distinct.size())) {
             names.append("-").append(plainName(materialId));
         }
         // Same "<material> <item>" join the fallback above spells out, and the one the per-part

@@ -15,7 +15,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -110,24 +110,24 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
  */
 public class ToolItem extends Item {
     /** Id for the trait-driven attack speed modifier {@link #getDefaultAttributeModifiers} adds (issue #102). */
-    private static final ResourceLocation TRAIT_ATTACK_SPEED_ID =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "trait_attack_speed");
+    private static final Identifier TRAIT_ATTACK_SPEED_ID =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "trait_attack_speed");
     /** Id for the trait-driven movement speed modifier (issue #230: vintage's mobility cost). */
-    private static final ResourceLocation TRAIT_MOVEMENT_SPEED_ID =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "trait_movement_speed");
+    private static final Identifier TRAIT_MOVEMENT_SPEED_ID =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "trait_movement_speed");
     /** Id for the trait-driven knockback resistance heavy grants (issue #229), same idiom. */
-    private static final ResourceLocation TRAIT_KNOCKBACK_RESISTANCE_ID =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "trait_knockback_resistance");
+    private static final Identifier TRAIT_KNOCKBACK_RESISTANCE_ID =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "trait_knockback_resistance");
     /** Id for the trait-driven blast knockback resistance heft grants. */
-    private static final ResourceLocation TRAIT_EXPLOSION_KNOCKBACK_RESISTANCE_ID =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "trait_explosion_knockback_resistance");
+    private static final Identifier TRAIT_EXPLOSION_KNOCKBACK_RESISTANCE_ID =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "trait_explosion_knockback_resistance");
     // #108 batch: modern-vanilla attribute modifiers (Aquadynamic, Far Reach -- ForgeweaveModifiers),
     // same idiom as vanilla Item's own BASE_ATTACK_DAMAGE_ID/BASE_ATTACK_SPEED_ID this class already
     // keys its two attribute modifiers on above.
-    private static final ResourceLocation SUBMERGED_MINING_SPEED_ID =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "aquadynamic");
-    private static final ResourceLocation BLOCK_INTERACTION_RANGE_ID =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "far_reach");
+    private static final Identifier SUBMERGED_MINING_SPEED_ID =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "aquadynamic");
+    private static final Identifier BLOCK_INTERACTION_RANGE_ID =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "far_reach");
 
     private final List<TagKey<Block>> mineableBlocks;
     private final float attackSpeed;
@@ -394,19 +394,19 @@ public class ToolItem extends Item {
     }
 
     /** The head-slot materials, in slot order -- see {@link #getName}. */
-    private static List<ResourceLocation> nameMaterials(ItemStack stack) {
+    private static List<Identifier> nameMaterials(ItemStack stack) {
         ToolMaterials materials = stack.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
         if (materials == null) {
             return List.of();
         }
-        List<ResourceLocation> materialIds = materials.all();
+        List<Identifier> materialIds = materials.all();
         List<ToolConstants.PartSlot> slots = ToolAssemblyRecipes.entryFor(stack)
                 .map(entry -> entry.constants().parts())
                 .orElse(List.of());
         if (materialIds.size() < slots.size()) {
             return List.of(materials.head());
         }
-        List<ResourceLocation> heads = new ArrayList<>(slots.size());
+        List<Identifier> heads = new ArrayList<>(slots.size());
         for (int slot = 0; slot < slots.size(); slot++) {
             ToolConstants.Role role = slots.get(slot).role();
             if (role == ToolConstants.Role.HEAD || role == ToolConstants.Role.LIMB
@@ -868,7 +868,7 @@ public class ToolItem extends Item {
         // site of their own, only this tick. Both sides, because tickClient is half the pair. Does
         // nothing without Mekanism, without an atomic_matter_alloy part, or with the toggle off.
         if (entity instanceof Player player && !isBroken(stack)) {
-            MekanismGearModules.tickModules(stack, player, !level.isClientSide);
+            MekanismGearModules.tickModules(stack, player, !level.isClientSide());
         }
     }
 
@@ -1085,7 +1085,7 @@ public class ToolItem extends Item {
         if (isBroken(stack) || stack.get(DataComponents.TOOL) == null) {
             return false;
         }
-        if (!level.isClientSide && state.getDestroySpeed(level, pos) != 0.0F) {
+        if (!level.isClientSide() && state.getDestroySpeed(level, pos) != 0.0F) {
             boolean effective = isEffective(state);
             int cost = miningDurabilityCost(state, effective);
             if (cost > 0) {
@@ -1140,7 +1140,7 @@ public class ToolItem extends Item {
      */
     @Override
     public boolean onLeftClickEntity(ItemStack stack, Player player, Entity entity) {
-        if (!isBroken(stack) && !player.level().isClientSide) {
+        if (!isBroken(stack) && !player.level().isClientSide()) {
             DraconicModules.meleeAoe(player, entity, stack, attackDamage(stack));
         }
         return false;

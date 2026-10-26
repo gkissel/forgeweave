@@ -22,7 +22,7 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -44,7 +44,7 @@ class ArmorModifiersTest {
 
     private static RegistryOps<JsonElement> ops;
 
-    private static final Set<ResourceLocation> ARMOR_ONLY = Set.of(
+    private static final Set<Identifier> ARMOR_ONLY = Set.of(
             id("fire_protection"), id("blast_protection"), id("magic_protection"),
             id("melee_protection"), id("projectile_protection"), id("knockback_resistance"), id("thorns"),
             // #737 (epic #730 slice 2): chestplate-only (any weight since #1005), so also armorOnly.
@@ -55,8 +55,8 @@ class ArmorModifiersTest {
             // blocks and another does not.
             id("rayward"));
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath("forgeweave", path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath("forgeweave", path);
     }
 
     @BeforeAll
@@ -84,7 +84,7 @@ class ArmorModifiersTest {
      */
     @Test
     void theArmorOnlyModifiersAreExactlyThisSet() {
-        for (ResourceLocation id : ForgeweaveModifiers.ids()) {
+        for (Identifier id : ForgeweaveModifiers.ids()) {
             assertEquals(ARMOR_ONLY.contains(id), ForgeweaveModifiers.get(id).armorOnly(), id + " armorOnly");
             // #729: the clone's defense recipes add `modifiable/held` for the five protections only.
             assertEquals(id.getPath().endsWith("_protection"), ForgeweaveModifiers.get(id).alsoHeld(), id + " alsoHeld");

@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -63,8 +63,8 @@ public final class SlimeColorizer {
     public static void reload(ResourceManager resourceManager) {
         COLOR_MAPS.clear();
         for (FoliageType foliage : FoliageType.values()) {
-            ResourceLocation location =
-                    ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, foliage.colormapPath());
+            Identifier location =
+                    Identifier.fromNamespaceAndPath(Forgeweave.MODID, foliage.colormapPath());
             resourceManager.getResource(location).ifPresent(resource -> {
                 try (InputStream stream = resource.open(); NativeImage image = NativeImage.read(stream)) {
                     int[] pixels = new int[image.getWidth() * image.getHeight()];

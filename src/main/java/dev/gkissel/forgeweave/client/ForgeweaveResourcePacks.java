@@ -1,7 +1,7 @@
 package dev.gkissel.forgeweave.client;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
@@ -37,7 +37,7 @@ public final class ForgeweaveResourcePacks {
 
     public static void addPackFinders(AddPackFindersEvent event) {
         event.addPackFinders(
-                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "resourcepacks/legacy"),
+                Identifier.fromNamespaceAndPath(Forgeweave.MODID, "resourcepacks/legacy"),
                 PackType.CLIENT_RESOURCES,
                 Component.translatable("resourcepack.forgeweave.legacy"),
                 PackSource.BUILT_IN,

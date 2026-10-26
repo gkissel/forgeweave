@@ -20,7 +20,7 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.ExtraCodecs;
@@ -76,7 +76,7 @@ import dev.gkissel.forgeweave.combat.StripEffects;
  */
 public final class TraitBehaviors {
 
-    private static final Map<ResourceLocation, MapCodec<TraitDefinition>> TYPES = new LinkedHashMap<>();
+    private static final Map<Identifier, MapCodec<TraitDefinition>> TYPES = new LinkedHashMap<>();
 
     /** {@code ExtraCodecs} has the int one but not the float one. */
     private static final Codec<Float> NON_NEGATIVE_FLOAT = Codec.floatRange(0.0F, Float.MAX_VALUE);
@@ -357,7 +357,7 @@ public final class TraitBehaviors {
 
 
     /** The {@code behavior} field: a known id or a loud error naming every id that would have worked. */
-    private static final Codec<ResourceLocation> TYPE_CODEC = ResourceLocation.CODEC.validate(id -> type(id) != null
+    private static final Codec<Identifier> TYPE_CODEC = Identifier.CODEC.validate(id -> type(id) != null
             ? DataResult.success(id)
             : DataResult.error(() -> "Unknown trait behavior '" + id + "'; known behaviors: " + ids()));
 
@@ -369,14 +369,14 @@ public final class TraitBehaviors {
      * Wrapped {@link TraitRegistry} codecs, so an addon behaviour is wrapped once rather than on
      * every file that names it. Only addon ids land here; the shipped ones are in {@link #TYPES}.
      */
-    private static final Map<ResourceLocation, MapCodec<TraitDefinition>> REGISTERED = new ConcurrentHashMap<>();
+    private static final Map<Identifier, MapCodec<TraitDefinition>> REGISTERED = new ConcurrentHashMap<>();
 
     /**
      * The codec behind {@code id}: the shipped table first, then whatever a partner mod registered
      * through {@link TraitRegistry#registerBehavior}, so a built-in id always wins.
      */
     @Nullable
-    private static MapCodec<TraitDefinition> type(ResourceLocation id) {
+    private static MapCodec<TraitDefinition> type(Identifier id) {
         MapCodec<TraitDefinition> builtIn = TYPES.get(id);
         if (builtIn != null) {
             return builtIn;
@@ -386,23 +386,23 @@ public final class TraitBehaviors {
     }
 
     /** Just the shipped behaviour ids, for the built-in-wins collision warning. */
-    static Set<ResourceLocation> builtInIds() {
+    static Set<Identifier> builtInIds() {
         return TYPES.keySet();
     }
 
     /** Every behaviour id a definition may name: the shipped ones first, then any an addon added. */
-    public static Set<ResourceLocation> ids() {
-        Set<ResourceLocation> registered = TraitRegistry.behaviorIds();
+    public static Set<Identifier> ids() {
+        Set<Identifier> registered = TraitRegistry.behaviorIds();
         if (registered.isEmpty()) {
             return TYPES.keySet();
         }
-        Set<ResourceLocation> all = new LinkedHashSet<>(TYPES.keySet());
+        Set<Identifier> all = new LinkedHashSet<>(TYPES.keySet());
         all.addAll(registered);
         return all;
     }
 
     private static <T extends Trait> void register(String name, MapCodec<T> codec) {
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name);
+        Identifier id = Identifier.fromNamespaceAndPath(Forgeweave.MODID, name);
         TYPES.put(id, wrap(id, codec));
     }
 
@@ -412,7 +412,7 @@ public final class TraitBehaviors {
      * (issue #1112) -- added here rather than per behaviour so one change covers all of them, addon
      * behaviours included.
      */
-    private static <T extends Trait> MapCodec<TraitDefinition> wrap(ResourceLocation id, MapCodec<T> codec) {
+    private static <T extends Trait> MapCodec<TraitDefinition> wrap(Identifier id, MapCodec<T> codec) {
         return RecordCodecBuilder.mapCodec(instance -> instance.group(
                 TraitFamilies.Rung.CODEC.forGetter(TraitDefinition::rung),
                 TraitFeedback.Feedback.CODEC.forGetter(TraitDefinition::feedback),

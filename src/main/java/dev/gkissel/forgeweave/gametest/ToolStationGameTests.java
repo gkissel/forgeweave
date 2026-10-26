@@ -4,11 +4,11 @@ import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickType;
@@ -19,8 +19,8 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -56,8 +56,8 @@ public class ToolStationGameTests {
         BlockPos pos = new BlockPos(1, 1, 1);
         helper.setBlock(pos, ForgeweaveBlocks.TOOL_STATION.get());
 
-        ResourceLocation stone = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "stone");
-        ResourceLocation wood = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "wood");
+        Identifier stone = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "stone");
+        Identifier wood = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "wood");
 
         ItemStack head = new ItemStack(ForgeweaveItems.PART_PICKAXE_HEAD.get());
         head.set(ForgeweaveDataComponents.MATERIAL.get(), stone);
@@ -66,7 +66,7 @@ public class ToolStationGameTests {
         ItemStack handle = new ItemStack(ForgeweaveItems.PART_TOOL_HANDLE.get());
         handle.set(ForgeweaveDataComponents.MATERIAL.get(), wood);
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, head);
         blockEntity.container().setItem(1, binding);
         blockEntity.container().setItem(2, handle);
@@ -119,7 +119,7 @@ public class ToolStationGameTests {
         pickaxe.hurtAndBreak(1_000, helper.getLevel(), player, brokenItem -> {});
         helper.assertTrue(ToolItem.isBroken(pickaxe), "the test needs a Broken tool to repair");
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, pickaxe);
         blockEntity.container().setItem(1, new ItemStack(Items.COBBLESTONE, 1));
         blockEntity.container().setItem(2, ItemStack.EMPTY);
@@ -136,9 +136,9 @@ public class ToolStationGameTests {
         helper.assertTrue(repaired.isCorrectToolForDrops(Blocks.STONE.defaultBlockState()),
                 "a repaired tool should harvest again");
         helper.assertTrue(ToolMaterials.of(ToolAssembly.pickaxeSlots(), List.of(
-                        ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "stone"),
-                        ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "wood"),
-                        ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "wood")))
+                        Identifier.fromNamespaceAndPath(Forgeweave.MODID, "stone"),
+                        Identifier.fromNamespaceAndPath(Forgeweave.MODID, "wood"),
+                        Identifier.fromNamespaceAndPath(Forgeweave.MODID, "wood")))
                         .equals(repaired.get(ForgeweaveDataComponents.TOOL_MATERIALS.get())),
                 "repair must not disturb the tool's materials");
 
@@ -169,14 +169,14 @@ public class ToolStationGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
 
-        ResourceLocation diamond = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "diamond");
+        Identifier diamond = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "diamond");
         pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(diamond, 1)));
         int grownDurability = ForgeweaveModifiers.effectiveStats(pickaxe).durability();
         helper.assertTrue(grownDurability == 628, "expected 128 + Diamond's 500 = 628, got " + grownDurability);
         pickaxe.set(DataComponents.MAX_DAMAGE, grownDurability);
         pickaxe.setDamageValue(600);
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, pickaxe);
         blockEntity.container().setItem(1, new ItemStack(Items.COBBLESTONE, 1));
         blockEntity.container().setItem(2, ItemStack.EMPTY);
@@ -207,14 +207,14 @@ public class ToolStationGameTests {
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
 
         pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "haste"), 1),
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "searing"), 1),
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "magnetic_pull"), 1)));
+                new ModifierEntry(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "haste"), 1),
+                new ModifierEntry(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "searing"), 1),
+                new ModifierEntry(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "magnetic_pull"), 1)));
         helper.assertTrue(ForgeweaveModifiers.occupiedSlots(pickaxe) == 3,
                 "expected all three modifiers to occupy a slot, got " + ForgeweaveModifiers.occupiedSlots(pickaxe));
         pickaxe.setDamageValue(120); // below the 128 max, so the repair below isn't clamped by it
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, pickaxe);
         blockEntity.container().setItem(1, new ItemStack(Items.COBBLESTONE, 1));
         blockEntity.container().setItem(2, ItemStack.EMPTY);
@@ -239,7 +239,7 @@ public class ToolStationGameTests {
         BlockPos pos = new BlockPos(1, 1, 1);
         helper.setBlock(pos, ForgeweaveBlocks.TOOL_STATION.get());
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
 
         helper.assertTrue(menu.getSelectedTab() == ToolStationTabs.REPAIR,
@@ -290,7 +290,7 @@ public class ToolStationGameTests {
         BlockPos pos = new BlockPos(1, 1, 1);
         helper.setBlock(pos, ForgeweaveBlocks.TOOL_STATION.get());
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
 
         int pickaxeTab = ToolStationTabs.TABS.indexOf(ToolStationTabs.TABS.stream()
@@ -302,7 +302,7 @@ public class ToolStationGameTests {
         // defines, which is what a shard or part from a since-removed pack carries.
         ItemStack head = new ItemStack(ForgeweaveItems.PART_PICKAXE_HEAD.get());
         head.set(ForgeweaveDataComponents.MATERIAL.get(),
-                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "unobtainium"));
+                Identifier.fromNamespaceAndPath(Forgeweave.MODID, "unobtainium"));
         helper.assertTrue(menu.getSlot(ToolStationMenu.HEAD_SLOT).mayPlace(head),
                 "the test needs a part the slot itself accepts -- the material is the only thing wrong");
         menu.getSlot(ToolStationMenu.HEAD_SLOT).set(head);
@@ -339,7 +339,7 @@ public class ToolStationGameTests {
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
         pickaxe.hurtAndBreak(1_000, helper.getLevel(), player, brokenItem -> {});
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
         helper.assertTrue(menu.clickMenuButton(player, ToolStationTabs.REPAIR), "the repair tab must be selectable");
 
@@ -373,7 +373,7 @@ public class ToolStationGameTests {
         BlockPos pos = new BlockPos(1, 1, 1);
         helper.setBlock(pos, ForgeweaveBlocks.TOOL_STATION.get());
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, ToolAssembly.part(ForgeweaveItems.PART_PICKAXE_HEAD.get(), "stone"));
         blockEntity.container().setItem(1, ToolAssembly.part(ForgeweaveItems.PART_TOOL_BINDING.get(), "wood"));
         blockEntity.container().setItem(2, ToolAssembly.part(ForgeweaveItems.PART_TOOL_HANDLE.get(), "wood"));
@@ -412,7 +412,7 @@ public class ToolStationGameTests {
         }
         chest.setItem(0, new ItemStack(Items.DIAMOND));
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(stationPos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(stationPos, ToolStationBlockEntity.class);
         ToolStationMenu menu = new ToolStationMenu(0, player.getInventory(), blockEntity.container(),
                 ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(stationPos)), blockEntity.findSideInventory(), blockEntity.isForge());
 
@@ -446,7 +446,7 @@ public class ToolStationGameTests {
         pickaxe.hurtAndBreak(1_000, helper.getLevel(), player, brokenItem -> {});
         helper.assertTrue(ToolItem.isBroken(pickaxe), "the test needs a Broken tool to repair");
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, pickaxe);
         blockEntity.container().setItem(3, new ItemStack(Items.COBBLESTONE, 1));
         blockEntity.container().setItem(5, new ItemStack(Items.COBBLESTONE, 1));
@@ -481,7 +481,7 @@ public class ToolStationGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, pickaxe);
 
         ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
@@ -526,7 +526,7 @@ public class ToolStationGameTests {
         ServerPlayer second = helper.makeMockServerPlayerInLevel();
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, first, pos, "stone", "wood", "wood");
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, pickaxe);
 
         ToolStationMenu firstMenu = ToolAssembly.menu(helper, first, pos, blockEntity);
@@ -568,10 +568,10 @@ public class ToolStationGameTests {
 
         helper.setBlock(chestPos, Blocks.CHEST);
         helper.setBlock(stationPos, ForgeweaveBlocks.TOOL_STATION.get());
-        ChestBlockEntity chest = helper.getBlockEntity(chestPos);
+        ChestBlockEntity chest = helper.getBlockEntity(chestPos, ChestBlockEntity.class);
         chest.setItem(0, pickaxe.copy());
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(stationPos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(stationPos, ToolStationBlockEntity.class);
         ToolStationMenu menu = new ToolStationMenu(0, player.getInventory(), blockEntity.container(),
                 ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(stationPos)), blockEntity.findSideInventory(), blockEntity.isForge());
         helper.assertTrue(menu.sideInventorySlotCount > 0, "expected the adjacent chest to be detected as a side inventory");

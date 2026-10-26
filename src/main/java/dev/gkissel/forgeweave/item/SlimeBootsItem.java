@@ -7,13 +7,13 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ArmorItem;
-import net.minecraft.world.item.ArmorMaterial;
+import net.minecraft.world.item.equipment.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
@@ -63,7 +63,7 @@ public class SlimeBootsItem extends ArmorItem {
             () -> new ArmorMaterial(Map.of(), 0,
                     BuiltInRegistries.SOUND_EVENT.wrapAsHolder(SoundEvents.SLIME_BLOCK_PLACE), () -> Ingredient.EMPTY,
                     List.of(new ArmorMaterial.Layer(
-                            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/slime"))),
+                            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "derived/slime"))),
                     0.0F, 0.0F));
 
     /** Upstream's {@code event.getDistance() > 2}: shorter drops are left to vanilla. */
@@ -98,7 +98,7 @@ public class SlimeBootsItem extends ArmorItem {
             return;
         }
 
-        boolean client = entity.level().isClientSide;
+        boolean client = entity.level().isClientSide();
         if (!entity.isShiftKeyDown() && event.getDistance() > MIN_BOUNCE_DISTANCE) {
             event.setDamageMultiplier(0.0F);
             entity.resetFallDistance();

@@ -9,7 +9,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.item.ItemStack;
@@ -106,7 +106,7 @@ public record CastingRecipe(Station station, Optional<Ingredient> cast, Optional
     }
 
     public static final ResourceKey<Registry<CastingRecipe>> REGISTRY = ResourceKey.createRegistryKey(
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "casting_recipe"));
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "casting_recipe"));
 
     public static final Codec<CastingRecipe> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Station.CODEC.fieldOf("station").forGetter(CastingRecipe::station),

@@ -31,7 +31,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.resources.RegistryDataLoader;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.ServerPacksSource;
@@ -123,7 +123,7 @@ import dev.gkissel.forgeweave.trait.TraitFamilies;
  * test addon is loaded and the stack comes out of a real Tool Station.
  *
  * <p>Nothing was added here for that issue because nothing it changed is serialized. It widened
- * {@code ToolConstants.PartSlot#partId} from a path to a full {@code ResourceLocation}, and that
+ * {@code ToolConstants.PartSlot#partId} from a path to a full {@code Identifier}, and that
  * field lives in a static table, not in a component: what a tool stores is still the material per
  * slot, positionally. The whole corpus passing unchanged is the evidence for that, which is the
  * other reason no fixture belongs here -- a new one would only restate it.
@@ -274,12 +274,12 @@ class SaveCompatCorpusTest {
             CompoundTag fixture = read(Path.of(SaveCompatCorpusTest.class.getResource(CORPUS + "/" + name).toURI()));
             ListTag traits = fixture.getCompound("nbt").getCompound("components")
                     .getList("forgeweave:traits", Tag.TAG_STRING);
-            List<ResourceLocation> retired = traits.stream()
-                    .map(tag -> ResourceLocation.parse(tag.getAsString()))
+            List<Identifier> retired = traits.stream()
+                    .map(tag -> Identifier.parse(tag.getAsString()))
                     .filter(TraitFamilies.aliases()::containsKey)
                     .toList();
             assertTrue(!retired.isEmpty(), name + " must carry at least one retired trait id, carries " + traits);
-            for (ResourceLocation id : retired) {
+            for (Identifier id : retired) {
                 assertTrue(!TraitFamilies.aliases().containsKey(TraitFamilies.canonical(id)),
                         name + ": " + id + " must resolve straight to a live id");
             }
@@ -301,7 +301,7 @@ class SaveCompatCorpusTest {
             }
             case "block_entity" -> {
                 Block block = BuiltInRegistries.BLOCK.get(
-                        ResourceLocation.parse(fixture.getString("block")));
+                        Identifier.parse(fixture.getString("block")));
                 BlockEntity be = BlockEntity.loadStatic(BlockPos.ZERO, block.defaultBlockState(), nbt, registries);
                 if (be == null) {
                     throw new IllegalStateException("block entity did not load: " + fixture.getString("what"));

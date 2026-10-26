@@ -16,7 +16,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -92,10 +92,10 @@ import dev.gkissel.forgeweave.modifier.ModifierApplication;
  */
 public class SpiritBindingRitual extends Ritual {
 
-    private final ResourceLocation modifier;
+    private final Identifier modifier;
     private final int level;
 
-    public SpiritBindingRitual(RitualRecipe recipe, ResourceLocation modifier, int level) {
+    public SpiritBindingRitual(RitualRecipe recipe, Identifier modifier, int level) {
         super(recipe);
         this.modifier = modifier;
         this.level = level;
@@ -147,7 +147,7 @@ public class SpiritBindingRitual extends Ritual {
     }
 
     /** The modifier this ritual binds, and the level it binds it at -- read by the GameTests. */
-    public ResourceLocation modifier() {
+    public Identifier modifier() {
         return modifier;
     }
 
@@ -170,7 +170,7 @@ public class SpiritBindingRitual extends Ritual {
         DeferredRegister<RitualFactory> factories =
                 DeferredRegister.create(OccultismRituals.RITUAL_FACTORIES_KEY, Forgeweave.MODID);
         for (ForgeweaveOccultismCompat.Ritual ritual : ForgeweaveOccultismCompat.RITUALS) {
-            ResourceLocation modifier = ResourceLocation.parse(ritual.modifier());
+            Identifier modifier = Identifier.parse(ritual.modifier());
             int level = ritual.level();
             factories.register(ritual.factoryName(),
                     () -> new RitualFactory(recipe -> new SpiritBindingRitual(recipe, modifier, level)));

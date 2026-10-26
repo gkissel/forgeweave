@@ -2,10 +2,10 @@ package dev.gkissel.forgeweave.gametest;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
@@ -19,8 +19,8 @@ import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.CastingBlockEntity;
@@ -75,12 +75,12 @@ public class WarMaceHeadCastGameTests {
         BlockPos pos = new BlockPos(1, 1, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.setBlock(pos, ForgeweaveBlocks.PART_BUILDER.get());
-        PartBuilderBlockEntity blockEntity = helper.getBlockEntity(pos);
+        PartBuilderBlockEntity blockEntity = helper.getBlockEntity(pos, PartBuilderBlockEntity.class);
         PartBuilderMenu menu = new PartBuilderMenu(0, player.getInventory(), blockEntity.container(),
                 ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)), blockEntity.findSideInventory());
 
         menu.getSlot(PartBuilderMenu.PATTERN_SLOT).set(new ItemStack(ForgeweaveItems.PATTERN_WAR_MACE_HEAD.get()));
-        ResourceLocation wood = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "wood");
+        Identifier wood = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "wood");
         int shardCount = PartBuilderRecipes.LARGE_HEAD_COST / PartBuilderRecipes.SHARD_VALUE;
         ItemStack shards = new ItemStack(ForgeweaveItems.SHARD.get(), shardCount);
         shards.set(ForgeweaveDataComponents.MATERIAL.get(), wood);
@@ -165,7 +165,7 @@ public class WarMaceHeadCastGameTests {
         helper.succeedWhen(() -> {
             helper.assertTrue(table.output().is(ForgeweaveItems.PART_WAR_MACE_HEAD.get()),
                     "expected a cobalt war mace head, found " + table.output());
-            helper.assertTrue(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "cobalt")
+            helper.assertTrue(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "cobalt")
                             .equals(table.output().get(ForgeweaveDataComponents.MATERIAL.get())),
                     "expected the part to carry the cobalt material");
             helper.assertTrue(table.input().is(ForgeweaveItems.CAST_WAR_MACE_HEAD.get()),
@@ -194,7 +194,7 @@ public class WarMaceHeadCastGameTests {
     /** A tank of {@code fluid}, a faucet on its east side pointing back at it, and a casting table below. */
     private static CastingBlockEntity rig(GameTestHelper helper, Fluid fluid) {
         CastingBlockEntity table = rigWithoutPour(helper);
-        helper.<SearedTankBlockEntity>getBlockEntity(TANK).tank()
+        helper.getBlockEntity(TANK, SearedTankBlockEntity.class).tank()
                 .fill(new FluidStack(fluid, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
         return table;
     }

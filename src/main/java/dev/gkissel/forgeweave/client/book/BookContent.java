@@ -11,7 +11,7 @@ import javax.annotation.Nullable;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -73,7 +73,7 @@ public final class BookContent {
             .flatMap(section -> section.pages().stream())
             .filter(page -> page.type().equals("tool"))
             .<Supplier<? extends Item>>map(page -> {
-                ResourceLocation id = ResourceLocation.parse(page.item());
+                Identifier id = Identifier.parse(page.item());
                 return () -> BuiltInRegistries.ITEM.get(id);
             })
             .toList();
@@ -83,13 +83,13 @@ public final class BookContent {
 
     /** Builds the full section list; needs registry access for the material listing. */
     public static List<BookSection> sections(RegistryAccess registries) {
-        return sections(registries.registryOrThrow(Material.REGISTRY).entrySet().stream()
+        return sections(registries.lookupOrThrow(Material.REGISTRY).entrySet().stream()
                 .sorted(Comparator.comparing(entry -> entry.getKey().location().getPath()))
                 .map((Map.Entry<ResourceKey<Material>, Material> entry) ->
                         Map.entry(entry.getKey().location(), entry.getValue()))
                 .toList(),
-                MaterialStage.Lookup.of(registries.registryOrThrow(Material.REGISTRY),
-                        registries.registryOrThrow(AlloyRecipe.REGISTRY)));
+                MaterialStage.Lookup.of(registries.lookupOrThrow(Material.REGISTRY),
+                        registries.lookupOrThrow(AlloyRecipe.REGISTRY)));
     }
 
     /**
@@ -101,7 +101,7 @@ public final class BookContent {
      * @param materials every material to give a page, in the order the id sort left them; the
      *                  chapter's own order is {@link BookMaterialOrder}'s, applied here
      */
-    public static List<BookSection> sections(List<Map.Entry<ResourceLocation, Material>> materials) {
+    public static List<BookSection> sections(List<Map.Entry<Identifier, Material>> materials) {
         return sections(materials, MaterialStage.Lookup.EMPTY);
     }
 
@@ -110,7 +110,7 @@ public final class BookContent {
      * (issue #1104). {@link MaterialStage.Lookup#EMPTY} derives every stage from the material's
      * own harvest rung alone, which is all a caller with no alloy registry can know.
      */
-    public static List<BookSection> sections(List<Map.Entry<ResourceLocation, Material>> materials,
+    public static List<BookSection> sections(List<Map.Entry<Identifier, Material>> materials,
             MaterialStage.Lookup stages) {
         List<BookMaterialOrder.Stage> ladder = BookMaterialOrder.byStage(materials, stages);
         List<BookTraits.Family> traits = BookTraits.families(materials);
@@ -128,7 +128,7 @@ public final class BookContent {
                 case "materials" -> withMaterials(authored, ladder, traits);
                 case "modifiers" -> {
                     ForgeweaveModifiers.ids().stream()
-                            .sorted(Comparator.comparing(ResourceLocation::getPath))
+                            .sorted(Comparator.comparing(Identifier::getPath))
                             .forEach(id -> authored.add(new ModifierPage(id)));
                     yield withListing(titleKey, authored);
                 }
@@ -143,7 +143,7 @@ public final class BookContent {
     /** One authored page def becomes a page; the tool kind reads the registry, text reads lang. */
     private static BookPage pageOf(String sectionName, PageDef def) {
         if (def.type().equals("tool")) {
-            ResourceLocation id = ResourceLocation.parse(def.item());
+            Identifier id = Identifier.parse(def.item());
             return new ToolPage(BuiltInRegistries.ITEM.get(id));
         }
         if (def.type().equals("structure")) {
@@ -154,16 +154,16 @@ public final class BookContent {
     }
 
     @Nullable
-    private static ResourceLocation imageOf(@Nullable String image) {
+    private static Identifier imageOf(@Nullable String image) {
         if (image == null) {
             return null;
         }
-        ResourceLocation id = ResourceLocation.parse(image);
-        return ResourceLocation.fromNamespaceAndPath(id.getNamespace(), id.getPath());
+        Identifier id = Identifier.parse(image);
+        return Identifier.fromNamespaceAndPath(id.getNamespace(), id.getPath());
     }
 
     private static Supplier<ItemStack> iconOf(String itemId) {
-        ResourceLocation id = ResourceLocation.parse(itemId);
+        Identifier id = Identifier.parse(itemId);
         return () -> new ItemStack(BuiltInRegistries.ITEM.get(id));
     }
 
@@ -230,8 +230,8 @@ public final class BookContent {
                     stage.stage().unlockKey()));
             List<BookLink> grid = new ArrayList<>();
             List<BookPage> materialPages = new ArrayList<>();
-            for (Map.Entry<ResourceLocation, Material> entry : stage.materials()) {
-                ResourceLocation id = entry.getKey();
+            for (Map.Entry<Identifier, Material> entry : stage.materials()) {
+                Identifier id = entry.getKey();
                 Material material = entry.getValue();
                 grid.add(new BookLink("material." + id.getNamespace() + "." + id.getPath(), material.color(),
                         () -> representativeItem(material), gridPage + 1 + materialPages.size()));

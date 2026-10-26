@@ -9,7 +9,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.ItemTagsProvider;
 import net.minecraft.data.tags.TagsProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -479,7 +479,7 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
 
     /** The tag naming every block a Tool Forge can be crafted from (issue #152). */
     public static final TagKey<Item> TOOL_FORGE_BLOCKS =
-            TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "tool_forge_blocks"));
+            TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(Forgeweave.MODID, "tool_forge_blocks"));
 
     /**
      * Every reusable gold cast (issue #100/#222/#272), excluding the single-use clay casts -- the
@@ -488,7 +488,7 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
      * reinforced-plate recipe keys its center slot off this tag.
      */
     public static final TagKey<Item> CASTS_GOLD =
-            TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "casts/gold"));
+            TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(Forgeweave.MODID, "casts/gold"));
 
     /**
      * #992 -- the {@code c:} side of D-M8-6/D-M8-7's material forms, walked off
@@ -537,14 +537,14 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
 
     /** Ingots of every alloy that takes at least {@value #DEEP_ALLOY_DEPTH} alloying steps (issue #1106). */
     public static final TagKey<Item> ALLOYS_DEEP =
-            TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "alloys/deep"));
+            TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(Forgeweave.MODID, "alloys/deep"));
 
     /** Ingots of every alloy that takes at least {@value #DEEPEST_ALLOY_DEPTH} alloying steps (issue #1106). */
     public static final TagKey<Item> ALLOYS_DEEPEST =
-            TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "alloys/deepest"));
+            TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(Forgeweave.MODID, "alloys/deepest"));
 
     private static TagKey<Item> cTag(String path) {
-        return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", path));
+        return TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", path));
     }
 
     private static TagKey<Item> storageBlock(String metal) {
@@ -552,7 +552,7 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
     }
 
     private IntrinsicTagAppender<Item> tag(String path) {
-        return tag(TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", path)));
+        return tag(TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", path)));
     }
 
     /**

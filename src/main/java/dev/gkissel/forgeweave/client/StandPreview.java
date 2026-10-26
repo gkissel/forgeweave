@@ -8,12 +8,12 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.RemotePlayer;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.decoration.ArmorStand;
@@ -71,8 +71,8 @@ public final class StandPreview {
     private static final float PLAYER_Y_ROT = 180.0F;
 
     /** The drag-to-rotate ring, upstream 1.20's {@code icons.png} sprite at (0, 184) (NOTICE.md). */
-    private static final ResourceLocation ROTATE_RING =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/stand_rotate.png");
+    private static final Identifier ROTATE_RING =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/stand_rotate.png");
     private static final int RING_SIZE = 32;
 
     /**
@@ -192,7 +192,7 @@ public final class StandPreview {
         stand.setItemSlot(stack.getItem() instanceof ArmorItem armor ? armor.getEquipmentSlot() : hand, stack.copy());
     }
 
-    public void render(GuiGraphics graphics) {
+    public void render(GuiGraphicsExtractor graphics) {
         if (stand == null) {
             return;
         }

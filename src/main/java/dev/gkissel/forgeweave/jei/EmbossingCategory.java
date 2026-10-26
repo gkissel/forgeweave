@@ -2,7 +2,7 @@ package dev.gkissel.forgeweave.jei;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
@@ -98,7 +98,7 @@ final class EmbossingCategory implements IRecipeCategory<EmbossingDisplay> {
     }
 
     @Override
-    public void draw(EmbossingDisplay recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
+    public void draw(EmbossingDisplay recipe, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
         background.draw(guiGraphics, 0, 0);
 
         Font font = Minecraft.getInstance().font;

@@ -1,7 +1,7 @@
 package dev.gkissel.forgeweave.sound;
 
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -28,7 +28,7 @@ public final class ForgeweaveSounds {
 
     private static DeferredHolder<SoundEvent, SoundEvent> register(String name) {
         return SOUND_EVENTS.register(name, () -> SoundEvent.createVariableRangeEvent(
-                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name)));
+                Identifier.fromNamespaceAndPath(Forgeweave.MODID, name)));
     }
 
     private ForgeweaveSounds() {}

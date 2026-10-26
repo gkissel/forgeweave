@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
@@ -21,8 +21,8 @@ import dev.gkissel.forgeweave.modifier.EmbossingRecipe;
  * embossing_recipe} is never actually reachable at the station, so showing it here would mislead.
  */
 final class EmbossingRecipes {
-    static List<EmbossingDisplay> build(Map<ResourceLocation, EmbossingRecipe> recipes,
-            Map<ResourceLocation, Material> materials) {
+    static List<EmbossingDisplay> build(Map<Identifier, EmbossingRecipe> recipes,
+            Map<Identifier, Material> materials) {
         if (recipes.isEmpty()) {
             return List.of();
         }
@@ -37,7 +37,7 @@ final class EmbossingRecipes {
                 .toList();
 
         List<EmbossingDisplay> displays = new ArrayList<>();
-        for (Map.Entry<ResourceLocation, Material> material : materials.entrySet()) {
+        for (Map.Entry<Identifier, Material> material : materials.entrySet()) {
             List<ItemStack> donorParts = donorPartsFor(donorPartTypes, material.getKey(), material.getValue());
             if (donorParts.isEmpty()) {
                 continue; // this material grants no traits through any part kind -- nothing to emboss with
@@ -48,7 +48,7 @@ final class EmbossingRecipes {
     }
 
     /** One representative stack per part kind {@code material} actually grants traits through. */
-    private static List<ItemStack> donorPartsFor(List<PartItem> partTypes, ResourceLocation materialId,
+    private static List<ItemStack> donorPartsFor(List<PartItem> partTypes, Identifier materialId,
             Material material) {
         List<ItemStack> stacks = new ArrayList<>();
         for (PartItem part : partTypes) {

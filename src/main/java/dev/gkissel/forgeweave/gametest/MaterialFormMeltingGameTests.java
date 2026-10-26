@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -18,8 +18,8 @@ import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -152,7 +152,7 @@ public class MaterialFormMeltingGameTests {
         RecipeHolder<CraftingRecipe> holder = helper.getLevel().getRecipeManager()
                 .getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel())
                 .orElseThrow(() -> new AssertionError("expected a crafting recipe to match the grid for " + recipe));
-        helper.assertValueEqual(holder.id(), ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, recipe),
+        helper.assertValueEqual(holder.id(), Identifier.fromNamespaceAndPath(Forgeweave.MODID, recipe),
                 "the recipe the grid resolves to");
         ItemStack output = holder.value().assemble(input, helper.getLevel().registryAccess());
         helper.assertTrue(output.is(result), "expected " + result + " from " + recipe + ", got " + output);
@@ -167,10 +167,10 @@ public class MaterialFormMeltingGameTests {
     private static SmelteryControllerBlockEntity litSmeltery(GameTestHelper helper) {
         SmelteryGameTests.buildWalls(helper, 2, 1, 2);
         BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
-        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
 
-        SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS);
+        SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS, SearedTankBlockEntity.class);
         tank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
         return core;
     }

@@ -7,7 +7,7 @@ import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.LevelHeightAccessor;
@@ -67,7 +67,7 @@ public class MagmaSlimeIslandStructure extends Structure {
 
     /** The datapack structure this class backs, {@code data/forgeweave/worldgen/structure/magma_slime_island.json}. */
     public static final ResourceKey<Structure> KEY = ResourceKey.create(Registries.STRUCTURE,
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "magma_slime_island"));
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "magma_slime_island"));
 
     /** Upstream: {@code int y = 31; // lava lake surface is at 32}. */
     public static final int LAVA_PROBE_Y = 31;

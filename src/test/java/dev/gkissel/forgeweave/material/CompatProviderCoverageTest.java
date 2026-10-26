@@ -14,7 +14,7 @@ import com.google.gson.JsonParser;
 
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 class CompatProviderCoverageTest {
     @Test
@@ -22,7 +22,7 @@ class CompatProviderCoverageTest {
     void bucketVisibilityRecognizesEveryProviderThatEnablesItsMaterial() throws Exception {
         var field = CompatMaterialAvailability.class.getDeclaredField("ANY_OF");
         field.setAccessible(true);
-        var providers = (Map<String, List<ResourceLocation>>) field.get(null);
+        var providers = (Map<String, List<Identifier>>) field.get(null);
         Path root = Path.of("").toAbsolutePath();
         while (!Files.exists(root.resolve("settings.gradle"))) {
             root = root.getParent();
@@ -36,7 +36,7 @@ class CompatProviderCoverageTest {
             }
             Set<String> expected = new HashSet<>();
             collect(conditions, expected);
-            assertEquals(expected, entry.getValue().stream().map(ResourceLocation::toString)
+            assertEquals(expected, entry.getValue().stream().map(Identifier::toString)
                     .collect(java.util.stream.Collectors.toSet()), entry.getKey());
         }
     }

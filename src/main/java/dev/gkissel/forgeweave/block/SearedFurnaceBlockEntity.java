@@ -186,7 +186,7 @@ public class SearedFurnaceBlockEntity extends BlockEntity implements StationMenu
     /** The formed structure, or {@code null}; rescans a stale answer on the server (see {@link SmelteryControllerBlockEntity#structure()}). */
     @Nullable
     public SmelteryStructure structure() {
-        if (level != null && !level.isClientSide
+        if (level != null && !level.isClientSide()
                 && (lastScanTick == NEVER || level.getGameTime() - lastScanTick >= RESCAN_INTERVAL_TICKS)) {
             updateStructure();
         }
@@ -200,7 +200,7 @@ public class SearedFurnaceBlockEntity extends BlockEntity implements StationMenu
 
     /** Rescans now. Server-side only. */
     public void updateStructure() {
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return;
         }
         BlockState state = getBlockState();
@@ -251,7 +251,7 @@ public class SearedFurnaceBlockEntity extends BlockEntity implements StationMenu
      * #armMeltTick} already keeps a formed furnace's own heartbeat alive.
      */
     void armSettleWindow() {
-        if (level == null || level.isClientSide || isFormed()) {
+        if (level == null || level.isClientSide() || isFormed()) {
             return;
         }
         settleUntilTick = level.getGameTime() + SETTLE_WINDOW_TICKS;
@@ -279,7 +279,7 @@ public class SearedFurnaceBlockEntity extends BlockEntity implements StationMenu
             }
             if (slot < size) {
                 resized.set(slot, stack);
-            } else if (level != null && !level.isClientSide) {
+            } else if (level != null && !level.isClientSide()) {
                 BlockPos drop = worldPosition.relative(getBlockState().getValue(SearedFurnaceControllerBlock.FACING));
                 Containers.dropItemStack(level, drop.getX(), drop.getY(), drop.getZ(), stack);
             }
@@ -365,7 +365,7 @@ public class SearedFurnaceBlockEntity extends BlockEntity implements StationMenu
      * the caller should come back at the heat cadence rather than the sweep cadence.
      */
     public boolean heatTick() {
-        if (level == null || level.isClientSide || structure() == null) {
+        if (level == null || level.isClientSide() || structure() == null) {
             return false;
         }
         if (fuel <= 0 && hasHeatWork()) {
@@ -416,7 +416,7 @@ public class SearedFurnaceBlockEntity extends BlockEntity implements StationMenu
 
     /** Upstream {@code interactWithEntitiesInside}: hostile mobs inside die, once a second. */
     public void sweepInterior() {
-        if (level == null || level.isClientSide || structure == null) {
+        if (level == null || level.isClientSide() || structure == null) {
             return;
         }
         long now = level.getGameTime();
@@ -434,7 +434,7 @@ public class SearedFurnaceBlockEntity extends BlockEntity implements StationMenu
     /** Puts this furnace on the block-tick list if it is not already: the heat cadence while cooking, the sweep cadence while formed. */
     @Override
     public void armMeltTick() {
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return;
         }
         boolean heating = hasHeatWork();
@@ -702,7 +702,7 @@ public class SearedFurnaceBlockEntity extends BlockEntity implements StationMenu
 
     private void syncToClients() {
         setChanged();
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
         }
     }

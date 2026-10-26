@@ -1,7 +1,7 @@
 package dev.gkissel.forgeweave.gametest;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickType;
@@ -12,8 +12,8 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.CraftingStationBlockEntity;
@@ -33,7 +33,7 @@ public class CraftingStationGameTests {
 
     private static CraftingStationMenu openMenu(GameTestHelper helper, BlockPos pos, Player player) {
         helper.setBlock(pos, ForgeweaveBlocks.CRAFTING_STATION.get());
-        CraftingStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        CraftingStationBlockEntity blockEntity = helper.getBlockEntity(pos, CraftingStationBlockEntity.class);
         return new CraftingStationMenu(0, player.getInventory(), blockEntity.container(),
                 ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)), blockEntity.findSideInventory());
     }
@@ -43,7 +43,7 @@ public class CraftingStationGameTests {
         BlockPos pos = new BlockPos(1, 1, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.setBlock(pos, ForgeweaveBlocks.CRAFTING_STATION.get());
-        CraftingStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        CraftingStationBlockEntity blockEntity = helper.getBlockEntity(pos, CraftingStationBlockEntity.class);
         ContainerLevelAccess access = ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos));
 
         CraftingStationMenu firstMenu = new CraftingStationMenu(0, player.getInventory(), blockEntity.container(), access, null);
@@ -95,7 +95,7 @@ public class CraftingStationGameTests {
         }
         chest.setItem(0, new ItemStack(Items.DIAMOND));
 
-        CraftingStationBlockEntity blockEntity = helper.getBlockEntity(stationPos);
+        CraftingStationBlockEntity blockEntity = helper.getBlockEntity(stationPos, CraftingStationBlockEntity.class);
         CraftingStationMenu menu = new CraftingStationMenu(0, player.getInventory(), blockEntity.container(),
                 ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(stationPos)), blockEntity.findSideInventory());
 
@@ -171,7 +171,7 @@ public class CraftingStationGameTests {
                 .filter(stack -> stack.is(Items.STICK))
                 .mapToInt(ItemStack::getCount).sum();
         helper.assertTrue(sticks == 4, "expected 4 sticks in the player inventory, got " + sticks);
-        ChestBlockEntity chest = helper.getBlockEntity(chestPos);
+        ChestBlockEntity chest = helper.getBlockEntity(chestPos, ChestBlockEntity.class);
         helper.assertTrue(chest.isEmpty(), "expected the side chest to stay empty, got " + chest.getItem(0));
 
         helper.succeed();
@@ -188,7 +188,7 @@ public class CraftingStationGameTests {
         BlockPos chestPos = stationPos.east();
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.setBlock(chestPos, Blocks.CHEST);
-        ChestBlockEntity chest = helper.getBlockEntity(chestPos);
+        ChestBlockEntity chest = helper.getBlockEntity(chestPos, ChestBlockEntity.class);
         chest.setItem(0, new ItemStack(Items.OAK_PLANKS, 3));
         CraftingStationMenu menu = openMenu(helper, stationPos, player);
 

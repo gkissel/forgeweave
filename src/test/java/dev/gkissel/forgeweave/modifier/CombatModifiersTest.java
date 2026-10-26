@@ -18,7 +18,7 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.ItemStack;
@@ -62,7 +62,7 @@ class CombatModifiersTest {
     @Test
     void knockbackMagnitudeScalesLinearlyWithRawApplicationUnits() {
         ModifierRecipe recipe = shippedRecipe("/data/forgeweave/forgeweave/modifier_recipe/knockback.json");
-        assertEquals(ResourceLocation.fromNamespaceAndPath("forgeweave", "knockback"), recipe.modifier());
+        assertEquals(Identifier.fromNamespaceAndPath("forgeweave", "knockback"), recipe.modifier());
         assertEquals(1, recipe.cost());
         assertEquals(990, recipe.maxLevel(), "upstream's 99 levels of 10 pistons each");
         assertTrue(recipe.reagent().test(new ItemStack(Items.PISTON)));
@@ -84,7 +84,7 @@ class CombatModifiersTest {
     @Test
     void shulkingGrantsLevitationWithDurationScalingSmoothlyByRawUnits() {
         ModifierRecipe recipe = shippedRecipe("/data/forgeweave/forgeweave/modifier_recipe/shulking.json");
-        assertEquals(ResourceLocation.fromNamespaceAndPath("forgeweave", "shulking"), recipe.modifier());
+        assertEquals(Identifier.fromNamespaceAndPath("forgeweave", "shulking"), recipe.modifier());
         assertEquals(1, recipe.cost());
         assertEquals(50, recipe.maxLevel(), "upstream's countPerLevel: 50 application units make the one level");
         assertTrue(recipe.reagent().test(new ItemStack(Items.SHULKER_SHELL)),
@@ -103,7 +103,7 @@ class CombatModifiersTest {
     @Test
     void webbedGrantsSlownessForOneSecondPerLevel() {
         ModifierRecipe recipe = shippedRecipe("/data/forgeweave/forgeweave/modifier_recipe/webbed.json");
-        assertEquals(ResourceLocation.fromNamespaceAndPath("forgeweave", "webbed"), recipe.modifier());
+        assertEquals(Identifier.fromNamespaceAndPath("forgeweave", "webbed"), recipe.modifier());
         assertEquals(1, recipe.cost());
         assertEquals(3, recipe.maxLevel(), "upstream ModWebbed's own maxLevel");
         assertTrue(recipe.reagent().test(new ItemStack(Items.COBWEB)));

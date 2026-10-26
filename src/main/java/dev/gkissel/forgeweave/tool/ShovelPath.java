@@ -111,7 +111,7 @@ public final class ShovelPath {
         if (result == null) {
             return InteractionResult.PASS;
         }
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             level.setBlock(pos, result, 11);
             level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, result));
             if (player != null) {
@@ -124,7 +124,7 @@ public final class ShovelPath {
                 }
             }
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
     /** The same click, moved to another block of the area: same hand, same stack, same face. */

@@ -9,7 +9,7 @@ import java.util.function.ToIntFunction;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HopperBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
@@ -19,7 +19,7 @@ import net.minecraft.world.level.block.VineBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 
-import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
+import net.minecraft.world.level.levelgen.feature.stateproviders.BlockStateProvider;
 import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
 import net.neoforged.neoforge.client.model.generators.ModelFile;
 import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder;
@@ -444,7 +444,7 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
             // (upstream ships slimesapling_blue/purple rather than tinting one greyscale sprite),
             // and each vine stage is vanilla's own multipart vine wired to a greyscale slime sprite.
             String saplingName = name(plants.sapling().get());
-            ResourceLocation saplingSprite = modLoc("derived/block/" + saplingName);
+            Identifier saplingSprite = modLoc("derived/block/" + saplingName);
             simpleBlock(plants.sapling().get(),
                     models().cross(saplingName, saplingSprite).renderType("minecraft:cutout"));
             itemModels().withExistingParent(saplingName, mcLoc("item/generated")).texture("layer0", saplingSprite);
@@ -464,7 +464,7 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
      */
     private void slimeVineBlock(Block block, String texture) {
         String blockName = name(block);
-        ResourceLocation sprite = modLoc("derived/block/" + texture);
+        Identifier sprite = modLoc("derived/block/" + texture);
         ModelFile model = models().withExistingParent(blockName, mcLoc("block/vine"))
                 .texture("particle", sprite)
                 .texture("vine", sprite)
@@ -490,7 +490,7 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
     /** A slimy tall grass or fern: a tinted cross in the world, a flat tinted sprite in the hand. */
     private void slimePlantBlock(Block block, String texture) {
         String blockName = name(block);
-        ResourceLocation sprite = modLoc("derived/block/" + texture);
+        Identifier sprite = modLoc("derived/block/" + texture);
         ModelFile model = models().singleTexture(blockName, mcLoc("block/tinted_cross"), "cross", sprite)
                 .renderType("minecraft:cutout");
         simpleBlock(block, model);
@@ -528,7 +528,7 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
      * front is never shown and simply reuses the normal one.
      */
     private void netherCoreBlock() {
-        ResourceLocation side = modLoc("derived/block/nether_core_side");
+        Identifier side = modLoc("derived/block/nether_core_side");
         ModelFile inactive = models().orientable("nether_core", side, modLoc("derived/block/nether_core_front_inactive"), side);
         Map<Boolean, Map<Boolean, ModelFile>> models = new java.util.HashMap<>();
         for (boolean hot : new boolean[] {false, true}) {
@@ -546,7 +546,7 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
     }
 
     private void coreBlock(String name, Block block, String sideTexture) {
-        ResourceLocation side = modLoc("derived/block/" + sideTexture);
+        Identifier side = modLoc("derived/block/" + sideTexture);
         ModelFile inactive = models().orientable(name, side, modLoc("derived/block/" + name + "_front_inactive"), side);
         ModelFile active = models().orientable(name + "_active", side, modLoc("derived/block/" + name + "_front_active"), side);
         horizontalBlock(block, state -> state.getValue(SmelteryControllerBlock.ACTIVE) ? active : inactive);
@@ -554,7 +554,7 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
     }
 
     /** {@code derived/block/<base>} at the standard tier, {@code derived/block/<base>_<tier>} otherwise (SearedTier). */
-    private ResourceLocation tierTexture(String base, SmelteryCore tier) {
+    private Identifier tierTexture(String base, SmelteryCore tier) {
         return modLoc("derived/block/" + base + (tier == SmelteryCore.STANDARD ? "" : "_" + tier.getSerializedName()));
     }
 
@@ -593,7 +593,7 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
      * block item takes the un-pressed model, which is the state a freshly placed tank is in.
      */
     private void energizedTank() {
-        ResourceLocation top = modLoc("block/energized_tank_top");
+        Identifier top = modLoc("block/energized_tank_top");
         ModelFile off = models().cubeBottomTop("energized_tank", modLoc("block/energized_tank_side"), top, top);
         ModelFile on = models().cubeBottomTop("energized_tank_overdrive",
                 modLoc("block/energized_tank_side_overdrive"), top, top);
@@ -616,14 +616,14 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
      */
     private void tieredDrainLike(String name, Block block, String frontTexture) {
         tiered(block, tier -> {
-            ResourceLocation side = tierTexture("seared_bricks", tier);
+            Identifier side = tierTexture("seared_bricks", tier);
             return models().cube(tierName(name, tier), side, side, tierTexture(frontTexture, tier),
                     tierTexture("seared_drain_back", tier), side, side).texture("particle", side);
         }, state -> ((int) state.getValue(HorizontalDirectionalBlock.FACING).toYRot() + 180) % 360);
     }
 
     private void tankBlock(String name, Block block, String sideTexture, String topTexture) {
-        ResourceLocation top = modLoc("derived/block/" + topTexture);
+        Identifier top = modLoc("derived/block/" + topTexture);
         // #145: the derived side/top textures carry real alpha-cutout windows (0 and 255 alpha
         // values). NeoForge 1.21 declares a block's chunk render type on the model itself rather
         // than through the legacy ItemBlockRenderTypes.setRenderLayer Java map -- mixing the two
@@ -650,7 +650,7 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
 
     /** A seared stairs block (issue #274), textured from its parent seared block's derived texture. */
     private void searedStairs(String name, StairBlock block, String parentTexture) {
-        ResourceLocation texture = modLoc("derived/block/" + parentTexture);
+        Identifier texture = modLoc("derived/block/" + parentTexture);
         ModelFile stairs = models().stairs(name, texture, texture, texture);
         ModelFile inner = models().stairsInner(name + "_inner", texture, texture, texture);
         ModelFile outer = models().stairsOuter(name + "_outer", texture, texture, texture);
@@ -664,7 +664,7 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
      * this must run after that call registers {@code parentTexture}'s block model.
      */
     private void searedSlab(String name, SlabBlock block, String parentTexture) {
-        ResourceLocation texture = modLoc("derived/block/" + parentTexture);
+        Identifier texture = modLoc("derived/block/" + parentTexture);
         ModelFile bottom = models().slab(name, texture, texture, texture);
         ModelFile top = models().slabTop(name + "_top", texture, texture, texture);
         ModelFile doubleSlab = models().getExistingFile(modLoc("block/" + parentTexture));
@@ -814,7 +814,7 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         return models;
     }
 
-    private ResourceLocation connectedSprite(String set, String frame) {
+    private Identifier connectedSprite(String set, String frame) {
         return modLoc("derived/block/connected/" + set + "/" + frame);
     }
 

@@ -18,7 +18,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import org.junit.jupiter.api.Test;
 
@@ -38,43 +38,43 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class PonderSceneWiringTest {
 
-    private record RegisteredScene(ResourceLocation component, ResourceLocation schematic, PonderStoryBoard board) {}
+    private record RegisteredScene(Identifier component, Identifier schematic, PonderStoryBoard board) {}
 
     /** Ponder's real helper drags in client classes; the interface itself is client-free. */
-    private static final class RecordingHelper implements PonderSceneRegistrationHelper<ResourceLocation> {
+    private static final class RecordingHelper implements PonderSceneRegistrationHelper<Identifier> {
         private final List<RegisteredScene> scenes = new ArrayList<>();
 
         @Override
-        public <S> PonderSceneRegistrationHelper<S> withKeyFunction(Function<S, ResourceLocation> keyGen) {
+        public <S> PonderSceneRegistrationHelper<S> withKeyFunction(Function<S, Identifier> keyGen) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public StoryBoardEntry addStoryBoard(ResourceLocation component, ResourceLocation schematicLocation,
-                PonderStoryBoard storyBoard, ResourceLocation... tags) {
+        public StoryBoardEntry addStoryBoard(Identifier component, Identifier schematicLocation,
+                PonderStoryBoard storyBoard, Identifier... tags) {
             scenes.add(new RegisteredScene(component, schematicLocation, storyBoard));
             return null; // the plugin never chains on the returned entry
         }
 
         @Override
-        public StoryBoardEntry addStoryBoard(ResourceLocation component, String schematicPath,
-                PonderStoryBoard storyBoard, ResourceLocation... tags) {
+        public StoryBoardEntry addStoryBoard(Identifier component, String schematicPath,
+                PonderStoryBoard storyBoard, Identifier... tags) {
             return addStoryBoard(component, asLocation(schematicPath), storyBoard, tags);
         }
 
         @Override
-        public MultiSceneBuilder forComponents(ResourceLocation... components) {
+        public MultiSceneBuilder forComponents(Identifier... components) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public MultiSceneBuilder forComponents(Iterable<? extends ResourceLocation> components) {
+        public MultiSceneBuilder forComponents(Iterable<? extends Identifier> components) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public ResourceLocation asLocation(String path) {
-            return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+        public Identifier asLocation(String path) {
+            return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
         }
     }
 
@@ -92,9 +92,9 @@ class PonderSceneWiringTest {
                 "#664's smeltery scene, #700's sizes and casting scenes (casting on faucet and channel), #682's armor scene, "
                         + "#891's furnace and reservoir scenes and the core tiers scene on all four cores");
         RegisteredScene scene = helper.scenes.get(0);
-        assertEquals(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "standard_core"), scene.component(),
+        assertEquals(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "standard_core"), scene.component(),
                 "the scene is registered on the smeltery controller item");
-        assertEquals(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "smeltery"), scene.schematic());
+        assertEquals(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "smeltery"), scene.schematic());
         assertNotNull(scene.board());
     }
 
@@ -111,8 +111,8 @@ class PonderSceneWiringTest {
 
         RegisteredScene scene = helper.scenes.stream()
                 .filter(s -> s.schematic().getPath().equals("armor_assembly")).findFirst().orElseThrow();
-        assertEquals(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "tool_station"), scene.component());
-        assertEquals(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "armor_assembly"), scene.schematic());
+        assertEquals(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "tool_station"), scene.component());
+        assertEquals(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "armor_assembly"), scene.schematic());
         assertNotNull(scene.board());
     }
 

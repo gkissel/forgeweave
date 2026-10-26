@@ -17,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.effect.MobEffect;
@@ -78,7 +78,7 @@ import dev.gkissel.forgeweave.modifier.ModifierLibrary.ToolTier;
  */
 public final class ModifierBehaviors {
 
-    private static final Map<ResourceLocation, MapCodec<ModifierDefinition>> TYPES = new LinkedHashMap<>();
+    private static final Map<Identifier, MapCodec<ModifierDefinition>> TYPES = new LinkedHashMap<>();
 
     /** {@code ExtraCodecs} has the int one but not the float one. */
     private static final Codec<Float> NON_NEGATIVE_FLOAT = Codec.floatRange(0.0F, Float.MAX_VALUE);
@@ -188,7 +188,7 @@ public final class ModifierBehaviors {
     }
 
     /** The {@code behavior} field: a known id or a loud error naming every id that would have worked. */
-    private static final Codec<ResourceLocation> TYPE_CODEC = ResourceLocation.CODEC.validate(id -> type(id) != null
+    private static final Codec<Identifier> TYPE_CODEC = Identifier.CODEC.validate(id -> type(id) != null
             ? DataResult.success(id)
             : DataResult.error(() -> "Unknown modifier behavior '" + id + "'; known behaviors: " + ids()));
 
@@ -200,14 +200,14 @@ public final class ModifierBehaviors {
      * Wrapped {@link ModifierRegistry} codecs, so an addon behavior is wrapped once rather than on
      * every file that names it. Only addon ids land here; the shipped ones are in {@link #TYPES}.
      */
-    private static final Map<ResourceLocation, MapCodec<ModifierDefinition>> REGISTERED = new ConcurrentHashMap<>();
+    private static final Map<Identifier, MapCodec<ModifierDefinition>> REGISTERED = new ConcurrentHashMap<>();
 
     /**
      * The codec behind {@code id}: the shipped table first, then whatever a partner mod registered
      * through {@link ModifierRegistry#registerBehavior}, so a built-in id always wins.
      */
     @Nullable
-    private static MapCodec<ModifierDefinition> type(ResourceLocation id) {
+    private static MapCodec<ModifierDefinition> type(Identifier id) {
         MapCodec<ModifierDefinition> builtIn = TYPES.get(id);
         if (builtIn != null) {
             return builtIn;
@@ -217,28 +217,28 @@ public final class ModifierBehaviors {
     }
 
     /** Just the shipped behavior ids, for the built-in-wins collision warning. */
-    static Set<ResourceLocation> builtInIds() {
+    static Set<Identifier> builtInIds() {
         return TYPES.keySet();
     }
 
     /** Every behavior id a definition may name: the shipped ones first, then any an addon added. */
-    public static Set<ResourceLocation> ids() {
-        Set<ResourceLocation> registered = ModifierRegistry.behaviorIds();
+    public static Set<Identifier> ids() {
+        Set<Identifier> registered = ModifierRegistry.behaviorIds();
         if (registered.isEmpty()) {
             return TYPES.keySet();
         }
-        Set<ResourceLocation> all = new LinkedHashSet<>(TYPES.keySet());
+        Set<Identifier> all = new LinkedHashSet<>(TYPES.keySet());
         all.addAll(registered);
         return all;
     }
 
     private static <B extends Behavior> void register(String name, MapCodec<B> codec) {
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name);
+        Identifier id = Identifier.fromNamespaceAndPath(Forgeweave.MODID, name);
         TYPES.put(id, wrap(id, codec));
     }
 
     /** A behavior's own codec, carrying the id it was registered under. */
-    private static <B extends Modifier> MapCodec<ModifierDefinition> wrap(ResourceLocation id, MapCodec<B> codec) {
+    private static <B extends Modifier> MapCodec<ModifierDefinition> wrap(Identifier id, MapCodec<B> codec) {
         return codec.xmap(behavior -> new ModifierDefinition(id, behavior), ModifierBehaviors::behavior);
     }
 

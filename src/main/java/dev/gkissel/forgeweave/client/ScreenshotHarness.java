@@ -33,20 +33,20 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.Direction;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.util.FastColor;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.decoration.ItemFrame;
-import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.InteractionHand;
 
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.LevelSettings;
 import net.minecraft.world.level.WorldDataConfiguration;
@@ -102,7 +102,6 @@ import dev.gkissel.forgeweave.item.CrossbowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
-import dev.gkissel.forgeweave.emi.EmiScreenshotHarness;
 import dev.gkissel.forgeweave.jei.JeiScreenshotHarness;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ModifierWorktableMenu; // #1057
@@ -513,9 +512,9 @@ public final class ScreenshotHarness {
      * ignores level, but the component should still look like a stack a station actually built.
      */
     private static final List<ModifierEntry> MODIFIED_WEAPON_MODIFIERS = List.of(
-            new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "diamond"), 1),
-            new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "fiery"), 25),
-            new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "silky"), 1));
+            new ModifierEntry(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "diamond"), 1),
+            new ModifierEntry(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "fiery"), 25),
+            new ModifierEntry(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "silky"), 1));
 
     /**
      * Issue #236's M3.2 material roster, in milestone order (vanilla-sourced batch, slime family,
@@ -783,7 +782,7 @@ public final class ScreenshotHarness {
     }
 
     private static WorldDimensions flatWorldDimensions(RegistryAccess registryAccess) {
-        return registryAccess.registryOrThrow(Registries.WORLD_PRESET).getHolderOrThrow(WorldPresets.FLAT).value().createWorldDimensions();
+        return registryAccess.lookupOrThrow(Registries.WORLD_PRESET).getHolderOrThrow(WorldPresets.FLAT).value().createWorldDimensions();
     }
 
     private static void awaitWorld(Minecraft mc) {
@@ -2116,13 +2115,13 @@ public final class ScreenshotHarness {
                 .orElse(ItemStack.EMPTY);
     }
 
-    private static ResourceLocation material(String name) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name);
+    private static Identifier material(String name) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, name);
     }
 
     /** Whether the material datapack registry holds {@code name} in this run (#236's wall). */
     private static boolean materialRegistered(RegistryAccess registries, String name) {
-        return registries.registryOrThrow(Material.REGISTRY).containsKey(material(name));
+        return registries.lookupOrThrow(Material.REGISTRY).containsKey(material(name));
     }
 
     private static String weaponName(Item weapon) {
@@ -2357,14 +2356,17 @@ public final class ScreenshotHarness {
         // classes it names, every one of which pulls JEI's API in. JEI is always present in the dev
         // runtime this harness runs under, so this only matters for a stripped-down one -- or for
         // -PemiClient (issue #971), which swaps JEI for EMI and captures EMI's screens instead.
-        boolean emi = !ModList.get().isLoaded("jei") && ModList.get().isLoaded("emi");
+        // 26.1.2: EMI has no build for this Minecraft (build.gradle's COMPAT_DISABLED), so the
+        // EMI half of this stage -- EmiScreenshotHarness -- is out of the compile and JEI is the only
+        // viewer captured.
+        boolean emi = false;
         if (!emi && !ModList.get().isLoaded("jei")) {
             LOGGER.warn("{}JEI is not installed, skipping the JEI category captures", LOG_PREFIX);
             finishHarness(mc);
             advance(Stage.DONE);
             return;
         }
-        int count = emi ? EmiScreenshotHarness.categoryCount() : JeiScreenshotHarness.categoryCount();
+        int count = JeiScreenshotHarness.categoryCount();
         if (jeiCaptureIndex >= count) {
             LOGGER.info("{}all {} screens, {} book scenes, {} ponder scenes and {} {} categories captured, exiting",
                     LOG_PREFIX, SCREENS.size(), BOOK_SCENES.size(), PonderHarnessCaptures.CAPTURES.size(),
@@ -2374,17 +2376,7 @@ public final class ScreenshotHarness {
             return;
         }
         String fileName = viewerFileName(emi);
-        if (emi) {
-            // EMI reloads on its own worker thread once the world is up; wait for it rather than
-            // capturing an empty recipe screen, but not forever.
-            if (!EmiScreenshotHarness.ready()) {
-                if (stageTicks < EMI_RELOAD_TIMEOUT_TICKS) {
-                    return;
-                }
-                failCheck("{}EMI never finished reloading, capturing {} as is", LOG_PREFIX, fileName);
-            }
-            EmiScreenshotHarness.openCategory(jeiCaptureIndex);
-        } else if (!JeiScreenshotHarness.openCategory(jeiCaptureIndex)) {
+        if (!JeiScreenshotHarness.openCategory(jeiCaptureIndex)) {
             failCheck("{}JEI runtime not available, skipping {}", LOG_PREFIX, fileName);
             jeiCaptureIndex++;
             return;
@@ -2396,8 +2388,7 @@ public final class ScreenshotHarness {
 
     /** {@code jei_<category>} or, under -PemiClient, {@code emi_<category>}. */
     private static String viewerFileName(boolean emi) {
-        return emi ? EmiScreenshotHarness.categoryFileName(jeiCaptureIndex)
-                : JeiScreenshotHarness.categoryFileName(jeiCaptureIndex);
+        return JeiScreenshotHarness.categoryFileName(jeiCaptureIndex);
     }
 
     private static void settleJei(Minecraft mc) {

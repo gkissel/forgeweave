@@ -321,10 +321,10 @@ public class SearedChannelBlock extends Block implements EntityBlock {
         if (updated == null) {
             return InteractionResult.PASS;
         }
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             level.setBlockAndUpdate(pos, updated);
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
     /**
@@ -404,7 +404,7 @@ public class SearedChannelBlock extends Block implements EntityBlock {
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos,
             boolean movedByPiston) {
         super.neighborChanged(state, level, pos, block, fromPos, movedByPiston);
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             return;
         }
         BlockState updated = state;

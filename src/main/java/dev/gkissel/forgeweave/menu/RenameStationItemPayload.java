@@ -4,7 +4,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
@@ -30,7 +30,7 @@ public record RenameStationItemPayload(int containerId, String name) implements 
     private static final int MAX_ENCODED_LENGTH = 50;
 
     public static final CustomPacketPayload.Type<RenameStationItemPayload> TYPE =
-            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "rename_station_item"));
+            new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "rename_station_item"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, RenameStationItemPayload> STREAM_CODEC =
             StreamCodec.composite(

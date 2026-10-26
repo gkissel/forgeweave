@@ -7,7 +7,7 @@ import net.createmod.ponder.api.scene.SceneBuilder;
 import net.createmod.ponder.api.scene.SceneBuildingUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.decoration.ArmorStand;
@@ -46,7 +46,7 @@ public final class ForgeweaveArmorScenes {
     /** Where the armor stand appears: west of the station, facing the default camera. */
     private static final BlockPos STAND = new BlockPos(0, 1, 2);
 
-    private static final ResourceLocation IRON = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "iron");
+    private static final Identifier IRON = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "iron");
 
     public static void assembly(SceneBuilder scene, SceneBuildingUtil util) {
         scene.title("armor", "Assembling Armor");

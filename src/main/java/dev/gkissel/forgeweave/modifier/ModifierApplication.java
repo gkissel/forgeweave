@@ -17,7 +17,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Unit;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
@@ -641,7 +641,7 @@ public final class ModifierApplication {
      * <p>The shape gate ({@link #acceptsToolShape}) is the caller's too, since it needs registries
      * this method is not given.
      */
-    public static Outcome applyLevel(ItemStack tool, ResourceLocation modifier, int level) {
+    public static Outcome applyLevel(ItemStack tool, Identifier modifier, int level) {
         Optional<Component> incompatible = ModifierCompatibility.refusal(tool, modifier, name(modifier));
         if (incompatible.isPresent()) {
             return Outcome.rejected(incompatible.get());
@@ -681,7 +681,7 @@ public final class ModifierApplication {
      * backwards. The shape gate ({@link #acceptsToolShape}) stays the caller's, since it needs
      * registries this method is not given.
      */
-    public static Outcome applyLevelSpendingSlots(ItemStack tool, ResourceLocation modifier, int level) {
+    public static Outcome applyLevelSpendingSlots(ItemStack tool, Identifier modifier, int level) {
         Optional<Component> incompatible = ModifierCompatibility.refusal(tool, modifier, name(modifier));
         if (incompatible.isPresent()) {
             return Outcome.rejected(incompatible.get());
@@ -707,7 +707,7 @@ public final class ModifierApplication {
      * plus the new modifier list, so vanilla's own block-breaking sees the modified mining speed and
      * so re-applying can never compound ({@link ForgeweaveModifiers#effectiveStats}).
      */
-    private static ItemStack modified(ItemStack tool, ResourceLocation id, int level) {
+    private static ItemStack modified(ItemStack tool, Identifier id, int level) {
         List<ModifierEntry> entries = new ArrayList<>(ForgeweaveModifiers.of(tool));
         int index = -1;
         for (int i = 0; i < entries.size(); i++) {
@@ -908,8 +908,8 @@ public final class ModifierApplication {
      * + material.getLocalizedName() + ")"}). Both keys derive from ids alone, which is what keeps
      * this method registry-free for the tooltips that call it without one.
      */
-    public static Component name(ResourceLocation id) {
-        ResourceLocation material = Embossing.materialOf(id);
+    public static Component name(Identifier id) {
+        Identifier material = Embossing.materialOf(id);
         if (material != null) {
             return Component.translatable("modifier.forgeweave.embossment.name", materialName(material));
         }
@@ -917,7 +917,7 @@ public final class ModifierApplication {
         // way ({@code ModFortify#getLocalizedName}: "Fortified (Cobalt)"). The bare
         // `forgeweave:fortification` recipe marker is not one of these and falls through to the plain
         // key below, which is the family name JEI shows.
-        ResourceLocation fortifiedWith = Fortification.materialOf(id);
+        Identifier fortifiedWith = Fortification.materialOf(id);
         if (fortifiedWith != null) {
             return Component.translatable("modifier.forgeweave.fortification.material",
                     materialName(fortifiedWith));
@@ -939,7 +939,7 @@ public final class ModifierApplication {
      * is reproduced off the chance itself rather than off a hardcoded max level, so a datapack that
      * retunes the cap keeps the name honest.
      */
-    public static MutableComponent displayName(ResourceLocation id, int displayLevel) {
+    public static MutableComponent displayName(Identifier id, int displayLevel) {
         if (ForgeweaveModifiers.REINFORCED == ForgeweaveModifiers.get(id)
                 && ForgeweaveModifiers.REINFORCED.durabilityNegationChance(displayLevel) >= 1.0F) {
             return Component.translatable(ForgeweaveModifiers.UNBREAKABLE_KEY);
@@ -958,7 +958,7 @@ public final class ModifierApplication {
     }
 
     /** A material's own display key, the placeholder both generated-id families interpolate. */
-    private static Component materialName(ResourceLocation material) {
+    private static Component materialName(Identifier material) {
         return Component.translatable("material." + material.getNamespace() + "." + material.getPath());
     }
 
@@ -968,12 +968,12 @@ public final class ModifierApplication {
      * (issue #258). Embossing gets the same per-material treatment as {@link #name}, for the same
      * reason: its generated ids have no lang key of their own.
      */
-    public static Component description(ResourceLocation id) {
-        ResourceLocation material = Embossing.materialOf(id);
+    public static Component description(Identifier id) {
+        Identifier material = Embossing.materialOf(id);
         if (material != null) {
             return Component.translatable("modifier.forgeweave.embossment.description", materialName(material));
         }
-        ResourceLocation fortifiedWith = Fortification.materialOf(id);
+        Identifier fortifiedWith = Fortification.materialOf(id);
         if (fortifiedWith != null) {
             return Component.translatable("modifier.forgeweave.fortification.material_description",
                     materialName(fortifiedWith));

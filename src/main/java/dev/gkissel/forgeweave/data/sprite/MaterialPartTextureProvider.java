@@ -15,7 +15,7 @@ import com.google.common.hash.Hashing;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
@@ -57,7 +57,7 @@ public final class MaterialPartTextureProvider implements DataProvider {
                     BufferedImage base = readBase(part);
                     for (Map.Entry<String, GreyToColorMapping> palette : MaterialPartSprites.PALETTES.entrySet()) {
                         BufferedImage tinted = palette.getValue().recolor(base);
-                        ResourceLocation output = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID,
+                        Identifier output = Identifier.fromNamespaceAndPath(Forgeweave.MODID,
                                 MaterialPartSprites.outputName(part, palette.getKey()));
                         byte[] bytes = encodePng(tinted);
                         cache.writeIfNeeded(pathProvider.file(output, "png"), bytes, Hashing.sha1().hashBytes(bytes));
@@ -71,7 +71,7 @@ public final class MaterialPartTextureProvider implements DataProvider {
 
     /** Reads a greyscale base sprite from the existing (main) resources. */
     private BufferedImage readBase(String part) throws IOException {
-        ResourceLocation base = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/item/" + part);
+        Identifier base = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "derived/item/" + part);
         try (InputStream stream = existingFileHelper
                 .getResource(base, PackType.CLIENT_RESOURCES, ".png", "textures").open()) {
             BufferedImage image = ImageIO.read(stream);

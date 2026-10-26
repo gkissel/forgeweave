@@ -5,7 +5,7 @@ import net.neoforged.fml.event.lifecycle.InterModEnqueueEvent;
 
 /**
  * DarkModeEverywhere compat (issue #335): DME (Buuz135/DarkModeEverywhere, MIT) swaps the vanilla GUI
- * shader for every {@code GuiGraphics.blit} caller via mixin, so every Forgeweave screen is darkened
+ * shader for every {@code GuiGraphicsExtractor.blit} caller via mixin, so every Forgeweave screen is darkened
  * by construction with no registration needed. The one carve-out is a renderer whose colour *carries
  * meaning* rather than being decorative chrome -- DME's own IMC key {@code dme-shaderblacklist} (a
  * {@code fully.qualified.Class:method} String, substring-matched against the caller, consumed on

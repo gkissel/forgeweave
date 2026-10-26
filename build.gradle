@@ -21,6 +21,39 @@ sourceSets.main.resources {
     srcDir('src/generated/resources')
 }
 
+// COMPAT_DISABLED: partner mods with no Minecraft 26.1.2 NeoForge build anywhere (Modrinth,
+// CurseForge or their own maven, checked 2026-10-26), so their API jars are not on the classpath
+// and the files that name their types cannot compile. The files stay in the tree for when a build
+// ships; each integration's entry point is still reached only inside its ModList guard, which on
+// 26.1.2 logs that the integration is unavailable instead of registering anything. Datagen keeps
+// emitting their recipe JSON, all of it behind `neoforge:conditions` on the partner's modid.
+//   EMI (emi) -- the native plugin; JEI still covers recipe viewing.
+//   Draconic Evolution (draconicevolution) -- fusion upgrades, module host, guardian crystals.
+//   Create (create) -- the goggles helmet modifier.
+//   Mekanism (mekanism) -- MekaTool/MekaSuit module container.
+def compatDisabledMain = [
+        'dev/gkissel/forgeweave/emi/**',
+        'dev/gkissel/forgeweave/compat/draconic/FusionUpgradeRecipe.java',
+        'dev/gkissel/forgeweave/compat/draconic/DraconicGuardianCrystals.java',
+        'dev/gkissel/forgeweave/compat/draconic/modules/DraconicModuleEffects.java',
+        'dev/gkissel/forgeweave/compat/draconic/modules/DraconicModuleHost.java',
+        'dev/gkissel/forgeweave/compat/create/ForgeweaveCreateCompat.java',
+        'dev/gkissel/forgeweave/compat/mekanism/modules/MekanismModuleContainer.java',
+        'dev/gkissel/forgeweave/compat/mekanism/modules/MekanismModuleEffects.java',
+        'dev/gkissel/forgeweave/compat/mekanism/modules/MekanismWornModules.java',
+]
+def compatDisabledTest = [
+        'dev/gkissel/forgeweave/emi/**',
+        'dev/gkissel/forgeweave/compat/draconic/FusionUpgradeRecipeTest.java',
+        'dev/gkissel/forgeweave/compat/draconic/modules/DraconicModuleEffectsTest.java',
+        'dev/gkissel/forgeweave/compat/draconic/modules/DraconicModuleHostTest.java',
+        'dev/gkissel/forgeweave/compat/create/ForgeweaveCreateCompatTest.java',
+        'dev/gkissel/forgeweave/compat/mekanism/MekanismModuleWiringTest.java',
+        'dev/gkissel/forgeweave/compat/mekanism/modules/MekanismImcTest.java',
+]
+sourceSets.main.java { exclude compatDisabledMain }
+sourceSets.test.java { exclude compatDisabledTest }
+
 // GameTest fixtures that must run in the dev/GameTest worlds but must never ship -- a synthetic
 // "modded" item in a c: tag and a melting recipe hotter than lava (docs/SCOPE.md M2 issue #96). A
 // source set of its own, kept out of `sourceSets.main`, so it loads only in the `gameTestServer` run
@@ -125,8 +158,8 @@ base {
     archivesName = mod_id
 }
 
-// Mojang ships Java 21 to end users in 1.21.1, so mods should target Java 21.
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+// Mojang ships Java 25 to end users in 26.1, so mods should target Java 25.
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
 neoForge {
     // Specify the version of NeoForge to use.
@@ -218,7 +251,9 @@ neoForge {
         }
 
         data {
-            data()
+            // 26.1 splits datagen into client and server halves; clientData() runs both, which the
+            // model, item-model and lang providers need.
+            clientData()
             // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
             programArguments.addAll '--mod', project.mod_id, '--all', '--output', file('src/generated/resources/').getAbsolutePath(), '--existing', file('src/main/resources/').getAbsolutePath()
             // See the client run's comment above (issue #927).
@@ -280,7 +315,7 @@ dependencies {
         // -PemiClient: the dev runs get EMI instead of JEI (see EMI's own comment just below).
         // localRuntime, not a <run>AdditionalRuntimeClasspath: that one lands on FML's legacy
         // classpath, where a jar is a plain library and is never discovered as a mod.
-        localRuntime "dev.emi:emi-neoforge:${emi_version}"
+        // disabled on 26.1.2 (no partner build, see COMPAT_DISABLED below): localRuntime "dev.emi:emi-neoforge:${emi_version}"
     } else if (!project.hasProperty('harnessNoJei')) {
         // -PharnessNoJei drops JEI again, for the screenshot harness's "client boots without JEI" run.
         localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
@@ -295,9 +330,9 @@ dependencies {
     // own. Building with -PemiClient swaps JEI out for EMI on every dev run, which is how the
     // EMI-without-JEI case gets looked at in a dev client (runClient, runScreenshotHarness). Don't
     // pass it to runGameTestServer, for the emi:ping reason above.
-    compileOnly("dev.emi:emi-neoforge:${emi_version}:api") { transitive = false }
-    testCompileOnly("dev.emi:emi-neoforge:${emi_version}:api") { transitive = false }
-    testRuntimeOnly("dev.emi:emi-neoforge:${emi_version}") { transitive = false }
+    // disabled on 26.1.2 (no partner build, see COMPAT_DISABLED below): compileOnly("dev.emi:emi-neoforge:${emi_version}:api") { transitive = false }
+    // disabled on 26.1.2 (no partner build, see COMPAT_DISABLED below): testCompileOnly("dev.emi:emi-neoforge:${emi_version}:api") { transitive = false }
+    // disabled on 26.1.2 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly("dev.emi:emi-neoforge:${emi_version}") { transitive = false }
     // JeiRecipesScaleTest's category-list pin builds every category against a recording fake
     // registration. Tests compile against the API jar but run on the full mod jar, which bundles the
     // same API classes: the API jar has no mods.toml, so FML leaves it on the app class loader, where
@@ -318,7 +353,10 @@ dependencies {
     // project's own client dev runs, absent from data/server/gameTestServer. Jade publishes one jar
     // (no separate API artifact) on Modrinth, so both configurations resolve the same coordinate.
     compileOnly "maven.modrinth:jade:${jade_version}"
-    clientAdditionalRuntimeClasspath "maven.modrinth:jade:${jade_version}"
+    // 26.1.2: MDG dropped the per-run additional classpath (everything is on the module path now),
+    // so there is no way left to put Jade on the client run alone. It is compileOnly only; the
+    // "Jade present" path is exercised by the compat matrix and a real client install instead.
+    // clientAdditionalRuntimeClasspath "maven.modrinth:jade:${jade_version}"
 
     // WTHIT (issue #720): the same overlay ticket's second target,
     // mcp.mobius.waila.api -- a different Java package from Jade's (renamed to snownee.jade.api
@@ -350,7 +388,10 @@ dependencies {
     // Ponder's pom, but JarJar embeds only what is declared, so it gets its own jarJar line.
     implementation "net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}"
     jarJar "net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}"
-    jarJar "dev.engine-room.flywheel:flywheel-neoforge-${minecraft_version}:${flywheel_version}"
+    jarJar "dev.engine-room.flywheel:flywheel-neoforge:${flywheel_version}"
+    // On 26.1 Ponder split its Catnip utility library into a mod of its own, a compile-scope
+    // dependency in Ponder's pom, so it is embedded alongside Ponder too.
+    jarJar "net.createmod.catnip:catnip-neoforge:${ponder_version}+mc${minecraft_version}"
 
     // KubeJS (issue #832, ADR-0004 item 3): compileOnly like JEI above -- the mod compiles against
     // KubeJS's plugin/event API without hard-requiring it (an "optional" entry in
@@ -385,13 +426,13 @@ dependencies {
     // in BrandonsCore rather than in DE. CodeChicken Lib is DE's third runtime dependency, but
     // nothing on the fusion API's compile surface reaches it (only DE's own datagen recipe builder
     // does, and this repo emits that JSON directly), so it is not listed.
-    compileOnly "com.brandon3055.draconicevolution:Draconic-Evolution:${draconic_evolution_version}"
-    compileOnly "com.brandon3055.brandonscore:BrandonsCore:${brandons_core_version}"
-    testCompileOnly "com.brandon3055.draconicevolution:Draconic-Evolution:${draconic_evolution_version}"
-    testCompileOnly "com.brandon3055.brandonscore:BrandonsCore:${brandons_core_version}"
-    testRuntimeOnly("com.brandon3055.draconicevolution:Draconic-Evolution:${draconic_evolution_version}") { transitive = false }
-    testRuntimeOnly("com.brandon3055.brandonscore:BrandonsCore:${brandons_core_version}") { transitive = false }
-    testRuntimeOnly("io.codechicken:CodeChickenLib:${codechicken_lib_version}") { transitive = false }
+    // disabled on 26.1.2 (no partner build, see COMPAT_DISABLED below): compileOnly "com.brandon3055.draconicevolution:Draconic-Evolution:${draconic_evolution_version}"
+    // disabled on 26.1.2 (no partner build, see COMPAT_DISABLED below): compileOnly "com.brandon3055.brandonscore:BrandonsCore:${brandons_core_version}"
+    // disabled on 26.1.2 (no partner build, see COMPAT_DISABLED below): testCompileOnly "com.brandon3055.draconicevolution:Draconic-Evolution:${draconic_evolution_version}"
+    // disabled on 26.1.2 (no partner build, see COMPAT_DISABLED below): testCompileOnly "com.brandon3055.brandonscore:BrandonsCore:${brandons_core_version}"
+    // disabled on 26.1.2 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly("com.brandon3055.draconicevolution:Draconic-Evolution:${draconic_evolution_version}") { transitive = false }
+    // disabled on 26.1.2 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly("com.brandon3055.brandonscore:BrandonsCore:${brandons_core_version}") { transitive = false }
+    // disabled on 26.1.2 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly("io.codechicken:CodeChickenLib:${codechicken_lib_version}") { transitive = false }
 
     // Issue #969 (M8 deep compat): Apotheosis' gem sockets. Same compileOnly-plus-test-classpath
     // split as Draconic Evolution above, and deliberately no localRuntime for the same reason --
@@ -426,7 +467,7 @@ dependencies {
     // classloads a com.simibubi.create type at all. The "slim" classifier is Create's own compile-only
     // API jar; its POM lists every dependency at Maven `runtime` scope, so none of it lands on this
     // compileOnly classpath.
-    compileOnly "com.simibubi.create:create-1.21.1:${create_version}:slim"
+    // disabled on 26.1.2 (no partner build, see COMPAT_DISABLED below): compileOnly "com.simibubi.create:create-1.21.1:${create_version}:slim"
 
     // Issue #997 (M8 deep compat, D-M8-18): Occultism's spirit binding ritual. Same
     // compileOnly-plus-test-classpath split as Draconic Evolution and Apotheosis above, and
@@ -448,8 +489,8 @@ dependencies {
     // what the ritual decides lives in ForgeweaveOccultismCompat#bind, the Occultism-free half, where
     // both a plain unit test (OccultismRitualTest) and a GameTest (OccultismGameTests) can execute it
     // for real -- more coverage than a loadable jar would have bought, not less.
-    compileOnly("com.klikli_dev:occultism-1.21.1-neoforge:${occultism_version}") { transitive = false }
-    testCompileOnly("com.klikli_dev:occultism-1.21.1-neoforge:${occultism_version}") { transitive = false }
+    compileOnly("com.klikli_dev:occultism-${minecraft_version}-neoforge:${occultism_version}") { transitive = false }
+    testCompileOnly("com.klikli_dev:occultism-${minecraft_version}-neoforge:${occultism_version}") { transitive = false }
     // Issue #993 (M8 deep compat, D-M8-15): Mekanism's module container, so Forgeweave gear made of
     // atomic_matter_alloy takes MekaTool and MekaSuit modules. Same compileOnly plus test-classpath
     // split Draconic Evolution and Apotheosis use above, and for the same reason: nothing here is on
@@ -462,9 +503,9 @@ dependencies {
     // The plain jar rather than the `api` classifier -- see gradle.properties' comment for the three
     // mekanism.common entry points #993 names. transitive = false on the test-runtime row because
     // Mekanism's pom lists its own library set, none of which the bridge touches.
-    compileOnly "mekanism:Mekanism:${mekanism_version}"
-    testCompileOnly "mekanism:Mekanism:${mekanism_version}"
-    testRuntimeOnly("mekanism:Mekanism:${mekanism_version}") { transitive = false }
+    // disabled on 26.1.2 (no partner build, see COMPAT_DISABLED below): compileOnly "mekanism:Mekanism:${mekanism_version}"
+    // disabled on 26.1.2 (no partner build, see COMPAT_DISABLED below): testCompileOnly "mekanism:Mekanism:${mekanism_version}"
+    // disabled on 26.1.2 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly("mekanism:Mekanism:${mekanism_version}") { transitive = false }
     // Issue #999 (D-M8-20): Mystical Agriculture's crop registry and its tinkering API. The same
     // compileOnly-plus-test-classpath split Draconic Evolution and Apotheosis use above, and
     // deliberately no localRuntime for the same reason -- a full third-party content mod in the
@@ -482,11 +523,11 @@ dependencies {
     // (cucumber [8.0.16,) in its own neoforge.mods.toml), so a classpath holding one without the
     // other is not a configuration any player will ever have. transitive = false on the runtime rows,
     // the Draconic pattern: nothing else is needed to put the classes on a classpath.
-    compileOnly "com.blakebr0.mysticalagriculture:MysticalAgriculture:${mystical_agriculture_version}:api"
+    compileOnly "com.blakebr0.mysticalagriculture:MysticalAgriculture:${mystical_agriculture_version}"
     compileOnly "com.blakebr0.cucumber:Cucumber:${cucumber_version}"
-    testCompileOnly "com.blakebr0.mysticalagriculture:MysticalAgriculture:${mystical_agriculture_version}:api"
+    testCompileOnly "com.blakebr0.mysticalagriculture:MysticalAgriculture:${mystical_agriculture_version}"
     testCompileOnly "com.blakebr0.cucumber:Cucumber:${cucumber_version}"
-    testRuntimeOnly("com.blakebr0.mysticalagriculture:MysticalAgriculture:${mystical_agriculture_version}:api") { transitive = false }
+    testRuntimeOnly("com.blakebr0.mysticalagriculture:MysticalAgriculture:${mystical_agriculture_version}") { transitive = false }
     testRuntimeOnly("com.blakebr0.cucumber:Cucumber:${cucumber_version}") { transitive = false }
 
     testImplementation platform('org.junit:junit-bom:6.1.3')
@@ -532,6 +573,7 @@ neoForge.ideSyncTask generateModMetadata
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+    options.compilerArgs += ['-Xmaxerrs', '100000'] // PORT-TEMP
 }
 
 // IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable the behavior.

@@ -5,7 +5,7 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
@@ -23,8 +23,8 @@ import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.CastingBlockEntity;
@@ -131,7 +131,7 @@ public class FluidBucketGameTests {
     public static void anEmptyBucketOnACastingTableFillsWithWater(GameTestHelper helper) {
         CastingBlockEntity table = castingRig(helper, Fluids.WATER);
         insert(helper, table, new ItemStack(Items.BUCKET));
-        helper.<FaucetBlockEntity>getBlockEntity(FAUCET).activate();
+        helper.getBlockEntity(FAUCET, FaucetBlockEntity.class).activate();
 
         helper.succeedWhen(() -> {
             helper.assertTrue(table.output().is(Items.WATER_BUCKET),
@@ -148,7 +148,7 @@ public class FluidBucketGameTests {
     public static void aSearedTankFillsABucketAndTakesItBack(GameTestHelper helper) {
         BlockPos tankPos = new BlockPos(1, 1, 1);
         helper.setBlock(tankPos, ForgeweaveBlocks.SEARED_TANK.get());
-        SearedTankBlockEntity tank = helper.getBlockEntity(tankPos);
+        SearedTankBlockEntity tank = helper.getBlockEntity(tankPos, SearedTankBlockEntity.class);
         tank.tank().fill(new FluidStack(Fluids.WATER, 1000), IFluidHandler.FluidAction.EXECUTE);
 
         Player player = rightClick(helper, tankPos, new ItemStack(Items.BUCKET));
@@ -175,7 +175,7 @@ public class FluidBucketGameTests {
         helper.setBlock(DRAIN, ForgeweaveBlocks.SEARED_DRAIN.get().defaultBlockState()
                 .setValue(HorizontalDirectionalBlock.FACING, Direction.EAST));
         BlockPos core = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
-        SmelteryControllerBlockEntity smeltery = helper.getBlockEntity(core);
+        SmelteryControllerBlockEntity smeltery = helper.getBlockEntity(core, SmelteryControllerBlockEntity.class);
         helper.assertTrue(smeltery.isFormed(), "expected the smeltery to form: " + smeltery.lastResult().getString());
 
         Player player = rightClick(helper, DRAIN, new ItemStack(Items.WATER_BUCKET));
@@ -204,7 +204,7 @@ public class FluidBucketGameTests {
     /** A tank of {@code fluid}, a faucet on its east side pointing back at it, and a casting table below. */
     private static CastingBlockEntity castingRig(GameTestHelper helper, net.minecraft.world.level.material.Fluid fluid) {
         helper.setBlock(TANK, ForgeweaveBlocks.SEARED_TANK.get());
-        helper.<SearedTankBlockEntity>getBlockEntity(TANK).tank()
+        helper.getBlockEntity(TANK, SearedTankBlockEntity.class).tank()
                 .fill(new FluidStack(fluid, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_TABLE.get());
         helper.setBlock(FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()

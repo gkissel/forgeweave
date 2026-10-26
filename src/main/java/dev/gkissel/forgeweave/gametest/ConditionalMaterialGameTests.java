@@ -7,9 +7,9 @@ import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.Registry;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.ContainerLevelAccess;
@@ -18,8 +18,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -50,18 +50,18 @@ import dev.gkissel.forgeweave.menu.PartBuilderRecipes;
 @PrefixGameTestTemplate(false)
 public class ConditionalMaterialGameTests {
 
-    private static final ResourceLocation ABSENT = materialId("gametest_conditional_absent");
-    private static final ResourceLocation PRESENT = materialId("gametest_conditional_present");
+    private static final Identifier ABSENT = materialId("gametest_conditional_absent");
+    private static final Identifier PRESENT = materialId("gametest_conditional_present");
 
-    private static ResourceLocation materialId(String name) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name);
+    private static Identifier materialId(String name) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, name);
     }
 
     @GameTest(template = "empty")
     public static void aFailingConditionKeepsTheMaterialOutOfEveryConsumer(GameTestHelper helper) {
         RegistryAccess registries = helper.getLevel().registryAccess();
 
-        Registry<Material> materials = registries.registryOrThrow(Material.REGISTRY);
+        Registry<Material> materials = registries.lookupOrThrow(Material.REGISTRY);
         helper.assertTrue(materials.get(ABSENT) == null,
                 "expected the mod_loaded-gated material to be absent from the registry");
 
@@ -83,7 +83,7 @@ public class ConditionalMaterialGameTests {
     public static void aPassingConditionPutsTheMaterialInEveryConsumer(GameTestHelper helper) {
         RegistryAccess registries = helper.getLevel().registryAccess();
 
-        Registry<Material> materials = registries.registryOrThrow(Material.REGISTRY);
+        Registry<Material> materials = registries.lookupOrThrow(Material.REGISTRY);
         helper.assertTrue(materials.get(PRESENT) != null,
                 "expected the item_exists-gated material to be registered (minecraft:diamond always exists)");
 
@@ -108,7 +108,7 @@ public class ConditionalMaterialGameTests {
         BlockPos pos = new BlockPos(1, 1, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.setBlock(pos, ForgeweaveBlocks.PART_BUILDER.get());
-        PartBuilderBlockEntity blockEntity = helper.getBlockEntity(pos);
+        PartBuilderBlockEntity blockEntity = helper.getBlockEntity(pos, PartBuilderBlockEntity.class);
         PartBuilderMenu menu = new PartBuilderMenu(0, player.getInventory(), blockEntity.container(),
                 ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)), blockEntity.findSideInventory());
 
@@ -126,7 +126,7 @@ public class ConditionalMaterialGameTests {
     }
 
     /** Every material id the creative tab would hand out a HEAD part variant for. */
-    private static List<ResourceLocation> partItemMaterials(GameTestHelper helper) {
+    private static List<Identifier> partItemMaterials(GameTestHelper helper) {
         CreativeModeTab.ItemDisplayParameters parameters = new CreativeModeTab.ItemDisplayParameters(
                 FeatureFlags.VANILLA_SET, true, helper.getLevel().registryAccess());
         List<ItemStack> displayed = new ArrayList<>();
@@ -140,8 +140,8 @@ public class ConditionalMaterialGameTests {
     }
 
     /** Every material id the guide book's materials section has a page for. */
-    private static List<ResourceLocation> materialPageIds(RegistryAccess registries) {
-        List<ResourceLocation> ids = new ArrayList<>();
+    private static List<Identifier> materialPageIds(RegistryAccess registries) {
+        List<Identifier> ids = new ArrayList<>();
         for (BookSection section : BookContent.sections(registries)) {
             for (BookPage page : section.pages()) {
                 if (page instanceof BookPage.MaterialPage materialPage) {

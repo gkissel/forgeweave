@@ -33,7 +33,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -75,9 +75,9 @@ class MaterialTest {
                 new Material.Head(200, 5.09f, 2.5f),
                 new Material.Handle(1.1f, 50),
                 65,
-                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool")),
-                new Material.Traits(List.of(ResourceLocation.fromNamespaceAndPath("forgeweave", "fractured")),
-                        List.of(ResourceLocation.fromNamespaceAndPath("forgeweave", "splintering"))),
+                TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace("incorrect_for_stone_tool")),
+                new Material.Traits(List.of(Identifier.fromNamespaceAndPath("forgeweave", "fractured")),
+                        List.of(Identifier.fromNamespaceAndPath("forgeweave", "splintering"))),
                 List.of(new Material.CraftingItem(Ingredient.of(Items.BONE), 2)),
                 Ingredient.of(Items.BONE),
                 TextColor.parseColor("#EDE6BF").getOrThrow());
@@ -133,8 +133,8 @@ class MaterialTest {
                 Optional.of(new Material.Head(200, 5.09f, 2.5f)),
                 Optional.of(new Material.Handle(1.1f, 50)),
                 Optional.of(65),
-                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool")),
-                Material.Traits.general(ResourceLocation.fromNamespaceAndPath("forgeweave", "fractured")),
+                TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace("incorrect_for_stone_tool")),
+                Material.Traits.general(Identifier.fromNamespaceAndPath("forgeweave", "fractured")),
                 List.of(new Material.CraftingItem(Ingredient.of(Items.BONE), 2)),
                 Ingredient.of(Items.BONE),
                 TextColor.parseColor("#EDE6BF").getOrThrow(),
@@ -440,7 +440,7 @@ class MaterialTest {
         assertEquals(Optional.of(new Material.Head(35, 2.0f, 2.0f)), wood.head());
         assertEquals(Optional.of(new Material.Handle(1.0f, 25)), wood.handle());
         assertEquals(Optional.of(15), wood.extraDurability());
-        assertEquals(List.of(ResourceLocation.fromNamespaceAndPath("forgeweave", "ecological")),
+        assertEquals(List.of(Identifier.fromNamespaceAndPath("forgeweave", "ecological")),
                 wood.traits().general());
         assertEquals(0x8E661B, wood.color().getValue());
     }
@@ -455,7 +455,7 @@ class MaterialTest {
     @CsvSource({ "wood,ecological" })
     void shippedMaterialsGrantTheirTraitThroughEveryPart(String name, String trait) {
         Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath("forgeweave", trait);
+        Identifier id = Identifier.fromNamespaceAndPath("forgeweave", trait);
 
         assertEquals(List.of(id), material.traits().all());
         for (PartItem.Kind kind : PartItem.Kind.values()) {
@@ -474,8 +474,8 @@ class MaterialTest {
     @CsvSource({ "flint,crude,crude2", "bone,fractured,splintering", "stone,cheap,cheapskate" })
     void retrofittedMaterialsScopeTheirHeadTrait(String name, String general, String head) {
         Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
-        ResourceLocation generalId = ResourceLocation.fromNamespaceAndPath("forgeweave", general);
-        ResourceLocation headId = ResourceLocation.fromNamespaceAndPath("forgeweave", head);
+        Identifier generalId = Identifier.fromNamespaceAndPath("forgeweave", general);
+        Identifier headId = Identifier.fromNamespaceAndPath("forgeweave", head);
 
         // containsAll rather than equals since #626: bone's all() also carries its SHAFT-scoped
         // splitting (ArrowMaterialTest#boneShaftTraitReplacesTheGeneralList pins that scope).
@@ -495,8 +495,8 @@ class MaterialTest {
     @CsvSource({ "pig_iron,tasty,baconlicious", "prismarine,aquadynamic,jagged", "netherrack,hellish,aridiculous" })
     void headScopedMaterialsRestateTheGeneralTraitUnderHead(String name, String general, String headOnly) {
         Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
-        ResourceLocation generalId = ResourceLocation.fromNamespaceAndPath("forgeweave", general);
-        ResourceLocation headOnlyId = ResourceLocation.fromNamespaceAndPath("forgeweave", headOnly);
+        Identifier generalId = Identifier.fromNamespaceAndPath("forgeweave", general);
+        Identifier headOnlyId = Identifier.fromNamespaceAndPath("forgeweave", headOnly);
 
         assertEquals(List.of(generalId), material.traits().general());
         assertEquals(List.of(headOnlyId, generalId), material.traits().forPart(PartItem.Kind.HEAD));
@@ -509,7 +509,7 @@ class MaterialTest {
     void acceptsTheLegacySingleTraitField() {
         Material material = Material.CODEC.parse(ops, parse(withTraits("\"trait\": \"forgeweave:ecological\""))).getOrThrow();
 
-        ResourceLocation ecological = ResourceLocation.fromNamespaceAndPath("forgeweave", "ecological");
+        Identifier ecological = Identifier.fromNamespaceAndPath("forgeweave", "ecological");
         assertEquals(List.of(ecological), material.traits().general());
         assertEquals(List.of(), material.traits().head());
         assertEquals(List.of(ecological), material.traits().forPart(PartItem.Kind.HEAD));
@@ -528,8 +528,8 @@ class MaterialTest {
                   "head": ["forgeweave:magnetic2"]
                 }"""))).getOrThrow();
 
-        ResourceLocation magnetic = ResourceLocation.fromNamespaceAndPath("forgeweave", "magnetic");
-        ResourceLocation magnetic2 = ResourceLocation.fromNamespaceAndPath("forgeweave", "magnetic2");
+        Identifier magnetic = Identifier.fromNamespaceAndPath("forgeweave", "magnetic");
+        Identifier magnetic2 = Identifier.fromNamespaceAndPath("forgeweave", "magnetic2");
 
         assertEquals(List.of(magnetic2), material.traits().forPart(PartItem.Kind.HEAD));
         assertEquals(List.of(magnetic), material.traits().forPart(PartItem.Kind.HANDLE));
@@ -924,7 +924,7 @@ class MaterialTest {
         boolean hasBlockRow = material.craftingItems().stream()
                 .filter(item -> item.value() == 9 * PartBuilderRecipes.INGOT_VALUE)
                 .flatMap(item -> java.util.Arrays.stream(item.ingredient().getItems()))
-                .anyMatch(stack -> ResourceLocation.parse(blockId).equals(
+                .anyMatch(stack -> Identifier.parse(blockId).equals(
                         net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem())));
 
         assertTrue(hasBlockRow, name + " must list its storage block (" + blockId + ") at 9 ingots (VALUE_Block)");
@@ -1037,7 +1037,7 @@ class MaterialTest {
     })
     void actuallyAdditionsCrystalsCarryTheirOwnEffect(String name, String expectedTrait) {
         Material material = Material.CODEC.parse(ops, shipped(name)).getOrThrow();
-        ResourceLocation expected = ResourceLocation.fromNamespaceAndPath("forgeweave", expectedTrait);
+        Identifier expected = Identifier.fromNamespaceAndPath("forgeweave", expectedTrait);
 
         assertTrue(material.traits().general().contains(expected),
                 name + " must carry forgeweave:" + expectedTrait + ", got " + material.traits().general());

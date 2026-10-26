@@ -5,10 +5,10 @@ import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.contents.TranslatableContents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
@@ -16,8 +16,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.level.GameType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -59,8 +59,8 @@ import dev.gkissel.forgeweave.modifier.ModifierEntry;
 @PrefixGameTestTemplate(false)
 public class FortificationGameTests {
 
-    private static final ResourceLocation COBALT = material("cobalt");
-    private static final ResourceLocation IRON = material("iron");
+    private static final Identifier COBALT = material("cobalt");
+    private static final Identifier IRON = material("iron");
 
     /**
      * The part half of the issue: the kit builds at the Part Builder for the same 2 ingots every head
@@ -72,7 +72,7 @@ public class FortificationGameTests {
         BlockPos pos = new BlockPos(1, 1, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.setBlock(pos, ForgeweaveBlocks.PART_BUILDER.get());
-        PartBuilderBlockEntity blockEntity = helper.getBlockEntity(pos);
+        PartBuilderBlockEntity blockEntity = helper.getBlockEntity(pos, PartBuilderBlockEntity.class);
         PartBuilderMenu menu = new PartBuilderMenu(0, player.getInventory(), blockEntity.container(),
                 ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)),
                 blockEntity.findSideInventory());
@@ -213,7 +213,7 @@ public class FortificationGameTests {
 
         // Swap the head for stone (rung 1). Without the rebake replaying the fortification, the fresh
         // tool component would come back carrying stone's tag and the cobalt tier would be lost.
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().clearContent();
         blockEntity.container().setItem(ToolStationMenu.HEAD_SLOT, fortified);
         blockEntity.container().setItem(ToolStationMenu.BINDING_SLOT,
@@ -241,7 +241,7 @@ public class FortificationGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "wood", "wood", "wood");
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().clearContent();
         blockEntity.container().setItem(ToolStationMenu.HEAD_SLOT, pickaxe);
         blockEntity.container().setItem(ToolStationMenu.BINDING_SLOT, new ItemStack(Items.FLINT));
@@ -269,7 +269,7 @@ public class FortificationGameTests {
         ItemStack broadsword = ToolAssembly.assemble(helper, player, pos,
                 ToolAssembly.entryFor(ForgeweaveItems.TOOL_BROADSWORD.get()), List.of("wood", "wood", "wood"));
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().clearContent();
         blockEntity.container().setItem(ToolStationMenu.HEAD_SLOT, broadsword);
         blockEntity.container().setItem(ToolStationMenu.BINDING_SLOT, kit("cobalt"));
@@ -328,7 +328,7 @@ public class FortificationGameTests {
     /** The station loaded for a fortification: the tool, the kit, and the flint. */
     private static ToolStationMenu load(GameTestHelper helper, Player player, BlockPos pos, ItemStack tool,
             ItemStack kit) {
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().clearContent();
         blockEntity.container().setItem(ToolStationMenu.HEAD_SLOT, tool);
         blockEntity.container().setItem(ToolStationMenu.BINDING_SLOT, kit);
@@ -350,7 +350,7 @@ public class FortificationGameTests {
         return ToolAssembly.part(ForgeweaveItems.PART_SHARPENING_KIT.get(), materialName);
     }
 
-    private static ResourceLocation material(String name) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name);
+    private static Identifier material(String name) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, name);
     }
 }

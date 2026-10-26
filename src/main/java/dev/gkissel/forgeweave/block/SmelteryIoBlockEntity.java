@@ -113,7 +113,7 @@ public abstract class SmelteryIoBlockEntity extends BlockEntity {
     @Override
     public void onLoad() {
         super.onLoad();
-        if (corePos != null || level == null || level.isClientSide) {
+        if (corePos != null || level == null || level.isClientSide()) {
             return;
         }
         ChunkPos chunk = new ChunkPos(worldPosition);

@@ -16,7 +16,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 
 import net.minecraft.SharedConstants;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.sounds.SoundEvents;
 
@@ -34,7 +34,7 @@ import dev.gkissel.forgeweave.combat.Lifesteal;
  */
 class TraitFeedbackTest {
 
-    private static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath("somepack", "a_trait");
+    private static final Identifier ID = Identifier.fromNamespaceAndPath("somepack", "a_trait");
 
     @BeforeAll
     static void bootstrapMinecraft() {

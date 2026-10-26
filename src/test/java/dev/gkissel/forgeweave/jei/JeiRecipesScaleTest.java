@@ -39,7 +39,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -79,17 +79,17 @@ class JeiRecipesScaleTest {
         Bootstrap.bootStrap();
     }
 
-    private static Map<ResourceLocation, Material> shippedMaterials() throws Exception {
+    private static Map<Identifier, Material> shippedMaterials() throws Exception {
         RegistryOps<JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE,
                 RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
         Path materialDir = projectRoot().resolve("src/main/resources/data/forgeweave/forgeweave/material");
-        Map<ResourceLocation, Material> materials = new LinkedHashMap<>();
+        Map<Identifier, Material> materials = new LinkedHashMap<>();
         try (Stream<Path> files = Files.list(materialDir)) {
             for (Path file : files.filter(p -> p.toString().endsWith(".json")).sorted().toList()) {
                 String name = file.getFileName().toString().replace(".json", "");
                 JsonElement json = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8));
                 Material material = Material.CODEC.parse(ops, json).getOrThrow();
-                materials.put(ResourceLocation.fromNamespaceAndPath("forgeweave", name), material);
+                materials.put(Identifier.fromNamespaceAndPath("forgeweave", name), material);
             }
         }
         return materials;
@@ -102,16 +102,16 @@ class JeiRecipesScaleTest {
      * smeltery_fuel/gametest_super_fuel.json}, excluded from the published jar by {@code build.gradle}'s
      * {@code jar} task -- out of these counts without this test needing any id-based filter of its own.
      */
-    private static <T> Map<ResourceLocation, T> shippedRegistryEntries(String registryPath, com.mojang.serialization.Codec<T> codec) throws Exception {
+    private static <T> Map<Identifier, T> shippedRegistryEntries(String registryPath, com.mojang.serialization.Codec<T> codec) throws Exception {
         RegistryOps<JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE,
                 RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
         Path dir = projectRoot().resolve("src/main/resources/data/forgeweave/forgeweave/" + registryPath);
-        Map<ResourceLocation, T> entries = new LinkedHashMap<>();
+        Map<Identifier, T> entries = new LinkedHashMap<>();
         try (Stream<Path> files = Files.list(dir)) {
             for (Path file : files.filter(p -> p.toString().endsWith(".json")).sorted().toList()) {
                 String name = file.getFileName().toString().replace(".json", "");
                 JsonElement json = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8));
-                entries.put(ResourceLocation.fromNamespaceAndPath("forgeweave", name), codec.parse(ops, json).getOrThrow());
+                entries.put(Identifier.fromNamespaceAndPath("forgeweave", name), codec.parse(ops, json).getOrThrow());
             }
         }
         return entries;
@@ -129,7 +129,7 @@ class JeiRecipesScaleTest {
 
     @Test
     void theThreeCategoriesBuildQuicklyAtTheFullRoster() throws Exception {
-        Map<ResourceLocation, Material> shipped = shippedMaterials();
+        Map<Identifier, Material> shipped = shippedMaterials();
         assertTrue(shipped.size() >= 100, "non-vacuity: expected the real M6 roster, saw only " + shipped.size());
 
         long start = System.nanoTime();
@@ -174,8 +174,8 @@ class JeiRecipesScaleTest {
      */
     @Test
     void theTwoNewCategoriesEnumerateTheRealShippedRegistryContents() throws Exception {
-        Map<ResourceLocation, SmelteryFuel> fuels = shippedRegistryEntries("smeltery_fuel", SmelteryFuel.CODEC);
-        Map<ResourceLocation, CoreTransformRecipe> transforms =
+        Map<Identifier, SmelteryFuel> fuels = shippedRegistryEntries("smeltery_fuel", SmelteryFuel.CODEC);
+        Map<Identifier, CoreTransformRecipe> transforms =
                 shippedRegistryEntries("core_transform_recipe", CoreTransformRecipe.CODEC);
 
         assertEquals(5, fuels.size(),
@@ -216,7 +216,7 @@ class JeiRecipesScaleTest {
      */
     @Test
     void theEntityMeltingCategoryEnumeratesTheRealShippedRegistryContentsPlusTheDefaultRow() throws Exception {
-        Map<ResourceLocation, EntityMeltingRecipe> recipes =
+        Map<Identifier, EntityMeltingRecipe> recipes =
                 shippedRegistryEntries("entity_melting_recipe", EntityMeltingRecipe.CODEC);
 
         assertEquals(7, recipes.size(),
@@ -231,7 +231,7 @@ class JeiRecipesScaleTest {
     // ------------------------------------------------------------------ playtest checklist 1.0.0, JEI rows
 
     /** Copied from {@code ArmorModifiersTest#ARMOR_ONLY}: every shipped modifier whose {@code armorOnly()} is true. */
-    private static final Set<ResourceLocation> ARMOR_ONLY = Set.of(
+    private static final Set<Identifier> ARMOR_ONLY = Set.of(
             fw("fire_protection"), fw("blast_protection"), fw("magic_protection"),
             fw("melee_protection"), fw("projectile_protection"), fw("knockback_resistance"), fw("thorns"),
             fw("elytra_flight"), fw("creative_flight"), fw("goggles"), fw("rayward"));
@@ -239,8 +239,8 @@ class JeiRecipesScaleTest {
     private static final List<String> ARMOR_CAST_PARTS =
             List.of("plating_helmet", "plating_chestplate", "plating_leggings", "plating_boots", "maille");
 
-    private static ResourceLocation fw(String path) {
-        return ResourceLocation.fromNamespaceAndPath("forgeweave", path);
+    private static Identifier fw(String path) {
+        return Identifier.fromNamespaceAndPath("forgeweave", path);
     }
 
     private static Item item(String path) {
@@ -252,12 +252,12 @@ class JeiRecipesScaleTest {
      * loader reads these files. A file whose {@code neoforge:conditions} fail is dropped, so the
      * result is what JEI gets in a pack with none of the optional partner mods.
      */
-    private static <T> Map<ResourceLocation, T> shippedConditionalEntries(String registryPath, Codec<T> codec) throws Exception {
+    private static <T> Map<Identifier, T> shippedConditionalEntries(String registryPath, Codec<T> codec) throws Exception {
         ConditionalOps<JsonElement> ops = new ConditionalOps<>(RegistryOps.create(JsonOps.INSTANCE,
                 RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY)), ICondition.IContext.EMPTY);
         Codec<Optional<T>> conditional = ConditionalOps.createConditionalCodec(codec);
         Path dir = projectRoot().resolve("src/main/resources/data/forgeweave/forgeweave/" + registryPath);
-        Map<ResourceLocation, T> entries = new LinkedHashMap<>();
+        Map<Identifier, T> entries = new LinkedHashMap<>();
         try (Stream<Path> files = Files.list(dir)) {
             for (Path file : files.filter(p -> p.toString().endsWith(".json")).sorted().toList()) {
                 String name = file.getFileName().toString().replace(".json", "");
@@ -321,7 +321,7 @@ class JeiRecipesScaleTest {
         List<Holder<Item>> large = new ArrayList<>();
         for (JsonElement value : tag.getAsJsonArray("values")) {
             large.add(BuiltInRegistries.ITEM.getHolderOrThrow(
-                    ResourceKey.create(Registries.ITEM, ResourceLocation.parse(value.getAsString()))));
+                    ResourceKey.create(Registries.ITEM, Identifier.parse(value.getAsString()))));
         }
 
         BuiltInRegistries.ITEM.bindTags(Map.of(ToolAssemblyRecipes.LARGE_TOOLS, large));
@@ -392,14 +392,14 @@ class JeiRecipesScaleTest {
     void everyArmorOnlyModifierHasAModifierApplicationRow() throws Exception {
         List<ModifierRecipe> rows = ModifierApplicationRecipes.build(shippedConditionalEntries("modifier_recipe", ModifierRecipe.CODEC));
 
-        Set<ResourceLocation> armorRows = rows.stream().map(ModifierRecipe::modifier)
+        Set<Identifier> armorRows = rows.stream().map(ModifierRecipe::modifier)
                 .filter(id -> {
                     Modifier modifier = ForgeweaveModifiers.get(id);
                     return modifier != null && modifier.armorOnly();
                 })
                 .collect(Collectors.toSet());
 
-        Set<ResourceLocation> expected = new HashSet<>(ARMOR_ONLY);
+        Set<Identifier> expected = new HashSet<>(ARMOR_ONLY);
         if (!ModList.get().isLoaded("create")) {
             expected.remove(fw("goggles"));
         }

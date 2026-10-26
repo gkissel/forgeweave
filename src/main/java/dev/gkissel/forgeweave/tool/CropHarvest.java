@@ -75,7 +75,7 @@ public final class CropHarvest {
         }
         level.playSound(player, player.getX(), player.getY(), player.getZ(), SoundEvents.PLAYER_ATTACK_SWEEP,
                 player.getSoundSource(), 1.0F, 1.0F);
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
     /**
@@ -92,7 +92,7 @@ public final class CropHarvest {
         }
         level.playSound(player, player.getX(), player.getY(), player.getZ(), SoundEvents.PLAYER_ATTACK_SWEEP,
                 player.getSoundSource(), 1.0F, 1.0F);
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
     /** Whether {@code pos} held something this harvests -- true on both sides, mutating on neither client. */

@@ -2,7 +2,7 @@ package dev.gkissel.forgeweave.jade;
 
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 
@@ -26,12 +26,12 @@ import dev.gkissel.forgeweave.config.ForgeweaveConfig; // #968
 public final class SmelteryFluidComponentProvider implements IBlockComponentProvider {
     public static final SmelteryFluidComponentProvider INSTANCE = new SmelteryFluidComponentProvider();
 
-    private static final ResourceLocation UID = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "smeltery_fluids");
+    private static final Identifier UID = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "smeltery_fluids");
 
     private SmelteryFluidComponentProvider() {}
 
     @Override
-    public ResourceLocation getUid() {
+    public Identifier getUid() {
         return UID;
     }
 

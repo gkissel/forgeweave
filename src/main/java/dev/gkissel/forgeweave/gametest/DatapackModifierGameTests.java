@@ -4,16 +4,16 @@ import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -21,8 +21,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.GameType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
@@ -47,12 +47,12 @@ import dev.gkissel.forgeweave.modifier.ModifierEntry;
 public class DatapackModifierGameTests {
 
     /** Exposed so {@code CompatToggleGameTests} can flip the toggle against the same definition. */
-    public static final ResourceLocation PACK_CHILL = id("gametest_pack_chill");
+    public static final Identifier PACK_CHILL = id("gametest_pack_chill");
 
-    private static final ResourceLocation PACK_ABSENT = id("gametest_pack_absent");
+    private static final Identifier PACK_ABSENT = id("gametest_pack_absent");
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
     @GameTest(template = "empty")
@@ -113,7 +113,7 @@ public class DatapackModifierGameTests {
     @GameTest(template = "empty")
     public static void aDefinitionFailingItsConditionsNeverRegisters(GameTestHelper helper) {
         Registry<ModifierDefinition> definitions =
-                helper.getLevel().registryAccess().registryOrThrow(ModifierDefinition.REGISTRY);
+                helper.getLevel().registryAccess().lookupOrThrow(ModifierDefinition.REGISTRY);
         helper.assertTrue(definitions.get(PACK_ABSENT) == null,
                 "expected the mod_loaded-gated definition to be absent from the registry");
         helper.assertTrue(definitions.get(PACK_CHILL) != null,

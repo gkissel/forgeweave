@@ -7,7 +7,7 @@ import java.util.Set;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -22,8 +22,8 @@ import net.minecraft.world.level.levelgen.structure.StructureCheckResult;
 import net.minecraft.world.level.levelgen.structure.StructureSet;
 import net.minecraft.world.level.levelgen.structure.placement.RandomSpreadStructurePlacement;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -68,12 +68,12 @@ public class SlimeIslandGameTests {
     public static void theSlimeIslandStructureIsLocatable(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         Structure structure = level.registryAccess()
-                .registryOrThrow(Registries.STRUCTURE)
+                .lookupOrThrow(Registries.STRUCTURE)
                 .get(SlimeIslandStructure.KEY);
         helper.assertTrue(structure instanceof SlimeIslandStructure,
                 "expected the slime island structure registered as " + SlimeIslandStructure.KEY.location());
 
-        StructureSet set = level.registryAccess().registryOrThrow(Registries.STRUCTURE_SET).stream()
+        StructureSet set = level.registryAccess().lookupOrThrow(Registries.STRUCTURE_SET).stream()
                 .filter(candidate -> candidate.structures().stream()
                         .anyMatch(entry -> entry.structure().value() == structure))
                 .findFirst()

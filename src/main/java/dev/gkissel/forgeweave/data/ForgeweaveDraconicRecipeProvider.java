@@ -11,7 +11,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.ItemLike;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -92,7 +92,7 @@ public class ForgeweaveDraconicRecipeProvider implements DataProvider {
 
         // Layer 2.
         for (ForgeweaveDraconicCompat.Line line : ForgeweaveDraconicCompat.UPGRADE_LINES) {
-            ResourceLocation modifier = ResourceLocation.parse(line.modifier());
+            Identifier modifier = Identifier.parse(line.modifier());
             if (ForgeweaveModifiers.get(modifier) == null) {
                 throw new IllegalStateException("no modifier registered as " + modifier
                         + " -- ForgeweaveDraconicCompat.UPGRADE_LINES names one that does not exist");
@@ -199,6 +199,6 @@ public class ForgeweaveDraconicRecipeProvider implements DataProvider {
 
     private CompletableFuture<?> save(CachedOutput output, String name, JsonObject json) {
         return DataProvider.saveStable(output, json,
-                recipes.json(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "compat/draconic/" + name)));
+                recipes.json(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "compat/draconic/" + name)));
     }
 }

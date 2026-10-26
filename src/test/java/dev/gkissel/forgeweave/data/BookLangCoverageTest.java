@@ -140,7 +140,7 @@ class BookLangCoverageTest {
             }
         }
         int modifiersWithEffects = 0;
-        for (net.minecraft.resources.ResourceLocation id : dev.gkissel.forgeweave.modifier.ForgeweaveModifiers.ids()) {
+        for (net.minecraft.resources.Identifier id : dev.gkissel.forgeweave.modifier.ForgeweaveModifiers.ids()) {
             if (checkRun(lang, "modifier." + id.getNamespace() + "." + id.getPath() + ".effect.", problems)) {
                 modifiersWithEffects++;
             }

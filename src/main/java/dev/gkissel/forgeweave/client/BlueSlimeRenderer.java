@@ -3,15 +3,15 @@ package dev.gkissel.forgeweave.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import net.minecraft.client.model.SlimeModel;
+import net.minecraft.client.model.monster.slime.SlimeModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.monster.Slime;
 
@@ -43,8 +43,8 @@ public class BlueSlimeRenderer extends MobRenderer<Slime, SlimeModel<Slime>> {
     /** Upstream {@code RenderTinkerSlime#FACTORY_BlueSlime}'s colour, ARGB. */
     private static final int TINT = 0xff67f0f5;
 
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/entity/blue_slime.png");
+    private static final Identifier TEXTURE =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/entity/blue_slime.png");
 
     public BlueSlimeRenderer(EntityRendererProvider.Context context) {
         super(context, new Tinted<>(context.bakeLayer(ModelLayers.SLIME)), 0.25F);
@@ -69,7 +69,7 @@ public class BlueSlimeRenderer extends MobRenderer<Slime, SlimeModel<Slime>> {
     }
 
     @Override
-    public ResourceLocation getTextureLocation(Slime slime) {
+    public Identifier getTextureLocation(Slime slime) {
         return TEXTURE;
     }
 

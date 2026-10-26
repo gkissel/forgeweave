@@ -4,12 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.level.Level;
@@ -42,8 +42,8 @@ import dev.gkissel.forgeweave.menu.SearedReservoirMenu;
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class SearedReservoirScreen extends AbstractContainerScreen<SearedReservoirMenu> {
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/seared_reservoir.png");
+    private static final Identifier TEXTURE =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/seared_reservoir.png");
     private static final int SHEET = 256;
 
     /** Upstream {@code GuiTinkerTank}'s {@code xSize}/{@code ySize}. */
@@ -67,7 +67,7 @@ public class SearedReservoirScreen extends AbstractContainerScreen<SearedReservo
     }
 
     @Override
-    protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
+    protected void renderBg(GuiGraphicsExtractor graphics, float partialTick, int mouseX, int mouseY) {
         graphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight, SHEET, SHEET);
         renderTank(graphics);
         // The scale overlay goes on top of the fluids, exactly as upstream draws it in its
@@ -77,18 +77,18 @@ public class SearedReservoirScreen extends AbstractContainerScreen<SearedReservo
 
     /** Upstream's {@code drawContainerName} at {@code (8, 6)}; there is no inventory label to draw. */
     @Override
-    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
+    protected void renderLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         graphics.drawString(font, title, 8, 6, 0x404040, false);
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void render(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
         renderBackground(graphics, mouseX, mouseY, partialTick);
         super.render(graphics, mouseX, mouseY, partialTick);
         renderTooltip(graphics, mouseX, mouseY);
     }
 
-    private void renderTank(GuiGraphics graphics) {
+    private void renderTank(GuiGraphicsExtractor graphics) {
         List<FluidStack> fluids = menu.fluids(level());
         int[] heights = SmelteryScreen.fluidHeights(fluids, capacity(fluids), TANK_HEIGHT);
         int bottom = topPos + TANK_Y + TANK_HEIGHT;
@@ -117,7 +117,7 @@ public class SearedReservoirScreen extends AbstractContainerScreen<SearedReservo
     }
 
     @Override
-    protected void renderTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
+    protected void renderTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         super.renderTooltip(graphics, mouseX, mouseY);
         if (isHovering(TANK_X, TANK_Y, TANK_WIDTH, TANK_HEIGHT, mouseX, mouseY)) {
             graphics.renderComponentTooltip(font, tankTooltip(mouseX, mouseY), mouseX, mouseY);

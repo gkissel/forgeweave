@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -171,7 +171,7 @@ class ToolItemTest {
     private static ItemStack withModifier(ItemStack stack, String modifierPath) {
         ItemStack copy = stack.copy();
         copy.set(ForgeweaveDataComponents.MODIFIERS.get(),
-                List.of(new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", modifierPath), 1)));
+                List.of(new ModifierEntry(Identifier.fromNamespaceAndPath("forgeweave", modifierPath), 1)));
         return copy;
     }
 

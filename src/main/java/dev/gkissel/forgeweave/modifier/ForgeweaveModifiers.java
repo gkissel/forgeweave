@@ -23,7 +23,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
@@ -47,7 +47,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
-import net.neoforged.neoforge.common.util.TriState;
+import net.minecraft.util.TriState;
 import net.neoforged.neoforge.event.TagsUpdatedEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -116,7 +116,7 @@ public final class ForgeweaveModifiers {
     public static final int DEFAULT_SLOTS = 3;
 
     /** Ids already reported as unknown, so an old save logs once rather than every tooltip frame. */
-    private static final Set<ResourceLocation> WARNED_UNKNOWN = ConcurrentHashMap.newKeySet();
+    private static final Set<Identifier> WARNED_UNKNOWN = ConcurrentHashMap.newKeySet();
 
     /** Upstream {@code ModHaste#applyHarvestBoost}'s two diminishing-returns thresholds. */
     private static final float HASTE_STEP_1 = 15.0F;
@@ -185,12 +185,12 @@ public final class ForgeweaveModifiers {
      */
     public static final int BLASTING_MAX_LEVEL = 3;
 
-    private static final ResourceLocation BLASTING_ID = id("blasting");
+    private static final Identifier BLASTING_ID = id("blasting");
 
     /** Veinmine (issue #719): each level lets a key-held vein take this many more blocks; see {@code AoeHarvest}. */
     public static final int VEINMINE_BLOCKS_PER_LEVEL = 4;
 
-    private static final ResourceLocation VEINMINE_ID = id("veinmine");
+    private static final Identifier VEINMINE_ID = id("veinmine");
 
     /**
      * Veinmine (issue #719, maintainer decision 2026-08-25; no upstream counterpart): while the
@@ -424,8 +424,8 @@ public final class ForgeweaveModifiers {
         return TIER_TAGS.size();
     }
 
-    private static final ResourceLocation DIAMOND_ID = id("diamond");
-    private static final ResourceLocation EMERALD_ID = id("emerald");
+    private static final Identifier DIAMOND_ID = id("diamond");
+    private static final Identifier EMERALD_ID = id("emerald");
 
     /**
      * Issue #777 (maintainer decision, 2026-08-28): diamond's and emerald's capped "+1" tier bumps
@@ -439,7 +439,7 @@ public final class ForgeweaveModifiers {
      * "+1" room to land, so a stone-tier head (index 1) with both reaches index 3 (real obsidian
      * mining level) in either application order -- see {@link #foldTierIndex}.
      */
-    private static final List<ResourceLocation> TIER_FOLD_ORDER = List.of(EMERALD_ID, DIAMOND_ID);
+    private static final List<Identifier> TIER_FOLD_ORDER = List.of(EMERALD_ID, DIAMOND_ID);
 
     /**
      * The tier-ladder index a tool with base (pre-modifier) index {@code baseIndex} and
@@ -451,7 +451,7 @@ public final class ForgeweaveModifiers {
      */
     public static int foldTierIndex(int baseIndex, List<ModifierEntry> entries) {
         int index = baseIndex;
-        for (ResourceLocation orderedId : TIER_FOLD_ORDER) {
+        for (Identifier orderedId : TIER_FOLD_ORDER) {
             for (ModifierEntry entry : entries) {
                 if (entry.id().equals(orderedId)) {
                     Modifier modifier = get(orderedId);
@@ -830,9 +830,9 @@ public final class ForgeweaveModifiers {
         }
     };
 
-    private static final ResourceLocation MENDING_MOSS_ID = id("mending_moss");
-    private static final ResourceLocation SOULBOUND_ID = id("soulbound");
-    private static final ResourceLocation GLOWING_ID = id("glowing");
+    private static final Identifier MENDING_MOSS_ID = id("mending_moss");
+    private static final Identifier SOULBOUND_ID = id("soulbound");
+    private static final Identifier GLOWING_ID = id("glowing");
 
     /** Upstream {@code ModMendingMoss.MENDING_MOSS_LEVELS}: 10 XP levels per moss -> mending moss. */
     private static final int MENDING_MOSS_ACQUIRE_LEVELS = 10;
@@ -853,7 +853,7 @@ public final class ForgeweaveModifiers {
      */
     private static final int LUCK_LAPIS_PER_LEVEL = 60;
 
-    private static final ResourceLocation LUCK_ID = id("luck");
+    private static final Identifier LUCK_ID = id("luck");
 
     /**
      * Luck. Upstream {@code ModLuck#applyEnchantments}: grants Fortune to every harvest tool (every
@@ -971,7 +971,7 @@ public final class ForgeweaveModifiers {
         if (entry(tool, LUCK_ID) == null) {
             return;
         }
-        Optional<ModifierRecipe> recipe = level.registryAccess().registryOrThrow(ModifierRecipe.REGISTRY).stream()
+        Optional<ModifierRecipe> recipe = level.registryAccess().lookupOrThrow(ModifierRecipe.REGISTRY).stream()
                 .filter(candidate -> candidate.modifier().equals(LUCK_ID))
                 .findFirst();
         int cap = recipe.map(ModifierRecipe::maxLevel).orElse(Integer.MAX_VALUE);
@@ -1348,7 +1348,7 @@ public final class ForgeweaveModifiers {
         }
     };
 
-    private static final ResourceLocation FINS_MODIFIER_ID = id("fins");
+    private static final Identifier FINS_MODIFIER_ID = id("fins");
 
     /** Whether the projectile tool carries fins -- what {@code ArrowEntity}'s water drag reads. */
     public static boolean hasFins(ItemStack stack) {
@@ -1523,7 +1523,7 @@ public final class ForgeweaveModifiers {
     // counterpart and no NOTICE.md row.
 
     /** Exposed so {@code ModifierApplication} can gate {@link #CREATIVE_FLIGHT} on it being present first. */
-    public static final ResourceLocation ELYTRA_FLIGHT_ID = id("elytra_flight");
+    public static final Identifier ELYTRA_FLIGHT_ID = id("elytra_flight");
 
     /**
      * Consumes a real elytra to teach the worn chestplate to glide exactly like one, through
@@ -1604,7 +1604,7 @@ public final class ForgeweaveModifiers {
     // ---------------------------------------------------------------- issue #996 (D-M8-17): surgebound
 
     /** Exposed so {@code ModifierApplication#loadedRecipes} can filter its recipes on the compat toggle. */
-    public static final ResourceLocation SURGEBOUND_ID = id("surgebound");
+    public static final Identifier SURGEBOUND_ID = id("surgebound");
 
     /**
      * Powah's crystal ladder (energized steel, then blazing/niotic/spirited/nitro crystal), one level
@@ -1696,7 +1696,7 @@ public final class ForgeweaveModifiers {
     // did not exist in either clone generation (same #737 note above).
 
     /** Exposed so {@code dev.gkissel.forgeweave.compat.create.ForgeweaveCreateCompat} can read the tool's entry. */
-    public static final ResourceLocation GOGGLES_ID = id("goggles");
+    public static final Identifier GOGGLES_ID = id("goggles");
 
     /**
      * Makes the worn helmet count as wearing Create's own goggles for its overlays (stress units,
@@ -1724,7 +1724,7 @@ public final class ForgeweaveModifiers {
     // ---------------------------------------------------------------- issue #994 (M8-10): rayward
 
     /** Exposed so tests and the tooltip can name the modifier without spelling the id twice. */
-    public static final ResourceLocation RAYWARD_ID = id("rayward");
+    public static final Identifier RAYWARD_ID = id("rayward");
 
     /**
      * {@link ForgeweaveConfig#radiationShieldingPerLevel()}'s own default. Four levels of it come to
@@ -1792,7 +1792,7 @@ public final class ForgeweaveModifiers {
         return Math.min(1.0D, shielding);
     }
 
-    private static final Map<ResourceLocation, Modifier> REGISTRY = Map.ofEntries(
+    private static final Map<Identifier, Modifier> REGISTRY = Map.ofEntries(
             Map.entry(id("fire_protection"), FIRE_PROTECTION),
             Map.entry(id("blast_protection"), BLAST_PROTECTION),
             Map.entry(id("magic_protection"), MAGIC_PROTECTION),
@@ -1848,13 +1848,13 @@ public final class ForgeweaveModifiers {
      * -- the M3-17 advancement chain's "apply a combat modifier" step -- so a future ninth needs one
      * line here rather than a parallel table.
      */
-    private static final Set<ResourceLocation> COMBAT_MODIFIER_IDS = Set.of(
+    private static final Set<Identifier> COMBAT_MODIFIER_IDS = Set.of(
             id("knockback"), id("shulking"), id("webbed"),
             id("smite"), id("bane_of_arthropods"), id("fiery"), id("necrotic"),
             id("beheading"));
 
     /** Whether {@code id} is one of the eight combat modifiers (docs/SCOPE.md M3 acceptance test 4). */
-    public static boolean isCombatModifier(ResourceLocation id) {
+    public static boolean isCombatModifier(Identifier id) {
         return COMBAT_MODIFIER_IDS.contains(id);
     }
 
@@ -1863,7 +1863,7 @@ public final class ForgeweaveModifiers {
      * registration to enumerate). {@code ModifierLangCoverageTest} walks this so a new modifier
      * cannot ship without its {@code .name}/{@code .description} lang keys (issue #258).
      */
-    public static Set<ResourceLocation> ids() {
+    public static Set<Identifier> ids() {
         return REGISTRY.keySet();
     }
 
@@ -1872,7 +1872,7 @@ public final class ForgeweaveModifiers {
      * fortification's flint half, the overslime refill and seating an Apotheosis gem. JEI and the
      * Tool Station still look them up, and that must not log them as unknown (playtest 1.0.0 line 8).
      */
-    public static final Set<ResourceLocation> RECIPE_MARKERS =
+    public static final Set<Identifier> RECIPE_MARKERS =
             Set.of(Fortification.RECIPE_ID, OverslimeRefill.ID, ApotheosisSockets.SEAT_GEM_ID);
 
     /**
@@ -1886,7 +1886,7 @@ public final class ForgeweaveModifiers {
      * that currently does nothing, which is visible in the tooltip and reversible.
      */
     @Nullable
-    public static Modifier get(ResourceLocation id) {
+    public static Modifier get(Identifier id) {
         if (Embossing.isEmbossment(id)) {
             return EMBOSSMENT; // #154: generated per-material, so it can't be in the map above.
         }
@@ -1915,13 +1915,13 @@ public final class ForgeweaveModifiers {
      */
     public static void closeApiRegistration() {
         ModifierRegistry.closeRegistration();
-        for (ResourceLocation id : ModifierRegistry.modifierIds()) {
+        for (Identifier id : ModifierRegistry.modifierIds()) {
             if (REGISTRY.containsKey(id)) {
                 LOGGER.warn("A mod registered modifier '{}', which is a built-in Forgeweave modifier; the built-in "
                         + "behavior wins and the registration is ignored (issue #1065).", id);
             }
         }
-        for (ResourceLocation id : ModifierRegistry.behaviorIds()) {
+        for (Identifier id : ModifierRegistry.behaviorIds()) {
             if (ModifierBehaviors.builtInIds().contains(id)) {
                 LOGGER.warn("A mod registered modifier behavior '{}', which is a built-in Forgeweave behavior; the "
                         + "built-in wins and the registration is ignored (issue #1065).", id);
@@ -1936,7 +1936,7 @@ public final class ForgeweaveModifiers {
     // rather than at registration.
 
     /** The loaded {@code modifier_definition} registry, re-snapshotted on every data load/sync. */
-    private static volatile Map<ResourceLocation, Modifier> DATAPACK = Map.of();
+    private static volatile Map<Identifier, Modifier> DATAPACK = Map.of();
 
     /**
      * A pack-defined modifier's behavior, or {@code null} when nothing defines {@code id} -- or when
@@ -1959,7 +1959,7 @@ public final class ForgeweaveModifiers {
      * early load, only fills the map and never reads the toggle.
      */
     @Nullable
-    private static Modifier datapackModifier(ResourceLocation id) {
+    private static Modifier datapackModifier(Identifier id) {
         return ForgeweaveConfig.enabled(ForgeweaveConfig.MODIFIER_DEFINITIONS) ? DATAPACK.get(id) : null;
     }
 
@@ -1970,10 +1970,10 @@ public final class ForgeweaveModifiers {
      * colliding with a built-in one is logged and ignored -- the built-in wins, per issue #973.
      */
     public static void onTagsUpdated(TagsUpdatedEvent event) {
-        Map<ResourceLocation, Modifier> loaded = new LinkedHashMap<>();
+        Map<Identifier, Modifier> loaded = new LinkedHashMap<>();
         event.getRegistryAccess().registry(ModifierDefinition.REGISTRY).ifPresent(registry -> registry.entrySet()
                 .forEach(entry -> {
-                    ResourceLocation id = entry.getKey().location();
+                    Identifier id = entry.getKey().location();
                     if (REGISTRY.containsKey(id)) {
                         LOGGER.warn("Datapack modifier definition '{}' names a built-in Forgeweave modifier; the "
                                 + "built-in behavior wins and the definition is ignored (issue #973).", id);
@@ -1995,7 +1995,7 @@ public final class ForgeweaveModifiers {
 
     /** The entry for {@code id} on this tool, or {@code null} if it doesn't have that modifier. */
     @Nullable
-    public static ModifierEntry entry(ItemStack stack, ResourceLocation id) {
+    public static ModifierEntry entry(ItemStack stack, Identifier id) {
         for (ModifierEntry entry : of(stack)) {
             if (entry.id().equals(id)) {
                 return entry;
@@ -2066,7 +2066,7 @@ public final class ForgeweaveModifiers {
      * for an id this version doesn't implement: inert data (see {@link #of}) keeps the one slot the
      * player's version charged, since its unit scale is unknowable here.
      */
-    public static int occupiedSlots(ResourceLocation id, int level) {
+    public static int occupiedSlots(Identifier id, int level) {
         Modifier modifier = get(id);
         if (modifier != null) {
             return modifier.occupiedSlots(level);
@@ -2079,14 +2079,14 @@ public final class ForgeweaveModifiers {
      * unit, stepping up every {@link Modifier#unitsPerLevel}, exactly where upstream's
      * {@code MultiAspect} steps ({@code current > countPerLevel * level} starts the next one).
      */
-    public static int displayLevel(ResourceLocation id, int level) {
+    public static int displayLevel(Identifier id, int level) {
         Modifier modifier = get(id);
         int perLevel = modifier == null ? 1 : Math.max(1, modifier.unitsPerLevel());
         return 1 + (Math.max(1, level) - 1) / perLevel;
     }
 
     /** How many application units the current displayed level ends at, for the {@code 51/100} readout. */
-    public static int unitsForDisplayLevel(ResourceLocation id, int level) {
+    public static int unitsForDisplayLevel(Identifier id, int level) {
         Modifier modifier = get(id);
         int perLevel = modifier == null ? 1 : Math.max(1, modifier.unitsPerLevel());
         return displayLevel(id, level) * perLevel;
@@ -2097,13 +2097,13 @@ public final class ForgeweaveModifiers {
     // TooltipBuilder#addModifierInfo (TooltipBuilder.java:120-139) and shown by
     // ToolCore#getInformation(stack, true), i.e. the Tool Station's tool info panel only.
 
-    private static final ResourceLocation HASTE_ID = id("haste");
-    private static final ResourceLocation SMITE_ID = id("smite");
-    private static final ResourceLocation BANE_ID = id("bane_of_arthropods");
-    private static final ResourceLocation FIERY_ID = id("fiery");
-    private static final ResourceLocation NECROTIC_ID = id("necrotic");
-    private static final ResourceLocation REINFORCED_ID = id("reinforced");
-    private static final ResourceLocation SHULKING_ID = id("shulking");
+    private static final Identifier HASTE_ID = id("haste");
+    private static final Identifier SMITE_ID = id("smite");
+    private static final Identifier BANE_ID = id("bane_of_arthropods");
+    private static final Identifier FIERY_ID = id("fiery");
+    private static final Identifier NECROTIC_ID = id("necrotic");
+    private static final Identifier REINFORCED_ID = id("reinforced");
+    private static final Identifier SHULKING_ID = id("shulking");
 
     /** {@code modifier.forgeweave.reinforced.unbreakable} -- upstream's own key, used twice (see below). */
     public static final String UNBREAKABLE_KEY = "modifier.forgeweave.reinforced.unbreakable";
@@ -2113,7 +2113,7 @@ public final class ForgeweaveModifiers {
      * the keys the same way it guards {@code .name}/{@code .description}. Fiery is the one that also
      * needs {@code .extra2} (upstream's second {@code loc + 2} key).
      */
-    public static Set<ResourceLocation> extraInfoIds() {
+    public static Set<Identifier> extraInfoIds() {
         return Set.of(HASTE_ID, SMITE_ID, BANE_ID, FIERY_ID, NECROTIC_ID, REINFORCED_ID, SHULKING_ID,
                 MENDING_MOSS_ID, BLASTING_ID, SURGEBOUND_ID, RAYWARD_ID);
     }
@@ -2147,7 +2147,7 @@ public final class ForgeweaveModifiers {
      * lines go.
      */
     public static List<Component> extraInfo(ItemStack tool, ModifierEntry entry) {
-        ResourceLocation id = entry.id();
+        Identifier id = entry.id();
         int level = entry.level();
         String key = "modifier." + id.getNamespace() + "." + id.getPath() + ".extra";
         if (HASTE_ID.equals(id)) {
@@ -2230,13 +2230,13 @@ public final class ForgeweaveModifiers {
      * (Haster/Hastest/Hastester/Hastestest, Sharper/Sharpest/Sharpester/Sharpestest); reinforced's
      * max-level rename is not part of this ladder upstream either -- it is {@code
      * ModReinforced#getTooltip}'s own {@code .unbreakable} branch, reproduced in
-     * {@link ModifierApplication#name(ResourceLocation, int)}.
+     * {@link ModifierApplication#name(Identifier, int)}.
      */
-    public static int leveledNameCount(ResourceLocation id) {
+    public static int leveledNameCount(Identifier id) {
         return LEVELED_NAMES.getOrDefault(id, 1);
     }
 
-    private static final Map<ResourceLocation, Integer> LEVELED_NAMES =
+    private static final Map<Identifier, Integer> LEVELED_NAMES =
             Map.of(id("haste"), 5, id("sharpness"), 5);
 
     /**
@@ -2253,11 +2253,11 @@ public final class ForgeweaveModifiers {
      * text colour, which needs a registry lookup the tooltip callers here do not have. Recorded
      * deviation.
      */
-    public static TextColor color(ResourceLocation id) {
+    public static TextColor color(Identifier id) {
         return COLORS.getOrDefault(id, StationText.MODIFIER_COLOR);
     }
 
-    private static final Map<ResourceLocation, TextColor> COLORS = Map.ofEntries(
+    private static final Map<Identifier, TextColor> COLORS = Map.ofEntries(
             // Upstream 1.12 constants.
             Map.entry(id("haste"), TextColor.fromRgb(0x910000)),
             Map.entry(id("harvest_width"), TextColor.fromRgb(0xCAF6A2)),
@@ -2716,14 +2716,14 @@ public final class ForgeweaveModifiers {
         }
         Player player = event.getEntity();
         if (player.experienceLevel < MENDING_MOSS_ACQUIRE_LEVELS) {
-            if (!event.getLevel().isClientSide) {
+            if (!event.getLevel().isClientSide()) {
                 player.displayClientMessage(Component.translatable("message.forgeweave.mending_moss.not_enough_levels",
                         MENDING_MOSS_ACQUIRE_LEVELS), true);
             }
             event.setCanceled(true);
             return;
         }
-        if (!event.getLevel().isClientSide) {
+        if (!event.getLevel().isClientSide()) {
             held.shrink(1);
             player.giveExperienceLevels(-MENDING_MOSS_ACQUIRE_LEVELS);
             player.getInventory().add(new ItemStack(ForgeweaveItems.MENDING_MOSS.get()));
@@ -2770,8 +2770,8 @@ public final class ForgeweaveModifiers {
         }
     }
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
     private ForgeweaveModifiers() {}

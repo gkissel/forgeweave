@@ -14,7 +14,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -51,7 +51,7 @@ final class FusionDisplay {
         // Draconic Evolution's fusion category both draw on it. Client is a class of its own so a
         // dedicated server never resolves a net.minecraft.client type, the dist idiom Forgeweave's
         // other client-only wiring uses.
-        return FMLEnvironment.dist == Dist.CLIENT ? catalysts(Client.registries(), material) : List.of();
+        return FMLEnvironment.getDist() == Dist.CLIENT ? catalysts(Client.registries(), material) : List.of();
     }
 
     /** As {@link #catalysts(String)}, for a caller that was handed registries of its own. */
@@ -59,7 +59,7 @@ final class FusionDisplay {
         if (registries == null) {
             return List.of();
         }
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, material);
+        Identifier id = Identifier.fromNamespaceAndPath(Forgeweave.MODID, material);
         Optional<Material> stats = registries.lookup(Material.REGISTRY)
                 .flatMap(lookup -> lookup.get(ResourceKey.create(Material.REGISTRY, id)))
                 .map(holder -> holder.value());

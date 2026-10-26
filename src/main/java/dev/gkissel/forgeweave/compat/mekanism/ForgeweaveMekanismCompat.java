@@ -1,12 +1,11 @@
 package dev.gkissel.forgeweave.compat.mekanism;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.bus.api.IEventBus;
 
 import dev.gkissel.forgeweave.Forgeweave;
-import dev.gkissel.forgeweave.compat.mekanism.modules.MekanismModuleContainer;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.tool.ToolMaterials;
@@ -36,8 +35,8 @@ public final class ForgeweaveMekanismCompat {
     public static final String MODID = "mekanism";
 
     /** The metal that earns the module container (D-M8-13). */
-    public static final ResourceLocation ATOMIC_MATTER_ALLOY =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "atomic_matter_alloy");
+    public static final Identifier ATOMIC_MATTER_ALLOY =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "atomic_matter_alloy");
 
     /** Mekanism's own atomic alloy, the nucleosynthesizing recipe's item input. */
     public static final String ATOMIC_ALLOY_ITEM = MODID + ":alloy_atomic";
@@ -89,7 +88,11 @@ public final class ForgeweaveMekanismCompat {
      * without the mod.
      */
     public static void register(IEventBus modEventBus) {
-        MekanismModuleContainer.register(modEventBus);
+        // 26.1.2: Mekanism has no build for this Minecraft yet, so MekanismModuleContainer (and the
+        // module effect classes it installs) is left out of the compile -- build.gradle's
+        // COMPAT_DISABLED. Restore `MekanismModuleContainer.register(modEventBus);` once one ships.
+        com.mojang.logging.LogUtils.getLogger().warn(
+                "Mekanism is installed, but Forgeweave's Mekanism integration is not available on Minecraft 26.1.2");
     }
 
     private ForgeweaveMekanismCompat() {}

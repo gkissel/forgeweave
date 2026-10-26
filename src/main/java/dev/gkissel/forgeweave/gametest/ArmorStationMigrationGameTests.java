@@ -3,7 +3,7 @@ package dev.gkissel.forgeweave.gametest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
@@ -12,8 +12,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlockEntities;
@@ -97,7 +97,7 @@ public class ArmorStationMigrationGameTests {
 
         // The block really is placeable and openable as a Tool Station, not merely decodable.
         helper.setBlock(STATION, loaded);
-        ToolStationBlockEntity placed = helper.getBlockEntity(STATION);
+        ToolStationBlockEntity placed = helper.getBlockEntity(STATION, ToolStationBlockEntity.class);
         helper.assertTrue(placed != null, "the converted state must still carry a Tool Station block entity");
         helper.succeed();
     }

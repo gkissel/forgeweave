@@ -1,12 +1,12 @@
 package dev.gkissel.forgeweave.gametest;
 
 import net.minecraft.core.Registry;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.material.Material;
@@ -78,7 +78,7 @@ public class EmpoweredCrystalsGameTests {
 
     @GameTest(template = "empty")
     public static void unsuppliedEmpoweredCrystalsDoNotExistAtAll(GameTestHelper helper) {
-        Registry<Material> materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
+        Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         for (String name : EMPOWERED_CRYSTAL_MATERIALS) {
             helper.assertTrue(materials.get(materialId(name)) == null,
                     "expected the " + name + " material to be absent without Actually Additions, found it registered");
@@ -86,8 +86,8 @@ public class EmpoweredCrystalsGameTests {
         helper.succeed();
     }
 
-    private static ResourceLocation materialId(String name) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name);
+    private static Identifier materialId(String name) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, name);
     }
 
     private EmpoweredCrystalsGameTests() {}

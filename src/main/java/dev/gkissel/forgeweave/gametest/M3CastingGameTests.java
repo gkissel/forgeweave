@@ -2,9 +2,9 @@ package dev.gkissel.forgeweave.gametest;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -14,8 +14,8 @@ import net.minecraft.world.level.block.Block;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.CastingBlockEntity;
@@ -90,7 +90,7 @@ public class M3CastingGameTests {
         helper.succeedWhen(() -> {
             helper.assertTrue(table.output().is(ForgeweaveItems.PART_HAMMER_HEAD.get()),
                     "expected a cobalt hammer head, found " + table.output());
-            helper.assertTrue(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "cobalt")
+            helper.assertTrue(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "cobalt")
                             .equals(table.output().get(ForgeweaveDataComponents.MATERIAL.get())),
                     "expected the part to carry the cobalt material");
             helper.assertTrue(table.input().is(ForgeweaveItems.CAST_HAMMER_HEAD.get()),
@@ -101,7 +101,7 @@ public class M3CastingGameTests {
     /** A tank of {@code fluid}, a faucet on its east side pointing back at it, and a casting table below (CastingGameTests#rig). */
     private static CastingBlockEntity rig(GameTestHelper helper, net.minecraft.world.level.material.Fluid fluid) {
         helper.setBlock(TANK, ForgeweaveBlocks.SEARED_TANK.get());
-        helper.<SearedTankBlockEntity>getBlockEntity(TANK).tank()
+        helper.getBlockEntity(TANK, SearedTankBlockEntity.class).tank()
                 .fill(new FluidStack(fluid, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
         Block casting = ForgeweaveBlocks.CASTING_TABLE.get();
         helper.setBlock(CASTING, casting);

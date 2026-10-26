@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.ItemStack;
@@ -25,8 +25,8 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import io.netty.buffer.Unpooled;
 
 import net.neoforged.neoforge.entity.IEntityWithComplexSpawn;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.entity.ArrowEntity;
@@ -91,8 +91,8 @@ public class ArrowGameTests {
         });
     }
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
     /**
@@ -123,7 +123,7 @@ public class ArrowGameTests {
 
         // The projectile trait scope (#653): endstone head = alien (HEAD) + enderference (PROJECTILE).
         ItemStack endstone = arrow(helper, player, pos, "wood", "endstone", "feather");
-        List<ResourceLocation> traits = endstone.get(ForgeweaveDataComponents.TRAITS.get());
+        List<Identifier> traits = endstone.get(ForgeweaveDataComponents.TRAITS.get());
         helper.assertTrue(traits != null && traits.contains(id("alien")) && traits.contains(id("enderference")),
                 "an endstone arrow head grants both alien (HEAD) and enderference (PROJECTILE), got " + traits);
         helper.succeed();
@@ -250,7 +250,7 @@ public class ArrowGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack bow = shortbow(helper, player, pos);
         ItemStack arrow = arrow(helper, player, pos, "bone", "wood", "feather");
-        List<ResourceLocation> traits = arrow.get(ForgeweaveDataComponents.TRAITS.get());
+        List<Identifier> traits = arrow.get(ForgeweaveDataComponents.TRAITS.get());
         helper.assertTrue(traits != null && traits.contains(id("splitting")),
                 "a bone shaft grants splitting (SHAFT-scoped, TinkerMaterials:272), got " + traits);
 

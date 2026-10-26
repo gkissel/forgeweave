@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
@@ -29,10 +29,10 @@ final class PartCraftingRecipes {
     /** One crafting-item option a material accepts, and the value (upstream VALUE_* units) one of it pays off. */
     private record Option(ItemStack representative, int value) {}
 
-    static List<PartCraftingRecipe> build(Map<ResourceLocation, Material> materials) {
+    static List<PartCraftingRecipe> build(Map<Identifier, Material> materials) {
         List<PartCraftingRecipe> recipes = new ArrayList<>();
         for (PartBuilderRecipes.Entry entry : PartBuilderRecipes.ENTRIES) {
-            for (Map.Entry<ResourceLocation, Material> material : materials.entrySet()) {
+            for (Map.Entry<Identifier, Material> material : materials.entrySet()) {
                 // #435: and the same craftable gate (PartBuilderRecipes#craftableInPartBuilder) -- a
                 // cast-only material's crafting items are inert at the station until the config says
                 // otherwise, so advertising them here would send a player to a craft that refuses.
@@ -70,7 +70,7 @@ final class PartCraftingRecipes {
     }
 
     /** Every crafting item {@code material} accepts, plus the shard itself (matches {@code PartBuilderRecipes#matchMaterial}'s special-casing of shards). */
-    private static List<Option> craftingOptions(ResourceLocation materialId, Material material) {
+    private static List<Option> craftingOptions(Identifier materialId, Material material) {
         List<Option> options = new ArrayList<>();
         for (Material.CraftingItem craftingItem : material.craftingItems()) {
             ItemStack[] representatives = craftingItem.ingredient().getItems();
@@ -82,7 +82,7 @@ final class PartCraftingRecipes {
         return options;
     }
 
-    private static ItemStack shardStack(ResourceLocation materialId, int count) {
+    private static ItemStack shardStack(Identifier materialId, int count) {
         ItemStack stack = new ItemStack(ForgeweaveItems.SHARD.get(), count);
         stack.set(ForgeweaveDataComponents.MATERIAL.get(), materialId);
         return stack;

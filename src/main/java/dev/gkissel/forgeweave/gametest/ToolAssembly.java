@@ -5,7 +5,7 @@ import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.Item;
@@ -88,7 +88,7 @@ final class ToolAssembly {
     private static ItemStack assemble(GameTestHelper helper, Player player, BlockPos pos, Block station,
             ToolAssemblyRecipes.Entry entry, List<String> materials) {
         helper.setBlock(pos, station);
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         for (int i = 0; i < ToolStationMenu.INPUT_SLOTS; i++) {
             blockEntity.container().setItem(i,
                     i < entry.slotCount() ? part(entry.part(i), materials.get(i)) : ItemStack.EMPTY);
@@ -129,7 +129,7 @@ final class ToolAssembly {
     static ItemStack part(Item item, String material) {
         ItemStack stack = new ItemStack(item);
         stack.set(ForgeweaveDataComponents.MATERIAL.get(),
-                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, material));
+                Identifier.fromNamespaceAndPath(Forgeweave.MODID, material));
         return stack;
     }
 

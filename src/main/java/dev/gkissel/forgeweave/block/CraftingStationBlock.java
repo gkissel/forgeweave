@@ -7,7 +7,7 @@ import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -99,7 +99,7 @@ public class CraftingStationBlock extends HorizontalDirectionalBlock implements 
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (level.getBlockEntity(pos) instanceof CraftingStationBlockEntity craftingStation) {
-            ResourceLocation textureId = stack.get(ForgeweaveDataComponents.TEXTURE.get());
+            Identifier textureId = stack.get(ForgeweaveDataComponents.TEXTURE.get());
             if (textureId != null && BuiltInRegistries.BLOCK.containsKey(textureId)) {
                 craftingStation.setTexture(BuiltInRegistries.BLOCK.get(textureId));
             }
@@ -117,7 +117,7 @@ public class CraftingStationBlock extends HorizontalDirectionalBlock implements 
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof CraftingStationBlockEntity craftingStation) {
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof CraftingStationBlockEntity craftingStation) {
             // The client-side menu needs to know how many side-inventory slots to build (issue #40:
             // an adjacent item-handler block's inventory shows in a side panel) before it can even
             // construct matching Slot objects, so that count rides along on the open-menu packet,

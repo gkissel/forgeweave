@@ -7,7 +7,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.Ingredient;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -52,7 +52,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 public record EmbossingRecipe(List<Ingredient> reagents) {
 
     public static final ResourceKey<Registry<EmbossingRecipe>> REGISTRY = ResourceKey.createRegistryKey(
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "embossing_recipe"));
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "embossing_recipe"));
 
     public static final Codec<EmbossingRecipe> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Ingredient.CODEC.listOf().fieldOf("reagents").forGetter(EmbossingRecipe::reagents))

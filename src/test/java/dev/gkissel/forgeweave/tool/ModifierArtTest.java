@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.tool.ToolConstants;
@@ -53,7 +53,7 @@ class ModifierArtTest {
         List<String> missing = new ArrayList<>();
         for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
             String tool = entry.constants().id();
-            for (ResourceLocation modifier : ModifierArt.OVERLAY_MODIFIERS) {
+            for (Identifier modifier : ModifierArt.OVERLAY_MODIFIERS) {
                 String texture = ModifierArt.overlay(tool, modifier);
                 if (texture == null) {
                     continue; // a pair upstream ships no art for (ModifierArt#NO_UPSTREAM_ART)
@@ -69,7 +69,7 @@ class ModifierArtTest {
 
     /**
      * The same walk over the bows' draw stages (M3.5 issue #400): whatever
-     * {@link ModifierArt#overlay(String, ResourceLocation, int)} resolves for a stage has to exist,
+     * {@link ModifierArt#overlay(String, Identifier, int)} resolves for a stage has to exist,
      * whether that is a staged file or the fallback to the undrawn one.
      */
     @Test
@@ -77,7 +77,7 @@ class ModifierArtTest {
         List<String> missing = new ArrayList<>();
         for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
             String tool = entry.constants().id();
-            for (ResourceLocation modifier : ModifierArt.OVERLAY_MODIFIERS) {
+            for (Identifier modifier : ModifierArt.OVERLAY_MODIFIERS) {
                 for (int stage = 0; stage <= ToolArt.DRAW_STAGES; stage++) {
                     String texture = ModifierArt.overlay(tool, modifier, stage);
                     if (texture == null) {
@@ -121,7 +121,7 @@ class ModifierArtTest {
         for (String original : List.of("searing", "magnetic_pull", "aquadynamic", "resonant",
                 "far_reach", "extra_slot", "wind_burst")) {
             assertNull(ModifierArt.overlay("broadsword",
-                    ResourceLocation.fromNamespaceAndPath("forgeweave", original)),
+                    Identifier.fromNamespaceAndPath("forgeweave", original)),
                     original + " should have no overlay art");
         }
     }

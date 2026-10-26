@@ -7,9 +7,9 @@ import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
@@ -22,8 +22,8 @@ import net.minecraft.world.level.material.Fluid;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.combat.DefendedBlow;
@@ -134,7 +134,7 @@ public class M615MaterialGameTests {
     public static void necroticBoneBuildsAPickaxeHeadAtThePartBuilder(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.setBlock(STATION, ForgeweaveBlocks.PART_BUILDER.get());
-        PartBuilderBlockEntity blockEntity = helper.getBlockEntity(STATION);
+        PartBuilderBlockEntity blockEntity = helper.getBlockEntity(STATION, PartBuilderBlockEntity.class);
         PartBuilderMenu menu = new PartBuilderMenu(0, player.getInventory(), blockEntity.container(),
                 net.minecraft.world.inventory.ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(STATION)),
                 blockEntity.findSideInventory());
@@ -155,7 +155,7 @@ public class M615MaterialGameTests {
     /** All five materials' trait wiring, read off the same synced registry the Tool Station resolves from. */
     @GameTest(template = "empty")
     public static void newMaterialsExposeTheirTraitWiring(GameTestHelper helper) {
-        Registry<Material> materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
+        Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         Map<String, String> general = Map.of(
                 "seared_stone", "searing",
                 "necrotic_bone", "necrotic",
@@ -170,12 +170,12 @@ public class M615MaterialGameTests {
         general.forEach((name, trait) -> {
             Material material = materials.get(materialId(name));
             helper.assertTrue(material != null, name + " should be in the synced material registry");
-            List<ResourceLocation> expectedGeneral = split(trait);
+            List<Identifier> expectedGeneral = split(trait);
             helper.assertTrue(expectedGeneral.equals(material.traits().general()),
                     name + "'s general traits should be " + expectedGeneral + ", got " + material.traits().general());
             for (PartItem.Kind kind : PartItem.Kind.values()) {
                 boolean armorPart = kind == PartItem.Kind.PLATING || kind == PartItem.Kind.MAILLE;
-                List<ResourceLocation> expected = armorPart && armor.containsKey(name)
+                List<Identifier> expected = armorPart && armor.containsKey(name)
                         ? split(armor.get(name)) : expectedGeneral;
                 helper.assertTrue(expected.equals(material.traits().forPart(kind)),
                         name + " through a " + kind + " part should grant " + expected
@@ -281,15 +281,15 @@ public class M615MaterialGameTests {
 
     // ------------------------------------------------------------------ helpers
 
-    private static ResourceLocation materialId(String name) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name);
+    private static Identifier materialId(String name) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, name);
     }
 
-    private static ResourceLocation traitId(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier traitId(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
-    private static List<ResourceLocation> split(String pipeSeparated) {
+    private static List<Identifier> split(String pipeSeparated) {
         return Arrays.stream(pipeSeparated.split("\\|")).map(M615MaterialGameTests::traitId).toList();
     }
 
@@ -297,7 +297,7 @@ public class M615MaterialGameTests {
     private static SmelteryControllerBlockEntity smeltery(GameTestHelper helper) {
         SmelteryGameTests.buildWalls(helper, 1, 1, 2);
         BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
-        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
         return core;
     }
@@ -305,7 +305,7 @@ public class M615MaterialGameTests {
     /** A tank of {@code fluid}, a faucet on its east side pointing back at it, and a casting table below. */
     private static CastingBlockEntity rig(GameTestHelper helper, Fluid fluid) {
         helper.setBlock(TANK, ForgeweaveBlocks.SEARED_TANK.get());
-        helper.<SearedTankBlockEntity>getBlockEntity(TANK).tank()
+        helper.getBlockEntity(TANK, SearedTankBlockEntity.class).tank()
                 .fill(new FluidStack(fluid, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_TABLE.get());
         helper.setBlock(FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
@@ -365,7 +365,7 @@ public class M615MaterialGameTests {
 
     private static float lostWithoutTraits(Player player, DamageSource source, float amount) {
         ItemStack piece = worn(player);
-        List<ResourceLocation> traits = piece.get(ForgeweaveDataComponents.TRAITS.get());
+        List<Identifier> traits = piece.get(ForgeweaveDataComponents.TRAITS.get());
         piece.remove(ForgeweaveDataComponents.TRAITS.get());
         float result = lost(player, source, amount);
         piece.set(ForgeweaveDataComponents.TRAITS.get(), traits);
@@ -376,7 +376,7 @@ public class M615MaterialGameTests {
         return helper.getLevel().damageSources().explosion(null, null);
     }
 
-    private static ItemStack pickaxe(List<ResourceLocation> traits, int durability, float miningSpeed, float attackDamage) {
+    private static ItemStack pickaxe(List<Identifier> traits, int durability, float miningSpeed, float attackDamage) {
         dev.gkissel.forgeweave.item.ToolItem toolItem = ForgeweaveItems.TOOL_PICKAXE.get();
         dev.gkissel.forgeweave.tool.ToolStats.Stats stats =
                 new dev.gkissel.forgeweave.tool.ToolStats.Stats(durability, miningSpeed, attackDamage);
@@ -385,7 +385,7 @@ public class M615MaterialGameTests {
                 new Material.Handle(1.0F, 0),
                 0,
                 net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.BLOCK,
-                        ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool")),
+                        Identifier.withDefaultNamespace("incorrect_for_stone_tool")),
                 new Material.Traits(List.of(), List.of()),
                 List.of(),
                 net.minecraft.world.item.crafting.Ingredient.of(Items.STICK),

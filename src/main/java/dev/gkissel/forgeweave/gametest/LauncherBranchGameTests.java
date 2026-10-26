@@ -3,28 +3,28 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.animal.Pig;
-import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.animal.pig.Pig;
+import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 
 import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.combat.CombatProviders;
@@ -65,13 +65,13 @@ public class LauncherBranchGameTests {
 
     private static final double EPSILON = 1.0E-4;
 
-    private static final ResourceLocation HASTE = id("haste");
-    private static final ResourceLocation FIERY = id("fiery");
-    private static final ResourceLocation SMITE = id("smite");
-    private static final ResourceLocation LIGHTWEIGHT = id("lightweight");
+    private static final Identifier HASTE = id("haste");
+    private static final Identifier FIERY = id("fiery");
+    private static final Identifier SMITE = id("smite");
+    private static final Identifier LIGHTWEIGHT = id("lightweight");
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
     private static ItemStack shortbow(GameTestHelper helper, Player player, BlockPos pos, String limb1, String limb2) {
@@ -81,7 +81,7 @@ public class LauncherBranchGameTests {
         return bow;
     }
 
-    private static ItemStack withModifier(ItemStack bow, ResourceLocation modifier, int units) {
+    private static ItemStack withModifier(ItemStack bow, Identifier modifier, int units) {
         bow.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(modifier, units)));
         return bow;
     }
@@ -138,7 +138,7 @@ public class LauncherBranchGameTests {
         ItemStack bow = shortbow(helper, player, new BlockPos(1, 1, 1), "cobalt", "cobalt");
         BowItem item = (BowItem) bow.getItem();
 
-        List<ResourceLocation> traits = bow.get(ForgeweaveDataComponents.TRAITS.get());
+        List<Identifier> traits = bow.get(ForgeweaveDataComponents.TRAITS.get());
         helper.assertTrue(traits != null && traits.contains(LIGHTWEIGHT), "cobalt limbs carry lightweight, got " + traits);
         LauncherStats stored = BowItem.launcherStats(bow);
         helper.assertTrue(stored != null && Math.abs(stored.drawSpeed() - 0.75F) < EPSILON,
@@ -166,7 +166,7 @@ public class LauncherBranchGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack bow = shortbow(helper, player, pos, "wood", "wood");
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().clearContent();
         blockEntity.container().setItem(ToolStationMenu.HEAD_SLOT, bow);
         blockEntity.container().setItem(ToolStationMenu.BINDING_SLOT, new ItemStack(Items.LAPIS_LAZULI, 60));
@@ -197,7 +197,7 @@ public class LauncherBranchGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack bow = shortbow(helper, player, pos, "wood", "wood");
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().clearContent();
         blockEntity.container().setItem(ToolStationMenu.HEAD_SLOT, bow);
         blockEntity.container().setItem(ToolStationMenu.BINDING_SLOT,
@@ -261,7 +261,7 @@ public class LauncherBranchGameTests {
     public static void squeakyLimbsDoNotZeroTheArrow(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack bow = shortbow(helper, player, new BlockPos(1, 1, 1), "sponge", "sponge");
-        List<ResourceLocation> traits = bow.get(ForgeweaveDataComponents.TRAITS.get());
+        List<Identifier> traits = bow.get(ForgeweaveDataComponents.TRAITS.get());
         helper.assertTrue(traits != null && traits.contains(id("squeaky")), "sponge limbs carry squeaky, got " + traits);
 
         Pig meleeTarget = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
@@ -334,7 +334,7 @@ public class LauncherBranchGameTests {
     public static void arrowHitDischargesTheLiveBowNotTheArrowsCopy(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack bow = shortbow(helper, player, new BlockPos(1, 1, 1), "gametest_electrum", "gametest_electrum");
-        List<ResourceLocation> traits = bow.get(ForgeweaveDataComponents.TRAITS.get());
+        List<Identifier> traits = bow.get(ForgeweaveDataComponents.TRAITS.get());
         helper.assertTrue(traits != null && traits.contains(id("shocking")), "electrum limbs carry shocking, got " + traits);
         player.setItemInHand(InteractionHand.MAIN_HAND, fullyCharged(bow));
 

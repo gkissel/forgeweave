@@ -92,10 +92,10 @@ public class FaucetBlock extends Block implements EntityBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof FaucetBlockEntity faucet) {
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof FaucetBlockEntity faucet) {
             faucet.activate();
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
     /**
@@ -106,7 +106,7 @@ public class FaucetBlock extends Block implements EntityBlock {
     @Override
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean movedByPiston) {
         super.neighborChanged(state, level, pos, block, fromPos, movedByPiston);
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof FaucetBlockEntity faucet) {
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof FaucetBlockEntity faucet) {
             faucet.handleRedstone(level.hasNeighborSignal(pos));
         }
     }

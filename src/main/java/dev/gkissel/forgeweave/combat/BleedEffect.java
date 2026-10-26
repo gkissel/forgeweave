@@ -2,7 +2,7 @@ package dev.gkissel.forgeweave.combat;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
@@ -69,8 +69,8 @@ public class BleedEffect extends MobEffect {
      * Id for the transient anti-knockback modifier (class javadoc), the same idiom as
      * {@code ToolItem}'s trait-driven attribute modifiers.
      */
-    private static final ResourceLocation ANTI_KNOCKBACK_ID =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "bleed_anti_knockback");
+    private static final Identifier ANTI_KNOCKBACK_ID =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "bleed_anti_knockback");
     /** Upstream's {@code ANTI_KNOCKBACK_MOD}/{@code ANTI_KNOCKBACK_MODIFIER}: a flat +1 (full immunity). */
     private static final AttributeModifier ANTI_KNOCKBACK_MODIFIER =
             new AttributeModifier(ANTI_KNOCKBACK_ID, 1.0, AttributeModifier.Operation.ADD_VALUE);
@@ -129,7 +129,7 @@ public class BleedEffect extends MobEffect {
     }
 
     private static Holder<DamageType> indirectMagic(LivingEntity entity) {
-        return entity.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE)
+        return entity.level().registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE)
                 .getHolderOrThrow(DamageTypes.INDIRECT_MAGIC);
     }
 }

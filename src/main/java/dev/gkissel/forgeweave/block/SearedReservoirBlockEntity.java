@@ -103,7 +103,7 @@ public class SearedReservoirBlockEntity extends BlockEntity implements StationMe
     /** The formed structure, or {@code null}; rescans a stale answer on the server. */
     @Nullable
     public SmelteryStructure structure() {
-        if (level != null && !level.isClientSide
+        if (level != null && !level.isClientSide()
                 && (lastScanTick == NEVER || level.getGameTime() - lastScanTick >= RESCAN_INTERVAL_TICKS)) {
             updateStructure();
         }
@@ -133,7 +133,7 @@ public class SearedReservoirBlockEntity extends BlockEntity implements StationMe
     /** Rescans now. Server-side only. */
     @Override
     public void updateStructure() {
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return;
         }
         BlockState state = getBlockState();
@@ -187,7 +187,7 @@ public class SearedReservoirBlockEntity extends BlockEntity implements StationMe
      * needs no ongoing heartbeat once formed ({@link #armMeltTick} below is itself a no-op).
      */
     void armSettleWindow() {
-        if (level == null || level.isClientSide || isFormed()) {
+        if (level == null || level.isClientSide() || isFormed()) {
             return;
         }
         settleUntilTick = level.getGameTime() + SETTLE_WINDOW_TICKS;
@@ -239,7 +239,7 @@ public class SearedReservoirBlockEntity extends BlockEntity implements StationMe
 
     private void syncToClients() {
         setChanged();
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
         }
     }

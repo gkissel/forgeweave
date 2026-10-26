@@ -1,6 +1,6 @@
 package dev.gkissel.forgeweave.jei;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
@@ -90,7 +90,7 @@ final class RepairCategory implements IRecipeCategory<RepairRecipe> {
     }
 
     @Override
-    public void draw(RepairRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
+    public void draw(RepairRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
         // The arrow and the output slot's frame are baked into the panel; the input side is blank art.
         background.draw(guiGraphics, 0, 0);
         JeiCategoryChrome.drawSlotFrame(slotFrame, guiGraphics, TOOL_X, INPUT_Y);

@@ -10,11 +10,11 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.player.Player;
@@ -34,8 +34,8 @@ import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 
 import net.neoforged.neoforge.common.world.BiomeModifier;
 import net.neoforged.neoforge.common.world.BiomeModifiers;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -114,8 +114,8 @@ public class TrackBOreGameTests {
 
     private static PlacedFeature getPlacedFeature(GameTestHelper helper, String name) {
         ResourceKey<PlacedFeature> key = ResourceKey.create(Registries.PLACED_FEATURE,
-                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name));
-        PlacedFeature feature = helper.getLevel().registryAccess().registryOrThrow(Registries.PLACED_FEATURE).get(key);
+                Identifier.fromNamespaceAndPath(Forgeweave.MODID, name));
+        PlacedFeature feature = helper.getLevel().registryAccess().lookupOrThrow(Registries.PLACED_FEATURE).get(key);
         helper.assertTrue(feature != null, "expected a placed feature registered as " + key.location());
         return feature;
     }
@@ -147,8 +147,8 @@ public class TrackBOreGameTests {
     @GameTest(template = "empty")
     public static void everyTrackBOreGeneratesOnlyInItsHostDimension(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        var biomeModifiers = level.registryAccess().registryOrThrow(NeoForgeRegistries.Keys.BIOME_MODIFIERS);
-        var biomes = level.registryAccess().registryOrThrow(Registries.BIOME);
+        var biomeModifiers = level.registryAccess().lookupOrThrow(NeoForgeRegistries.Keys.BIOME_MODIFIERS);
+        var biomes = level.registryAccess().lookupOrThrow(Registries.BIOME);
 
         Map<String, BiomeModifiers.AddFeaturesBiomeModifier> modifiers = new LinkedHashMap<>();
         for (String name : List.of("track_b_overworld_ores", "track_b_nether_ores", "track_b_end_ores")) {
@@ -172,10 +172,10 @@ public class TrackBOreGameTests {
 
         BiomeModifiers.AddFeaturesBiomeModifier endModifier = modifiers.get("track_b_end_ores");
         for (String id : List.of("end_highlands", "end_midlands", "end_barrens", "small_end_islands")) {
-            Holder<Biome> biome = biomes.getHolderOrThrow(ResourceKey.create(Registries.BIOME, ResourceLocation.withDefaultNamespace(id)));
+            Holder<Biome> biome = biomes.getHolderOrThrow(ResourceKey.create(Registries.BIOME, Identifier.withDefaultNamespace(id)));
             helper.assertTrue(endModifier.biomes().contains(biome), "expected track_b_end_ores to include " + id);
         }
-        Holder<Biome> theEnd = biomes.getHolderOrThrow(ResourceKey.create(Registries.BIOME, ResourceLocation.withDefaultNamespace("the_end")));
+        Holder<Biome> theEnd = biomes.getHolderOrThrow(ResourceKey.create(Registries.BIOME, Identifier.withDefaultNamespace("the_end")));
         helper.assertFalse(endModifier.biomes().contains(theEnd),
                 "track_b_end_ores must not include the central the_end island");
 
@@ -189,9 +189,9 @@ public class TrackBOreGameTests {
      */
     private static void assertReplacesItsHostRock(GameTestHelper helper, TrackBOre ore) {
         ResourceKey<ConfiguredFeature<?, ?>> key = ResourceKey.create(Registries.CONFIGURED_FEATURE,
-                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, ore.oreBlockId()));
+                Identifier.fromNamespaceAndPath(Forgeweave.MODID, ore.oreBlockId()));
         ConfiguredFeature<?, ?> configured =
-                helper.getLevel().registryAccess().registryOrThrow(Registries.CONFIGURED_FEATURE).get(key);
+                helper.getLevel().registryAccess().lookupOrThrow(Registries.CONFIGURED_FEATURE).get(key);
         helper.assertTrue(configured != null, "expected a configured feature registered as " + key.location());
         helper.assertTrue(configured.config() instanceof OreConfiguration,
                 ore.oreBlockId() + " must be a minecraft:ore feature");
@@ -200,7 +200,7 @@ public class TrackBOreGameTests {
         helper.assertTrue(targets.size() == 1, ore.oreBlockId() + " must have exactly one ore target");
         OreConfiguration.TargetBlockState target = targets.get(0);
 
-        Block host = BuiltInRegistries.BLOCK.get(ResourceLocation.parse(ore.host().targetBlock));
+        Block host = BuiltInRegistries.BLOCK.get(Identifier.parse(ore.host().targetBlock));
         helper.assertTrue(target.target.test(host.defaultBlockState(), helper.getLevel().getRandom()),
                 ore.oreBlockId() + " must replace " + ore.host().targetBlock + ", its " + ore.host() + " host rock");
         helper.assertTrue(target.state.is(ForgeweaveBlocks.trackBOre(ore.id()).get()),
@@ -210,7 +210,7 @@ public class TrackBOreGameTests {
     private static BiomeModifiers.AddFeaturesBiomeModifier getAddFeaturesBiomeModifier(
             GameTestHelper helper, Registry<BiomeModifier> registry, String name) {
         ResourceKey<BiomeModifier> key = ResourceKey.create(NeoForgeRegistries.Keys.BIOME_MODIFIERS,
-                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name));
+                Identifier.fromNamespaceAndPath(Forgeweave.MODID, name));
         BiomeModifier modifier = registry.get(key);
         helper.assertTrue(modifier != null, "expected a biome modifier registered as " + key.location());
         helper.assertTrue(modifier instanceof BiomeModifiers.AddFeaturesBiomeModifier,

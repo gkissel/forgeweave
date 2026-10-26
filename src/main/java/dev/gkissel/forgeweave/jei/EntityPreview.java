@@ -7,7 +7,7 @@ import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.entity.EntityType;
@@ -21,7 +21,7 @@ import net.minecraft.world.entity.LivingEntity;
  * <p>Upstream renders the entity through a Mantle custom JEI ingredient type ({@code
  * EntityIngredientRenderer}), machinery this project has no equivalent of, so this draws it directly
  * with vanilla's own {@code InventoryScreen#renderEntityInInventory} -- the lower-level call, not the
- * mouse-following wrapper: that one calls {@code GuiGraphics#enableScissor} with coordinates in
+ * mouse-following wrapper: that one calls {@code GuiGraphicsExtractor#enableScissor} with coordinates in
  * absolute window-pixel space, which would clip at the wrong place here since the viewer has already
  * translated the pose stack to the category's on-screen position. It needs only a live {@link
  * LivingEntity} instance, which {@link EntityType#create} builds against the client level for
@@ -35,7 +35,7 @@ public final class EntityPreview {
     private final Map<EntityType<?>, LivingEntity> renderEntities = new HashMap<>();
 
     /** Draws {@code type} fitted into the {@code size}x{@code size} box whose corner is {@code (x, y)}. */
-    public void draw(GuiGraphics guiGraphics, EntityType<?> type, int x, int y, int size) {
+    public void draw(GuiGraphicsExtractor guiGraphics, EntityType<?> type, int x, int y, int size) {
         LivingEntity entity = renderEntity(type);
         if (entity == null) {
             return;

@@ -25,7 +25,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -91,7 +91,7 @@ class OccultismRitualTest {
 
     private static Optional<ItemStack> bind(ForgeweaveOccultismCompat.Ritual ritual, ItemStack tool) {
         return ForgeweaveOccultismCompat.bind(registries, tool,
-                ResourceLocation.parse(ritual.modifier()), ritual.level());
+                Identifier.parse(ritual.modifier()), ritual.level());
     }
 
     // ----------------------------------------------------------------- the rows
@@ -171,7 +171,7 @@ class OccultismRitualTest {
 
         assertTrue(bound.isPresent(), ritual.name() + " should bind onto a freshly assembled pickaxe;"
                 + " every level in the roster is picked to fit a fresh tool's slot budget");
-        ModifierEntry entry = ForgeweaveModifiers.entry(bound.get(), ResourceLocation.parse(ritual.modifier()));
+        ModifierEntry entry = ForgeweaveModifiers.entry(bound.get(), Identifier.parse(ritual.modifier()));
         assertNotNull(entry, ritual.name() + " wrote no modifier entry at all");
         assertEquals(ritual.level(), entry.level(), ritual.name() + " must land at its roster level");
         assertTrue(ForgeweaveModifiers.of(tool).isEmpty(), "and must not have mutated the tool it was given");
@@ -189,7 +189,7 @@ class OccultismRitualTest {
         ItemStack bound = bind(ritual, tool).orElseThrow();
 
         int spent = before - ForgeweaveModifiers.freeSlots(bound);
-        ResourceLocation modifier = ResourceLocation.parse(ritual.modifier());
+        Identifier modifier = Identifier.parse(ritual.modifier());
         assertEquals(ForgeweaveModifiers.occupiedSlots(modifier, ritual.level()), spent,
                 ritual.name() + " must spend exactly what its entry occupies -- no free upgrade, and no"
                         + " double charge either");
@@ -219,7 +219,7 @@ class OccultismRitualTest {
     @Test
     void anUnknownModifierIsRefused() {
         assertTrue(ForgeweaveOccultismCompat.bind(registries, pickaxe(),
-                ResourceLocation.fromNamespaceAndPath("forgeweave", "no_such_modifier"), 1).isEmpty());
+                Identifier.fromNamespaceAndPath("forgeweave", "no_such_modifier"), 1).isEmpty());
     }
 
     /** Every level in the roster is at or under the modifier's own shipped Tool Station cap. */

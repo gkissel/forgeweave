@@ -9,7 +9,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ExtraCodecs;
 
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -56,7 +56,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 public record AlloyRecipe(List<FluidStack> inputs, FluidStack result, int priority) {
 
     public static final ResourceKey<Registry<AlloyRecipe>> REGISTRY = ResourceKey.createRegistryKey(
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "alloy_recipe"));
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "alloy_recipe"));
 
     /**
      * One {@code {"fluid": ..., "amount": ...}} entry, the same two keys {@link MeltingRecipe} and

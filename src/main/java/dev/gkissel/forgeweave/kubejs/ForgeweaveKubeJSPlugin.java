@@ -8,7 +8,7 @@ import dev.latvian.mods.kubejs.plugin.KubeJSPlugin;
 import dev.latvian.mods.kubejs.registry.ServerRegistryRegistry;
 import dev.latvian.mods.kubejs.script.ScriptManager;
 import dev.latvian.mods.kubejs.script.ScriptType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import dev.gkissel.forgeweave.api.trait.Trait;
 import dev.gkissel.forgeweave.casting.CastingRecipe;
@@ -123,7 +123,7 @@ public final class ForgeweaveKubeJSPlugin implements KubeJSPlugin {
          * @param id the trait id material JSON will name; rejected if a built-in Java trait owns it
          *     ({@link ForgeweaveTraits#registerScripted})
          */
-        public ScriptTrait register(ResourceLocation id) {
+        public ScriptTrait register(Identifier id) {
             ScriptTrait trait = new ScriptTrait();
             ForgeweaveTraits.registerScripted(id, trait);
             return trait;

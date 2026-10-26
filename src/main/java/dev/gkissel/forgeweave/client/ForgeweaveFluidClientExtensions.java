@@ -1,6 +1,6 @@
 package dev.gkissel.forgeweave.client;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.FastColor;
 
 import net.neoforged.api.distmarker.Dist;
@@ -39,12 +39,12 @@ public final class ForgeweaveFluidClientExtensions {
         int tint = FastColor.ARGB32.opaque(metal.color());
         event.registerFluidType(new IClientFluidTypeExtensions() {
             @Override
-            public ResourceLocation getStillTexture() {
+            public Identifier getStillTexture() {
                 return metal.stillTexture();
             }
 
             @Override
-            public ResourceLocation getFlowingTexture() {
+            public Identifier getFlowingTexture() {
                 return metal.flowingTexture();
             }
 

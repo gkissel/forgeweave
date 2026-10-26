@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.SharedConstants;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 
 import dev.gkissel.forgeweave.api.combat.CombatSeam;
@@ -194,10 +194,10 @@ class TraitReachabilityTest {
      */
     @Test
     void everyMaterialTraitIdResolvesToAnImplementation() throws IOException {
-        Set<ResourceLocation> implemented = allTraits().keySet();
+        Set<Identifier> implemented = allTraits().keySet();
         List<String> unimplemented = new ArrayList<>();
         for (MaterialFacts material : materials()) {
-            for (ResourceLocation id : material.grantedTraits().keySet()) {
+            for (Identifier id : material.grantedTraits().keySet()) {
                 if (!implemented.contains(id)) {
                     unimplemented.add(material.name() + " grants " + id);
                 }
@@ -214,13 +214,13 @@ class TraitReachabilityTest {
      */
     @Test
     void everyMaterialTraitCanFireOnSomePartTheMaterialBuilds() throws IOException {
-        Map<ResourceLocation, Set<Side>> traitSides = traitSides();
+        Map<Identifier, Set<Side>> traitSides = traitSides();
         List<MaterialFacts> materials = materials();
         assertFalse(materials.isEmpty(), "expected to find shipped materials to audit");
 
         List<String> stranded = new ArrayList<>();
         for (MaterialFacts material : materials) {
-            for (Map.Entry<ResourceLocation, Set<Side>> granted : material.grantedTraits().entrySet()) {
+            for (Map.Entry<Identifier, Set<Side>> granted : material.grantedTraits().entrySet()) {
                 Set<Side> reachable = traitSides.get(granted.getKey());
                 if (reachable == null || reachable.isEmpty()) {
                     continue; // unimplemented id, or a marker trait with no hooks at all
@@ -260,7 +260,7 @@ class TraitReachabilityTest {
      */
     @Test
     void everySideAMaterialBuildsHasATraitThatWorksThere() throws IOException {
-        Map<ResourceLocation, Set<Side>> traitSides = traitSides();
+        Map<Identifier, Set<Side>> traitSides = traitSides();
         List<String> gaps = new ArrayList<>();
 
         for (MaterialFacts material : materials()) {
@@ -326,7 +326,7 @@ class TraitReachabilityTest {
     }
 
     private static List<String> idleGrants() throws IOException {
-        Map<ResourceLocation, Set<Side>> traitSides = traitSides();
+        Map<Identifier, Set<Side>> traitSides = traitSides();
         List<String> idle = new ArrayList<>();
         for (MaterialFacts material : materials()) {
             if (!material.buildsTools() || !material.buildsArmor()) {
@@ -374,14 +374,14 @@ class TraitReachabilityTest {
      */
     @Test
     void writesTheMechanicalAuditTables() throws IOException {
-        Map<ResourceLocation, Set<Side>> traitSides = traitSides();
-        Map<ResourceLocation, List<String>> hooks = traitHooks();
+        Map<Identifier, Set<Side>> traitSides = traitSides();
+        Map<Identifier, List<String>> hooks = traitHooks();
         Path out = projectRoot().resolve("build/trait-audit");
         Files.createDirectories(out);
 
         StringBuilder traits = new StringBuilder("| Trait | Hooks it overrides | Tool side | Armor side |\n");
         traits.append("| --- | --- | --- | --- |\n");
-        for (ResourceLocation id : new TreeMap<>(hooks).keySet().stream().toList()) {
+        for (Identifier id : new TreeMap<>(hooks).keySet().stream().toList()) {
             Set<Side> sides = traitSides.getOrDefault(id, Set.of());
             traits.append("| `").append(id.getPath()).append("` | ")
                     .append(hooks.get(id).isEmpty() ? "none" : "`" + String.join("`, `", hooks.get(id)) + "`")
@@ -396,7 +396,7 @@ class TraitReachabilityTest {
             String builds = material.buildsTools() && material.buildsArmor() ? "tools and armor"
                     : material.buildsTools() ? "tools only"
                     : material.buildsArmor() ? "armor only" : "nothing";
-            for (Map.Entry<ResourceLocation, Set<Side>> granted : material.grantedTraits().entrySet()) {
+            for (Map.Entry<Identifier, Set<Side>> granted : material.grantedTraits().entrySet()) {
                 Set<Side> reachable = EnumSet.noneOf(Side.class);
                 reachable.addAll(traitSides.getOrDefault(granted.getKey(), Set.of()));
                 reachable.retainAll(granted.getValue());
@@ -424,45 +424,45 @@ class TraitReachabilityTest {
     // ------------------------------------------------------------------ the trait registries
 
     /** Every shipped trait id and the sides its hooks can run on. */
-    private static Map<ResourceLocation, Set<Side>> traitSides() throws IOException {
-        Map<ResourceLocation, Set<Side>> sides = new LinkedHashMap<>();
+    private static Map<Identifier, Set<Side>> traitSides() throws IOException {
+        Map<Identifier, Set<Side>> sides = new LinkedHashMap<>();
         allTraits().forEach((id, trait) -> sides.put(id, sidesOf(trait)));
         return sides;
     }
 
     /** Every shipped trait id and the {@link Trait} hooks its implementation overrides. */
-    private static Map<ResourceLocation, List<String>> traitHooks() throws IOException {
-        Map<ResourceLocation, List<String>> hooks = new LinkedHashMap<>();
+    private static Map<Identifier, List<String>> traitHooks() throws IOException {
+        Map<Identifier, List<String>> hooks = new LinkedHashMap<>();
         allTraits().forEach((id, trait) -> hooks.put(id, overridden(trait, Trait.class)));
         return hooks;
     }
 
     /** The Java roster plus every shipped {@code trait_definition}, keyed by id. */
-    private static Map<ResourceLocation, Trait> allTraits() throws IOException {
-        Map<ResourceLocation, Trait> all = new LinkedHashMap<>(javaTraits());
+    private static Map<Identifier, Trait> allTraits() throws IOException {
+        Map<Identifier, Trait> all = new LinkedHashMap<>(javaTraits());
         all.putAll(datapackTraits());
         return all;
     }
 
     @SuppressWarnings("unchecked")
-    private static Map<ResourceLocation, Trait> javaTraits() {
+    private static Map<Identifier, Trait> javaTraits() {
         try {
             var field = ForgeweaveTraits.class.getDeclaredField("REGISTRY");
             field.setAccessible(true);
-            return (Map<ResourceLocation, Trait>) field.get(null);
+            return (Map<Identifier, Trait>) field.get(null);
         } catch (ReflectiveOperationException e) {
             throw new AssertionError("ForgeweaveTraits.REGISTRY moved; the audit reads it to enumerate the "
                     + "built-in traits (issue #1092)", e);
         }
     }
 
-    private static Map<ResourceLocation, Trait> datapackTraits() throws IOException {
-        Map<ResourceLocation, Trait> traits = new LinkedHashMap<>();
+    private static Map<Identifier, Trait> datapackTraits() throws IOException {
+        Map<Identifier, Trait> traits = new LinkedHashMap<>();
         for (Path file : shippedFiles("/forgeweave/trait_definition/")) {
             JsonElement json = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8));
             TraitDefinition definition = TraitDefinition.CODEC.parse(JsonOps.INSTANCE, json)
                     .getOrThrow(message -> new AssertionError(file + ": " + message));
-            traits.put(ResourceLocation.fromNamespaceAndPath("forgeweave",
+            traits.put(Identifier.fromNamespaceAndPath("forgeweave",
                     file.getFileName().toString().replace(".json", "")), definition.trait());
         }
         return traits;
@@ -546,7 +546,7 @@ class TraitReachabilityTest {
      * need item and tag registries a unit test has no server for.
      */
     private record MaterialFacts(String name, boolean buildsTools, boolean buildsArmor,
-            Map<ResourceLocation, Set<Side>> grantedTraits) {}
+            Map<Identifier, Set<Side>> grantedTraits) {}
 
     private static List<MaterialFacts> materials() throws IOException {
         List<MaterialFacts> materials = new ArrayList<>();
@@ -591,10 +591,10 @@ class TraitReachabilityTest {
             built.add(PartItem.Kind.MAILLE);
         }
 
-        Map<ResourceLocation, Set<Side>> granted = new LinkedHashMap<>();
+        Map<Identifier, Set<Side>> granted = new LinkedHashMap<>();
         for (PartItem.Kind kind : built) {
             Side side = ARMOR_KINDS.contains(kind) ? Side.ARMOR : Side.TOOL;
-            for (ResourceLocation id : traitsForPart(json, kind)) {
+            for (Identifier id : traitsForPart(json, kind)) {
                 granted.computeIfAbsent(id, key -> EnumSet.noneOf(Side.class)).add(side);
             }
         }
@@ -603,9 +603,9 @@ class TraitReachabilityTest {
     }
 
     /** {@code Material.Traits#forPart}, read off the raw JSON: a scoped list replaces the general one. */
-    private static List<ResourceLocation> traitsForPart(JsonObject material, PartItem.Kind kind) {
+    private static List<Identifier> traitsForPart(JsonObject material, PartItem.Kind kind) {
         if (material.has("trait")) { // the pre-#94 single-trait shape
-            return List.of(ResourceLocation.parse(material.get("trait").getAsString()));
+            return List.of(Identifier.parse(material.get("trait").getAsString()));
         }
         JsonElement traits = material.get("traits");
         if (traits == null || !traits.isJsonObject()) {
@@ -619,17 +619,17 @@ class TraitReachabilityTest {
             case PLATING, MAILLE -> "armor";
             default -> null;
         };
-        List<ResourceLocation> scoped = scope == null ? List.of() : idList(scopes, scope);
+        List<Identifier> scoped = scope == null ? List.of() : idList(scopes, scope);
         return scoped.isEmpty() ? idList(scopes, "general") : scoped;
     }
 
-    private static List<ResourceLocation> idList(JsonObject object, String field) {
+    private static List<Identifier> idList(JsonObject object, String field) {
         JsonElement array = object.get(field);
         if (array == null || !array.isJsonArray()) {
             return List.of();
         }
-        List<ResourceLocation> ids = new ArrayList<>();
-        array.getAsJsonArray().forEach(element -> ids.add(ResourceLocation.parse(element.getAsString())));
+        List<Identifier> ids = new ArrayList<>();
+        array.getAsJsonArray().forEach(element -> ids.add(Identifier.parse(element.getAsString())));
         return ids;
     }
 

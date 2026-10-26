@@ -4,9 +4,9 @@ import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
@@ -18,13 +18,13 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ResolvableProfile;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.levelgen.LegacyRandomSource;
 import net.minecraft.world.phys.Vec3;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
@@ -217,7 +217,7 @@ public class BeheadingGameTests {
         ItemStack hatchet = ToolAssembly.toolAtForge(helper, player, pos, ForgeweaveItems.PART_AXE_HEAD.get(),
                 "paper", "paper", "paper");
         hatchet.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(
-                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "extra_slot"), 5)));
+                Identifier.fromNamespaceAndPath(Forgeweave.MODID, "extra_slot"), 5)));
 
         ItemStack beheading = applyReagent(helper, player, pos, hatchet, new ItemStack(Items.OBSIDIAN, CERTAIN));
         helper.assertTrue(Beheading.effectiveLevel(beheading) == CERTAIN,
@@ -232,7 +232,7 @@ public class BeheadingGameTests {
     /** One application through the station's own menu; same shape as {@code ModifierGameTests}'s. */
     private static ItemStack applyReagent(GameTestHelper helper, Player player, BlockPos pos, ItemStack tool,
             ItemStack reagent) {
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, tool);
         blockEntity.container().setItem(1, reagent);
         blockEntity.container().setItem(2, ItemStack.EMPTY);

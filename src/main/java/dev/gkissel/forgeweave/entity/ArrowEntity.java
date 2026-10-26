@@ -168,7 +168,7 @@ public class ArrowEntity extends net.minecraft.world.entity.projectile.AbstractA
             // a whisker (gravity itself is off, MaterialArrowItem#createProjectile).
             setDeltaMovement(getDeltaMovement().scale(1.0 / 0.99).subtract(0.0, ENDSPEED_DROOP, 0.0));
         }
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             // TraitHovering#onMovement's flame trail: one flame every other tick on average.
             if (!this.inGround && hasTrait(ForgeweaveTraits.HOVERING) && this.random.nextInt(2) == 0) {
                 level().addParticle(ParticleTypes.FLAME, getX(), getY(), getZ(),
@@ -226,7 +226,7 @@ public class ArrowEntity extends net.minecraft.world.entity.projectile.AbstractA
     @Override
     protected void onHitBlock(BlockHitResult result) {
         super.onHitBlock(result);
-        if (!level().isClientSide && hasTrait(ForgeweaveTraits.BREAKABLE)
+        if (!level().isClientSide() && hasTrait(ForgeweaveTraits.BREAKABLE)
                 && this.random.nextFloat() < BREAK_CHANCE) {
             discard();
         }

@@ -25,7 +25,7 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 
@@ -238,7 +238,7 @@ class ModifierBehaviorsTest {
                 .parse(conditional, JsonParser.parseString("{\"neoforge:conditions\":[{\"type\":\"neoforge:true\"}],"
                         + body))
                 .getOrThrow();
-        assertEquals(Optional.of(ResourceLocation.fromNamespaceAndPath("forgeweave", "stat_bonus")),
+        assertEquals(Optional.of(Identifier.fromNamespaceAndPath("forgeweave", "stat_bonus")),
                 passing.map(ModifierDefinition::behavior));
     }
 
@@ -250,7 +250,7 @@ class ModifierBehaviorsTest {
      */
     @Test
     void aPackDefinedModifierSavesAsIdAndLevelAndDecodesWithoutItsDefinition() {
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath("mypack", "frosty");
+        Identifier id = Identifier.fromNamespaceAndPath("mypack", "frosty");
 
         JsonElement encoded = ModifierEntry.CODEC.encodeStart(JsonOps.INSTANCE, new ModifierEntry(id, 2)).getOrThrow();
         assertEquals(JsonParser.parseString("{\"id\":\"mypack:frosty\",\"level\":2}"), encoded,

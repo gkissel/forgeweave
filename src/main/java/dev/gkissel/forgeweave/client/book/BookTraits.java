@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.trait.TraitFamilies;
@@ -27,7 +27,7 @@ import dev.gkissel.forgeweave.trait.TraitFamilies;
 public final class BookTraits {
 
     /** One level of a family: the id a material names, and every material that names it. */
-    public record Rung(ResourceLocation id, int level, List<ResourceLocation> materials) {
+    public record Rung(Identifier id, int level, List<Identifier> materials) {
 
         public Rung {
             materials = List.copyOf(materials);
@@ -45,7 +45,7 @@ public final class BookTraits {
         }
 
         /** The namespace-qualified id of the family's first level, which titles its page. */
-        public ResourceLocation id() {
+        public Identifier id() {
             return this.rungs.get(0).id();
         }
 
@@ -71,19 +71,19 @@ public final class BookTraits {
      * and each level's materials by id path. Deterministic: the map is sorted, so the reference
      * pages come out in the same order on every client.
      */
-    public static List<Family> families(List<Map.Entry<ResourceLocation, Material>> materials) {
+    public static List<Family> families(List<Map.Entry<Identifier, Material>> materials) {
         // family path -> level -> materials that grant that level
         Map<String, Map<Integer, Rung>> byFamily = new TreeMap<>();
-        for (Map.Entry<ResourceLocation, Material> entry : materials) {
-            for (ResourceLocation trait : entry.getValue().traits().all()) {
+        for (Map.Entry<Identifier, Material> entry : materials) {
+            for (Identifier trait : entry.getValue().traits().all()) {
                 int level = levelOf(trait);
                 Map<Integer, Rung> levels = byFamily.computeIfAbsent(
                         trait.getNamespace() + ":" + familyOf(trait), path -> new TreeMap<>());
                 Rung rung = levels.get(level);
-                List<ResourceLocation> granted = rung == null ? new ArrayList<>()
+                List<Identifier> granted = rung == null ? new ArrayList<>()
                         : new ArrayList<>(rung.materials());
                 granted.add(entry.getKey());
-                granted.sort(Comparator.comparing(ResourceLocation::getPath));
+                granted.sort(Comparator.comparing(Identifier::getPath));
                 levels.put(level, new Rung(rung == null ? trait : rung.id(), level, granted));
             }
         }
@@ -106,13 +106,13 @@ public final class BookTraits {
      * {@code alien}/{@code alien2} is a stateful pair -- and because the reference is built from
      * whatever the loaded materials name, which can include a datapack's own undeclared ladder.
      */
-    public static String familyOf(ResourceLocation trait) {
+    public static String familyOf(Identifier trait) {
         TraitFamilies.Rung declared = TraitFamilies.of(trait);
         return declared != null ? declared.family() : trailingDigitFamily(trait);
     }
 
     /** The level a trait id carries: its declared level, or its trailing number, or 1. */
-    public static int levelOf(ResourceLocation trait) {
+    public static int levelOf(Identifier trait) {
         TraitFamilies.Rung declared = TraitFamilies.of(trait);
         if (declared != null) {
             return declared.level();
@@ -121,7 +121,7 @@ public final class BookTraits {
         return digits.isEmpty() ? 1 : Integer.parseInt(digits);
     }
 
-    private static String trailingDigitFamily(ResourceLocation trait) {
+    private static String trailingDigitFamily(Identifier trait) {
         String path = trait.getPath();
         int end = path.length();
         // At most two digits, so a level always parses and an id that simply ends in a year keeps

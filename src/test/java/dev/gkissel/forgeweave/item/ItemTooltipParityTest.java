@@ -14,7 +14,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.Item;
@@ -173,7 +173,7 @@ class ItemTooltipParityTest {
         assertFalse(ForgeweaveItems.CLAY_CASTS.isEmpty());
         for (String castName : ForgeweaveItems.CLAY_CASTS.keySet()) {
             Item goldCast = BuiltInRegistries.ITEM
-                    .get(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, castName));
+                    .get(Identifier.fromNamespaceAndPath(Forgeweave.MODID, castName));
             assertEquals(List.of(reagentLine("tooltip.forgeweave.cast")),
                     hover(new ItemStack(goldCast)), castName + " (gold cast)");
             assertEquals(List.of(reagentLine("tooltip.forgeweave.clay_cast")),

@@ -89,7 +89,7 @@ public class ModifierWorktableBlock extends HorizontalDirectionalBlock implement
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
             BlockHitResult hit) {
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof ModifierWorktableBlockEntity worktable) {
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof ModifierWorktableBlockEntity worktable) {
             worktable.open(player); // carries the station-group tab row (issue #78)
         }
         return InteractionResult.SUCCESS;

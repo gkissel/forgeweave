@@ -29,7 +29,7 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 
@@ -194,7 +194,7 @@ class TraitDefinitionAuditTest {
         var field = ForgeweaveTraits.class.getDeclaredField("REGISTRY");
         field.setAccessible(true);
         Map<String, Trait> roster = new LinkedHashMap<>();
-        ((Map<ResourceLocation, Trait>) field.get(null))
+        ((Map<Identifier, Trait>) field.get(null))
                 .forEach((id, trait) -> roster.put(id.toString(), trait));
         return roster;
     }
@@ -335,7 +335,7 @@ class TraitDefinitionAuditTest {
      */
     @Test
     void theEssenceLadderRendersEachRungsOwnNameAndNumbers() throws IOException {
-        Map<ResourceLocation, TraitFamilies.Rung> rungs = new LinkedHashMap<>();
+        Map<Identifier, TraitFamilies.Rung> rungs = new LinkedHashMap<>();
         shippedDefinitions().forEach((id, definition) -> rungs.put(forgeweave(id), definition.rung()));
         TraitFamilies.datapack(rungs);
         try {
@@ -445,8 +445,8 @@ class TraitDefinitionAuditTest {
         return definitions;
     }
 
-    private static ResourceLocation forgeweave(String path) {
-        return ResourceLocation.fromNamespaceAndPath("forgeweave", path);
+    private static Identifier forgeweave(String path) {
+        return Identifier.fromNamespaceAndPath("forgeweave", path);
     }
 
     private static boolean isTraitDefinition(Path file) {

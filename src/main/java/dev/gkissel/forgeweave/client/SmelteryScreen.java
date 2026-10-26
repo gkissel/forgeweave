@@ -8,13 +8,13 @@ import javax.annotation.Nullable;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.FastColor;
 import net.minecraft.world.entity.player.Inventory;
@@ -77,8 +77,8 @@ import dev.gkissel.forgeweave.recipe.MeltingRecipe;
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class SmelteryScreen extends StationScreen<SmelteryMenu> {
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/smeltery.png");
+    private static final Identifier TEXTURE =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/smeltery.png");
     private static final int SHEET = 256;
 
     private static final int BASE_WIDTH = 176;
@@ -162,7 +162,7 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
     }
 
     @Override
-    protected void renderPanel(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
+    protected void renderPanel(GuiGraphicsExtractor graphics, float partialTick, int mouseX, int mouseY) {
         graphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, SHEET, SHEET);
         renderMeltGrid(graphics);
         renderFuel(graphics);
@@ -195,7 +195,7 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
      * {@link SmelteryMenu#MELT_MAX_ROWS}, with the last row's spare cells drawn in upstream's own
      * "no slot here" tile and a slider past the cap.
      */
-    private void renderMeltGrid(GuiGraphics graphics) {
+    private void renderMeltGrid(GuiGraphicsExtractor graphics) {
         int slots = menu.meltSlotCount();
         int rows = SmelteryMenu.visibleMeltRows(slots);
         int gridX = SmelteryMenu.gridX(slots);
@@ -223,7 +223,7 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
      * ({@code GuiSideInventory#updatePosition} enables it on exactly that condition) -- the same
      * widget, from the same sheet, that {@link SideInventoryPanel} gives the station side panels.
      */
-    private void renderSlider(GuiGraphics graphics, int slots, int gridLeft, int gridTop, int rows) {
+    private void renderSlider(GuiGraphicsExtractor graphics, int slots, int gridLeft, int gridTop, int rows) {
         int maxScrollRow = SmelteryMenu.meltScrollRows(slots);
         if (maxScrollRow <= 0) {
             sliderTrack = new Rect2i(0, 0, 0, 0);
@@ -247,7 +247,7 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
      * enough" by looking. {@link #heatBarTooltip} is the other half (#377): hovering a bar says which
      * of them it is in words.
      */
-    private void renderHeatBars(GuiGraphics graphics, int slots, int rows, int gridLeft, int gridTop) {
+    private void renderHeatBars(GuiGraphicsExtractor graphics, int slots, int rows, int gridLeft, int gridTop) {
         List<ItemStack> items = menu.meltingItems(level());
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < SmelteryMenu.MELT_COLUMNS; col++) {
@@ -348,7 +348,7 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
      * a fully built, fully fuelled structure otherwise has no way to find that out.
      */
     @Override
-    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
+    protected void renderLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         Component notice = menu.disabledNotice();
         if (notice == null) {
             return;
@@ -361,7 +361,7 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
 
     /* Tank */
 
-    private void renderTank(GuiGraphics graphics) {
+    private void renderTank(GuiGraphicsExtractor graphics) {
         List<FluidStack> fluids = menu.fluids(level());
         int[] heights = fluidHeights(fluids, capacity(fluids), TANK_HEIGHT);
         int bottom = topPos + TANK_Y + TANK_HEIGHT;
@@ -498,7 +498,7 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
 
     /* Fuel -- see SmelteryMenu#fuel for where the fill actually comes from. */
 
-    private void renderFuel(GuiGraphics graphics) {
+    private void renderFuel(GuiGraphicsExtractor graphics) {
         FluidStack fuel = menu.fuel(level());
         int capacity = menu.fuelCapacity(level());
         if (fuel.isEmpty() || capacity <= 0) {
@@ -517,10 +517,10 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
      * at each edge. Scissoring the rectangle and drawing whole tiles over it produces the identical
      * pixels -- a clipped tile shows exactly the sprite's leading rows and columns, which is what
      * those interpolated UVs select -- in a fraction of the code, and without reaching past
-     * {@link GuiGraphics} into the buffer builder. Static (#442) so {@link SearedFurnaceScreen}'s
+     * {@link GuiGraphicsExtractor} into the buffer builder. Static (#442) so {@link SearedFurnaceScreen}'s
      * fuel gauge draws with the same code.
      */
-    static void renderFluid(GuiGraphics graphics, FluidStack fluid, int x, int y, int width, int height) {
+    static void renderFluid(GuiGraphicsExtractor graphics, FluidStack fluid, int x, int y, int width, int height) {
         if (fluid.isEmpty() || width <= 0 || height <= 0) {
             return;
         }
@@ -547,7 +547,7 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
     /* Tooltips */
 
     @Override
-    protected void renderTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
+    protected void renderTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         super.renderTooltip(graphics, mouseX, mouseY);
         if (isHovering(TANK_X, TANK_Y, TANK_WIDTH, TANK_HEIGHT, mouseX, mouseY)) {
             graphics.renderComponentTooltip(font, tankTooltip(mouseX, mouseY), mouseX, mouseY);
@@ -768,7 +768,7 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
         if (level == null || fluid.isEmpty()) {
             return false;
         }
-        return CastingRecipe.find(level.registryAccess().registryOrThrow(CastingRecipe.REGISTRY),
+        return CastingRecipe.find(level.registryAccess().lookupOrThrow(CastingRecipe.REGISTRY),
                 CastingRecipe.Station.TABLE, new ItemStack(ForgeweaveItems.CAST_GEM.get()), fluid.getFluid()) != null;
     }
 

@@ -3,7 +3,7 @@ package dev.gkissel.forgeweave.compat.mysticalagriculture;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 
 import net.neoforged.neoforge.registries.DeferredBlock;
@@ -71,8 +71,8 @@ public record ForgeweaveCrop(String id, String displayName, EssenceTier tier, De
     public static final List<ForgeweaveCrop> ALL = build();
 
     /** The crop's full id, {@code forgeweave:<id>}. */
-    public ResourceLocation cropId() {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, id);
+    public Identifier cropId() {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, id);
     }
 
     /** The item a harvest yields, which Mystical Agriculture registers as {@code <id>_essence}. */

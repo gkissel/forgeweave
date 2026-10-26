@@ -83,7 +83,7 @@ public class SearedReservoirControllerBlock extends HorizontalDirectionalBlock i
     /** Rescans, then opens the reservoir GUI or -- when nothing formed -- says why in chat, as the cores do. */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof SearedReservoirBlockEntity reservoir) {
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof SearedReservoirBlockEntity reservoir) {
             reservoir.updateStructure();
             if (reservoir.isFormed()) {
                 reservoir.open(player);

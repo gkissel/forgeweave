@@ -8,7 +8,7 @@ import java.util.function.Supplier;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 
@@ -453,24 +453,24 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
     }
 
     /** NeoForge's stock bucket container model: vanilla's {@code item/bucket} sprite plus NeoForge's fluid mask (#286). */
-    private static final ResourceLocation BUCKET_MODEL_PARENT =
-            ResourceLocation.fromNamespaceAndPath("neoforge", "item/bucket");
+    private static final Identifier BUCKET_MODEL_PARENT =
+            Identifier.fromNamespaceAndPath("neoforge", "item/bucket");
 
-    private ResourceLocation derivedItem(String name) {
+    private Identifier derivedItem(String name) {
         return modLoc("derived/item/" + name);
     }
 
-    private ResourceLocation itemTexture(String name) {
+    private Identifier itemTexture(String name) {
         return modLoc("item/" + name);
     }
 
-    private ResourceLocation toolLayer(String tool, String layer) {
+    private Identifier toolLayer(String tool, String layer) {
         return modLoc(ToolArt.layer(tool, layer));
     }
 
     // Unchecked parent, matching basicItem()'s approach: "item/generated" is a vanilla builtin
     // model that isn't guaranteed to resolve through ExistingFileHelper in every datagen run mode.
-    private void singleLayerModel(DeferredItem<? extends Item> item, ResourceLocation texture) {
+    private void singleLayerModel(DeferredItem<? extends Item> item, Identifier texture) {
         getBuilder(item.getId().toString())
                 .parent(new ModelFile.UncheckedModelFile("item/generated"))
                 .texture("layer0", texture);
@@ -610,8 +610,8 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
      * itself moved to once it was on a modern Minecraft ({@code TinkerItemProperties#BROKEN_ID} and
      * the {@code "tconstruct:broken": 1} override in the 1.20 clone's {@code models/item/pickaxe.json}).
      */
-    private static final ResourceLocation BROKEN_PREDICATE =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "broken");
+    private static final Identifier BROKEN_PREDICATE =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "broken");
 
     /**
      * The three draw-state predicates (M3.5 issue #400), the other half of the properties
@@ -619,14 +619,14 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
      * vanilla's namespace (they are vanilla's own names for a drawn bow, and upstream 1.12's) while
      * {@code loaded} is Forgeweave's own.
      */
-    private static final ResourceLocation PULLING_PREDICATE = ResourceLocation.withDefaultNamespace("pulling");
-    private static final ResourceLocation PULL_PREDICATE = ResourceLocation.withDefaultNamespace("pull");
-    private static final ResourceLocation LOADED_PREDICATE =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "loaded");
+    private static final Identifier PULLING_PREDICATE = Identifier.withDefaultNamespace("pulling");
+    private static final Identifier PULL_PREDICATE = Identifier.withDefaultNamespace("pull");
+    private static final Identifier LOADED_PREDICATE =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "loaded");
 
     /** Issue #723's held-pose switch, {@code ForgeweaveItemProperties#modernPose}'s other half. */
-    private static final ResourceLocation MODERN_POSE_PREDICATE =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "modern_pose");
+    private static final Identifier MODERN_POSE_PREDICATE =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "modern_pose");
 
     /**
      * The held-render transform set every tool inherits (issue #217). Vanilla's {@code item/handheld}

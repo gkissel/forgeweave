@@ -34,7 +34,7 @@ import dev.gkissel.forgeweave.tool.ToolArt;
  * checkers on nearly every item after the {@code textures/derived/} reorganization). Scans every
  * block/item model JSON under {@code src/main/resources} and {@code src/generated/resources} for
  * {@code forgeweave:}-namespaced texture references, plus every hardcoded GUI background
- * {@link net.minecraft.resources.ResourceLocation} texture path in {@code src/main/java}, and
+ * {@link net.minecraft.resources.Identifier} texture path in {@code src/main/java}, and
  * asserts (a) the referenced PNG actually exists on disk, and (b) it's actually stitched into the
  * block atlas -- since 1.19.3, block/item models can only render sprites the atlas knows about,
  * which by default is only {@code textures/block/} and {@code textures/item/}; every other
@@ -49,11 +49,11 @@ import dev.gkissel.forgeweave.tool.ToolArt;
 class TextureReferenceAuditTest {
 
     /**
-     * Only matches literals passed to {@code ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, ...)}
+     * Only matches literals passed to {@code Identifier.fromNamespaceAndPath(Forgeweave.MODID, ...)}
      * -- the convention every forgeweave-owned GUI texture constant uses (see {@code PartBuilderScreen},
      * {@code ToolStationScreen}, {@code StencilTableScreen}, {@code InfoPanel}). {@code CraftingStationScreen}
      * (issue #40/#59) instead points at vanilla's own {@code textures/gui/container/crafting_table.png}
-     * via {@code ResourceLocation.withDefaultNamespace(...)}, deliberately -- there is no forgeweave asset
+     * via {@code Identifier.withDefaultNamespace(...)}, deliberately -- there is no forgeweave asset
      * to derive or audit for that path, so this pattern must not match it (or its javadoc mention).
      */
     private static final Pattern GUI_TEXTURE_LITERAL =

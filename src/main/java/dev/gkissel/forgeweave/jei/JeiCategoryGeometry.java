@@ -1,9 +1,9 @@
 package dev.gkissel.forgeweave.jei;
 
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import dev.gkissel.forgeweave.Forgeweave;
 
@@ -36,14 +36,14 @@ public final class JeiCategoryGeometry {
      * One upstream {@code IGuiHelper#createDrawable} call: which texture, the rect inside it, and
      * therefore the category's own {@code getWidth()}/{@code getHeight()}.
      */
-    public record Panel(ResourceLocation background, int u, int v, int width, int height) {}
+    public record Panel(Identifier background, int u, int v, int width, int height) {}
 
-    private static ResourceLocation derived(String fileName) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/jei/" + fileName);
+    private static Identifier derived(String fileName) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/jei/" + fileName);
     }
 
     /** The derived copy of upstream's `textures/gui/jei/tinker_station.png` (NOTICE.md). */
-    public static final ResourceLocation TINKER_STATION = derived("tinker_station.png");
+    public static final Identifier TINKER_STATION = derived("tinker_station.png");
 
     /** Upstream {@code AlloyRecipeCategory}: `createDrawable(alloy.png, 0, 0, 172, 62)`. */
     public static final Panel ALLOYING = new Panel(derived("alloy.png"), 0, 0, 172, 62);
@@ -86,13 +86,13 @@ public final class JeiCategoryGeometry {
     public static final int SLOT_FRAME_SIZE = 18;
 
     /** Draws {@code text} centred on {@code centerX}, the way every upstream category centres its own. */
-    public static void drawCentered(GuiGraphics guiGraphics, Font font, Component text, int centerX, int y, int colour, boolean shadow) {
+    public static void drawCentered(GuiGraphicsExtractor guiGraphics, Font font, Component text, int centerX, int y, int colour, boolean shadow) {
         guiGraphics.drawString(font, text, centerX - font.width(text) / 2, y, colour, shadow);
     }
 
     /**
      * Issue #804: {@code EmbossingCategory} and {@code ModifierApplicationCategory} both draw a
-     * datapack-named modifier/material with plain {@code GuiGraphics#drawString} -- unlike JEI's own
+     * datapack-named modifier/material with plain {@code GuiGraphicsExtractor#drawString} -- unlike JEI's own
      * ingredient-slot rendering, a raw {@code drawString} call has no scissor of its own, so a name
      * longer than the panel (real examples: the "Projectile Protection" trait, the "Embossment
      * (Purple Slimevine)" material name) drew straight out past the JEI popup's edge. Ellipsizes with

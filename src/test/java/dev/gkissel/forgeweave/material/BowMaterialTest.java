@@ -28,7 +28,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Items;
@@ -69,7 +69,7 @@ class BowMaterialTest {
                 Optional.of(new Material.Head(200, 5.0f, 2.5f)),
                 Optional.of(new Material.Handle(1.1f, 50)),
                 Optional.of(65),
-                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool")),
+                TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace("incorrect_for_stone_tool")),
                 new Material.Traits(List.of(), List.of()),
                 List.of(new Material.CraftingItem(Ingredient.of(Items.BONE), 2)),
                 Ingredient.of(Items.BONE),
@@ -111,7 +111,7 @@ class BowMaterialTest {
                 Optional.of(new Material.Head(200, 5.0f, 2.5f)),
                 Optional.of(new Material.Handle(1.1f, 50)),
                 Optional.of(65),
-                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool")),
+                TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace("incorrect_for_stone_tool")),
                 new Material.Traits(List.of(), List.of()),
                 List.of(),
                 Ingredient.of(Items.BONE),

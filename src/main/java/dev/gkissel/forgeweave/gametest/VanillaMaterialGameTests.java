@@ -6,9 +6,9 @@ import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -19,8 +19,8 @@ import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.CastingBlockEntity;
@@ -63,7 +63,7 @@ public class VanillaMaterialGameTests {
      */
     @GameTest(template = "empty")
     public static void vanillaMaterialsExposeTheirCloneTraitWiring(GameTestHelper helper) {
-        Registry<Material> materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
+        Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         Map<String, List<String>> general = Map.of(
                 "cactus", List.of("spiky"),
                 "obsidian", List.of("duritos"),
@@ -87,11 +87,11 @@ public class VanillaMaterialGameTests {
                 "obsidian", List.of("blast_protection"));
 
         general.forEach((name, generalTraits) -> {
-            Material material = materials.get(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name));
+            Material material = materials.get(Identifier.fromNamespaceAndPath(Forgeweave.MODID, name));
             helper.assertTrue(material != null, name + " should be in the synced material registry");
             for (PartItem.Kind kind : PartItem.Kind.values()) {
                 boolean armorPart = kind == PartItem.Kind.PLATING || kind == PartItem.Kind.MAILLE;
-                List<ResourceLocation> expected = (kind == PartItem.Kind.HEAD ? head.get(name)
+                List<Identifier> expected = (kind == PartItem.Kind.HEAD ? head.get(name)
                         : armorPart ? armor.getOrDefault(name, generalTraits) : generalTraits)
                         .stream().map(VanillaMaterialGameTests::traitId).toList();
                 helper.assertTrue(expected.equals(material.traits().forPart(kind)),
@@ -111,7 +111,7 @@ public class VanillaMaterialGameTests {
     public static void waterAndLavaAlloyIntoObsidianAtUpstreamsRatio(GameTestHelper helper) {
         SmelteryGameTests.buildWalls(helper, 1, 1, 2);
         BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
-        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
 
         core.tank().fill(new FluidStack(Fluids.WATER, 125), IFluidHandler.FluidAction.EXECUTE);
@@ -132,25 +132,25 @@ public class VanillaMaterialGameTests {
     @GameTest(template = "empty", timeoutTicks = 400)
     public static void obsidianCastsAPickaxeHeadAtTheTable(GameTestHelper helper) {
         helper.setBlock(TANK, ForgeweaveBlocks.SEARED_TANK.get());
-        helper.<SearedTankBlockEntity>getBlockEntity(TANK).tank()
+        helper.getBlockEntity(TANK, SearedTankBlockEntity.class).tank()
                 .fill(new FluidStack(ForgeweaveFluids.OBSIDIAN.still().get(), SearedTankBlockEntity.CAPACITY),
                         IFluidHandler.FluidAction.EXECUTE);
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_TABLE.get());
         helper.setBlock(FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
                 .setValue(FaucetBlock.FACING, Direction.WEST));
-        CastingBlockEntity table = helper.getBlockEntity(CASTING);
+        CastingBlockEntity table = helper.getBlockEntity(CASTING, CastingBlockEntity.class);
 
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ForgeweaveItems.CAST_PICKAXE_HEAD.get()));
         table.interact(player, InteractionHand.MAIN_HAND);
         helper.assertTrue(table.input().is(ForgeweaveItems.CAST_PICKAXE_HEAD.get()),
                 "expected the right-click to put the cast in");
-        helper.<FaucetBlockEntity>getBlockEntity(FAUCET).activate();
+        helper.getBlockEntity(FAUCET, FaucetBlockEntity.class).activate();
 
         helper.succeedWhen(() -> {
             helper.assertTrue(table.output().is(ForgeweaveItems.PART_PICKAXE_HEAD.get()),
                     "expected an obsidian pickaxe head, found " + table.output());
-            helper.assertTrue(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "obsidian")
+            helper.assertTrue(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "obsidian")
                             .equals(table.output().get(ForgeweaveDataComponents.MATERIAL.get())),
                     "expected the part to carry the obsidian material");
             helper.assertTrue(table.input().is(ForgeweaveItems.CAST_PICKAXE_HEAD.get()),
@@ -166,7 +166,7 @@ public class VanillaMaterialGameTests {
     @GameTest(template = "empty", timeoutTicks = 400)
     public static void theBasinCastsAnObsidianBlock(GameTestHelper helper) {
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_BASIN.get());
-        CastingBlockEntity basin = helper.getBlockEntity(CASTING);
+        CastingBlockEntity basin = helper.getBlockEntity(CASTING, CastingBlockEntity.class);
 
         IFluidHandler handler = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK,
                 helper.absolutePos(CASTING), Direction.UP);
@@ -179,7 +179,7 @@ public class VanillaMaterialGameTests {
                 "expected an obsidian block, found " + basin.output()));
     }
 
-    private static ResourceLocation traitId(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier traitId(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 }

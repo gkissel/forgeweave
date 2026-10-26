@@ -2,7 +2,7 @@ package dev.gkissel.forgeweave.jei;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.material.Fluid;
 
@@ -141,7 +141,7 @@ final class EntityMeltingCategory implements IRecipeCategory<EntityMeltingDispla
     }
 
     @Override
-    public void draw(EntityMeltingDisplay recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
+    public void draw(EntityMeltingDisplay recipe, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
         background.draw(guiGraphics, 0, 0);
         arrow.draw(guiGraphics, ARROW_X, ARROW_Y);
         Font font = Minecraft.getInstance().font;

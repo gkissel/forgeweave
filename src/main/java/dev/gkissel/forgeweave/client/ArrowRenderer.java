@@ -9,7 +9,7 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemDisplayContext;
 
@@ -55,7 +55,7 @@ public class ArrowRenderer extends EntityRenderer<ArrowEntity> {
     }
 
     @Override
-    public ResourceLocation getTextureLocation(ArrowEntity entity) {
+    public Identifier getTextureLocation(ArrowEntity entity) {
         return TextureAtlas.LOCATION_BLOCKS; // the item model's own atlas; this renderer never binds it directly
     }
 }

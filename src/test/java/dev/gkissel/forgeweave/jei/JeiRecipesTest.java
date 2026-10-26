@@ -16,7 +16,7 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -64,8 +64,8 @@ class JeiRecipesTest {
                 Optional.of(new Material.Head(100, 1.0f, 1.0f)),
                 Optional.of(new Material.Handle(1.0f, 10)),
                 Optional.of(5),
-                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_wooden_tool")),
-                Material.Traits.general(ResourceLocation.fromNamespaceAndPath("forgeweave", "ecological")),
+                TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace("incorrect_for_wooden_tool")),
+                Material.Traits.general(Identifier.fromNamespaceAndPath("forgeweave", "ecological")),
                 craftingItems,
                 repairItem,
                 TextColor.fromRgb(0xFFFFFF),
@@ -87,7 +87,7 @@ class JeiRecipesTest {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
-                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool")),
+                TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace("incorrect_for_stone_tool")),
                 new Material.Traits(List.of(), List.of()),
                 List.of(craftingItem(Items.STRING, 2)),
                 Ingredient.of(Items.STRING),
@@ -102,7 +102,7 @@ class JeiRecipesTest {
                 Optional.of(new Material.Head(100, 1.0f, 1.0f)),
                 Optional.of(new Material.Handle(1.0f, 10)),
                 Optional.of(5),
-                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_diamond_tool")),
+                TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace("incorrect_for_diamond_tool")),
                 new Material.Traits(List.of(), List.of()),
                 List.of(craftingItem(Items.IRON_INGOT, 2)),
                 Ingredient.of(Items.IRON_INGOT),
@@ -117,15 +117,15 @@ class JeiRecipesTest {
     }
 
     /** wood: stick=shard, planks=ingot, log=4 ingots -- the real shipped wood.json values (issue #45, T58 units). */
-    private static Map<ResourceLocation, Material> twoMaterials() {
-        Map<ResourceLocation, Material> materials = new LinkedHashMap<>();
-        materials.put(ResourceLocation.fromNamespaceAndPath("forgeweave", "wood"),
+    private static Map<Identifier, Material> twoMaterials() {
+        Map<Identifier, Material> materials = new LinkedHashMap<>();
+        materials.put(Identifier.fromNamespaceAndPath("forgeweave", "wood"),
                 material(List.of(
                         craftingItem(Items.STICK, PartBuilderRecipes.SHARD_VALUE),
                         craftingItem(Items.OAK_PLANKS, PartBuilderRecipes.INGOT_VALUE),
                         craftingItem(Items.OAK_LOG, 4 * PartBuilderRecipes.INGOT_VALUE)),
                         Ingredient.of(Items.OAK_PLANKS)));
-        materials.put(ResourceLocation.fromNamespaceAndPath("forgeweave", "stone"),
+        materials.put(Identifier.fromNamespaceAndPath("forgeweave", "stone"),
                 material(List.of(craftingItem(Items.COBBLESTONE, PartBuilderRecipes.INGOT_VALUE)), Ingredient.of(Items.COBBLESTONE)));
         return materials;
     }
@@ -188,8 +188,8 @@ class JeiRecipesTest {
      */
     @Test
     void bowAssemblySlotsOnlyCycleMaterialsWithThatSlotsStatBlock() {
-        Map<ResourceLocation, Material> materials = new LinkedHashMap<>(twoMaterials());
-        materials.put(ResourceLocation.fromNamespaceAndPath("forgeweave", "string"), bowstringOnlyMaterial());
+        Map<Identifier, Material> materials = new LinkedHashMap<>(twoMaterials());
+        materials.put(Identifier.fromNamespaceAndPath("forgeweave", "string"), bowstringOnlyMaterial());
 
         AssemblyRecipe shortbow = recipeFor(AssemblyRecipes.build(materials),
                 ForgeweaveItems.TOOL_SHORTBOW.get());
@@ -223,8 +223,8 @@ class JeiRecipesTest {
      */
     @Test
     void partCraftingSkipsPartsAMaterialHasNoStatBlockFor() {
-        Map<ResourceLocation, Material> materials = new LinkedHashMap<>();
-        materials.put(ResourceLocation.fromNamespaceAndPath("forgeweave", "string"), bowstringOnlyMaterial());
+        Map<Identifier, Material> materials = new LinkedHashMap<>();
+        materials.put(Identifier.fromNamespaceAndPath("forgeweave", "string"), bowstringOnlyMaterial());
 
         List<PartCraftingRecipe> recipes = PartCraftingRecipes.build(materials);
 
@@ -307,7 +307,7 @@ class JeiRecipesTest {
 
     @Test
     void assemblyHasOneRecipePerToolTypeWithEveryMaterialCycling() {
-        Map<ResourceLocation, Material> materials = twoMaterials();
+        Map<Identifier, Material> materials = twoMaterials();
         List<AssemblyRecipe> recipes = AssemblyRecipes.build(materials);
 
         // One per assemblable tool: M1's three plus M3's six station weapons (issue #155). The
@@ -327,7 +327,7 @@ class JeiRecipesTest {
 
     @Test
     void repairHasOneRecipePerMaterialCoveringEveryToolType() {
-        Map<ResourceLocation, Material> materials = twoMaterials();
+        Map<Identifier, Material> materials = twoMaterials();
         List<RepairRecipe> recipes = RepairRecipes.build(materials);
 
         assertEquals(materials.size(), recipes.size());
@@ -361,8 +361,8 @@ class JeiRecipesTest {
      */
     @Test
     void partCraftingSkipsCastOnlyMaterials() {
-        Map<ResourceLocation, Material> materials = new LinkedHashMap<>();
-        materials.put(ResourceLocation.fromNamespaceAndPath("forgeweave", "iron"), castOnlyMaterial());
+        Map<Identifier, Material> materials = new LinkedHashMap<>();
+        materials.put(Identifier.fromNamespaceAndPath("forgeweave", "iron"), castOnlyMaterial());
 
         assertTrue(PartCraftingRecipes.build(materials).isEmpty(),
                 "a cast-only material stamps no part in the Part Builder, so JEI shows none");
@@ -372,7 +372,7 @@ class JeiRecipesTest {
 
     @Test
     void emptyMaterialsProduceNoRecipes() {
-        Map<ResourceLocation, Material> none = Map.of();
+        Map<Identifier, Material> none = Map.of();
 
         assertTrue(PartCraftingRecipes.build(none).isEmpty());
         assertTrue(AssemblyRecipes.build(none).isEmpty());
@@ -383,7 +383,7 @@ class JeiRecipesTest {
 
     @Test
     void meltingBuildsOneDisplayPerNonCollidingRecipe() {
-        Map<ResourceLocation, MeltingRecipe> recipes = new LinkedHashMap<>();
+        Map<Identifier, MeltingRecipe> recipes = new LinkedHashMap<>();
         recipes.put(id("iron_ingot"), new MeltingRecipe(Ingredient.of(Items.IRON_INGOT), Fluids.LAVA, 144, 534, false));
 
         List<MeltingDisplay> displays = MeltingRecipes.build(recipes, Map.of());
@@ -407,10 +407,10 @@ class JeiRecipesTest {
      */
     @Test
     void meltingFuelsAreFilteredToWhicheverFuelsReachTheRecipesTemperature() {
-        Map<ResourceLocation, MeltingRecipe> recipes = new LinkedHashMap<>();
+        Map<Identifier, MeltingRecipe> recipes = new LinkedHashMap<>();
         recipes.put(id("iron_ingot"), new MeltingRecipe(Ingredient.of(Items.IRON_INGOT), Fluids.LAVA, 144, 1300, false));
 
-        Map<ResourceLocation, SmelteryFuel> fuels = new LinkedHashMap<>();
+        Map<Identifier, SmelteryFuel> fuels = new LinkedHashMap<>();
         fuels.put(id("lava"), new SmelteryFuel(Fluids.LAVA, 50, 100, 1300)); // exactly at the recipe's temperature
         fuels.put(id("blazing_blood"), new SmelteryFuel(Fluids.WATER, 50, 100, 1500)); // hotter
         fuels.put(id("too_cold"), new SmelteryFuel(Fluids.WATER, 50, 100, 1000)); // not hot enough
@@ -443,7 +443,7 @@ class JeiRecipesTest {
      */
     @Test
     void meltingViewDedupesAnItemMatchedByTwoOverlappingRecipes() {
-        Map<ResourceLocation, MeltingRecipe> recipes = new LinkedHashMap<>();
+        Map<Identifier, MeltingRecipe> recipes = new LinkedHashMap<>();
         MeltingRecipe broadDefault = new MeltingRecipe(
                 Ingredient.of(Items.COPPER_INGOT, Items.GOLD_INGOT), Fluids.LAVA, 144, 500, true);
         MeltingRecipe specificOverride = new MeltingRecipe(Ingredient.of(Items.COPPER_INGOT), Fluids.LAVA, 504, 500, true);
@@ -469,7 +469,7 @@ class JeiRecipesTest {
 
     @Test
     void meltingViewOmitsARecipeThatLosesEveryCandidateItem() {
-        Map<ResourceLocation, MeltingRecipe> recipes = new LinkedHashMap<>();
+        Map<Identifier, MeltingRecipe> recipes = new LinkedHashMap<>();
         // Both recipes claim only copper ingot; "loses_entirely" always loses the tie-break to
         // "always_wins" since a plain equal-specificity tie still needs a deterministic pick.
         recipes.put(id("loses_entirely"), new MeltingRecipe(Ingredient.of(Items.COPPER_INGOT), Fluids.LAVA, 100, 500, false));
@@ -482,7 +482,7 @@ class JeiRecipesTest {
 
     @Test
     void alloyingCarriesTheRecipesRatioAndResultUnchanged() {
-        Map<ResourceLocation, AlloyRecipe> recipes = new LinkedHashMap<>();
+        Map<Identifier, AlloyRecipe> recipes = new LinkedHashMap<>();
         AlloyRecipe manyullyn = new AlloyRecipe(
                 List.of(new FluidStack(Fluids.LAVA, 2), new FluidStack(Fluids.WATER, 2)),
                 new FluidStack(Fluids.FLOWING_LAVA, 2), 0);
@@ -496,7 +496,7 @@ class JeiRecipesTest {
 
     @Test
     void castingSplitsOneRegistryIntoTableAndBasinByStation() {
-        Map<ResourceLocation, CastingRecipe> recipes = new LinkedHashMap<>();
+        Map<Identifier, CastingRecipe> recipes = new LinkedHashMap<>();
         CastingRecipe tableRecipe = new CastingRecipe(CastingRecipe.Station.TABLE, Optional.of(Ingredient.of(Items.STICK)),
                 Optional.of(Fluids.LAVA), 144, new ItemStack(Items.IRON_INGOT), Optional.empty(), false, false);
         CastingRecipe basinRecipe = new CastingRecipe(CastingRecipe.Station.BASIN, Optional.empty(),
@@ -516,13 +516,13 @@ class JeiRecipesTest {
      */
     @Test
     void modifierApplicationShowsBothRecipesThatTargetTheSameModifier() {
-        Map<ResourceLocation, ModifierRecipe> recipes = new LinkedHashMap<>();
+        Map<Identifier, ModifierRecipe> recipes = new LinkedHashMap<>();
         ModifierRecipe crafted = new ModifierRecipe(
-                ResourceLocation.fromNamespaceAndPath("forgeweave", "extra_slot"),
+                Identifier.fromNamespaceAndPath("forgeweave", "extra_slot"),
                 List.of(new ModifierRecipe.Reagent(Ingredient.of(ForgeweaveItems.EXTRA_MODIFIER.get()), 1)),
                 1, 5, List.of());
         ModifierRecipe netherite = new ModifierRecipe(
-                ResourceLocation.fromNamespaceAndPath("forgeweave", "extra_slot"),
+                Identifier.fromNamespaceAndPath("forgeweave", "extra_slot"),
                 List.of(new ModifierRecipe.Reagent(Ingredient.of(Items.NETHERITE_INGOT), 1)),
                 1, 5, List.of());
         recipes.put(id("extra_slot"), crafted);
@@ -538,7 +538,7 @@ class JeiRecipesTest {
     @Test
     void modifierApplicationLevelCapFollowsTheRecipesOwnSchedule() {
         ModifierRecipe uniform = new ModifierRecipe(
-                ResourceLocation.fromNamespaceAndPath("forgeweave", "haste"),
+                Identifier.fromNamespaceAndPath("forgeweave", "haste"),
                 List.of(new ModifierRecipe.Reagent(Ingredient.of(Items.REDSTONE), 1)), 1, 250, List.of());
 
         // Haste has no per-level override, so its display level cap comes from ForgeweaveModifiers'
@@ -555,9 +555,9 @@ class JeiRecipesTest {
      */
     @Test
     void embossingBuildsOneDisplayPerMaterialThatGrantsTraits() {
-        Map<ResourceLocation, EmbossingRecipe> recipes = Map.of(id("embossment"),
+        Map<Identifier, EmbossingRecipe> recipes = Map.of(id("embossment"),
                 new EmbossingRecipe(List.of(Ingredient.of(Items.SLIME_BLOCK), Ingredient.of(Items.MAGMA_BLOCK))));
-        Map<ResourceLocation, Material> materials = twoMaterials();
+        Map<Identifier, Material> materials = twoMaterials();
 
         List<EmbossingDisplay> displays = EmbossingRecipes.build(recipes, materials);
 
@@ -574,14 +574,14 @@ class JeiRecipesTest {
     /** A material with no traits at all grants nothing to emboss with, so it shows no display. */
     @Test
     void embossingSkipsAMaterialThatGrantsNoTraits() {
-        Map<ResourceLocation, EmbossingRecipe> recipes =
+        Map<Identifier, EmbossingRecipe> recipes =
                 Map.of(id("embossment"), new EmbossingRecipe(List.of(Ingredient.of(Items.SLIME_BLOCK))));
         Material traitless = new Material(
                 new Material.Head(100, 1.0f, 1.0f), new Material.Handle(1.0f, 10), 5,
-                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_wooden_tool")),
+                TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace("incorrect_for_wooden_tool")),
                 new Material.Traits(List.of(), List.of()), List.of(craftingItem(Items.STICK, 1)),
                 Ingredient.of(Items.STICK), TextColor.fromRgb(0xFFFFFF));
-        Map<ResourceLocation, Material> materials = new LinkedHashMap<>();
+        Map<Identifier, Material> materials = new LinkedHashMap<>();
         materials.put(id("traitless"), traitless);
 
         assertTrue(EmbossingRecipes.build(recipes, materials).isEmpty());
@@ -620,7 +620,7 @@ class JeiRecipesTest {
      */
     @Test
     void fuelBuildsOneDisplayPerRegistryEntryWithLavaAsTheZeroBaseline() {
-        Map<ResourceLocation, SmelteryFuel> fuels = new LinkedHashMap<>();
+        Map<Identifier, SmelteryFuel> fuels = new LinkedHashMap<>();
         fuels.put(id("lava"), new SmelteryFuel(Fluids.LAVA, 50, 100, 1300));
         // A stand-in fluid at blazing blood's real 1500-degree temperature over lava's 1300.
         fuels.put(id("blazing_blood"), new SmelteryFuel(Fluids.WATER, 50, 100, 1500));
@@ -636,7 +636,7 @@ class JeiRecipesTest {
 
     @Test
     void fuelNoHotterThanLavaGetsNoNote() {
-        Map<ResourceLocation, SmelteryFuel> fuels = new LinkedHashMap<>();
+        Map<Identifier, SmelteryFuel> fuels = new LinkedHashMap<>();
         fuels.put(id("lava"), new SmelteryFuel(Fluids.LAVA, 50, 100, 1300));
         fuels.put(id("cool_fuel"), new SmelteryFuel(Fluids.WATER, 50, 100, 1300));
 
@@ -649,7 +649,7 @@ class JeiRecipesTest {
     /** No lava row at all (e.g. the smeltery family disabled) falls back to the fluid type's own default. */
     @Test
     void fuelFallsBackToTheFluidTypesOwnLavaTemperatureWhenLavaHasNoRegistryRow() {
-        Map<ResourceLocation, SmelteryFuel> fuels = Map.of(id("hot_fuel"),
+        Map<Identifier, SmelteryFuel> fuels = Map.of(id("hot_fuel"),
                 new SmelteryFuel(Fluids.WATER, 50, 100, Fluids.LAVA.getFluidType().getTemperature() + 500));
 
         List<SmelteryFuelDisplay> displays = SmelteryFuelRecipes.build(fuels, false);
@@ -660,14 +660,14 @@ class JeiRecipesTest {
 
     @Test
     void coreTransformIsAPlainRegistrySnapshot() {
-        Map<ResourceLocation, CoreTransformRecipe> recipes = new LinkedHashMap<>();
+        Map<Identifier, CoreTransformRecipe> recipes = new LinkedHashMap<>();
         CoreTransformRecipe endCore = new CoreTransformRecipe(Fluids.WATER, Blocks.NETHERRACK, Blocks.STONE, 1000);
         recipes.put(id("end_core"), endCore);
 
         assertEquals(List.of(endCore), CoreTransformRecipes.build(recipes));
     }
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath("forgeweave", path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath("forgeweave", path);
     }
 }

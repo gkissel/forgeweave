@@ -20,7 +20,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -32,7 +32,7 @@ import net.minecraft.world.level.block.Block;
  *
  * <p>Registered as a NeoForge datapack registry with a network codec, so the server loads it on
  * {@code /reload} and syncs it to connecting clients for free. Look entries up through
- * {@code registryAccess().registryOrThrow(Material.REGISTRY)} on either side.
+ * {@code registryAccess().lookupOrThrow(Material.REGISTRY)} on either side.
  *
  * <h2>Existence-gating a cross-mod material (issue #826, M6)</h2>
  *
@@ -98,7 +98,7 @@ public record Material(
         boolean maille) {
 
     public static final ResourceKey<Registry<Material>> REGISTRY =
-            ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "material"));
+            ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "material"));
 
     /**
      * What a material with no {@code enchantability} of its own is worth (issue #593): vanilla
@@ -287,9 +287,9 @@ public record Material(
      * The single {@code {"item": "<id>"}} shape {@link Ingredient.ItemValue} accepts, minus the
      * registry lookup -- see {@link #LENIENT_INGREDIENT_CODEC}.
      */
-    private record UnresolvedItem(ResourceLocation id) {
+    private record UnresolvedItem(Identifier id) {
         static final Codec<UnresolvedItem> CODEC = RecordCodecBuilder.create(instance -> instance
-                .group(ResourceLocation.CODEC.fieldOf("item").forGetter(UnresolvedItem::id))
+                .group(Identifier.CODEC.fieldOf("item").forGetter(UnresolvedItem::id))
                 .apply(instance, UnresolvedItem::new));
     }
 
@@ -361,16 +361,16 @@ public record Material(
      * through the arrow head's two-scope {@code PartMaterialType(HEAD, PROJECTILE)} -- endstone's
      * head list ({@code alien}) would otherwise occlude {@code enderference} on arrow heads.
      */
-    public record Traits(List<ResourceLocation> general, List<ResourceLocation> head,
-            List<ResourceLocation> shaft, List<ResourceLocation> projectile, List<ResourceLocation> armor) {
+    public record Traits(List<Identifier> general, List<Identifier> head,
+            List<Identifier> shaft, List<Identifier> projectile, List<Identifier> armor) {
 
         public static final Codec<Traits> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                ResourceLocation.CODEC.listOf().optionalFieldOf("general", List.of()).forGetter(Traits::general),
-                ResourceLocation.CODEC.listOf().optionalFieldOf("head", List.of()).forGetter(Traits::head),
-                ResourceLocation.CODEC.listOf().optionalFieldOf("shaft", List.of()).forGetter(Traits::shaft),
-                ResourceLocation.CODEC.listOf().optionalFieldOf("projectile", List.of())
+                Identifier.CODEC.listOf().optionalFieldOf("general", List.of()).forGetter(Traits::general),
+                Identifier.CODEC.listOf().optionalFieldOf("head", List.of()).forGetter(Traits::head),
+                Identifier.CODEC.listOf().optionalFieldOf("shaft", List.of()).forGetter(Traits::shaft),
+                Identifier.CODEC.listOf().optionalFieldOf("projectile", List.of())
                         .forGetter(Traits::projectile),
-                ResourceLocation.CODEC.listOf().optionalFieldOf("armor", List.of()).forGetter(Traits::armor))
+                Identifier.CODEC.listOf().optionalFieldOf("armor", List.of()).forGetter(Traits::armor))
                 .apply(instance, Traits::new));
 
         /**
@@ -378,29 +378,29 @@ public record Material(
          * 1.20 clone's {@code tconstruct:armor} per-stat scope, read by both PLATING and MAILLE parts
          * -- one list, not one per kind, because upstream keys it by the shared ARMOR stat type.
          */
-        public Traits(List<ResourceLocation> general, List<ResourceLocation> head,
-                List<ResourceLocation> shaft, List<ResourceLocation> projectile) {
+        public Traits(List<Identifier> general, List<Identifier> head,
+                List<Identifier> shaft, List<Identifier> projectile) {
             this(general, head, shaft, projectile, List.of());
         }
 
         /** The pre-#653 shape: no projectile-scoped list, which is every material but endstone. */
-        public Traits(List<ResourceLocation> general, List<ResourceLocation> head,
-                List<ResourceLocation> shaft) {
+        public Traits(List<Identifier> general, List<Identifier> head,
+                List<Identifier> shaft) {
             this(general, head, shaft, List.of());
         }
 
         /** The pre-#626 shape: no shaft-scoped list, which is every material but bone. */
-        public Traits(List<ResourceLocation> general, List<ResourceLocation> head) {
+        public Traits(List<Identifier> general, List<Identifier> head) {
             this(general, head, List.of());
         }
 
         /** The common case: traits every part of the material grants. */
-        public static Traits general(ResourceLocation... ids) {
+        public static Traits general(Identifier... ids) {
             return new Traits(List.of(ids), List.of());
         }
 
         /** The trait ids a part of this {@code kind} grants (see the class javadoc on scoping). */
-        public List<ResourceLocation> forPart(PartItem.Kind kind) {
+        public List<Identifier> forPart(PartItem.Kind kind) {
             if (kind == PartItem.Kind.HEAD && !head.isEmpty()) {
                 return head;
             }
@@ -417,7 +417,7 @@ public record Material(
         }
 
         /** Every trait id this material can grant through any part, de-duplicated. */
-        public List<ResourceLocation> all() {
+        public List<Identifier> all() {
             return Stream.of(general, head, shaft, projectile, armor).flatMap(List::stream).distinct().toList();
         }
     }
@@ -433,7 +433,7 @@ public record Material(
      * one list it actually has (docs/SCOPE.md's material sync-packet budget).
      */
     private static final MapCodec<Traits> TRAITS_CODEC = Codec.mapEither(
-            ResourceLocation.CODEC.fieldOf("trait"),
+            Identifier.CODEC.fieldOf("trait"),
             Traits.CODEC.fieldOf("traits"))
             .xmap(either -> either.map(Traits::general, Function.identity()), Either::right);
 

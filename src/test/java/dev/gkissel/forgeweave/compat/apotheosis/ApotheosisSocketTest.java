@@ -38,7 +38,7 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.damagesource.DamageSource;
@@ -122,7 +122,7 @@ class ApotheosisSocketTest {
      */
     @Test
     void aGemWhoseItemIsUnregisteredDecodesAndReEncodesByteForByte() throws Exception {
-        assertFalse(BuiltInRegistries.ITEM.containsKey(ResourceLocation.parse(MISSING_GEM)),
+        assertFalse(BuiltInRegistries.ITEM.containsKey(Identifier.parse(MISSING_GEM)),
                 "setup: no environment may register " + MISSING_GEM);
         RegistryOps<Tag> nbt = RegistryOps.create(NbtOps.INSTANCE, registries);
         Tag saved = savedSockets();
@@ -437,8 +437,8 @@ class ApotheosisSocketTest {
     }
 
     private static AttributeGrant grant(String attribute, double amount) {
-        return new AttributeGrant(ResourceLocation.parse(attribute),
-                new AttributeModifier(ResourceLocation.parse("forgeweave:test_gem"), amount,
+        return new AttributeGrant(Identifier.parse(attribute),
+                new AttributeModifier(Identifier.parse("forgeweave:test_gem"), amount,
                         AttributeModifier.Operation.ADD_VALUE));
     }
 

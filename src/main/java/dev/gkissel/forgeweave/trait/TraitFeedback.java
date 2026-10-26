@@ -192,7 +192,7 @@ public final class TraitFeedback {
      * declared. A {@link TraitBehaviors.SeamTrait} is registered under its inner seam as well as
      * itself, because a seam class fires the proc and only ever sees itself.
      */
-    static void datapack(Map<net.minecraft.resources.ResourceLocation, TraitDefinition> definitions) {
+    static void datapack(Map<net.minecraft.resources.Identifier, TraitDefinition> definitions) {
         Map<Object, Feedback> overrides = new IdentityHashMap<>();
         for (TraitDefinition definition : definitions.values()) {
             Feedback feedback = definition.feedback();

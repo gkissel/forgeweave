@@ -7,10 +7,10 @@ import javax.annotation.Nullable;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -37,8 +37,8 @@ import dev.gkissel.forgeweave.Forgeweave;
  * explains that the entries are hoverable ({@code GuiInfoPanel:257-262}, {@code gui.general.hover}).
  */
 public final class InfoPanel {
-    public static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/info_panel.png");
+    public static final Identifier TEXTURE =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/info_panel.png");
 
     /** Upstream's content area; a panel is this plus {@link #BORDER} on each side. */
     public static final int CONTENT_WIDTH = 118;
@@ -138,7 +138,7 @@ public final class InfoPanel {
      * @param caption the underlined, centred heading, or {@code null} for a panel with only body text
      * @return how many wrapped lines had to be skipped to fit, i.e. the maximum useful {@code scroll}
      */
-    public static int render(GuiGraphics graphics, Font font, int x, int y, int width, int height,
+    public static int render(GuiGraphicsExtractor graphics, Font font, int x, int y, int width, int height,
             Style style, @Nullable Component caption, List<Component> lines, int scroll) {
         renderFrame(graphics, x, y, width, height, style);
 
@@ -176,7 +176,7 @@ public final class InfoPanel {
      * ({@code sliderHover}); on a 3x5 knob that is not worth threading the cursor through
      * {@link #render}. Add it if a playtest asks.
      */
-    private static void renderSlider(GuiGraphics graphics, Style style, int x, int y, int width, int height,
+    private static void renderSlider(GuiGraphicsExtractor graphics, Style style, int x, int y, int width, int height,
             int scroll, int maxScroll) {
         int sliderX = x + width - SLIDER_X_INSET;
         int trackY = y + SLIDER_Y_INSET;
@@ -316,7 +316,7 @@ public final class InfoPanel {
     /**
      * Upstream's line advance is {@code fontRenderer.FONT_HEIGHT * textScale + 0.5f} -- 9.5px at
      * our scale, not the flat 9 this used to step by (issue #79). Over a full panel the half-pixels
-     * accumulate into a whole extra line of drift. {@code GuiGraphics} only draws text at integer
+     * accumulate into a whole extra line of drift. {@code GuiGraphicsExtractor} only draws text at integer
      * coordinates, so each line rounds to the nearest pixel rather than sitting at upstream's exact
      * subpixel y; the line <em>positions</em> match, the glyph antialiasing at 1x GUI scale doesn't.
      */
@@ -351,7 +351,7 @@ public final class InfoPanel {
         return wrapped;
     }
 
-    private static void renderFrame(GuiGraphics graphics, int x, int y, int width, int height, Style style) {
+    private static void renderFrame(GuiGraphicsExtractor graphics, int x, int y, int width, int height, Style style) {
         int u = style.u;
         int v = style.v;
         int innerW = width - BORDER * 2;
@@ -381,14 +381,14 @@ public final class InfoPanel {
      * pixels. The corners are 1:1 anyway; the top/bottom strips and the centre fill stay stretched,
      * because no panel is ever wider than the natural 126 and the centre fill is one flat colour.
      */
-    private static void tileY(GuiGraphics graphics, int x, int y, int height, int u, int v) {
+    private static void tileY(GuiGraphicsExtractor graphics, int x, int y, int height, int u, int v) {
         for (int drawn = 0; drawn < height; drawn += CONTENT_HEIGHT) {
             graphics.blit(TEXTURE, x, y + drawn, u, v, BORDER, Math.min(CONTENT_HEIGHT, height - drawn), SHEET, SHEET);
         }
     }
 
     /** Stretching blit: {@code (uWidth, vHeight)} of the sheet drawn into {@code (width, height)}. */
-    private static void blit(GuiGraphics graphics, int x, int y, int width, int height,
+    private static void blit(GuiGraphicsExtractor graphics, int x, int y, int width, int height,
             int u, int v, int uWidth, int vHeight) {
         graphics.blit(TEXTURE, x, y, width, height, u, v, uWidth, vHeight, SHEET, SHEET);
     }

@@ -9,7 +9,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.material.Fluid;
 
@@ -115,7 +115,7 @@ public enum MaterialStage {
     /** The material tag that forces a material into this stage, {@code forgeweave:stage/<id>}. */
     public TagKey<Material> tag() {
         return TagKey.create(Material.REGISTRY,
-                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "stage/" + this.id));
+                Identifier.fromNamespaceAndPath(Forgeweave.MODID, "stage/" + this.id));
     }
 
     /**
@@ -137,7 +137,7 @@ public enum MaterialStage {
      * both {@code material} and {@code alloy_recipe} are datapack registries with a network codec
      * ({@code Forgeweave#registerDataPackRegistries}), so both are present client side.
      */
-    public record Lookup(Map<ResourceLocation, MaterialStage> overrides, Map<ResourceLocation, Integer> alloyDepth) {
+    public record Lookup(Map<Identifier, MaterialStage> overrides, Map<Identifier, Integer> alloyDepth) {
 
         /** No overrides and no alloy data: what a unit test that only cares about rungs wants. */
         public static final Lookup EMPTY = new Lookup(Map.of(), Map.of());
@@ -148,7 +148,7 @@ public enum MaterialStage {
         }
 
         public static Lookup of(Registry<Material> materials, Registry<AlloyRecipe> alloys) {
-            Map<ResourceLocation, MaterialStage> overrides = new HashMap<>();
+            Map<Identifier, MaterialStage> overrides = new HashMap<>();
             for (MaterialStage stage : values()) {
                 for (Holder<Material> holder : materials.getTagOrEmpty(stage.tag())) {
                     holder.unwrapKey().map(ResourceKey::location)
@@ -163,13 +163,13 @@ public enum MaterialStage {
             return new Lookup(Map.of(), alloyDepth(alloys));
         }
 
-        public MaterialStage of(ResourceLocation id, Material material) {
+        public MaterialStage of(Identifier id, Material material) {
             MaterialStage override = this.overrides.get(id);
             return override != null ? override : MaterialStage.derive(material, depthOf(id));
         }
 
         /** How many alloying steps deep this material's own molten fluid is. */
-        public int depthOf(ResourceLocation id) {
+        public int depthOf(Identifier id) {
             return this.alloyDepth.getOrDefault(moltenFluidId(id), 0);
         }
 
@@ -179,40 +179,40 @@ public enum MaterialStage {
          * a pack that writes a cycle gets a finite answer instead of a stack overflow (the shipped
          * chains bottom out at 4: truesteel &larr; sunsteel &larr; glowveil &larr; dreadalloy).
          */
-        private static Map<ResourceLocation, Integer> alloyDepth(List<AlloyRecipe> alloys) {
-            Map<ResourceLocation, List<ResourceLocation>> inputs = new HashMap<>();
+        private static Map<Identifier, Integer> alloyDepth(List<AlloyRecipe> alloys) {
+            Map<Identifier, List<Identifier>> inputs = new HashMap<>();
             for (AlloyRecipe recipe : alloys) {
-                List<ResourceLocation> ids = new ArrayList<>();
+                List<Identifier> ids = new ArrayList<>();
                 recipe.inputs().forEach(input -> ids.add(fluidId(input.getFluid())));
                 inputs.put(fluidId(recipe.result().getFluid()), List.copyOf(ids));
             }
-            Map<ResourceLocation, Integer> depth = new HashMap<>();
+            Map<Identifier, Integer> depth = new HashMap<>();
             inputs.keySet().forEach(result -> depth.put(result, depth(result, inputs, List.of())));
             return depth;
         }
 
-        private static int depth(ResourceLocation fluid, Map<ResourceLocation, List<ResourceLocation>> inputs,
-                List<ResourceLocation> path) {
-            List<ResourceLocation> recipe = inputs.get(fluid);
+        private static int depth(Identifier fluid, Map<Identifier, List<Identifier>> inputs,
+                List<Identifier> path) {
+            List<Identifier> recipe = inputs.get(fluid);
             if (recipe == null || path.contains(fluid)) {
                 return 0;
             }
-            List<ResourceLocation> walked = new ArrayList<>(path);
+            List<Identifier> walked = new ArrayList<>(path);
             walked.add(fluid);
             int deepest = 0;
-            for (ResourceLocation input : recipe) {
+            for (Identifier input : recipe) {
                 deepest = Math.max(deepest, depth(input, inputs, walked));
             }
             return 1 + deepest;
         }
 
-        private static ResourceLocation fluidId(Fluid fluid) {
+        private static Identifier fluidId(Fluid fluid) {
             return BuiltInRegistries.FLUID.getKey(fluid);
         }
     }
 
     /** The fluid a material melts into, {@code forgeweave:molten_<material>}. */
-    public static ResourceLocation moltenFluidId(ResourceLocation material) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "molten_" + material.getPath());
+    public static Identifier moltenFluidId(Identifier material) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, "molten_" + material.getPath());
     }
 }

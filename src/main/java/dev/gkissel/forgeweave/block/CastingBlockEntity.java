@@ -152,7 +152,7 @@ public class CastingBlockEntity extends BlockEntity {
      * @return whether the click did anything
      */
     public boolean interact(Player player, InteractionHand hand) {
-        if (level == null || level.isClientSide || !tank.isEmpty()) {
+        if (level == null || level.isClientSide() || !tank.isEmpty()) {
             return false;
         }
         if (input.isEmpty() && output.isEmpty()) {
@@ -203,7 +203,7 @@ public class CastingBlockEntity extends BlockEntity {
      * stale tick (fluid drained back out, cast taken) harmless.
      */
     void finishCasting() {
-        if (level == null || level.isClientSide || tank.isEmpty()) {
+        if (level == null || level.isClientSide() || tank.isEmpty()) {
             return;
         }
         CastingRecipe recipe = currentRecipe();
@@ -242,13 +242,13 @@ public class CastingBlockEntity extends BlockEntity {
         if (level == null || fluid == Fluids.EMPTY) {
             return null;
         }
-        Registry<CastingRecipe> recipes = level.registryAccess().registryOrThrow(CastingRecipe.REGISTRY);
+        Registry<CastingRecipe> recipes = level.registryAccess().lookupOrThrow(CastingRecipe.REGISTRY);
         return CastingRecipe.find(recipes, station, input, fluid);
     }
 
     private void contentsChanged() {
         setChanged();
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
             level.updateNeighbourForOutputSignal(worldPosition, getBlockState().getBlock());
         }
@@ -374,7 +374,7 @@ public class CastingBlockEntity extends BlockEntity {
             int filled = tank.fill(resource, action);
             if (filled > 0) {
                 contentsChanged();
-                if (tank.getFluidAmount() >= recipe.amount() && level != null && !level.isClientSide) {
+                if (tank.getFluidAmount() >= recipe.amount() && level != null && !level.isClientSide()) {
                     int cooldown = recipe.cooldownTicks(resource.getFluid());
                     level.scheduleTick(worldPosition, getBlockState().getBlock(), cooldown);
                     // #720: the cooldown clock the Jade/WTHIT overlay's percentage reads.

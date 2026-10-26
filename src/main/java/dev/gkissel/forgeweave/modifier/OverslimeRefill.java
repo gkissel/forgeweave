@@ -3,7 +3,7 @@ package dev.gkissel.forgeweave.modifier;
 import java.util.Arrays;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -22,7 +22,7 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
  */
 public final class OverslimeRefill {
 
-    public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "overslime");
+    public static final Identifier ID = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "overslime");
 
     /** The arithmetic's result: the new amount and the items spent per slot. */
     public record Fill(int amount, int[] used) {}

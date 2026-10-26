@@ -5,9 +5,9 @@ import java.util.function.Supplier;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
@@ -19,8 +19,8 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -44,7 +44,7 @@ import dev.gkissel.forgeweave.tool.ToolStats;
 @PrefixGameTestTemplate(false)
 public class TutorialGameTests {
 
-    private static final ResourceLocation WOOD = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "wood");
+    private static final Identifier WOOD = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "wood");
 
     /**
      * Playtest checklist 1.0.0, line 96, "Your First Pickaxe" ({@code book.forgeweave.intro.first_pickaxe}):
@@ -104,7 +104,7 @@ public class TutorialGameTests {
         // Step four: the pickaxe at the Tool Station.
         BlockPos stationPos = new BlockPos(5, 1, 1);
         helper.setBlock(stationPos, ForgeweaveBlocks.TOOL_STATION.get());
-        ToolStationBlockEntity station = helper.getBlockEntity(stationPos);
+        ToolStationBlockEntity station = helper.getBlockEntity(stationPos, ToolStationBlockEntity.class);
         station.container().setItem(ToolStationMenu.HEAD_SLOT, head);
         station.container().setItem(ToolStationMenu.BINDING_SLOT, binding);
         station.container().setItem(ToolStationMenu.HANDLE_SLOT, handle);
@@ -148,7 +148,7 @@ public class TutorialGameTests {
             }
         }
         helper.assertValueEqual(plainBlocks, 6, "plain seared brick blocks in the smallest smeltery");
-        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the book's smallest smeltery to form: " + core.lastResult().getString());
         helper.succeed();
     }
@@ -168,7 +168,7 @@ public class TutorialGameTests {
 
     private static StencilTableMenu openStencilTable(GameTestHelper helper, BlockPos pos, Player player) {
         helper.setBlock(pos, ForgeweaveBlocks.STENCIL_TABLE.get());
-        StencilTableBlockEntity blockEntity = helper.getBlockEntity(pos);
+        StencilTableBlockEntity blockEntity = helper.getBlockEntity(pos, StencilTableBlockEntity.class);
         return new StencilTableMenu(0, player.getInventory(), blockEntity.container(),
                 ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)), blockEntity.findSideInventory());
     }
@@ -185,7 +185,7 @@ public class TutorialGameTests {
 
     private static PartBuilderMenu openPartBuilder(GameTestHelper helper, BlockPos pos, Player player) {
         helper.setBlock(pos, ForgeweaveBlocks.PART_BUILDER.get());
-        PartBuilderBlockEntity blockEntity = helper.getBlockEntity(pos);
+        PartBuilderBlockEntity blockEntity = helper.getBlockEntity(pos, PartBuilderBlockEntity.class);
         return new PartBuilderMenu(0, player.getInventory(), blockEntity.container(),
                 ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)), blockEntity.findSideInventory());
     }

@@ -2,9 +2,9 @@ package dev.gkissel.forgeweave.gametest;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -14,8 +14,8 @@ import net.minecraft.world.level.block.Block;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.CastingBlockEntity;
@@ -76,7 +76,7 @@ public class ShardCastGameTests {
         helper.succeedWhen(() -> {
             helper.assertTrue(table.output().is(ForgeweaveItems.SHARD.get()),
                     "expected an iron shard, found " + table.output());
-            helper.assertTrue(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "iron")
+            helper.assertTrue(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "iron")
                             .equals(table.output().get(ForgeweaveDataComponents.MATERIAL.get())),
                     "expected the shard to carry the iron material");
             helper.assertTrue(table.input().is(ForgeweaveItems.CAST_SHARD.get()),
@@ -115,7 +115,7 @@ public class ShardCastGameTests {
         helper.succeedWhen(() -> {
             helper.assertTrue(table.output().is(ForgeweaveItems.SHARD.get()),
                     "expected an iron shard, found " + table.output());
-            helper.assertTrue(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "iron")
+            helper.assertTrue(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "iron")
                             .equals(table.output().get(ForgeweaveDataComponents.MATERIAL.get())),
                     "expected the shard to carry the iron material");
             helper.assertTrue(table.input().isEmpty(), "expected the single-use clay cast to be consumed");
@@ -125,7 +125,7 @@ public class ShardCastGameTests {
     /** A tank of {@code fluid}, a faucet on its east side pointing back at it, and a casting table below (CastingGameTests#rig). */
     private static CastingBlockEntity rig(GameTestHelper helper, net.minecraft.world.level.material.Fluid fluid) {
         helper.setBlock(TANK, ForgeweaveBlocks.SEARED_TANK.get());
-        helper.<SearedTankBlockEntity>getBlockEntity(TANK).tank()
+        helper.getBlockEntity(TANK, SearedTankBlockEntity.class).tank()
                 .fill(new FluidStack(fluid, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
         Block casting = ForgeweaveBlocks.CASTING_TABLE.get();
         helper.setBlock(CASTING, casting);

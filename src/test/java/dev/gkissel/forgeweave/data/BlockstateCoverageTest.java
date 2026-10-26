@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import net.minecraft.SharedConstants;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -48,7 +48,7 @@ class BlockstateCoverageTest {
                 projectRoot().resolve("src/generated/resources/assets/forgeweave/blockstates"));
         Set<String> missing = new TreeSet<>();
         int blocks = 0;
-        for (ResourceLocation id : BuiltInRegistries.BLOCK.keySet()) {
+        for (Identifier id : BuiltInRegistries.BLOCK.keySet()) {
             if (!id.getNamespace().equals(Forgeweave.MODID)) {
                 continue;
             }

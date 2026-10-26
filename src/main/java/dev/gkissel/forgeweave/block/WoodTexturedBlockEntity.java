@@ -4,13 +4,13 @@ import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import net.neoforged.neoforge.client.model.data.ModelData;
-import net.neoforged.neoforge.client.model.data.ModelProperty;
+import net.neoforged.neoforge.model.data.ModelData;
+import net.neoforged.neoforge.model.data.ModelProperty;
 
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 
@@ -34,7 +34,7 @@ public interface WoodTexturedBlockEntity {
 
     static Block readTexture(CompoundTag tag, Block fallback) {
         if (tag.contains(TAG_TEXTURE, Tag.TAG_STRING)) {
-            ResourceLocation id = ResourceLocation.tryParse(tag.getString(TAG_TEXTURE));
+            Identifier id = Identifier.tryParse(tag.getString(TAG_TEXTURE));
             if (id != null && BuiltInRegistries.BLOCK.containsKey(id)) {
                 return BuiltInRegistries.BLOCK.get(id);
             }
@@ -55,7 +55,7 @@ public interface WoodTexturedBlockEntity {
         Level level = blockEntity.getLevel();
         if (level != null) {
             blockEntity.requestModelDataUpdate();
-            if (!level.isClientSide) {
+            if (!level.isClientSide()) {
                 level.sendBlockUpdated(blockEntity.getBlockPos(), blockEntity.getBlockState(), blockEntity.getBlockState(), 3);
             }
         }

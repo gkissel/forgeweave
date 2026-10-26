@@ -7,7 +7,7 @@ import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -98,7 +98,7 @@ public class PartBuilderBlock extends HorizontalDirectionalBlock implements Enti
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (level.getBlockEntity(pos) instanceof PartBuilderBlockEntity partBuilder) {
-            ResourceLocation textureId = stack.get(ForgeweaveDataComponents.TEXTURE.get());
+            Identifier textureId = stack.get(ForgeweaveDataComponents.TEXTURE.get());
             if (textureId != null && BuiltInRegistries.BLOCK.containsKey(textureId)) {
                 partBuilder.setTexture(BuiltInRegistries.BLOCK.get(textureId));
             }
@@ -116,7 +116,7 @@ public class PartBuilderBlock extends HorizontalDirectionalBlock implements Enti
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof PartBuilderBlockEntity partBuilder) {
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof PartBuilderBlockEntity partBuilder) {
             // Payload (side-inventory slot count, then the station-group tab row) lives on the block
             // entity so the tab row can open this station too -- see StationMenuHost.
             partBuilder.open(player);

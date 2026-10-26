@@ -11,7 +11,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.compat.occultism.ForgeweaveOccultismCompat;
@@ -113,7 +113,7 @@ public class ForgeweaveOccultismRecipeProvider implements DataProvider {
         }
 
         for (ForgeweaveOccultismCompat.Ritual ritual : ForgeweaveOccultismCompat.RITUALS) {
-            ResourceLocation modifier = ResourceLocation.parse(ritual.modifier());
+            Identifier modifier = Identifier.parse(ritual.modifier());
             if (ForgeweaveModifiers.get(modifier) == null) {
                 throw new IllegalStateException("no modifier registered as " + modifier
                         + " -- ForgeweaveOccultismCompat.RITUALS names one that does not exist");
@@ -168,7 +168,7 @@ public class ForgeweaveOccultismRecipeProvider implements DataProvider {
     }
 
     /** One {@code occultism:ritual} row naming a {@code forgeweave:bind_*} ritual factory. */
-    private static JsonObject ritual(ForgeweaveOccultismCompat.Ritual ritual, ResourceLocation modifier) {
+    private static JsonObject ritual(ForgeweaveOccultismCompat.Ritual ritual, Identifier modifier) {
         JsonArray ingredients = new JsonArray();
         for (String item : ritual.ingredients()) {
             ingredients.add(ingredient(item));
@@ -192,7 +192,7 @@ public class ForgeweaveOccultismRecipeProvider implements DataProvider {
      * entry the ritual grants, so the slot's tooltip names the modifier. A representative rather
      * than the real output -- see the class javadoc.
      */
-    private static JsonObject display(ResourceLocation modifier, int level) {
+    private static JsonObject display(Identifier modifier, int level) {
         JsonObject entry = new JsonObject();
         entry.addProperty("id", modifier.toString());
         entry.addProperty("level", level);
@@ -231,6 +231,6 @@ public class ForgeweaveOccultismRecipeProvider implements DataProvider {
 
     private CompletableFuture<?> save(CachedOutput output, String name, JsonObject json) {
         return DataProvider.saveStable(output, json,
-                recipes.json(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "compat/occultism/" + name)));
+                recipes.json(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "compat/occultism/" + name)));
     }
 }

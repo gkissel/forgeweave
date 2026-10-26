@@ -4,7 +4,7 @@ import com.mojang.serialization.Codec;
 
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.trait.Trait;
@@ -47,16 +47,16 @@ import dev.gkissel.forgeweave.api.trait.Trait;
  * @param rung the family and level this definition is, or {@link TraitFamilies.Rung#NONE}
  * @param feedback what a proc announces itself with, or {@link TraitFeedback.Feedback#DEFAULTS}
  */
-public record TraitDefinition(ResourceLocation behavior, Trait trait, TraitFamilies.Rung rung,
+public record TraitDefinition(Identifier behavior, Trait trait, TraitFamilies.Rung rung,
         TraitFeedback.Feedback feedback) {
 
     /** A definition with no family and default feedback, which is what every test writes. */
-    public TraitDefinition(ResourceLocation behavior, Trait trait) {
+    public TraitDefinition(Identifier behavior, Trait trait) {
         this(behavior, trait, TraitFamilies.Rung.NONE, TraitFeedback.Feedback.DEFAULTS);
     }
 
     public static final ResourceKey<Registry<TraitDefinition>> REGISTRY =
-            ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "trait_definition"));
+            ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "trait_definition"));
 
     /** Dispatches on {@code behavior}; an unknown behaviour id is a parse error, never a silent no-op trait. */
     public static final Codec<TraitDefinition> CODEC = TraitBehaviors.CODEC;

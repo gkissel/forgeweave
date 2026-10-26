@@ -1,9 +1,9 @@
 package dev.gkissel.forgeweave.client;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 import net.neoforged.api.distmarker.Dist;
@@ -37,8 +37,8 @@ import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ChestScreen extends StationScreen<ChestMenu> {
     /** Upstream {@code GuiTinkerStation.BLANK_BACK}; derived unmodified (NOTICE.md). */
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/blank.png");
+    private static final Identifier TEXTURE =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/blank.png");
     static final int PANEL_WIDTH = 176;
     static final int PANEL_HEIGHT = 166;
     /** Upstream's GUI sheets are 256x256; the panel is only their top-left corner. */
@@ -67,7 +67,7 @@ public class ChestScreen extends StationScreen<ChestMenu> {
     }
 
     @Override
-    protected void renderPanel(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
+    protected void renderPanel(GuiGraphicsExtractor graphics, float partialTick, int mouseX, int mouseY) {
         graphics.blit(TEXTURE, leftPos, topPos, 0, 0, PANEL_WIDTH, PANEL_HEIGHT, SHEET, SHEET);
 
         scrollRow = Math.clamp(scrollRow, 0, maxScrollRow());
@@ -81,7 +81,7 @@ public class ChestScreen extends StationScreen<ChestMenu> {
      * then the partial row's tiles followed by the "no slot here" tile for the rest of it, and
      * nothing at all below that.
      */
-    private void renderSlotTiles(GuiGraphics graphics) {
+    private void renderSlotTiles(GuiGraphicsExtractor graphics) {
         int first = scrollRow * ChestMenu.COLUMNS;
         int visible = Math.clamp(menu.capacity() - first, 0, ChestMenu.VISIBLE_SLOTS);
         int fullRows = visible / ChestMenu.COLUMNS;
@@ -97,7 +97,7 @@ public class ChestScreen extends StationScreen<ChestMenu> {
         }
     }
 
-    private void tile(GuiGraphics graphics, int col, int row, boolean filled) {
+    private void tile(GuiGraphicsExtractor graphics, int col, int row, boolean filled) {
         SideInventoryPanel.renderSlotTile(graphics, leftPos + MODULE_X + col * SLOT,
                 topPos + MODULE_Y + row * SLOT, filled);
     }

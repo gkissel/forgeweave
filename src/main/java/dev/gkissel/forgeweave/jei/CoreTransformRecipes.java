@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import dev.gkissel.forgeweave.recipe.CoreTransformRecipe;
 
@@ -15,7 +15,7 @@ import dev.gkissel.forgeweave.recipe.CoreTransformRecipe;
  * no override-collision to dedupe here either -- a plain snapshot of the registry.
  */
 final class CoreTransformRecipes {
-    static List<CoreTransformRecipe> build(Map<ResourceLocation, CoreTransformRecipe> recipes) {
+    static List<CoreTransformRecipe> build(Map<Identifier, CoreTransformRecipe> recipes) {
         return new ArrayList<>(recipes.values());
     }
 

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.material.Fluids;
 
 import dev.gkissel.forgeweave.block.EnergizedHeat;
@@ -24,7 +24,7 @@ import dev.gkissel.forgeweave.recipe.SmelteryFuel;
  * (config-disabled smeltery, or a test registry that never shipped lava).
  */
 final class SmelteryFuelRecipes {
-    static List<SmelteryFuelDisplay> build(Map<ResourceLocation, SmelteryFuel> fuels, boolean energizedTank) {
+    static List<SmelteryFuelDisplay> build(Map<Identifier, SmelteryFuel> fuels, boolean energizedTank) {
         int lavaTemperature = fuels.values().stream()
                 .filter(fuel -> fuel.fluid() == Fluids.LAVA)
                 .mapToInt(SmelteryFuel::temperature)

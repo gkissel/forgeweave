@@ -51,7 +51,7 @@ public class SearedTankBlockEntity extends BlockEntity {
         @Override
         protected void onContentsChanged() {
             setChanged();
-            if (level != null && !level.isClientSide) {
+            if (level != null && !level.isClientSide()) {
                 level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
                 level.updateNeighbourForOutputSignal(worldPosition, getBlockState().getBlock());
                 // #97: a fill (not a drain -- the smeltery's own fuel consumption must not re-arm

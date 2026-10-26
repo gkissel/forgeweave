@@ -18,7 +18,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.SharedConstants;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 
@@ -39,7 +39,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
  */
 class GogglesModifierTest {
 
-    private static final ResourceLocation GOGGLES = ResourceLocation.fromNamespaceAndPath("forgeweave", "goggles");
+    private static final Identifier GOGGLES = Identifier.fromNamespaceAndPath("forgeweave", "goggles");
 
     @BeforeAll
     static void bootstrapMinecraft() {
@@ -78,7 +78,7 @@ class GogglesModifierTest {
         withGoggles.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(GOGGLES, 1)));
         assertEquals(baseline, ForgeweaveModifiers.freeSlots(withGoggles), "goggles must spend no slot");
 
-        ResourceLocation haste = ResourceLocation.fromNamespaceAndPath("forgeweave", "haste");
+        Identifier haste = Identifier.fromNamespaceAndPath("forgeweave", "haste");
         ItemStack withHaste = helmet.copy();
         withHaste.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(haste, 1)));
         assertEquals(baseline - 1, ForgeweaveModifiers.freeSlots(withHaste),

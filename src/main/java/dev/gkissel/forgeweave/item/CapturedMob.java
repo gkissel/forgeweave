@@ -13,7 +13,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -35,15 +35,15 @@ import net.minecraft.world.phys.Vec3;
  * unvalidated: a mob type this version no longer has simply fails to resolve at release time
  * ({@link #release} returns {@link Optional#empty()}) instead of failing to decode the item.
  */
-public record CapturedMob(ResourceLocation entityType, CompoundTag data) {
+public record CapturedMob(Identifier entityType, CompoundTag data) {
 
     public static final Codec<CapturedMob> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ResourceLocation.CODEC.fieldOf("entity_type").forGetter(CapturedMob::entityType),
+            Identifier.CODEC.fieldOf("entity_type").forGetter(CapturedMob::entityType),
             CompoundTag.CODEC.fieldOf("data").forGetter(CapturedMob::data))
             .apply(instance, CapturedMob::new));
 
     public static final StreamCodec<ByteBuf, CapturedMob> STREAM_CODEC = StreamCodec.composite(
-            ResourceLocation.STREAM_CODEC, CapturedMob::entityType,
+            Identifier.STREAM_CODEC, CapturedMob::entityType,
             ByteBufCodecs.COMPOUND_TAG, CapturedMob::data,
             CapturedMob::new);
 

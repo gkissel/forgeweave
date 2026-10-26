@@ -3,22 +3,22 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -68,7 +68,7 @@ public class ArmorTraitGameTests {
     /** The same blow with the piece's traits stripped and put back: the denominator of every ratio. */
     private static float lostWithoutTraits(Player player, DamageSource source, float amount) {
         ItemStack piece = worn(player);
-        List<ResourceLocation> traits = piece.get(ForgeweaveDataComponents.TRAITS.get());
+        List<Identifier> traits = piece.get(ForgeweaveDataComponents.TRAITS.get());
         piece.remove(ForgeweaveDataComponents.TRAITS.get());
         float result = lost(player, source, amount);
         piece.set(ForgeweaveDataComponents.TRAITS.get(), traits);
@@ -294,7 +294,7 @@ public class ArmorTraitGameTests {
     public static void crystalstrikeSpeedsAttacksAndSnapsKnockback(GameTestHelper helper) {
         Player player = wearing(helper, "amethyst_bronze", "amethyst_bronze");
         helper.assertTrue(player.getAttribute(Attributes.ATTACK_SPEED).getModifier(
-                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "trait/crystalstrike/chest")) != null,
+                Identifier.fromNamespaceAndPath(Forgeweave.MODID, "trait/crystalstrike/chest")) != null,
                 "the piece grants the attack speed modifier");
         player.setDeltaMovement(Vec3.ZERO);
         player.knockback(0.4, 0.3, 1.0); // 16.7 degrees off north: not on the 11.25-degree grid

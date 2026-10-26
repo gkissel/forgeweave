@@ -56,6 +56,6 @@ public record FertilizeOnUse(int durabilityCost, float chance) implements Trait 
         // #1112: vanilla's growth particles above are silent and look the same as a hand-held bone
         // meal's, so the sound is what tells the player a trait did this.
         TraitFeedback.fire(this, TraitFeedback.Kind.HARVEST, serverLevel, player);
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.sidedSuccess(level.isClientSide());
     }
 }

@@ -1,7 +1,7 @@
 package dev.gkissel.forgeweave.combat;
 
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -49,7 +49,7 @@ public final class ForgeweaveMobEffects {
     public static final DeferredHolder<MobEffect, MobEffect> PIERCE =
             MOB_EFFECTS.register("pierce", () -> new MarkerEffect(MobEffectCategory.HARMFUL, 0xD1D37A)
                     .addAttributeModifier(Attributes.ARMOR,
-                            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "effect.pierce"),
+                            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "effect.pierce"),
                             -1.0, AttributeModifier.Operation.ADD_VALUE));
 
     /**

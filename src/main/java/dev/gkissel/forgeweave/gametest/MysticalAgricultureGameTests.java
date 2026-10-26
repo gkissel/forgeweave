@@ -5,10 +5,10 @@ import java.util.Optional;
 
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
@@ -30,8 +30,8 @@ import dev.gkissel.forgeweave.tool.ToolMaterials;
 import dev.gkissel.forgeweave.tool.ToolStats;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 /**
  * Issue #999 (D-M8-20, M8-15): Mystical Agriculture's crops, its metals as Track A presets, and the
@@ -63,7 +63,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 public class MysticalAgricultureGameTests {
 
     /** {@code forgeweave:reinforced}, standing in for "the tool carries a Forgeweave modifier too". */
-    private static final ResourceLocation REINFORCED = id("reinforced");
+    private static final Identifier REINFORCED = id("reinforced");
 
     /** The nine presets #999 ships, all gated on a Mystical Agriculture or Agradditions item. */
     private static final String[] PRESET_MATERIALS = {
@@ -146,7 +146,7 @@ public class MysticalAgricultureGameTests {
     /** None of the nine presets exists without the mod that supplies its ingot. */
     @GameTest(template = "empty")
     public static void unsuppliedPresetsDoNotExistAtAll(GameTestHelper helper) {
-        Registry<Material> materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
+        Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         for (String name : PRESET_MATERIALS) {
             helper.assertTrue(materials.get(id(name)) == null,
                     "expected the " + name + " material to be absent without its own mod, found it registered");
@@ -243,8 +243,8 @@ public class MysticalAgricultureGameTests {
                 List.of(id(head), id(handle), id(binding)));
     }
 
-    private static ResourceLocation id(String name) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name);
+    private static Identifier id(String name) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, name);
     }
 
     private MysticalAgricultureGameTests() {}

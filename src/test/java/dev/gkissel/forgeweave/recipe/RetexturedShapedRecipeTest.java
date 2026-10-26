@@ -12,7 +12,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.SharedConstants;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -44,7 +44,7 @@ class RetexturedShapedRecipeTest {
 
         assertEquals(List.of("minecraft:oak_planks", "minecraft:birch_planks"), results.stream()
                 .map(stack -> stack.get(ForgeweaveDataComponents.TEXTURE.get()))
-                .map(ResourceLocation::toString)
+                .map(Identifier::toString)
                 .toList());
     }
 

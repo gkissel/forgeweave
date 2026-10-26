@@ -24,7 +24,7 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -138,7 +138,7 @@ class CastingRecipeTest {
             assertEquals(ForgeweaveFluids.GOLD.still().get(), recipe.fluid().orElseThrow(), "casts are gold-only (pure parity)");
             assertTrue(recipe.consumesCast(), part + " is consumed by the pour that moulds its cast");
             assertTrue(recipe.resultInInput(), "and the cast lands in the input slot, ready for metal");
-            assertEquals(ResourceLocation.fromNamespaceAndPath("forgeweave", "cast_" + part),
+            assertEquals(Identifier.fromNamespaceAndPath("forgeweave", "cast_" + part),
                     BuiltInRegistries.ITEM.getKey(recipe.result().getItem()));
         }
     }
@@ -157,7 +157,7 @@ class CastingRecipeTest {
             assertEquals(ForgeweaveFluids.MOLTEN_CLAY.still().get(), recipe.fluid().orElseThrow(), "moulded from molten clay");
             assertTrue(recipe.consumesCast(), part + " is consumed by the pour that moulds its clay cast");
             assertTrue(recipe.resultInInput(), "and the cast lands in the input slot, ready for metal");
-            assertEquals(ResourceLocation.fromNamespaceAndPath("forgeweave", "clay_cast_" + part),
+            assertEquals(Identifier.fromNamespaceAndPath("forgeweave", "clay_cast_" + part),
                     BuiltInRegistries.ITEM.getKey(recipe.result().getItem()));
         }
     }
@@ -192,7 +192,7 @@ class CastingRecipeTest {
 
         CastingRecipe recipe = shipped("pickaxe_head_manyullyn");
         assertEquals(ForgeweaveItems.PART_PICKAXE_HEAD.get(), recipe.result().getItem());
-        assertEquals(ResourceLocation.fromNamespaceAndPath("forgeweave", "manyullyn"),
+        assertEquals(Identifier.fromNamespaceAndPath("forgeweave", "manyullyn"),
                 recipe.result().get(ForgeweaveDataComponents.MATERIAL.get()));
         assertFalse(recipe.consumesCast(), "casts are reusable (pure parity)");
     }

@@ -83,7 +83,7 @@ public class SearedChannelBlockEntity extends BlockEntity {
      * so a GameTest can drive the flow on its own clock instead of the scheduler's (#715).
      */
     public void flowStep() {
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return;
         }
         BlockState state = getBlockState();
@@ -167,7 +167,7 @@ public class SearedChannelBlockEntity extends BlockEntity {
 
     /** Books the next flow tick while there is anything left to do. */
     private void scheduleIfBusy() {
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return;
         }
         if (!tank.fluid.isEmpty()) {
@@ -183,7 +183,7 @@ public class SearedChannelBlockEntity extends BlockEntity {
     }
 
     private void sync() {
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
         }
     }

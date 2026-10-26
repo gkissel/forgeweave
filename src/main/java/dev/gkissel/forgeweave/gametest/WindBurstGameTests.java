@@ -4,14 +4,14 @@ import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -19,8 +19,8 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.GameType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
@@ -47,7 +47,7 @@ import dev.gkissel.forgeweave.modifier.ModifierEntry;
 @PrefixGameTestTemplate(false)
 public class WindBurstGameTests {
 
-    private static final ResourceLocation WIND_BURST = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "wind_burst");
+    private static final Identifier WIND_BURST = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "wind_burst");
 
     /** {@link WarmaceGameTests}'s own part order: handle, head, binding. */
     private static final List<String> STONE_HEAD = List.of("wood", "stone", "wood");
@@ -96,7 +96,7 @@ public class WindBurstGameTests {
         ItemStack warmace = warmace(helper, player, pos);
         warmace.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(WIND_BURST, 3)));
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, warmace);
         blockEntity.container().setItem(1, new ItemStack(Items.BREEZE_ROD, 1));
         blockEntity.container().setItem(2, ItemStack.EMPTY);
@@ -121,7 +121,7 @@ public class WindBurstGameTests {
         ToolAssemblyRecipes.Entry broadswordEntry = ToolAssembly.entryFor(ForgeweaveItems.TOOL_BROADSWORD.get());
         ItemStack broadsword = ToolAssembly.assemble(helper, player, pos, broadswordEntry, SWORD_MATERIALS);
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, broadsword);
         blockEntity.container().setItem(1, new ItemStack(Items.BREEZE_ROD, 1));
         blockEntity.container().setItem(2, ItemStack.EMPTY);
@@ -204,7 +204,7 @@ public class WindBurstGameTests {
     /** Runs one application through the station and returns the modified tool. */
     private static ItemStack applyReagent(GameTestHelper helper, Player player, BlockPos pos, ItemStack tool,
             ItemStack reagent) {
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, tool);
         blockEntity.container().setItem(1, reagent);
         blockEntity.container().setItem(2, ItemStack.EMPTY);

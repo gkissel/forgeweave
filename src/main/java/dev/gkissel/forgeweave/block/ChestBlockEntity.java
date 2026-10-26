@@ -181,7 +181,7 @@ public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
      * nothing did (an empty hand, or a stack the chest's filter rejects outright).
      */
     public boolean insertHeldItem(Player player, InteractionHand hand) {
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return false;
         }
         ItemStack held = player.getItemInHand(hand);

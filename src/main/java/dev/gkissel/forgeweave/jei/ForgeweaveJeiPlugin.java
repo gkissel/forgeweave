@@ -4,7 +4,7 @@ package dev.gkissel.forgeweave.jei;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -68,7 +68,7 @@ import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
  */
 @JeiPlugin
 public final class ForgeweaveJeiPlugin implements IModPlugin {
-    private static final ResourceLocation UID = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "jei_plugin");
+    private static final Identifier UID = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "jei_plugin");
 
     /**
      * Issue #804: {@link JeiScreenshotHarness} needs a live runtime to open a category's real
@@ -78,7 +78,7 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
     private static volatile IJeiRuntime runtimeForHarness;
 
     @Override
-    public ResourceLocation getPluginUid() {
+    public Identifier getPluginUid() {
         return UID;
     }
 

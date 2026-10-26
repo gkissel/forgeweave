@@ -8,7 +8,7 @@ import net.createmod.ponder.foundation.PonderIndex;
 import net.createmod.ponder.foundation.PonderScene;
 import net.createmod.ponder.foundation.ui.PonderUI;
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 
@@ -26,7 +26,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
 final class PonderHarnessCaptures {
 
     /** One scene: the item the scene is registered on, which of its scenes (in registration order), and the PNG name. */
-    record Capture(ResourceLocation item, int sceneIndex, String fileName) {}
+    record Capture(Identifier item, int sceneIndex, String fileName) {}
 
     static final List<Capture> CAPTURES = List.of(
             new Capture(ForgeweaveItems.STANDARD_CORE.getId(), 0, "ponder_smeltery"),

@@ -3,22 +3,22 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.AbstractArrow;
-import net.minecraft.world.entity.projectile.Arrow;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
+import net.minecraft.world.entity.projectile.arrow.Arrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
@@ -56,8 +56,8 @@ public class BowGameTests {
         return bow;
     }
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
     /**
@@ -136,7 +136,7 @@ public class BowGameTests {
                         && Math.abs(launcher.range() - 1.325F) < EPSILON
                         && Math.abs(launcher.bonusDamage() - 3.5F) < EPSILON,
                 "expected draw speed 0.725, range 1.325, bonus 3.5, got " + launcher);
-        List<ResourceLocation> traits = bow.get(ForgeweaveDataComponents.TRAITS.get());
+        List<Identifier> traits = bow.get(ForgeweaveDataComponents.TRAITS.get());
         helper.assertTrue(List.of(id("magnetic"), id("magnetic2"), id("fractured"), id("splintering"),
                         id("truestring")).equals(traits),
                 "a limb grants its material's general (BOW-scoped) and head-scoped traits, got " + traits);

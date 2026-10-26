@@ -7,7 +7,7 @@ import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -90,7 +90,7 @@ public class StencilTableBlock extends HorizontalDirectionalBlock implements Ent
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
         if (level.getBlockEntity(pos) instanceof StencilTableBlockEntity stencilTable) {
-            ResourceLocation textureId = stack.get(ForgeweaveDataComponents.TEXTURE.get());
+            Identifier textureId = stack.get(ForgeweaveDataComponents.TEXTURE.get());
             if (textureId != null && BuiltInRegistries.BLOCK.containsKey(textureId)) {
                 stencilTable.setTexture(BuiltInRegistries.BLOCK.get(textureId));
             }
@@ -108,7 +108,7 @@ public class StencilTableBlock extends HorizontalDirectionalBlock implements Ent
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof StencilTableBlockEntity stencilTable) {
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof StencilTableBlockEntity stencilTable) {
             stencilTable.open(player); // carries the station-group tab row (issue #78)
         }
         return InteractionResult.SUCCESS;

@@ -21,7 +21,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
@@ -113,8 +113,8 @@ class ModifierBatch1Test {
         ItemStack tool = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
         tool.set(ForgeweaveDataComponents.TOOL_STATS.get(), base);
         tool.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "diamond"), 1),
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "sharpness"), 1)));
+                new ModifierEntry(Identifier.fromNamespaceAndPath("forgeweave", "diamond"), 1),
+                new ModifierEntry(Identifier.fromNamespaceAndPath("forgeweave", "sharpness"), 1)));
 
         ToolStats.Stats effective = ForgeweaveModifiers.effectiveStats(tool);
 
@@ -230,7 +230,7 @@ class ModifierBatch1Test {
 
     // ------------------------------------------------------------------ luck's growth-on-use (issue #296)
 
-    private static final ResourceLocation LUCK_ID = ResourceLocation.fromNamespaceAndPath("forgeweave", "luck");
+    private static final Identifier LUCK_ID = Identifier.fromNamespaceAndPath("forgeweave", "luck");
 
     /**
      * The seed for a roll that must land -- found by brute-force search rather than hand-computed, so
@@ -395,8 +395,8 @@ class ModifierBatch1Test {
      */
     @Test
     void foldTierIndexAgreesRegardlessOfWhichOrderTheEntriesListHasDiamondAndEmeraldIn() {
-        ResourceLocation diamondId = ResourceLocation.fromNamespaceAndPath("forgeweave", "diamond");
-        ResourceLocation emeraldId = ResourceLocation.fromNamespaceAndPath("forgeweave", "emerald");
+        Identifier diamondId = Identifier.fromNamespaceAndPath("forgeweave", "diamond");
+        Identifier emeraldId = Identifier.fromNamespaceAndPath("forgeweave", "emerald");
         List<ModifierEntry> diamondThenEmerald =
                 List.of(new ModifierEntry(diamondId, 1), new ModifierEntry(emeraldId, 1));
         List<ModifierEntry> emeraldThenDiamond =

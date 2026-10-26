@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.placement.PlacementContext;
@@ -54,7 +54,7 @@ public class TrackBOrePlacement extends PlacementModifier {
      * through a compile dependency -- see the PR body for why this integration never needs one.
      */
     public static final ResourceKey<Level> ALLTHEMODIUM_MINING =
-            ResourceKey.create(Registries.DIMENSION, ResourceLocation.fromNamespaceAndPath("allthemodium", "mining"));
+            ResourceKey.create(Registries.DIMENSION, Identifier.fromNamespaceAndPath("allthemodium", "mining"));
 
     private final int count;
 

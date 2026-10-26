@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import net.neoforged.fml.ModList;
 
@@ -35,7 +35,7 @@ public final class CompatMaterialAvailability {
 
     // Mirrors each material JSON's own `neoforge:conditions`. Multi-entry lists are an
     // `neoforge:or` (any one provider is enough); every other entry is a plain `item_exists`.
-    private static final Map<String, List<ResourceLocation>> ANY_OF = Map.ofEntries(
+    private static final Map<String, List<Identifier>> ANY_OF = Map.ofEntries(
             entry("zinc", "create:zinc_ingot"),
             entry("brass", "create:brass_ingot"),
             entry("andesite_alloy", "create:andesite_alloy"),
@@ -173,17 +173,17 @@ public final class CompatMaterialAvailability {
 
     // The three PlusTiC-inspiration alloys (issue #873 deliverable 4): condition is the AND of their
     // compat inputs' own providers (native inputs -- iron, obsidian, glass -- need no entry).
-    private static final Map<String, List<ResourceLocation>> ALL_OF = Map.of(
+    private static final Map<String, List<Identifier>> ALL_OF = Map.of(
             "alumite", ids("immersiveengineering:ingot_aluminum"),
             "osgloglas", ids("mekanism:ingot_osmium", "mekanism:ingot_refined_obsidian"),
             "osmiridium", ids("mekanism:ingot_osmium", "modern_industrialization:iridium_ingot"));
 
-    private static Map.Entry<String, List<ResourceLocation>> entry(String materialId, String... items) {
+    private static Map.Entry<String, List<Identifier>> entry(String materialId, String... items) {
         return Map.entry(materialId, ids(items));
     }
 
-    private static List<ResourceLocation> ids(String... items) {
-        return List.of(items).stream().map(ResourceLocation::parse).toList();
+    private static List<Identifier> ids(String... items) {
+        return List.of(items).stream().map(Identifier::parse).toList();
     }
 
     /**
@@ -195,18 +195,18 @@ public final class CompatMaterialAvailability {
             return ModList.get().isLoaded("elementarium")
                     && ForgeweaveConfig.enabled(ForgeweaveConfig.ELEMENTARIUM_MATERIALS);
         }
-        List<ResourceLocation> anyOf = ANY_OF.get(materialId);
+        List<Identifier> anyOf = ANY_OF.get(materialId);
         if (anyOf != null) {
             return anyOf.stream().anyMatch(CompatMaterialAvailability::itemRegistered);
         }
-        List<ResourceLocation> allOf = ALL_OF.get(materialId);
+        List<Identifier> allOf = ALL_OF.get(materialId);
         if (allOf != null) {
             return allOf.stream().allMatch(CompatMaterialAvailability::itemRegistered);
         }
         return true;
     }
 
-    private static boolean itemRegistered(ResourceLocation id) {
+    private static boolean itemRegistered(Identifier id) {
         return BuiltInRegistries.ITEM.containsKey(id);
     }
 

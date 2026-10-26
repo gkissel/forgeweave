@@ -3,7 +3,7 @@ package dev.gkissel.forgeweave.client;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.renderer.item.ItemProperties;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -47,8 +47,8 @@ import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 public final class ForgeweaveItemProperties {
 
     /** The property id; {@code ForgeweaveItemModelProvider.BROKEN_PREDICATE} is its other half. */
-    private static final ResourceLocation BROKEN =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "broken");
+    private static final Identifier BROKEN =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "broken");
 
     /**
      * The two draw-stage properties (M3.5 issue #400), in <em>vanilla's</em> namespace rather than
@@ -58,8 +58,8 @@ public final class ForgeweaveItemProperties {
      * re-skinning a Forgeweave bow will reach for them. {@link #BROKEN} stays namespaced because
      * "this tool is Broken" is a Forgeweave concept vanilla has no word for.
      */
-    private static final ResourceLocation PULLING = ResourceLocation.withDefaultNamespace("pulling");
-    private static final ResourceLocation PULL = ResourceLocation.withDefaultNamespace("pull");
+    private static final Identifier PULLING = Identifier.withDefaultNamespace("pulling");
+    private static final Identifier PULL = Identifier.withDefaultNamespace("pull");
 
     /**
      * The crossbow's loaded flag ({@code CrossBow#PROPERTY_IS_LOADED}). Namespaced, unlike the two
@@ -67,8 +67,8 @@ public final class ForgeweaveItemProperties {
      * different thing -- vanilla's crossbow stores the projectile it will fire, while upstream's (and
      * so Forgeweave's) stores nothing but a boolean and finds its ammo at fire time.
      */
-    private static final ResourceLocation LOADED =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "loaded");
+    private static final Identifier LOADED =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "loaded");
 
     /**
      * Issue #723: the held-pose switch. Every bow model carries a second, {@code modern_pose}-gated
@@ -76,8 +76,8 @@ public final class ForgeweaveItemProperties {
      * ForgeweaveItemModelProvider}); this is what makes it fire. A model property rather than a
      * baked-model swap because it needs no resource reload and no wrapping of the override tree.
      */
-    private static final ResourceLocation MODERN_POSE =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "modern_pose");
+    private static final Identifier MODERN_POSE =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "modern_pose");
 
     @SubscribeEvent
     static void registerItemProperties(FMLClientSetupEvent event) {

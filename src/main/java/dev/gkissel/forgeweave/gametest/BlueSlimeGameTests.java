@@ -4,10 +4,10 @@ import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -32,8 +32,8 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -170,8 +170,8 @@ public class BlueSlimeGameTests {
     @GameTest(template = "empty")
     public static void theSlimeIslandStructureReplacesItsMonsterSpawnsWithBlueSlimes(GameTestHelper helper) {
         ResourceKey<Structure> key = ResourceKey.create(Registries.STRUCTURE,
-                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "slime_island"));
-        Structure island = helper.getLevel().registryAccess().registryOrThrow(Registries.STRUCTURE).get(key);
+                Identifier.fromNamespaceAndPath(Forgeweave.MODID, "slime_island"));
+        Structure island = helper.getLevel().registryAccess().lookupOrThrow(Registries.STRUCTURE).get(key);
         helper.assertTrue(island != null, "expected a structure registered as " + key.location());
 
         StructureSpawnOverride override = island.spawnOverrides().get(MobCategory.MONSTER);

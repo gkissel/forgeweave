@@ -6,10 +6,10 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
@@ -22,10 +22,10 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.monster.Blaze;
 import net.minecraft.world.entity.monster.EnderMan;
-import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -38,8 +38,8 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
 import net.neoforged.neoforge.event.entity.living.LivingHealEvent;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.combat.CombatProviders;
@@ -1099,10 +1099,10 @@ public class CombatTraitGameTests {
     /** Checklist line 81: the two Track B materials carry the tool traits the checklist names. */
     @GameTest(template = "empty")
     public static void glowveilIsLuminousAndFulmeniteArcs(GameTestHelper helper) {
-        var materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
-        List<ResourceLocation> glowveil = materials.getOrThrow(
+        var materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
+        List<Identifier> glowveil = materials.getOrThrow(
                 net.minecraft.resources.ResourceKey.create(Material.REGISTRY, traitId("glowveil"))).traits().general();
-        List<ResourceLocation> fulmenite = materials.getOrThrow(
+        List<Identifier> fulmenite = materials.getOrThrow(
                 net.minecraft.resources.ResourceKey.create(Material.REGISTRY, traitId("fulmenite"))).traits().general();
         helper.assertTrue(glowveil.contains(traitId("luminous")), "glowveil must carry luminous, got " + glowveil);
         helper.assertTrue(fulmenite.contains(traitId("arcing")), "fulmenite must carry arcing, got " + fulmenite);
@@ -1288,14 +1288,14 @@ public class CombatTraitGameTests {
     }
 
     /** Builds a tool {@code ItemStack} with the given traits directly (see class javadoc). */
-    static ItemStack tool(ToolItem toolItem, List<ResourceLocation> traits, float attackDamage) {
+    static ItemStack tool(ToolItem toolItem, List<Identifier> traits, float attackDamage) {
         int durability = 1000;
         ToolStats.Stats stats = new ToolStats.Stats(durability, 1.0F, attackDamage);
         Material head = new Material(
                 new Material.Head(durability, 1.0F, attackDamage),
                 new Material.Handle(1.0F, 0),
                 0,
-                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool")),
+                TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace("incorrect_for_stone_tool")),
                 new Material.Traits(List.of(), List.of()),
                 List.of(),
                 Ingredient.of(Items.STICK),
@@ -1310,7 +1310,7 @@ public class CombatTraitGameTests {
         return stack;
     }
 
-    static ResourceLocation traitId(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    static Identifier traitId(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 }

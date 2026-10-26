@@ -14,7 +14,7 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ExtraCodecs;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -85,15 +85,15 @@ public final class TraitFamilies {
         return new Rung(family, level, maxLevel, List.of(args));
     }
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
     /**
      * The families whose rungs are Java-registered traits. Datapack rungs declare themselves in
      * their own file instead ({@link Rung#CODEC}) and arrive through {@link #datapack}.
      */
-    private static final Map<ResourceLocation, Rung> JAVA = Map.ofEntries(
+    private static final Map<Identifier, Rung> JAVA = Map.ofEntries(
             // Ported 1.12 ladders, which upstream already renders as one name plus a numeral. The
             // numbers are issue #1102's: it had written one description per rung to tell the tiers
             // apart, and a rung's arguments say the same thing from one key.
@@ -139,7 +139,7 @@ public final class TraitFamilies {
             Map.entry(id("arcing"), rung("arcing", 1, 2, "3", "50")));
 
     /** Retired ids a stored trait list may still carry, each pointing at the rung that replaced it. */
-    private static final Map<ResourceLocation, ResourceLocation> ALIASES = Map.ofEntries(
+    private static final Map<Identifier, Identifier> ALIASES = Map.ofEntries(
             // Fire immunity: six names, one sentence (the report's worst group).
             Map.entry(id("blaze_gold_cinder"), id("fireward")),
             Map.entry(id("blazegold_ember"), id("fireward")),
@@ -282,15 +282,15 @@ public final class TraitFamilies {
             Map.entry(id("aegispulse"), id("surgeward")));
 
     /** The loaded {@code trait_definition} families, re-snapshotted with the registry. */
-    private static volatile Map<ResourceLocation, Rung> DATAPACK = Map.of();
+    private static volatile Map<Identifier, Rung> DATAPACK = Map.of();
 
     /** Called from {@link ForgeweaveTraits#onTagsUpdated} with the rungs the loaded definitions declared. */
-    static void datapack(Map<ResourceLocation, Rung> rungs) {
+    static void datapack(Map<Identifier, Rung> rungs) {
         DATAPACK = Map.copyOf(rungs);
     }
 
     /** Every id this version retired, for the guards and the save-compat GameTest. */
-    public static Map<ResourceLocation, ResourceLocation> aliases() {
+    public static Map<Identifier, Identifier> aliases() {
         return ALIASES;
     }
 
@@ -299,8 +299,8 @@ public final class TraitFamilies {
      * version retired. Aliases do not chain -- a retired id always points straight at a live rung,
      * which the guard test checks.
      */
-    public static ResourceLocation canonical(ResourceLocation id) {
-        ResourceLocation replacement = ALIASES.get(id);
+    public static Identifier canonical(Identifier id) {
+        Identifier replacement = ALIASES.get(id);
         return replacement == null ? id : replacement;
     }
 
@@ -309,9 +309,9 @@ public final class TraitFamilies {
      * whose head and handle materials used to grant two names for one mechanic ({@code voidward} and
      * {@code unravelward}, say) now names the same rung twice, and every hook would run twice.
      */
-    public static List<ResourceLocation> canonical(List<ResourceLocation> ids) {
-        LinkedHashSet<ResourceLocation> unique = new LinkedHashSet<>(ids.size());
-        for (ResourceLocation id : ids) {
+    public static List<Identifier> canonical(List<Identifier> ids) {
+        LinkedHashSet<Identifier> unique = new LinkedHashSet<>(ids.size());
+        for (Identifier id : ids) {
             unique.add(canonical(id));
         }
         return List.copyOf(unique);
@@ -319,7 +319,7 @@ public final class TraitFamilies {
 
     /** The family rung {@code id} is, or {@code null} for a standalone trait. */
     @Nullable
-    public static Rung of(ResourceLocation id) {
+    public static Rung of(Identifier id) {
         Rung rung = JAVA.get(id);
         if (rung == null) {
             rung = DATAPACK.get(id);
@@ -331,7 +331,7 @@ public final class TraitFamilies {
      * The lang key prefix {@code id}'s name and description live under: the family's where it is a
      * rung, its own otherwise.
      */
-    public static String langBase(ResourceLocation id) {
+    public static String langBase(Identifier id) {
         Rung rung = of(id);
         String path = rung == null ? id.getPath() : rung.family();
         return "trait." + id.getNamespace() + "." + path;
@@ -341,7 +341,7 @@ public final class TraitFamilies {
      * {@code Keen Edge II} -- the family name plus vanilla's roman numeral past level 1, upstream's
      * {@code AbstractTraitLeveled#getLocalizedName}. A standalone trait is just its own name.
      */
-    public static MutableComponent name(ResourceLocation id) {
+    public static MutableComponent name(Identifier id) {
         MutableComponent name = Component.translatable(langBase(id) + ".name");
         Rung rung = of(id);
         if (rung != null && rung.level() > 1) {
@@ -355,7 +355,7 @@ public final class TraitFamilies {
      * The family's one sentence, with this rung's own numbers in it -- which is how one lang entry
      * reads "2.5" on one rung and "4.0" on the next.
      */
-    public static MutableComponent description(ResourceLocation id) {
+    public static MutableComponent description(Identifier id) {
         Rung rung = of(id);
         if (rung == null || rung.descriptionArgs().isEmpty()) {
             return Component.translatable(langBase(id) + ".description");

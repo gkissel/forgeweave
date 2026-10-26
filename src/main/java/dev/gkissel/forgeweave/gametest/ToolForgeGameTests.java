@@ -3,7 +3,7 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -15,8 +15,8 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -242,7 +242,7 @@ public class ToolForgeGameTests {
     private static boolean clickTab(GameTestHelper helper, Block station, int id) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.setBlock(POS, station);
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS, ToolStationBlockEntity.class);
         ToolStationMenu menu = ToolAssembly.menu(helper, player, POS, blockEntity);
         boolean accepted = menu.clickMenuButton(player, id);
         helper.assertTrue(accepted == (menu.getSelectedTab() == id),
@@ -255,7 +255,7 @@ public class ToolForgeGameTests {
     public static void forgeAlsoAssemblesSmallTools(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.setBlock(POS, ForgeweaveBlocks.TOOL_FORGE.get());
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, ToolAssembly.part(ForgeweaveItems.PART_PICKAXE_HEAD.get(), "stone"));
         blockEntity.container().setItem(1, ToolAssembly.part(ForgeweaveItems.PART_TOOL_BINDING.get(), "wood"));
         blockEntity.container().setItem(2, ToolAssembly.part(ForgeweaveItems.PART_TOOL_HANDLE.get(), "wood"));
@@ -311,7 +311,7 @@ public class ToolForgeGameTests {
         helper.assertTrue(ToolItem.isBroken(pickaxe), "the test needs a Broken tool to repair");
 
         helper.setBlock(POS, station);
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, pickaxe);
         blockEntity.container().setItem(1, new ItemStack(Items.COBBLESTONE, 1));
         blockEntity.container().setItem(2, ItemStack.EMPTY);
@@ -356,7 +356,7 @@ public class ToolForgeGameTests {
     private static ToolStationMenu loadBattleaxeParts(GameTestHelper helper, Block station) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.setBlock(POS, station);
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS, ToolStationBlockEntity.class);
         ToolAssemblyRecipes.Entry entry = ToolAssembly.entryFor(ForgeweaveItems.TOOL_BATTLEAXE.get());
         List<String> materials = List.of("wood", "stone", "stone", "wood");
         for (int i = 0; i < ToolStationMenu.INPUT_SLOTS; i++) {
@@ -373,7 +373,7 @@ public class ToolForgeGameTests {
     private static ToolStationMenu loadHammerParts(GameTestHelper helper, Block station) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.setBlock(POS, station);
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS, ToolStationBlockEntity.class);
         // ToolConstants.HAMMER's own slot order: tough rod, hammer head, then its two large plates.
         blockEntity.container().setItem(0, ToolAssembly.part(ForgeweaveItems.PART_TOUGH_TOOL_ROD.get(), "wood"));
         blockEntity.container().setItem(1, ToolAssembly.part(ForgeweaveItems.PART_HAMMER_HEAD.get(), "stone"));

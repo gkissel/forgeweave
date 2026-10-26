@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.function.IntFunction;
 import java.util.function.ToIntFunction;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
@@ -35,13 +35,13 @@ public final class ToolStationPreview {
      * @param materialColor a material id's bare 0xRRGGBB, or a negative value when unknown
      */
     public static List<Integer> layerColors(ToolAssemblyRecipes.Entry entry, IntFunction<ItemStack> slotItem,
-            ToIntFunction<ResourceLocation> materialColor) {
+            ToIntFunction<Identifier> materialColor) {
         List<ToolConstants.PartSlot> parts = entry.constants().parts();
         List<Integer> slots = ToolArt.layerSlots(parts);
         List<Integer> colors = new ArrayList<>(slots.size());
         for (int slot : slots) {
             ItemStack stack = slotItem.apply(slot);
-            ResourceLocation material = stack.is(entry.part(slot))
+            Identifier material = stack.is(entry.part(slot))
                     ? stack.get(ForgeweaveDataComponents.MATERIAL.get()) : null;
             int color = material == null ? -1 : materialColor.applyAsInt(material);
             colors.add(color < 0 ? MISSING : color & 0xFFFFFF);

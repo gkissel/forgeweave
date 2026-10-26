@@ -9,7 +9,7 @@ import javax.annotation.Nullable;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 
@@ -103,8 +103,8 @@ public final class Fortification {
      * no category of its own. {@code ModifierApplication#recipeFor} skips it for exactly that reason:
      * the generic apply path must never try to put {@code forgeweave:fortification} on a tool.
      */
-    public static final ResourceLocation RECIPE_ID =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "fortification");
+    public static final Identifier RECIPE_ID =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "fortification");
 
     /**
      * What the station should show, and why it can't when it can't. Exactly one of the two is
@@ -143,20 +143,20 @@ public final class Fortification {
     // ------------------------------------------------------------------ ids
 
     /** The modifier id a fortification with {@code materialId} serializes as. */
-    public static ResourceLocation idFor(ResourceLocation materialId) {
-        return ResourceLocation.fromNamespaceAndPath(materialId.getNamespace(), PREFIX + materialId.getPath());
+    public static Identifier idFor(Identifier materialId) {
+        return Identifier.fromNamespaceAndPath(materialId.getNamespace(), PREFIX + materialId.getPath());
     }
 
     /** Whether {@code id} is one of {@link #idFor}'s generated fortification ids. */
-    public static boolean isFortification(ResourceLocation id) {
+    public static boolean isFortification(Identifier id) {
         return id.getPath().startsWith(PREFIX);
     }
 
     /** The material a fortification id names, or {@code null} if the id isn't a fortification at all. */
     @Nullable
-    public static ResourceLocation materialOf(ResourceLocation modifierId) {
+    public static Identifier materialOf(Identifier modifierId) {
         return isFortification(modifierId)
-                ? ResourceLocation.fromNamespaceAndPath(
+                ? Identifier.fromNamespaceAndPath(
                         modifierId.getNamespace(), modifierId.getPath().substring(PREFIX.length()))
                 : null;
     }
@@ -250,7 +250,7 @@ public final class Fortification {
             // declined application here.
             return Optional.of(rejected("gui.forgeweave.fortification.not_harvest"));
         }
-        ResourceLocation materialId = kit.get(ForgeweaveDataComponents.MATERIAL.get());
+        Identifier materialId = kit.get(ForgeweaveDataComponents.MATERIAL.get());
         if (materialId == null) {
             return Optional.empty(); // a kit with no material can't name a tier.
         }
@@ -289,7 +289,7 @@ public final class Fortification {
      * one piece of code that does it -- and so this produces byte-identical output to what a later
      * part exchange re-derives.
      */
-    private static ItemStack fortified(ItemStack tool, ResourceLocation materialId, int tierIndex) {
+    private static ItemStack fortified(ItemStack tool, Identifier materialId, int tierIndex) {
         List<ModifierEntry> entries = new ArrayList<>();
         for (ModifierEntry entry : ForgeweaveModifiers.of(tool)) {
             if (!isFortification(entry.id())) {

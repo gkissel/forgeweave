@@ -2,7 +2,7 @@ package dev.gkissel.forgeweave.menu;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -67,7 +67,7 @@ public final class ContentFamilies {
      * Whether the part registered under {@code partId} is obtainable: true unless every tool taking
      * it sits in an off family. A part no tool takes is in no family and so is always obtainable.
      */
-    public static boolean partEnabled(ResourceLocation partId) {
+    public static boolean partEnabled(Identifier partId) {
         boolean taken = false;
         for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
             for (ToolConstants.PartSlot slot : entry.constants().parts()) {
@@ -104,7 +104,7 @@ public final class ContentFamilies {
         if (item instanceof SlimeSlingItem) {
             return ForgeweaveConfig.enabled(ForgeweaveConfig.GADGETS);
         }
-        ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
+        Identifier id = BuiltInRegistries.ITEM.getKey(item);
         if (!id.getNamespace().equals(Forgeweave.MODID)) {
             return true;
         }

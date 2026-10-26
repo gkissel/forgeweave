@@ -6,11 +6,11 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.level.Level;
 
@@ -47,8 +47,8 @@ import dev.gkissel.forgeweave.menu.SmelteryMenu;
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class SearedFurnaceScreen extends StationScreen<SearedFurnaceMenu> {
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/seared_furnace.png");
+    private static final Identifier TEXTURE =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/seared_furnace.png");
     private static final int SHEET = 256;
     private static final int BASE_WIDTH = 176;
     private static final int BASE_HEIGHT = SmelteryMenu.PANEL_HEIGHT;
@@ -92,7 +92,7 @@ public class SearedFurnaceScreen extends StationScreen<SearedFurnaceMenu> {
     }
 
     @Override
-    protected void renderPanel(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
+    protected void renderPanel(GuiGraphicsExtractor graphics, float partialTick, int mouseX, int mouseY) {
         graphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, SHEET, SHEET);
         renderGrid(graphics);
         float fuel = menu.fuelPercentage(level());
@@ -104,7 +104,7 @@ public class SearedFurnaceScreen extends StationScreen<SearedFurnaceMenu> {
         renderFuel(graphics);
     }
 
-    private void renderGrid(GuiGraphics graphics) {
+    private void renderGrid(GuiGraphicsExtractor graphics) {
         int slots = menu.slotCount();
         int rows = SmelteryMenu.visibleMeltRows(slots);
         int gridX = SmelteryMenu.gridX(slots);
@@ -165,7 +165,7 @@ public class SearedFurnaceScreen extends StationScreen<SearedFurnaceMenu> {
         };
     }
 
-    private void renderFuel(GuiGraphics graphics) {
+    private void renderFuel(GuiGraphicsExtractor graphics) {
         FluidStack fuel = menu.fuel(level());
         if (fuel.isEmpty()) {
             return;
@@ -175,7 +175,7 @@ public class SearedFurnaceScreen extends StationScreen<SearedFurnaceMenu> {
     }
 
     @Override
-    protected void renderTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
+    protected void renderTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         super.renderTooltip(graphics, mouseX, mouseY);
         if (isHovering(FUEL_X, FUEL_Y, FUEL_WIDTH, FUEL_HEIGHT, mouseX, mouseY)) {
             graphics.renderComponentTooltip(font, fuelTooltip(), mouseX, mouseY);
@@ -268,7 +268,7 @@ public class SearedFurnaceScreen extends StationScreen<SearedFurnaceMenu> {
 
     /** Upstream's {@code GuiMultiModule} draws no title or inventory label. */
     @Override
-    protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {}
+    protected void renderLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {}
 
     @Override
     public List<Rect2i> extraGuiAreas() {

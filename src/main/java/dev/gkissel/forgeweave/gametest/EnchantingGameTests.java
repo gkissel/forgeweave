@@ -7,7 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.tags.EnchantmentTags;
 import net.minecraft.tags.ItemTags;
@@ -23,8 +23,8 @@ import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.GameType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
@@ -181,7 +181,7 @@ public class EnchantingGameTests {
     @GameTest(template = "empty")
     public static void anvilBooksFollowTheFlag(GameTestHelper helper) {
         Holder<Enchantment> unbreaking = helper.getLevel().registryAccess()
-                .registryOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(Enchantments.UNBREAKING);
+                .lookupOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(Enchantments.UNBREAKING);
         ItemStack pickaxe = ForgeweaveItems.TOOL_PICKAXE.get().getDefaultInstance();
 
         ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.set(false);
@@ -223,7 +223,7 @@ public class EnchantingGameTests {
             helper.assertTrue(warmace.isEnchantable(),
                     "a warmace must be accepted by the enchanting table while allowVanillaEnchanting is on");
 
-            Registry<Enchantment> enchantments = helper.getLevel().registryAccess().registryOrThrow(Registries.ENCHANTMENT);
+            Registry<Enchantment> enchantments = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             List<EnchantmentInstance> offered = EnchantmentHelper.getAvailableEnchantmentResults(15, warmace,
                     enchantments.getTag(EnchantmentTags.IN_ENCHANTING_TABLE).orElseThrow().stream());
 
@@ -332,7 +332,7 @@ public class EnchantingGameTests {
 
     /** The enchantments a table can draw from -- {@code EnchantmentMenu#getEnchantmentList}'s set. */
     private static Stream<Holder<Enchantment>> tableEnchantments(GameTestHelper helper) {
-        return helper.getLevel().registryAccess().registryOrThrow(Registries.ENCHANTMENT)
+        return helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
                 .getTag(EnchantmentTags.IN_ENCHANTING_TABLE).stream().flatMap(holders -> holders.stream());
     }
 

@@ -4,7 +4,7 @@ import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -20,8 +20,8 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.CastingBlockEntity;
@@ -59,7 +59,7 @@ public class SearedChannelGameTests {
         helper.setBlock(NEXT, connected(Direction.NORTH, ChannelConnection.IN));
 
         fillTop(helper, SOURCE, SOME);
-        SearedChannelBlockEntity downstream = helper.getBlockEntity(NEXT);
+        SearedChannelBlockEntity downstream = helper.getBlockEntity(NEXT, SearedChannelBlockEntity.class);
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(!downstream.fluid().isEmpty(),
                         "expected the second channel to have received water"))
@@ -73,8 +73,8 @@ public class SearedChannelGameTests {
         helper.setBlock(SOURCE.below(), ForgeweaveBlocks.SEARED_TANK.get());
 
         fillTop(helper, SOURCE, SOME);
-        SearedChannelBlockEntity source = helper.getBlockEntity(SOURCE);
-        SearedTankBlockEntity below = helper.getBlockEntity(SOURCE.below());
+        SearedChannelBlockEntity source = helper.getBlockEntity(SOURCE, SearedChannelBlockEntity.class);
+        SearedTankBlockEntity below = helper.getBlockEntity(SOURCE.below(), SearedTankBlockEntity.class);
         helper.startSequence()
                 .thenIdle(40)
                 .thenExecute(() -> {
@@ -121,10 +121,10 @@ public class SearedChannelGameTests {
                 IFluidHandler.FluidAction.EXECUTE);
         // #715: driven directly rather than waited on. A fill is locked for the tick it landed in, so
         // the first step only unlocks it and the second is the one that pours.
-        SearedChannelBlockEntity channel = helper.getBlockEntity(SOURCE);
+        SearedChannelBlockEntity channel = helper.getBlockEntity(SOURCE, SearedChannelBlockEntity.class);
         channel.flowStep();
         channel.flowStep();
-        CastingBlockEntity basin = helper.getBlockEntity(SOURCE.below());
+        CastingBlockEntity basin = helper.getBlockEntity(SOURCE.below(), CastingBlockEntity.class);
         helper.assertValueEqual(basin.tank().getFluidAmount(), FaucetBlockEntity.LIQUID_TRANSFER,
                 "one flow step's worth of gold poured into the basin");
         helper.succeed();

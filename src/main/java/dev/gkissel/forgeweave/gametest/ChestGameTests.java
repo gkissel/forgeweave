@@ -4,7 +4,7 @@ import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
@@ -20,8 +20,8 @@ import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ChestBlockEntity;
@@ -59,7 +59,7 @@ public class ChestGameTests {
         helper.setBlock(pos, kind == ChestKind.PATTERN
                 ? ForgeweaveBlocks.PATTERN_CHEST.get()
                 : ForgeweaveBlocks.PART_CHEST.get());
-        ChestBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ChestBlockEntity blockEntity = helper.getBlockEntity(pos, ChestBlockEntity.class);
         return new ChestMenu(kind, 0, player.getInventory(), blockEntity.container(),
                 ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)));
     }
@@ -261,10 +261,10 @@ public class ChestGameTests {
         helper.setBlock(chestPos, ForgeweaveBlocks.PATTERN_CHEST.get());
         helper.setBlock(stationPos, ForgeweaveBlocks.PART_BUILDER.get());
 
-        ChestBlockEntity chest = helper.getBlockEntity(chestPos);
+        ChestBlockEntity chest = helper.getBlockEntity(chestPos, ChestBlockEntity.class);
         chest.container().setItem(0, new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()));
 
-        PartBuilderBlockEntity blockEntity = helper.getBlockEntity(stationPos);
+        PartBuilderBlockEntity blockEntity = helper.getBlockEntity(stationPos, PartBuilderBlockEntity.class);
         PartBuilderMenu menu = new PartBuilderMenu(0, player.getInventory(), blockEntity.container(),
                 ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(stationPos)), blockEntity.findSideInventory());
 

@@ -9,7 +9,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.functions.LootItemConditionalFunction;
@@ -69,22 +69,22 @@ public class AssembleTool extends LootItemConditionalFunction {
 
     public static final MapCodec<AssembleTool> CODEC = RecordCodecBuilder.mapCodec(instance ->
             commonFields(instance)
-                    .and(ResourceLocation.CODEC.listOf().fieldOf("materials")
+                    .and(Identifier.CODEC.listOf().fieldOf("materials")
                             .forGetter(function -> function.materials))
                     .apply(instance, AssembleTool::new));
 
     public static final DeferredHolder<LootItemFunctionType<?>, LootItemFunctionType<AssembleTool>> TYPE =
             LOOT_FUNCTIONS.register("assemble_tool", () -> new LootItemFunctionType<>(CODEC));
 
-    private final List<ResourceLocation> materials;
+    private final List<Identifier> materials;
 
-    protected AssembleTool(List<LootItemCondition> predicates, List<ResourceLocation> materials) {
+    protected AssembleTool(List<LootItemCondition> predicates, List<Identifier> materials) {
         super(predicates);
         this.materials = List.copyOf(materials);
     }
 
     /** The candidate materials, in the order the JSON lists them. */
-    public List<ResourceLocation> materials() {
+    public List<Identifier> materials() {
         return materials;
     }
 
@@ -113,7 +113,7 @@ public class AssembleTool extends LootItemConditionalFunction {
         if (entry.isEmpty() || materials.isEmpty() || !ApotheosisAffixes.affixesEnabled()) {
             return stack;
         }
-        ResourceLocation material = materials.get(context.getRandom().nextInt(materials.size()));
+        Identifier material = materials.get(context.getRandom().nextInt(materials.size()));
         HolderLookup.Provider registries = context.getLevel().registryAccess();
         return ToolAssemblyRecipes
                 .assemble(registries, entry.get(),

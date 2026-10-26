@@ -1,6 +1,6 @@
 package dev.gkissel.forgeweave.jei;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
@@ -123,7 +123,7 @@ final class CoreTransformCategory implements IRecipeCategory<CoreTransformRecipe
     }
 
     @Override
-    public void draw(CoreTransformRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
+    public void draw(CoreTransformRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
         background.draw(guiGraphics, 0, 0);
         arrow.draw(guiGraphics, ARROW_X, ARROW_Y);
         icon.draw(guiGraphics, FAUCET_ICON_X, FAUCET_ICON_Y);

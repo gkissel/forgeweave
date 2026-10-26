@@ -14,7 +14,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import net.minecraft.SharedConstants;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 
 import dev.gkissel.forgeweave.api.modifier.Modifier;
@@ -77,7 +77,7 @@ class RaywardTest {
 
     @Test
     void everyOtherModifierShieldsNothing() {
-        for (ResourceLocation id : ForgeweaveModifiers.ids()) {
+        for (Identifier id : ForgeweaveModifiers.ids()) {
             if (ForgeweaveModifiers.RAYWARD_ID.equals(id)) {
                 continue;
             }

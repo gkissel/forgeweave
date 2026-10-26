@@ -8,16 +8,16 @@ import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementType;
 import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.CriterionTrigger;
-import net.minecraft.advancements.critereon.InventoryChangeTrigger;
-import net.minecraft.advancements.critereon.ItemPredicate;
+import net.minecraft.advancements.criterion.InventoryChangeTrigger;
+import net.minecraft.advancements.criterion.ItemPredicate;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 
-import net.neoforged.neoforge.common.data.AdvancementProvider;
+import net.minecraft.data.advancements.AdvancementProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
@@ -88,7 +88,7 @@ public final class ForgeweaveAdvancementProvider implements AdvancementProvider.
         AdvancementHolder root = Advancement.Builder.advancement()
                 .display(new ItemStack(ForgeweaveItems.GUIDE_BOOK.get()),
                         title("guide_book"), description("guide_book"),
-                        ResourceLocation.withDefaultNamespace(ROOT_BACKGROUND),
+                        Identifier.withDefaultNamespace(ROOT_BACKGROUND),
                         AdvancementType.TASK, true, true, false)
                 .addCriterion("guide_book", owns(ForgeweaveItems.GUIDE_BOOK.get()))
                 .save(saver, id("root"), existingFileHelper);
@@ -262,8 +262,8 @@ public final class ForgeweaveAdvancementProvider implements AdvancementProvider.
         return Component.translatable("advancements.forgeweave." + key + ".description");
     }
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
     /**

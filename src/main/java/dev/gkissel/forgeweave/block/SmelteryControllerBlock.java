@@ -116,7 +116,7 @@ public class SmelteryControllerBlock extends HorizontalDirectionalBlock implemen
      */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof SmelteryControllerBlockEntity core) {
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof SmelteryControllerBlockEntity core) {
             core.updateStructure();
             boolean formed = core.isFormed();
             // #110 -- first-interaction hook for the advancement chain and the Ponder soft dependency

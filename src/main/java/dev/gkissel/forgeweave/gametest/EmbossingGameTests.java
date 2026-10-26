@@ -4,18 +4,18 @@ import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.contents.TranslatableContents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.level.GameType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
@@ -44,10 +44,10 @@ import dev.gkissel.forgeweave.tool.ToolStats;
 @PrefixGameTestTemplate(false)
 public class EmbossingGameTests {
 
-    private static final ResourceLocation IRON =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "iron");
-    private static final ResourceLocation MAGNETIC2 =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "magnetic2");
+    private static final Identifier IRON =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "iron");
+    private static final Identifier MAGNETIC2 =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "magnetic2");
 
     /**
      * The mechanic itself: the donor material's traits land on the tool, the embossment serializes as
@@ -141,7 +141,7 @@ public class EmbossingGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().clearContent();
         blockEntity.container().setItem(ToolStationMenu.HEAD_SLOT, pickaxe);
         blockEntity.container().setItem(ToolStationMenu.BINDING_SLOT, ironPickaxeHead());
@@ -183,7 +183,7 @@ public class EmbossingGameTests {
                 "and those slots are still the three every tool starts with");
 
         // Still spendable: a real modifier applied afterwards takes one of the three as usual.
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().clearContent();
         blockEntity.container().setItem(ToolStationMenu.HEAD_SLOT, embossed);
         blockEntity.container().setItem(ToolStationMenu.BINDING_SLOT, new ItemStack(Items.REDSTONE, 1));
@@ -210,7 +210,7 @@ public class EmbossingGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
         pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "silky"), 1)));
+                new ModifierEntry(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "silky"), 1)));
 
         ToolStationMenu menu = load(helper, player, pos, pickaxe,
                 ToolAssembly.part(ForgeweaveItems.PART_PICKAXE_HEAD.get(), "firewood"));
@@ -229,7 +229,7 @@ public class EmbossingGameTests {
     /** A station loaded with the tool, a donor part and one of each shipped reagent, ready to take. */
     private static ToolStationMenu load(GameTestHelper helper, Player player, BlockPos pos, ItemStack tool,
             ItemStack donor) {
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().clearContent();
         blockEntity.container().setItem(ToolStationMenu.HEAD_SLOT, tool);
         blockEntity.container().setItem(ToolStationMenu.BINDING_SLOT, donor);
@@ -257,7 +257,7 @@ public class EmbossingGameTests {
         return ToolAssembly.part(ForgeweaveItems.PART_PICKAXE_HEAD.get(), "iron");
     }
 
-    private static List<ResourceLocation> traits(ItemStack stack) {
+    private static List<Identifier> traits(ItemStack stack) {
         return stack.getOrDefault(ForgeweaveDataComponents.TRAITS.get(), List.of());
     }
 }

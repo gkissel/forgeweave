@@ -7,10 +7,10 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -20,8 +20,8 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.Vec3;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -57,9 +57,9 @@ import dev.gkissel.forgeweave.tool.ToolStats;
 @PrefixGameTestTemplate(false)
 public class PartExchangeGameTests {
 
-    private static final ResourceLocation IRON = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "iron");
-    private static final ResourceLocation MAGNETIC2 =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "magnetic2");
+    private static final Identifier IRON = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "iron");
+    private static final Identifier MAGNETIC2 =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "magnetic2");
 
     /**
      * The mechanic itself: swapping the stone head for an iron one rebuilds the stat block and trait
@@ -666,7 +666,7 @@ public class PartExchangeGameTests {
     private static ToolStationMenu load(GameTestHelper helper, Player player, BlockPos pos, Block station,
             ItemStack tool, ItemStack input) {
         helper.setBlock(pos, station);
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().clearContent();
         blockEntity.container().setItem(ToolStationMenu.HEAD_SLOT, tool);
         blockEntity.container().setItem(ToolStationMenu.BINDING_SLOT, input);
@@ -677,7 +677,7 @@ public class PartExchangeGameTests {
 
     /** {@link EmbossingGameTests}'s loadout: iron head donor plus the #248 parity reagent set. */
     private static ToolStationMenu loadEmbossing(GameTestHelper helper, Player player, BlockPos pos, ItemStack tool) {
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().clearContent();
         blockEntity.container().setItem(ToolStationMenu.HEAD_SLOT, tool);
         blockEntity.container().setItem(ToolStationMenu.BINDING_SLOT,
@@ -705,19 +705,19 @@ public class PartExchangeGameTests {
     /** One level-1 entry per named modifier -- the fixture shape {@code ToolStationGameTests} uses. */
     private static List<ModifierEntry> modifiers(String... names) {
         return Arrays.stream(names)
-                .map(name -> new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name), 1))
+                .map(name -> new ModifierEntry(Identifier.fromNamespaceAndPath(Forgeweave.MODID, name), 1))
                 .toList();
     }
 
-    private static ResourceLocation material(String name) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name);
+    private static Identifier material(String name) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, name);
     }
 
-    private static List<ResourceLocation> materialsOf(ItemStack stack) {
+    private static List<Identifier> materialsOf(ItemStack stack) {
         return stack.get(ForgeweaveDataComponents.TOOL_MATERIALS.get()).parts();
     }
 
-    private static List<ResourceLocation> traits(ItemStack stack) {
+    private static List<Identifier> traits(ItemStack stack) {
         return stack.getOrDefault(ForgeweaveDataComponents.TRAITS.get(), List.of());
     }
 }

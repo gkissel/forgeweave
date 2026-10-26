@@ -95,13 +95,13 @@ public class SearedDrainBlock extends HorizontalDirectionalBlock implements Enti
         if (FluidUtil.getFluidHandler(stack).isEmpty()) {
             return super.useItemOn(stack, state, level, pos, player, hand, hit);
         }
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             FluidActionResult emptied = FluidUtil.tryEmptyContainerAndStow(stack, smeltery,
                     new PlayerMainInvWrapper(player.getInventory()), FluidType.BUCKET_VOLUME, player, true);
             if (emptied.isSuccess()) {
                 player.setItemInHand(hand, emptied.getResult());
             }
         }
-        return ItemInteractionResult.sidedSuccess(level.isClientSide);
+        return ItemInteractionResult.sidedSuccess(level.isClientSide());
     }
 }

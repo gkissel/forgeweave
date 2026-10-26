@@ -3,12 +3,12 @@ package dev.gkissel.forgeweave.client;
 import java.util.List;
 import java.util.function.Supplier;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
@@ -59,10 +59,10 @@ import dev.gkissel.forgeweave.menu.StencilTableMenu;
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class StencilTableScreen extends StationScreen<StencilTableMenu> implements StationExtraAreas {
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/stencil_table.png");
-    private static final ResourceLocation ICONS =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/station_icons.png");
+    private static final Identifier TEXTURE =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/stencil_table.png");
+    private static final Identifier ICONS =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/station_icons.png");
     private static final int SHEET = 256;
 
     private static final int BASE_WIDTH = 176;
@@ -110,7 +110,7 @@ public class StencilTableScreen extends StationScreen<StencilTableMenu> implemen
     }
 
     @Override
-    protected void renderPanel(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
+    protected void renderPanel(GuiGraphicsExtractor guiGraphics, float partialTick, int mouseX, int mouseY) {
         guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, BASE_WIDTH, BASE_HEIGHT);
         renderInputIcon(guiGraphics);
         renderPatternButtons(guiGraphics, mouseX, mouseY);
@@ -123,13 +123,13 @@ public class StencilTableScreen extends StationScreen<StencilTableMenu> implemen
      * Drawn unconditionally, as upstream does -- this is the background layer, so a real item in the
      * slot is painted over it afterwards.
      */
-    private void renderInputIcon(GuiGraphics guiGraphics) {
+    private void renderInputIcon(GuiGraphicsExtractor guiGraphics) {
         var slot = menu.getSlot(StencilTableMenu.INPUT_SLOT);
         guiGraphics.blit(ICONS, leftPos + slot.x - 1, topPos + slot.y - 1,
                 PATTERN_ICON_U, PATTERN_ICON_V, ICON_SIZE, ICON_SIZE, SHEET, SHEET);
     }
 
-    private void renderPatternButtons(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    private void renderPatternButtons(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
         List<Supplier<? extends Item>> patterns = StencilTableMenu.PATTERNS;
         for (int i = 0; i < patterns.size(); i++) {
             int x = leftPos + buttonX(i);
@@ -160,7 +160,7 @@ public class StencilTableScreen extends StationScreen<StencilTableMenu> implemen
     }
 
     @Override
-    protected void renderTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    protected void renderTooltip(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
         super.renderTooltip(guiGraphics, mouseX, mouseY);
         List<Supplier<? extends Item>> patterns = StencilTableMenu.PATTERNS;
         for (int i = 0; i < patterns.size(); i++) {

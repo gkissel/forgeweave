@@ -21,7 +21,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -40,7 +40,7 @@ import dev.gkissel.forgeweave.tool.ToolStats;
  */
 class NetheriteModifierTest {
 
-    private static final ResourceLocation NETHERITE = ResourceLocation.fromNamespaceAndPath("forgeweave", "netherite");
+    private static final Identifier NETHERITE = Identifier.fromNamespaceAndPath("forgeweave", "netherite");
     private static RegistryOps<JsonElement> ops;
 
     @BeforeAll
@@ -96,9 +96,9 @@ class NetheriteModifierTest {
         ItemStack piece = new ItemStack(ForgeweaveItems.ARMOR_CHESTPLATE.get());
         piece.set(ForgeweaveDataComponents.ARMOR_STATS.get(), new ArmorStats(5, 0, 0, 1000));
         piece.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "one"), 1),
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "two"), 1),
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "three"), 1)));
+                new ModifierEntry(Identifier.fromNamespaceAndPath("forgeweave", "one"), 1),
+                new ModifierEntry(Identifier.fromNamespaceAndPath("forgeweave", "two"), 1),
+                new ModifierEntry(Identifier.fromNamespaceAndPath("forgeweave", "three"), 1)));
         assertEquals(0, ForgeweaveModifiers.freeSlots(piece));
 
         ModifierApplication.Outcome outcome = ModifierApplication.apply(shippedRecipe(), piece, 2, 0);

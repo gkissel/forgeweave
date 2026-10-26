@@ -105,7 +105,7 @@ public class CastingBlock extends Block implements EntityBlock {
         if (level.getBlockEntity(pos) instanceof CastingBlockEntity casting) {
             casting.interact(player, hand);
         }
-        return ItemInteractionResult.sidedSuccess(level.isClientSide);
+        return ItemInteractionResult.sidedSuccess(level.isClientSide());
     }
 
     @Override
@@ -113,7 +113,7 @@ public class CastingBlock extends Block implements EntityBlock {
         if (level.getBlockEntity(pos) instanceof CastingBlockEntity casting) {
             casting.interact(player, InteractionHand.MAIN_HAND);
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
     /** The scheduled tick a full pour books: the cooling time is up, so the recipe finishes. */

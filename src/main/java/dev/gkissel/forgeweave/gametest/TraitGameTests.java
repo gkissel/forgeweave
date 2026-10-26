@@ -5,24 +5,24 @@ import java.util.Map;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.GameType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
@@ -58,7 +58,7 @@ public class TraitGameTests {
      */
     @GameTest(template = "empty")
     public static void shippedMaterialsExposeTheirTraitListsThroughEveryPart(GameTestHelper helper) {
-        Registry<Material> materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
+        Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         Map<String, List<String>> general = Map.of(
                 "wood", List.of("ecological"), "stone", List.of("cheap"),
                 "flint", List.of("crude"), "bone", List.of("fractured"));
@@ -72,15 +72,15 @@ public class TraitGameTests {
         Map<String, List<String>> armor = Map.of("bone", List.of("piercing_guard"));
 
         general.forEach((name, generalTraits) -> {
-            Material material = materials.get(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name));
+            Material material = materials.get(Identifier.fromNamespaceAndPath(Forgeweave.MODID, name));
             helper.assertTrue(material != null, name + " should be in the synced material registry");
-            List<ResourceLocation> headIds = head.get(name).stream().map(TraitGameTests::traitId).toList();
+            List<Identifier> headIds = head.get(name).stream().map(TraitGameTests::traitId).toList();
             for (PartItem.Kind kind : PartItem.Kind.values()) {
                 boolean armorPart = kind == PartItem.Kind.PLATING || kind == PartItem.Kind.MAILLE;
                 List<String> scoped = kind == PartItem.Kind.SHAFT && shaft.containsKey(name)
                         ? shaft.get(name)
                         : armorPart && armor.containsKey(name) ? armor.get(name) : generalTraits;
-                List<ResourceLocation> expected = kind == PartItem.Kind.HEAD
+                List<Identifier> expected = kind == PartItem.Kind.HEAD
                         ? headIds
                         : scoped.stream().map(TraitGameTests::traitId).toList();
                 helper.assertTrue(expected.equals(material.traits().forPart(kind)),
@@ -93,7 +93,7 @@ public class TraitGameTests {
         // first -- the bone head grants its head-scoped splintering, not the general fractured.
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, new BlockPos(1, 1, 1), "bone", "stone", "wood");
-        List<ResourceLocation> traits = List.of(traitId("splintering"), traitId("cheap"), traitId("ecological"));
+        List<Identifier> traits = List.of(traitId("splintering"), traitId("cheap"), traitId("ecological"));
         helper.assertTrue(traits.equals(pickaxe.get(ForgeweaveDataComponents.TRAITS.get())),
                 "expected " + traits + " in head/binding/handle order, got "
                         + pickaxe.get(ForgeweaveDataComponents.TRAITS.get()));
@@ -153,7 +153,7 @@ public class TraitGameTests {
         pickaxe.hurtAndBreak(1_000, helper.getLevel(), player, brokenItem -> {});
         helper.assertTrue(pickaxe.getDamageValue() == 127, "expected the 128-durability pickaxe Broken at 127 damage");
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, pickaxe);
         blockEntity.container().setItem(1, new ItemStack(Items.COBBLESTONE, 1));
         blockEntity.container().setItem(2, ItemStack.EMPTY);
@@ -185,7 +185,7 @@ public class TraitGameTests {
         pickaxe.hurtAndBreak(1_000, helper.getLevel(), player, brokenItem -> {});
         helper.assertTrue(pickaxe.getDamageValue() == 79, "expected the 80-durability pickaxe Broken at 79 damage");
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, pickaxe);
         blockEntity.container().setItem(1, new ItemStack(Items.OAK_PLANKS, 1));
         blockEntity.container().setItem(2, ItemStack.EMPTY);
@@ -335,7 +335,7 @@ public class TraitGameTests {
     /** {@code tool} with every part of {@code material}, assembled against a registry holding only that shipped file. */
     private static ItemStack assembledFromShippedFile(GameTestHelper helper, String material,
             net.minecraft.world.item.Item tool) throws Exception {
-        ResourceLocation id = traitId(material);
+        Identifier id = traitId(material);
         var resource = helper.getLevel().getServer().getResourceManager()
                 .getResource(traitId("forgeweave/material/" + material + ".json")).orElseThrow();
         Material parsed;
@@ -356,7 +356,7 @@ public class TraitGameTests {
                 .orElseThrow(() -> new AssertionError("a " + material + " " + tool + " must assemble"));
     }
 
-    private static ResourceLocation traitId(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier traitId(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 }

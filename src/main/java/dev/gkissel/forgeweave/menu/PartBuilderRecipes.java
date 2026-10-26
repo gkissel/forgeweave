@@ -11,7 +11,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -227,7 +227,7 @@ public final class PartBuilderRecipes {
     }
 
     /** A material identified for the current material-slot stack, and that stack's per-item value. */
-    public record MaterialMatch(ResourceLocation id, int unitValue) {}
+    public record MaterialMatch(Identifier id, int unitValue) {}
 
     /**
      * What one of {@code pattern} costs in value units, or empty if it isn't a part pattern. Public
@@ -283,7 +283,7 @@ public final class PartBuilderRecipes {
         if (!ContentFamilies.itemEnabled(pattern)) {
             return Optional.of(StationMenu.Rejection.error(ContentFamilies.disabledMessage()));
         }
-        ResourceLocation materialId = output.get(ForgeweaveDataComponents.MATERIAL.get());
+        Identifier materialId = output.get(ForgeweaveDataComponents.MATERIAL.get());
         if (materialId != null && PartItem.hasUnusableMaterial(registries, output)) {
             return Optional.of(StationMenu.Rejection.warning(
                     Component.translatable("gui.forgeweave.part_builder.useless_tool_part",
@@ -362,7 +362,7 @@ public final class PartBuilderRecipes {
      */
     public static Optional<MaterialMatch> materialValue(HolderLookup.Provider registries, ItemStack stack) {
         if (stack.is(ForgeweaveItems.SHARD.get())) {
-            ResourceLocation materialId = stack.get(ForgeweaveDataComponents.MATERIAL.get());
+            Identifier materialId = stack.get(ForgeweaveDataComponents.MATERIAL.get());
             return Optional.ofNullable(materialId)
                     // A shard of a material this world has no definition for keeps matching, which is
                     // what leaves the useless_tool_part warning in #rejection reachable; only a
@@ -390,7 +390,7 @@ public final class PartBuilderRecipes {
     }
 
     /** A material identified across both material slots, and the value available in total (issue #306). */
-    public record CombinedMaterialMatch(ResourceLocation id, int totalValue) {}
+    public record CombinedMaterialMatch(Identifier id, int totalValue) {}
 
     /**
      * Which material the two material slots count as together, and how many value units are
@@ -424,14 +424,14 @@ public final class PartBuilderRecipes {
         return !material.castOnly() || ForgeweaveConfig.craftCastableMaterials();
     }
 
-    private static Optional<Material> lookupMaterial(HolderLookup.Provider registries, ResourceLocation materialId) {
+    private static Optional<Material> lookupMaterial(HolderLookup.Provider registries, Identifier materialId) {
         return registries.lookup(Material.REGISTRY)
                 .flatMap(lookup -> lookup.get(ResourceKey.create(Material.REGISTRY, materialId)))
                 .map(Holder::value);
     }
 
     /** Whether the named material carries the stat block a part of {@code kind} draws from (issue #392). */
-    private static boolean hasStatsFor(HolderLookup.Provider registries, ResourceLocation materialId,
+    private static boolean hasStatsFor(HolderLookup.Provider registries, Identifier materialId,
             PartItem.Kind kind) {
         return lookupMaterial(registries, materialId)
                 .map(material -> material.hasStatsFor(kind))
@@ -450,7 +450,7 @@ public final class PartBuilderRecipes {
      * Material#isCraftable} is consulted by the Part Builder alone, so a {@code cast_only} metal
      * still repairs from its ingots and blocks.
      */
-    public static int unitValueAgainst(HolderLookup.Provider registries, ResourceLocation materialId, ItemStack stack) {
+    public static int unitValueAgainst(HolderLookup.Provider registries, Identifier materialId, ItemStack stack) {
         if (stack.isEmpty()) {
             return 0;
         }

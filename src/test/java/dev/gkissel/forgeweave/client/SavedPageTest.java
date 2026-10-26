@@ -22,7 +22,7 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -65,8 +65,8 @@ class SavedPageTest {
 
     private static List<BookSection> sections() {
         return BookContent.sections(List.of(
-                Map.entry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "iron"), shipped("iron")),
-                Map.entry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "stone"), shipped("stone"))));
+                Map.entry(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "iron"), shipped("iron")),
+                Map.entry(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "stone"), shipped("stone"))));
     }
 
     private static int pageCount(List<BookSection> sections) {

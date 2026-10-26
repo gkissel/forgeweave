@@ -9,7 +9,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
@@ -48,7 +48,7 @@ import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 public record CoreTransformRecipe(Fluid fluid, Block fromBlock, Block toBlock, int amount) {
 
     public static final ResourceKey<Registry<CoreTransformRecipe>> REGISTRY = ResourceKey.createRegistryKey(
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "core_transform_recipe"));
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "core_transform_recipe"));
 
     public static final Codec<CoreTransformRecipe> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             BuiltInRegistries.FLUID.byNameCodec().fieldOf("fluid").forGetter(CoreTransformRecipe::fluid),
@@ -69,7 +69,7 @@ public record CoreTransformRecipe(Fluid fluid, Block fromBlock, Block toBlock, i
         if (!ForgeweaveConfig.enabled(ForgeweaveConfig.SMELTERY)) {
             return Optional.empty();
         }
-        Registry<CoreTransformRecipe> recipes = registries.registryOrThrow(REGISTRY);
+        Registry<CoreTransformRecipe> recipes = registries.lookupOrThrow(REGISTRY);
         return recipes.stream()
                 .filter(recipe -> recipe.fluid() == fluid && recipe.fromBlock() == fromBlock)
                 .findFirst();

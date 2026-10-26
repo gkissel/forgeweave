@@ -24,7 +24,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -44,11 +44,11 @@ import dev.gkissel.forgeweave.material.Material;
  */
 class PartItemTest {
 
-    private static final ResourceLocation STONE_ID = ResourceLocation.fromNamespaceAndPath("forgeweave", "stone");
-    private static final ResourceLocation CHEAP_TRAIT = ResourceLocation.fromNamespaceAndPath("forgeweave", "cheap");
+    private static final Identifier STONE_ID = Identifier.fromNamespaceAndPath("forgeweave", "stone");
+    private static final Identifier CHEAP_TRAIT = Identifier.fromNamespaceAndPath("forgeweave", "cheap");
     // Issue #493: stone's head part grants cheapskate, not the general cheap -- see Material.Traits'
     // scoping javadoc and stone.json.
-    private static final ResourceLocation CHEAPSKATE_TRAIT = ResourceLocation.fromNamespaceAndPath("forgeweave", "cheapskate");
+    private static final Identifier CHEAPSKATE_TRAIT = Identifier.fromNamespaceAndPath("forgeweave", "cheapskate");
     private static final TextColor STONE_COLOR = TextColor.fromRgb(0x999999);
 
     /** Upstream's {@code COLOR_Durability}, i.e. the top of {@code valueToColorCode}'s ramp. */
@@ -70,7 +70,7 @@ class PartItemTest {
     @Test
     void tooltipShowsTranslatableMaterialNameWhenComponentIsSet() {
         ItemStack stack = new ItemStack(pickaxeHead());
-        stack.set(ForgeweaveDataComponents.MATERIAL.get(), ResourceLocation.fromNamespaceAndPath("forgeweave", "wood"));
+        stack.set(ForgeweaveDataComponents.MATERIAL.get(), Identifier.fromNamespaceAndPath("forgeweave", "wood"));
 
         List<Component> tooltip = new ArrayList<>();
         pickaxeHead().appendHoverText(stack, Item.TooltipContext.EMPTY, tooltip, TooltipFlag.NORMAL);
@@ -99,7 +99,7 @@ class PartItemTest {
      */
     @Test
     void tooltipReportsAMaterialTheRegistryDoesNotDefine() {
-        ResourceLocation missing = ResourceLocation.fromNamespaceAndPath("forgeweave", "unobtainium");
+        Identifier missing = Identifier.fromNamespaceAndPath("forgeweave", "unobtainium");
         ItemStack stack = new ItemStack(pickaxeHead());
         stack.set(ForgeweaveDataComponents.MATERIAL.get(), missing);
 
@@ -163,7 +163,7 @@ class PartItemTest {
      */
     @Test
     void knightslimeHeadShowsNetheriteToolTierWhenDetailed() {
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath("forgeweave", "knightslime");
+        Identifier id = Identifier.fromNamespaceAndPath("forgeweave", "knightslime");
         ItemStack stack = new ItemStack(pickaxeHead());
         stack.set(ForgeweaveDataComponents.MATERIAL.get(), id);
 
@@ -180,7 +180,7 @@ class PartItemTest {
      */
     @Test
     void woodHeadShowsStoneToolTierWhenDetailed() {
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath("forgeweave", "wood");
+        Identifier id = Identifier.fromNamespaceAndPath("forgeweave", "wood");
         ItemStack stack = new ItemStack(pickaxeHead());
         stack.set(ForgeweaveDataComponents.MATERIAL.get(), id);
 
@@ -193,7 +193,7 @@ class PartItemTest {
     /** A tag off the vanilla ladder (gold, modded) grants no tier this ladder knows: no line, no guess. */
     @Test
     void headWithOffLadderTierTagShowsNoTierLine() {
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath("forgeweave", "wood");
+        Identifier id = Identifier.fromNamespaceAndPath("forgeweave", "wood");
         ItemStack stack = new ItemStack(pickaxeHead());
         stack.set(ForgeweaveDataComponents.MATERIAL.get(), id);
 
@@ -317,7 +317,7 @@ class PartItemTest {
         return registriesWith(STONE_ID, stone());
     }
 
-    private static HolderLookup.Provider registriesWith(ResourceLocation id, Material material) {
+    private static HolderLookup.Provider registriesWith(Identifier id, Material material) {
         MappedRegistry<Material> registry = new MappedRegistry<>(Material.REGISTRY, Lifecycle.stable());
         registry.register(ResourceKey.create(Material.REGISTRY, id), material, RegistrationInfo.BUILT_IN);
         return HolderLookup.Provider.create(Stream.of(registry.asLookup()));
@@ -328,7 +328,7 @@ class PartItemTest {
         Material stone = stone();
         return new Material(stone.head(), stone.handle(), stone.extraDurability(),
                 TagKey.create(Registries.BLOCK,
-                        ResourceLocation.withDefaultNamespace("incorrect_for_" + tier + "_tool")),
+                        Identifier.withDefaultNamespace("incorrect_for_" + tier + "_tool")),
                 stone.traits(), stone.craftingItems(), stone.repairItem(), stone.color(),
                 stone.bow(), stone.bowstring());
     }
@@ -338,7 +338,7 @@ class PartItemTest {
                 new Material.Head(120, 4.0F, 3.0F),
                 new Material.Handle(0.5F, -50),
                 20,
-                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool")),
+                TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace("incorrect_for_stone_tool")),
                 new Material.Traits(List.of(CHEAP_TRAIT), List.of(CHEAPSKATE_TRAIT)),
                 List.of(),
                 Ingredient.of(Items.COBBLESTONE),

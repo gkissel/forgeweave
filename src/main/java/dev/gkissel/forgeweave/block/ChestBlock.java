@@ -87,7 +87,7 @@ public class ChestBlock extends HorizontalDirectionalBlock implements EntityBloc
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof ChestBlockEntity chest) {
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof ChestBlockEntity chest) {
             chest.open(player); // carries the station-group tab row (issue #78)
         }
         return InteractionResult.SUCCESS;
@@ -103,7 +103,7 @@ public class ChestBlock extends HorizontalDirectionalBlock implements EntityBloc
     protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
             Player player, InteractionHand hand, BlockHitResult hit) {
         if (level.getBlockEntity(pos) instanceof ChestBlockEntity chest && chest.insertHeldItem(player, hand)) {
-            return ItemInteractionResult.sidedSuccess(level.isClientSide);
+            return ItemInteractionResult.sidedSuccess(level.isClientSide());
         }
         return super.useItemOn(stack, state, level, pos, player, hand, hit);
     }
@@ -134,7 +134,7 @@ public class ChestBlock extends HorizontalDirectionalBlock implements EntityBloc
      */
     @Override
     public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-        if (!level.isClientSide && player.isCreative()
+        if (!level.isClientSide() && player.isCreative()
                 && ForgeweaveConfig.read(ForgeweaveConfig.CHESTS_KEEP_INVENTORY)
                 && level.getBlockEntity(pos) instanceof ChestBlockEntity chest
                 && !chest.container().isEmpty()) {

@@ -11,7 +11,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.material.Fluid;
@@ -81,7 +81,7 @@ public record EntityMeltingRecipe(List<EntityType<?>> entities, Fluid fluid, int
     public static final int DEFAULT_AMOUNT = 20;
 
     public static final ResourceKey<Registry<EntityMeltingRecipe>> REGISTRY = ResourceKey.createRegistryKey(
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "entity_melting_recipe"));
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "entity_melting_recipe"));
 
     public static final Codec<EntityMeltingRecipe> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             // Always a list, even of one. ponytail: the bare-id shorthand is a Codec#withAlternative
@@ -122,7 +122,7 @@ public record EntityMeltingRecipe(List<EntityType<?>> entities, Fluid fluid, int
         if (!ForgeweaveConfig.enabled(ForgeweaveConfig.SMELTERY)) {
             return Optional.empty(); // content-family toggles ticket, same gate as MeltingRecipe#find
         }
-        Registry<EntityMeltingRecipe> recipes = registries.registryOrThrow(REGISTRY);
+        Registry<EntityMeltingRecipe> recipes = registries.lookupOrThrow(REGISTRY);
         return recipes.entrySet().stream()
                 .filter(entry -> entry.getValue().entities.contains(type))
                 .min(Comparator.comparing(entry -> entry.getKey().location()))

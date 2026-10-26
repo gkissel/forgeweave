@@ -16,17 +16,17 @@ import org.joml.Vector3f;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.block.model.BakedQuad;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.client.renderer.block.model.ItemOverrides;
 import net.minecraft.client.renderer.texture.MissingTextureAtlasSprite;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.model.ModelResourceLocation;
-import net.minecraft.client.resources.model.ModelState;
+import net.minecraft.client.renderer.block.dispatch.ModelState;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.FastColor;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -126,8 +126,8 @@ public final class ModifierOverlayModels {
     private static final Map<FinishKey, BakedModel> FINISHED = new ConcurrentHashMap<>();
     private static final Map<PartFinishKey, BakedModel> FINISHED_PARTS = new ConcurrentHashMap<>();
 
-    private record FinishKey(BakedModel base, String tool, List<ResourceLocation> materials, int stage) {}
-    private record PartFinishKey(BakedModel base, String part, ResourceLocation material) {}
+    private record FinishKey(BakedModel base, String tool, List<Identifier> materials, int stage) {}
+    private record PartFinishKey(BakedModel base, String part, Identifier material) {}
 
     /**
      * {@code ammo} is the ammo's <em>resolved model</em> rather than the stack (upstream keys on
@@ -155,7 +155,7 @@ public final class ModifierOverlayModels {
      * stained-glass-pane model recolors correctly per stack), so two fortifications sharing a tool's
      * overlay sprite share one cache entry and still render each other's color correctly.
      */
-    private record TintedOverlay(ResourceLocation sprite, int tint) {}
+    private record TintedOverlay(Identifier sprite, int tint) {}
 
     @SubscribeEvent
     static void onModifyBakingResult(ModelEvent.ModifyBakingResult event) {
@@ -174,7 +174,7 @@ public final class ModifierOverlayModels {
             if (!(item instanceof PartItem)) {
                 continue;
             }
-            ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
+            Identifier id = BuiltInRegistries.ITEM.getKey(item);
             if (!id.getNamespace().equals(Forgeweave.MODID)) {
                 continue;
             }
@@ -254,7 +254,7 @@ public final class ModifierOverlayModels {
                 .anyMatch(id -> id.contains("forgeweave") && id.contains("legacy"));
     }
 
-    private static BakedModel finishedModel(BakedModel base, String tool, List<ResourceLocation> materials, int stage) {
+    private static BakedModel finishedModel(BakedModel base, String tool, List<Identifier> materials, int stage) {
         ToolAssemblyRecipes.Entry entry = ToolAssemblyRecipes.ENTRIES.stream()
                 .filter(candidate -> candidate.constants().id().equals(tool)).findFirst().orElse(null);
         if (entry == null) {
@@ -269,12 +269,12 @@ public final class ModifierOverlayModels {
                 quads.add(quad);
                 continue;
             }
-            ResourceLocation material = materials.get(slots.get(index));
+            Identifier material = materials.get(slots.get(index));
             if (!material.getNamespace().equals(Forgeweave.MODID)) {
                 quads.add(quad);
                 continue;
             }
-            ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID,
+            Identifier texture = Identifier.fromNamespaceAndPath(Forgeweave.MODID,
                     "material_finishes/" + tool + "/" + material.getPath() + "/" + layers.get(index)
                             + (stage > 0 ? "_draw" + stage : ""));
             TextureAtlasSprite target = blockAtlasSprite(texture);
@@ -294,7 +294,7 @@ public final class ModifierOverlayModels {
                 if (resolved == null) {
                     resolved = originalModel;
                 }
-                ResourceLocation material = stack.get(ForgeweaveDataComponents.MATERIAL.get());
+                Identifier material = stack.get(ForgeweaveDataComponents.MATERIAL.get());
                 if (material == null || !material.getNamespace().equals(Forgeweave.MODID) || legacySelected()) {
                     return resolved;
                 }
@@ -315,8 +315,8 @@ public final class ModifierOverlayModels {
         }
     }
 
-    private static BakedModel finishedPartModel(BakedModel base, String part, ResourceLocation material) {
-        ResourceLocation texture = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID,
+    private static BakedModel finishedPartModel(BakedModel base, String part, Identifier material) {
+        Identifier texture = Identifier.fromNamespaceAndPath(Forgeweave.MODID,
                 "material_finishes/parts/" + material.getPath() + "/" + part);
         TextureAtlasSprite target = blockAtlasSprite(texture);
         if (target.contents().name().equals(MissingTextureAtlasSprite.getLocation())) {
@@ -386,7 +386,7 @@ public final class ModifierOverlayModels {
             if (texture == null) {
                 continue;
             }
-            ResourceLocation sprite = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, texture);
+            Identifier sprite = Identifier.fromNamespaceAndPath(Forgeweave.MODID, texture);
             if (blockAtlasSprite(sprite).contents().name().equals(MissingTextureAtlasSprite.getLocation())) {
                 continue;
             }
@@ -517,7 +517,7 @@ public final class ModifierOverlayModels {
         };
     }
 
-    private static TextureAtlasSprite blockAtlasSprite(ResourceLocation sprite) {
+    private static TextureAtlasSprite blockAtlasSprite(Identifier sprite) {
         return Minecraft.getInstance().getModelManager().getAtlas(TextureAtlas.LOCATION_BLOCKS).getSprite(sprite);
     }
 

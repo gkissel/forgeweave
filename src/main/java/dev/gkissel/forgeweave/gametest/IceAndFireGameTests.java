@@ -1,12 +1,12 @@
 package dev.gkissel.forgeweave.gametest;
 
 import net.minecraft.core.Registry;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.material.Material;
@@ -49,7 +49,7 @@ public class IceAndFireGameTests {
 
     @GameTest(template = "empty")
     public static void unsuppliedIceAndFireMaterialsDoNotExistAtAll(GameTestHelper helper) {
-        Registry<Material> materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
+        Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         for (String name : ICE_AND_FIRE_MATERIALS) {
             helper.assertTrue(materials.get(id(name)) == null,
                     "expected the " + name + " material to be absent without Ice and Fire, found it registered");
@@ -57,8 +57,8 @@ public class IceAndFireGameTests {
         helper.succeed();
     }
 
-    private static ResourceLocation id(String name) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name);
+    private static Identifier id(String name) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, name);
     }
 
     private IceAndFireGameTests() {}

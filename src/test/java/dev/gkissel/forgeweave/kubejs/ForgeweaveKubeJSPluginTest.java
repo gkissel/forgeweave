@@ -24,7 +24,7 @@ import dev.latvian.mods.kubejs.registry.ServerRegistryRegistry;
 import dev.latvian.mods.rhino.type.TypeInfo;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.material.Material;
@@ -74,7 +74,7 @@ class ForgeweaveKubeJSPluginTest {
 
     @Test
     void theEventsRegisterHandsBackABuilderThatLookupResolves() {
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath("somepack", "scripted");
+        Identifier id = Identifier.fromNamespaceAndPath("somepack", "scripted");
         ScriptTrait trait = new ForgeweaveKubeJSPlugin.TraitsKubeEvent().register(id);
         assertSame(trait, ForgeweaveTraits.lookup(id));
     }

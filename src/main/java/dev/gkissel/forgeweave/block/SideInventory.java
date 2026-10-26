@@ -7,7 +7,7 @@ import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
@@ -102,7 +102,7 @@ public final class SideInventory {
         if (neighbor == null) {
             return false;
         }
-        ResourceLocation registryName = BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(neighbor.getType());
+        Identifier registryName = BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(neighbor.getType());
         if (registryName != null && blacklist.contains(registryName.toString())) {
             return true;
         }

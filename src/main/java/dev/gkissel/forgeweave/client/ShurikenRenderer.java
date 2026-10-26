@@ -9,7 +9,7 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
 
 import dev.gkissel.forgeweave.entity.ShurikenEntity;
@@ -52,7 +52,7 @@ public class ShurikenRenderer extends EntityRenderer<ShurikenEntity> {
     }
 
     @Override
-    public ResourceLocation getTextureLocation(ShurikenEntity entity) {
+    public Identifier getTextureLocation(ShurikenEntity entity) {
         return TextureAtlas.LOCATION_BLOCKS; // the item model's own atlas; this renderer never binds it directly
     }
 }

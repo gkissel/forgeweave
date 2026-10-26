@@ -13,7 +13,7 @@ import dev.shadowsoffire.apothic_attributes.modifiers.StackAttributeModifiers;
 import dev.shadowsoffire.apothic_attributes.modifiers.StackAttributeModifiersEvent;
 
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -75,7 +75,7 @@ final class ApotheosisGemBonuses implements ApotheosisSockets.Bridge {
         gems.addModifiers(event);
         List<ApotheosisSockets.AttributeGrant> grants = new ArrayList<>();
         for (StackAttributeModifiers.Entry entry : event.getModifiers()) {
-            ResourceLocation attribute = entry.attribute().unwrapKey()
+            Identifier attribute = entry.attribute().unwrapKey()
                     .map(ResourceKey::location)
                     .orElse(null);
             if (attribute != null) {

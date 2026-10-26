@@ -12,7 +12,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -36,11 +36,11 @@ import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
  */
 public final class ModifierCompatibility {
 
-    private static final ResourceLocation SILKY = id("silky");
-    private static final ResourceLocation LUCK = id("luck");
-    private static final ResourceLocation SQUEAKY = id("squeaky");
-    private static final ResourceLocation AUTOSMELT = id("autosmelt");
-    private static final ResourceLocation BLASTING = id("blasting");
+    private static final Identifier SILKY = id("silky");
+    private static final Identifier LUCK = id("luck");
+    private static final Identifier SQUEAKY = id("squeaky");
+    private static final Identifier AUTOSMELT = id("autosmelt");
+    private static final Identifier BLASTING = id("blasting");
 
     /**
      * Symmetric, because upstream always checks both directions ({@code canApplyTogether(other) &&
@@ -49,7 +49,7 @@ public final class ModifierCompatibility {
      * meet through embossing, and {@code ModExtraTrait#canApplyTogether} runs the same two-way check
      * per donor trait -- so autosmelt/squeaky is a pair even though only autosmelt's override names it.
      */
-    private static final Map<ResourceLocation, Set<ResourceLocation>> INCOMPATIBLE = symmetric(List.of(
+    private static final Map<Identifier, Set<Identifier>> INCOMPATIBLE = symmetric(List.of(
             List.of(SILKY, LUCK),
             List.of(SILKY, SQUEAKY),
             List.of(SILKY, AUTOSMELT),
@@ -63,7 +63,7 @@ public final class ModifierCompatibility {
             List.of(BLASTING, AUTOSMELT)));
 
     /** Each overrider's {@code canApplyTogether(Enchantment)}. */
-    private static final Map<ResourceLocation, Set<ResourceKey<Enchantment>>> EXCLUDED_ENCHANTMENTS = Map.of(
+    private static final Map<Identifier, Set<ResourceKey<Enchantment>>> EXCLUDED_ENCHANTMENTS = Map.of(
             SILKY, Set.of(Enchantments.LOOTING, Enchantments.FORTUNE),
             LUCK, Set.of(Enchantments.SILK_TOUCH),
             SQUEAKY, Set.of(Enchantments.LOOTING, Enchantments.FORTUNE),
@@ -75,7 +75,7 @@ public final class ModifierCompatibility {
      * Exposed so a unit test can pin the table without a live enchantment registry (1.21 makes them a
      * datapack registry); {@link #refusal} is the only production reader.
      */
-    public static Set<ResourceKey<Enchantment>> excludedEnchantments(ResourceLocation id) {
+    public static Set<ResourceKey<Enchantment>> excludedEnchantments(Identifier id) {
         return EXCLUDED_ENCHANTMENTS.getOrDefault(id, Set.of());
     }
 
@@ -90,15 +90,15 @@ public final class ModifierCompatibility {
      * @param incomingName what to call the newcomer in the message -- {@code ModifierApplication#name}
      *     for a modifier, the embossment's per-material name for a donor trait
      */
-    public static Optional<Component> refusal(ItemStack tool, ResourceLocation incoming, Component incomingName) {
-        List<ResourceLocation> traits = tool.getOrDefault(ForgeweaveDataComponents.TRAITS.get(), List.of());
-        for (ResourceLocation trait : traits) {
+    public static Optional<Component> refusal(ItemStack tool, Identifier incoming, Component incomingName) {
+        List<Identifier> traits = tool.getOrDefault(ForgeweaveDataComponents.TRAITS.get(), List.of());
+        for (Identifier trait : traits) {
             if (incompatible(incoming, trait)) {
                 return Optional.of(Component.translatable("gui.forgeweave.modifier.incompatible_trait",
                         incomingName, traitName(trait)));
             }
         }
-        List<ResourceLocation> modifiers = new ArrayList<>();
+        List<Identifier> modifiers = new ArrayList<>();
         for (ModifierEntry entry : ForgeweaveModifiers.of(tool)) {
             modifiers.add(entry.id());
             if (incompatible(incoming, entry.id())) {
@@ -110,10 +110,10 @@ public final class ModifierCompatibility {
         if (enchantments.isEmpty()) {
             return Optional.empty();
         }
-        List<ResourceLocation> all = new ArrayList<>(traits);
+        List<Identifier> all = new ArrayList<>(traits);
         all.addAll(modifiers);
         all.add(incoming);
-        for (ResourceLocation id : all) {
+        for (Identifier id : all) {
             for (Holder<Enchantment> enchantment : enchantments.keySet()) {
                 if (EXCLUDED_ENCHANTMENTS.getOrDefault(id, Set.of()).stream().anyMatch(enchantment::is)) {
                     Component name = id.equals(incoming) ? incomingName
@@ -127,25 +127,25 @@ public final class ModifierCompatibility {
     }
 
     /** A trait's display key, {@code trait.<namespace>.<path>.name} -- {@code ToolTooltip#traitLine}'s. */
-    private static Component traitName(ResourceLocation trait) {
+    private static Component traitName(Identifier trait) {
         return Component.translatable("trait." + trait.getNamespace() + "." + trait.getPath() + ".name");
     }
 
-    private static boolean incompatible(ResourceLocation a, ResourceLocation b) {
+    private static boolean incompatible(Identifier a, Identifier b) {
         return INCOMPATIBLE.getOrDefault(a, Set.of()).contains(b);
     }
 
-    private static Map<ResourceLocation, Set<ResourceLocation>> symmetric(List<List<ResourceLocation>> pairs) {
-        Map<ResourceLocation, Set<ResourceLocation>> map = new HashMap<>();
-        for (List<ResourceLocation> pair : pairs) {
+    private static Map<Identifier, Set<Identifier>> symmetric(List<List<Identifier>> pairs) {
+        Map<Identifier, Set<Identifier>> map = new HashMap<>();
+        for (List<Identifier> pair : pairs) {
             map.computeIfAbsent(pair.get(0), k -> new HashSet<>()).add(pair.get(1));
             map.computeIfAbsent(pair.get(1), k -> new HashSet<>()).add(pair.get(0));
         }
         return Map.copyOf(map);
     }
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
     private ModifierCompatibility() {}

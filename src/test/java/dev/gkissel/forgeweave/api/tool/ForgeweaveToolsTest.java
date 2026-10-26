@@ -8,7 +8,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 
@@ -20,10 +20,10 @@ import net.minecraft.world.item.Items;
  */
 class ForgeweaveToolsTest {
 
-    private static final ResourceLocation TOOL = ResourceLocation.fromNamespaceAndPath("someaddon", "dirk");
-    private static final ResourceLocation BLADE = ResourceLocation.fromNamespaceAndPath("someaddon", "dirk_blade");
+    private static final Identifier TOOL = Identifier.fromNamespaceAndPath("someaddon", "dirk");
+    private static final Identifier BLADE = Identifier.fromNamespaceAndPath("someaddon", "dirk_blade");
 
-    private static ToolDefinition definition(ResourceLocation id) {
+    private static ToolDefinition definition(Identifier id) {
         return ToolDefinition.builder(id, ToolFamily.MELEE).part(PartRole.HEAD, BLADE).weapon().build();
     }
 

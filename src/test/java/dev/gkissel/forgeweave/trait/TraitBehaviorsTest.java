@@ -22,7 +22,7 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.level.block.Blocks;
@@ -206,7 +206,7 @@ class TraitBehaviorsTest {
         Optional<TraitDefinition> passing = ConditionalOps.createConditionalCodec(TraitDefinition.CODEC)
                 .parse(conditional, JsonParser.parseString("{\"neoforge:conditions\":[{\"type\":\"neoforge:true\"}]," + body))
                 .getOrThrow();
-        assertEquals(Optional.of(ResourceLocation.fromNamespaceAndPath("forgeweave", "effect_on_hit")),
+        assertEquals(Optional.of(Identifier.fromNamespaceAndPath("forgeweave", "effect_on_hit")),
                 passing.map(TraitDefinition::behavior));
     }
 

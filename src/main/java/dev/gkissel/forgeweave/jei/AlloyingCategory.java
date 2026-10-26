@@ -1,6 +1,6 @@
 package dev.gkissel.forgeweave.jei;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
@@ -136,7 +136,7 @@ final class AlloyingCategory implements IRecipeCategory<AlloyRecipe> {
     }
 
     @Override
-    public void draw(AlloyRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
+    public void draw(AlloyRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
         background.draw(guiGraphics, 0, 0);
         arrow.draw(guiGraphics, ARROW_X, ARROW_Y);
         // Centred in upstream's own 16x16 fuel tank, in place of the fuel fluids Forgeweave has none of.

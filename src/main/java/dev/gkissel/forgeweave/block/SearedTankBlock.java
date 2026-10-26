@@ -69,7 +69,7 @@ public class SearedTankBlock extends Block implements EntityBlock {
                                               Player player, InteractionHand hand, BlockHitResult hit) {
         if (level.getBlockEntity(pos) instanceof SearedTankBlockEntity tank
                 && FluidUtil.interactWithFluidHandler(player, hand, tank.tank())) {
-            return ItemInteractionResult.sidedSuccess(level.isClientSide);
+            return ItemInteractionResult.sidedSuccess(level.isClientSide());
         }
         return super.useItemOn(stack, state, level, pos, player, hand, hit);
     }

@@ -8,7 +8,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -45,7 +45,7 @@ import dev.gkissel.forgeweave.api.modifier.Modifier;
 public record WorktableRecipe(Kind kind, Ingredient input, List<ItemStack> leftovers) {
 
     public static final ResourceKey<Registry<WorktableRecipe>> REGISTRY = ResourceKey.createRegistryKey(
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "worktable_recipe"));
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "worktable_recipe"));
 
     /** The two functions the table has. Nothing else from upstream 1.20's seven is in scope (#1057). */
     public enum Kind implements StringRepresentable {

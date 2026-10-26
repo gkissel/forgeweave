@@ -11,7 +11,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -21,7 +21,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
@@ -109,10 +109,10 @@ import dev.gkissel.forgeweave.tool.ToolMaterials;
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ToolStationScreen extends StationScreen<ToolStationMenu> implements StationExtraAreas {
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/tool_station.png");
-    private static final ResourceLocation ICONS =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/station_icons.png");
+    private static final Identifier TEXTURE =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/tool_station.png");
+    private static final Identifier ICONS =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/station_icons.png");
     private static final int SHEET = 256;
 
     private static final int BASE_WIDTH = 176;
@@ -173,10 +173,10 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
      * over its corner, which is exactly what the heavy set adds to the light one. Composed rather
      * than authored as a file so nothing new is derived and nothing new can reach the Legacy pack.
      */
-    private static final ResourceLocation ARMOR_ICON =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/armor_button.png");
-    private static final ResourceLocation PLATING_ICON =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/plating_slot.png");
+    private static final Identifier ARMOR_ICON =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/armor_button.png");
+    private static final Identifier PLATING_ICON =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/plating_slot.png");
     /** How big the large plate is drawn in the heavy armor button's corner. */
     private static final int HEAVY_BADGE_SIZE = 9;
     /**
@@ -551,7 +551,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     // ------------------------------------------------------------------ rendering
 
     @Override
-    protected void renderPanel(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
+    protected void renderPanel(GuiGraphicsExtractor graphics, float partialTick, int mouseX, int mouseY) {
         graphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, SHEET, SHEET);
         renderToolPreview(graphics);
         renderSlots(graphics);
@@ -578,7 +578,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
      * in {@link ToolStationPreview#MISSING} grey -- where 1.12 painted every preview in the fixed
      * GUI tints the sidebar icons still use.
      */
-    private void renderToolPreview(GuiGraphics graphics) {
+    private void renderToolPreview(GuiGraphicsExtractor graphics) {
         Tab tab = menu.tab();
         ItemStack plating = menu.getSlot(ToolStationMenu.HEAD_SLOT).getItem();
         graphics.pose().pushPose();
@@ -610,7 +610,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
      * which a preview stack has never had (GUI blits bypass the block atlas, so no atlas entry is
      * needed for these).
      */
-    private static void renderToolLayers(GuiGraphics graphics, ToolAssemblyRecipes.Entry entry, int x, int y) {
+    private static void renderToolLayers(GuiGraphicsExtractor graphics, ToolAssemblyRecipes.Entry entry, int x, int y) {
         List<ToolConstants.PartSlot> parts = entry.constants().parts();
         List<Integer> colors = new ArrayList<>();
         for (int slot : ToolArt.layerSlots(parts)) {
@@ -620,7 +620,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     }
 
     /** As above with one 0xRRGGBB per layer, in {@link ToolArt#layers} order. */
-    private static void renderToolLayers(GuiGraphics graphics, ToolAssemblyRecipes.Entry entry, int x, int y,
+    private static void renderToolLayers(GuiGraphicsExtractor graphics, ToolAssemblyRecipes.Entry entry, int x, int y,
             List<Integer> colors) {
         // #1066: the entry's own id, not the item's path -- a tool registered from another mod
         // carries its namespace here, which is what routes its layers to its own art.
@@ -631,7 +631,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
         for (int layer = 0; layer < layers.size(); layer++) {
             int color = colors.get(layer);
             graphics.setColor((color >> 16 & 0xFF) / 255.0F, (color >> 8 & 0xFF) / 255.0F, (color & 0xFF) / 255.0F, 1.0F);
-            ResourceLocation texture = ToolArt.layerTexture(path, layers.get(layer));
+            Identifier texture = ToolArt.layerTexture(path, layers.get(layer));
             graphics.blit(
                     texture.withPath(file -> "textures/" + file + ".png"),
                     x, y, 0, 0, 16, 16, 16, 16);
@@ -640,7 +640,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     }
 
     /** Slot plate, border and -- while empty -- the ghost of whatever belongs in that slot. */
-    private void renderSlots(GuiGraphics graphics) {
+    private void renderSlots(GuiGraphicsExtractor graphics) {
         Tab tab = menu.tab();
         // #1081: on an armor tab every ghost past the first follows the plating that is already in,
         // because that is what says which piece is being built.
@@ -671,7 +671,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
                 // The plating slot of an armor tab takes any of the four, so its ghost is upstream's
                 // own generic plating outline rather than one piece's (#1081); every other slot ghosts
                 // the part the resolved piece wants there.
-                ResourceLocation ghost = isFamily(tab) && i == ToolStationMenu.HEAD_SLOT
+                Identifier ghost = isFamily(tab) && i == ToolStationMenu.HEAD_SLOT
                         ? PLATING_ICON
                         : partTexture(entry.part(i));
                 graphics.blit(ghost, leftPos + slot.x, topPos + slot.y, 0, 0, 16, 16, 16, 16);
@@ -690,22 +690,22 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
      * for the heavy set the same icon badged with a shrunken large plate -- the part that is the
      * whole of the difference between the two sets. Drawn into the usual 16x16 box.
      */
-    private void renderFamilyIcon(GuiGraphics graphics, Tab tab, int x, int y) {
+    private void renderFamilyIcon(GuiGraphicsExtractor graphics, Tab tab, int x, int y) {
         graphics.blit(ARMOR_ICON, x, y, 0, 0, 16, 16, 16, 16);
         if (!ToolAssemblyRecipes.isLargeTool(tab.entry())) {
             return; // the light set: the plain icon is the whole of it
         }
-        ResourceLocation plate = partTexture(tab.entry().part(tab.slots().size() - 1));
+        Identifier plate = partTexture(tab.entry().part(tab.slots().size() - 1));
         graphics.blit(plate, x + 16 - HEAVY_BADGE_SIZE, y + 16 - HEAVY_BADGE_SIZE,
                 HEAVY_BADGE_SIZE, HEAVY_BADGE_SIZE, 0.0F, 0.0F, 16, 16, 16, 16);
     }
 
     /** A part item's own inventory sprite, blitted straight from its file (GUI draws bypass the atlas). */
-    private static ResourceLocation partTexture(Item part) {
-        ResourceLocation id = BuiltInRegistries.ITEM.getKey(part);
+    private static Identifier partTexture(Item part) {
+        Identifier id = BuiltInRegistries.ITEM.getKey(part);
         return derivedOrOriginal(
-                ResourceLocation.fromNamespaceAndPath(id.getNamespace(), "textures/derived/item/" + id.getPath() + ".png"),
-                ResourceLocation.fromNamespaceAndPath(id.getNamespace(), "textures/item/" + id.getPath() + ".png"));
+                Identifier.fromNamespaceAndPath(id.getNamespace(), "textures/derived/item/" + id.getPath() + ".png"),
+                Identifier.fromNamespaceAndPath(id.getNamespace(), "textures/item/" + id.getPath() + ".png"));
     }
 
     /**
@@ -718,11 +718,11 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
      * whichever of the two actually ships, so a future part with no upstream counterpart still needs
      * no hardcoded list here or a copy in the wrong tree.
      */
-    private static ResourceLocation derivedOrOriginal(ResourceLocation derived, ResourceLocation original) {
+    private static Identifier derivedOrOriginal(Identifier derived, Identifier original) {
         return Minecraft.getInstance().getResourceManager().getResource(derived).isPresent() ? derived : original;
     }
 
-    private void renderSidebar(GuiGraphics graphics, int mouseX, int mouseY) {
+    private void renderSidebar(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         int selected = menu.getSelectedTab();
         // #336: one button per tab this block offers, packed from the top -- a Tool Station leaves no
         // holes where the Tool Forge tier's tabs would be, it simply has a shorter column.
@@ -747,7 +747,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
         beam(graphics, leftPos + buttonX(0) - BEAM_END_W, topPos, sidebarWidth());
     }
 
-    private void renderInfoPanels(GuiGraphics graphics) {
+    private void renderInfoPanels(GuiGraphicsExtractor graphics) {
         beam(graphics, panelX() - BEAM_END_W, topPos, InfoPanel.WIDTH);
         InfoPanel.render(graphics, font, panelX(), panelY(), InfoPanel.WIDTH, InfoPanel.HEIGHT,
                 panelStyle(), toolCaption, toolLines, toolScroll);
@@ -756,7 +756,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     }
 
     /** Upstream's horizontal beam that visually ties a side module to the main panel. */
-    private void beam(GuiGraphics graphics, int x, int y, int width) {
+    private void beam(GuiGraphicsExtractor graphics, int x, int y, int width) {
         int v = beamV();
         graphics.blit(TEXTURE, x, y, 0, v, BEAM_END_W, BEAM_H, SHEET, SHEET);
         graphics.blit(TEXTURE, x + BEAM_END_W, y, width, BEAM_H, BEAM_CENTER_U, v, BEAM_CENTER_W, BEAM_H, SHEET, SHEET);
@@ -813,7 +813,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     }
 
     @Override
-    protected void renderTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
+    protected void renderTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         super.renderTooltip(graphics, mouseX, mouseY);
         List<Integer> tabs = menu.visibleTabs();
         for (int slot = pageFrom(); slot < pageTo(); slot++) {

@@ -7,7 +7,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.FastColor;
 
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
@@ -39,7 +39,7 @@ final class FluidRenderUtil {
         return sprite(IClientFluidTypeExtensions.of(fluid.getFluid()).getFlowingTexture(fluid));
     }
 
-    private static TextureAtlasSprite sprite(ResourceLocation texture) {
+    private static TextureAtlasSprite sprite(Identifier texture) {
         return Minecraft.getInstance().getModelManager().getAtlas(TextureAtlas.LOCATION_BLOCKS).getSprite(texture);
     }
 

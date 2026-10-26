@@ -59,7 +59,7 @@ public class MattockItem extends ToolItem {
         }
         Player player = context.getPlayer();
         level.playSound(player, context.getClickedPos(), SoundEvents.HOE_TILL, SoundSource.BLOCKS, 1.0F, 1.0F);
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             level.setBlock(context.getClickedPos(), tilled, 11);
             if (player != null) {
                 ItemStack stack = context.getItemInHand();
@@ -71,7 +71,7 @@ public class MattockItem extends ToolItem {
                 }
             }
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
     /**

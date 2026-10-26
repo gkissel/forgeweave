@@ -19,7 +19,7 @@ import org.junit.jupiter.api.Test;
  * <p>Two halves, because the defect needed both to be true at once.
  *
  * <p><b>The state.</b> {@code StationScreen#renderBg} draws the station-group tab row before the
- * panel, and that row renders item stacks. {@code GuiGraphics#renderItem} flushes through the item
+ * panel, and that row renders item stacks. {@code GuiGraphicsExtractor#renderItem} flushes through the item
  * render types, whose {@code clearRenderState} ends in {@code RenderSystem.disableBlend()} -- so
  * every translucent blit in {@code renderPanel} afterwards lands at full opacity unless blending is
  * turned back on in between. Upstream {@code GuiToolStation} does the same thing explicitly ("reset

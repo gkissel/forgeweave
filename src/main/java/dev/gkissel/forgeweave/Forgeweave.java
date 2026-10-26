@@ -59,7 +59,7 @@ import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.combat.ForgeweaveMobEffects;
 import dev.gkissel.forgeweave.combat.RangedXpSeam;
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
-import dev.gkissel.forgeweave.compat.create.ForgeweaveCreateCompat;
+import dev.gkissel.forgeweave.gametest.ForgeweaveGameTestRegistrar;
 import dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat;
 import dev.gkissel.forgeweave.compat.mekanism.ForgeweaveMekanismCompat;
 import dev.gkissel.forgeweave.compat.occultism.ForgeweaveOccultismCompat;
@@ -332,10 +332,10 @@ public class Forgeweave {
         }
         // #335 -- DarkModeEverywhere compat is a soft dependency too, same idiom as ponder just above.
         // Unlike FMLClientSetupEvent (inherently client-only), InterModEnqueueEvent is a mod-bus
-        // lifecycle event that fires on every dist, so this checks FMLEnvironment.dist itself to keep
+        // lifecycle event that fires on every dist, so this checks FMLEnvironment.getDist() itself to keep
         // dist handling consistent with the Dist.CLIENT gating every other client wiring class uses
         // (see ForgeweaveDarkModeCompat's javadoc).
-        if (ModList.get().isLoaded("darkmodeeverywhere") && FMLEnvironment.dist == Dist.CLIENT) {
+        if (ModList.get().isLoaded("darkmodeeverywhere") && FMLEnvironment.getDist() == Dist.CLIENT) {
             modEventBus.addListener(ForgeweaveDarkModeCompat::sendShaderBlacklist);
         }
         // #915 -- Draconic Evolution's fusion crafting (docs/SCOPE.md M8), the same soft-dependency
@@ -349,8 +349,10 @@ public class Forgeweave {
         // #1007 -- Create's goggles as a helmet modifier (docs/SCOPE.md M8), the same soft-dependency
         // idiom again. The guard is load-bearing: ForgeweaveCreateCompat's registration call names a
         // com.simibubi.create type and cannot link without the mod present.
-        if (ModList.get().isLoaded(ForgeweaveCreateCompat.MODID)) {
-            ForgeweaveCreateCompat.register();
+        // 26.1.2: Create has no build for this Minecraft yet, so ForgeweaveCreateCompat is left out of
+        // the compile (build.gradle's COMPAT_DISABLED) and the guard only says so.
+        if (ModList.get().isLoaded("create")) {
+            LOGGER.warn("Create is installed, but Forgeweave's Create integration is not available on Minecraft 26.1.2");
         }
         // #969 -- Apotheosis gem sockets (docs/SCOPE.md M8, D-M8-1). Same load-bearing guard: the
         // bridge behind this call names dev.shadowsoffire types and cannot link without the mod,
@@ -374,12 +376,15 @@ public class Forgeweave {
         if (ModList.get().isLoaded(ForgeweaveMekanismCompat.MODID)) {
             ForgeweaveMekanismCompat.register(modEventBus);
         }
+        // Minecraft 1.21.5 made GameTests registry entries; this turns the suite's annotated methods
+        // into them. A no-op unless GameTests are enabled (dev runs and runGameTestServer only).
+        ForgeweaveGameTestRegistrar.register(modEventBus);
     }
 
     private void onServerStarted(final ServerStartedEvent event) {
         // Datapack authors need to see whether their material JSON was picked up (ADR-0002).
         RegistryAccess.Frozen registries = event.getServer().registryAccess();
-        Registry<Material> materials = registries.registryOrThrow(Material.REGISTRY);
+        Registry<Material> materials = registries.lookupOrThrow(Material.REGISTRY);
         LOGGER.info("Loaded {} materials: {}", materials.size(), materials.keySet());
         MaterialSyncSize sync = materialSyncSize(registries);
         LOGGER.info("Material registry sync payload: {} of {} materials encode to {} bytes", sync.encoded(),
@@ -404,7 +409,7 @@ public class Forgeweave {
      * assert the counts the log line prints.
      */
     public static MaterialSyncSize materialSyncSize(RegistryAccess registries) {
-        Registry<Material> materials = registries.registryOrThrow(Material.REGISTRY);
+        Registry<Material> materials = registries.lookupOrThrow(Material.REGISTRY);
         RegistryOps<Tag> ops = registries.createSerializationContext(NbtOps.INSTANCE);
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         int encoded = 0;

@@ -4,14 +4,14 @@ import java.util.List;
 
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
@@ -40,7 +40,7 @@ import dev.gkissel.forgeweave.worldgen.TrackBOrePlacement;
 public class AllthemodiumElementariumGameTests {
 
     private static final ResourceKey<Level> OVERWORLD =
-            ResourceKey.create(Registries.DIMENSION, ResourceLocation.withDefaultNamespace("overworld"));
+            ResourceKey.create(Registries.DIMENSION, Identifier.withDefaultNamespace("overworld"));
 
     /**
      * {@code allthemodiumTiers} off stops Track B's ore family generating in
@@ -127,7 +127,7 @@ public class AllthemodiumElementariumGameTests {
      */
     @GameTest(template = "empty")
     public static void unsuppliedCastOnlyPresetsKeepTheirFluidButHideTheirBucket(GameTestHelper helper) {
-        Registry<Material> materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
+        Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         for (String name : List.of("elementarium_vanadium", "elementarium_chromium", "elementarium_molybdenum",
                 "elementarium_palladium", "elementarium_hafnium", "elementarium_tantalum",
                 "allthemodium", "vibranium", "unobtainium", "vibranium_allthemodium_alloy",
@@ -135,7 +135,7 @@ public class AllthemodiumElementariumGameTests {
                 "inferium", "prudentium", "tertium", "imperium", "supremium", "awakened_supremium",
                 "insanium", "prosperity", "soulium")) {
             helper.assertTrue(ForgeweaveFluids.compatMetalFluid(name) != null, name + " has no registered molten fluid");
-            helper.assertTrue(materials.get(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name)) == null,
+            helper.assertTrue(materials.get(Identifier.fromNamespaceAndPath(Forgeweave.MODID, name)) == null,
                     name + " registered with its mod absent");
             helper.assertFalse(CompatMaterialAvailability.isAvailable(name),
                     name + "'s bucket would show in the creative tab with its mod absent");

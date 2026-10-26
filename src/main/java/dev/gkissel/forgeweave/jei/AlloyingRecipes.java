@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import dev.gkissel.forgeweave.recipe.AlloyRecipe;
 
@@ -15,7 +15,7 @@ import dev.gkissel.forgeweave.recipe.AlloyRecipe;
  * snapshot of the registry, not a transform.
  */
 final class AlloyingRecipes {
-    static List<AlloyRecipe> build(Map<ResourceLocation, AlloyRecipe> recipes) {
+    static List<AlloyRecipe> build(Map<Identifier, AlloyRecipe> recipes) {
         return new ArrayList<>(recipes.values());
     }
 

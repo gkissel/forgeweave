@@ -120,14 +120,14 @@ public final class AxeStrip {
             if (transform.particles() != NO_PARTICLES) {
                 level.levelEvent(player, transform.particles(), pos, 0);
             }
-            if (!level.isClientSide) {
+            if (!level.isClientSide()) {
                 level.setBlock(pos, transformed, 11);
                 level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, transformed));
                 if (player != null) {
                     context.getItemInHand().hurtAndBreak(1, player, LivingEntity.getSlotForHand(context.getHand()));
                 }
             }
-            return InteractionResult.sidedSuccess(level.isClientSide);
+            return InteractionResult.sidedSuccess(level.isClientSide());
         }
         return InteractionResult.PASS;
     }

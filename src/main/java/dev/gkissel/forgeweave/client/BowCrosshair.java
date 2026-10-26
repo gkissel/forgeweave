@@ -2,7 +2,7 @@ package dev.gkissel.forgeweave.client;
 
 import javax.annotation.Nullable;
 
-import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.opengl.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.BufferUploader;
@@ -14,10 +14,10 @@ import org.joml.Matrix4f;
 
 import net.minecraft.client.AttackIndicatorStatus;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -92,12 +92,12 @@ public final class BowCrosshair {
 
     private static final float TIP_UV_CENTER = 7.5F / 16.0F;
 
-    private static final ResourceLocation ATTACK_INDICATOR_FULL =
-            ResourceLocation.withDefaultNamespace("hud/crosshair_attack_indicator_full");
-    private static final ResourceLocation ATTACK_INDICATOR_BACKGROUND =
-            ResourceLocation.withDefaultNamespace("hud/crosshair_attack_indicator_background");
-    private static final ResourceLocation ATTACK_INDICATOR_PROGRESS =
-            ResourceLocation.withDefaultNamespace("hud/crosshair_attack_indicator_progress");
+    private static final Identifier ATTACK_INDICATOR_FULL =
+            Identifier.withDefaultNamespace("hud/crosshair_attack_indicator_full");
+    private static final Identifier ATTACK_INDICATOR_BACKGROUND =
+            Identifier.withDefaultNamespace("hud/crosshair_attack_indicator_background");
+    private static final Identifier ATTACK_INDICATOR_PROGRESS =
+            Identifier.withDefaultNamespace("hud/crosshair_attack_indicator_progress");
 
     /** {@code Crosshairs}: the two entries Forgeweave's launchers actually ask for. */
     public enum Style {
@@ -106,10 +106,10 @@ public final class BowCrosshair {
         /** {@code Crosshairs.T} -- {@code CrossBow#getCrosshair}. */
         T("t");
 
-        private final ResourceLocation texture;
+        private final Identifier texture;
 
         Style(String name) {
-            this.texture = ResourceLocation.fromNamespaceAndPath(
+            this.texture = Identifier.fromNamespaceAndPath(
                     Forgeweave.MODID, "textures/derived/gui/crosshair/" + name + ".png");
         }
     }
@@ -215,7 +215,7 @@ public final class BowCrosshair {
         return styleFor(player.getOffhandItem()) != null ? player.getOffhandItem() : ItemStack.EMPTY;
     }
 
-    private static void render(Minecraft minecraft, GuiGraphics graphics, Style style, float charge) {
+    private static void render(Minecraft minecraft, GuiGraphicsExtractor graphics, Style style, float charge) {
         float spread = spread(charge);
         float centerX = graphics.guiWidth() / 2.0F;
         float centerY = graphics.guiHeight() / 2.0F;
@@ -291,7 +291,7 @@ public final class BowCrosshair {
     }
 
     /** {@code Gui#renderCrosshair}'s attack-strength indicator, which the cancelled layer owed us. */
-    private static void renderAttackIndicator(Minecraft minecraft, GuiGraphics graphics) {
+    private static void renderAttackIndicator(Minecraft minecraft, GuiGraphicsExtractor graphics) {
         LocalPlayer player = minecraft.player;
         if (player == null || minecraft.options.attackIndicator().get() != AttackIndicatorStatus.CROSSHAIR) {
             return;

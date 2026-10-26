@@ -1,10 +1,10 @@
 package dev.gkissel.forgeweave.gametest;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -12,8 +12,8 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -110,13 +110,13 @@ public class MiningLevelGameTests {
      */
     @GameTest(template = "empty")
     public static void obsidianAndAncientStandOnTheNetheriteRung(GameTestHelper helper) {
-        var materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
+        var materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         Material obsidian = materials.getOrThrow(ResourceKey.create(Material.REGISTRY,
-                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "obsidian")));
+                Identifier.fromNamespaceAndPath(Forgeweave.MODID, "obsidian")));
         helper.assertTrue(obsidian.head().orElseThrow().durability() == 139,
                 "obsidian's head must keep upstream's 139 durability, got " + obsidian.head().orElseThrow().durability());
         helper.assertTrue(obsidian.incorrectForTool().location().equals(
-                        ResourceLocation.withDefaultNamespace("incorrect_for_netherite_tool")),
+                        Identifier.withDefaultNamespace("incorrect_for_netherite_tool")),
                 "obsidian must be netherite tier, got " + obsidian.incorrectForTool().location());
 
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);

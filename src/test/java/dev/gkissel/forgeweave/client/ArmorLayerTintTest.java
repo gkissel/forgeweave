@@ -12,9 +12,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.SharedConstants;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
-import net.minecraft.world.item.ArmorMaterial;
+import net.minecraft.world.item.equipment.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.item.ArmorPieceItem;
@@ -31,8 +31,8 @@ import dev.gkissel.forgeweave.tool.ToolMaterials;
  */
 class ArmorLayerTintTest {
 
-    private static final ResourceLocation NAHUATL = ResourceLocation.fromNamespaceAndPath("forgeweave", "nahuatl");
-    private static final ResourceLocation COBALT = ResourceLocation.fromNamespaceAndPath("forgeweave", "cobalt");
+    private static final Identifier NAHUATL = Identifier.fromNamespaceAndPath("forgeweave", "nahuatl");
+    private static final Identifier COBALT = Identifier.fromNamespaceAndPath("forgeweave", "cobalt");
 
     @BeforeAll
     static void bootstrapMinecraft() {
@@ -56,7 +56,7 @@ class ArmorLayerTintTest {
         assertEquals(2, layers.size(), "maille under plating");
         for (ArmorMaterial.Layer layer : layers) {
             for (boolean inner : new boolean[] {false, true}) {
-                ResourceLocation texture = layer.texture(inner);
+                Identifier texture = layer.texture(inner);
                 assertTrue(texture.getPath().matches("textures/models/armor/derived/(plating|maille)_layer_[12]\\.png"),
                         texture.toString());
                 Path png = projectRoot().resolve("src/main/resources/assets/forgeweave/" + texture.getPath());

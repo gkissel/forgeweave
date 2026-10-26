@@ -166,7 +166,7 @@ public class EnergizedTankBlockEntity extends BlockEntity implements StationMenu
     public boolean toggleOverdrive() {
         overdrive = !overdrive;
         changed();
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             BlockState state = getBlockState();
             if (state.hasProperty(EnergizedTankBlock.OVERDRIVE)) {
                 level.setBlock(worldPosition, state.setValue(EnergizedTankBlock.OVERDRIVE, overdrive),
@@ -192,7 +192,7 @@ public class EnergizedTankBlockEntity extends BlockEntity implements StationMenu
      */
     private void changed() {
         setChanged();
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return;
         }
         level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);

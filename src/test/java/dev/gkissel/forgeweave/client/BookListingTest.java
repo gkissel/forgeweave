@@ -27,7 +27,7 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.Item;
 
@@ -84,12 +84,12 @@ class BookListingTest {
         }
     }
 
-    private static ResourceLocation fw(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier fw(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
     /** The three materials the book's grid is checked against, in the order the book sorts them. */
-    private static List<Map.Entry<ResourceLocation, Material>> materials() {
+    private static List<Map.Entry<Identifier, Material>> materials() {
         return List.of(
                 Map.entry(fw("iron"), shipped("iron")),
                 Map.entry(fw("stone"), shipped("stone")),
@@ -207,7 +207,7 @@ class BookListingTest {
                 "non-vacuity: expected the shipped modifier roster, saw " + ForgeweaveModifiers.ids().size());
 
         List<String> labels = listing.links().stream().map(BookLink::labelKey).toList();
-        for (ResourceLocation id : ForgeweaveModifiers.ids()) {
+        for (Identifier id : ForgeweaveModifiers.ids()) {
             assertTrue(labels.contains("modifier." + id.getNamespace() + "." + id.getPath() + ".name"),
                     "no listing row for modifier " + id);
         }
@@ -296,9 +296,9 @@ class BookListingTest {
         BookSection materials = section("book.forgeweave.section.materials");
         ListingPage ladder = (ListingPage) materials.pages().get(0);
 
-        List<ResourceLocation> pageOrder = materials.pages().stream()
+        List<Identifier> pageOrder = materials.pages().stream()
                 .filter(MaterialPage.class::isInstance).map(page -> ((MaterialPage) page).id()).toList();
-        List<ResourceLocation> gridOrder = stageRows(materials, ladder).stream()
+        List<Identifier> gridOrder = stageRows(materials, ladder).stream()
                 .flatMap(row -> ((IconGridPage) materials.pages().get(row.targetPage())).links().stream())
                 .map(link -> ((MaterialPage) materials.pages().get(link.targetPage())).id()).toList();
 

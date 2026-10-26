@@ -24,7 +24,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.ItemStack;
@@ -43,10 +43,10 @@ import dev.gkissel.forgeweave.tool.ToolStats;
 class ModifierCompatibilityTest {
 
     private static final ToolStats.Stats PICKAXE_STATS = new ToolStats.Stats(160, 4.0F, 3.0F);
-    private static final ResourceLocation SILKY = id("silky");
-    private static final ResourceLocation LUCK = id("luck");
-    private static final ResourceLocation SQUEAKY = id("squeaky");
-    private static final ResourceLocation AUTOSMELT = id("autosmelt");
+    private static final Identifier SILKY = id("silky");
+    private static final Identifier LUCK = id("luck");
+    private static final Identifier SQUEAKY = id("squeaky");
+    private static final Identifier AUTOSMELT = id("autosmelt");
     private static RegistryOps<JsonElement> ops;
 
     @BeforeAll
@@ -129,11 +129,11 @@ class ModifierCompatibilityTest {
         assertEquals(Optional.of(key), actual);
     }
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath("forgeweave", path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath("forgeweave", path);
     }
 
-    private static ItemStack pickaxe(List<ResourceLocation> traits, List<ModifierEntry> modifiers) {
+    private static ItemStack pickaxe(List<Identifier> traits, List<ModifierEntry> modifiers) {
         ItemStack stack = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
         stack.set(ForgeweaveDataComponents.TOOL_STATS.get(), PICKAXE_STATS);
         stack.set(ForgeweaveDataComponents.TRAITS.get(), traits);

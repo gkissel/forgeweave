@@ -3,24 +3,24 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.animal.Pig;
-import net.minecraft.world.entity.monster.Spider;
-import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.animal.pig.Pig;
+import net.minecraft.world.entity.monster.spider.Spider;
+import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.modifier.Modifier;
@@ -48,11 +48,11 @@ public class CombatModifierGameTests {
     // ---------------------------------------------------------------- #162 batch (smite, bane of
     // arthropods, fiery, necrotic)
 
-    private static final ResourceLocation SMITE = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "smite");
-    private static final ResourceLocation BANE_OF_ARTHROPODS =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "bane_of_arthropods");
-    private static final ResourceLocation FIERY = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "fiery");
-    private static final ResourceLocation NECROTIC = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "necrotic");
+    private static final Identifier SMITE = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "smite");
+    private static final Identifier BANE_OF_ARTHROPODS =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "bane_of_arthropods");
+    private static final Identifier FIERY = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "fiery");
+    private static final Identifier NECROTIC = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "necrotic");
 
     /**
      * Smite (upstream {@code ModAntiMonsterType("smite", ..., 5, 24, UNDEAD)}): one full level (24
@@ -174,7 +174,7 @@ public class CombatModifierGameTests {
                 "three combat modifiers must fill the tool's three slots, got "
                         + ForgeweaveModifiers.freeSlots(pickaxe) + " free");
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, pickaxe);
         blockEntity.container().setItem(1, new ItemStack(ForgeweaveItems.NECROTIC_BONE.get(), 1)); // necrotic, #429
         blockEntity.container().setItem(2, ItemStack.EMPTY);
@@ -192,9 +192,9 @@ public class CombatModifierGameTests {
     // Package-visible (not private): issue #465/T34's KnockbackMultiplierGameTests reuses this
     // constant plus pushOnHit/withModifier below to prove a tool's per-tool knockback multiplier does
     // not also scale this same combat modifier's own push -- see that class's javadoc.
-    static final ResourceLocation KNOCKBACK = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "knockback");
-    private static final ResourceLocation SHULKING = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "shulking");
-    private static final ResourceLocation WEBBED = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "webbed");
+    static final Identifier KNOCKBACK = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "knockback");
+    private static final Identifier SHULKING = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "shulking");
+    private static final Identifier WEBBED = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "webbed");
 
     /** More application units must push a target back further -- issue #163's own acceptance line. */
     @GameTest(template = "empty")
@@ -294,7 +294,7 @@ public class CombatModifierGameTests {
      * pierce adds 1.0 armor-ignoring damage per hit, which broke these tests' control assertions
      * the moment #162's and #164's branches met on master.
      */
-    static ItemStack withModifier(ResourceLocation id, int level) {
+    static ItemStack withModifier(Identifier id, int level) {
         ItemStack shovel = new ItemStack(ForgeweaveItems.TOOL_SHOVEL.get());
         shovel.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(id, level)));
         return shovel;

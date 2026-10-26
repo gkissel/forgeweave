@@ -3,9 +3,9 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffects;
@@ -17,8 +17,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -62,11 +62,11 @@ public class TraitPairingGameTests {
             "magic_protection2", "magic_protection2", "magic_protection3", "magic_protection3",
             "blightward", "cyanite_chillback", "witherward", "witherward");
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
-    private static List<ResourceLocation> ids(String... traits) {
+    private static List<Identifier> ids(String... traits) {
         return List.of(traits).stream().map(TraitPairingGameTests::id).toList();
     }
 
@@ -510,7 +510,7 @@ public class TraitPairingGameTests {
     /** The detailed tooltip of a pickaxe assembled from three parts of the shipped {@code material}. */
     private static List<net.minecraft.network.chat.Component> shiftTooltip(GameTestHelper helper, String material)
             throws Exception {
-        ResourceLocation materialId = id(material);
+        Identifier materialId = id(material);
         var ops = net.minecraft.resources.RegistryOps.create(com.mojang.serialization.JsonOps.INSTANCE,
                 helper.getLevel().registryAccess());
         var resource = helper.getLevel().getServer().getResourceManager()

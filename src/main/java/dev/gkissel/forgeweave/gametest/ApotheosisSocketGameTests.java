@@ -9,14 +9,14 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -26,8 +26,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
@@ -316,9 +316,9 @@ public class ApotheosisSocketGameTests {
             return ApotheosisSockets.gems(stack).stream()
                     .filter(gem -> !gem.isEmpty())
                     .map(gem -> new ApotheosisSockets.AttributeGrant(
-                            ResourceLocation.withDefaultNamespace("generic.attack_damage"),
+                            Identifier.withDefaultNamespace("generic.attack_damage"),
                             new AttributeModifier(
-                                    ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "gametest_gem"),
+                                    Identifier.fromNamespaceAndPath(Forgeweave.MODID, "gametest_gem"),
                                     2.0, AttributeModifier.Operation.ADD_VALUE)))
                     .toList();
         }

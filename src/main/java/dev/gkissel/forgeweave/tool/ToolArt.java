@@ -8,7 +8,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import dev.gkissel.forgeweave.Forgeweave;
 
@@ -165,12 +165,12 @@ public final class ToolArt {
      * the damaged variant. So an addon ships its art at predictable paths and needs no entry in any
      * table here.
      */
-    public static ResourceLocation layerTexture(String tool, String layer) {
+    public static Identifier layerTexture(String tool, String layer) {
         int colon = tool.indexOf(':');
         if (colon < 0) {
-            return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, layer(tool, layer));
+            return Identifier.fromNamespaceAndPath(Forgeweave.MODID, layer(tool, layer));
         }
-        return ResourceLocation.fromNamespaceAndPath(tool.substring(0, colon),
+        return Identifier.fromNamespaceAndPath(tool.substring(0, colon),
                 CONVENTION_PREFIX + tool.substring(colon + 1) + "_" + layer);
     }
 

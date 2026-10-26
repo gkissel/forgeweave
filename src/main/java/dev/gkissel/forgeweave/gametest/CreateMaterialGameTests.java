@@ -4,9 +4,9 @@ import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.CombatRules;
 import net.minecraft.world.entity.EntityType;
@@ -17,8 +17,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.PartBuilderBlockEntity;
@@ -37,9 +37,9 @@ public final class CreateMaterialGameTests {
     public static void createMaterialsUseTheirAgreedCraftingStations(GameTestHelper helper) {
         for (String name : new String[] {"zinc", "brass", "andesite_alloy", "rose_quartz"}) {
             boolean metal = name.equals("zinc") || name.equals("brass");
-            ResourceLocation item = ResourceLocation.fromNamespaceAndPath("create", name + (metal ? "_ingot" : ""));
-            ResourceLocation material = ResourceLocation.fromNamespaceAndPath("forgeweave", name);
-            var materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
+            Identifier item = Identifier.fromNamespaceAndPath("create", name + (metal ? "_ingot" : ""));
+            Identifier material = Identifier.fromNamespaceAndPath("forgeweave", name);
+            var materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
             if (!BuiltInRegistries.ITEM.containsKey(item)) {
                 helper.assertTrue(!materials.containsKey(material), name + " must be absent without its Create item");
                 continue;
@@ -47,7 +47,7 @@ public final class CreateMaterialGameTests {
             helper.assertTrue(materials.containsKey(material), name + " must load with Create");
             BlockPos pos = new BlockPos(1, 1, 1);
             helper.setBlock(pos, ForgeweaveBlocks.PART_BUILDER.get());
-            PartBuilderBlockEntity block = helper.getBlockEntity(pos);
+            PartBuilderBlockEntity block = helper.getBlockEntity(pos, PartBuilderBlockEntity.class);
             var player = helper.makeMockPlayer(GameType.SURVIVAL);
             PartBuilderMenu menu = new PartBuilderMenu(0, player.getInventory(), block.container(),
                     ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)), block.findSideInventory());
@@ -89,7 +89,7 @@ public final class CreateMaterialGameTests {
             ItemStack piece = ToolAssembly.assembleAt(helper, player, new BlockPos(1, 1, 1),
                     ForgeweaveBlocks.TOOL_STATION.get(), ToolAssembly.entryOf(pieces.get(i)), List.of("iron", "iron"));
             piece.set(ForgeweaveDataComponents.TRAITS.get(), List.of(
-                    ResourceLocation.fromNamespaceAndPath("forgeweave", "galvanized_guard")));
+                    Identifier.fromNamespaceAndPath("forgeweave", "galvanized_guard")));
             player.setItemSlot(slots.get(i), piece);
             float chance = ArmorPieceItem.durabilityNegationChance(player);
             helper.assertTrue(Math.abs(chance - (i + 1) * 0.05F) < 0.001F,
@@ -112,7 +112,7 @@ public final class CreateMaterialGameTests {
                 ForgeweaveBlocks.TOOL_STATION.get(), ToolAssembly.entryOf(ToolConstants.BROADSWORD),
                 List.of("iron", "iron", "iron"));
         sword.set(ForgeweaveDataComponents.TRAITS.get(), List.of(
-                ResourceLocation.fromNamespaceAndPath("forgeweave", "focused")));
+                Identifier.fromNamespaceAndPath("forgeweave", "focused")));
         var attacker = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2));
         var target = helper.spawn(EntityType.ZOMBIE, new BlockPos(3, 2, 2));
         attacker.setNoAi(true);

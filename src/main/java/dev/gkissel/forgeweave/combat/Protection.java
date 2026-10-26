@@ -3,7 +3,7 @@ package dev.gkissel.forgeweave.combat;
 import java.util.function.Predicate;
 
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.tags.TagKey;
@@ -105,6 +105,6 @@ public record Protection(float perLevel, int level, Predicate<DamageSource> sour
     }
 
     private static TagKey<DamageType> tag(String path) {
-        return TagKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path));
+        return TagKey.create(Registries.DAMAGE_TYPE, Identifier.fromNamespaceAndPath(Forgeweave.MODID, path));
     }
 }

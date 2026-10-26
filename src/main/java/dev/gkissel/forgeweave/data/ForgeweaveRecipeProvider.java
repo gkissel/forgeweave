@@ -10,7 +10,7 @@ import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementRequirements;
 import net.minecraft.advancements.AdvancementRewards;
-import net.minecraft.advancements.critereon.RecipeUnlockedTrigger;
+import net.minecraft.advancements.criterion.RecipeUnlockedTrigger;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -24,7 +24,7 @@ import net.minecraft.data.recipes.ShapelessRecipeBuilder;
 import net.minecraft.data.recipes.SimpleCookingRecipeBuilder;
 import net.minecraft.data.recipes.SingleItemRecipeBuilder;
 import net.minecraft.data.recipes.SpecialRecipeBuilder;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.DyeItem;
@@ -84,7 +84,7 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         // code-only IRecipe (tools/common/RepairRecipe); 1.21.1 wants a datapack entry naming the
         // serializer, which is all this is -- see SharpeningKitRepairRecipe.
         SpecialRecipeBuilder.special(SharpeningKitRepairRecipe::new)
-                .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "sharpening_kit_repair"));
+                .save(recipeOutput, Identifier.fromNamespaceAndPath(Forgeweave.MODID, "sharpening_kit_repair"));
 
         // Upstream's tools/pattern.json outputs 4 from two planks and two sticks, and upstream's
         // pattern item stacks (issue #64 restored both here -- see ForgeweaveItems).
@@ -152,7 +152,7 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                 .requires(Items.STRING)
                 .requires(ForgeweaveItems.PATTERN_BLANK.get(), 2)
                 .unlockedBy("has_pattern", has(ForgeweaveItems.PATTERN_BLANK.get()))
-                .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "book_from_patterns"));
+                .save(recipeOutput, Identifier.fromNamespaceAndPath(Forgeweave.MODID, "book_from_patterns"));
 
         // The five coloured Slimeslings (T22 issue #453, split into colours by #649): upstream's
         // recipes/gadgets/slimesling/{green,blue,purple,blood,magma}.json all share one shape -- two
@@ -181,7 +181,7 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         // Upstream's slimesling/fallback.json (NOTICE.md): the same shape over mixed slime colours
         // makes the pink sling. A special recipe for the same reason as MixedSlimeBlockRecipe.
         SpecialRecipeBuilder.special(MixedSlimeSlingRecipe::new)
-                .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "mixed_slime_sling").toString());
+                .save(recipeOutput, Identifier.fromNamespaceAndPath(Forgeweave.MODID, "mixed_slime_sling").toString());
 
         // Stencil Table (docs/SCOPE.md M1 issue #44): upstream 1.12's real stencil_table.json recipe
         // is "blank pattern + #STENCIL_TABLE" where that tag resolves to plankWood (NOTICE.md).
@@ -228,7 +228,7 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                 .group("pattern_chest")
                 .unlockedBy("has_pattern_blank", has(ForgeweaveItems.PATTERN_BLANK.get()))
                 .save(recipeOutput,
-                        ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "pattern_chest_from_planks"));
+                        Identifier.fromNamespaceAndPath(Forgeweave.MODID, "pattern_chest_from_planks"));
 
         // Part Chest (docs/SCOPE.md M1 issue #66): upstream's real part.json shape (a blank pattern
         // over a chest flanked by sticks, with a plank below) -- ported verbatim (NOTICE.md).
@@ -312,7 +312,7 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
             builder.requires(input);
         }
         builder.unlockedBy("has_" + input.location().getPath().replace('/', '_'), has(input))
-                .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID,
+                .save(recipeOutput, Identifier.fromNamespaceAndPath(Forgeweave.MODID,
                         result.itemId(material.id()) + suffix));
     }
 
@@ -339,12 +339,12 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         }
         builder.define('#', input)
                 .unlockedBy("has_" + input.location().getPath().replace('/', '_'), has(input))
-                .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID,
+                .save(recipeOutput, Identifier.fromNamespaceAndPath(Forgeweave.MODID,
                         result.itemId(material.id())));
     }
 
     private static TagKey<Item> conventionTag(String path) {
-        return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", path));
+        return TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", path));
     }
 
     /**
@@ -489,8 +489,8 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
 
     /** 9 {@code ingot} &lt;-&gt; 1 {@code block}, vanilla's own storage-block shape, both directions. */
     private void storageBlockRecipes(RecipeOutput recipeOutput, ItemLike ingot, ItemLike block) {
-        ResourceLocation blockId = BuiltInRegistries.ITEM.getKey(block.asItem());
-        ResourceLocation ingotId = BuiltInRegistries.ITEM.getKey(ingot.asItem());
+        Identifier blockId = BuiltInRegistries.ITEM.getKey(block.asItem());
+        Identifier ingotId = BuiltInRegistries.ITEM.getKey(ingot.asItem());
 
         ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, block)
                 .pattern("###")
@@ -503,7 +503,7 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ingot, 9)
                 .requires(block)
                 .unlockedBy("has_" + blockId.getPath(), has(block))
-                .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID,
+                .save(recipeOutput, Identifier.fromNamespaceAndPath(Forgeweave.MODID,
                         ingotId.getPath() + "_from_" + blockId.getPath()));
     }
 
@@ -651,17 +651,17 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                 .requires(Ingredient.of(Items.SAND, Items.RED_SAND), 4)
                 .requires(Items.GRAVEL, 4)
                 .unlockedBy("has_clay", has(Items.CLAY))
-                .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "grout_from_clay_block"));
+                .save(recipeOutput, Identifier.fromNamespaceAndPath(Forgeweave.MODID, "grout_from_clay_block"));
 
         SimpleCookingRecipeBuilder.smelting(Ingredient.of(ForgeweaveItems.GROUT.get()), RecipeCategory.MISC,
                         ForgeweaveItems.SEARED_BRICK.get(), 0.4F, 200)
                 .unlockedBy("has_grout", has(ForgeweaveItems.GROUT.get()))
-                .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "seared_brick_from_smelting"));
+                .save(recipeOutput, Identifier.fromNamespaceAndPath(Forgeweave.MODID, "seared_brick_from_smelting"));
 
         SimpleCookingRecipeBuilder.smelting(Ingredient.of(ForgeweaveItems.SEARED_BRICKS.get()), RecipeCategory.BUILDING_BLOCKS,
                         ForgeweaveItems.SEARED_CRACKED_BRICKS.get(), 0.1F, 200)
                 .unlockedBy("has_seared_bricks", has(ForgeweaveItems.SEARED_BRICKS.get()))
-                .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "seared_cracked_bricks_from_smelting"));
+                .save(recipeOutput, Identifier.fromNamespaceAndPath(Forgeweave.MODID, "seared_cracked_bricks_from_smelting"));
 
         ShapedRecipeBuilder.shaped(RecipeCategory.BUILDING_BLOCKS, ForgeweaveItems.SEARED_BRICKS.get())
                 .pattern("AA")
@@ -727,7 +727,7 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
             ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ball, 4)
                     .requires(congealed)
                     .unlockedBy("has_" + congealedName, has(congealed))
-                    .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID,
+                    .save(recipeOutput, Identifier.fromNamespaceAndPath(Forgeweave.MODID,
                             ballName + "_from_" + congealedName));
 
             if (family.slimeBlock() == null) {
@@ -745,7 +745,7 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
             ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, ball, 9)
                     .requires(slimeBlock)
                     .unlockedBy("has_" + slimeBlockName, has(slimeBlock))
-                    .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID,
+                    .save(recipeOutput, Identifier.fromNamespaceAndPath(Forgeweave.MODID,
                             ballName + "_from_" + slimeBlockName));
         }
 
@@ -753,7 +753,7 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         // NOTICE.md). It carries no data of its own, so it is a special recipe with a fixed shape;
         // see MixedSlimeBlockRecipe.
         SpecialRecipeBuilder.special(MixedSlimeBlockRecipe::new)
-                .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "mixed_slime_block").toString());
+                .save(recipeOutput, Identifier.fromNamespaceAndPath(Forgeweave.MODID, "mixed_slime_block").toString());
     }
 
     /**
@@ -799,7 +799,7 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                 .pattern("AA")
                 .define('A', ForgeweaveItems.SEARED_BRICK.get())
                 .unlockedBy("has_seared_brick", has(ForgeweaveItems.SEARED_BRICK.get()))
-                .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "seared_slab_bricks_from_seared_brick"));
+                .save(recipeOutput, Identifier.fromNamespaceAndPath(Forgeweave.MODID, "seared_slab_bricks_from_seared_brick"));
     }
 
     /** One seared variant's stairs + slab crafting and stonecutting recipes -- see {@link #buildSearedStairsSlabRecipes}. */
@@ -822,7 +822,7 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         String resultName = BuiltInRegistries.ITEM.getKey(result.asItem()).getPath();
         SingleItemRecipeBuilder.stonecutting(Ingredient.of(base), RecipeCategory.BUILDING_BLOCKS, result, count)
                 .unlockedBy("has_" + BuiltInRegistries.ITEM.getKey(base.asItem()).getPath(), has(base))
-                .save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, resultName + "_from_" + BuiltInRegistries.ITEM.getKey(base.asItem()).getPath() + "_stonecutting"));
+                .save(recipeOutput, Identifier.fromNamespaceAndPath(Forgeweave.MODID, resultName + "_from_" + BuiltInRegistries.ITEM.getKey(base.asItem()).getPath() + "_stonecutting"));
     }
 
     /**
@@ -958,7 +958,7 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                 .requires(from)
                 .unlockedBy("has_" + BuiltInRegistries.ITEM.getKey(from.asItem()).getPath(), has(from));
         if (id != null) {
-            builder.save(recipeOutput, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, id));
+            builder.save(recipeOutput, Identifier.fromNamespaceAndPath(Forgeweave.MODID, id));
         } else {
             builder.save(recipeOutput);
         }
@@ -994,14 +994,14 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
             }
 
             @Override
-            public void accept(ResourceLocation id, Recipe<?> recipe, AdvancementHolder advancement, ICondition... conditions) {
+            public void accept(Identifier id, Recipe<?> recipe, AdvancementHolder advancement, ICondition... conditions) {
                 output.accept(id, new GatedShapedRecipe((ShapedRecipe) recipe), advancement, conditions);
             }
         };
     }
 
     private void toolForgeRecipe(RecipeOutput recipeOutput) {
-        ResourceLocation id = BuiltInRegistries.ITEM.getKey(ForgeweaveItems.TOOL_FORGE.get());
+        Identifier id = BuiltInRegistries.ITEM.getKey(ForgeweaveItems.TOOL_FORGE.get());
         Ingredient metal = Ingredient.of(ForgeweaveItemTagsProvider.TOOL_FORGE_BLOCKS);
         ShapedRecipePattern pattern = ShapedRecipePattern.of(
                 Map.of('B', Ingredient.of(ForgeweaveBlocks.SEARED_BRICKS.get()),
@@ -1027,7 +1027,7 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
      * for the same arrangement on a shapeless one.
      */
     private void energizedTankRecipe(RecipeOutput recipeOutput) {
-        ResourceLocation id = BuiltInRegistries.ITEM.getKey(ForgeweaveItems.ENERGIZED_TANK.get());
+        Identifier id = BuiltInRegistries.ITEM.getKey(ForgeweaveItems.ENERGIZED_TANK.get());
         ShapedRecipePattern pattern = ShapedRecipePattern.of(Map.of(
                         'A', Ingredient.of(ForgeweaveItems.SEARED_BRICK.get()),
                         'B', Ingredient.of(Items.REDSTONE_BLOCK),
@@ -1045,7 +1045,7 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
     }
 
     private void gravelFlintRecipe(RecipeOutput recipeOutput) {
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "flint_from_gravel");
+        Identifier id = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "flint_from_gravel");
         GravelFlintRecipe recipe = new GravelFlintRecipe("", CraftingBookCategory.MISC, new ItemStack(Items.FLINT),
                 NonNullList.of(Ingredient.EMPTY, Ingredient.of(Items.GRAVEL), Ingredient.of(Items.GRAVEL), Ingredient.of(Items.GRAVEL)));
 
@@ -1058,7 +1058,7 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
     }
 
     private void retexturedTableRecipe(RecipeOutput recipeOutput, ItemLike result, ItemLike patternItem, Ingredient ingredient) {
-        ResourceLocation id = BuiltInRegistries.ITEM.getKey(result.asItem());
+        Identifier id = BuiltInRegistries.ITEM.getKey(result.asItem());
         ShapedRecipePattern pattern = ShapedRecipePattern.of(
                 Map.of('A', Ingredient.of(patternItem), 'B', ingredient), "A", "B");
         RetexturedShapedRecipe recipe =

@@ -11,10 +11,10 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.flag.FeatureFlags;
@@ -30,8 +30,8 @@ import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.CastingBlockEntity;
@@ -99,12 +99,12 @@ public class CompatSmelteryGameTests {
         helper.assertTrue(!bronzeBucketShown,
                 "expected the bronze bucket to be hidden from the creative tab without mekanism/immersiveengineering");
 
-        Registry<MeltingRecipe> melting = helper.getLevel().registryAccess().registryOrThrow(MeltingRecipe.REGISTRY);
+        Registry<MeltingRecipe> melting = helper.getLevel().registryAccess().lookupOrThrow(MeltingRecipe.REGISTRY);
         ResourceKey<MeltingRecipe> meltingKey = ResourceKey.create(MeltingRecipe.REGISTRY, id("bronze_ingot"));
         helper.assertTrue(melting.get(meltingKey) == null,
                 "expected bronze_ingot's melting recipe to be absent (mekanism:ingot_bronze condition unmet)");
 
-        Registry<CastingRecipe> casting = helper.getLevel().registryAccess().registryOrThrow(CastingRecipe.REGISTRY);
+        Registry<CastingRecipe> casting = helper.getLevel().registryAccess().lookupOrThrow(CastingRecipe.REGISTRY);
         ResourceKey<CastingRecipe> castingKey = ResourceKey.create(CastingRecipe.REGISTRY, id("ingot_bronze"));
         helper.assertTrue(casting.get(castingKey) == null,
                 "expected ingot_bronze's casting recipe to be absent (mekanism:ingot_bronze condition unmet)");
@@ -123,7 +123,7 @@ public class CompatSmelteryGameTests {
     @GameTest(template = "empty")
     public static void unsuppliedCompatMaterialsAndTheirSmelteryRowsDoNotLoad(GameTestHelper helper) {
         RegistryAccess registries = helper.getLevel().registryAccess();
-        Registry<Material> materials = registries.registryOrThrow(Material.REGISTRY);
+        Registry<Material> materials = registries.lookupOrThrow(Material.REGISTRY);
         for (String material : UNSUPPLIED_MATERIALS) {
             helper.assertTrue(materials.get(id(material)) == null,
                     "expected the " + material + " material to be absent without its mod, found it registered");
@@ -131,18 +131,18 @@ public class CompatSmelteryGameTests {
             ForgeweaveFluids.MoltenMetal molten = ForgeweaveFluids.compatMetalFluid(material);
             Fluid fluid = molten == null ? null : molten.still().get();
             List<String> loaded = new ArrayList<>();
-            for (var entry : registries.registryOrThrow(MeltingRecipe.REGISTRY).entrySet()) {
+            for (var entry : registries.lookupOrThrow(MeltingRecipe.REGISTRY).entrySet()) {
                 if (namesMaterial(entry.getKey().location(), material) || entry.getValue().fluid() == fluid) {
                     loaded.add("melting " + entry.getKey().location());
                 }
             }
-            for (var entry : registries.registryOrThrow(CastingRecipe.REGISTRY).entrySet()) {
+            for (var entry : registries.lookupOrThrow(CastingRecipe.REGISTRY).entrySet()) {
                 if (namesMaterial(entry.getKey().location(), material)
                         || (fluid != null && entry.getValue().fluid().orElse(null) == fluid)) {
                     loaded.add("casting " + entry.getKey().location());
                 }
             }
-            for (var entry : registries.registryOrThrow(AlloyRecipe.REGISTRY).entrySet()) {
+            for (var entry : registries.lookupOrThrow(AlloyRecipe.REGISTRY).entrySet()) {
                 if (namesMaterial(entry.getKey().location(), material)
                         || (fluid != null && entry.getValue().result().getFluid() == fluid)) {
                     loaded.add("alloy " + entry.getKey().location());
@@ -171,14 +171,14 @@ public class CompatSmelteryGameTests {
         // No recipe makes blue slime: it pools in the blue slime island lakes (SlimeIslandShape),
         // so a player buckets it from the world.
         producible.add(ForgeweaveFluids.BLUE_SLIME.still().get());
-        for (MeltingRecipe recipe : registries.registryOrThrow(MeltingRecipe.REGISTRY)) {
+        for (MeltingRecipe recipe : registries.lookupOrThrow(MeltingRecipe.REGISTRY)) {
             producible.add(recipe.fluid());
             recipe.byproduct().ifPresent(byproduct -> producible.add(byproduct.fluid()));
         }
-        for (AlloyRecipe recipe : registries.registryOrThrow(AlloyRecipe.REGISTRY)) {
+        for (AlloyRecipe recipe : registries.lookupOrThrow(AlloyRecipe.REGISTRY)) {
             producible.add(recipe.result().getFluid());
         }
-        for (EntityMeltingRecipe recipe : registries.registryOrThrow(EntityMeltingRecipe.REGISTRY)) {
+        for (EntityMeltingRecipe recipe : registries.lookupOrThrow(EntityMeltingRecipe.REGISTRY)) {
             producible.add(recipe.fluid());
         }
 
@@ -206,7 +206,7 @@ public class CompatSmelteryGameTests {
     public static void atomicMatterAlloyStaysRegisteredButItsItemFormsAreHidden(GameTestHelper helper) {
         String material = "atomic_matter_alloy";
         RegistryAccess registries = helper.getLevel().registryAccess();
-        helper.assertTrue(registries.registryOrThrow(Material.REGISTRY).get(id(material)) != null,
+        helper.assertTrue(registries.lookupOrThrow(Material.REGISTRY).get(id(material)) != null,
                 "expected atomic_matter_alloy to stay in the material registry without Mekanism");
 
         List<Item> forms = new ArrayList<>(List.of(ForgeweaveItems.trackBAlloyIngot(material).get(),
@@ -229,12 +229,12 @@ public class CompatSmelteryGameTests {
         helper.assertTrue(helper.getLevel().getRecipeManager()
                         .byKey(id("compat/mekanism/atomic_matter_alloy_ingot")).isEmpty(),
                 "expected the nucleosynthesizer row to be absent without Mekanism");
-        Registry<CastingRecipe> casting = registries.registryOrThrow(CastingRecipe.REGISTRY);
+        Registry<CastingRecipe> casting = registries.lookupOrThrow(CastingRecipe.REGISTRY);
         for (String row : List.of("ingot_", "nugget_", "block_")) {
             helper.assertTrue(casting.get(id(row + material)) == null,
                     "expected the " + row + material + " casting row to be absent without Mekanism");
         }
-        helper.assertTrue(registries.registryOrThrow(MeltingRecipe.REGISTRY).get(id(material + "_ingot")) == null,
+        helper.assertTrue(registries.lookupOrThrow(MeltingRecipe.REGISTRY).get(id(material + "_ingot")) == null,
                 "expected the atomic_matter_alloy_ingot melting row to be absent without Mekanism");
         helper.succeed();
     }
@@ -248,7 +248,7 @@ public class CompatSmelteryGameTests {
     }
 
     /** Whether {@code id}'s path holds {@code material} as a whole run of underscore-separated words. */
-    private static boolean namesMaterial(ResourceLocation id, String material) {
+    private static boolean namesMaterial(Identifier id, String material) {
         return ("_" + id.getPath().replace('/', '_') + "_").contains("_" + material + "_");
     }
 
@@ -267,9 +267,9 @@ public class CompatSmelteryGameTests {
     public static void fixtureRecipeMeltsTheStandInIngot(GameTestHelper helper) {
         SmelteryGameTests.buildWalls(helper, 1, 1, 2);
         BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
-        SearedTankBlockEntity wallTank = helper.getBlockEntity(SmelteryGameTests.TANK_POS);
+        SearedTankBlockEntity wallTank = helper.getBlockEntity(SmelteryGameTests.TANK_POS, SearedTankBlockEntity.class);
         wallTank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
-        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
 
         helper.assertTrue(core.insertForMelting(new ItemStack(Items.NETHER_BRICK)).isEmpty(),
@@ -294,18 +294,18 @@ public class CompatSmelteryGameTests {
         Fluid bronze = ForgeweaveFluids.BRONZE.still().get();
 
         helper.setBlock(TANK, ForgeweaveBlocks.SEARED_TANK.get());
-        helper.<SearedTankBlockEntity>getBlockEntity(TANK).tank()
+        helper.getBlockEntity(TANK, SearedTankBlockEntity.class).tank()
                 .fill(new FluidStack(bronze, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_TABLE.get());
         helper.setBlock(FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
                 .setValue(FaucetBlock.FACING, Direction.WEST));
-        CastingBlockEntity table = helper.getBlockEntity(CASTING);
+        CastingBlockEntity table = helper.getBlockEntity(CASTING, CastingBlockEntity.class);
 
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ForgeweaveItems.CAST_INGOT.get()));
         table.interact(player, InteractionHand.MAIN_HAND);
 
-        helper.<FaucetBlockEntity>getBlockEntity(FAUCET).activate();
+        helper.getBlockEntity(FAUCET, FaucetBlockEntity.class).activate();
 
         helper.succeedWhen(() -> helper.assertTrue(table.output().is(Items.GOLD_INGOT),
                 "expected the fixture casting recipe to produce a gold ingot, found " + table.output()));
@@ -389,18 +389,18 @@ public class CompatSmelteryGameTests {
     private static SmelteryControllerBlockEntity refuelledSmeltery(GameTestHelper helper, Fluid fuel) {
         helper.setBlock(SmelteryGameTests.CORE_POS, Blocks.AIR);
 
-        SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS);
+        SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS, SearedTankBlockEntity.class);
         tank.tank().drain(Integer.MAX_VALUE, IFluidHandler.FluidAction.EXECUTE);
         tank.tank().fill(new FluidStack(fuel, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
 
         BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
-        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
         return core;
     }
 
-    private static ResourceLocation id(String name) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name);
+    private static Identifier id(String name) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, name);
     }
 
     private CompatSmelteryGameTests() {}

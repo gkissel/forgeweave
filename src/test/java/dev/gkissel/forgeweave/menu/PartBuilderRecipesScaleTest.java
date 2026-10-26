@@ -27,7 +27,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -59,17 +59,17 @@ class PartBuilderRecipesScaleTest {
         Bootstrap.bootStrap();
     }
 
-    private static Map<ResourceLocation, Material> shippedMaterials() throws Exception {
+    private static Map<Identifier, Material> shippedMaterials() throws Exception {
         RegistryOps<JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE,
                 RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
         Path materialDir = projectRoot().resolve("src/main/resources/data/forgeweave/forgeweave/material");
-        Map<ResourceLocation, Material> materials = new LinkedHashMap<>();
+        Map<Identifier, Material> materials = new LinkedHashMap<>();
         try (Stream<Path> files = Files.list(materialDir)) {
             for (Path file : files.filter(p -> p.toString().endsWith(".json")).sorted().toList()) {
                 String name = file.getFileName().toString().replace(".json", "");
                 JsonElement json = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8));
                 Material material = Material.CODEC.parse(ops, json).getOrThrow();
-                materials.put(ResourceLocation.fromNamespaceAndPath("forgeweave", name), material);
+                materials.put(Identifier.fromNamespaceAndPath("forgeweave", name), material);
             }
         }
         return materials;
@@ -85,9 +85,9 @@ class PartBuilderRecipesScaleTest {
         throw new AssertionError("could not locate project root (no settings.gradle found above " + dir + ")");
     }
 
-    private static HolderLookup.Provider registries(Map<ResourceLocation, Material> shipped) {
+    private static HolderLookup.Provider registries(Map<Identifier, Material> shipped) {
         MappedRegistry<Material> materials = new MappedRegistry<>(Material.REGISTRY, Lifecycle.stable());
-        for (Map.Entry<ResourceLocation, Material> entry : shipped.entrySet()) {
+        for (Map.Entry<Identifier, Material> entry : shipped.entrySet()) {
             materials.register(ResourceKey.create(Material.REGISTRY, entry.getKey()), entry.getValue(),
                     RegistrationInfo.BUILT_IN);
         }
@@ -97,7 +97,7 @@ class PartBuilderRecipesScaleTest {
 
     @Test
     void materialValueScanStaysFastAtTheFullRoster() throws Exception {
-        Map<ResourceLocation, Material> shipped = shippedMaterials();
+        Map<Identifier, Material> shipped = shippedMaterials();
         assertTrue(shipped.size() >= 100, "non-vacuity: expected the real M6 roster, saw only " + shipped.size());
         long craftingItems = shipped.values().stream().mapToLong(m -> m.craftingItems().size()).sum();
 

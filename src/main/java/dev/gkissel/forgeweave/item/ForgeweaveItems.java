@@ -5,14 +5,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ArmorItem;
-import net.minecraft.world.item.ArmorMaterial;
+import net.minecraft.world.item.equipment.ArmorMaterial;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 
@@ -531,8 +531,8 @@ public final class ForgeweaveItems {
         // inventories, chests and ender chests, which read back as Tool Stations. The issue does not
         // say what to do with them, so they convert the same way the placed block does rather than
         // vanishing -- an unresolved item id loads as air and the stack is simply lost.
-        ITEMS.addAlias(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "armor_station"),
-                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "tool_station"));
+        ITEMS.addAlias(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "armor_station"),
+                Identifier.fromNamespaceAndPath(Forgeweave.MODID, "tool_station"));
     }
 
     // The Crafting Station (docs/SCOPE.md M1 issue #40): same retextured-table item shape as the two

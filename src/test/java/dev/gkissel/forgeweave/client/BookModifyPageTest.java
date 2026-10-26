@@ -10,7 +10,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.SharedConstants;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
@@ -223,7 +223,7 @@ class BookModifyPageTest {
      */
     @Test
     void everyRegisteredModifierIllustratesWithAnItemItAccepts() {
-        for (ResourceLocation modifierId : ForgeweaveModifiers.ids()) {
+        for (Identifier modifierId : ForgeweaveModifiers.ids()) {
             Modifier modifier = ForgeweaveModifiers.get(modifierId);
             assertTrue(modifier != null, modifierId + " is a registered id with no Modifier behind it");
 
@@ -235,7 +235,7 @@ class BookModifyPageTest {
         }
     }
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath("forgeweave", path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath("forgeweave", path);
     }
 }

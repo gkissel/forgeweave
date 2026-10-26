@@ -11,7 +11,7 @@ import net.neoforged.neoforge.common.Tags;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -475,7 +475,7 @@ public final class ForgeweaveInnates {
      * tool that has none -- the same ids {@link #collect} keys its seams by, so the tooltip can never
      * name an innate the stack doesn't actually carry.
      */
-    public static Optional<ResourceLocation> innateId(ItemStack stack) {
+    public static Optional<Identifier> innateId(ItemStack stack) {
         if (stack.is(ForgeweaveItems.TOOL_PICKAXE.get())) {
             return Optional.of(id("pierce"));
         }
@@ -502,8 +502,8 @@ public final class ForgeweaveInnates {
         return innate == null ? Optional.empty() : Optional.of(id(innate.id()));
     }
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
     // ------------------------------------------------------------------ behaviors
@@ -898,7 +898,7 @@ public final class ForgeweaveInnates {
     public static final class ChargedLaunch implements ToolUseAction {
 
         /** The attack-damage bonus is added and removed around the one blow, never persisted. */
-        private static final ResourceLocation CHARGE_BONUS = id("charged_launch");
+        private static final Identifier CHARGE_BONUS = id("charged_launch");
 
         @Override
         public UseAnim animation() {
@@ -994,7 +994,7 @@ public final class ForgeweaveInnates {
      */
     static DamageSource armorBypassing(ServerLevel level, @Nullable LivingEntity attacker) {
         Holder<DamageType> type = level.registryAccess()
-                .registryOrThrow(Registries.DAMAGE_TYPE)
+                .lookupOrThrow(Registries.DAMAGE_TYPE)
                 .getHolderOrThrow(DamageTypes.GENERIC);
         return new DamageSource(type, null, attacker);
     }
@@ -1006,7 +1006,7 @@ public final class ForgeweaveInnates {
      */
     static DamageSource thorns(ServerLevel level, LivingEntity source) {
         Holder<DamageType> type = level.registryAccess()
-                .registryOrThrow(Registries.DAMAGE_TYPE)
+                .lookupOrThrow(Registries.DAMAGE_TYPE)
                 .getHolderOrThrow(DamageTypes.THORNS);
         return new DamageSource(type, null, source);
     }

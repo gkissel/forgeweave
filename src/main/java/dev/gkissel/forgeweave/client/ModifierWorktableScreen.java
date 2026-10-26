@@ -5,13 +5,13 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
@@ -51,8 +51,8 @@ import dev.gkissel.forgeweave.modifier.Worktable;
  */
 @EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ModifierWorktableScreen extends StationScreen<ModifierWorktableMenu> implements StationExtraAreas {
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/modifier_worktable.png");
+    private static final Identifier TEXTURE =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/modifier_worktable.png");
     private static final int SHEET = 256;
 
     /** Upstream's panel: 176 wide, {@code imageHeight = 184}. */
@@ -205,7 +205,7 @@ public class ModifierWorktableScreen extends StationScreen<ModifierWorktableMenu
     // ------------------------------------------------------------------ rendering
 
     @Override
-    protected void renderPanel(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
+    protected void renderPanel(GuiGraphicsExtractor graphics, float partialTick, int mouseX, int mouseY) {
         graphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, SHEET, SHEET);
         graphics.blit(TEXTURE, leftPos + SLIDER_LEFT, topPos + SLIDER_TOP + (int) (SCROLLABLE_AREA * sliderProgress),
                 canScroll() ? HANDLE_U : HANDLE_U_DISABLED, 0, SLIDER_WIDTH, HANDLE_HEIGHT, SHEET, SHEET);
@@ -218,7 +218,7 @@ public class ModifierWorktableScreen extends StationScreen<ModifierWorktableMenu
         preview.render(graphics);
     }
 
-    private void renderModifierButtons(GuiGraphics graphics, int mouseX, int mouseY) {
+    private void renderModifierButtons(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         List<ModifierEntry> options = menu.options();
         int max = Math.min(indexOffset + MAX_MODIFIER, options.size());
         for (int i = indexOffset; i < max; i++) {
@@ -262,7 +262,7 @@ public class ModifierWorktableScreen extends StationScreen<ModifierWorktableMenu
     }
 
     @Override
-    protected void renderTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
+    protected void renderTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         super.renderTooltip(graphics, mouseX, mouseY);
         // The rows StationText builds carry SHOW_TEXT hover events (issue #376), so both panels are
         // asked which style sits under the cursor and vanilla renders whatever it carries.

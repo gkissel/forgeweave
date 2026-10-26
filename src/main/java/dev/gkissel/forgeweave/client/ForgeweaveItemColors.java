@@ -5,7 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.FastColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -14,7 +14,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
-import net.neoforged.neoforge.client.model.DynamicFluidContainerModel;
+import net.neoforged.neoforge.client.model.item.DynamicFluidContainerModel;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
@@ -134,18 +134,18 @@ public final class ForgeweaveItemColors {
     }
 
     /** A material's bare 0xRRGGBB from the client level's registry, or -1 when unknown (#733's station preview). */
-    static int materialColor(@Nullable ResourceLocation materialId) {
+    static int materialColor(@Nullable Identifier materialId) {
         int opaque = opaqueMaterialColor(materialId);
         return opaque == -1 ? -1 : opaque & 0xFFFFFF;
     }
 
     /** The material's opaque ARGB colour, or {@code -1} (untinted white) when there is no such material or no level yet. Shared with the worn armor tint ({@code ForgeweaveItemClientExtensions}, #726). */
-    static int opaqueMaterialColor(@Nullable ResourceLocation materialId) {
+    static int opaqueMaterialColor(@Nullable Identifier materialId) {
         ClientLevel level = Minecraft.getInstance().level;
         if (materialId == null || level == null) {
             return -1;
         }
-        Material material = level.registryAccess().registryOrThrow(Material.REGISTRY).get(materialId);
+        Material material = level.registryAccess().lookupOrThrow(Material.REGISTRY).get(materialId);
         return material != null ? opaqueColor(material.color().getValue()) : -1;
     }
 

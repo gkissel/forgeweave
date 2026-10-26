@@ -38,7 +38,7 @@ class StationScreenTooltipTest {
     private static final Pattern CONTAINER_SCREEN = Pattern.compile(
             "class\\s+(\\w+)\\s+extends\\s+(AbstractContainerScreen|StationScreen)\\s*<");
     private static final Pattern RENDER_OVERRIDE = Pattern.compile(
-            "public\\s+void\\s+render\\s*\\(\\s*GuiGraphics");
+            "public\\s+void\\s+render\\s*\\(\\s*GuiGraphicsExtractor");
 
     private static Path projectRoot() {
         Path dir = Path.of("").toAbsolutePath();
@@ -77,7 +77,7 @@ class StationScreenTooltipTest {
         for (Screen screen : containerScreens()) {
             if (!screen.superClass().equals("StationScreen") && !screen.overridesRender()) {
                 offenders.add(screen.name() + " extends " + screen.superClass()
-                        + " and does not override render(GuiGraphics, ...), so it never calls "
+                        + " and does not override render(GuiGraphicsExtractor, ...), so it never calls "
                         + "renderTooltip and shows no item tooltips -- extend StationScreen instead");
             }
         }

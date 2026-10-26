@@ -12,7 +12,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -137,7 +137,7 @@ public class RetexturedShapedRecipe extends ShapedRecipe {
      */
     public List<ItemStack> displayResults() {
         List<ItemStack> results = new ArrayList<>();
-        Set<ResourceLocation> seen = new HashSet<>();
+        Set<Identifier> seen = new HashSet<>();
         for (Ingredient ingredient : getIngredients()) {
             for (ItemStack candidate : ingredient.getItems()) {
                 textured(candidate).ifPresent(crafted -> {

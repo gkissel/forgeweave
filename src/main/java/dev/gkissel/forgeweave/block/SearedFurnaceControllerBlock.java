@@ -90,7 +90,7 @@ public class SearedFurnaceControllerBlock extends HorizontalDirectionalBlock imp
     /** Rescans, then opens the furnace GUI or -- when nothing formed -- says why in chat, as the smeltery cores do. */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof SearedFurnaceBlockEntity furnace) {
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof SearedFurnaceBlockEntity furnace) {
             furnace.updateStructure();
             if (furnace.isFormed()) {
                 furnace.open(player);

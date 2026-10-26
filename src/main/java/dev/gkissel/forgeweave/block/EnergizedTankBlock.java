@@ -75,7 +75,7 @@ public class EnergizedTankBlock extends Block implements EntityBlock {
                                               Player player, InteractionHand hand, BlockHitResult hit) {
         if (level.getBlockEntity(pos) instanceof EnergizedTankBlockEntity tank
                 && FluidUtil.interactWithFluidHandler(player, hand, tank.sample())) {
-            return ItemInteractionResult.sidedSuccess(level.isClientSide);
+            return ItemInteractionResult.sidedSuccess(level.isClientSide());
         }
         return super.useItemOn(stack, state, level, pos, player, hand, hit);
     }
@@ -91,9 +91,9 @@ public class EnergizedTankBlock extends Block implements EntityBlock {
         if (!(level.getBlockEntity(pos) instanceof EnergizedTankBlockEntity tank)) {
             return super.useWithoutItem(state, level, pos, player, hit);
         }
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             tank.open(player);
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.sidedSuccess(level.isClientSide());
     }
 }

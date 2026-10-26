@@ -6,13 +6,13 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.level.block.state.BlockState;
 
-import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.model.data.ModelData;
 
 /**
  * The rotating 3D schematic on a {@code structure} book page (issue #651): a port of Mantle's
@@ -26,7 +26,7 @@ import net.neoforged.neoforge.client.model.data.ModelData;
  *
  * <p>Rendering is the 1.21 adaptation: upstream tessellated through {@code BlockRendererDispatcher
  * #renderBlock} against a fake {@code IBlockAccess}; here each visible cell goes through
- * {@code BlockRenderDispatcher#renderSingleBlock} on the {@code GuiGraphics} pose/buffer at
+ * {@code BlockRenderDispatcher#renderSingleBlock} on the {@code GuiGraphicsExtractor} pose/buffer at
  * full-bright -- the same translate/scale(scale, -scale, scale)/rotate/centre matrix stack, at the
  * z = 150 plane GUI items render on. {@code renderSingleBlock} draws item-style single blocks, so
  * faces between touching blocks are not neighbour-culled the way upstream's block access culled
@@ -43,7 +43,7 @@ public final class StructureElement {
     private static final float DRAG_MAX_SPEED = 10f;
     /** {@code setShowLayer(9)}: upstream's show-everything layer while the animation is off. */
     private static final int SHOW_ALL_LAYER = 9;
-    /** The z plane GUI items render at ({@code GuiGraphics#renderItem}); blocks join them there. */
+    /** The z plane GUI items render at ({@code GuiGraphicsExtractor#renderItem}); blocks join them there. */
     private static final float GUI_Z = 150f;
 
     private final StructureInfo structure;
@@ -112,7 +112,7 @@ public final class StructureElement {
     }
 
     /** Draws the structure with its element origin at {@code (x, y)}, advancing the animation. */
-    public void render(GuiGraphics graphics, int x, int y) {
+    public void render(GuiGraphicsExtractor graphics, int x, int y) {
         this.frame++;
         if (this.animating) {
             if (this.frame % STEP_FRAMES == 0) {

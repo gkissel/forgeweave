@@ -9,7 +9,7 @@ import java.util.Optional;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LeavesBlock;
@@ -76,8 +76,8 @@ public final class ForgeweaveBlocks {
         // own -- all three blocks always shared ForgeweaveBlockEntities#TOOL_STATION and its saved
         // "forgeweave:tool_station" id, so the four-slot inventory inside loads untouched and the
         // items in it stay put. The menu id is shared the same way.
-        BLOCKS.addAlias(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "armor_station"),
-                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "tool_station"));
+        BLOCKS.addAlias(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "armor_station"),
+                Identifier.fromNamespaceAndPath(Forgeweave.MODID, "tool_station"));
     }
 
     public static final DeferredBlock<CraftingStationBlock> CRAFTING_STATION = BLOCKS.register("crafting_station",

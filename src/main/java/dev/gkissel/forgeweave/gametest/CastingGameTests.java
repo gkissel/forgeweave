@@ -3,10 +3,10 @@ package dev.gkissel.forgeweave.gametest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -23,8 +23,8 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.CastingBlockEntity;
@@ -154,7 +154,7 @@ public class CastingGameTests {
     public static void aDrainAddedToAFormedSmelteryStillPours(GameTestHelper helper) {
         SmelteryGameTests.buildWalls(helper, 1, 1, 2);
         BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
-        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the smeltery to form first: " + core.lastResult().getString());
         core.tank().fill(new FluidStack(ForgeweaveFluids.GOLD.still().get(), 4000), IFluidHandler.FluidAction.EXECUTE);
 
@@ -163,7 +163,7 @@ public class CastingGameTests {
         helper.setBlock(DRAIN_CASTING, ForgeweaveBlocks.CASTING_BASIN.get());
         helper.setBlock(DRAIN_FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
                 .setValue(FaucetBlock.FACING, Direction.NORTH));
-        CastingBlockEntity basin = helper.getBlockEntity(DRAIN_CASTING);
+        CastingBlockEntity basin = helper.getBlockEntity(DRAIN_CASTING, CastingBlockEntity.class);
 
         // A few ticks between building and right-clicking, as a player takes.
         helper.startSequence()
@@ -179,7 +179,7 @@ public class CastingGameTests {
         SmelteryGameTests.buildWalls(helper, 1, 1, 2);
         helper.setBlock(DRAIN, ForgeweaveBlocks.SEARED_DRAIN.get());
         BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
-        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the drain smeltery to form: " + core.lastResult().getString());
         core.tank().fill(new FluidStack(fluid, 4000), IFluidHandler.FluidAction.EXECUTE);
 
@@ -220,7 +220,7 @@ public class CastingGameTests {
         helper.succeedWhen(() -> {
             helper.assertTrue(table.output().is(ForgeweaveItems.PART_PICKAXE_HEAD.get()),
                     "expected an iron pickaxe head, found " + table.output());
-            helper.assertTrue(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "iron")
+            helper.assertTrue(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "iron")
                             .equals(table.output().get(ForgeweaveDataComponents.MATERIAL.get())),
                     "expected the part to carry the iron material");
             helper.assertTrue(table.input().is(ForgeweaveItems.CAST_PICKAXE_HEAD.get()),
@@ -257,7 +257,7 @@ public class CastingGameTests {
     @GameTest(template = "empty", timeoutTicks = 400)
     public static void theBasinCastsAMetalBlock(GameTestHelper helper) {
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_BASIN.get());
-        CastingBlockEntity basin = helper.getBlockEntity(CASTING);
+        CastingBlockEntity basin = helper.getBlockEntity(CASTING, CastingBlockEntity.class);
 
         IFluidHandler handler = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK,
                 helper.absolutePos(CASTING), Direction.UP);
@@ -285,7 +285,7 @@ public class CastingGameTests {
     @GameTest(template = "empty", timeoutTicks = 700)
     public static void theBasinCastsAnEmeraldBlock(GameTestHelper helper) {
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_BASIN.get());
-        CastingBlockEntity basin = helper.getBlockEntity(CASTING);
+        CastingBlockEntity basin = helper.getBlockEntity(CASTING, CastingBlockEntity.class);
 
         IFluidHandler handler = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK,
                 helper.absolutePos(CASTING), Direction.UP);
@@ -329,7 +329,7 @@ public class CastingGameTests {
                         fill(helper, new FluidStack(ForgeweaveFluids.GOLD.still().get(), 4000)),
                         1296 - FaucetBlockEntity.TRANSACTION_AMOUNT, "the rest of the gold block still fits"))
                 .thenWaitUntil(() -> helper.assertTrue(
-                        helper.<CastingBlockEntity>getBlockEntity(CASTING).output().is(Items.GOLD_BLOCK),
+                        helper.getBlockEntity(CASTING, CastingBlockEntity.class).output().is(Items.GOLD_BLOCK),
                         "expected a gold block after the reload"))
                 .thenSucceed();
     }
@@ -351,7 +351,7 @@ public class CastingGameTests {
                         fill(helper, new FluidStack(ForgeweaveFluids.IRON.still().get(), 4000)), 72,
                         "the rest of the ingot still fits"))
                 .thenWaitUntil(() -> helper.assertTrue(
-                        helper.<CastingBlockEntity>getBlockEntity(CASTING).output().is(Items.IRON_INGOT),
+                        helper.getBlockEntity(CASTING, CastingBlockEntity.class).output().is(Items.IRON_INGOT),
                         "expected an iron ingot after the reload"))
                 .thenExecute(() -> {
                     Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -481,7 +481,7 @@ public class CastingGameTests {
     private static void reload(GameTestHelper helper, BlockPos pos) {
         ServerLevel level = helper.getLevel();
         BlockPos absolute = helper.absolutePos(pos);
-        CompoundTag saved = level.getBlockEntity(absolute).saveWithFullMetadata(level.registryAccess());
+        CompoundTag saved = level.getBlockEntity(absolute, CompoundTag.class).saveWithFullMetadata(level.registryAccess());
         level.removeBlockEntity(absolute);
         BlockEntity reloaded = BlockEntity.loadStatic(absolute, level.getBlockState(absolute), saved,
                 level.registryAccess());
@@ -497,7 +497,7 @@ public class CastingGameTests {
     @GameTest(template = "empty", timeoutTicks = 400)
     public static void rightClickingTheTablePutsItemsInAndTakesThemBackOut(GameTestHelper helper) {
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_TABLE.get());
-        CastingBlockEntity table = helper.getBlockEntity(CASTING);
+        CastingBlockEntity table = helper.getBlockEntity(CASTING, CastingBlockEntity.class);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(ForgeweaveItems.CAST_INGOT.get()));
 
@@ -543,7 +543,7 @@ public class CastingGameTests {
     public static void theFaucetMovesUpstreamsExactAmounts(GameTestHelper helper) {
         CastingBlockEntity table = rig(helper, ForgeweaveBlocks.CASTING_TABLE.get(), ForgeweaveFluids.IRON.still().get());
         insert(helper, table, new ItemStack(ForgeweaveItems.CAST_INGOT.get()));
-        SearedTankBlockEntity tank = helper.getBlockEntity(TANK);
+        SearedTankBlockEntity tank = helper.getBlockEntity(TANK, SearedTankBlockEntity.class);
         int before = tank.tank().getFluidAmount();
 
         FaucetBlockEntity faucet = faucet(helper);
@@ -625,7 +625,7 @@ public class CastingGameTests {
         ServerLevel level = helper.getLevel();
         HolderLookup.Provider registries = level.registryAccess();
         BlockPos absolute = helper.absolutePos(CASTING);
-        CompoundTag midPour = helper.<CastingBlockEntity>getBlockEntity(CASTING).getUpdateTag(registries);
+        CompoundTag midPour = helper.getBlockEntity(CASTING, CastingBlockEntity.class).getUpdateTag(registries);
 
         CastingBlockEntity clientSide = new CastingBlockEntity(absolute, level.getBlockState(absolute),
                 CastingRecipe.Station.TABLE);
@@ -672,8 +672,8 @@ public class CastingGameTests {
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_BASIN.get());
         helper.setBlock(FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
                 .setValue(FaucetBlock.FACING, Direction.WEST));
-        CastingBlockEntity basin = helper.getBlockEntity(CASTING);
-        SearedTankBlockEntity tank = helper.getBlockEntity(TANK);
+        CastingBlockEntity basin = helper.getBlockEntity(CASTING, CastingBlockEntity.class);
+        SearedTankBlockEntity tank = helper.getBlockEntity(TANK, SearedTankBlockEntity.class);
 
         helper.startSequence()
                 .thenExecute(() -> helper.setBlock(POWER, Blocks.REDSTONE_BLOCK))
@@ -696,7 +696,7 @@ public class CastingGameTests {
     @GameTest(template = "empty", timeoutTicks = 600)
     public static void unpoweringAFaucetStopsItAfterTheTransactionInFlight(GameTestHelper helper) {
         rig(helper, ForgeweaveBlocks.CASTING_BASIN.get(), ForgeweaveFluids.GOLD.still().get());
-        SearedTankBlockEntity tank = helper.getBlockEntity(TANK);
+        SearedTankBlockEntity tank = helper.getBlockEntity(TANK, SearedTankBlockEntity.class);
         FaucetBlockEntity faucet = faucet(helper);
         int[] atCut = new int[1];
 
@@ -737,7 +737,7 @@ public class CastingGameTests {
 
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(
-                        helper.<HopperBlockEntity>getBlockEntity(HOPPER).getItem(0).is(Items.IRON_INGOT),
+                        helper.getBlockEntity(HOPPER, HopperBlockEntity.class).getItem(0).is(Items.IRON_INGOT),
                         "expected the hopper to have pulled the finished ingot out of the table"))
                 .thenExecute(() -> {
                     helper.assertTrue(table.output().isEmpty(),
@@ -759,7 +759,7 @@ public class CastingGameTests {
     @GameTest(template = "empty", timeoutTicks = 200)
     public static void aMidPourTableGivesAHopperNothing(GameTestHelper helper) {
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_TABLE.get());
-        CastingBlockEntity table = helper.getBlockEntity(CASTING);
+        CastingBlockEntity table = helper.getBlockEntity(CASTING, CastingBlockEntity.class);
         insert(helper, table, new ItemStack(ForgeweaveItems.CAST_INGOT.get()));
         fill(helper, new FluidStack(ForgeweaveFluids.IRON.still().get(), 72));
         helper.setBlock(HOPPER, Blocks.HOPPER);
@@ -777,7 +777,7 @@ public class CastingGameTests {
         // The real hopper agrees, given more than the 8 ticks it waits between transfers.
         helper.startSequence()
                 .thenExecuteAfter(30, () -> {
-                    helper.assertTrue(helper.<HopperBlockEntity>getBlockEntity(HOPPER).isEmpty(),
+                    helper.assertTrue(helper.getBlockEntity(HOPPER, HopperBlockEntity.class).isEmpty(),
                             "expected the hopper under a mid-pour table to have taken nothing");
                     helper.assertTrue(table.input().is(ForgeweaveItems.CAST_INGOT.get()),
                             "expected the cast to still be there, found " + table.input());
@@ -789,7 +789,7 @@ public class CastingGameTests {
     /** A tank of {@code fluid}, a faucet on its east side pointing back at it, and a casting block below. */
     private static CastingBlockEntity rig(GameTestHelper helper, net.minecraft.world.level.block.Block casting, Fluid fluid) {
         helper.setBlock(TANK, ForgeweaveBlocks.SEARED_TANK.get());
-        helper.<SearedTankBlockEntity>getBlockEntity(TANK).tank()
+        helper.getBlockEntity(TANK, SearedTankBlockEntity.class).tank()
                 .fill(new FluidStack(fluid, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
         helper.setBlock(CASTING, casting);
         helper.setBlock(FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()

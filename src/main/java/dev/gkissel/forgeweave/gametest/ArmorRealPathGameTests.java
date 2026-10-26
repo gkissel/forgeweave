@@ -4,14 +4,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.CreativeModeTab;
@@ -20,8 +20,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.Vec3;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -53,8 +53,8 @@ public class ArmorRealPathGameTests {
     /** {@code ServerPlayer#spawnInvulnerableTime}'s initial value, private there. */
     private static final int SPAWN_INVULNERABLE_TICKS = 60;
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
     private static ItemStack assemble(GameTestHelper helper, Player player, ToolConstants.Entry piece, String plating,
@@ -66,7 +66,7 @@ public class ArmorRealPathGameTests {
 
     /** {@code reagent} applied to {@code tool} through the station menu, output taken. */
     private static ItemStack modify(GameTestHelper helper, Player player, ItemStack tool, ItemStack reagent) {
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION, ToolStationBlockEntity.class);
         for (int i = 0; i < ToolStationMenu.INPUT_SLOTS; i++) {
             blockEntity.container().setItem(i, ItemStack.EMPTY);
         }
@@ -158,7 +158,7 @@ public class ArmorRealPathGameTests {
         helper.assertTrue(with > 0.0F, "the bite must hurt");
         helper.assertTrue(worn.getDamageValue() > 0, "the bite must wear the plating, damage " + worn.getDamageValue());
 
-        List<ResourceLocation> traits = worn.get(ForgeweaveDataComponents.TRAITS.get());
+        List<Identifier> traits = worn.get(ForgeweaveDataComponents.TRAITS.get());
         helper.assertTrue(traits != null && traits.contains(id("melee_protection")),
                 "cobalt plating must carry melee_protection at real assembly, got " + traits);
         worn.remove(ForgeweaveDataComponents.TRAITS.get());

@@ -23,7 +23,7 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -42,7 +42,7 @@ class ModifierRecipeTest {
 
     private static RegistryOps<JsonElement> ops;
 
-    private static final ResourceLocation HASTE = ResourceLocation.fromNamespaceAndPath("forgeweave", "haste");
+    private static final Identifier HASTE = Identifier.fromNamespaceAndPath("forgeweave", "haste");
 
     @BeforeAll
     static void bootstrapMinecraft() {
@@ -267,9 +267,9 @@ class ModifierRecipeTest {
     void aFourthDistinctModifierIsRejected() {
         ItemStack tool = pickaxe();
         tool.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "one"), 1),
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "two"), 1),
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "three"), 1)));
+                new ModifierEntry(Identifier.fromNamespaceAndPath("forgeweave", "one"), 1),
+                new ModifierEntry(Identifier.fromNamespaceAndPath("forgeweave", "two"), 1),
+                new ModifierEntry(Identifier.fromNamespaceAndPath("forgeweave", "three"), 1)));
 
         ModifierApplication.Outcome outcome = ModifierApplication.apply(shipped(), tool, 1, 0);
 
@@ -393,7 +393,7 @@ class ModifierRecipeTest {
 
         ModifierRecipe recipe = ModifierRecipe.CODEC.parse(ops, json).getOrThrow();
 
-        assertEquals(ResourceLocation.fromNamespaceAndPath("forgeweave", modifierPath), recipe.modifier());
+        assertEquals(Identifier.fromNamespaceAndPath("forgeweave", modifierPath), recipe.modifier());
         assertEquals(1, recipe.cost());
         assertEquals(expectedMaxLevel, recipe.maxLevel());
         assertTrue(recipe.reagent().test(new ItemStack(reagent)));
@@ -432,7 +432,7 @@ class ModifierRecipeTest {
 
         ItemStack tool = pickaxe();
         tool.set(ForgeweaveDataComponents.MODIFIERS.get(),
-                List.of(new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "far_reach"), 2)));
+                List.of(new ModifierEntry(Identifier.fromNamespaceAndPath("forgeweave", "far_reach"), 2)));
         assertEquals(2.0F, ForgeweaveModifiers.blockInteractionRangeBonus(tool), 1.0e-5F);
     }
 
