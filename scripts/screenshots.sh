@@ -2,6 +2,7 @@
 # Runs the screenshot harness (docs/SCOPE.md issue #112): launches a real Minecraft client, opens
 # every M1+ station screen in turn, and writes a PNG of each to build/screenshots/ for pre-release
 # review. Not a CI gate -- a tool to run by hand before tagging a release; see docs/releasing.md.
+# This one uses the display you are on. scripts/screenshots-headless.sh never touches it.
 #
 # Requires a display. On a headless box, install xvfb (e.g. `apt install xvfb`) and this script
 # runs the client under `xvfb-run` automatically; with a real display it runs directly.
@@ -17,18 +18,19 @@ EARLY_WINDOW_OFF="-Dfml.earlyprogresswindow=false"
 # 1.21 shows an accessibility-onboarding screen on a run dir's first-ever launch, which would sit
 # in front of every capture. Seeding the option before launch skips it at the source -- no
 # synthetic clicks. Only appended when absent so a hand-edited options.txt is left alone.
-mkdir -p run
-touch run/options.txt
-grep -q '^onboardAccessibility:' run/options.txt || echo 'onboardAccessibility:false' >> run/options.txt
+# run/harness is the screenshotHarness run's own game directory (build.gradle).
+mkdir -p run/harness
+touch run/harness/options.txt
+grep -q '^onboardAccessibility:' run/harness/options.txt || echo 'onboardAccessibility:false' >> run/harness/options.txt
 # A window that loses focus mid-run (another window popping up) would pause the game and put the
 # pause menu across every in-world capture; the harness never needs the pause.
-grep -q '^pauseOnLostFocus:' run/options.txt || echo 'pauseOnLostFocus:false' >> run/options.txt
+grep -q '^pauseOnLostFocus:' run/harness/options.txt || echo 'pauseOnLostFocus:false' >> run/harness/options.txt
 
 # The harness always creates a world by the same name, so a second run lands in the world the first
 # one left behind -- every station, tank and smeltery still standing, in frame behind whatever the
 # new scene places. Two runs in a row produced a head-drop row (#158) with an old smeltery wall
 # across it. Start from bare flat ground every time.
-rm -rf run/saves/forgeweave_screenshot_harness*
+rm -rf run/harness/saves/forgeweave_screenshot_harness*
 
 # The harness asks for an 854x480 window (build.gradle) and its first-person poses are framed
 # against it. A tiling compositor ignores that and re-tiles the client into whatever column is

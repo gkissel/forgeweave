@@ -176,11 +176,24 @@ neoForge {
         // and dev.gkissel.forgeweave.client.ScreenshotHarness). Not part of the CI/build gate.
         screenshotHarness {
             client()
+            // A game directory of its own, so the harness's options, Ponder settings and logs never
+            // touch the run/ a developer plays in, and no jar dropped into run/mods loads here.
+            gameDirectory = file('run/harness')
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
             systemProperty 'forgeweave.screenshot_harness', 'true'
             systemProperty 'forgeweave.screenshot_output_dir', file('build/screenshots').getAbsolutePath()
-            // A fixed, deterministic window size, per the issue's requirement.
-            programArguments.addAll '--width', '854', '--height', '480'
+            // Patterns for third-party log lines the harness's log scan may ignore (HarnessChecks).
+            systemProperty 'forgeweave.harness_log_allowlist', file('scripts/harness-log-allowlist.txt').getAbsolutePath()
+            // -PharnessNoJei: the "no JEI" variant (see the JEI dependency below). It only has to prove
+            // the client boots and the world loads, so it stops once the world-join checks pass.
+            if (project.hasProperty('harnessNoJei')) {
+                systemProperty 'forgeweave.screenshot_harness_world_only', 'true'
+            }
+            // A fixed, deterministic window size, per the issue's requirement. Its aspect is what the
+            // first-person poses are framed against; -PharnessWindow=1920x1080 keeps that aspect at a
+            // full-screen size (scripts/screenshots-headless.sh passes it).
+            def harnessWindow = (project.findProperty('harnessWindow') ?: '854x480').toString().split('x')
+            programArguments.addAll '--width', harnessWindow[0], '--height', harnessWindow[1]
             // See the client run's comment above (issue #927).
             loadedMods.set([mods."${mod_id}"])
         }
@@ -268,7 +281,8 @@ dependencies {
         // localRuntime, not a <run>AdditionalRuntimeClasspath: that one lands on FML's legacy
         // classpath, where a jar is a plain library and is never discovered as a mod.
         localRuntime "dev.emi:emi-neoforge:${emi_version}"
-    } else {
+    } else if (!project.hasProperty('harnessNoJei')) {
+        // -PharnessNoJei drops JEI again, for the screenshot harness's "client boots without JEI" run.
         localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
     }
 
