@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:tiny_dusts/vibranium"
+  },
+  "fluid": "forgeweave:molten_vibranium",
+  "amount": 16,
+  "temperature": 1800,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "allthemodium:vibranium_ingot"
+    }
+  ]
+}
