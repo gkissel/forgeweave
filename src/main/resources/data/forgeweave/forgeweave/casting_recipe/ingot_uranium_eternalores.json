@@ -13,5 +13,6 @@
       "type": "neoforge:item_exists",
       "item": "eternalores:uranium_ingot"
     }
-  ]
+  ],
+  "priority": -3
 }

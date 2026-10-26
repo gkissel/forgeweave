@@ -4,6 +4,7 @@
   },
   "fluid": "forgeweave:molten_uraninite",
   "amount": 144,
+  "ore": true,
   "temperature": 1400,
   "neoforge:conditions": [
     {
@@ -19,6 +20,5 @@
         }
       ]
     }
-  ],
-  "ore": true
+  ]
 }

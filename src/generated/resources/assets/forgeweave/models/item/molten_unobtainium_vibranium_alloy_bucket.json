@@ -1,0 +1,6 @@
+{
+  "parent": "neoforge:item/bucket",
+  "flip_gas": false,
+  "fluid": "forgeweave:molten_unobtainium_vibranium_alloy",
+  "loader": "neoforge:fluid_container"
+}

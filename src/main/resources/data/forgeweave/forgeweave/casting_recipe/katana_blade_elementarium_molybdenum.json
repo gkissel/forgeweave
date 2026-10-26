@@ -1,0 +1,24 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_katana_blade"
+  },
+  "fluid": "forgeweave:molten_elementarium_molybdenum",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:katana_blade",
+    "components": {
+      "forgeweave:material": "forgeweave:elementarium_molybdenum"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "elementarium"
+    },
+    {
+      "type": "forgeweave:compat_toggle",
+      "toggle": "elementariumMaterials"
+    }
+  ]
+}

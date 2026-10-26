@@ -1,0 +1,19 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_ingot"
+  },
+  "fluid": "forgeweave:molten_quartz_enriched_iron",
+  "amount": 144,
+  "result": {
+    "id": "eternalores:quartz_enriched_iron_ingot"
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "eternalores:quartz_enriched_iron_ingot"
+    }
+  ],
+  "priority": -1
+}

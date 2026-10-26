@@ -2028,6 +2028,30 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addFluid(ForgeweaveFluids.BLAZEGOLD, "Molten Blazegold");
         addFluid(ForgeweaveFluids.ECLIPSEALLOY, "Molten Eclipse Alloy");
 
+        // 1.0.0 release blocker: the Elementarium, Allthemodium and Mystical Agriculture metals
+        // shipped cast_only with no fluid at all. Names follow each material's own name above.
+        addFluid(ForgeweaveFluids.ELEMENTARIUM_VANADIUM, "Molten Vanadium");
+        addFluid(ForgeweaveFluids.ELEMENTARIUM_CHROMIUM, "Molten Chromium");
+        addFluid(ForgeweaveFluids.ELEMENTARIUM_MOLYBDENUM, "Molten Molybdenum");
+        addFluid(ForgeweaveFluids.ELEMENTARIUM_PALLADIUM, "Molten Palladium");
+        addFluid(ForgeweaveFluids.ELEMENTARIUM_HAFNIUM, "Molten Hafnium");
+        addFluid(ForgeweaveFluids.ELEMENTARIUM_TANTALUM, "Molten Tantalum");
+        addFluid(ForgeweaveFluids.ALLTHEMODIUM, "Molten Allthemodium");
+        addFluid(ForgeweaveFluids.VIBRANIUM, "Molten Vibranium");
+        addFluid(ForgeweaveFluids.UNOBTAINIUM, "Molten Unobtainium");
+        addFluid(ForgeweaveFluids.VIBRANIUM_ALLTHEMODIUM_ALLOY, "Molten Vibranium-Allthemodium Alloy");
+        addFluid(ForgeweaveFluids.UNOBTAINIUM_ALLTHEMODIUM_ALLOY, "Molten Unobtainium-Allthemodium Alloy");
+        addFluid(ForgeweaveFluids.UNOBTAINIUM_VIBRANIUM_ALLOY, "Molten Unobtainium-Vibranium Alloy");
+        addFluid(ForgeweaveFluids.INFERIUM, "Molten Inferium");
+        addFluid(ForgeweaveFluids.PRUDENTIUM, "Molten Prudentium");
+        addFluid(ForgeweaveFluids.TERTIUM, "Molten Tertium");
+        addFluid(ForgeweaveFluids.IMPERIUM, "Molten Imperium");
+        addFluid(ForgeweaveFluids.SUPREMIUM, "Molten Supremium");
+        addFluid(ForgeweaveFluids.AWAKENED_SUPREMIUM, "Molten Awakened Supremium");
+        addFluid(ForgeweaveFluids.INSANIUM, "Molten Insanium");
+        addFluid(ForgeweaveFluids.PROSPERITY, "Molten Prosperity");
+        addFluid(ForgeweaveFluids.SOULIUM, "Molten Soulium");
+
         // #100 -- casting (docs/SCOPE.md M2 issue #100). Names follow upstream 1.12's
         // tile.casting.{table,basin}.name / tile.faucet.name and its cast item names.
         addBlock(ForgeweaveBlocks.CASTING_TABLE, "Casting Table");

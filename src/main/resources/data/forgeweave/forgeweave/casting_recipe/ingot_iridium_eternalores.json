@@ -13,5 +13,6 @@
       "type": "neoforge:item_exists",
       "item": "eternalores:iridium_ingot"
     }
-  ]
+  ],
+  "priority": -1
 }

@@ -1,0 +1,18 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_ingot"
+  },
+  "fluid": "forgeweave:molten_awakened_supremium",
+  "amount": 144,
+  "result": {
+    "id": "mysticalagriculture:awakened_supremium_ingot"
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mysticalagriculture:awakened_supremium_ingot"
+    }
+  ]
+}

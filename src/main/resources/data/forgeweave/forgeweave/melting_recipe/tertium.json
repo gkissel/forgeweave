@@ -1,0 +1,14 @@
+{
+  "input": {
+    "item": "mysticalagriculture:tertium_ingot"
+  },
+  "fluid": "forgeweave:molten_tertium",
+  "amount": 144,
+  "temperature": 1400,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mysticalagriculture:tertium_ingot"
+    }
+  ]
+}

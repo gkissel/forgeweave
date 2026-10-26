@@ -13,5 +13,6 @@
       "type": "neoforge:item_exists",
       "item": "eternalores:tin_ingot"
     }
-  ]
+  ],
+  "priority": -1
 }

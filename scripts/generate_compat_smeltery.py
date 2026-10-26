@@ -23,7 +23,8 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _compat_smeltery_data import build_table, melt_temperature, SMELTERY_METALS  # noqa: E402
+from _compat_smeltery_data import (  # noqa: E402
+    build_table, melt_temperature, INGOT_RESULT_OVERRIDES, SMELTERY_METALS)
 
 ROOT = Path(__file__).resolve().parent.parent
 MATERIAL_DIR = ROOT / "src/main/resources/data/forgeweave/forgeweave/material"
@@ -37,6 +38,12 @@ MELTING_DIR = ROOT / "src/main/resources/data/forgeweave/forgeweave/melting_reci
 # exactly as Immersive Engineering does, so the preset is the same material with a widened gate, not
 # a second one. JC2's "gate by material name, not by mod" is the whole point -- a pack with Occultism
 # and no IE still gets silver.
+#
+# With two of those providers installed, every one of their rows matches the same pour. The 1.0.0
+# release fix makes the winner a rule instead of an accident of file order: the first provider in
+# the material's own neoforge:or wins, except Eternal Ores, which always comes last (see
+# FALLBACK_LAST_NAMESPACES). The winner's row is `ingot_<id>.json` at the default priority 0; the
+# k-th fallback is `ingot_<id>_<mod>.json` at priority -k. MaterialTest pins the rule.
 OR_MATERIALS = {
     material_id for material_id, info in build_table().items()
     if len(info["provider_items"]) > 1
@@ -142,13 +149,18 @@ def melting_recipes() -> None:
             name = f"{material_id}{suffix}.json"
             if isinstance(entry["ingredient"], dict) and entry["ingredient"].get("tag") == "c:ingots/hop_graphite":
                 name = f"{material_id}{suffix}_immersiveengineering.json"
+            # A concrete item input only decodes when that item exists, so it gates on that item
+            # alone; the material's wider neoforge:or would load the row with the item missing
+            # (quartz_enriched_iron's RefinedStorage item under Eternal Ores alone).
+            item = entry["ingredient"].get("item") if isinstance(entry["ingredient"], dict) else None
+            condition = [{"type": "neoforge:item_exists", "item": item}] if item else info["condition"]
             write_json(MELTING_DIR / name, {
                 "input": entry["ingredient"],
                 "fluid": fluid,
                 "amount": entry["value"],
                 **({"ore": True} if suffix == "_raw" else {}),
                 "temperature": temperature,
-                "neoforge:conditions": info["condition"],
+                "neoforge:conditions": condition,
             })
             count += 1
     print(f"wrote {count} compat metal melting recipes")
@@ -192,17 +204,31 @@ def casting_recipes() -> None:
             data = json.loads(template.read_text().replace("cobalt", material_id))
             if template.name.startswith(("ingot_cobalt", "clay_ingot_cobalt")):
                 if material_id in OR_MATERIALS:
-                    for provider_item in provider_items:
+                    # One row per provider, all matching the same pour. The preferred provider (first
+                    # in extract_provider_items' order) keeps the bare name at the default priority;
+                    # each fallback gets a lower one, so CastingRecipe#find pours the preferred ingot
+                    # whenever it exists and the next one down only when it does not.
+                    for rank, provider_item in enumerate(provider_items):
                         provider_mod = provider_item.split(":")[0]
+                        variant_name = out_name.replace(f"_{material_id}.json", f"_{material_id}_{provider_mod}.json")
                         variant = dict(data)
                         variant["result"] = {"id": provider_item}
                         variant["neoforge:conditions"] = [{"type": "neoforge:item_exists", "item": provider_item}]
-                        variant_name = out_name.replace(f"_{material_id}.json", f"_{material_id}_{provider_mod}.json")
+                        if rank == 0:
+                            (CASTING_DIR / variant_name).unlink(missing_ok=True)  # Its pre-priority name.
+                            variant_name = out_name
+                        else:
+                            variant["priority"] = -rank
                         write_json(CASTING_DIR / variant_name, variant)
                         total += 1
                     continue
-                data["result"] = {"id": provider_items[0]}
-                data["neoforge:conditions"] = condition
+                if material_id in INGOT_RESULT_OVERRIDES:
+                    ingot = INGOT_RESULT_OVERRIDES[material_id]
+                    data["result"] = {"id": ingot}
+                    data["neoforge:conditions"] = condition + [{"type": "neoforge:item_exists", "item": ingot}]
+                else:
+                    data["result"] = {"id": provider_items[0]}
+                    data["neoforge:conditions"] = condition
             else:
                 data["neoforge:conditions"] = condition
             write_json(CASTING_DIR / out_name, data)

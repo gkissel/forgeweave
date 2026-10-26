@@ -13,5 +13,6 @@
       "type": "neoforge:item_exists",
       "item": "eternalores:silver_ingot"
     }
-  ]
+  ],
+  "priority": -3
 }

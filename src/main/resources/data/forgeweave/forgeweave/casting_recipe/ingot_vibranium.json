@@ -1,0 +1,17 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_vibranium",
+  "amount": 144,
+  "result": {
+    "id": "allthemodium:vibranium_ingot"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "allthemodium:vibranium_ingot"
+    }
+  ]
+}

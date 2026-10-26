@@ -405,6 +405,35 @@ public final class ForgeweaveFluids {
     public static final MoltenMetal IGNITIUM = register("ignitium", 0xFF4500, 1260);
     public static final MoltenMetal CURSIUM = register("cursium", 0x5B2C6F, 1240);
 
+    // 1.0.0 release blocker: the six Elementarium presets, the six Allthemodium-family presets and
+    // the nine Mystical Agriculture metals shipped cast_only with no fluid, melting or casting row,
+    // so nothing could make a part from them. Same unconditional-in-Java registration as every compat
+    // metal above; CompatMaterialAvailability hides each bucket when its mod is absent. Temperatures
+    // are scripts/_compat_smeltery_data.py's tier band, which this change extends past netherite.
+    // Tints start from each material's own color and move only as far as PaletteAuditTest's floor
+    // needs: Elementarium's six greys sit on top of each other and of titanium and nickel otherwise.
+    public static final MoltenMetal ELEMENTARIUM_VANADIUM = register("elementarium_vanadium", 0x9A8BA0, 1044);
+    public static final MoltenMetal ELEMENTARIUM_CHROMIUM = register("elementarium_chromium", 0xB8BCC8, 1060);
+    public static final MoltenMetal ELEMENTARIUM_MOLYBDENUM = register("elementarium_molybdenum", 0x8C9AA6, 1076);
+    public static final MoltenMetal ELEMENTARIUM_PALLADIUM = register("elementarium_palladium", 0xB6D4D2, 1092);
+    public static final MoltenMetal ELEMENTARIUM_HAFNIUM = register("elementarium_hafnium", 0x435D67, 1236);
+    public static final MoltenMetal ELEMENTARIUM_TANTALUM = register("elementarium_tantalum", 0x374754, 1250);
+    public static final MoltenMetal ALLTHEMODIUM = register("allthemodium", 0xED7635, 1340);
+    public static final MoltenMetal VIBRANIUM = register("vibranium", 0x18A878, 1370);
+    public static final MoltenMetal UNOBTAINIUM = register("unobtainium", 0x8C36C8, 1400);
+    public static final MoltenMetal VIBRANIUM_ALLTHEMODIUM_ALLOY = register("vibranium_allthemodium_alloy", 0x90A656, 1410);
+    public static final MoltenMetal UNOBTAINIUM_ALLTHEMODIUM_ALLOY = register("unobtainium_allthemodium_alloy", 0xB75A75, 1420);
+    public static final MoltenMetal UNOBTAINIUM_VIBRANIUM_ALLOY = register("unobtainium_vibranium_alloy", 0x467E9A, 1430);
+    public static final MoltenMetal INFERIUM = register("inferium", 0x94B200, 882);
+    public static final MoltenMetal PRUDENTIUM = register("prudentium", 0x00AD1A, 1108);
+    public static final MoltenMetal TERTIUM = register("tertium", 0xE44400, 1264);
+    public static final MoltenMetal IMPERIUM = register("imperium", 0x0085ED, 1340);
+    public static final MoltenMetal SUPREMIUM = register("supremium", 0xDB0000, 1350);
+    public static final MoltenMetal AWAKENED_SUPREMIUM = register("awakened_supremium", 0xD76B00, 1380);
+    public static final MoltenMetal INSANIUM = register("insanium", 0x7100B2, 1440);
+    public static final MoltenMetal PROSPERITY = register("prosperity", 0x84A6A2, 1124);
+    public static final MoltenMetal SOULIUM = register("soulium", 0x8C5A30, 1278);
+
     public static final MoltenMetal ZINC = register("zinc", 0xA9C7C2, 1200);
     public static final MoltenMetal BRASS = register("brass", 0xCCB66A, 1200);
 
@@ -441,7 +470,23 @@ public final class ForgeweaveFluids {
             Map.entry("fiery", FIERY), Map.entry("dragon_bone", DRAGON_BONE),
             Map.entry("dragonsteel_fire", DRAGONSTEEL_FIRE), Map.entry("dragonsteel_ice", DRAGONSTEEL_ICE),
             Map.entry("dragonsteel_lightning", DRAGONSTEEL_LIGHTNING),
-            Map.entry("ferricore", FERRICORE), Map.entry("blazegold", BLAZEGOLD), Map.entry("eclipsealloy", ECLIPSEALLOY));
+            Map.entry("ferricore", FERRICORE), Map.entry("blazegold", BLAZEGOLD), Map.entry("eclipsealloy", ECLIPSEALLOY),
+            // 1.0.0 release blocker: Elementarium, Allthemodium and Mystical Agriculture.
+            Map.entry("elementarium_vanadium", ELEMENTARIUM_VANADIUM),
+            Map.entry("elementarium_chromium", ELEMENTARIUM_CHROMIUM),
+            Map.entry("elementarium_molybdenum", ELEMENTARIUM_MOLYBDENUM),
+            Map.entry("elementarium_palladium", ELEMENTARIUM_PALLADIUM),
+            Map.entry("elementarium_hafnium", ELEMENTARIUM_HAFNIUM),
+            Map.entry("elementarium_tantalum", ELEMENTARIUM_TANTALUM),
+            Map.entry("allthemodium", ALLTHEMODIUM), Map.entry("vibranium", VIBRANIUM),
+            Map.entry("unobtainium", UNOBTAINIUM),
+            Map.entry("vibranium_allthemodium_alloy", VIBRANIUM_ALLTHEMODIUM_ALLOY),
+            Map.entry("unobtainium_allthemodium_alloy", UNOBTAINIUM_ALLTHEMODIUM_ALLOY),
+            Map.entry("unobtainium_vibranium_alloy", UNOBTAINIUM_VIBRANIUM_ALLOY),
+            Map.entry("inferium", INFERIUM), Map.entry("prudentium", PRUDENTIUM), Map.entry("tertium", TERTIUM),
+            Map.entry("imperium", IMPERIUM), Map.entry("supremium", SUPREMIUM),
+            Map.entry("awakened_supremium", AWAKENED_SUPREMIUM), Map.entry("insanium", INSANIUM),
+            Map.entry("prosperity", PROSPERITY), Map.entry("soulium", SOULIUM));
 
     /** A compat metal's molten fluid by material id (e.g. {@code "bronze"}), or {@code null} if unknown. */
     public static MoltenMetal compatMetalFluid(String id) {

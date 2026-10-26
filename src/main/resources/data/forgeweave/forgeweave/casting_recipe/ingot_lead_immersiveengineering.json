@@ -13,5 +13,6 @@
       "type": "neoforge:item_exists",
       "item": "immersiveengineering:ingot_lead"
     }
-  ]
+  ],
+  "priority": -1
 }

@@ -37,7 +37,10 @@ class TrackAMeltingTemperatureTest {
             "minecraft:incorrect_for_stone_tool", 1200,
             "minecraft:incorrect_for_iron_tool", 1200,
             "minecraft:incorrect_for_diamond_tool", 1400,
-            "minecraft:incorrect_for_netherite_tool", 1600);
+            "minecraft:incorrect_for_netherite_tool", 1600,
+            "forgeweave:incorrect_for_hardcinder_tool", 1800,
+            "forgeweave:incorrect_for_warspar_tool", 1800,
+            "forgeweave:incorrect_for_resonite_tool", 2000);
 
     /** Mirrors {@code scripts/_compat_smeltery_data.py}'s {@code MATERIAL_MELT_TEMPERATURE_OVERRIDES}. */
     private static final Map<String, Integer> MATERIAL_MELT_TEMPERATURE_OVERRIDES = Map.of(
@@ -45,9 +48,7 @@ class TrackAMeltingTemperatureTest {
             "emberweld", 1800,
             "starweld", 2000,
             "voidweld", 2000,
-            // #993: atomic matter alloy needs its override for a second reason the four above do not
-            // -- its harvest tag is forgeweave:incorrect_for_resonite_tool, which the tier table has
-            // no row for, so the fallback would have nothing to look up.
+            // #993: atomic matter alloy's resonite-tier tag now has a tier row too, at the same 2000.
             "atomic_matter_alloy", 2000);
 
     /**
@@ -55,10 +56,9 @@ class TrackAMeltingTemperatureTest {
      * <material_id><suffix>.json}, so stripping a known suffix recovers the material id that names
      * the material JSON to look its tier up in. ponytail: fixed-suffix stripping rather than a real
      * grammar, matches the exact four suffixes the generator ever writes, plus {@code _eternalores}
-     * (issue #1031, D-M8-21): the one dedupe fix that needed a second melting row rather than
-     * widening the existing one's {@code neoforge:conditions} in place, because its existing row's
-     * concrete-item input can't safely gain an {@code neoforge:or} branch (see {@code
-     * quartz_enriched_iron_eternalores.json}'s sibling file and {@code EternalOresGameTests}).
+     * (issue #1031, D-M8-21), which the 1.0.0 cast-only fix retired from the melting tree: the
+     * generator now writes quartz_enriched_iron's Eternal Ores tag row as {@code
+     * quartz_enriched_iron_ingot.json}. Kept so a hand-written row under the old name still resolves.
      */
     private static final List<String> FORM_SUFFIXES = List.of("_raw_block", "_small_dust", "_tiny_dust",
             "_dirty_dust", "_ingot", "_nugget", "_block", "_raw", "_ore", "_dust", "_clump",

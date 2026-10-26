@@ -1,0 +1,21 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_hammer_head"
+  },
+  "fluid": "forgeweave:molten_awakened_supremium",
+  "amount": 1152,
+  "result": {
+    "id": "forgeweave:hammer_head",
+    "components": {
+      "forgeweave:material": "forgeweave:awakened_supremium"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mysticalagriculture:awakened_supremium_ingot"
+    }
+  ]
+}

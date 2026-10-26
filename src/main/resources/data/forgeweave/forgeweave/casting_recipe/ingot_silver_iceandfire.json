@@ -13,5 +13,6 @@
       "type": "neoforge:item_exists",
       "item": "iceandfire:silver_ingot"
     }
-  ]
+  ],
+  "priority": -2
 }

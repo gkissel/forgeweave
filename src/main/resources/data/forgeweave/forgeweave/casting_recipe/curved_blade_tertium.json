@@ -1,0 +1,20 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_curved_blade"
+  },
+  "fluid": "forgeweave:molten_tertium",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:curved_blade",
+    "components": {
+      "forgeweave:material": "forgeweave:tertium"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mysticalagriculture:tertium_ingot"
+    }
+  ]
+}

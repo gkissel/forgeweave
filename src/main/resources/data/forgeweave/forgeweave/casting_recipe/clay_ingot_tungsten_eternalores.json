@@ -1,0 +1,19 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:clay_cast_ingot"
+  },
+  "fluid": "forgeweave:molten_tungsten",
+  "amount": 144,
+  "result": {
+    "id": "eternalores:tungsten_ingot"
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "eternalores:tungsten_ingot"
+    }
+  ],
+  "priority": -1
+}

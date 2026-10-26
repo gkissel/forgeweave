@@ -1,0 +1,14 @@
+{
+  "input": {
+    "item": "mysticalagriculture:awakened_supremium_ingot"
+  },
+  "fluid": "forgeweave:molten_awakened_supremium",
+  "amount": 144,
+  "temperature": 1800,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "mysticalagriculture:awakened_supremium_ingot"
+    }
+  ]
+}

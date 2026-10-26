@@ -13,5 +13,6 @@
       "type": "neoforge:item_exists",
       "item": "eternalores:titanium_ingot"
     }
-  ]
+  ],
+  "priority": -1
 }

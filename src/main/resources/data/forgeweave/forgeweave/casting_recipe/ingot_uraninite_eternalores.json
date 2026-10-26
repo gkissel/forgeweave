@@ -1,0 +1,18 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_uraninite",
+  "amount": 144,
+  "result": {
+    "id": "eternalores:uraninite_ingot"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "eternalores:uraninite_ingot"
+    }
+  ],
+  "priority": -1
+}
