@@ -1,19 +1,31 @@
 package dev.gkissel.forgeweave.gametest;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.GameType;
 
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.particle.ForgeweaveParticles;
 import dev.gkissel.forgeweave.trait.Evasion;
+import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 import dev.gkissel.forgeweave.trait.TraitFeedback;
 
 /**
@@ -61,6 +73,66 @@ public class TraitFeedbackGameTests {
                 "the shock cue's particle");
         helper.assertTrue(shock.sound().isPresent(), "every kind names a sound");
         helper.succeed();
+    }
+
+    /**
+     * Checklist line 88: which behaviour fires which cue, and on whom. A dodge is DODGE and an effect
+     * left on the attacker is AFFLICT on the attacker; self-repair is MEND on the holder; lifesteal is
+     * DRAIN on the wielder, which is why it shows above you; a death save is SAVE on the wearer. Each
+     * runs a shipped trait through its real hook, with {@link TraitFeedback#record} watching.
+     */
+    @GameTest(template = "empty")
+    public static void eachBehaviourAnnouncesItsOwnKindOnTheRightEntity(GameTestHelper helper) {
+        List<Map.Entry<TraitFeedback.Kind, Entity>> fired = new ArrayList<>();
+        TraitFeedback.record((kind, at) -> fired.add(Map.entry(kind, at)));
+        try {
+            Zombie attacker = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2));
+            attacker.setNoAi(true);
+            DamageSource bite = helper.getLevel().damageSources().mobAttack(attacker);
+
+            Player dodger = TraitPairingGameTests.wearing(helper, "voidward2");
+            for (int i = 0; i < 300 && !fired.contains(Map.entry(TraitFeedback.Kind.DODGE, (Entity) dodger)); i++) {
+                TraitPairingGameTests.lost(dodger, bite, 1.0F);
+            }
+            assertFired(helper, fired, TraitFeedback.Kind.DODGE, dodger, "a dodge, on the wearer");
+
+            Player warded = TraitPairingGameTests.wearing(helper, "venomward");
+            for (int i = 0; i < 300 && !fired.contains(Map.entry(TraitFeedback.Kind.AFFLICT, (Entity) attacker)); i++) {
+                TraitPairingGameTests.lost(warded, bite, 1.0F);
+            }
+            assertFired(helper, fired, TraitFeedback.Kind.AFFLICT, attacker, "an effect on the attacker, on the attacker");
+
+            Player holder = helper.makeMockPlayer(GameType.SURVIVAL);
+            ItemStack worn = CombatTraitGameTests.tool(ForgeweaveItems.TOOL_HATCHET.get(),
+                    List.of(CombatTraitGameTests.traitId("ecological")), 3.0F);
+            worn.setDamageValue(500);
+            holder.setItemInHand(InteractionHand.MAIN_HAND, worn);
+            for (int i = 0; i < 6000 && !fired.contains(Map.entry(TraitFeedback.Kind.MEND, (Entity) holder)); i++) {
+                ForgeweaveTraits.inventoryTick(worn, helper.getLevel(), holder);
+            }
+            assertFired(helper, fired, TraitFeedback.Kind.MEND, holder, "self-repair, on the holder");
+
+            Player wielder = helper.makeMockPlayer(GameType.SURVIVAL);
+            wielder.setHealth(wielder.getMaxHealth() - 5.0F);
+            CombatTraitGameTests.onHit(helper, wielder, CombatTraitGameTests.tool(ForgeweaveItems.TOOL_HATCHET.get(),
+                    List.of(CombatTraitGameTests.traitId("soulrend")), 3.0F), attacker);
+            assertFired(helper, fired, TraitFeedback.Kind.DRAIN, wielder, "lifesteal, on the wielder");
+
+            Player saved = TraitPairingGameTests.wearing(helper, "lastbreath");
+            saved.setHealth(2.0F);
+            saved.invulnerableTime = 0;
+            saved.hurt(helper.getLevel().damageSources().generic(), 40.0F);
+            assertFired(helper, fired, TraitFeedback.Kind.SAVE, saved, "a death save, on the wearer");
+            attacker.discard();
+        } finally {
+            TraitFeedback.record(null);
+        }
+        helper.succeed();
+    }
+
+    private static void assertFired(GameTestHelper helper, List<Map.Entry<TraitFeedback.Kind, Entity>> fired,
+            TraitFeedback.Kind kind, Entity at, String what) {
+        helper.assertTrue(fired.contains(Map.entry(kind, at)), what + " must fire " + kind + ", fired " + fired);
     }
 
     private TraitFeedbackGameTests() {}

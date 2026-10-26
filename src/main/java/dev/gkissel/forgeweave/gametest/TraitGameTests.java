@@ -301,6 +301,52 @@ public class TraitGameTests {
         }
     }
 
+    /**
+     * Checklist line 83: steadfast pays a fifth on top of what the parts built, so a bronze and a tin
+     * pickaxe each come out of assembly with 1.2x the durability their stats give, the bonus growing
+     * with the material. Bronze and tin are gated on Mekanism or Eternal Ores, so each goes into a
+     * registry of its own here, parsed from the shipped file, and through the real assembly path.
+     *
+     * <p>Optional while the product bug stands: {@code ToolAssemblyRecipes#assemble} sets
+     * {@code max_damage} to the stats' durability and only {@code ModifierApplication#retuneStats}
+     * adds {@code Trait#maxDurabilityBonus}, so a fresh steadfast tool has no bonus until a modifier is
+     * applied. Reported on the checklist-headless-traits PR.
+     */
+    @GameTest(template = "empty", required = false)
+    public static void steadfastAddsAFifthOfTheBuiltDurabilityAtAssembly(GameTestHelper helper) throws Exception {
+        for (String material : List.of("bronze", "tin")) {
+            ItemStack pickaxe = assembledFromShippedFile(helper, material);
+            int built = pickaxe.get(ForgeweaveDataComponents.TOOL_STATS.get()).durability();
+            helper.assertTrue(pickaxe.get(ForgeweaveDataComponents.TRAITS.get()).contains(traitId("steadfast")),
+                    material + " must put steadfast on the pickaxe");
+            helper.assertTrue(pickaxe.getMaxDamage() == built + built * 20 / 100,
+                    "a " + material + " pickaxe built at " + built + " must hold " + (built + built * 20 / 100)
+                            + ", got " + pickaxe.getMaxDamage());
+        }
+        helper.succeed();
+    }
+
+    /** A pickaxe of three {@code material} parts, assembled against a registry holding only that shipped file. */
+    private static ItemStack assembledFromShippedFile(GameTestHelper helper, String material) throws Exception {
+        ResourceLocation id = traitId(material);
+        var resource = helper.getLevel().getServer().getResourceManager()
+                .getResource(traitId("forgeweave/material/" + material + ".json")).orElseThrow();
+        Material parsed;
+        try (var reader = resource.openAsReader()) {
+            parsed = Material.CODEC.parse(net.minecraft.resources.RegistryOps.create(
+                            com.mojang.serialization.JsonOps.INSTANCE, helper.getLevel().registryAccess()),
+                    com.google.gson.JsonParser.parseReader(reader)).getOrThrow();
+        }
+        var registry = new net.minecraft.core.MappedRegistry<>(Material.REGISTRY,
+                com.mojang.serialization.Lifecycle.stable());
+        registry.register(net.minecraft.resources.ResourceKey.create(Material.REGISTRY, id), parsed,
+                net.minecraft.core.RegistrationInfo.BUILT_IN);
+        return dev.gkissel.forgeweave.menu.ToolAssemblyRecipes.assemble(
+                        net.minecraft.core.HolderLookup.Provider.create(java.util.stream.Stream.of(registry.asLookup())),
+                        ToolAssembly.entryFor(ForgeweaveItems.TOOL_PICKAXE.get()), List.of(id, id, id))
+                .orElseThrow(() -> new AssertionError("a " + material + " pickaxe must assemble"));
+    }
+
     private static ResourceLocation traitId(String path) {
         return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
     }

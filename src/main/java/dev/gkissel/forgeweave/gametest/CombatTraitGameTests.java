@@ -1049,6 +1049,66 @@ public class CombatTraitGameTests {
         helper.succeed();
     }
 
+    /**
+     * Checklist line 76: Arcing I needs a fully charged swing, so a half-charged one never arcs, while
+     * Arcing II arcs on every hit whatever the charge. Forty half swings of Arcing I would arc at
+     * least once at its 35% if the charge gate were missing (0.65^40 is about 3e-8).
+     */
+    @GameTest(template = "empty")
+    public static void arcingIWaitsForAFullChargeAndArcingIIDoesNot(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        Zombie primary = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
+        Zombie nearby = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(4, 2, 2)));
+
+        ItemStack arcing = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("arcing")), 3.0F);
+        float before = nearby.getHealth();
+        for (int swing = 0; swing < 40; swing++) {
+            nearby.invulnerableTime = 0;
+            onHitCharged(helper, player, arcing, primary, 0.5F);
+        }
+        helper.assertTrue(nearby.getHealth() == before, "Arcing I must never arc on a half-charged swing");
+
+        ItemStack arcing2 = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("arcing2")), 3.0F);
+        nearby.invulnerableTime = 0;
+        onHitCharged(helper, player, arcing2, primary, 0.5F);
+        helper.assertTrue(nearby.getHealth() < before, "Arcing II must arc on a half-charged swing too");
+
+        primary.discard();
+        nearby.discard();
+        helper.succeed();
+    }
+
+    /** Checklist line 81: glowveil's luminous leaves what it hits glowing for 5 seconds. */
+    @GameTest(template = "empty")
+    public static void luminousLeavesTheTargetGlowingForFiveSeconds(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+
+        onHit(helper, player, tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(), 3.0F), pig);
+        helper.assertTrue(!pig.hasEffect(MobEffects.GLOWING), "a plain hatchet must leave the target unmarked");
+
+        onHit(helper, player, tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("luminous")), 3.0F), pig);
+        MobEffectInstance glowing = pig.getEffect(MobEffects.GLOWING);
+        helper.assertTrue(glowing != null && glowing.getDuration() == 100,
+                "a luminous hit must leave 5 seconds of Glowing, got " + glowing);
+
+        pig.discard();
+        helper.succeed();
+    }
+
+    /** Checklist line 81: the two Track B materials carry the tool traits the checklist names. */
+    @GameTest(template = "empty")
+    public static void glowveilIsLuminousAndFulmeniteArcs(GameTestHelper helper) {
+        var materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
+        List<ResourceLocation> glowveil = materials.getOrThrow(
+                net.minecraft.resources.ResourceKey.create(Material.REGISTRY, traitId("glowveil"))).traits().general();
+        List<ResourceLocation> fulmenite = materials.getOrThrow(
+                net.minecraft.resources.ResourceKey.create(Material.REGISTRY, traitId("fulmenite"))).traits().general();
+        helper.assertTrue(glowveil.contains(traitId("luminous")), "glowveil must carry luminous, got " + glowveil);
+        helper.assertTrue(fulmenite.contains(traitId("arcing")), "fulmenite must carry arcing, got " + fulmenite);
+        helper.succeed();
+    }
+
     /** {@code forgeweave:stormcaller}: strikes lightning on the target, but only at full wielder health. */
     @GameTest(template = "empty")
     public static void stormcallerStrikesLightningOnlyAtFullWielderHealth(GameTestHelper helper) {
