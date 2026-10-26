@@ -3,6 +3,7 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceLocation;
@@ -23,6 +24,7 @@ import dev.gkissel.forgeweave.compat.draconic.modules.DraconicModules;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.jei.RecipeViewerContent;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
@@ -32,8 +34,8 @@ import dev.gkissel.forgeweave.api.trait.Trait;
 
 /**
  * The {@code compat} toggles this PR owns (D-M8-5), switched off and back on: the four issue #968
- * backfills, plus issue #1007's Create goggles and issue #969's Apotheosis sockets, which their own
- * PRs left to this mechanism. {@code energizedTank} and {@code powahModifiers} are the other two in
+ * backfills, plus issue #1007's Create goggles, issue #969's Apotheosis sockets and issue #971's EMI
+ * plugin, which their own PRs left to this mechanism. {@code energizedTank} and {@code powahModifiers} are the other two in
  * the section and carry their own off-path tests, in {@code EnergizedTankGameTests} and
  * {@code PowahGameTests}. {@code
  * ContentFamilyGameTests}' shape applied to compat, including its reason for keeping every
@@ -180,6 +182,32 @@ public class CompatToggleGameTests {
 
         helper.assertTrue(MiningLevel.line(Blocks.IRON_ORE.defaultBlockState(), pickaxe) != null,
                 "turning overlays back on must restore the line with no reload");
+        helper.succeed();
+    }
+
+    /**
+     * The EMI plugin off (issue #971): {@link RecipeViewerContent#forEmi}, the plugin's whole input,
+     * is empty, so {@code ForgeweaveEmiPlugin#register} has nothing to hand EMI -- no category, no
+     * workstation, no recipe. EMI is absent from this run, which is why the test sits on that EMI-free
+     * half; {@code ForgeweaveEmiPluginTest} runs the EMI half itself against a stub registry.
+     */
+    @GameTest(template = "empty")
+    public static void emiPluginOffRegistersNothing(GameTestHelper helper) {
+        RegistryAccess registries = helper.getLevel().registryAccess();
+
+        helper.assertTrue(RecipeViewerContent.forEmi(registries).map(RecipeViewerContent::recipeCount).orElse(0) > 0,
+                "the EMI plugin has recipes to register while emiPlugin is on, or this test proves nothing");
+
+        ForgeweaveConfig.EMI_PLUGIN.set(false);
+        try {
+            helper.assertTrue(RecipeViewerContent.forEmi(registries).isEmpty(),
+                    "the EMI plugin must register nothing while emiPlugin is off");
+        } finally {
+            ForgeweaveConfig.EMI_PLUGIN.set(true);
+        }
+
+        helper.assertTrue(RecipeViewerContent.forEmi(registries).isPresent(),
+                "turning emiPlugin back on must restore the plugin's content with no restart");
         helper.succeed();
     }
 

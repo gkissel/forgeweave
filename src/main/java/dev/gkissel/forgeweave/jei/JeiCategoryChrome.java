@@ -1,8 +1,6 @@
 package dev.gkissel.forgeweave.jei;
 
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.network.chat.Component;
 
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.helpers.IGuiHelper;
@@ -22,18 +20,11 @@ import dev.gkissel.forgeweave.jei.JeiCategoryGeometry.Panel;
  * screenshots -- and the widths it was tiled to pushed those categories past the JEI popup's edge.
  * Every category now draws one whole upstream panel at its real size ({@link JeiCategoryGeometry}),
  * so there is nothing left to tile.
+ *
+ * <p>Issue #971 moved the slot-frame rect and the two text helpers into {@link JeiCategoryGeometry},
+ * which has no JEI import, so the EMI plugin can draw the same chrome with no JEI installed.
  */
 final class JeiCategoryChrome {
-    /**
-     * Upstream {@code ToolBuildingCategory}'s own {@code slotBorder}, `createDrawable(
-     * tinker_station.png, 162, 59, 18, 18)`: the 18x18 inventory-slot frame it draws under each of
-     * its own slots, since its panel art has none. Drawn at {@code (slotX - 1, slotY - 1)}, because
-     * a slot frame is 18x18 around an 16x16 slot -- upstream's own comment on the same call.
-     */
-    private static final int SLOT_FRAME_U = 162;
-    private static final int SLOT_FRAME_V = 59;
-    static final int SLOT_FRAME_SIZE = 18;
-
     private JeiCategoryChrome() {}
 
     /** The category's whole background, at the exact upstream rect {@code panel} names. */
@@ -41,37 +32,14 @@ final class JeiCategoryChrome {
         return helper.createDrawable(panel.background(), panel.u(), panel.v(), panel.width(), panel.height());
     }
 
-    /** See {@link #SLOT_FRAME_U}: draw it at {@code (slotX - 1, slotY - 1)}. */
+    /** See {@link JeiCategoryGeometry#SLOT_FRAME_U}: draw it at {@code (slotX - 1, slotY - 1)}. */
     static IDrawable slotFrame(IGuiHelper helper) {
-        return helper.createDrawable(JeiCategoryGeometry.TINKER_STATION,
-                SLOT_FRAME_U, SLOT_FRAME_V, SLOT_FRAME_SIZE, SLOT_FRAME_SIZE);
+        return helper.createDrawable(JeiCategoryGeometry.TINKER_STATION, JeiCategoryGeometry.SLOT_FRAME_U,
+                JeiCategoryGeometry.SLOT_FRAME_V, JeiCategoryGeometry.SLOT_FRAME_SIZE, JeiCategoryGeometry.SLOT_FRAME_SIZE);
     }
 
     /** Draws {@link #slotFrame}'s 18x18 frame around the 16x16 slot whose origin is {@code (x, y)}. */
     static void drawSlotFrame(IDrawable frame, GuiGraphics guiGraphics, int x, int y) {
         frame.draw(guiGraphics, x - 1, y - 1);
-    }
-
-    /** Draws {@code text} centred on {@code centerX}, the way every upstream category centres its own. */
-    static void drawCentered(GuiGraphics guiGraphics, Font font, Component text, int centerX, int y, int colour, boolean shadow) {
-        guiGraphics.drawString(font, text, centerX - font.width(text) / 2, y, colour, shadow);
-    }
-
-    /**
-     * Issue #804: {@code EmbossingCategory} and {@code ModifierApplicationCategory} both draw a
-     * datapack-named modifier/material with plain {@code GuiGraphics#drawString} -- unlike JEI's own
-     * ingredient-slot rendering, a raw {@code drawString} call has no scissor of its own, so a name
-     * longer than the panel (real examples: the "Projectile Protection" trait, the "Embossment
-     * (Purple Slimevine)" material name) drew straight out past the JEI popup's edge. Ellipsizes with
-     * vanilla's own {@link Font#plainSubstrByWidth} rather than growing the panel without bound,
-     * since a datapack can always add a longer name than whatever fixed width is chosen.
-     */
-    static Component trimToWidth(Font font, Component text, int maxWidth) {
-        if (font.width(text) <= maxWidth) {
-            return text;
-        }
-        String ellipsis = "...";
-        String trimmed = font.plainSubstrByWidth(text.getString(), maxWidth - font.width(ellipsis));
-        return Component.literal(trimmed + ellipsis);
     }
 }

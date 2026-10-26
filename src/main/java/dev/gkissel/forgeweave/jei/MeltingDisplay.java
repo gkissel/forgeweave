@@ -21,5 +21,5 @@ import dev.gkissel.forgeweave.recipe.SmelteryFuel;
  * fs.getFluid().getTemperature(fs) >= temperature}), ready for {@link MeltingCategory} to cycle
  * through the flame column the way upstream's JEI fuel tank does.
  */
-record MeltingDisplay(List<ItemStack> inputs, Fluid fluid, int amount, int temperature, boolean ore,
+public record MeltingDisplay(List<ItemStack> inputs, Fluid fluid, int amount, int temperature, boolean ore,
         List<SmelteryFuel> fuels) {}

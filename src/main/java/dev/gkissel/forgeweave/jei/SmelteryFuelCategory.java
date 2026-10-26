@@ -147,7 +147,7 @@ final class SmelteryFuelCategory implements IRecipeCategory<SmelteryFuelDisplay>
                 .draw(guiGraphics, ARROW_X, ARROW_Y);
 
         Font font = Minecraft.getInstance().font;
-        JeiCategoryChrome.drawCentered(guiGraphics, font, TemperatureText.format(recipe.temperature()),
+        JeiCategoryGeometry.drawCentered(guiGraphics, font, TemperatureText.format(recipe.temperature()),
                 TEMPERATURE_CENTER_X, TEMPERATURE_Y, TEXT_COLOR, false);
     }
 }

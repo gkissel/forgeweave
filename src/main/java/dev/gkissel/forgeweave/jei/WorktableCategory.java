@@ -1,7 +1,5 @@
 package dev.gkissel.forgeweave.jei;
 
-import java.util.List;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -52,11 +50,6 @@ final class WorktableCategory implements IRecipeCategory<WorktableDisplay> {
     private static final int TITLE_COLOR = 0x404040;
     private static final int TITLE_WIDTH = 115;
 
-    /** What the table can be shown working on: one harvest tool and one armor piece, cycling. */
-    private static final List<ItemStack> TOOLS = List.of(
-            new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get()),
-            new ItemStack(ForgeweaveItems.ARMOR_HELMET.get()));
-
     private final IDrawable icon;
     private final IDrawable slotFrame;
 
@@ -101,7 +94,7 @@ final class WorktableCategory implements IRecipeCategory<WorktableDisplay> {
         // The table works on any assembled tool or armor piece, so this is context rather than an
         // input JEI could ever consume -- the same RENDER_ONLY reading ModifierApplicationCategory
         // gives its own tool slot (#794).
-        builder.addSlot(RecipeIngredientRole.RENDER_ONLY, TOOL_X, SLOT_Y).addItemStacks(TOOLS);
+        builder.addSlot(RecipeIngredientRole.RENDER_ONLY, TOOL_X, SLOT_Y).addItemStacks(WorktableDisplay.TOOLS);
         builder.addInputSlot(FIRST_INPUT_X, SLOT_Y).addIngredients(recipe.input());
         // The second reagent slot is the sorting direction, not a second cost: the same reagent goes
         // in either slot and the empty first one is what reads as backwards.
@@ -120,7 +113,7 @@ final class WorktableCategory implements IRecipeCategory<WorktableDisplay> {
                 "jei.category.forgeweave.modifier_worktable."
                         + display.recipe().kind().getSerializedName());
         guiGraphics.drawString(Minecraft.getInstance().font,
-                JeiCategoryChrome.trimToWidth(Minecraft.getInstance().font, title, TITLE_WIDTH),
+                JeiCategoryGeometry.trimToWidth(Minecraft.getInstance().font, title, TITLE_WIDTH),
                 TITLE_X, TITLE_Y, TITLE_COLOR, false);
     }
 }

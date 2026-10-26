@@ -18,4 +18,4 @@ import net.minecraft.world.item.crafting.Ingredient;
  *     since embossing spans the Tool Station's five free slots and the donor always claims one
  * @param material the donor material every stack in {@code donorParts} carries
  */
-record EmbossingDisplay(List<ItemStack> donorParts, List<Ingredient> reagents, ResourceLocation material) {}
+public record EmbossingDisplay(List<ItemStack> donorParts, List<Ingredient> reagents, ResourceLocation material) {}

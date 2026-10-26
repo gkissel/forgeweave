@@ -9,4 +9,4 @@ import net.minecraft.world.item.ItemStack;
  * since repair is the same rule regardless of tool type -- see {@code menu.ToolAssemblyRecipes}'s
  * repair resolution) + any item that material repairs from -> the same tool, repaired.
  */
-record RepairRecipe(List<ItemStack> tools, List<ItemStack> repairItems, List<ItemStack> repairedTools) {}
+public record RepairRecipe(List<ItemStack> tools, List<ItemStack> repairItems, List<ItemStack> repairedTools) {}

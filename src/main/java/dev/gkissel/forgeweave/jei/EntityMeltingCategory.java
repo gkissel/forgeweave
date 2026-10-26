@@ -1,19 +1,9 @@
 package dev.gkissel.forgeweave.jei;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.InventoryScreen;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.material.Fluid;
 
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
@@ -44,15 +34,8 @@ import dev.gkissel.forgeweave.recipe.EntityMeltingRecipe;
  * arrow. Issue #1029: it used to borrow the item melting panel, where the damage sentence ran under
  * the tank and the entity hung over an item slot and out of the recipe.
  *
- * <p>The one thing not mirrored is how the entity gets on screen. Upstream renders it through a
- * Mantle custom JEI ingredient type ({@code EntityIngredientRenderer}), machinery this project has no
- * equivalent of. This category draws it directly in {@link #draw} with vanilla's own {@code
- * InventoryScreen#renderEntityInInventory} (the lower-level call, not the mouse-following wrapper:
- * that one calls {@code GuiGraphics#enableScissor} with coordinates in absolute window-pixel space,
- * which would clip at the wrong place here since JEI has already translated the pose stack to the
- * category's on-screen position by the time {@link #draw} runs). It needs only a live {@link
- * LivingEntity} instance, which {@link EntityType#create} builds against the client level for
- * rendering alone; it is never added to the world.
+ * <p>The one thing not mirrored is how the entity gets on screen: see {@link EntityPreview}, which
+ * this category and the EMI one (issue #971) share.
  */
 final class EntityMeltingCategory implements IRecipeCategory<EntityMeltingDisplay> {
     static final RecipeType<EntityMeltingDisplay> TYPE =
@@ -67,8 +50,6 @@ final class EntityMeltingCategory implements IRecipeCategory<EntityMeltingDispla
     private static final int ENTITY_X = 19;
     private static final int ENTITY_Y = 11;
     private static final int ENTITY_BOX = 32;
-    /** Leaves a 2px margin inside the opening, in both directions, so a wide mob fits as well as a tall one. */
-    private static final float ENTITY_FIT = ENTITY_BOX - 4f;
 
     /** The right basin's opening: upstream's output slot, a 16x32 fluid column. */
     private static final int FLUID_X = 115;
@@ -102,8 +83,7 @@ final class EntityMeltingCategory implements IRecipeCategory<EntityMeltingDispla
     private final IDrawable fuelOverlay;
     private final String damageHearts;
     private final Component damageText;
-    /** One instance per entity type, built lazily and reused across frames rather than every draw. */
-    private final Map<EntityType<?>, LivingEntity> renderEntities = new HashMap<>();
+    private final EntityPreview entityPreview = new EntityPreview();
 
     EntityMeltingCategory(IGuiHelper helper) {
         icon = helper.createDrawable(PANEL.background(), ICON_U, ICON_V, 16, 16);
@@ -167,15 +147,7 @@ final class EntityMeltingCategory implements IRecipeCategory<EntityMeltingDispla
         Font font = Minecraft.getInstance().font;
         guiGraphics.drawString(font, damageHearts, DAMAGE_RIGHT_X - font.width(damageHearts), DAMAGE_Y, DAMAGE_COLOR, false);
 
-        LivingEntity entity = renderEntity(recipe.primaryEntity());
-        if (entity != null) {
-            // Fit the opening both ways: a ghast or an iron golem is as wide as it is tall.
-            float scale = ENTITY_FIT / Math.max(1f, Math.max(entity.getBbHeight(), entity.getBbWidth()));
-            Vector3f offset = new Vector3f(0f, entity.getBbHeight() / 2f, 0f);
-            Quaternionf pose = new Quaternionf().rotateZ((float) Math.PI);
-            InventoryScreen.renderEntityInInventory(guiGraphics, ENTITY_X + ENTITY_BOX / 2f, ENTITY_Y + ENTITY_BOX / 2f,
-                    scale, offset, pose, null, entity);
-        }
+        entityPreview.draw(guiGraphics, recipe.primaryEntity(), ENTITY_X, ENTITY_Y, ENTITY_BOX);
     }
 
     @Override
@@ -185,22 +157,5 @@ final class EntityMeltingCategory implements IRecipeCategory<EntityMeltingDispla
                     ? Component.translatable("jei.category.forgeweave.entity_melting.default")
                     : recipe.primaryEntity().getDescription());
         }
-    }
-
-    /**
-     * Lazily built and cached per type -- {@link EntityType#create} needs a {@link
-     * net.minecraft.world.level.Level}, so nothing renders before a world is joined; in practice that
-     * never matters, since {@link EntityMeltingRecipes#build} (via {@code ForgeweaveJeiPlugin}) never
-     * produces a recipe to draw before then either.
-     */
-    private LivingEntity renderEntity(EntityType<?> type) {
-        ClientLevel level = Minecraft.getInstance().level;
-        if (level == null) {
-            return null;
-        }
-        return renderEntities.computeIfAbsent(type, t -> {
-            var created = t.create(level);
-            return created instanceof LivingEntity living ? living : null;
-        });
     }
 }

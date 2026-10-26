@@ -14,4 +14,4 @@ import net.minecraft.world.item.ItemStack;
  * overpays a head and returns shards; a shard pays it exactly and returns none). A {@code null}
  * entry in {@code changeOutputs} means that option leaves no change.
  */
-record PartCraftingRecipe(ItemStack pattern, List<ItemStack> materialInputs, ItemStack result, List<ItemStack> changeOutputs) {}
+public record PartCraftingRecipe(ItemStack pattern, List<ItemStack> materialInputs, ItemStack result, List<ItemStack> changeOutputs) {}

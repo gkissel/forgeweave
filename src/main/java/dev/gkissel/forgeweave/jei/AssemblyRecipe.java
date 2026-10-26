@@ -13,4 +13,4 @@ import net.minecraft.world.item.ItemStack;
  * @param parts one cycling ingredient list per input slot -- two entries for M3's two-part weapons,
  *     three for everything else (issue #155)
  */
-record AssemblyRecipe(List<List<ItemStack>> parts, Item tool, ItemStack result) {}
+public record AssemblyRecipe(List<List<ItemStack>> parts, Item tool, ItemStack result) {}

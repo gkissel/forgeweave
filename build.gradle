@@ -48,6 +48,13 @@ repositories {
         url = 'https://maven.blamejared.com'
     }
     maven {
+        // EMI (issue #971, optional client-side integration -- see the compileOnly/test-classpath
+        // split below). The maven EMI's own README names.
+        name = 'TerraformersMC'
+        url = 'https://maven.terraformersmc.com/releases'
+        content { includeGroup 'dev.emi' }
+    }
+    maven {
         // Ponder (docs/SCOPE.md M2 issue #110), a soft dependency -- see the compileOnly-only note
         // on the dependency itself below.
         name = 'CreateMod'
@@ -256,7 +263,27 @@ dependencies {
     // is present for our own dev-environment runs (client/server/gameTestServer) without becoming a
     // transitive dependency of anything depending on this mod.
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
-    localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+    if (project.hasProperty('emiClient')) {
+        // -PemiClient: the dev runs get EMI instead of JEI (see EMI's own comment just below).
+        // localRuntime, not a <run>AdditionalRuntimeClasspath: that one lands on FML's legacy
+        // classpath, where a jar is a plain library and is never discovered as a mod.
+        localRuntime "dev.emi:emi-neoforge:${emi_version}"
+    } else {
+        localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+    }
+
+    // EMI (issue #971): the native plugin in dev.gkissel.forgeweave.emi. compileOnly against EMI's own
+    // API-only jar, plus the full jar on the unit-test classpath so ForgeweaveEmiPluginTest can run the
+    // plugin's register() against a stub registry. Deliberately no localRuntime: EMI's server half sends
+    // an emi:ping payload on every login (EmiNeoForge#playerConnect), the same "may not be sent to the
+    // client" failure that keeps Jade off runGameTestServer below. It stays off the default client run
+    // too, because EMI takes over JEI's overlay and recipe screen, and JeiScreenshotHarness needs JEI's
+    // own. Building with -PemiClient swaps JEI out for EMI on every dev run, which is how the
+    // EMI-without-JEI case gets looked at in a dev client (runClient, runScreenshotHarness). Don't
+    // pass it to runGameTestServer, for the emi:ping reason above.
+    compileOnly("dev.emi:emi-neoforge:${emi_version}:api") { transitive = false }
+    testCompileOnly("dev.emi:emi-neoforge:${emi_version}:api") { transitive = false }
+    testRuntimeOnly("dev.emi:emi-neoforge:${emi_version}") { transitive = false }
 
     // Jade (issue #720): the Jade/WTHIT overlay ticket. compileOnly so the mod compiles against
     // Jade's API without hard-requiring it (see neoforge.mods.toml's "optional" entry and

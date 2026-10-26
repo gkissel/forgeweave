@@ -357,6 +357,22 @@ public final class ForgeweaveConfig {
     public static final ModConfigSpec.BooleanValue OVERLAYS;
 
     /**
+     * The native EMI plugin ({@code dev.gkissel.forgeweave.emi.ForgeweaveEmiPlugin}, issue #971). Off
+     * means the plugin registers nothing: no Forgeweave category, workstation, recipe, comparison or
+     * fill handler reaches EMI from it. Read through {@code jei.RecipeViewerContent#forEmi}, the
+     * plugin's EMI-free half, every time EMI reloads.
+     *
+     * <p>EMI's JEI bridge does <em>not</em> step in when this is off. The bridge skips every JEI
+     * category whose namespace belongs to a mod that ships an {@code @EmiEntrypoint}, and it decides
+     * that from the annotation alone, before any plugin runs. So with JEI and EMI both installed and
+     * this off, EMI shows no Forgeweave category at all; JEI's own screens are not involved, since
+     * EMI replaces them.
+     *
+     * @see #DRACONIC_FUSION
+     */
+    public static final ModConfigSpec.BooleanValue EMI_PLUGIN;
+
+    /**
      * The KubeJS trait binding ({@code kubejs.ForgeweaveKubeJSPlugin}). Off means a trait a startup
      * script registered resolves to nothing, so a material naming it behaves as if the id had no
      * implementation -- which is what a datapack material naming an unknown trait already does.
@@ -1027,6 +1043,13 @@ public final class ForgeweaveConfig {
                         "needs beside the level of the tool being held. With this off both overlays still work,",
                         "they just carry no Forgeweave line.")
                 .define("overlays", true);
+        EMI_PLUGIN = builder
+                .comment("If true, EMI shows Forgeweave's recipe categories (part crafting, tool assembly,",
+                        "the smeltery, casting, modifiers and the rest) through Forgeweave's own EMI plugin. With",
+                        "this off the plugin registers nothing. EMI's JEI bridge does not fill the gap: it skips",
+                        "any mod that ships its own EMI plugin, so with JEI installed too EMI still shows no",
+                        "Forgeweave category. Takes effect the next time EMI reloads, such as on rejoining.")
+                .define("emiPlugin", true);
         KUBEJS_TRAITS = builder
                 .comment("If true, traits registered from a KubeJS startup script through ForgeweaveEvents.traits",
                         "take effect. With this off a scripted trait resolves to nothing, so a material naming",
