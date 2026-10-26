@@ -7,14 +7,17 @@ import mekanism.api.MekanismIMC;
 import mekanism.api.gear.IModule;
 import mekanism.api.gear.IModuleContainer;
 import mekanism.api.gear.IModuleHelper;
+import mekanism.api.gear.ModuleData;
 import mekanism.common.content.gear.ModuleContainer;
 import mekanism.common.registries.MekanismDataComponents;
+import mekanism.common.registries.MekanismModules;
 import mekanism.common.capabilities.Capabilities;
 import mekanism.common.capabilities.radiation.item.RadiationShieldingHandler;
 
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -32,6 +35,7 @@ import net.neoforged.fml.event.lifecycle.InterModEnqueueEvent;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.event.ModifyDefaultComponentsEvent;
 
+import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.combat.CombatProviders;
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.compat.mekanism.ForgeweaveMekanismCompat;
@@ -57,9 +61,10 @@ import dev.gkissel.forgeweave.api.upgrade.UpgradeHosts;
  *       {@code ModuleContainerTarget} and calls
  *       {@code net.neoforged.fml.InterModComms.sendTo("mekanism", "add_module_container", supplier)},
  *       so it has to run during {@code InterModEnqueueEvent}.
- *   <li>{@code MekanismIMC#ADD_MEKA_TOOL_MODULES} and the four
- *       {@code ADD_MEKA_SUIT_{HELMET,BODYARMOR,PANTS,BOOTS}_MODULES} names are the module rosters a
- *       target asks for.
+ *   <li>{@code MekanismIMC#sendModuleIMC(String, Holder...)} sends modules to an IMC method name.
+ *       {@code ModuleHelper#processIMC} gives each container the modules sent to its method, and
+ *       reads each method once: {@code ADD_MEKA_TOOL_MODULES} and the four
+ *       {@code ADD_MEKA_SUIT_*_MODULES} names belong to Mekanism's own gear (see {@link #sendImc}).
  *   <li>{@code mekanism.api.gear.IModuleHelper#applyModuleContainerProperties(Item.Properties)} is
  *       exactly {@code properties.component(MekanismDataComponents.MODULE_CONTAINER, ModuleContainer.EMPTY)}
  *       -- one default data component, nothing else.
@@ -181,31 +186,70 @@ public final class MekanismModuleContainer implements MekanismGearModules.Bridge
         }
     }
 
-    /**
-     * Tells Mekanism which of its module rosters each Forgeweave gear item accepts: the MekaTool's
-     * whole set on every tool, and the matching MekaSuit slot set on each armour piece.
-     */
     private static void enqueueImc(InterModEnqueueEvent event) {
+        sendImc();
+    }
+
+    /**
+     * Tells Mekanism which modules each Forgeweave gear item accepts: the MekaTool's whole set on
+     * every tool, and the matching MekaSuit slot set on each armour piece.
+     *
+     * <p>Each item gets an IMC method of its own, and Forgeweave sends that method its roster.
+     * Mekanism reads a method's module messages once, for the first container registered under it,
+     * and FML drops each message as it is read. Its own MekaTool and MekaSuit pieces register first
+     * under the five shared {@code ADD_MEKA_*_MODULES} names. Before 1.0.0 every Forgeweave item
+     * reused one of those names, so Mekanism logged 34 "imcMethod already registered" errors and
+     * every Forgeweave item ended up accepting no module at all.
+     *
+     * <p>The rosters are Mekanism 10.7.19's own, read off {@code Mekanism#imcQueue}. Modules another
+     * addon sends to the shared names (Mekanism Generators' solar and geothermal units) reach only
+     * Mekanism's own gear.
+     */
+    static void sendImc() {
         for (Item item : gearItems()) {
+            String method = imcMethod(item);
             // The Holder overload: Mekanism 10.7.19 marks every ItemLike and Item route deprecated for
             // removal. Safe to wrap here because this runs on InterModEnqueueEvent, long after the item
             // registry is frozen.
-            MekanismIMC.addModuleContainer(BuiltInRegistries.ITEM.wrapAsHolder(item), imcMethod(item));
+            MekanismIMC.addModuleContainer(BuiltInRegistries.ITEM.wrapAsHolder(item), method);
+            MekanismIMC.sendModuleIMC(method, roster(item).toArray(Holder[]::new));
         }
     }
 
-    /** Which roster {@code item} asks for -- the MekaSuit's slot set for armour, the MekaTool's otherwise. */
-    private static String imcMethod(Item item) {
-        if (item instanceof ArmorPieceItem armor) {
-            return switch (armor.getEquipmentSlot()) {
-                case HEAD -> MekanismIMC.ADD_MEKA_SUIT_HELMET_MODULES;
-                case CHEST -> MekanismIMC.ADD_MEKA_SUIT_BODYARMOR_MODULES;
-                case LEGS -> MekanismIMC.ADD_MEKA_SUIT_PANTS_MODULES;
-                case FEET -> MekanismIMC.ADD_MEKA_SUIT_BOOTS_MODULES;
-                default -> MekanismIMC.ADD_MEKA_TOOL_MODULES;
-            };
+    /** The IMC method {@code item}'s modules arrive under: {@code forgeweave_<item>_modules}. */
+    static String imcMethod(Item item) {
+        return Forgeweave.MODID + "_" + BuiltInRegistries.ITEM.getKey(item).getPath() + "_modules";
+    }
+
+    /** The modules Mekanism gives the MekaSuit piece in {@code item}'s slot, or the MekaTool's. */
+    static List<Holder<ModuleData<?>>> roster(Item item) {
+        List<Holder<ModuleData<?>>> roster = new ArrayList<>();
+        roster.add(MekanismModules.ENERGY_UNIT);
+        if (!(item instanceof ArmorPieceItem armor)) {
+            roster.addAll(List.of(MekanismModules.ATTACK_AMPLIFICATION_UNIT, MekanismModules.SILK_TOUCH_UNIT,
+                    MekanismModules.FORTUNE_UNIT, MekanismModules.BLASTING_UNIT, MekanismModules.VEIN_MINING_UNIT,
+                    MekanismModules.FARMING_UNIT, MekanismModules.SHEARING_UNIT,
+                    MekanismModules.TELEPORTATION_UNIT, MekanismModules.EXCAVATION_ESCALATION_UNIT));
+            return List.copyOf(roster);
         }
-        return MekanismIMC.ADD_MEKA_TOOL_MODULES;
+        roster.addAll(List.of(MekanismModules.COLOR_MODULATION_UNIT, MekanismModules.LASER_DISSIPATION_UNIT,
+                MekanismModules.RADIATION_SHIELDING_UNIT));
+        roster.addAll(switch (armor.getEquipmentSlot()) {
+            case HEAD -> List.of(MekanismModules.ELECTROLYTIC_BREATHING_UNIT,
+                    MekanismModules.INHALATION_PURIFICATION_UNIT, MekanismModules.VISION_ENHANCEMENT_UNIT,
+                    MekanismModules.NUTRITIONAL_INJECTION_UNIT);
+            case CHEST -> List.of(MekanismModules.JETPACK_UNIT, MekanismModules.GRAVITATIONAL_MODULATING_UNIT,
+                    MekanismModules.CHARGE_DISTRIBUTION_UNIT, MekanismModules.DOSIMETER_UNIT,
+                    MekanismModules.GEIGER_UNIT, MekanismModules.ELYTRA_UNIT);
+            case LEGS -> List.of(MekanismModules.LOCOMOTIVE_BOOSTING_UNIT,
+                    MekanismModules.GYROSCOPIC_STABILIZATION_UNIT, MekanismModules.HYDROSTATIC_REPULSOR_UNIT,
+                    MekanismModules.MOTORIZED_SERVO_UNIT);
+            case FEET -> List.of(MekanismModules.HYDRAULIC_PROPULSION_UNIT,
+                    MekanismModules.MAGNETIC_ATTRACTION_UNIT, MekanismModules.FROST_WALKER_UNIT,
+                    MekanismModules.SOUL_SURFER_UNIT);
+            default -> List.<Holder<ModuleData<?>>>of();
+        });
+        return List.copyOf(roster);
     }
 
     /**
@@ -230,7 +274,7 @@ public final class MekanismModuleContainer implements MekanismGearModules.Bridge
     }
 
     /** Every assembled Forgeweave tool and armour piece item, deduplicated. */
-    private static List<Item> gearItems() {
+    static List<Item> gearItems() {
         return ToolAssemblyRecipes.ENTRIES.stream()
                 .map(entry -> (Item) entry.tool().get())
                 .distinct()
