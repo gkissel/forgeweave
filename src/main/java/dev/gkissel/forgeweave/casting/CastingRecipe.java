@@ -68,10 +68,23 @@ import dev.gkissel.forgeweave.menu.ContentFamilies;
  *   <li>{@code result_in_input} -- upstream's {@code switchOutputs}: put the result back in the
  *       input slot (and whatever was in the input into the output slot). Cast creation uses it so a
  *       fresh cast is already in place for the next pour.
+ *   <li>{@code priority} -- which row wins when several match the same pour, highest first, ties in
+ *       registry order. Optional, default 0. No upstream counterpart: upstream never shipped two rows
+ *       for one pour. Forgeweave does when two mods supply the same metal (tin from Mekanism and from
+ *       Eternal Ores both pour {@code molten_tin} into an ingot cast), and each provider's ingot row
+ *       exists only while that provider does. The preferred provider's row keeps 0 and each fallback
+ *       sits lower, so the preferred ingot comes out whenever it exists
+ *       ({@code scripts/generate_compat_smeltery.py} documents the rule).
  * </ul>
  */
 public record CastingRecipe(Station station, Optional<Ingredient> cast, Optional<Fluid> fluid, int amount,
-        ItemStack result, Optional<Integer> time, boolean consumesCast, boolean resultInInput) {
+        ItemStack result, Optional<Integer> time, boolean consumesCast, boolean resultInInput, int priority) {
+
+    /** A recipe at the default priority, the shape every row had before {@code priority} existed. */
+    public CastingRecipe(Station station, Optional<Ingredient> cast, Optional<Fluid> fluid, int amount,
+            ItemStack result, Optional<Integer> time, boolean consumesCast, boolean resultInInput) {
+        this(station, cast, fluid, amount, result, time, consumesCast, resultInInput, 0);
+    }
 
     /** Which of the two casting blocks a recipe belongs to (upstream's two separate recipe lists). */
     public enum Station implements StringRepresentable {
@@ -103,7 +116,8 @@ public record CastingRecipe(Station station, Optional<Ingredient> cast, Optional
             ItemStack.CODEC.fieldOf("result").forGetter(CastingRecipe::result),
             ExtraCodecs.POSITIVE_INT.optionalFieldOf("time").forGetter(CastingRecipe::time),
             Codec.BOOL.optionalFieldOf("consumes_cast", false).forGetter(CastingRecipe::consumesCast),
-            Codec.BOOL.optionalFieldOf("result_in_input", false).forGetter(CastingRecipe::resultInInput))
+            Codec.BOOL.optionalFieldOf("result_in_input", false).forGetter(CastingRecipe::resultInInput),
+            Codec.INT.optionalFieldOf("priority", 0).forGetter(CastingRecipe::priority))
             .apply(instance, CastingRecipe::new));
 
     /** Whether this recipe applies to {@code held} sitting in a {@code station} block being poured {@code fluid}. */
@@ -199,13 +213,17 @@ public record CastingRecipe(Station station, Optional<Ingredient> cast, Optional
         return 24 + ((fluid.getFluidType().getTemperature() - 300) * amount) / 1600;
     }
 
-    /** The first recipe in {@code recipes} that {@link #matches}, or {@code null}. */
+    /**
+     * The highest-{@link #priority} recipe in {@code recipes} that {@link #matches}, the first one in
+     * iteration order among equals, or {@code null}.
+     */
     public static CastingRecipe find(Iterable<CastingRecipe> recipes, Station station, ItemStack held, Fluid fluid) {
+        CastingRecipe best = null;
         for (CastingRecipe recipe : recipes) {
-            if (recipe.matches(station, held, fluid)) {
-                return recipe;
+            if ((best == null || recipe.priority > best.priority) && recipe.matches(station, held, fluid)) {
+                best = recipe;
             }
         }
-        return null;
+        return best;
     }
 }
