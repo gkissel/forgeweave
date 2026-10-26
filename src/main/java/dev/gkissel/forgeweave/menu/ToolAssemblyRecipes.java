@@ -913,7 +913,7 @@ public final class ToolAssemblyRecipes {
         }
 
         if (entry.constants().category() == ToolConstants.Category.ARMOR) {
-            return Optional.of(assembleArmor(entry, materialIds, materials));
+            return Optional.of(baked(assembleArmor(entry, materialIds, materials)));
         }
         List<Material> heads = headMaterials(entry, materials);
         ToolStats.Stats stats = statsOf(entry, materials, heads);
@@ -956,7 +956,19 @@ public final class ToolAssemblyRecipes {
         result.set(DataComponents.TOOL, tool.toolComponent(tierHead, stats));
         result.set(DataComponents.MAX_DAMAGE, stats.durability());
         result.set(DataComponents.DAMAGE, 0);
-        return Optional.of(result);
+        return Optional.of(baked(result));
+    }
+
+    /**
+     * Runs the fresh stack through the same recompute a modifier application runs, so whatever that
+     * bakes into vanilla components lands at assembly too. A trait's {@code maxDurabilityBonus}
+     * (steadfast's fifth) is the one that matters: without this a new tool held only its materials'
+     * durability until the first modifier went on. With no modifiers on the stack, the tool rules
+     * and tier it rebuilds are the ones written above.
+     */
+    private static ItemStack baked(ItemStack result) {
+        ModifierApplication.rebake(result);
+        return result;
     }
 
     /**

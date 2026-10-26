@@ -305,14 +305,10 @@ public class TraitGameTests {
      * Checklist line 83: steadfast pays a fifth on top of what the parts built, so a bronze and a tin
      * pickaxe each come out of assembly with 1.2x the durability their stats give, the bonus growing
      * with the material. Bronze and tin are gated on Mekanism or Eternal Ores, so each goes into a
-     * registry of its own here, parsed from the shipped file, and through the real assembly path.
-     *
-     * <p>Optional while the product bug stands: {@code ToolAssemblyRecipes#assemble} sets
-     * {@code max_damage} to the stats' durability and only {@code ModifierApplication#retuneStats}
-     * adds {@code Trait#maxDurabilityBonus}, so a fresh steadfast tool has no bonus until a modifier is
-     * applied. Reported on the checklist-headless-traits PR.
+     * registry of its own here, parsed from the shipped file, and through the real assembly path. A
+     * bronze chestplate gets the same fifth: bronze has no armor list, so steadfast falls through.
      */
-    @GameTest(template = "empty", required = false)
+    @GameTest(template = "empty")
     public static void steadfastAddsAFifthOfTheBuiltDurabilityAtAssembly(GameTestHelper helper) throws Exception {
         for (String material : List.of("bronze", "tin")) {
             ItemStack pickaxe = assembledFromShippedFile(helper, material);
@@ -323,11 +319,22 @@ public class TraitGameTests {
                     "a " + material + " pickaxe built at " + built + " must hold " + (built + built * 20 / 100)
                             + ", got " + pickaxe.getMaxDamage());
         }
+        ItemStack chestplate = assembledFromShippedFile(helper, "bronze", ForgeweaveItems.ARMOR_CHESTPLATE.get());
+        int plated = chestplate.get(ForgeweaveDataComponents.ARMOR_STATS.get()).durability();
+        helper.assertTrue(chestplate.getMaxDamage() == plated + plated * 20 / 100,
+                "a bronze chestplate plated at " + plated + " must hold " + (plated + plated * 20 / 100)
+                        + ", got " + chestplate.getMaxDamage());
         helper.succeed();
     }
 
     /** A pickaxe of three {@code material} parts, assembled against a registry holding only that shipped file. */
     private static ItemStack assembledFromShippedFile(GameTestHelper helper, String material) throws Exception {
+        return assembledFromShippedFile(helper, material, ForgeweaveItems.TOOL_PICKAXE.get());
+    }
+
+    /** {@code tool} with every part of {@code material}, assembled against a registry holding only that shipped file. */
+    private static ItemStack assembledFromShippedFile(GameTestHelper helper, String material,
+            net.minecraft.world.item.Item tool) throws Exception {
         ResourceLocation id = traitId(material);
         var resource = helper.getLevel().getServer().getResourceManager()
                 .getResource(traitId("forgeweave/material/" + material + ".json")).orElseThrow();
@@ -341,10 +348,12 @@ public class TraitGameTests {
                 com.mojang.serialization.Lifecycle.stable());
         registry.register(net.minecraft.resources.ResourceKey.create(Material.REGISTRY, id), parsed,
                 net.minecraft.core.RegistrationInfo.BUILT_IN);
+        var entry = dev.gkissel.forgeweave.menu.ToolAssemblyRecipes.entryFor(new ItemStack(tool))
+                .orElseThrow(() -> new AssertionError("no Tool Station entry builds " + tool));
         return dev.gkissel.forgeweave.menu.ToolAssemblyRecipes.assemble(
                         net.minecraft.core.HolderLookup.Provider.create(java.util.stream.Stream.of(registry.asLookup())),
-                        ToolAssembly.entryFor(ForgeweaveItems.TOOL_PICKAXE.get()), List.of(id, id, id))
-                .orElseThrow(() -> new AssertionError("a " + material + " pickaxe must assemble"));
+                        entry, java.util.Collections.nCopies(entry.slotCount(), id))
+                .orElseThrow(() -> new AssertionError("a " + material + " " + tool + " must assemble"));
     }
 
     private static ResourceLocation traitId(String path) {
