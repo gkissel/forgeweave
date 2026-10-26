@@ -3,6 +3,7 @@ package dev.gkissel.forgeweave.client;
 import java.util.List;
 
 import net.createmod.catnip.gui.ScreenOpener;
+import net.createmod.ponder.api.element.WorldSectionElement;
 import net.createmod.ponder.foundation.PonderIndex;
 import net.createmod.ponder.foundation.PonderScene;
 import net.createmod.ponder.foundation.ui.PonderUI;
@@ -55,6 +56,9 @@ final class PonderHarnessCaptures {
     static void open(Capture capture) {
         List<PonderScene> scenes = PonderIndex.getSceneAccess().compile(capture.item());
         HarnessPonderUI ui = new HarnessPonderUI(scenes);
+        // Comfy reading slows a scene down while text is up; the harness reads nothing. This writes
+        // Ponder's client config in the harness's own game directory (build.gradle), never run/config.
+        ui.setComfyReadingEnabled(false);
         ScreenOpener.open(ui);
         for (int i = 0; i < capture.sceneIndex(); i++) {
             ui.nextScene();
@@ -64,6 +68,24 @@ final class PonderHarnessCaptures {
     /** Whether the open Ponder scene has reached its {@code markAsFinished} instruction. */
     static boolean finished(Minecraft mc) {
         return mc.screen instanceof PonderUI ui && ui.getActiveScene().isFinished();
+    }
+
+    /**
+     * How many non-air blocks the open scene shows: its world's blocks, or 0 when no world section of
+     * the scene is visible at all. A scene whose schematic failed to load plays to its end anyway,
+     * empty, so finishing proves nothing on its own.
+     */
+    static int visibleBlockCount(Minecraft mc) {
+        if (!(mc.screen instanceof PonderUI ui)) {
+            return 0;
+        }
+        PonderScene scene = ui.getActiveScene();
+        boolean anySectionShown = !scene.getBaseWorldSection().isEmpty() || scene.getElements().stream()
+                .anyMatch(element -> element instanceof WorldSectionElement section && !section.isEmpty());
+        if (!anySectionShown) {
+            return 0;
+        }
+        return (int) scene.getWorld().getBlockMap().values().stream().filter(state -> !state.isAir()).count();
     }
 
     private PonderHarnessCaptures() {}

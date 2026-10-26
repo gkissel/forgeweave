@@ -56,12 +56,21 @@ Until the table above is configured, `release.yml` publishes to GitHub Releases 
 
 ## Release-checklist: screenshot review
 
-Before tagging a release, run `scripts/screenshots.sh` (or `./gradlew runScreenshotHarness` directly)
-to launch a real client, open every M1+ station screen in turn, and write a PNG of each to
-`build/screenshots/`. Eyeball them for layout defects -- three shipped in M1 (issues #75, #85, #89)
-past review that only ever looked at offline PNG compositing, never the actual running game. This is
-a manual step, not a CI gate; it requires a display (or `xvfb` on a headless box -- the script detects
-and uses `xvfb-run` automatically). New screens register themselves in
+Before tagging a release, run `scripts/screenshots-headless.sh`. It starts a private headless sway
+(or Xvfb with `--software`), runs `./gradlew runScreenshotHarness` inside it, and never opens a
+window on your desktop. The client plays in its own game directory, `run/harness`, opens every M1+
+station screen in turn, and writes a PNG of each to `build/screenshots/`. A full run takes about 10
+minutes.
+
+The script exits non-zero when any check fails: a screen that never opened, a scene check, a
+Forgeweave warning or error in the log by the time the world is joined and the creative tabs are
+drawn, a title-screen resource reload that throws, missing-texture pixels in a worn-armor frame, or
+a Ponder scene that ends empty. Known noise goes in `scripts/harness-log-allowlist.txt`.
+`-PharnessNoJei` runs the client without JEI and stops once the world has loaded.
+
+Then look at the PNGs for layout defects. Three shipped in M1 (issues #75, #85, #89) past a review
+that only looked at offline PNG compositing, never the running game. `scripts/screenshots.sh` still
+runs the harness on whatever display you have. New screens register themselves in
 `dev.gkissel.forgeweave.client.ScreenshotHarness`.
 
 Also review the worn armor frames (issues #679, #682): `armor_iron.png` and `armor_cobalt.png` (the

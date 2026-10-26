@@ -18,6 +18,7 @@ import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.logging.LogUtils;
 
 import org.slf4j.Logger;
+import org.slf4j.helpers.MessageFormatter;
 
 import net.minecraft.client.CameraType;
 import net.minecraft.client.KeyMapping;
@@ -103,6 +104,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.emi.EmiScreenshotHarness;
 import dev.gkissel.forgeweave.jei.JeiScreenshotHarness;
+import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.ModifierWorktableMenu; // #1057
 import dev.gkissel.forgeweave.menu.PartBuilderMenu;
 import dev.gkissel.forgeweave.menu.SmelteryMenu;
@@ -166,12 +168,14 @@ public final class ScreenshotHarness {
     private static final String OUTPUT_DIR_PROPERTY = "forgeweave.screenshot_output_dir";
 
     /**
-     * Issue #1086: every frame name that either never became the expected screen within {@link
-     * #SCREEN_READY_TIMEOUT_TICKS} or whose captured panel region failed {@link #checkNotWorldShot}.
-     * Checked by {@link #finishHarness} to decide the process exit code, and printed there so a
-     * failing run names exactly which frames to look at.
+     * Issue #1086: every failed check, one line each -- a frame that never became the expected
+     * screen within {@link #SCREEN_READY_TIMEOUT_TICKS}, a panel region that failed {@link
+     * #checkNotWorldShot}, and every other self-check reported through {@link #failCheck} or {@link
+     * HarnessChecks}. Checked by {@link #finishHarness} to decide the process exit code, and printed
+     * there so a failing run names exactly what to look at. Synchronized because the staging lambdas
+     * report from the server thread.
      */
-    private static final List<String> FAILED_FRAMES = new ArrayList<>();
+    private static final List<String> FAILED_FRAMES = java.util.Collections.synchronizedList(new ArrayList<>());
 
     /**
      * Ceiling on how long {@link #awaitReady} will wait for the expected screen to become current --
@@ -356,6 +360,7 @@ public final class ScreenshotHarness {
     /** Wider than {@link #CASTING_SCENE_SPACING}: a faucet group is a table, a faucet and a tank. */
     private static final int CASTING_SCENE_FAUCET_SPACING = 3;
     /**
+     * Server ticks from the pour to the capture ({@link #settleCastingScene}).
      * Long enough that the ingot-cast pour (one 24-tick transaction) is over and its faucet idle,
      * short enough that the shovel-head pour (two) is still running -- see {@link #placeCastingScene}.
      * The other scenes' {@link #SCREEN_SETTLE_TICKS} is far too short to catch a faucet stopping.
@@ -553,7 +558,7 @@ public final class ScreenshotHarness {
     private static final int WEAPON_SWING_RESET_TICKS = 60;
 
     private enum Stage {
-        AWAIT_TITLE, AWAIT_WORLD, SETTLE_WORLD, PLACE_TANK_SCENE, SETTLE_TANK_SCENE,
+        AWAIT_TITLE, TITLE_RELOAD, AWAIT_WORLD, SETTLE_WORLD, CREATIVE_TABS, PLACE_TANK_SCENE, SETTLE_TANK_SCENE,
         PLACE_TABLE_SCENE, SETTLE_TABLE_SCENE, PLACE_STATION_ITEMS_SCENE, SETTLE_STATION_ITEMS_SCENE,
         PLACE_SMELTERY_SCENE, SETTLE_SMELTERY_SCENE,
         PLACE_CASTING_SCENE, SETTLE_CASTING_SCENE, PLACE_MATERIAL_SCENE, SETTLE_MATERIAL_SCENE,
@@ -609,6 +614,8 @@ public final class ScreenshotHarness {
     private static BlockPos castingSceneStoppedFaucetPos;
     /** #200: the one still mid-pour, so "nothing renders" cannot pass for "the stream stopped". */
     private static BlockPos castingSceneFlowingFaucetPos;
+    /** #200/#204: the server game time both pours started at, set on the server thread; -1 until then. */
+    private static volatile long castingScenePourTick = -1;
     /** Which {@value #MATERIAL_SCENE_COLUMNS}-material group of {@link #M3_2_MATERIALS} is up (#236). */
     private static int materialSceneIndex;
     /** Set by {@link #placeMaterialScene}, checked by {@link #settleMaterialScene} before capture. */
@@ -674,8 +681,10 @@ public final class ScreenshotHarness {
         Minecraft mc = Minecraft.getInstance();
         switch (stage) {
             case AWAIT_TITLE -> awaitTitle(mc);
+            case TITLE_RELOAD -> titleReload(mc);
             case AWAIT_WORLD -> awaitWorld(mc);
             case SETTLE_WORLD -> settleWorld();
+            case CREATIVE_TABS -> creativeTabs(mc);
             case PLACE_TANK_SCENE -> placeTankScene(mc);
             case SETTLE_TANK_SCENE -> settleTankScene(mc);
             case PLACE_TABLE_SCENE -> placeTableScene(mc);
@@ -741,6 +750,28 @@ public final class ScreenshotHarness {
         // #158: a fresh run dir is also a fresh "first world", so vanilla's tutorial toast ("Move with
         // W, A, S and D") floats over the top-right of every world-view capture for its first minute.
         mc.options.tutorialStep = TutorialSteps.NONE;
+        // Checklist line 16: a resource reload on the main menu, before any world exists.
+        HarnessChecks.startTitleReload(mc);
+        advance(Stage.TITLE_RELOAD);
+    }
+
+    /** Ceiling on the title-screen reload and on world creation; minutes, for a software-rendered run. */
+    private static final int LOAD_TIMEOUT_TICKS = 6000;
+
+    private static void titleReload(Minecraft mc) {
+        if (!HarnessChecks.titleReloadDone(mc) && stageTicks < LOAD_TIMEOUT_TICKS) {
+            return;
+        }
+        if (!HarnessChecks.titleReloadDone(mc)) {
+            failCheck("{}title-screen reload FAILED: still running after {} ticks", LOG_PREFIX, stageTicks);
+            finishHarness(mc);
+            advance(Stage.DONE);
+            return;
+        }
+        HarnessChecks.checkTitleReload(mc, FAILED_FRAMES::add);
+        if (!(mc.screen instanceof TitleScreen)) {
+            mc.setScreen(new TitleScreen());
+        }
         LOGGER.info("{}creating flat world '{}'", LOG_PREFIX, LEVEL_NAME);
         LevelSettings levelSettings = new LevelSettings(
                 LEVEL_NAME, GameType.CREATIVE, false, Difficulty.PEACEFUL, true, new GameRules(), WorldDataConfiguration.DEFAULT);
@@ -756,26 +787,77 @@ public final class ScreenshotHarness {
     }
 
     private static void awaitWorld(Minecraft mc) {
+        if (stageTicks >= LOAD_TIMEOUT_TICKS) {
+            failCheck("{}the world never finished loading after {} ticks", LOG_PREFIX, stageTicks);
+            finishHarness(mc);
+            advance(Stage.DONE);
+            return;
+        }
         var server = mc.getSingleplayerServer();
-        if (mc.level == null || mc.player == null || server == null || !server.isReady()) {
+        if (mc.level == null || mc.player == null || server == null || !server.isReady()
+                || server.getPlayerList().getPlayers().isEmpty()) {
             return; // World creation/login is asynchronous; keep polling every tick until it resolves.
         }
-        origin = mc.player.blockPosition();
+        // Every scene is staged on the server off this origin, so it is the server player's spawn
+        // position. The client player only has it once the server's position packet lands; until
+        // then it stands wherever login put it (y=65 over a flat world at y=-60 in one run), which
+        // staged every scene in mid-air and dropped the survival-mode #670 check to its death.
+        BlockPos spawn = server.getPlayerList().getPlayers().get(0).blockPosition();
+        if (!mc.player.blockPosition().equals(spawn)) {
+            return;
+        }
+        origin = spawn;
         LOGGER.info("{}world ready, settling before placing stations at {}", LOG_PREFIX, origin);
         advance(Stage.SETTLE_WORLD);
     }
 
+    /**
+     * Set by the {@code -PharnessNoJei} run (checklist line 7): that run only has to show the client
+     * boots and the world loads without JEI, so it stops after the world-join checks.
+     */
+    private static final String WORLD_ONLY_PROPERTY = "forgeweave.screenshot_harness_world_only";
+
     private static void settleWorld() {
         if (stageTicks >= WORLD_SETTLE_TICKS) {
-            // Issue #804: the JEI captures are at the very end of a run that also plays every
-            // ponder scene, so re-checking a JEI layout costs ten minutes of unrelated capture.
-            // -Dforgeweave.screenshot_harness_jei_only=true jumps straight to them.
-            if (Boolean.getBoolean(JEI_ONLY_PROPERTY)) {
-                advance(Stage.OPEN_JEI);
-                return;
-            }
-            advance(Stage.PLACE_TANK_SCENE);
+            advance(Stage.CREATIVE_TABS);
         }
+    }
+
+    /** Which Forgeweave creative tab {@link #creativeTabs} has open. */
+    private static int creativeTabIndex;
+
+    /**
+     * Checklist line 8: every Forgeweave creative tab drawn once in the real creative inventory, then
+     * a scan of this run's own log for Forgeweave warnings and errors. Entering the world and opening
+     * the creative tabs are the two moments the checklist names.
+     */
+    private static void creativeTabs(Minecraft mc) {
+        if (stageTicks < HarnessChecks.CREATIVE_TAB_TICKS) {
+            return;
+        }
+        if (HarnessChecks.showCreativeTab(mc, creativeTabIndex)) {
+            creativeTabIndex++;
+            stageTicks = 0;
+            return;
+        }
+        HarnessChecks.scanLogForForgeweaveProblems(mc, FAILED_FRAMES::add);
+        if (Boolean.getBoolean(WORLD_ONLY_PROPERTY)) {
+            if (ModList.get().isLoaded("jei")) {
+                failCheck("{}the no-JEI run has JEI loaded; check build.gradle's harnessNoJei switch", LOG_PREFIX);
+            }
+            LOGGER.info("{}world-only run: the world loaded at {}, exiting", LOG_PREFIX, origin);
+            finishHarness(mc);
+            advance(Stage.DONE);
+            return;
+        }
+        // Issue #804: the JEI captures are at the very end of a run that also plays every
+        // ponder scene, so re-checking a JEI layout costs ten minutes of unrelated capture.
+        // -Dforgeweave.screenshot_harness_jei_only=true jumps straight to them.
+        if (Boolean.getBoolean(JEI_ONLY_PROPERTY)) {
+            advance(Stage.OPEN_JEI);
+            return;
+        }
+        advance(Stage.PLACE_TANK_SCENE);
     }
 
     /**
@@ -857,17 +939,17 @@ public final class ScreenshotHarness {
             try {
                 var block = mc.level.getBlockState(pos).getBlock();
                 if (block == Blocks.AIR) {
-                    LOGGER.error("{}#145 scene check FAILED: client sees air at {}, expected a seared tank "
+                    failCheck("{}#145 scene check FAILED: client sees air at {}, expected a seared tank "
                             + "block -- placement or client sync did not land before capture", LOG_PREFIX, pos);
                 } else if (mc.level.getBlockEntity(pos) instanceof SearedTankBlockEntity tank) {
                     LOGGER.info("{}#145 scene check: client sees {} at {}, fluid {}/{} mB", LOG_PREFIX, block, pos,
                             tank.tank().getFluidAmount(), tank.tank().getCapacity());
                 } else {
-                    LOGGER.error("{}#145 scene check FAILED: client sees {} at {} but no SearedTankBlockEntity",
+                    failCheck("{}#145 scene check FAILED: client sees {} at {} but no SearedTankBlockEntity",
                             LOG_PREFIX, block, pos);
                 }
             } catch (RuntimeException e) {
-                LOGGER.error("{}#145 scene check FAILED: exception checking {}", LOG_PREFIX, pos, e);
+                failCheck("{}#145 scene check FAILED: exception checking {}", LOG_PREFIX, pos, e);
             }
         }
     }
@@ -938,12 +1020,12 @@ public final class ScreenshotHarness {
             for (BlockPos pos : tableScenePositions) {
                 var block = mc.level.getBlockState(pos).getBlock();
                 if (block == Blocks.AIR) {
-                    LOGGER.error("{}#152 scene check FAILED: client sees air at {}", LOG_PREFIX, pos);
+                    failCheck("{}#152 scene check FAILED: client sees air at {}", LOG_PREFIX, pos);
                 } else if (mc.level.getBlockEntity(pos) instanceof ToolStationBlockEntity table) {
                     LOGGER.info("{}#152 scene check: client sees {} at {}, texture {}, forge={}",
                             LOG_PREFIX, block, pos, table.getTexture(), table.isForge());
                 } else {
-                    LOGGER.error("{}#152 scene check FAILED: client sees {} at {} but no table block entity",
+                    failCheck("{}#152 scene check FAILED: client sees {} at {} but no table block entity",
                             LOG_PREFIX, block, pos);
                 }
             }
@@ -1006,9 +1088,9 @@ public final class ScreenshotHarness {
             for (BlockPos pos : stationItemsScenePositions) {
                 var block = mc.level.getBlockState(pos).getBlock();
                 if (block == Blocks.AIR) {
-                    LOGGER.error("{}#795 scene check FAILED: client sees air at {}", LOG_PREFIX, pos);
+                    failCheck("{}#795 scene check FAILED: client sees air at {}", LOG_PREFIX, pos);
                 } else if (mc.level.getBlockEntity(pos) == null) {
-                    LOGGER.error("{}#795 scene check FAILED: client sees {} at {} but no block entity",
+                    failCheck("{}#795 scene check FAILED: client sees {} at {} but no block entity",
                             LOG_PREFIX, block, pos);
                 } else {
                     LOGGER.info("{}#795 scene check: client sees {} at {}", LOG_PREFIX, block, pos);
@@ -1047,7 +1129,7 @@ public final class ScreenshotHarness {
             // same structure; buildSmeltery puts the interior on the north (-Z) side of the core.
             SmelteryControllerBlockEntity controller = buildSmeltery(level, corePos, 1, 3);
             if (controller == null) {
-                LOGGER.error("{}#179 scene FAILED: no controller block entity at {}", LOG_PREFIX, corePos);
+                failCheck("{}#179 scene FAILED: no controller block entity at {}", LOG_PREFIX, corePos);
                 return;
             }
             // A little over half full, in two metals: the lower (iron) band is much the thicker one,
@@ -1085,11 +1167,11 @@ public final class ScreenshotHarness {
                         LOG_PREFIX, controller.structure(), controller.tank().getFluidAmount(),
                         controller.tank().getCapacity(), controller.tank().fluids().size());
                 if (controller.structure() == null || controller.tank().fluids().isEmpty()) {
-                    LOGGER.error("{}#179 scene check FAILED: client-side smeltery is unformed or empty, so the "
+                    failCheck("{}#179 scene check FAILED: client-side smeltery is unformed or empty, so the "
                             + "capture cannot show a pool no matter what the renderer does", LOG_PREFIX);
                 }
             } else {
-                LOGGER.error("{}#179 scene check FAILED: client sees no smeltery controller at {}",
+                failCheck("{}#179 scene check FAILED: client sees no smeltery controller at {}",
                         LOG_PREFIX, smelteryScenePos);
             }
         }
@@ -1160,6 +1242,7 @@ public final class ScreenshotHarness {
             // A shovel-head cast wants two, so this one is still running.
             castingSceneFlowingFaucetPos = pourInto(level, serverPlayer, flowingTable,
                     ForgeweaveItems.CAST_SHOVEL_HEAD.get());
+            castingScenePourTick = level.getGameTime();
 
             // South of the row and up, looking north: +X reads left to right in the frame that way,
             // and looking down is the only way an open-topped block shows what is lying in it.
@@ -1219,9 +1302,20 @@ public final class ScreenshotHarness {
     }
 
     private static void settleCastingScene(Minecraft mc) {
-        if (stageTicks < CASTING_SCENE_SETTLE_TICKS) {
+        // Counted in server ticks from the pour, not client ticks from scheduling it: the faucets run
+        // on the server, and the client's tick count drifts from it whenever either side stalls
+        // (placing this scene, a slow frame). That drift can put the capture on the wrong side of
+        // one pour or the other, and #200 and #204 then fail on a good build.
+        long pourTick = castingScenePourTick;
+        boolean settled = pourTick >= 0
+                && mc.getSingleplayerServer().overworld().getGameTime() >= pourTick + CASTING_SCENE_SETTLE_TICKS;
+        if (!settled && stageTicks < SCREEN_READY_TIMEOUT_TICKS) {
             return;
         }
+        if (!settled) {
+            failCheck("{}#182 scene FAILED: the pours never started after {} ticks", LOG_PREFIX, stageTicks);
+        }
+        castingScenePourTick = -1;
         // Same self-diagnosing check the other two world scenes do: a PNG cannot tell "rendered
         // nothing" apart from "there was nothing to render", and #182 is exactly that distinction.
         if (mc.level != null && castingScenePositions != null) {
@@ -1232,7 +1326,7 @@ public final class ScreenshotHarness {
                             LOG_PREFIX, block, pos, casting.input(), casting.output(),
                             casting.tank().getFluidAmount(), casting.tank().getCapacity());
                 } else {
-                    LOGGER.error("{}#182 scene check FAILED: client sees {} at {} but no casting block entity",
+                    failCheck("{}#182 scene check FAILED: client sees {} at {} but no casting block entity",
                             LOG_PREFIX, block, pos);
                 }
             }
@@ -1292,6 +1386,13 @@ public final class ScreenshotHarness {
 
             for (int i = 0; i < group.size(); i++) {
                 String materialName = group.get(i);
+                if (!materialRegistered(serverPlayer.registryAccess(), materialName)) {
+                    // bronze, lead, silver and electrum ship behind neoforge:conditions on a
+                    // partner mod's ingot; without it they do not exist, so their column stays empty.
+                    LOGGER.info("{}#236 scene: {} is not registered in this pack, leaving its column empty",
+                            LOG_PREFIX, materialName);
+                    continue;
+                }
                 BlockPos topWall = wallBase.offset(i, 2, 0);
                 BlockPos bottomWall = wallBase.offset(i, 1, 0);
                 level.setBlockAndUpdate(topWall, Blocks.SMOOTH_STONE.defaultBlockState());
@@ -1304,7 +1405,7 @@ public final class ScreenshotHarness {
                 ItemStack tool = assembleForDisplay(serverPlayer,
                         ForgeweaveItems.TOOL_PICKAXE.get(), materialName);
                 if (tool.isEmpty()) {
-                    LOGGER.error("{}#236 scene FAILED: could not assemble a {} pickaxe",
+                    failCheck("{}#236 scene FAILED: could not assemble a {} pickaxe",
                             LOG_PREFIX, materialName);
                 }
                 hangFrame(level, bottomWall.south(), tool);
@@ -1343,9 +1444,10 @@ public final class ScreenshotHarness {
                     .sorted(java.util.Comparator.comparingDouble((ItemFrame f) -> f.getX())
                             .thenComparing(f -> -f.getY()))
                     .toList();
-            int expected = 2 * group.size();
+            RegistryAccess registries = mc.getSingleplayerServer().registryAccess();
+            int expected = 2 * (int) group.stream().filter(name -> materialRegistered(registries, name)).count();
             if (frames.size() != expected) {
-                LOGGER.error("{}#236 scene check FAILED: client sees {} item frames in {}, expected {}",
+                failCheck("{}#236 scene check FAILED: client sees {} item frames in {}, expected {}",
                         LOG_PREFIX, frames.size(), materialSceneBounds, expected);
             }
             for (ItemFrame frame : frames) {
@@ -1353,7 +1455,7 @@ public final class ScreenshotHarness {
                 Object materialId = item.get(ForgeweaveDataComponents.MATERIAL.get());
                 Object toolMaterials = item.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
                 if (item.isEmpty() || (materialId == null && toolMaterials == null)) {
-                    LOGGER.error("{}#236 scene check FAILED: frame at {} holds {} with no material "
+                    failCheck("{}#236 scene check FAILED: frame at {} holds {} with no material "
                             + "component -- it renders untinted", LOG_PREFIX, frame.blockPosition(), item);
                 } else {
                     LOGGER.info("{}#236 scene check: frame at {} holds {} material={}", LOG_PREFIX,
@@ -1399,7 +1501,7 @@ public final class ScreenshotHarness {
 
             for (int i = 0; i < stacks.size(); i++) {
                 if (stacks.get(i).isEmpty()) {
-                    LOGGER.error("{}#256 scene FAILED: stack {} is empty", LOG_PREFIX, i);
+                    failCheck("{}#256 scene FAILED: stack {} is empty", LOG_PREFIX, i);
                 }
                 BlockPos wall = wallBase.offset(i, 1, 0);
                 level.setBlockAndUpdate(wall, Blocks.SMOOTH_STONE.defaultBlockState());
@@ -1425,7 +1527,7 @@ public final class ScreenshotHarness {
         if (mc.level != null && partTintSceneBounds != null) {
             List<ItemFrame> frames = mc.level.getEntitiesOfClass(ItemFrame.class, partTintSceneBounds);
             if (frames.size() != 4) {
-                LOGGER.error("{}#256 scene check FAILED: client sees {} item frames in {}, expected 4",
+                failCheck("{}#256 scene check FAILED: client sees {} item frames in {}, expected 4",
                         LOG_PREFIX, frames.size(), partTintSceneBounds);
             }
             for (ItemFrame frame : frames) {
@@ -1433,7 +1535,7 @@ public final class ScreenshotHarness {
                 Object materialId = item.get(ForgeweaveDataComponents.MATERIAL.get());
                 Object toolMaterials = item.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
                 if (item.isEmpty() || (materialId == null && toolMaterials == null)) {
-                    LOGGER.error("{}#256 scene check FAILED: frame at {} holds {} with no material "
+                    failCheck("{}#256 scene check FAILED: frame at {} holds {} with no material "
                             + "component -- it renders untinted", LOG_PREFIX, frame.blockPosition(), item);
                 } else {
                     LOGGER.info("{}#256 scene check: frame at {} holds {} material={}", LOG_PREFIX,
@@ -1522,7 +1624,7 @@ public final class ScreenshotHarness {
             for (BlockPos pos : glassScenePositions) {
                 BlockState state = mc.level.getBlockState(pos);
                 if (state.isAir()) {
-                    LOGGER.error("{}#951 scene check FAILED: client sees air at {}", LOG_PREFIX, pos);
+                    failCheck("{}#951 scene check FAILED: client sees air at {}", LOG_PREFIX, pos);
                 } else {
                     LOGGER.info("{}#951 scene check: client sees {} at {}, tint {}, connected {}",
                             LOG_PREFIX, BuiltInRegistries.BLOCK.getKey(state.getBlock()), pos,
@@ -1574,7 +1676,7 @@ public final class ScreenshotHarness {
             ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
             ItemStack stack = assembleForDisplay(serverPlayer, weapon);
             if (stack.isEmpty()) {
-                LOGGER.error("{}#155 scene check FAILED: could not assemble {}", LOG_PREFIX, weaponName(weapon));
+                failCheck("{}#155 scene check FAILED: could not assemble {}", LOG_PREFIX, weaponName(weapon));
             }
             if (modified) {
                 stack.set(ForgeweaveDataComponents.MODIFIERS.get(), MODIFIED_WEAPON_MODIFIERS);
@@ -1608,7 +1710,7 @@ public final class ScreenshotHarness {
         if (mc.player != null) {
             ItemStack held = mc.player.getMainHandItem();
             if (held.isEmpty() || !held.is(weapon)) {
-                LOGGER.error("{}#155 scene check FAILED: client sees {} in hand, expected {}",
+                failCheck("{}#155 scene check FAILED: client sees {} in hand, expected {}",
                         LOG_PREFIX, held, weaponName(weapon));
             } else {
                 LOGGER.info("{}#155 scene check: client holds {} with materials {} modifiers {}", LOG_PREFIX,
@@ -1652,7 +1754,7 @@ public final class ScreenshotHarness {
             return;
         }
         if (mc.player != null && !mc.player.getOffhandItem().is(currentWeapon())) {
-            LOGGER.error("{}#699 scene check FAILED: client sees {} in off-hand, expected {}",
+            failCheck("{}#699 scene check FAILED: client sees {} in off-hand, expected {}",
                     LOG_PREFIX, mc.player.getOffhandItem(), currentWeaponFileName());
         }
         capture(mc, "weapon_" + currentWeaponFileName() + "_offhand_firstperson");
@@ -1700,7 +1802,7 @@ public final class ScreenshotHarness {
             for (Supplier<ArmorPieceItem> piece : scene.pieces()) {
                 ItemStack stack = assembleForDisplay(serverPlayer, piece.get(), scene.material());
                 if (stack.isEmpty()) {
-                    LOGGER.error("{}#679 scene check FAILED: could not assemble {} {}", LOG_PREFIX,
+                    failCheck("{}#679 scene check FAILED: could not assemble {} {}", LOG_PREFIX,
                             scene.material(), weaponName(piece.get()));
                 }
                 serverPlayer.setItemSlot(piece.get().getEquipmentSlot(), stack);
@@ -1723,7 +1825,7 @@ public final class ScreenshotHarness {
             for (Supplier<ArmorPieceItem> piece : scene.pieces()) {
                 ItemStack worn = mc.player.getItemBySlot(piece.get().getEquipmentSlot());
                 if (!worn.is(piece.get())) {
-                    LOGGER.error("{}#679 scene check FAILED: client wears {} where {} was expected", LOG_PREFIX, worn,
+                    failCheck("{}#679 scene check FAILED: client wears {} where {} was expected", LOG_PREFIX, worn,
                             weaponName(piece.get()));
                 } else {
                     LOGGER.info("{}#679 scene check: client wears {} with materials {}", LOG_PREFIX,
@@ -1864,7 +1966,7 @@ public final class ScreenshotHarness {
             ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
             ItemStack stack = assembleForDisplay(serverPlayer, bow);
             if (stack.isEmpty()) {
-                LOGGER.error("{}#400 scene check FAILED: could not assemble {}", LOG_PREFIX, pose.fileName());
+                failCheck("{}#400 scene check FAILED: could not assemble {}", LOG_PREFIX, pose.fileName());
             }
             if (pose.loaded()) {
                 CrossbowItem.setLoaded(stack, true);
@@ -1898,7 +2000,7 @@ public final class ScreenshotHarness {
         BowItem bow = pose.bow().get();
         ItemStack held = mc.player.getMainHandItem();
         if (held.isEmpty() || !held.is(bow)) {
-            LOGGER.error("{}#400 scene check FAILED: client sees {} in hand, expected {}",
+            failCheck("{}#400 scene check FAILED: client sees {} in hand, expected {}",
                     LOG_PREFIX, held, bowPoseFileName());
             capture(mc, bowPoseFileName() + "_firstperson");
             nextBowPose(mc);
@@ -1920,14 +2022,14 @@ public final class ScreenshotHarness {
                 case WAIT -> {
                     return;
                 }
-                case TIMED_OUT -> LOGGER.error("{}#400 scene check FAILED: {} timed out after {} ticks"
+                case TIMED_OUT -> failCheck("{}#400 scene check FAILED: {} timed out after {} ticks"
                         + " (using={}, pull {}, stage {}, wanted {})", LOG_PREFIX, pose.fileName(), stageTicks,
                         mc.player.isUsingItem(), pull, reached, pose.drawStage());
                 case CAPTURE -> LOGGER.info("{}#400 scene check: {} is at pull {} (stage {}, wanted {})",
                         LOG_PREFIX, pose.fileName(), pull, reached, pose.drawStage());
             }
             if (reached != pose.drawStage()) {
-                LOGGER.error("{}#400 scene check FAILED: {} settled at stage {} rather than {} -- the"
+                failCheck("{}#400 scene check FAILED: {} settled at stage {} rather than {} -- the"
                         + " capture shows the wrong draw art no matter what the renderer does",
                         LOG_PREFIX, pose.fileName(), reached, pose.drawStage());
             }
@@ -2018,6 +2120,11 @@ public final class ScreenshotHarness {
         return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name);
     }
 
+    /** Whether the material datapack registry holds {@code name} in this run (#236's wall). */
+    private static boolean materialRegistered(RegistryAccess registries, String name) {
+        return registries.registryOrThrow(Material.REGISTRY).containsKey(material(name));
+    }
+
     private static String weaponName(Item weapon) {
         return BuiltInRegistries.ITEM.getKey(weapon).getPath();
     }
@@ -2028,13 +2135,13 @@ public final class ScreenshotHarness {
             return;
         }
         if (!(mc.level.getBlockEntity(pos) instanceof FaucetBlockEntity faucet)) {
-            LOGGER.error("{}#200 scene check FAILED: no faucet block entity at {}", LOG_PREFIX, pos);
+            failCheck("{}#200 scene check FAILED: no faucet block entity at {}", LOG_PREFIX, pos);
             return;
         }
         LOGGER.info("{}#200 scene check: client sees faucet at {} pouring={} buffered={} (expected pouring={})",
                 LOG_PREFIX, pos, faucet.isPouring(), faucet.buffered(), expectPouring);
         if (faucet.isPouring() != expectPouring) {
-            LOGGER.error("{}#200 scene check FAILED: faucet at {} is pouring={} on the client, expected {} -- "
+            failCheck("{}#200 scene check FAILED: faucet at {} is pouring={} on the client, expected {} -- "
                     + "the capture cannot show the right thing no matter what the renderer does",
                     LOG_PREFIX, pos, faucet.isPouring(), expectPouring);
         }
@@ -2053,7 +2160,7 @@ public final class ScreenshotHarness {
         LOGGER.info("{}#204 scene check: client sees the part-cast table at {} at {}/{} mB (expected a fraction of {})",
                 LOG_PREFIX, pos, amount, capacity, CASTING_SCENE_PART_CAST_AMOUNT);
         if (capacity != CASTING_SCENE_PART_CAST_AMOUNT || amount <= 0 || amount >= capacity) {
-            LOGGER.error("{}#204 scene check FAILED: the part-cast table at {} reads {}/{} mB on the client, "
+            failCheck("{}#204 scene check FAILED: the part-cast table at {} reads {}/{} mB on the client, "
                     + "expected a partial pour out of {} -- it will render as a full table",
                     LOG_PREFIX, pos, amount, capacity, CASTING_SCENE_PART_CAST_AMOUNT);
         }
@@ -2145,9 +2252,8 @@ public final class ScreenshotHarness {
         if (stageTicks < SCREEN_READY_TIMEOUT_TICKS) {
             return false;
         }
-        LOGGER.error("{}{} never became the current screen after {} ticks; capturing whatever is showing",
+        failCheck("{}{} never became the current screen after {} ticks; capturing whatever is showing",
                 LOG_PREFIX, fileName, stageTicks);
-        FAILED_FRAMES.add(fileName);
         return true;
     }
 
@@ -2218,9 +2324,15 @@ public final class ScreenshotHarness {
         }
         PonderHarnessCaptures.Capture capture = PonderHarnessCaptures.CAPTURES.get(ponderCaptureIndex);
         if (!PonderHarnessCaptures.finished(mc)) {
-            LOGGER.error("{}ponder scene {} never reached its finished frame; capturing it as is", LOG_PREFIX,
+            failCheck("{}ponder scene {} never reached its finished frame; capturing it as is", LOG_PREFIX,
                     capture.fileName());
-            FAILED_FRAMES.add(capture.fileName()); // #1086: a timed-out ponder scene fails the run too.
+        }
+        // Checklist line 4: no empty scene. A schematic that failed to load still "finishes".
+        int blocks = PonderHarnessCaptures.visibleBlockCount(mc);
+        if (blocks == 0) {
+            failCheck("{}ponder scene {} ends with no blocks in it", LOG_PREFIX, capture.fileName());
+        } else {
+            LOGGER.info("{}ponder scene {} ends with {} blocks", LOG_PREFIX, capture.fileName(), blocks);
         }
         capture(mc, capture.fileName());
         if (mc.screen != null) {
@@ -2269,13 +2381,11 @@ public final class ScreenshotHarness {
                 if (stageTicks < EMI_RELOAD_TIMEOUT_TICKS) {
                     return;
                 }
-                LOGGER.error("{}EMI never finished reloading, capturing {} as is", LOG_PREFIX, fileName);
-                FAILED_FRAMES.add(fileName);
+                failCheck("{}EMI never finished reloading, capturing {} as is", LOG_PREFIX, fileName);
             }
             EmiScreenshotHarness.openCategory(jeiCaptureIndex);
         } else if (!JeiScreenshotHarness.openCategory(jeiCaptureIndex)) {
-            LOGGER.error("{}JEI runtime not available, skipping {}", LOG_PREFIX, fileName);
-            FAILED_FRAMES.add(fileName);
+            failCheck("{}JEI runtime not available, skipping {}", LOG_PREFIX, fileName);
             jeiCaptureIndex++;
             return;
         }
@@ -2340,12 +2450,16 @@ public final class ScreenshotHarness {
         NativeImage image = Screenshot.takeScreenshot(mc.getMainRenderTarget());
         try {
             if (!isExpectedFrameShape(image.getWidth(), image.getHeight())) {
-                LOGGER.error("{}#712 scene check FAILED: {} captured at {}x{}, expected the {}x{} window from build.gradle"
+                failCheck("{}#712 scene check FAILED: {} captured at {}x{}, expected the {}x{} window from build.gradle"
                         + " -- the window manager resized the client; first-person poses at the frame edge are cut off",
                         LOG_PREFIX, fileName, image.getWidth(), image.getHeight(), EXPECTED_FRAME_WIDTH, EXPECTED_FRAME_HEIGHT);
             }
             if (panelScreen != null) {
                 checkNotWorldShot(image, mc, fileName, panelScreen);
+            }
+            // Checklist line 3: the worn-armor frames (ARMOR_SCENES) must show no missing texture.
+            if (fileName.startsWith("armor_")) {
+                HarnessChecks.checkNoMissingTexture(image, fileName, FAILED_FRAMES::add);
             }
             File dir = outputDir(mc);
             dir.mkdirs();
@@ -2353,7 +2467,7 @@ public final class ScreenshotHarness {
             image.writeToFile(file);
             LOGGER.info("{}wrote {}", LOG_PREFIX, file.getAbsolutePath());
         } catch (IOException e) {
-            LOGGER.error("{}failed to write {}", LOG_PREFIX, fileName, e);
+            failCheck("{}failed to write {}", LOG_PREFIX, fileName, e);
         } finally {
             image.close();
         }
@@ -2396,10 +2510,9 @@ public final class ScreenshotHarness {
         }
         double stdDev = sampleLuminanceStdDev(image, left, top, width, height);
         if (stdDev < WORLD_SHOT_STDDEV_THRESHOLD) {
-            LOGGER.error("{}#1086 self-check FAILED: {}'s panel region ({}x{} at {},{}) reads as a near-uniform "
+            failCheck("{}#1086 self-check FAILED: {}'s panel region ({}x{} at {},{}) reads as a near-uniform "
                     + "color (luminance stddev {}) -- this looks like a world shot, not a rendered GUI panel",
                     LOG_PREFIX, fileName, width, height, left, top, stdDev);
-            FAILED_FRAMES.add(fileName);
         }
     }
 
@@ -2446,7 +2559,7 @@ public final class ScreenshotHarness {
             field.setAccessible(true);
             return field;
         } catch (ReflectiveOperationException e) {
-            LOGGER.error("{}#1086 self-check: AbstractContainerScreen has no '{}' field any more; the "
+            failCheck("{}#1086 self-check: AbstractContainerScreen has no '{}' field any more; the "
                     + "world-shot self-check is disabled for every screen capture", LOG_PREFIX, name, e);
             return null;
         }
@@ -2464,7 +2577,7 @@ public final class ScreenshotHarness {
                 CONTAINER_LEFT_POS_FIELD.getInt(screen), CONTAINER_TOP_POS_FIELD.getInt(screen),
                 CONTAINER_IMAGE_WIDTH_FIELD.getInt(screen), CONTAINER_IMAGE_HEIGHT_FIELD.getInt(screen)};
         } catch (IllegalAccessException e) {
-            LOGGER.error("{}#1086 self-check: could not read {}'s bounds fields", LOG_PREFIX, screen.getClass().getSimpleName(), e);
+            failCheck("{}#1086 self-check: could not read {}'s bounds fields", LOG_PREFIX, screen.getClass().getSimpleName(), e);
             return null;
         }
     }
@@ -2484,11 +2597,21 @@ public final class ScreenshotHarness {
     private static void finishHarness(Minecraft mc) {
         mc.stop();
         if (FAILED_FRAMES.isEmpty()) {
-            LOGGER.info("{}every frame captured cleanly", LOG_PREFIX);
+            LOGGER.info("{}every frame captured cleanly and every self-check passed", LOG_PREFIX);
             return;
         }
-        LOGGER.error("{}{} frame(s) failed: {}", LOG_PREFIX, FAILED_FRAMES.size(), String.join(", ", FAILED_FRAMES));
+        LOGGER.error("{}{} check(s) failed:\n  {}", LOG_PREFIX, FAILED_FRAMES.size(), String.join("\n  ", FAILED_FRAMES));
         System.exit(1);
+    }
+
+    /**
+     * Logs a failed self-check and fails the run: every check in this harness reports through here,
+     * so a scene check is a gate, not a log line someone has to go looking for. Safe from the server
+     * thread, where the staging lambdas run.
+     */
+    private static void failCheck(String format, Object... args) {
+        LOGGER.error(format, args);
+        FAILED_FRAMES.add(MessageFormatter.arrayFormat(format, args).getMessage().replace(LOG_PREFIX, ""));
     }
 
     private static void advance(Stage next) {
@@ -2503,6 +2626,10 @@ public final class ScreenshotHarness {
             ForgeweaveItems.TOOL_SHORTBOW, ForgeweaveItems.TOOL_LONGBOW, ForgeweaveItems.TOOL_CROSSBOW);
     /** Long enough for every one of {@link #FIRE_BOWS} at iron/wood stats (crossbow: 0.5 x 100 / 45 > 1). */
     private static final int FIRE_BOW_DRAW_TICKS = 100;
+    /** Arrows staged per launcher; a good shot leaves one fewer. */
+    private static final int FIRE_BOW_AMMO = 16;
+    /** Blocks ahead of the player's feet where the test shot aims, on the ground. */
+    private static final int FIRE_BOW_AIM_DISTANCE = 3;
     private static int fireBowIndex;
 
     /**
@@ -2527,11 +2654,17 @@ public final class ScreenshotHarness {
             serverPlayer.setGameMode(GameType.SURVIVAL);
             serverPlayer.setItemInHand(InteractionHand.MAIN_HAND, assembleForDisplay(serverPlayer, bow));
             serverPlayer.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
-            serverPlayer.getInventory().setItem(9, new ItemStack(Items.ARROW, 16));
+            serverPlayer.getInventory().setItem(9, new ItemStack(Items.ARROW, FIRE_BOW_AMMO));
             BlockPos stand = origin.offset(0, 0, -WEAPON_SCENE_DISTANCE);
             serverPlayer.teleportTo(stand.getX() + 0.5, stand.getY(), stand.getZ() + 0.5);
-            serverPlayer.setYRot(180.0F);
-            serverPlayer.setXRot(-20.0F);
+            // Aimed at the ground a few blocks north, so the arrow sticks where fireBowCheck counts
+            // it. lookAt, not setXRot/setYRot: the use packet carries the client's rotation and the
+            // server adopts it, and teleportTo keeps the client's rotation, so a server-only
+            // rotation never reached the shot. The arrow flew wherever the previous scene's camera
+            // pointed, and a full-draw longbow or crossbow arrow was still in the air past the
+            // 64-block search box at check time: a good shot read as "no arrow".
+            serverPlayer.lookAt(EntityAnchorArgument.Anchor.EYES,
+                    new Vec3(stand.getX() + 0.5, stand.getY(), stand.getZ() + 0.5 - FIRE_BOW_AIM_DISTANCE));
         });
         advance(Stage.FIRE_BOW_DRAW);
     }
@@ -2580,10 +2713,14 @@ public final class ScreenshotHarness {
             List<AbstractArrow> arrows = serverPlayer.serverLevel().getEntitiesOfClass(AbstractArrow.class,
                     serverPlayer.getBoundingBox().inflate(64.0));
             int ammo = serverPlayer.getInventory().countItem(Items.ARROW);
-            String verdict = arrows.size() == 1 && !clientUsing && !serverPlayer.isUsingItem() ? "OK" : "FAILED";
-            LOGGER.info("{}#670 fire check {}: {} -> arrows={} ammoLeft={} serverUsing={} clientUsing={} held={}",
-                    LOG_PREFIX, verdict, name, arrows.size(), ammo, serverPlayer.isUsingItem(), clientUsing,
-                    serverPlayer.getMainHandItem());
+            if (arrows.size() == 1 && ammo == FIRE_BOW_AMMO - 1 && !clientUsing && !serverPlayer.isUsingItem()) {
+                LOGGER.info("{}#670 fire check OK: {} -> arrows={} ammoLeft={} held={}", LOG_PREFIX, name,
+                        arrows.size(), ammo, serverPlayer.getMainHandItem());
+            } else {
+                failCheck("{}#670 fire check FAILED: {} -> arrows={} ammoLeft={} serverUsing={} clientUsing={} held={}",
+                        LOG_PREFIX, name, arrows.size(), ammo, serverPlayer.isUsingItem(), clientUsing,
+                        serverPlayer.getMainHandItem());
+            }
             arrows.forEach(AbstractArrow::discard);
         });
         fireBowIndex++;

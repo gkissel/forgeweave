@@ -1,0 +1,6 @@
+# Log lines the screenshot harness's log scan ignores (client/HarnessChecks.java).
+#
+# The scan fails the run on any WARN or ERROR line in the harness's own logs/latest.log that names
+# Forgeweave: a forgeweave logger, or "forgeweave" anywhere in the line. List known noise here, one
+# Java regular expression per line, matched anywhere in the log line. Keep each entry narrow and say
+# why it is here, so it can be deleted the day the noise goes away.
