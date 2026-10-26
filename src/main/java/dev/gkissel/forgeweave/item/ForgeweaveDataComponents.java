@@ -12,8 +12,6 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
 
-import net.minecraft.world.item.component.ItemContainerContents;
-
 import net.neoforged.neoforge.fluids.SimpleFluidContent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -22,6 +20,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.api.trait.Trait;
 import dev.gkissel.forgeweave.combat.DamageRamp;
+import dev.gkissel.forgeweave.compat.apotheosis.GemSockets;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ArmorStats;
 import dev.gkissel.forgeweave.tool.LauncherStats;
@@ -443,12 +442,11 @@ public final class ForgeweaveDataComponents {
      * of this component, so absent means no gems -- and, since a tool with no {@code socketed} entry
      * has no sockets either, no migration and no backfill: tools built before M8 start with none.
      *
-     * <p>Vanilla's own {@link ItemContainerContents} rather than a bare {@code List<ItemStack>},
-     * which is also what Apotheosis stores its own sockets in: a raw list would give the component
-     * no usable {@code equals}, and two otherwise-identical tools would stop counting as the same
-     * item. Its codec drops empty sockets and its indices survive the round trip, so a gem in socket
-     * three with sockets one and two empty decodes back into socket three
-     * ({@code ApotheosisSocketTest}).
+     * <p>{@link GemSockets} saves in vanilla {@code ItemContainerContents}' shape, the one Apotheosis
+     * uses for its own sockets: empty sockets are dropped and each gem keeps its slot index, so a gem
+     * in socket three with sockets one and two empty decodes back into socket three
+     * ({@code ApotheosisSocketTest}). A gem whose mod is missing stays in it as raw saved data rather
+     * than being dropped (see that class).
      *
      * <p>Socket contents are <b>Forgeweave state</b>, deliberately not Apotheosis'
      * {@code apotheosis:socketed_gems}: a save made with the integration on still loads with it off,
@@ -456,10 +454,9 @@ public final class ForgeweaveDataComponents {
      * ({@code ApotheosisSocketGameTests}). Save-compat fixture:
      * {@code fixtures/save_compat/m8_socketed.snbt}.
      */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ItemContainerContents>> SOCKETS =
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<GemSockets>> SOCKETS =
             DATA_COMPONENTS.registerComponentType("sockets",
-                    builder -> builder.persistent(ItemContainerContents.CODEC)
-                            .networkSynchronized(ItemContainerContents.STREAM_CODEC));
+                    builder -> builder.persistent(GemSockets.CODEC).networkSynchronized(GemSockets.STREAM_CODEC));
 
     private ForgeweaveDataComponents() {}
 }

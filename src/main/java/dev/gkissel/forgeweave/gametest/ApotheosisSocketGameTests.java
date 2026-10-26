@@ -5,9 +5,17 @@ import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.TagParser;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -16,7 +24,6 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.level.GameType;
 
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -24,6 +31,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
+import dev.gkissel.forgeweave.compat.apotheosis.GemSockets;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
@@ -180,7 +188,7 @@ public class ApotheosisSocketGameTests {
                 .orElse(ItemStack.EMPTY));
         helper.assertFalse(seated.isEmpty(), "setup: the gem must seat while the bridge is installed");
 
-        ItemContainerContents stored = seated.get(ForgeweaveDataComponents.SOCKETS.get());
+        GemSockets stored = seated.get(ForgeweaveDataComponents.SOCKETS.get());
         helper.assertTrue(stored != null, "setup: the socket component must be there");
 
         // No bridge is what an install with the integration off -- or with Apotheosis absent -- has.
@@ -205,6 +213,62 @@ public class ApotheosisSocketGameTests {
     }
 
     // ---------------------------------------------------------------- helpers
+
+    /**
+     * The 1.0.0 data-loss bug the compat matrix found (pack g9's {@code without} pass): a gem whose mod
+     * is missing used to be dropped on load. Now it stays as raw saved data, fills its socket so the
+     * station seats nothing over it, grants nothing, shows a neutral tooltip line, and survives a
+     * save. Apotheosis is not on this classpath, so {@code apotheosis:gem} is unknown here, which is
+     * exactly the {@code without} pass.
+     */
+    @GameTest(template = "empty")
+    public static void aGemWhoseModIsMissingFillsItsSocketAndGrantsNothing(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack tool = apply(helper,
+                ToolAssembly.pickaxe(helper, player, POS, "iron", "wood", "wood"), sigil(1));
+        RegistryAccess registries = helper.getLevel().registryAccess();
+        GemSockets missing = GemSockets.CODEC
+                .parse(registries.createSerializationContext(NbtOps.INSTANCE), missingGemSockets())
+                .getOrThrow(AssertionError::new);
+        helper.assertTrue(missing.gems().nonEmptyStream().findAny().isEmpty() && missing.unreadable().size() == 1,
+                "setup: apotheosis:gem must be unknown here and kept raw, got " + missing);
+        tool.set(ForgeweaveDataComponents.SOCKETS.get(), missing);
+
+        withBridge(new FakeBridge(), () -> {
+            helper.assertTrue(ApotheosisSockets.attackDamageBonus(tool) == 0.0F,
+                    "an unreadable gem grants nothing, got " + ApotheosisSockets.attackDamageBonus(tool));
+            helper.assertFalse(ApotheosisSockets.hasEmptySocket(tool), "but it still fills its socket");
+            ModifierApplication.Outcome outcome = ModifierApplication
+                    .resolve(registries, tool, gem(), ItemStack.EMPTY)
+                    .orElseThrow(() -> new AssertionError("a gem beside a socketed tool must be recognised"));
+            helper.assertTrue(outcome.output().isEmpty(), "the station must not seat a gem over it");
+            helper.assertTrue(outcome.rejection() != null, "and must say why");
+        });
+
+        Component line = ApotheosisSockets.socketLines(tool).get(0);
+        helper.assertTrue(line.getContents() instanceof TranslatableContents row
+                        && row.getArgs()[1] instanceof Component contents
+                        && contents.getContents() instanceof TranslatableContents key
+                        && key.getKey().equals("tooltip.forgeweave.socket.missing_mod"),
+                "the tooltip must say the gem's mod is missing, got " + line);
+
+        ItemStack reloaded = ItemStack.parse(registries, tool.save(registries))
+                .orElseThrow(() -> new AssertionError("the tool must reload"));
+        helper.assertTrue(missing.equals(reloaded.get(ForgeweaveDataComponents.SOCKETS.get())),
+                "and the raw gem must survive a save, got " + reloaded.get(ForgeweaveDataComponents.SOCKETS.get()));
+        helper.succeed();
+    }
+
+    /** One socket holding a real Apotheosis gem's saved form: the item, its gem and its purity. */
+    private static Tag missingGemSockets() {
+        try {
+            return TagParser.parseTag("{s:[{slot:0,item:{id:\"apotheosis:gem\",count:1,components:{"
+                    + "\"apotheosis:gem\":\"apotheosis:core/ballast\",\"apotheosis:purity\":\"flawless\"}}}]}")
+                    .get("s");
+        } catch (CommandSyntaxException e) {
+            throw new AssertionError(e);
+        }
+    }
 
     /** {@code reagent} applied to {@code tool} at the station, asserting it actually landed. */
     private static ItemStack apply(GameTestHelper helper, ItemStack tool, ItemStack reagent) {
@@ -236,7 +300,10 @@ public class ApotheosisSocketGameTests {
         }
     }
 
-    /** Seats anything and grants a flat +2 attack damage, so "the bonus is back" is observable. */
+    /**
+     * Seats anything and grants a flat +2 attack damage per gem it can read, so "the bonus is back"
+     * and "an unreadable gem grants nothing" are both observable.
+     */
     private static final class FakeBridge implements ApotheosisSockets.Bridge {
 
         @Override
@@ -246,11 +313,14 @@ public class ApotheosisSocketGameTests {
 
         @Override
         public List<ApotheosisSockets.AttributeGrant> attributeGrants(ItemStack stack) {
-            return List.of(new ApotheosisSockets.AttributeGrant(
-                    ResourceLocation.withDefaultNamespace("generic.attack_damage"),
-                    new AttributeModifier(
-                            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "gametest_gem"),
-                            2.0, AttributeModifier.Operation.ADD_VALUE)));
+            return ApotheosisSockets.gems(stack).stream()
+                    .filter(gem -> !gem.isEmpty())
+                    .map(gem -> new ApotheosisSockets.AttributeGrant(
+                            ResourceLocation.withDefaultNamespace("generic.attack_damage"),
+                            new AttributeModifier(
+                                    ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "gametest_gem"),
+                                    2.0, AttributeModifier.Operation.ADD_VALUE)))
+                    .toList();
         }
 
         @Override

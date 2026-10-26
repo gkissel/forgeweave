@@ -15,7 +15,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.ItemContainerContents;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.combat.CombatDefense;
@@ -108,14 +107,16 @@ public final class ApotheosisSockets {
      * What sits in each socket, one entry per socket in socket order, {@link ItemStack#EMPTY} for an
      * empty one. Always {@link #socketCount} long, so a component left over from a state where the
      * tool had more sockets can never hand out a gem the tool no longer holds.
+     *
+     * <p>A gem whose mod is missing reads as {@link ItemStack#EMPTY} here too, so it grants no bonus.
+     * It still fills its socket: use {@link #occupied} to ask whether a socket is free.
      */
     public static List<ItemStack> gems(ItemStack stack) {
         int count = socketCount(stack);
         if (count <= 0) {
             return List.of();
         }
-        List<ItemStack> stored = stack.getOrDefault(ForgeweaveDataComponents.SOCKETS.get(),
-                ItemContainerContents.EMPTY).stream().toList();
+        List<ItemStack> stored = stored(stack).gems().stream().toList();
         List<ItemStack> gems = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
             gems.add(i < stored.size() ? stored.get(i) : ItemStack.EMPTY);
@@ -123,9 +124,27 @@ public final class ApotheosisSockets {
         return List.copyOf(gems);
     }
 
+    /**
+     * Per socket, in socket order, whether something fills it: a readable gem or one whose mod is
+     * missing. {@link #socketCount} long, like {@link #gems}.
+     */
+    public static List<Boolean> occupied(ItemStack stack) {
+        GemSockets stored = stored(stack);
+        List<ItemStack> gems = gems(stack);
+        List<Boolean> occupied = new ArrayList<>(gems.size());
+        for (int i = 0; i < gems.size(); i++) {
+            occupied.add(!gems.get(i).isEmpty() || stored.unreadable().containsKey(i));
+        }
+        return List.copyOf(occupied);
+    }
+
     /** Whether {@code stack} has a socket with nothing in it. */
     public static boolean hasEmptySocket(ItemStack stack) {
-        return gems(stack).stream().anyMatch(ItemStack::isEmpty);
+        return occupied(stack).contains(false);
+    }
+
+    private static GemSockets stored(ItemStack stack) {
+        return stack.getOrDefault(ForgeweaveDataComponents.SOCKETS.get(), GemSockets.EMPTY);
     }
 
     /**
@@ -144,11 +163,8 @@ public final class ApotheosisSockets {
             return Outcome.rejected(Component.translatable("gui.forgeweave.modifier.no_sockets"));
         }
         List<ItemStack> gems = gems(tool);
-        int socket = 0;
-        while (socket < gems.size() && !gems.get(socket).isEmpty()) {
-            socket++; // first empty socket wins, so seating fills left to right
-        }
-        if (socket >= gems.size()) {
+        int socket = occupied(tool).indexOf(false); // first empty socket wins, so seating fills left to right
+        if (socket < 0) {
             return Outcome.rejected(Component.translatable("gui.forgeweave.modifier.sockets_full"));
         }
         int slot = 0;
@@ -165,7 +181,7 @@ public final class ApotheosisSockets {
         List<ItemStack> seated = new ArrayList<>(gems);
         seated.set(socket, slots.get(slot).copyWithCount(1));
         ItemStack result = tool.copy();
-        result.set(ForgeweaveDataComponents.SOCKETS.get(), ItemContainerContents.fromItems(seated));
+        result.set(ForgeweaveDataComponents.SOCKETS.get(), stored(tool).withGems(seated));
         List<Integer> spent = new ArrayList<>(slots.size());
         for (int i = 0; i < slots.size(); i++) {
             spent.add(i == slot ? 1 : 0);
@@ -177,16 +193,18 @@ public final class ApotheosisSockets {
      * The tooltip and station-panel lines for a socketed stack: one row per socket, naming the gem in
      * it or saying the socket is empty. The gem's own name already carries its purity
      * (Apotheosis' {@code GemItem#getName}), and its bonus text is the gem item's own hover text, so
-     * nothing here has to reach into that mod to describe what a seated gem does.
+     * nothing here has to reach into that mod to describe what a seated gem does. A gem whose mod is
+     * missing gets a neutral line saying so.
      */
     public static List<Component> socketLines(ItemStack stack) {
         List<ItemStack> gems = gems(stack);
+        List<Boolean> occupied = occupied(stack);
         List<Component> lines = new ArrayList<>(gems.size());
         for (int i = 0; i < gems.size(); i++) {
             ItemStack gem = gems.get(i);
-            Component contents = gem.isEmpty()
-                    ? Component.translatable("tooltip.forgeweave.socket.empty")
-                    : gem.getHoverName();
+            Component contents = !gem.isEmpty() ? gem.getHoverName()
+                    : occupied.get(i) ? Component.translatable("tooltip.forgeweave.socket.missing_mod")
+                    : Component.translatable("tooltip.forgeweave.socket.empty");
             lines.add(Component.translatable("tooltip.forgeweave.socket", i + 1, contents)
                     .withStyle(ChatFormatting.GRAY));
         }

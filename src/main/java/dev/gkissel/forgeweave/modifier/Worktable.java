@@ -164,7 +164,7 @@ public final class Worktable {
         if (!entry.id().equals(ApotheosisSockets.SOCKETED_ID)) {
             return true;
         }
-        return ApotheosisSockets.gems(tool).stream().allMatch(ItemStack::isEmpty);
+        return !ApotheosisSockets.occupied(tool).contains(true);
     }
 
     /**

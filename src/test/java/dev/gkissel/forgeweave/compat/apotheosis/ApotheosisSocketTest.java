@@ -1,10 +1,13 @@
 package dev.gkissel.forgeweave.compat.apotheosis;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -29,6 +32,11 @@ import org.junit.jupiter.api.Test;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtIo;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.TagParser;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.resources.RegistryOps;
@@ -39,7 +47,6 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.ItemContainerContents;
 
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets.AttributeGrant;
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets.GemEffect;
@@ -81,14 +88,14 @@ class ApotheosisSocketTest {
 
     @Test
     void theSocketComponentRoundTripsThroughItsCodec() {
-        ItemContainerContents sockets = ItemContainerContents.fromItems(
+        GemSockets sockets = GemSockets.of(
                 List.of(new ItemStack(Items.DIAMOND), ItemStack.EMPTY, new ItemStack(Items.EMERALD)));
 
-        var encoded = ItemContainerContents.CODEC.encodeStart(ops, sockets).getOrThrow();
-        ItemContainerContents decoded = ItemContainerContents.CODEC.parse(ops, encoded).getOrThrow();
+        var encoded = GemSockets.CODEC.encodeStart(ops, sockets).getOrThrow();
+        GemSockets decoded = GemSockets.CODEC.parse(ops, encoded).getOrThrow();
 
         assertEquals(sockets, decoded, "the socket component must survive a save/load round trip");
-        List<ItemStack> items = decoded.stream().toList();
+        List<ItemStack> items = decoded.gems().stream().toList();
         assertEquals(3, items.size(), "a gem in socket three keeps socket three, empties and all");
         assertTrue(items.get(0).is(Items.DIAMOND));
         assertTrue(items.get(1).isEmpty(), "the empty middle socket must stay empty rather than shift");
@@ -97,15 +104,103 @@ class ApotheosisSocketTest {
 
     @Test
     void theSocketComponentRoundTripsThroughItsStreamCodec() {
-        ItemContainerContents sockets = ItemContainerContents.fromItems(
-                List.of(ItemStack.EMPTY, new ItemStack(Items.AMETHYST_SHARD, 1)));
+        GemSockets sockets = GemSockets.of(List.of(ItemStack.EMPTY, new ItemStack(Items.AMETHYST_SHARD, 1)));
         RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), registries);
 
-        ItemContainerContents.STREAM_CODEC.encode(buffer, sockets);
-        ItemContainerContents decoded = ItemContainerContents.STREAM_CODEC.decode(buffer);
+        GemSockets.STREAM_CODEC.encode(buffer, sockets);
+        GemSockets decoded = GemSockets.STREAM_CODEC.decode(buffer);
 
         assertEquals(sockets, decoded, "the socket component must survive the client sync too");
         assertEquals(0, buffer.readableBytes(), "the stream codec must consume exactly what it wrote");
+    }
+
+    /**
+     * The g9 compat-matrix bug: a world saved with Apotheosis and loaded without it. The entry must
+     * decode, stay raw, and re-encode to the same bytes it was read from. This classpath carries
+     * Apotheosis (build.gradle's testRuntimeOnly), so {@link #MISSING_GEM} stands in for its gem.
+     * The real {@code apotheosis:gem} without the mod is {@code ApotheosisSocketGameTests}' case.
+     */
+    @Test
+    void aGemWhoseItemIsUnregisteredDecodesAndReEncodesByteForByte() throws Exception {
+        assertFalse(BuiltInRegistries.ITEM.containsKey(ResourceLocation.parse(MISSING_GEM)),
+                "setup: no environment may register " + MISSING_GEM);
+        RegistryOps<Tag> nbt = RegistryOps.create(NbtOps.INSTANCE, registries);
+        Tag saved = savedSockets();
+
+        GemSockets decoded = GemSockets.CODEC.parse(nbt, saved).getOrThrow();
+        Tag reEncoded = GemSockets.CODEC.encodeStart(nbt, decoded).getOrThrow();
+
+        assertEquals(Set.of(1), decoded.unreadable().keySet(), "the unknown gem is kept raw, in its own socket");
+        assertTrue(decoded.gems().stream().toList().get(0).is(Items.DIAMOND),
+                "and the readable gem beside it still decodes as a gem");
+        assertArrayEquals(bytes(saved), bytes(reEncoded), "re-encoding must give back exactly what was saved");
+    }
+
+    /** A known item carrying a component from a missing mod is just as unreadable, and kept the same way. */
+    @Test
+    void aGemWithAnUnknownComponentIsKeptRawToo() throws Exception {
+        RegistryOps<Tag> nbt = RegistryOps.create(NbtOps.INSTANCE, registries);
+        Tag saved = TagParser.parseTag("{s:[{item:{components:{\"absent_mod:purity\":\"flawless\"},"
+                + "count:1,id:\"minecraft:emerald\"},slot:0}]}").get("s");
+
+        GemSockets decoded = GemSockets.CODEC.parse(nbt, saved).getOrThrow();
+
+        assertEquals(Set.of(0), decoded.unreadable().keySet(),
+                "a partial decode would drop the component, so the whole entry stays raw");
+        assertArrayEquals(bytes(saved), bytes(GemSockets.CODEC.encodeStart(nbt, decoded).getOrThrow()));
+    }
+
+    @Test
+    void anUnreadableGemFillsItsSocketGrantsNothingAndSurvivesSeating() throws Exception {
+        ApotheosisSockets.install(new FakeBridge());
+        RegistryOps<Tag> nbt = RegistryOps.create(NbtOps.INSTANCE, registries);
+        ItemStack tool = socketed(3);
+        tool.set(ForgeweaveDataComponents.SOCKETS.get(), GemSockets.CODEC.parse(nbt, savedSockets()).getOrThrow());
+
+        assertEquals(List.of(true, true, false), ApotheosisSockets.occupied(tool),
+                "a socket holding an unreadable gem is occupied");
+        assertTrue(ApotheosisSockets.gems(tool).get(1).isEmpty(), "but reads as no gem, so it grants nothing");
+
+        Outcome seated = ApotheosisSockets.seat(tool, List.of(new ItemStack(Items.EMERALD)));
+        assertTrue(ApotheosisSockets.gems(seated.output()).get(2).is(Items.EMERALD),
+                "seating skips the unreadable socket and fills the open one");
+        assertEquals(tool.get(ForgeweaveDataComponents.SOCKETS.get()).unreadable(),
+                seated.output().get(ForgeweaveDataComponents.SOCKETS.get()).unreadable(),
+                "and keeps the unreadable gem as it was");
+
+        Outcome full = ApotheosisSockets.seat(seated.output(), List.of(new ItemStack(Items.EMERALD)));
+        assertTrue(full.output().isEmpty(), "a tool whose last open socket is filled refuses another gem");
+    }
+
+    @Test
+    void theStreamCodecSendsAnUnreadableGemAsOpaqueDataNotAsAnItem() throws Exception {
+        GemSockets sockets = GemSockets.CODEC.parse(RegistryOps.create(NbtOps.INSTANCE, registries),
+                savedSockets()).getOrThrow();
+        RegistryFriendlyByteBuf buffer = new RegistryFriendlyByteBuf(Unpooled.buffer(), registries);
+
+        GemSockets.STREAM_CODEC.encode(buffer, sockets);
+        GemSockets decoded = GemSockets.STREAM_CODEC.decode(buffer);
+
+        assertEquals(sockets, decoded, "a client without the mod decodes it, and hands back the same data");
+        assertEquals(0, buffer.readableBytes());
+    }
+
+    /** An item id no environment registers, standing in for {@code apotheosis:gem} without Apotheosis. */
+    private static final String MISSING_GEM = "absent_mod:gem";
+
+    /** Two sockets in 1.0.0's saved shape: a diamond in socket 0 and a gem whose mod is gone in 1. */
+    private static Tag savedSockets() throws Exception {
+        return TagParser.parseTag("{s:[{item:{count:1,id:\"minecraft:diamond\"},slot:0},"
+                + "{item:{components:{\"absent_mod:gem\":\"absent_mod:core/ballast\","
+                + "\"absent_mod:purity\":\"flawless\"},count:1,id:\"" + MISSING_GEM + "\"},slot:1}]}").get("s");
+    }
+
+    private static byte[] bytes(Tag tag) throws Exception {
+        CompoundTag wrapper = new CompoundTag();
+        wrapper.put("s", tag);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        NbtIo.write(wrapper, new DataOutputStream(out));
+        return out.toByteArray();
     }
 
     // ---------------------------------------------------------------- socket arithmetic
@@ -135,7 +230,7 @@ class ApotheosisSocketTest {
     @Test
     void gemsBeyondTheSocketCountAreNeverRead() {
         ItemStack one = socketed(1);
-        one.set(ForgeweaveDataComponents.SOCKETS.get(), ItemContainerContents.fromItems(
+        one.set(ForgeweaveDataComponents.SOCKETS.get(), GemSockets.of(
                 List.of(new ItemStack(Items.DIAMOND), new ItemStack(Items.EMERALD))));
 
         List<ItemStack> gems = ApotheosisSockets.gems(one);

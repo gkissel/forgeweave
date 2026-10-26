@@ -100,6 +100,7 @@ class ModifierLangCoverageTest {
                 // key, so they are named here instead of riding extraInfoIds().
                 "tooltip.forgeweave.socket",
                 "tooltip.forgeweave.socket.empty",
+                "tooltip.forgeweave.socket.missing_mod",
                 // And the marker id the gem-seating recipe names, which JEI and the station
                 // rejection read the way they read overslime's.
                 "modifier.forgeweave.socket_gem.name",

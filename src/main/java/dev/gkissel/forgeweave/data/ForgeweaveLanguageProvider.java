@@ -2482,6 +2482,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 + "paid the modifier slot, so this costs none.");
         add("tooltip.forgeweave.socket", "Socket %s: %s");
         add("tooltip.forgeweave.socket.empty", "empty");
+        add("tooltip.forgeweave.socket.missing_mod", "a gem from a mod that is not installed");
         add("gui.forgeweave.modifier.no_sockets", "This tool has no sockets. Add one with Socketed first.");
         add("gui.forgeweave.modifier.sockets_full", "Every socket on this tool already holds a gem.");
         add("gui.forgeweave.modifier.gem_refused", "That gem does not fit this kind of item.");

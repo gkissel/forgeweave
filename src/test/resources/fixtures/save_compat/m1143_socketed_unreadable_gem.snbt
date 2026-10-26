@@ -1,0 +1,116 @@
+{
+    decoder: "item_stack",
+    expect: {
+        components: {
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:socketed",
+                    level: 3
+                }
+            ],
+            "forgeweave:sockets": [
+                {
+                    item: {
+                        count: 1,
+                        id: "minecraft:diamond"
+                    },
+                    slot: 0
+                },
+                {
+                    item: {
+                        components: {
+                            "apotheosis:gem": "apotheosis:core/ballast",
+                            "apotheosis:purity": "flawless"
+                        },
+                        count: 1,
+                        id: "apotheosis:gem"
+                    },
+                    slot: 1
+                },
+                {
+                    item: {
+                        components: {
+                            "absent_mod:gem": "absent_mod:core/ballast",
+                            "absent_mod:purity": "flawless"
+                        },
+                        count: 1,
+                        id: "absent_mod:gem"
+                    },
+                    slot: 2
+                }
+            ],
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:wood",
+                head: "forgeweave:iron"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 3.5f,
+                durability: 250,
+                mining_speed: 6.0f
+            },
+            "forgeweave:traits": [],
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 250
+        },
+        count: 1,
+        id: "forgeweave:pickaxe"
+    },
+    nbt: {
+        components: {
+            "forgeweave:modifiers": [
+                {
+                    id: "forgeweave:socketed",
+                    level: 3
+                }
+            ],
+            "forgeweave:sockets": [
+                {
+                    item: {
+                        count: 1,
+                        id: "minecraft:diamond"
+                    },
+                    slot: 0
+                },
+                {
+                    item: {
+                        components: {
+                            "apotheosis:gem": "apotheosis:core/ballast",
+                            "apotheosis:purity": "flawless"
+                        },
+                        count: 1,
+                        id: "apotheosis:gem"
+                    },
+                    slot: 1
+                },
+                {
+                    item: {
+                        components: {
+                            "absent_mod:gem": "absent_mod:core/ballast",
+                            "absent_mod:purity": "flawless"
+                        },
+                        count: 1,
+                        id: "absent_mod:gem"
+                    },
+                    slot: 2
+                }
+            ],
+            "forgeweave:tool_materials": {
+                binding: "forgeweave:wood",
+                handle: "forgeweave:wood",
+                head: "forgeweave:iron"
+            },
+            "forgeweave:tool_stats": {
+                attack_damage: 3.5f,
+                durability: 250,
+                mining_speed: 6.0f
+            },
+            "forgeweave:traits": [],
+            "minecraft:damage": 0,
+            "minecraft:max_damage": 250
+        },
+        count: 1,
+        id: "forgeweave:pickaxe"
+    },
+    what: "Compat matrix pack g9, the without pass: a pickaxe saved with Apotheosis installed, then loaded without it. Before the fix, a gem that failed to decode was dropped on load and gone after the next save. Now it is kept as raw saved data, so expect is the whole of nbt: re-encoding must give back exactly what was read. Socket 0 holds a diamond. Socket 1 holds a real apotheosis:gem with its gem and purity components; the unit-test classpath carries Apotheosis, so here it decodes, which pins the round trip after a reinstall. Socket 2 holds a gem from absent_mod, which no environment registers. It stands in for apotheosis:gem on a server without Apotheosis and stays raw."
+}

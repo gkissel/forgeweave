@@ -2571,6 +2571,7 @@
   "tooltip.forgeweave.slime_sling.boots": "Use Slime Boots if you value your life!",
   "tooltip.forgeweave.socket": "Socket %s: %s",
   "tooltip.forgeweave.socket.empty": "empty",
+  "tooltip.forgeweave.socket.missing_mod": "a gem from a mod that is not installed",
   "tooltip.forgeweave.stat_type.bow": "Bow",
   "tooltip.forgeweave.stat_type.bowstring": "Bowstring",
   "tooltip.forgeweave.stat_type.extra": "Binding",
