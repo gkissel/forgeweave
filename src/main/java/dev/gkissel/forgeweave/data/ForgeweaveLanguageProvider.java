@@ -3898,7 +3898,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // the material-by-material table.
         add("trait.forgeweave.veinseeker.name", "Veinseeker");
         add("trait.forgeweave.veinseeker.description",
-                "One swing takes the whole vein, up to %s blocks of it, and each extra block costs %s durability.");
+                "One swing takes the whole vein, up to %s blocks past the first, and each of those costs %s durability.");
         add("trait.forgeweave.warcharge.name", "Warcharge");
         add("trait.forgeweave.warcharge.description", "Every kill banks a charge, up to %s. Your next blow spends the whole "
                 + "bank for %s damage a charge, so a full bank is worth %s. Lapses after 20 seconds.");

@@ -305,6 +305,30 @@ class TraitDefinitionAuditTest {
     }
 
     /**
+     * Checklist line 77: a vein's extra block costs its own mining point plus
+     * {@code durability_per_block}, and {@code max_blocks} does not count the first block. The
+     * sentence quotes both as they play.
+     */
+    @Test
+    void everyVeinBreakQuotesItsBlocksPastTheFirstAndTheirWholeCost() throws IOException {
+        List<String> wrong = new ArrayList<>();
+        int checked = 0;
+        for (Map.Entry<String, TraitDefinition> entry : shippedDefinitions().entrySet()) {
+            if (!(entry.getValue().trait() instanceof VeinBreak vein)) {
+                continue;
+            }
+            checked++;
+            List<Double> expected = List.of((double) vein.maxBlocks(), vein.durabilityPerBlock() + 1.0);
+            List<String> quoted = entry.getValue().rung().descriptionArgs();
+            if (!sameFigures(quoted, expected)) {
+                wrong.add(entry.getKey() + " quotes " + quoted + ", it plays as " + expected);
+            }
+        }
+        assertTrue(checked >= 2, "expected both veinseeker rungs, checked only " + checked);
+        assertEquals(List.of(), wrong, "a vein break must quote its blocks past the first and each one's whole cost");
+    }
+
+    /**
      * Checklist line 149: the essence ladder's tool and armor rungs read their own name and numbers
      * through {@link TraitFamilies}, the path the tooltip takes, and leave no {@code %s} or bare
      * {@code %} behind. The three Mystical Agriculture materials name the rungs the checklist expects.

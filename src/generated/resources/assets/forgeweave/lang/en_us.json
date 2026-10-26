@@ -2958,7 +2958,7 @@
   "trait.forgeweave.unraveling.name": "Unraveling",
   "trait.forgeweave.unstable_core.description": "While the tool is in use it bursts about once every 20 seconds, dealing 2 damage to the wielder and 1 to everything within 2 blocks.",
   "trait.forgeweave.unstable_core.name": "Unstable Core",
-  "trait.forgeweave.veinseeker.description": "One swing takes the whole vein, up to %s blocks of it, and each extra block costs %s durability.",
+  "trait.forgeweave.veinseeker.description": "One swing takes the whole vein, up to %s blocks past the first, and each of those costs %s durability.",
   "trait.forgeweave.veinseeker.name": "Veinseeker",
   "trait.forgeweave.venomward.description": "The worn side of the venom: each piece worn has a %s%% chance when struck to leave the attacker with Poison II for %s seconds, so a full set answers about %s%% of blows.",
   "trait.forgeweave.venomward.name": "Venomward",
