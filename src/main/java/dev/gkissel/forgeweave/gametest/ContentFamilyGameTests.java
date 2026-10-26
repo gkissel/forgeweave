@@ -11,6 +11,8 @@ import net.minecraft.world.entity.animal.Pig;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.GameType;
 
 import net.neoforged.neoforge.gametest.GameTestHolder;
@@ -19,6 +21,7 @@ import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.PartBuilderBlockEntity;
+import dev.gkissel.forgeweave.block.SlimeColour;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
 import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
@@ -452,6 +455,57 @@ public class ContentFamilyGameTests {
             ForgeweaveConfig.MELEE_WEAPONS.set(true);
         }
         helper.succeed();
+    }
+
+    /**
+     * Gadgets off: no Slimesling crafts, neither a colour's own recipe nor the mixed-colour pink
+     * one, and the item fails the family gate. Turning it back on restores both with no reload.
+     */
+    @GameTest(template = "empty")
+    public static void gadgetsOffStopsTheSlimeslingFromCrafting(GameTestHelper helper) {
+        ItemStack green = new ItemStack(ForgeweaveItems.slimeBall(SlimeColour.GREEN));
+        ItemStack blue = new ItemStack(ForgeweaveItems.slimeBall(SlimeColour.BLUE));
+        CraftingInput pure = slingGrid(green, green, green);
+        CraftingInput mixed = slingGrid(blue, green, green);
+
+        helper.assertTrue(crafts(helper, pure).is(ForgeweaveItems.SLIME_SLING.get()),
+                "with gadgets on, the green grid must craft the green sling");
+        helper.assertTrue(crafts(helper, mixed).is(ForgeweaveItems.slimeSling(SlimeColour.PINK).get()),
+                "with gadgets on, a mixed grid must craft the pink sling");
+
+        ForgeweaveConfig.GADGETS.set(false);
+        try {
+            helper.assertFalse(ContentFamilies.itemEnabled(ForgeweaveItems.SLIME_SLING.get()),
+                    "with gadgets off, the sling must fail the family gate");
+            helper.assertTrue(crafts(helper, pure).isEmpty(),
+                    "with gadgets off, the green grid must craft nothing, got " + crafts(helper, pure));
+            helper.assertTrue(crafts(helper, mixed).isEmpty(),
+                    "with gadgets off, a mixed grid must craft nothing, got " + crafts(helper, mixed));
+        } finally {
+            ForgeweaveConfig.GADGETS.set(true);
+        }
+
+        helper.assertTrue(ContentFamilies.itemEnabled(ForgeweaveItems.SLIME_SLING.get())
+                        && crafts(helper, pure).is(ForgeweaveItems.SLIME_SLING.get()),
+                "turning gadgets back on must restore the sling with no reload");
+        helper.succeed();
+    }
+
+    /** The Slimesling shape: string, green congealed slime, string over three slime balls. */
+    private static CraftingInput slingGrid(ItemStack left, ItemStack right, ItemStack bottom) {
+        ItemStack string = new ItemStack(Items.STRING);
+        ItemStack congealed = new ItemStack(ForgeweaveBlocks.slimeFamily(SlimeColour.GREEN).congealed().get());
+        return CraftingInput.of(3, 3, List.of(
+                string, congealed, string.copy(),
+                left.copy(), ItemStack.EMPTY, right.copy(),
+                ItemStack.EMPTY, bottom.copy(), ItemStack.EMPTY));
+    }
+
+    /** What a crafting table makes of {@code input}, or empty when no recipe matches. */
+    private static ItemStack crafts(GameTestHelper helper, CraftingInput input) {
+        return helper.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel())
+                .map(holder -> holder.value().assemble(input, helper.getLevel().registryAccess()))
+                .orElse(ItemStack.EMPTY);
     }
 
     /** A Tool Station at {@link #POS} with an iron broadsword's three parts in its input slots. */

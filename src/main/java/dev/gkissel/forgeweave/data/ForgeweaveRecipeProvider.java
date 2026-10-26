@@ -6,6 +6,7 @@ import java.util.concurrent.CompletableFuture;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementRequirements;
 import net.minecraft.advancements.AdvancementRewards;
@@ -32,12 +33,15 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.item.crafting.ShapedRecipePattern;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
 import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.common.conditions.ICondition;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.modifier.Modifier;
@@ -49,6 +53,7 @@ import dev.gkissel.forgeweave.material.MaterialForms;
 import dev.gkissel.forgeweave.recipe.EnergizedTankRecipe;
 import dev.gkissel.forgeweave.recipe.GravelFlintRecipe;
 import dev.gkissel.forgeweave.recipe.MixedSlimeBlockRecipe;
+import dev.gkissel.forgeweave.recipe.GatedShapedRecipe;
 import dev.gkissel.forgeweave.recipe.MixedSlimeSlingRecipe;
 import dev.gkissel.forgeweave.recipe.RetexturedShapedRecipe;
 import dev.gkissel.forgeweave.recipe.SharpeningKitRepairRecipe;
@@ -155,7 +160,9 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         // it. #649 reverts #453's one-sling widening of the balls to the whole `c:slimeballs` tag:
         // each colour takes exactly its own ball, as upstream's per-colour ore dicts do, and the
         // mixed-colour grids the tag used to absorb are MixedSlimeSlingRecipe's (upstream's
-        // fallback.json). Pink has no shaped recipe of its own upstream and gets none here.
+        // fallback.json). Pink has no shaped recipe of its own upstream and gets none here. Each is
+        // written as a GatedShapedRecipe so the gadgets toggle can switch it off.
+        RecipeOutput gatedOutput = gated(recipeOutput);
         for (ForgeweaveItems.SlimeSling sling : ForgeweaveItems.slimeSlings()) {
             if (sling.colour() == SlimeColour.PINK) {
                 continue;
@@ -169,7 +176,7 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                     .define('C', ForgeweaveBlocks.slimeFamily(sling.colour()).congealed().get())
                     .define('B', ball)
                     .unlockedBy("has_slime_ball", has(ball))
-                    .save(recipeOutput);
+                    .save(gatedOutput);
         }
         // Upstream's slimesling/fallback.json (NOTICE.md): the same shape over mixed slime colours
         // makes the pink sling. A special recipe for the same reason as MixedSlimeBlockRecipe.
@@ -978,6 +985,21 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
      * tag: the first block in the grid is a seared brick, and the appearance a player expects is the
      * metal they built it from.
      */
+    /** {@code output}, writing each shaped recipe it is handed as a {@link GatedShapedRecipe}. */
+    private static RecipeOutput gated(RecipeOutput output) {
+        return new RecipeOutput() {
+            @Override
+            public Advancement.Builder advancement() {
+                return output.advancement();
+            }
+
+            @Override
+            public void accept(ResourceLocation id, Recipe<?> recipe, AdvancementHolder advancement, ICondition... conditions) {
+                output.accept(id, new GatedShapedRecipe((ShapedRecipe) recipe), advancement, conditions);
+            }
+        };
+    }
+
     private void toolForgeRecipe(RecipeOutput recipeOutput) {
         ResourceLocation id = BuiltInRegistries.ITEM.getKey(ForgeweaveItems.TOOL_FORGE.get());
         Ingredient metal = Ingredient.of(ForgeweaveItemTagsProvider.TOOL_FORGE_BLOCKS);

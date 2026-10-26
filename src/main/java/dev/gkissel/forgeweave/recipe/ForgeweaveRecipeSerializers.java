@@ -44,5 +44,9 @@ public final class ForgeweaveRecipeSerializers {
             MIXED_SLIME_SLING = RECIPE_SERIALIZERS.register("mixed_slime_sling",
                     () -> new SimpleCraftingRecipeSerializer<>(MixedSlimeSlingRecipe::new));
 
+    /** {@link GatedShapedRecipe}: the coloured Slimeslings' shaped recipes, behind the {@code gadgets} toggle. */
+    public static final DeferredHolder<RecipeSerializer<?>, GatedShapedRecipe.Serializer> GATED_SHAPED =
+            RECIPE_SERIALIZERS.register("gated_shaped", () -> GatedShapedRecipe.Serializer.INSTANCE);
+
     private ForgeweaveRecipeSerializers() {}
 }
