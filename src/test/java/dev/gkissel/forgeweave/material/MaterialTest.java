@@ -820,7 +820,25 @@ class MaterialTest {
             "uraninite", "psimetal", "ivory_psimetal", "ebony_psimetal", "pink_slime", "cyanite",
             "blutonium", "ludicrite",
             "dark_matter", "red_matter", "crystal_matrix", "cosmic_neutronium", "infinity",
-            "quartz_enriched_iron", "silicon", "energised_steel" })
+            "quartz_enriched_iron", "silicon", "energised_steel",
+            // The 1.0.0 release checklist (lines 224, 229-236): the Track A metals that melt and cast.
+            // Just Dire Things.
+            "ferricore", "blazegold", "eclipsealloy",
+            // The Twilight Forest and Ice and Fire.
+            "ironwood", "steeleaf", "knightmetal", "fiery",
+            "dragon_bone", "dragonsteel_fire", "dragonsteel_ice", "dragonsteel_lightning",
+            // Silent Gear, PneumaticCraft, Forbidden and Arcanus, L_Ender's Cataclysm.
+            "crimson_steel", "azure_silver", "azure_electrum", "blaze_gold", "tyrian_steel",
+            "compressed_iron", "deorum", "ignitium", "cursium",
+            // The 21 that shipped cast_only with nothing to cast them from (see
+            // everyCastOnlyMaterialMeltsAndCastsWheneverItExists): Elementarium, Allthemodium,
+            // Mystical Agriculture.
+            "elementarium_vanadium", "elementarium_chromium", "elementarium_molybdenum",
+            "elementarium_palladium", "elementarium_hafnium", "elementarium_tantalum",
+            "allthemodium", "vibranium", "unobtainium", "vibranium_allthemodium_alloy",
+            "unobtainium_allthemodium_alloy", "unobtainium_vibranium_alloy",
+            "inferium", "prudentium", "tertium", "imperium", "supremium", "awakened_supremium",
+            "insanium", "prosperity", "soulium" })
     void castableMetalsAreCastOnly(String name) {
         assertTrue(Material.CODEC.parse(ops, shipped(name)).getOrThrow().castOnly(),
                 name + " is castable and not craftable upstream, so the Part Builder must not take it");
@@ -869,7 +887,18 @@ class MaterialTest {
             // issue's new material, the rung between wyvern and chaotic; the ingot metals
             // (draconium, draconium_awakened) are unaffected and stay cast-only above. #965 added
             // draconium_core, the inert tech level's core, on the same terms.
-            "wyvern", "awakened", "chaotic", "draconium_core" })
+            "wyvern", "awakened", "chaotic", "draconium_core",
+            // The 1.0.0 release checklist (lines 224, 229, 230, 235): the Track A materials that go
+            // straight into the Part Builder from their raw item, with no fluid at all.
+            // Just Dire Things' gem.
+            "celestigem",
+            // The Twilight Forest's four.
+            "naga_scale", "carminite", "arctic_fur", "alpha_yeti_fur",
+            // Ice and Fire's chitins and troll leathers.
+            "deathworm_chitin_yellow", "deathworm_chitin_white", "deathworm_chitin_red",
+            "troll_leather_mountain", "troll_leather_forest", "troll_leather_frost",
+            // The Aether.
+            "zanite", "gravitite", "ambrosium" })
     void craftableMaterialsStayCraftable(String name) {
         assertFalse(Material.CODEC.parse(ops, shipped(name)).getOrThrow().castOnly(),
                 name + " must stay Part Builder craftable");
@@ -1191,7 +1220,11 @@ class MaterialTest {
             "nickel,eternalores:nickel_ingot", "osmium,eternalores:osmium_ingot",
             "platinum,eternalores:platinum_ingot", "silver,eternalores:silver_ingot",
             "tin,eternalores:tin_ingot", "titanium,eternalores:titanium_ingot",
-            "tungsten,eternalores:tungsten_ingot", "uranium,eternalores:uranium_ingot" })
+            "tungsten,eternalores:tungsten_ingot", "uranium,eternalores:uranium_ingot",
+            // Checklist line 227: these three melted under Eternal Ores alone but never cast back.
+            "uraninite,eternalores:uraninite_ingot",
+            "quartz_enriched_iron,eternalores:quartz_enriched_iron_ingot",
+            "silicon,eternalores:silicon_ingot" })
     void eternalOresDedupeIngotMeltsBackIntoItsOwnIngot(String name, String eoItem) throws Exception {
         Path castingFile = projectRoot()
                 .resolve("src/main/resources/data/forgeweave/forgeweave/casting_recipe/ingot_" + name + "_eternalores.json");
@@ -1199,6 +1232,268 @@ class MaterialTest {
         JsonObject casting = JsonParser.parseString(Files.readString(castingFile, StandardCharsets.UTF_8)).getAsJsonObject();
         assertEquals(eoItem, casting.getAsJsonObject("result").get("id").getAsString());
         assertTrue(conditionNamesItem(casting.getAsJsonArray("neoforge:conditions"), eoItem));
+    }
+
+    /**
+     * Checklist line 227's other half: uraninite, quartz_enriched_iron and silicon list Eternal Ores'
+     * {@code c:ingots/<id>} tag in {@code crafting_items}, so that ingot has to melt as well as cast
+     * back. Uraninite's ingot had no melting row at all before the 1.0.0 fix.
+     */
+    @ParameterizedTest
+    @CsvSource({
+            "uraninite,eternalores:uraninite_ingot",
+            "quartz_enriched_iron,eternalores:quartz_enriched_iron_ingot",
+            "silicon,eternalores:silicon_ingot" })
+    void eternalOresOnlyIngotsMeltUnderEternalOresAlone(String name, String eoItem) throws Exception {
+        JsonObject melting = recipe("melting_recipe", name + "_ingot");
+        assertEquals("c:ingots/" + name, melting.getAsJsonObject("input").get("tag").getAsString());
+        assertEquals("forgeweave:molten_" + name, melting.get("fluid").getAsString());
+        assertTrue(conditionNamesItem(melting.getAsJsonArray("neoforge:conditions"), eoItem),
+                name + "'s Eternal Ores ingot must melt with Eternal Ores as the only provider");
+    }
+
+    /**
+     * The 1.0.0 release blocker behind checklist lines 217, 222 and 223. A {@code cast_only}
+     * material is refused by the Part Builder while {@code craftCastableMaterials} is off (the
+     * default, {@code PartBuilderRecipes}), so the smeltery is its only way in: it needs a melting row
+     * into a molten fluid and a part-casting row out of that fluid. Twenty-one materials shipped with
+     * neither (six Elementarium, six Allthemodium-family, nine Mystical Agriculture), and silver's
+     * melting and part-casting rows skipped the Ice and Fire branch its own gate has.
+     *
+     * <p>So a row merely existing is not enough. At least one melting row and one part-casting row
+     * must carry exactly the material's own {@code neoforge:conditions}: then whenever the material
+     * registers, it can be melted and cast, whichever of its providers is installed.
+     * {@code atomic_matter_alloy} is the one exception: its material ships unconditionally on purpose
+     * so a GameTest can reach it without Mekanism (see {@code TrackBAlloy}), while its recipes stay
+     * gated on Mekanism's own alloy.
+     */
+    @Test
+    void everyCastOnlyMaterialMeltsAndCastsWheneverItExists() throws Exception {
+        Path data = projectRoot().resolve("src/main/resources/data/forgeweave/forgeweave");
+        List<JsonObject> melting = readAll(data.resolve("melting_recipe"));
+        List<JsonObject> casting = readAll(data.resolve("casting_recipe"));
+        List<String> failures = new java.util.ArrayList<>();
+
+        try (Stream<Path> files = Files.list(data.resolve("material"))) {
+            for (Path file : files.filter(p -> p.toString().endsWith(".json")).sorted().toList()) {
+                String id = file.getFileName().toString().replace(".json", "");
+                JsonObject material = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8)).getAsJsonObject();
+                if (!material.has("cast_only") || !material.get("cast_only").getAsBoolean()) {
+                    continue;
+                }
+                JsonElement gate = id.equals("atomic_matter_alloy") ? null : material.get("neoforge:conditions");
+
+                List<JsonObject> parts = casting.stream()
+                        .filter(row -> row.has("fluid") && castsPartOf(row, id))
+                        .toList();
+                java.util.Set<String> fluids = new java.util.HashSet<>();
+                parts.forEach(row -> fluids.add(row.get("fluid").getAsString()));
+                List<JsonObject> melts = melting.stream()
+                        .filter(row -> fluids.contains(row.get("fluid").getAsString()))
+                        .toList();
+
+                if (parts.isEmpty() || melts.isEmpty()) {
+                    failures.add(id + ": " + parts.size() + " part-casting rows, " + melts.size()
+                            + " melting rows into their fluid");
+                } else if (gate != null && (parts.stream().noneMatch(row -> gate.equals(row.get("neoforge:conditions")))
+                        || melts.stream().noneMatch(row -> gate.equals(row.get("neoforge:conditions"))))) {
+                    failures.add(id + ": no melting row or no part-casting row carries the material's own gate");
+                }
+            }
+        }
+
+        assertTrue(failures.isEmpty(), "cast_only materials the Part Builder refuses and the smeltery "
+                + "cannot make either:\n" + String.join("\n", failures));
+    }
+
+    private static boolean castsPartOf(JsonObject casting, String materialId) {
+        JsonObject result = casting.getAsJsonObject("result");
+        JsonObject components = result == null ? null : result.getAsJsonObject("components");
+        JsonElement material = components == null ? null : components.get("forgeweave:material");
+        return material != null && material.getAsString().equals("forgeweave:" + materialId);
+    }
+
+    /**
+     * Checklist lines 228 and 231. When two mods supply one metal, each provider's ingot row matches
+     * the same pour (same station, cast and fluid), and {@code CastingRecipe#find} used to take
+     * whichever the registry listed first. The rule now: the material's own {@code neoforge:or}
+     * order wins, Eternal Ores always last, written as {@code priority} (the preferred row at 0, the
+     * k-th fallback at -k). This walks every shipped casting row, groups the ones that can match the
+     * same pour, and requires each group to rank its rows strictly, with an Eternal Ores result never
+     * on top while another provider's row exists.
+     */
+    @Test
+    void rowsThatMatchTheSamePourAreRankedByPriority() throws Exception {
+        Path dir = projectRoot().resolve("src/main/resources/data/forgeweave/forgeweave/casting_recipe");
+        java.util.Map<String, List<JsonObject>> byPour = new java.util.TreeMap<>();
+        for (JsonObject row : readAll(dir)) {
+            if (!row.has("fluid")) {
+                continue; // Fluid-agnostic bucket filling: one row for every fluid by design.
+            }
+            String pour = row.get("station").getAsString() + " " + row.get("cast") + " " + row.get("fluid").getAsString();
+            byPour.computeIfAbsent(pour, key -> new java.util.ArrayList<>()).add(row);
+        }
+
+        List<String> failures = new java.util.ArrayList<>();
+        for (var group : byPour.entrySet()) {
+            List<JsonObject> rows = group.getValue();
+            if (rows.size() < 2) {
+                continue;
+            }
+            java.util.Set<Integer> priorities = new java.util.HashSet<>();
+            rows.forEach(row -> priorities.add(priority(row)));
+            JsonObject top = rows.stream().max(java.util.Comparator.comparingInt(MaterialTest::priority)).orElseThrow();
+            String topResult = top.getAsJsonObject("result").get("id").getAsString();
+            if (priorities.size() != rows.size()) {
+                failures.add(group.getKey() + ": " + rows.size() + " rows share a priority");
+            } else if (topResult.startsWith("eternalores:")) {
+                failures.add(group.getKey() + ": Eternal Ores' " + topResult + " outranks the original provider");
+            }
+        }
+        assertTrue(failures.isEmpty(), "casting rows the registry order would pick between:\n"
+                + String.join("\n", failures));
+    }
+
+    /** The documented order for the two metals the checklist names, pinned row by row. */
+    @ParameterizedTest
+    @CsvSource({
+            "ingot_tin,mekanism:ingot_tin,0",
+            "ingot_tin_eternalores,eternalores:tin_ingot,-1",
+            "ingot_silver,immersiveengineering:ingot_silver,0",
+            "ingot_silver_occultism,occultism:silver_ingot,-1",
+            "ingot_silver_iceandfire,iceandfire:silver_ingot,-2",
+            "ingot_silver_eternalores,eternalores:silver_ingot,-3",
+            "clay_ingot_silver_eternalores,eternalores:silver_ingot,-3" })
+    void sharedMetalsPourTheirPreferredProvidersIngot(String row, String result, int priority) throws Exception {
+        JsonObject recipe = recipe("casting_recipe", row);
+        assertEquals(result, recipe.getAsJsonObject("result").get("id").getAsString());
+        assertEquals(priority, priority(recipe), row + "'s rank in the provider order");
+        assertTrue(conditionNamesItem(recipe.getAsJsonArray("neoforge:conditions"), result),
+                row + " must exist only while its own ingot does");
+    }
+
+    private static int priority(JsonObject casting) {
+        return casting.has("priority") ? casting.get("priority").getAsInt() : 0;
+    }
+
+    /**
+     * Checklist line 240: Actually Additions crystals never melt and have no cast. Every one of the
+     * thirteen is Part Builder only (see {@link #craftableMaterialsStayCraftable}); this guards the
+     * recipe side, so nobody adds a melting or casting row that names one.
+     */
+    @Test
+    void noMeltingOrCastingRowNamesAnActuallyAdditionsCrystal() throws Exception {
+        List<String> crystals = List.of("black_quartz", "restonia_crystal", "palis_crystal", "diamatine_crystal",
+                "void_crystal", "emeradic_crystal", "enori_crystal", "empowered_restonia_crystal",
+                "empowered_palis_crystal", "empowered_diamatine_crystal", "empowered_void_crystal",
+                "empowered_emeradic_crystal", "empowered_enori_crystal");
+        Path data = projectRoot().resolve("src/main/resources/data/forgeweave/forgeweave");
+        List<String> offenders = new java.util.ArrayList<>();
+        for (String kind : List.of("melting_recipe", "casting_recipe")) {
+            try (Stream<Path> files = Files.list(data.resolve(kind))) {
+                for (Path file : files.filter(p -> p.toString().endsWith(".json")).sorted().toList()) {
+                    JsonObject row = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8)).getAsJsonObject();
+                    row.remove("neoforge:conditions");
+                    String text = row.toString();
+                    for (String crystal : crystals) {
+                        if (text.contains("actuallyadditions:" + crystal) || text.contains("forgeweave:" + crystal + "\"")
+                                || text.contains("molten_" + crystal) || text.contains("/" + crystal + "\"")) {
+                            offenders.add(kind + "/" + file.getFileName() + " names " + crystal);
+                        }
+                    }
+                }
+            }
+        }
+        assertTrue(offenders.isEmpty(), "Actually Additions crystals are Part Builder only:\n"
+                + String.join("\n", offenders));
+    }
+
+    /**
+     * Checklist line 242: the crystals' stat cards differ the way their names promise. Palis is the
+     * fastest, enori the toughest, and void the most fragile but the hardest-hitting. Holds for the
+     * six plain crystals and for their six empowered forms alike.
+     */
+    @ParameterizedTest
+    @ValueSource(strings = { "", "empowered_" })
+    void crystalStatCardsKeepTheirOrdering(String prefix) {
+        List<String> names = List.of("restonia", "palis", "diamatine", "void", "emeradic", "enori");
+        java.util.Map<String, JsonObject> heads = new java.util.LinkedHashMap<>();
+        for (String name : names) {
+            heads.put(name, shipped(prefix + name + "_crystal").getAsJsonObject().getAsJsonObject("head"));
+        }
+        assertEquals("palis", extreme(heads, "mining_speed", true), prefix + "palis mines fastest");
+        assertEquals("enori", extreme(heads, "durability", true), prefix + "enori lasts longest");
+        assertEquals("void", extreme(heads, "durability", false), prefix + "void breaks first");
+        assertEquals("void", extreme(heads, "attack_damage", true), prefix + "void hits hardest");
+    }
+
+    private static String extreme(java.util.Map<String, JsonObject> heads, String stat, boolean highest) {
+        java.util.Comparator<String> byStat = java.util.Comparator.comparingDouble(name -> heads.get(name).get(stat).getAsDouble());
+        return highest ? heads.keySet().stream().max(byStat).orElseThrow() : heads.keySet().stream().min(byStat).orElseThrow();
+    }
+
+    /**
+     * Checklist line 213, taken from the shipped data where the checklist text disagrees: the
+     * checklist names steel, tungsten, knightmetal and certus quartz, but cobalt carries
+     * {@code melee_protection} too.
+     */
+    @Test
+    void meleeProtectionRosterMatchesTheShippedData() throws Exception {
+        java.util.Set<String> roster = new java.util.TreeSet<>();
+        try (Stream<Path> files = Files.list(projectRoot().resolve("src/main/resources/data/forgeweave/forgeweave/material"))) {
+            for (Path file : files.filter(p -> p.toString().endsWith(".json")).toList()) {
+                JsonElement traits = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8))
+                        .getAsJsonObject().get("traits");
+                if (traits != null && traits.toString().contains("\"forgeweave:melee_protection\"")) {
+                    roster.add(file.getFileName().toString().replace(".json", ""));
+                }
+            }
+        }
+        assertEquals(java.util.Set.of("certus_quartz", "cobalt", "knightmetal", "steel", "tungsten"), roster);
+    }
+
+    /**
+     * Checklist lines 225 and 243: the trait ids behind the Just Dire Things and Extreme Reactors
+     * trait lines, one row per material and scope. Traits are space-separated, in shipped order.
+     */
+    @ParameterizedTest
+    @CsvSource({
+            "ferricore,general,heft",
+            "ferricore,armor,sure_footing heft",
+            "blazegold,general,fireward",
+            "celestigem,general,energized2",
+            "eclipsealloy,general,energized3 lastbreath",
+            "uraninite,general,grievous",
+            "uraninite,armor,blightward",
+            "cyanite,general,cyanite_chill",
+            "cyanite,armor,cyanite_chillback",
+            "blutonium,general,blutonium_pulse",
+            "blutonium,armor,witherward",
+            "ludicrite,general,arcing2",
+            "ludicrite,armor,witherward" })
+    void justDireThingsAndExtremeReactorsCarryTheirTraits(String name, String scope, String traits) {
+        JsonObject json = shipped(name).getAsJsonObject();
+        List<String> actual = new java.util.ArrayList<>();
+        json.getAsJsonObject("traits").getAsJsonArray(scope).forEach(id -> actual.add(id.getAsString()));
+        List<String> expected = java.util.Arrays.stream(traits.split(" ")).map(id -> "forgeweave:" + id).toList();
+        assertEquals(expected, actual, name + "." + scope);
+        Material.CODEC.parse(ops, json).getOrThrow();
+    }
+
+    private static JsonObject recipe(String kind, String name) throws Exception {
+        Path file = projectRoot().resolve("src/main/resources/data/forgeweave/forgeweave/" + kind + "/" + name + ".json");
+        assertTrue(Files.exists(file), "expected " + kind + "/" + name + ".json");
+        return JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8)).getAsJsonObject();
+    }
+
+    private static List<JsonObject> readAll(Path dir) throws Exception {
+        List<JsonObject> rows = new java.util.ArrayList<>();
+        try (Stream<Path> files = Files.list(dir)) {
+            for (Path file : files.filter(p -> p.toString().endsWith(".json")).sorted().toList()) {
+                rows.add(JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8)).getAsJsonObject());
+            }
+        }
+        return rows;
     }
 
     private static boolean conditionNamesItem(com.google.gson.JsonArray conditions, String item) {
