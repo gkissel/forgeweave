@@ -29,6 +29,7 @@ import dev.gkissel.forgeweave.block.FaucetBlockEntity;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.PartBuilderBlockEntity;
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
+import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -106,6 +107,32 @@ public class WarMaceHeadCastGameTests {
         helper.succeedWhen(() -> {
             helper.assertTrue(table.input().is(ForgeweaveItems.CAST_WAR_MACE_HEAD.get()),
                     "expected the finished war mace head cast in the input slot, found " + table.input());
+            helper.assertTrue(table.output().is(Items.HEAVY_CORE),
+                    "expected the Heavy Core handed back in the output slot, found " + table.output());
+            helper.assertTrue(table.tank().isEmpty(), "and the pour is spent");
+        });
+    }
+
+    /**
+     * Playtest checklist 1.0.0, line 54: the clay half of the war mace head cast. The shipped
+     * {@code casting_recipe/clay_cast_war_mace_head.json} pours 288 mB of molten clay over a Heavy
+     * Core with {@code result_in_input}, so the clay cast takes the input slot and the core comes
+     * back in the output slot, exactly as the gold recipe above does. {@code enableClayCasts} is on
+     * by default and this test only reads it: the pour runs across many ticks, and a config flip
+     * that spans ticks would leak into every other test in the batch.
+     */
+    @GameTest(template = "empty", timeoutTicks = 400)
+    public static void pouringClayOverAHeavyCoreCreatesTheClayCastAndReturnsTheCore(GameTestHelper helper) {
+        helper.assertTrue(ForgeweaveConfig.read(ForgeweaveConfig.ENABLE_CLAY_CASTS),
+                "enableClayCasts must be on (its default) for the clay recipe to resolve");
+        Item clayCast = ForgeweaveItems.CLAY_CASTS.get("cast_war_mace_head").get();
+        CastingBlockEntity table = rig(helper, ForgeweaveFluids.MOLTEN_CLAY.still().get());
+        insert(helper, table, new ItemStack(Items.HEAVY_CORE));
+        faucet(helper).activate();
+
+        helper.succeedWhen(() -> {
+            helper.assertTrue(table.input().is(clayCast),
+                    "expected the finished war mace head clay cast in the input slot, found " + table.input());
             helper.assertTrue(table.output().is(Items.HEAVY_CORE),
                     "expected the Heavy Core handed back in the output slot, found " + table.output());
             helper.assertTrue(table.tank().isEmpty(), "and the pour is spent");

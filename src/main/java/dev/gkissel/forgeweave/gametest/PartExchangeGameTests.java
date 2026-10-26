@@ -13,6 +13,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
@@ -492,6 +493,53 @@ public class PartExchangeGameTests {
                         && material("cobalt").equals(materialsOf(swapped).get(1)),
                 "only the maille slot may change, got " + materialsOf(swapped));
         helper.succeed();
+    }
+
+    /**
+     * Playtest checklist 1.0.0, line 33: at the Tool Station, each of the 4 light pieces swaps its
+     * plating and then its maille for a part of another material. Each swap must keep the piece
+     * what it was, put cobalt in exactly the slot that was swapped, and hand the displaced iron
+     * part back to the player, which is what {@code returnExchangedParts} does by default. The tests
+     * above cover the helmet's plating and the chestplate's maille only.
+     */
+    @GameTest(template = "empty")
+    public static void everyLightPieceSwapsItsPlatingAndItsMaille(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        for (ToolConstants.Entry constants : ToolConstants.ARMOR) {
+            ToolAssemblyRecipes.Entry entry = ToolAssembly.entryOf(constants);
+            ItemStack piece = ToolAssembly.assembleAt(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(),
+                    entry, List.of("iron", "iron"));
+            Item kind = piece.getItem();
+            player.getInventory().clearContent();
+
+            ItemStack replated = take(helper, player, load(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(),
+                    piece, ToolAssembly.part(entry.part(0), "cobalt")));
+            helper.assertTrue(replated.is(kind)
+                            && List.of(material("cobalt"), material("iron")).equals(materialsOf(replated)),
+                    constants.id() + ": the plating swap must leave cobalt plating on the same piece, got "
+                            + replated + " " + materialsOf(replated));
+            assertReturnedOnce(helper, player, entry.part(0), constants.id() + "'s plating");
+
+            ItemStack remailled = take(helper, player, load(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(),
+                    replated, ToolAssembly.part(entry.part(1), "cobalt")));
+            helper.assertTrue(remailled.is(kind)
+                            && List.of(material("cobalt"), material("cobalt")).equals(materialsOf(remailled)),
+                    constants.id() + ": the maille swap must leave cobalt maille on the same piece, got "
+                            + remailled + " " + materialsOf(remailled));
+            assertReturnedOnce(helper, player, entry.part(1), constants.id() + "'s maille");
+        }
+        helper.succeed();
+    }
+
+    /** Exactly one {@code part} of iron came back to the player's inventory; clears it for the next swap. */
+    private static void assertReturnedOnce(GameTestHelper helper, Player player, Item part,
+            String what) {
+        List<ItemStack> returned = player.getInventory().items.stream().filter(stack -> stack.is(part)).toList();
+        helper.assertTrue(returned.size() == 1 && returned.get(0).getCount() == 1
+                        && material("iron").equals(returned.get(0).get(ForgeweaveDataComponents.MATERIAL.get())),
+                "the displaced iron part from " + what + " must come back exactly once, got " + returned);
+        player.getInventory().clearContent();
     }
 
     /**
