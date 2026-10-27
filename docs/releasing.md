@@ -170,4 +170,8 @@ git tag -a mc1.21.1-v0.1.0 -m "Forgeweave 0.1.0 for Minecraft 1.21.1"
 git push origin mc1.21.1-v0.1.0
 ```
 
+The Minecraft 26.1.2 line lives on `mc/26.1.2` and is tagged the same way, for example
+`mc26.1.2-v1.0.0`. The workflow reads `26.1.2` from the tag for the Modrinth and CurseForge game
+version, and builds and publishes with Java 25, which 26.1 requires.
+
 Do not move or reuse a published tag. Publish a new patch version if a release needs correction.
