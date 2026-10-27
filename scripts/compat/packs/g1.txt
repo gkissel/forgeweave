@@ -2,10 +2,12 @@
 # Line 9: no material that needs another mod exists. Line 62: the material sync line.
 # The upgrade pass loads a world the previous release saved (lines 17, 18).
 
-recipes 1926
-materials 80
+# recipes 1926   # re-pin on 26.1.2 after the first run
+# materials 80   # re-pin on 26.1.2 after the first run
 no-material forgeweave:zinc forgeweave:brass forgeweave:andesite_alloy forgeweave:rose_quartz
 no-material forgeweave:infused_alloy forgeweave:reinforced_alloy forgeweave:atomic_alloy forgeweave:hellforged
 no-material forgeweave:tin forgeweave:silver forgeweave:ferricore forgeweave:celestigem
 material forgeweave:atomic_matter_alloy  # line 11: in the registry without Mekanism
-upgrade-from modrinth forgeweave mc1.21.1-v0.6.0-beta.12 90b14bfe45344b014069e87e87790b1be410d4550d79574436cdb69acc61768f558aa5a8ae96cc88579c34702fea79d7638d887a1e0b5ca179eb73f7da06e3fd forgeweave-0.6.0-beta.12.jar
+# No upgrade pass on 26.1.2: no earlier Forgeweave release targets 26.1.2, and the 1.21.1 -> 26.1.2
+# world upgrade is a separate manual check.
+# upgrade-from modrinth forgeweave mc1.21.1-v0.6.0-beta.12 90b14bfe45344b014069e87e87790b1be410d4550d79574436cdb69acc61768f558aa5a8ae96cc88579c34702fea79d7638d887a1e0b5ca179eb73f7da06e3fd forgeweave-0.6.0-beta.12.jar

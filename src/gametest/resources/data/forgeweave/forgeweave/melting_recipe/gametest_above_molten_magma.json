@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "minecraft:phantom_membrane"
-  },
+  "input": "minecraft:phantom_membrane",
   "fluid": "forgeweave:molten_iron",
   "amount": 144,
   "temperature": 1800

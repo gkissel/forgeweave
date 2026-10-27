@@ -2,22 +2,36 @@
 # Agradditions. Material lines: 145 (nine presets, insanium included), 171 (Mekanism alloys), 183
 # (spirit_attuned_gem), 186 (Powah), 196 (Create), 208 (Hellforged). The `without` pass is line 215:
 # the world relaunched without Apotheosis loses no item.
+#
+# Reduced on 26.1.2 (checked 2026-10-26): Mekanism Generators has no 26.1.2 NeoForge build, and neither
+# do base.txt's Create, Mekanism and Immersive Engineering, so lines 171 and 196 and the alumite, osmium
+# and tin materials are not covered.
 
 include base.txt
-mod modrinth jei 19.43.0.393 04ea7c24a00b980851a34b71899c44731df5b830feafe4172641ae5f42432aabd34ba2ea57fa8f0577823bed0212c4214d409a8ea2060038deed0e8e7e237e81 jei-1.21.1-neoforge-19.43.0.393.jar
-mod modrinth mekanism-generators 10.7.19.85 6c3d5b7ea2f67f43c3d169c97de2855a7085f38019cf426e015ccc8ca9bc4f66e96b1cdf4a9afdc92bef7b2e236f16c81415ed5e48736805d5961d29525316d6 MekanismGenerators-1.21.1-10.7.19.85.jar
-mod modrinth neovitae 1.21.1-1.1.48 013e93a11df291efbc389cecc969d9a351852027e541c2f9ad5be2389e0a450010e36c1b7a83991379c29175de09b553f553f304e6d2df8a50cc6e9d9c42197b neovitae-1.21.1-1.1.48.jar
-mod modrinth mystical-agradditions 8.0.15 d42cb3179a6f372bbea9c37ba08c4221ada9ec0e39d7e1d6b33eca7e770abb3526aad33ff903111a1888a63d65d96b3e4cc09f4041a79b37cdb524fe10388c39 MysticalAgradditions-1.21.1-8.0.15.jar
+mod modrinth jei 29.47.0.110 487461d71820e3b31086d8b334b38b6ad6895c49d85e554b4083b60e0c2b185ed09a345b9aa9a96c0dd240be8cb6d890e08724a954ac9e6a69875a928ecbe27c jei-26.1.2-neoforge-29.47.0.110.jar
+mod modrinth neovitae 26.1.2-1.1.49 38ac5c251af735036df297924ffe8230c6d39d0f61935d4f9751deb1568030aa1f20d5fc3d8cf54a9ba5e822dccdf221727999d79898ffbbdbbfca48313a3355 neovitae-26.1.2-1.1.49.jar
+mod modrinth mystical-agradditions 9.0.4 a4f777c41f159758a260da3fb65d626f3c42f1322f5b956950f17185c911aeee2e3718cd375c9a164f8874a85f6f978ea21e6388dc6a71d3a4c5c838a1d3fd8d MysticalAgradditions-26.1.2-9.0.4.jar
+# 1.21.1:
+# mod modrinth jei 19.43.0.393 04ea7c24a00b980851a34b71899c44731df5b830feafe4172641ae5f42432aabd34ba2ea57fa8f0577823bed0212c4214d409a8ea2060038deed0e8e7e237e81 jei-1.21.1-neoforge-19.43.0.393.jar
+# mod modrinth mekanism-generators 10.7.19.85 6c3d5b7ea2f67f43c3d169c97de2855a7085f38019cf426e015ccc8ca9bc4f66e96b1cdf4a9afdc92bef7b2e236f16c81415ed5e48736805d5961d29525316d6 MekanismGenerators-1.21.1-10.7.19.85.jar
+# mod modrinth neovitae 1.21.1-1.1.48 013e93a11df291efbc389cecc969d9a351852027e541c2f9ad5be2389e0a450010e36c1b7a83991379c29175de09b553f553f304e6d2df8a50cc6e9d9c42197b neovitae-1.21.1-1.1.48.jar
+# mod modrinth mystical-agradditions 8.0.15 d42cb3179a6f372bbea9c37ba08c4221ada9ec0e39d7e1d6b33eca7e770abb3526aad33ff903111a1888a63d65d96b3e4cc09f4041a79b37cdb524fe10388c39 MysticalAgradditions-1.21.1-8.0.15.jar
 
 fixture partner-gear.cmds
 material forgeweave:inferium forgeweave:prudentium forgeweave:tertium forgeweave:imperium forgeweave:supremium
 material forgeweave:awakened_supremium forgeweave:prosperity forgeweave:soulium forgeweave:insanium
-material forgeweave:infused_alloy forgeweave:reinforced_alloy forgeweave:atomic_alloy forgeweave:spirit_attuned_gem
+material forgeweave:spirit_attuned_gem
 material forgeweave:blazing_crystal forgeweave:niotic_crystal forgeweave:spirited_crystal forgeweave:nitro_crystal
-material forgeweave:energised_steel forgeweave:zinc forgeweave:brass forgeweave:andesite_alloy forgeweave:rose_quartz
-material forgeweave:hellforged forgeweave:alumite forgeweave:dark_steel forgeweave:osmium forgeweave:tin
+material forgeweave:energised_steel
+material forgeweave:hellforged forgeweave:dark_steel
+# Mekanism's, Create's and Immersive Engineering's materials, out until those mods reach 26.1.2:
+# material forgeweave:infused_alloy forgeweave:reinforced_alloy forgeweave:atomic_alloy
+# material forgeweave:zinc forgeweave:brass forgeweave:andesite_alloy forgeweave:rose_quartz
+# material forgeweave:alumite forgeweave:osmium forgeweave:tin
 without Apotheosis-*.jar Apothic*.jar
-upgrade-from modrinth forgeweave mc1.21.1-v0.6.0-beta.12 90b14bfe45344b014069e87e87790b1be410d4550d79574436cdb69acc61768f558aa5a8ae96cc88579c34702fea79d7638d887a1e0b5ca179eb73f7da06e3fd forgeweave-0.6.0-beta.12.jar
-recipes 10863
-recipes-off 10661
-materials 131
+# No upgrade pass on 26.1.2: no earlier Forgeweave release targets 26.1.2, and the 1.21.1 -> 26.1.2
+# world upgrade is a separate manual check.
+# upgrade-from modrinth forgeweave mc1.21.1-v0.6.0-beta.12 90b14bfe45344b014069e87e87790b1be410d4550d79574436cdb69acc61768f558aa5a8ae96cc88579c34702fea79d7638d887a1e0b5ca179eb73f7da06e3fd forgeweave-0.6.0-beta.12.jar
+# recipes 10863      # re-pin on 26.1.2 after the first run
+# recipes-off 10661  # re-pin on 26.1.2 after the first run
+# materials 131      # re-pin on 26.1.2 after the first run

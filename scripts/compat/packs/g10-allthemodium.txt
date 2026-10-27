@@ -1,12 +1,21 @@
-# Group 10's Allthemodium half (lines 219-223), runnable without Elementarium's CurseForge-only
-# dependency: JEI and Allthemodium.
+# Group 10's Allthemodium half (lines 219-223), runnable without Elementarium: JEI and Allthemodium.
+#
+# On 26.1.2 Allthemodium is CurseForge only. Modrinth's single "3.0.1" is the 1.21.1 jar (the same
+# sha512 as the 1.21.1 pin) tagged with 26.1.x, so it is not used. Allthemodium 26.1.2-4.2.0 declares
+# All The Ores 4.0.0 or newer and GeckoLib 5.5 or newer. Stage allthemodium-26.1.2-4.2.0.jar and
+# alltheores-4.0.4.jar (CurseForge files 9120636 and 8023670) in a FW_COMPAT_JAR_DIRS directory.
 
-mod modrinth jei 19.70.0.460 2e2221b3979dbda313bd61b09a625d6edfa6c7644a0e9a7a791d25896a1b60c12fdd69aded150609cb1b78946bb9153011b8e4218fb1d535398503e00f429a33 jei-1.21.1-neoforge-19.70.0.460.jar
-mod modrinth allthemodium 3.0.1 964fb9e415a6899b5ebf1664f0eaeecf040c21458c5f3a2bfad906bfe95b0c1dac9d8383a2ce1be7a0c44b694d7fcd505ac532789a8af7ca99bcdac3a09831d3 allthemodium-3.0.1_mc_1.21.1.jar
+mod modrinth jei 29.47.0.110 487461d71820e3b31086d8b334b38b6ad6895c49d85e554b4083b60e0c2b185ed09a345b9aa9a96c0dd240be8cb6d890e08724a954ac9e6a69875a928ecbe27c jei-26.1.2-neoforge-29.47.0.110.jar
+mod local - allthemodium-26.1.2-*.jar
+mod local - alltheores-*.jar
+mod modrinth geckolib 5.5.2 d634390ad63372324220b14be3a70b0befca2a753fc8c0561f4162d31341182b08c102bd44432e59d884cb18d2906c1d0b36344f72c2d6e07c9b109a57c693f3 geckolib-neoforge-26.1.2-5.5.2.jar
+# 1.21.1:
+# mod modrinth jei 19.70.0.460 2e2221b3979dbda313bd61b09a625d6edfa6c7644a0e9a7a791d25896a1b60c12fdd69aded150609cb1b78946bb9153011b8e4218fb1d535398503e00f429a33 jei-1.21.1-neoforge-19.70.0.460.jar
+# mod modrinth allthemodium 3.0.1 964fb9e415a6899b5ebf1664f0eaeecf040c21458c5f3a2bfad906bfe95b0c1dac9d8383a2ce1be7a0c44b694d7fcd505ac532789a8af7ca99bcdac3a09831d3 allthemodium-3.0.1_mc_1.21.1.jar
 # Allthemodium 3.0.1 needs GeckoLib at runtime without declaring it (NoClassDefFoundError on GeoEntity).
-mod modrinth geckolib 4.9.3 8dfa5f8c57224a5e34e5098367ea9819ca6dc9c11357cd3062c16da3455c8bd1a483098af7383debc4b9ce8e4d7ab3fdc799b415644eb829da83eb72a7335dfd geckolib-neoforge-1.21.1-4.9.3.jar
+# mod modrinth geckolib 4.9.3 8dfa5f8c57224a5e34e5098367ea9819ca6dc9c11357cd3062c16da3455c8bd1a483098af7383debc4b9ce8e4d7ab3fdc799b415644eb829da83eb72a7335dfd geckolib-neoforge-1.21.1-4.9.3.jar
 
 material forgeweave:allthemodium forgeweave:vibranium forgeweave:unobtainium forgeweave:vibranium_allthemodium_alloy
 material forgeweave:unobtainium_allthemodium_alloy forgeweave:unobtainium_vibranium_alloy
-recipes 2098
-materials 86
+# recipes 2098   # re-pin on 26.1.2 after the first run
+# materials 86   # re-pin on 26.1.2 after the first run

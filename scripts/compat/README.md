@@ -58,16 +58,29 @@ One directive per line; `#` starts a comment.
 
 The runner refuses a pack that loads JEI with EMI, Jade with WTHIT, or Better Combat with Epic Fight. A
 count the pack doesn't pin still shows in the summary, which is how to pin a new pack: run it once and
-copy the numbers in. The jar hashes come from `fw-release-1.0.0/partner-mods/MANIFEST.md`'s
-Modrinth-verified files; Just Dire Things and Twilight Forest are local-only. Four packs stay a SKIP
-until someone stages a jar:
+copy the numbers in.
 
-- `g10.txt`: Elementarium 1.2.0 requires `navaronee_corelib`, which Modrinth doesn't carry.
-  `g10-allthemodium.txt` runs group 10's Allthemodium half meanwhile.
-- `g11.txt` and `g12.txt`: they need Catalyst-Studios' Eternal Ores 2.1. The Modrinth `eternal-ores`
-  1.0.32 jar in `partner-mods/` has the same mod id but is a different mod, with none of the metals
-  Forgeweave dedupes. `g11-justdirethings.txt` runs group 11's Just Dire Things half meanwhile.
-- `g13-iceandfire.txt`: no Ice and Fire jar is staged.
+A pack file with a `# SKIP on <version>: <reason>` line is a SKIP with that reason, without building a
+server. A pack with a missing `mod local` jar is a SKIP too.
+
+### On Minecraft 26.1.2
+
+The packs target Minecraft 26.1.2 and NeoForge 26.1.2 (checked 2026-10-26). Every Modrinth pin is the
+newest NeoForge 26.1.2 release of its project, or the newest beta, or the newest alpha where that is all
+there is (Powah, EnderIO). The 1.21.1 lines stay in each file as comments. The recipe and material
+counts are commented out until the first 26.1.2 run re-pins them, and so is every `upgrade-from`: no
+earlier Forgeweave release targets 26.1.2, so the 1.21.1 to 26.1.2 world upgrade is a manual check.
+
+- SKIP: `g3` (EMI), `g7` (Epic Fight), `g10` (Elementarium), `g11` (Eternal Ores), `g12` (Mekanism,
+  Eternal Ores) and `g13-iceandfire` (Ice and Fire). None of those mods has a 26.1.2 NeoForge build.
+- Reduced: `base.txt` has no Create, Mekanism or Immersive Engineering, so `g8` and `g9` lose those
+  mods' materials and toggles. `g8` also has no EMI, Mekanism Generators or Draconic Evolution. `g13`
+  has no PneumaticCraft, The Aether, L_Ender's Cataclysm, Actually Additions or Extreme Reactors.
+  `partner-gear.cmds` drops its Mekanism pickaxe. Each file's header lists what it loses.
+- CurseForge-only jars to stage in a `FW_COMPAT_JAR_DIRS` directory: `justdirethings-1.6.11.jar`
+  (`g11-justdirethings`), `twilightforest-26.1.2-4.9.3817-universal.jar` (`g13`), and
+  `allthemodium-26.1.2-4.2.0.jar` with `alltheores-4.0.4.jar` (`g10-allthemodium`). Modrinth's
+  Allthemodium 3.0.1 is the 1.21.1 jar with 26.1.x tags, so it isn't used.
 
 ## The previous-release world
 
@@ -82,6 +95,7 @@ reproducible equivalent, and CI can build it too.
 
 | Variable | Default | Use |
 | --- | --- | --- |
+| `FW_JAVA` | `$JAVA_HOME/bin/java`, else `java` | The java for the NeoForge installer and the server (`mk.sh` writes it into each server's `run.sh`). NeoForge 26.1.2 needs Java 25 or newer; anything older stops the run. A JDK 25 Gradle provisioned works, e.g. `~/.gradle/jdks/eclipse_adoptium-25-amd64-linux.2/bin/java`. |
 | `FW_COMPAT_JAR_DIRS` | none | Colon-separated jar directories, searched by file name and hash before any download. |
 | `FW_COMPAT_CACHE` | `~/.cache/forgeweave-compat` | Downloaded jars, and the NeoForge server install. |
 | `FW_SERVER_BASE` | `$FW_COMPAT_CACHE/neoforge-<neo_version>` | A NeoForge server install (`run.sh`, `libraries/`). Installed from maven.neoforged.net when missing. |
@@ -104,6 +118,7 @@ They work on their own too, against any server directory `mk.sh` built:
 - `spark_fw.py <profile>` totals each thread and Forgeweave's share of a `.sparkprofile`;
   `spark_tree.py <profile> <thread> <Class#method>...` prints the call tree under matching frames.
 - `snbt.py` is the SNBT parser the Python scripts share.
+- `java.sh` picks the java (`FW_JAVA`) and checks it is 25 or newer; `run_matrix.sh` and `mk.sh` source it.
 - `test_pack.py` checks `pack.py`'s log checks against small made-up logs, with no server.
 
 ## Gaps

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "minecraft:shulker_shell"
-  },
+  "input": "minecraft:shulker_shell",
   "fluid": "forgeweave:molten_draconium_awakened",
   "amount": 144,
   "temperature": 1800,

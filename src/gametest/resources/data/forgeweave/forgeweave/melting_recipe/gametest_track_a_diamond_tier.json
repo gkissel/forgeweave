@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "minecraft:prismarine_shard"
-  },
+  "input": "minecraft:prismarine_shard",
   "fluid": "forgeweave:molten_platinum",
   "amount": 144,
   "temperature": 1400,
