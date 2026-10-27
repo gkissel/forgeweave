@@ -4,6 +4,12 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.neoforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.transfer.energy.ItemAccessEnergyHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+
+import org.jspecify.annotations.Nullable;
 
 import dev.gkissel.forgeweave.api.trait.Trait;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
@@ -93,6 +99,25 @@ public record EnergyBuffer(int capacity, float energyPerDurabilityPoint) impleme
             setStored(stack, stored - removed);
         }
         return removed;
+    }
+
+    /**
+     * The 26.1 transfer-API form of {@link #capability(ItemStack)}, which is what {@code
+     * ToolItem#registerCapabilities} registers. It writes through the {@link ItemAccess}, so a charger
+     * filling a tool in a player's inventory changes that slot's stack. An empty buffer drops the
+     * component again, the same as {@link #receive}/{@link #extract} do.
+     */
+    public static @Nullable EnergyHandler capability(ItemStack stack, ItemAccess access) {
+        int capacity = ForgeweaveTraits.energyCapacity(stack);
+        if (capacity <= 0) {
+            return null;
+        }
+        return new ItemAccessEnergyHandler(access, ForgeweaveDataComponents.ENERGY.get(), capacity) {
+            @Override
+            protected ItemResource update(ItemResource accessResource, int newAmount) {
+                return newAmount <= 0 ? accessResource.without(energyComponent) : super.update(accessResource, newAmount);
+            }
+        };
     }
 
     /** See the class javadoc: {@code null} for a tool whose traits sum to zero energy capacity. */
