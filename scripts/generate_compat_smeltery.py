@@ -91,15 +91,13 @@ def write_json(path: Path, data: dict) -> None:
     path.write_text(json.dumps(data, indent=2) + "\n")
 
 
-def form_suffix(ingredient: dict | list[dict]) -> str:
-    """Melting-recipe filename suffix for a crafting_items ingredient, or "" for a material's one
-    and only form (a plain concrete item, or a tag with no ingots/nuggets/storage_blocks/raw_materials
-    family segment -- e.g. silicon's bare c:silicon)."""
-    if isinstance(ingredient, list):
-        return form_suffix(ingredient[0])
-    tag = ingredient.get("tag")
-    if tag is None:
+def form_suffix(ingredient: str) -> str:
+    """Melting-recipe filename suffix for a crafting_items ingredient ("#tag" or an item id), or ""
+    for a material's one and only form (a plain concrete item, or a tag with no ingots/nuggets/
+    storage_blocks/raw_materials family segment -- e.g. silicon's bare #c:silicon)."""
+    if not ingredient.startswith("#"):
         return ""
+    tag = ingredient[1:]
     if "ingots/" in tag:
         return "_ingot"
     if "nuggets/" in tag:
@@ -147,12 +145,12 @@ def melting_recipes() -> None:
         for entry in info["crafting_items"]:
             suffix = form_suffix(entry["ingredient"])
             name = f"{material_id}{suffix}.json"
-            if isinstance(entry["ingredient"], dict) and entry["ingredient"].get("tag") == "c:ingots/hop_graphite":
+            if entry["ingredient"] == "#c:ingots/hop_graphite":
                 name = f"{material_id}{suffix}_immersiveengineering.json"
             # A concrete item input only decodes when that item exists, so it gates on that item
             # alone; the material's wider neoforge:or would load the row with the item missing
             # (quartz_enriched_iron's RefinedStorage item under Eternal Ores alone).
-            item = entry["ingredient"].get("item") if isinstance(entry["ingredient"], dict) else None
+            item = None if entry["ingredient"].startswith("#") else entry["ingredient"]
             condition = [{"type": "neoforge:item_exists", "item": item}] if item else info["condition"]
             write_json(MELTING_DIR / name, {
                 "input": entry["ingredient"],
@@ -176,7 +174,7 @@ def alloy_melting_recipes() -> None:
         temperature = melt_temperature(alloy_id)  # Issue #954, same one-per-material pin as above.
         for form, value in (("ingot", VALUE_INGOT), ("nugget", VALUE_NUGGET), ("block", VALUE_BLOCK)):
             write_json(MELTING_DIR / f"{alloy_id}_{form}.json", {
-                "input": {"tag": f"c:{ALLOY_FORM_TAGS[form]}/{alloy_id}"},
+                "input": f"#c:{ALLOY_FORM_TAGS[form]}/{alloy_id}",
                 "fluid": fluid,
                 "amount": value,
                 "temperature": temperature,
