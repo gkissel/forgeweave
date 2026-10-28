@@ -278,6 +278,9 @@ public class SlimeIslandGameTests {
         BlockPos dirtPos = new BlockPos(2, 1, 1);
         helper.setBlock(grassPos, ForgeweaveBlocks.GREEN_SLIME_SOIL.grass().get());
         helper.setBlock(dirtPos, ForgeweaveBlocks.PURPLE_SLIME_SOIL.dirt().get());
+        // Its own light, not the sky's: the day/night tests set the shared world clock to midnight and
+        // leave it there, and 26.1 runs them alongside this one.
+        helper.setBlock(new BlockPos(1, 2, 0), Blocks.GLOWSTONE);
 
         ServerLevel level = helper.getLevel();
         BlockPos absoluteGrass = helper.absolutePos(grassPos);

@@ -22,6 +22,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 
@@ -470,9 +471,16 @@ public class SignatureTraitGameTests {
         player.hurt(source, amount);
     }
 
-    /** A survival mock player wearing an iron chestplate whose trait list is exactly {@code traits}. */
+    /**
+     * A survival mock player wearing an iron chestplate whose trait list is exactly {@code traits}.
+     * Stood inside the test: the mock player starts at the world origin, which 26.1 runs its tests
+     * nowhere near, so the zombies {@link #bystander} places beside it would sit in unloaded chunks
+     * no entity search reaches.
+     */
     private static Player wearing(GameTestHelper helper, String... traits) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        Vec3 stand = helper.absoluteVec(new Vec3(2.5, 2.0, 2.5));
+        player.setPos(stand.x, stand.y, stand.z);
         ItemStack piece = ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.TOOL_STATION.get(),
                 ToolAssembly.entryOf(ToolConstants.CHESTPLATE), List.of("iron", "iron"));
         piece.set(ForgeweaveDataComponents.TRAITS.get(),
