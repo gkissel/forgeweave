@@ -411,6 +411,9 @@ dependencies {
     testCompileOnly "dev.latvian.mods:rhino:${rhino_version}"
     testRuntimeOnly("dev.latvian.mods:kubejs-neoforge:${kubejs_version}") { transitive = false }
     testRuntimeOnly "dev.latvian.mods:rhino:${rhino_version}"
+    // KubeJS 26.1 lists Better Advanced Tooltips as optional but loads its BATIcons class while
+    // registering, so the unit-test run needs the jar too.
+    testRuntimeOnly("dev.latvian.mods:better-advanced-tooltips:${bat_version}") { transitive = false }
 
     // Issue #915 (M8 deep compat): Draconic Evolution's fusion crafting. compileOnly plus the test
     // classpath, and deliberately no localRuntime -- the same call Jade and KubeJS made above, for
