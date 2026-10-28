@@ -46,7 +46,7 @@ public class TwilightForestGameTests {
     public static void unsuppliedTwilightForestMaterialsDoNotExistAtAll(GameTestHelper helper) {
         Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         for (String name : TWILIGHT_FOREST_MATERIALS) {
-            helper.assertTrue(materials.get(id(name)) == null,
+            helper.assertTrue(materials.getValue(id(name)) == null,
                     "expected the " + name + " material to be absent without the Twilight Forest, found it registered");
         }
         helper.succeed();

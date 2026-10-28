@@ -148,7 +148,7 @@ public class MysticalAgricultureGameTests {
     public static void unsuppliedPresetsDoNotExistAtAll(GameTestHelper helper) {
         Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         for (String name : PRESET_MATERIALS) {
-            helper.assertTrue(materials.get(id(name)) == null,
+            helper.assertTrue(materials.getValue(id(name)) == null,
                     "expected the " + name + " material to be absent without its own mod, found it registered");
         }
         helper.succeed();

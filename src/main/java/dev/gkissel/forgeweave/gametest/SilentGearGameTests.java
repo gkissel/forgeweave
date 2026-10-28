@@ -65,7 +65,7 @@ public class SilentGearGameTests {
     public static void unsuppliedSilentGearMaterialsDoNotExistAtAll(GameTestHelper helper) {
         Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         for (String name : SILENT_GEAR_MATERIALS) {
-            helper.assertTrue(materials.get(id(name)) == null,
+            helper.assertTrue(materials.getValue(id(name)) == null,
                     "expected the " + name + " material to be absent without Silent Gear, found it registered");
         }
         helper.succeed();

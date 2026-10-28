@@ -58,7 +58,7 @@ public class PowahGameTests {
     public static void unsuppliedCrystalMaterialsDoNotExistAtAll(GameTestHelper helper) {
         Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         for (String name : CRYSTAL_MATERIALS) {
-            helper.assertTrue(materials.get(id(name)) == null,
+            helper.assertTrue(materials.getValue(id(name)) == null,
                     "expected the " + name + " material to be absent without Powah, found it registered");
         }
         helper.succeed();
@@ -68,7 +68,7 @@ public class PowahGameTests {
     public static void unsuppliedSurgeboundRecipesDoNotExistAtAll(GameTestHelper helper) {
         Registry<ModifierRecipe> recipes = helper.getLevel().registryAccess().lookupOrThrow(ModifierRecipe.REGISTRY);
         for (String name : SURGEBOUND_RECIPES) {
-            helper.assertTrue(recipes.get(id(name)) == null,
+            helper.assertTrue(recipes.getValue(id(name)) == null,
                     "expected the " + name + " modifier recipe to be absent without Powah, found it registered");
         }
         helper.succeed();

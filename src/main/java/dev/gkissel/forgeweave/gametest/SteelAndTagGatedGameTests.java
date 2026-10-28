@@ -153,7 +153,7 @@ public class SteelAndTagGatedGameTests {
     public static void unsuppliedCompatMetalsDoNotExistAtAll(GameTestHelper helper) {
         Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         for (String name : new String[] {"bronze", "lead", "silver", "electrum"}) {
-            helper.assertTrue(materials.get(materialId(name)) == null,
+            helper.assertTrue(materials.getValue(materialId(name)) == null,
                     "expected the " + name + " material to be absent without its supplying mod, found it registered");
         }
 

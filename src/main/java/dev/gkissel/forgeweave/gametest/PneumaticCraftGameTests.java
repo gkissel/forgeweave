@@ -48,7 +48,7 @@ public class PneumaticCraftGameTests {
     public static void unsuppliedPneumaticCraftMaterialsDoNotExistAtAll(GameTestHelper helper) {
         Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         for (String name : PNEUMATICCRAFT_MATERIALS) {
-            helper.assertTrue(materials.get(id(name)) == null,
+            helper.assertTrue(materials.getValue(id(name)) == null,
                     "expected the " + name + " material to be absent without PneumaticCraft: Repressurized, "
                             + "found it registered");
         }

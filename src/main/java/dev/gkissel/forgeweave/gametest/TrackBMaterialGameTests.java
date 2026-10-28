@@ -111,7 +111,7 @@ public class TrackBMaterialGameTests {
     public static void everyTrackBMaterialExistsUnconditionally(GameTestHelper helper) {
         Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         for (String name : ROSTER) {
-            helper.assertTrue(materials.get(materialId(name)) != null,
+            helper.assertTrue(materials.getValue(materialId(name)) != null,
                     "expected " + name + " to be registered unconditionally (issue #841, Track B always exists)");
         }
         helper.succeed();

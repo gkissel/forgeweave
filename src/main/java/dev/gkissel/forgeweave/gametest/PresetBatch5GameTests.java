@@ -104,7 +104,7 @@ public class PresetBatch5GameTests {
     public static void unsuppliedBatch5PresetsDoNotExistAtAll(GameTestHelper helper) {
         Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         for (String name : BATCH_5_MATERIALS) {
-            helper.assertTrue(materials.get(materialId(name)) == null,
+            helper.assertTrue(materials.getValue(materialId(name)) == null,
                     "expected the " + name + " material to be absent without its supplying mod, found it registered");
         }
         helper.succeed();

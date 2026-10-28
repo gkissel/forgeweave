@@ -58,7 +58,7 @@ public class OccultismGameTests {
     public static void theSpiritAttunedGemPresetDoesNotExistAtAll(GameTestHelper helper) {
         Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         helper.assertTrue(
-                materials.get(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "spirit_attuned_gem")) == null,
+                materials.getValue(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "spirit_attuned_gem")) == null,
                 "expected the spirit_attuned_gem material to be absent without Occultism, found it registered");
         helper.succeed();
     }
@@ -75,7 +75,7 @@ public class OccultismGameTests {
                 Identifier.fromNamespaceAndPath(ForgeweaveOccultismCompat.MODID, "crushing"),
                 Identifier.fromNamespaceAndPath(ForgeweaveOccultismCompat.MODID, "miner"),
                 Identifier.fromNamespaceAndPath(ForgeweaveOccultismCompat.MODID, "ritual"))) {
-            helper.assertTrue(net.minecraft.core.registries.BuiltInRegistries.RECIPE_TYPE.get(id) == null,
+            helper.assertTrue(net.minecraft.core.registries.BuiltInRegistries.RECIPE_TYPE.getValue(id) == null,
                     "Occultism is absent, so " + id + " must not be a registered recipe type -- if it is,"
                             + " this test is no longer proving anything");
         }
