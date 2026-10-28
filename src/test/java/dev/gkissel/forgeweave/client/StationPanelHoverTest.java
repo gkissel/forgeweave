@@ -22,6 +22,8 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.tags.TagKey;
 
@@ -64,7 +66,7 @@ class StationPanelHoverTest {
                 TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace("incorrect_for_stone_tool")),
                 Material.Traits.general(TRAIT_A, TRAIT_B),
                 List.of(),
-                Material.NONE,
+                Ingredient.of(Items.IRON_INGOT),
                 null);
     }
 

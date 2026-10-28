@@ -15,7 +15,6 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.trait.Trait;
 import dev.gkissel.forgeweave.item.PartItem;
 
-import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -284,25 +283,13 @@ public record Material(
                 .apply(instance, Plating::new));
     }
 
-    /**
-     * The single-item shape {@link Ingredient#CODEC} accepts -- since 1.21.2 a bare {@code "<id>"}
-     * string -- minus the registry lookup. See {@link #LENIENT_INGREDIENT_CODEC}.
-     */
-    private record UnresolvedItem(Identifier id) {
-        static final Codec<UnresolvedItem> CODEC = Identifier.CODEC.xmap(UnresolvedItem::new, UnresolvedItem::id);
-    }
-
-    /**
-     * An ingredient that matches nothing, which is what 1.21.1's {@code Ingredient.EMPTY} was. 26.1
-     * refuses an empty direct item list, so this is an empty tag instead: it parses, it encodes as
-     * {@code #forgeweave:unresolved}, and no item is ever in it.
-     */
-    public static final Ingredient NONE = Ingredient.of(HolderSet.emptyNamed(BuiltInRegistries.ITEM,
-            TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(Forgeweave.MODID, "unresolved"))));
+    /** The empty item tag an unregistered item id decodes to; see {@link #LENIENT_INGREDIENT_CODEC}. */
+    public static final TagKey<net.minecraft.world.item.Item> UNRESOLVED = TagKey.create(Registries.ITEM,
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "unresolved"));
 
     /**
      * Same JSON shapes {@link Ingredient#CODEC} accepts, except a concrete (non-vanilla) item id
-     * that is not currently registered decodes to {@link #NONE} instead of failing the
+     * that is not currently registered decodes to the empty {@link #UNRESOLVED} tag instead of failing the
      * whole material's parse (issue #872, following the constraint #826 hit in #860 and again in
      * #865/#866). Vanilla's own codec resolves a single-item entry through {@code
      * BuiltInRegistries.ITEM.holderByNameCodec()}, which errors on an unknown id -- correct for a
@@ -315,20 +302,28 @@ public record Material(
      * actually decodes. The only place an unknown id reaches this codec is a mod-less parse of the
      * raw JSON -- this repo's own test suite -- and the fallback gives it exactly the behavior an
      * empty {@code c:} tag already has: it parses fine and simply never matches a real item stack
-     * ({@link #NONE}'s {@code test} always answers {@code false} for a non-empty stack).
+     * (1.21.1's {@code Ingredient.EMPTY}; 26.1 refuses an empty item list, so it is the tag).
      *
-     * <p>Tries the unresolved-item shape first and only accepts it when the id is genuinely
-     * unregistered ({@link UnresolvedItem#CODEC}'s {@code validate} step) -- a known item, a tag, or
-     * the array syntax all fall through to the real {@link Ingredient#CODEC} unchanged, so nothing
-     * about a normal material's parse or its registry-sync payload shape changes.
+     * <p>Only a bare id that is genuinely unregistered is rewritten -- a known item, a tag, or the
+     * array syntax all go to the real {@link Ingredient#CODEC} unchanged, so nothing about a normal
+     * material's parse or its registry-sync payload shape changes. The tag is resolved through the
+     * decoding ops like any {@code "#..."} entry, so its holder set is the registry's own, bound
+     * (empty, {@code data/forgeweave/tags/item/unresolved.json}) and safe to list.
      */
-    private static final Codec<Ingredient> LENIENT_INGREDIENT_CODEC = Codec.either(
-            UnresolvedItem.CODEC.validate(unresolved -> BuiltInRegistries.ITEM.containsKey(unresolved.id())
-                    ? DataResult.error(() -> "known item id, defer to the real ingredient codec")
-                    : DataResult.success(unresolved)),
-            Ingredient.CODEC)
-            .xmap(either -> either.map(unresolved -> NONE, ingredient -> ingredient),
-                    ingredient -> Either.right(ingredient));
+    private static final Codec<Ingredient> LENIENT_INGREDIENT_CODEC = new Codec<>() {
+        @Override
+        public <T> DataResult<com.mojang.datafixers.util.Pair<Ingredient, T>> decode(
+                com.mojang.serialization.DynamicOps<T> ops, T input) {
+            boolean unresolved = Identifier.CODEC.parse(ops, input).result()
+                    .filter(id -> !BuiltInRegistries.ITEM.containsKey(id)).isPresent();
+            return Ingredient.CODEC.decode(ops, unresolved ? ops.createString("#" + UNRESOLVED.location()) : input);
+        }
+
+        @Override
+        public <T> DataResult<T> encode(Ingredient ingredient, com.mojang.serialization.DynamicOps<T> ops, T prefix) {
+            return Ingredient.CODEC.encode(ingredient, ops, prefix);
+        }
+    };
 
     /**
      * A raw item usable as Part Builder crafting input, and how much of a part's cost one of it
