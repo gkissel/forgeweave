@@ -24,6 +24,7 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.combat.KnockbackOnHitSeam;
 import dev.gkissel.forgeweave.combat.PotionEffectOnHitSeam;
@@ -43,7 +44,7 @@ class CombatModifiersTest {
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(JsonOps.INSTANCE);
     }
 
     private static ModifierRecipe shippedRecipe(String path) {
@@ -110,7 +111,7 @@ class CombatModifiersTest {
 
         PotionEffectOnHitSeam oneLevel = (PotionEffectOnHitSeam) ForgeweaveModifiers.WEBBED.combatSeam(1).orElseThrow();
         PotionEffectOnHitSeam threeLevels = (PotionEffectOnHitSeam) ForgeweaveModifiers.WEBBED.combatSeam(3).orElseThrow();
-        assertEquals(MobEffects.MOVEMENT_SLOWDOWN, oneLevel.effect());
+        assertEquals(MobEffects.SLOWNESS, oneLevel.effect());
         assertEquals(1, oneLevel.amplifier(), "Slowness II, upstream's hardcoded amplifier");
         assertEquals(20, oneLevel.durationTicks(), "upstream ModWebbed#onHit: level * 20");
         assertEquals(60, threeLevels.durationTicks());

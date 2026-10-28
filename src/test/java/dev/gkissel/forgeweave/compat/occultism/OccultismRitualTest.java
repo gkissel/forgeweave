@@ -106,8 +106,8 @@ class OccultismRitualTest {
         assertEquals("forgeweave:" + ritual.factoryName(), json.get("ritual_type").getAsString(),
                 "a row whose ritual_type does not match a registered factory silently does nothing");
         assertEquals(ritual.pentacle(), json.get("pentacle_id").getAsString());
-        assertEquals("forgeweave:ritual_bindable",
-                json.getAsJsonObject("activation_item").get("tag").getAsString(),
+        assertEquals("#forgeweave:ritual_bindable",
+                json.get("activation_item").getAsString(),
                 "the activation item is the tool the player lays on the golden bowl");
         assertTrue(json.get("duration").getAsInt() > 0);
     }
@@ -120,7 +120,7 @@ class OccultismRitualTest {
         assertEquals(ritual.ingredients().size(), ingredients.size(),
                 "one sacrificial bowl per ingredient -- a dropped entry is a cheaper ritual");
         assertEquals(ForgeweaveOccultismCompat.SPIRIT_GEM,
-                ingredients.get(0).getAsJsonObject().get("item").getAsString(),
+                ingredients.get(0).getAsString(),
                 "the spirit itself comes first; it is what is being bound");
         assertEquals(ritual.essence(), ingredients.size() - 1,
                 "and the rest is otherworld essence, one per rank of the ritual's pentacle");

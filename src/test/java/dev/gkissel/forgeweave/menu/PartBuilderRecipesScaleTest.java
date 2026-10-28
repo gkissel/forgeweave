@@ -32,6 +32,7 @@ import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.material.Material;
 
 /**
@@ -60,8 +61,7 @@ class PartBuilderRecipesScaleTest {
     }
 
     private static Map<Identifier, Material> shippedMaterials() throws Exception {
-        RegistryOps<JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE,
-                RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        RegistryOps<JsonElement> ops = TestRegistries.ops(JsonOps.INSTANCE);
         Path materialDir = projectRoot().resolve("src/main/resources/data/forgeweave/forgeweave/material");
         Map<Identifier, Material> materials = new LinkedHashMap<>();
         try (Stream<Path> files = Files.list(materialDir)) {

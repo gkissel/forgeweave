@@ -11,6 +11,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -42,7 +43,12 @@ import dev.gkissel.forgeweave.api.modifier.Modifier;
  * table syncs to connecting clients, which is what lets the worktable screen work out its own button
  * list without a packet of its own.
  */
-public record WorktableRecipe(Kind kind, Ingredient input, List<ItemStack> leftovers) {
+public record WorktableRecipe(Kind kind, Ingredient input, List<ItemStackTemplate> leftoverTemplates) {
+
+    /** Fresh copies (held as templates for the reason {@code CastingRecipe#output} gives) of what the spent input turns back into. */
+    public List<ItemStack> leftovers() {
+        return leftoverTemplates.stream().map(ItemStackTemplate::create).toList();
+    }
 
     public static final ResourceKey<Registry<WorktableRecipe>> REGISTRY = ResourceKey.createRegistryKey(
             Identifier.fromNamespaceAndPath(Forgeweave.MODID, "worktable_recipe"));
@@ -69,7 +75,7 @@ public record WorktableRecipe(Kind kind, Ingredient input, List<ItemStack> lefto
     public static final Codec<WorktableRecipe> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Kind.CODEC.fieldOf("kind").forGetter(WorktableRecipe::kind),
             Ingredient.CODEC.fieldOf("input").forGetter(WorktableRecipe::input),
-            ItemStack.CODEC.listOf().optionalFieldOf("leftovers", List.of()).forGetter(WorktableRecipe::leftovers))
+            ItemStackTemplate.CODEC.listOf().optionalFieldOf("leftovers", List.of()).forGetter(WorktableRecipe::leftoverTemplates))
             .apply(instance, WorktableRecipe::new));
 
     /** Whether taking the result spends one of the input item. Sorting never does, upstream's rule too. */

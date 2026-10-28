@@ -16,7 +16,8 @@ import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.item.ItemUseAnimation;
 
 /**
  * Parity audit T22 (issue #453). The charge-up arithmetic upstream 1.12's
@@ -73,7 +74,7 @@ class SlimeSlingTest {
     void theSlingChargesLikeABowAndDoesNotStack() {
         ItemStack stack = new ItemStack(ForgeweaveItems.SLIME_SLING.get());
 
-        assertSame(UseAnim.BOW, stack.getItem().getUseAnimation(stack));
+        assertSame(ItemUseAnimation.BOW, stack.getItem().getUseAnimation(stack));
         assertEquals(72000, stack.getItem().getUseDuration(stack, null));
         assertEquals(1, stack.getMaxStackSize());
     }
@@ -107,7 +108,7 @@ class SlimeSlingTest {
     void everyColourIsTheSameSlingBehaviour() {
         for (ForgeweaveItems.SlimeSling sling : ForgeweaveItems.slimeSlings()) {
             ItemStack stack = new ItemStack(sling.item().get());
-            assertSame(UseAnim.BOW, stack.getItem().getUseAnimation(stack), sling.colour() + " use animation");
+            assertSame(ItemUseAnimation.BOW, stack.getItem().getUseAnimation(stack), sling.colour() + " use animation");
             assertEquals(1, stack.getMaxStackSize(), sling.colour() + " stack size");
         }
     }
@@ -117,7 +118,7 @@ class SlimeSlingTest {
     void theSlingCarriesItsGreyFlavourLine() {
         ItemStack stack = new ItemStack(ForgeweaveItems.SLIME_SLING.get());
         List<Component> tooltip = new ArrayList<>();
-        stack.getItem().appendHoverText(stack, Item.TooltipContext.EMPTY, tooltip, TooltipFlag.NORMAL);
+        stack.getItem().appendHoverText(stack, Item.TooltipContext.EMPTY, TooltipDisplay.DEFAULT, tooltip::add, TooltipFlag.NORMAL);
 
         assertEquals(
                 List.of(Component.translatable("tooltip.forgeweave.slime_sling").withStyle(ChatFormatting.GRAY),

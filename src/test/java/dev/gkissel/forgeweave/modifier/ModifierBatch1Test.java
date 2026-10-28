@@ -29,6 +29,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.Tool;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -49,7 +50,7 @@ class ModifierBatch1Test {
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(JsonOps.INSTANCE);
     }
 
     // ------------------------------------------------------------------ sharpness (quartz)
@@ -431,9 +432,9 @@ class ModifierBatch1Test {
         stack.set(DataComponents.MAX_DAMAGE, PICKAXE_STATS.durability());
         stack.set(DataComponents.DAMAGE, 0);
         stack.set(DataComponents.TOOL, new Tool(
-                List.of(Tool.Rule.deniesDrops(BlockTags.INCORRECT_FOR_WOODEN_TOOL),
-                        Tool.Rule.minesAndDrops(BlockTags.MINEABLE_WITH_PICKAXE, PICKAXE_STATS.miningSpeed())),
-                1.0F, 1));
+                List.of(Tool.Rule.deniesDrops(BuiltInRegistries.BLOCK.getOrThrow(BlockTags.INCORRECT_FOR_WOODEN_TOOL)),
+                        Tool.Rule.minesAndDrops(BuiltInRegistries.BLOCK.getOrThrow(BlockTags.MINEABLE_WITH_PICKAXE), PICKAXE_STATS.miningSpeed())),
+                1.0F, 1, true));
         return stack;
     }
 

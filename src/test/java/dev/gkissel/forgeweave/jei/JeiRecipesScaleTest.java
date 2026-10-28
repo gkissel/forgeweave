@@ -48,6 +48,8 @@ import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.common.conditions.ConditionalOps;
 import net.neoforged.neoforge.common.conditions.ICondition;
 
+import dev.gkissel.forgeweave.TestRegistries;
+import dev.gkissel.forgeweave.TestTags;
 import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.material.Material;
@@ -80,8 +82,7 @@ class JeiRecipesScaleTest {
     }
 
     private static Map<Identifier, Material> shippedMaterials() throws Exception {
-        RegistryOps<JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE,
-                RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        RegistryOps<JsonElement> ops = TestRegistries.ops(JsonOps.INSTANCE);
         Path materialDir = projectRoot().resolve("src/main/resources/data/forgeweave/forgeweave/material");
         Map<Identifier, Material> materials = new LinkedHashMap<>();
         try (Stream<Path> files = Files.list(materialDir)) {
@@ -103,8 +104,7 @@ class JeiRecipesScaleTest {
      * {@code jar} task -- out of these counts without this test needing any id-based filter of its own.
      */
     private static <T> Map<Identifier, T> shippedRegistryEntries(String registryPath, com.mojang.serialization.Codec<T> codec) throws Exception {
-        RegistryOps<JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE,
-                RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        RegistryOps<JsonElement> ops = TestRegistries.ops(JsonOps.INSTANCE);
         Path dir = projectRoot().resolve("src/main/resources/data/forgeweave/forgeweave/" + registryPath);
         Map<Identifier, T> entries = new LinkedHashMap<>();
         try (Stream<Path> files = Files.list(dir)) {
@@ -253,8 +253,7 @@ class JeiRecipesScaleTest {
      * result is what JEI gets in a pack with none of the optional partner mods.
      */
     private static <T> Map<Identifier, T> shippedConditionalEntries(String registryPath, Codec<T> codec) throws Exception {
-        ConditionalOps<JsonElement> ops = new ConditionalOps<>(RegistryOps.create(JsonOps.INSTANCE,
-                RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY)), ICondition.IContext.EMPTY);
+        ConditionalOps<JsonElement> ops = new ConditionalOps<>(TestRegistries.ops(JsonOps.INSTANCE), ICondition.IContext.EMPTY);
         Codec<Optional<T>> conditional = ConditionalOps.createConditionalCodec(codec);
         Path dir = projectRoot().resolve("src/main/resources/data/forgeweave/forgeweave/" + registryPath);
         Map<Identifier, T> entries = new LinkedHashMap<>();
@@ -320,11 +319,11 @@ class JeiRecipesScaleTest {
         JsonObject tag = JsonParser.parseString(Files.readString(tagFile, StandardCharsets.UTF_8)).getAsJsonObject();
         List<Holder<Item>> large = new ArrayList<>();
         for (JsonElement value : tag.getAsJsonArray("values")) {
-            large.add(BuiltInRegistries.ITEM.getHolderOrThrow(
+            large.add(BuiltInRegistries.ITEM.getOrThrow(
                     ResourceKey.create(Registries.ITEM, Identifier.parse(value.getAsString()))));
         }
 
-        BuiltInRegistries.ITEM.bindTags(Map.of(ToolAssemblyRecipes.LARGE_TOOLS, large));
+        TestTags.bindItemTags(Map.of(ToolAssemblyRecipes.LARGE_TOOLS, large));
         try {
             List<AssemblyRecipe> rows = AssemblyRecipes.build(shippedMaterials());
             for (ToolConstants.Entry piece : ToolConstants.ARMOR) {
@@ -337,7 +336,7 @@ class JeiRecipesScaleTest {
             assertEquals(4, ToolConstants.ARMOR.size());
             assertEquals(4, ToolConstants.HEAVY_ARMOR.size());
         } finally {
-            BuiltInRegistries.ITEM.bindTags(Map.of());
+            TestTags.bindItemTags(Map.of());
         }
     }
 

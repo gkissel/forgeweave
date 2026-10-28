@@ -35,6 +35,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.material.Fluids;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.client.book.BookContent;
 import dev.gkissel.forgeweave.client.book.BookLink;
 import dev.gkissel.forgeweave.client.book.BookMaterialOrder;
@@ -69,8 +70,7 @@ class BookMaterialStagesTest {
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(JsonOps.INSTANCE,
-                RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(JsonOps.INSTANCE);
     }
 
     private static Path projectRoot() {

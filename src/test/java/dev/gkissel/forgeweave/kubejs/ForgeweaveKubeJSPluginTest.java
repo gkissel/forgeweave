@@ -91,7 +91,7 @@ class ForgeweaveKubeJSPluginTest {
         new ForgeweaveKubeJSPlugin().registerServerRegistries(
                 new ServerRegistryRegistry() {
                     @Override
-                    public <T> void register(ResourceKey<Registry<T>> key, Codec<T> codec, TypeInfo typeInfo) {
+                    public <T> void register(ResourceKey<? extends Registry<T>> key, Codec<T> codec, TypeInfo typeInfo) {
                         registered.put(key, codec);
                     }
                 });

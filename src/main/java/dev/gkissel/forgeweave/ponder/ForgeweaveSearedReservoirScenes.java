@@ -92,7 +92,7 @@ public final class ForgeweaveSearedReservoirScenes {
 
         scene.world().showSection(util.select().position(CONTROLLER), Direction.SOUTH);
         scene.overlay().showControls(util.vector().blockSurface(CONTROLLER, Direction.NORTH), Pointing.LEFT, 40)
-                .withItem(new ItemStack(ForgeweaveItems.SEARED_RESERVOIR_CONTROLLER.get()));
+                .withItem(PonderStacks.of(ForgeweaveItems.SEARED_RESERVOIR_CONTROLLER.get()));
         scene.idle(10);
         scene.overlay().showText(80)
                 .attachKeyFrame()
@@ -112,7 +112,7 @@ public final class ForgeweaveSearedReservoirScenes {
         scene.idle(100);
 
         scene.overlay().showControls(util.vector().blockSurface(DRAIN, Direction.WEST), Pointing.LEFT, 40)
-                .withItem(new ItemStack(ForgeweaveFluids.IRON.bucket().get()))
+                .withItem(PonderStacks.of(ForgeweaveFluids.IRON.bucket().get()))
                 .rightClick();
         scene.idle(10);
         scene.overlay().showText(90)

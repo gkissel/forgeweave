@@ -124,8 +124,7 @@ class BookTutorialArithmeticTest {
         StringBuilder brickKeys = new StringBuilder();
         for (Map.Entry<String, JsonElement> key : json.getAsJsonObject("key").entrySet()) {
             JsonElement value = key.getValue();
-            if (value.isJsonObject() && value.getAsJsonObject().has("item")
-                    && value.getAsJsonObject().get("item").getAsString().equals(SEARED_BRICK)) {
+            if (value.isJsonPrimitive() && value.getAsString().equals(SEARED_BRICK)) {
                 brickKeys.append(key.getKey());
             }
         }

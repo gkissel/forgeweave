@@ -55,9 +55,8 @@ public class GravelFlintRecipe extends ShapelessRecipe {
     /** The superclass's own ingredient list is private; kept here for {@link #CODEC}. */
     private final List<Ingredient> ingredients;
 
-    public GravelFlintRecipe(String group, CraftingBookCategory category, ItemStack result, List<Ingredient> ingredients) {
-        this(new Recipe.CommonInfo(true), new CraftingRecipe.CraftingBookInfo(category, group),
-                ItemStackTemplate.fromNonEmptyStack(result), ingredients);
+    public GravelFlintRecipe(String group, CraftingBookCategory category, ItemStackTemplate result, List<Ingredient> ingredients) {
+        this(new Recipe.CommonInfo(true), new CraftingRecipe.CraftingBookInfo(category, group), result, ingredients);
     }
 
     public GravelFlintRecipe(Recipe.CommonInfo commonInfo, CraftingRecipe.CraftingBookInfo bookInfo,

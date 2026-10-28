@@ -529,7 +529,7 @@ public final class ForgeweaveBlocks {
                     .mapColor(MapColor.NONE)
                     .strength(0.3F)
                     .sound(SoundType.GLASS)
-                    .noOcclusion()));
+                    .noOcclusion().setId(blockKey("clear_glass"))));
 
     /**
      * A registered clear stained glass color (issue #275): its {@link DyeColor}, the exact ARGB tint
@@ -858,7 +858,7 @@ public final class ForgeweaveBlocks {
                         .mapColor(dye.getMapColor())
                         .strength(0.3F)
                         .sound(SoundType.GLASS)
-                        .noOcclusion()));
+                        .noOcclusion().setId(blockKey(dye.getName() + "_stained_clear_glass"))));
         CLEAR_STAINED_GLASS.add(new StainedGlassColor(dye, tint, block));
         return block;
     }

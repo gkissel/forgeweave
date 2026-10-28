@@ -95,7 +95,7 @@ class ApotheosisSocketTest {
         GemSockets decoded = GemSockets.CODEC.parse(ops, encoded).getOrThrow();
 
         assertEquals(sockets, decoded, "the socket component must survive a save/load round trip");
-        List<ItemStack> items = decoded.gems().stream().toList();
+        List<ItemStack> items = decoded.gems().allItemsCopyStream().toList();
         assertEquals(3, items.size(), "a gem in socket three keeps socket three, empties and all");
         assertTrue(items.get(0).is(Items.DIAMOND));
         assertTrue(items.get(1).isEmpty(), "the empty middle socket must stay empty rather than shift");
@@ -131,7 +131,7 @@ class ApotheosisSocketTest {
         Tag reEncoded = GemSockets.CODEC.encodeStart(nbt, decoded).getOrThrow();
 
         assertEquals(Set.of(1), decoded.unreadable().keySet(), "the unknown gem is kept raw, in its own socket");
-        assertTrue(decoded.gems().stream().toList().get(0).is(Items.DIAMOND),
+        assertTrue(decoded.gems().allItemsCopyStream().toList().get(0).is(Items.DIAMOND),
                 "and the readable gem beside it still decodes as a gem");
         assertArrayEquals(bytes(saved), bytes(reEncoded), "re-encoding must give back exactly what was saved");
     }
@@ -140,7 +140,7 @@ class ApotheosisSocketTest {
     @Test
     void aGemWithAnUnknownComponentIsKeptRawToo() throws Exception {
         RegistryOps<Tag> nbt = RegistryOps.create(NbtOps.INSTANCE, registries);
-        Tag saved = TagParser.parseTag("{s:[{item:{components:{\"absent_mod:purity\":\"flawless\"},"
+        Tag saved = TagParser.parseCompoundFully("{s:[{item:{components:{\"absent_mod:purity\":\"flawless\"},"
                 + "count:1,id:\"minecraft:emerald\"},slot:0}]}").get("s");
 
         GemSockets decoded = GemSockets.CODEC.parse(nbt, saved).getOrThrow();
@@ -190,7 +190,7 @@ class ApotheosisSocketTest {
 
     /** Two sockets in 1.0.0's saved shape: a diamond in socket 0 and a gem whose mod is gone in 1. */
     private static Tag savedSockets() throws Exception {
-        return TagParser.parseTag("{s:[{item:{count:1,id:\"minecraft:diamond\"},slot:0},"
+        return TagParser.parseCompoundFully("{s:[{item:{count:1,id:\"minecraft:diamond\"},slot:0},"
                 + "{item:{components:{\"absent_mod:gem\":\"absent_mod:core/ballast\","
                 + "\"absent_mod:purity\":\"flawless\"},count:1,id:\"" + MISSING_GEM + "\"},slot:1}]}").get("s");
     }

@@ -15,7 +15,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 import dev.gkissel.forgeweave.Forgeweave;
-import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.tool.ToolConstants;
@@ -63,8 +62,7 @@ public final class ForgeweaveArmorScenes {
                 .placeNearTarget();
         scene.idle(80);
 
-        ItemStack plating = new ItemStack(ForgeweaveItems.PART_PLATING_CHESTPLATE.get());
-        plating.set(ForgeweaveDataComponents.MATERIAL.get(), IRON);
+        ItemStack plating = PonderStacks.of(ForgeweaveItems.PART_PLATING_CHESTPLATE.get(), IRON);
         scene.overlay().showControls(util.vector().blockSurface(STATION, Direction.SOUTH), Pointing.RIGHT, 50)
                 .withItem(plating);
         scene.idle(10);
@@ -75,8 +73,7 @@ public final class ForgeweaveArmorScenes {
                 .placeNearTarget();
         scene.idle(80);
 
-        ItemStack maille = new ItemStack(ForgeweaveItems.PART_MAILLE.get());
-        maille.set(ForgeweaveDataComponents.MATERIAL.get(), IRON);
+        ItemStack maille = PonderStacks.of(ForgeweaveItems.PART_MAILLE.get(), IRON);
         scene.overlay().showControls(util.vector().blockSurface(STATION, Direction.SOUTH), Pointing.RIGHT, 50)
                 .withItem(maille);
         scene.idle(10);
@@ -88,7 +85,7 @@ public final class ForgeweaveArmorScenes {
         scene.idle(80);
 
         scene.overlay().showControls(util.vector().topOf(STATION), Pointing.DOWN, 50)
-                .withItem(new ItemStack(ForgeweaveItems.ARMOR_CHESTPLATE.get()));
+                .withItem(PonderStacks.of(ForgeweaveItems.ARMOR_CHESTPLATE.get()));
         scene.effects().indicateSuccess(STATION);
         scene.idle(10);
         scene.overlay().showText(70)

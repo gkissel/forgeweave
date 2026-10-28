@@ -26,6 +26,7 @@ import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -47,7 +48,7 @@ class NetheriteModifierTest {
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(JsonOps.INSTANCE);
     }
 
     private static ModifierRecipe shippedRecipe() {
@@ -106,7 +107,7 @@ class NetheriteModifierTest {
         assertEquals(1, outcome.firstUsed(), "one reagent, level 1");
         assertEquals(0, ForgeweaveModifiers.freeSlots(outcome.output()), "and occupies none");
         assertEquals(1200, outcome.output().get(DataComponents.MAX_DAMAGE), "+20% of the plating's 1000");
-        assertTrue(outcome.output().has(DataComponents.FIRE_RESISTANT), "the dropped piece survives fire");
+        assertTrue(outcome.output().has(DataComponents.DAMAGE_RESISTANT), "the dropped piece survives fire");
 
         ModifierApplication.Outcome again = ModifierApplication.apply(shippedRecipe(), outcome.output(), 1, 0);
         assertTrue(again.output().isEmpty(), "max level 1");

@@ -34,6 +34,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.client.StationText;
 import dev.gkissel.forgeweave.item.PartItem;
 
@@ -50,7 +51,7 @@ class BowMaterialTest {
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(JsonOps.INSTANCE);
     }
 
     private static Material shipped(String name) {

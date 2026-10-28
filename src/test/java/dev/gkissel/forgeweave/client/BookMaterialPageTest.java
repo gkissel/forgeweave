@@ -29,6 +29,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.client.book.MaterialPageContent;
 import dev.gkissel.forgeweave.client.book.MaterialPageContent.Icon;
@@ -58,7 +59,7 @@ class BookMaterialPageTest {
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(JsonOps.INSTANCE);
     }
 
     private static Material shipped(String name) {
@@ -79,7 +80,7 @@ class BookMaterialPageTest {
     private static Component hoverOf(Component line) {
         HoverEvent hover = line.getStyle().getHoverEvent();
         assertNotNull(hover, "no hover event on \"" + line.getString() + "\"");
-        Component text = hover.getValue(HoverEvent.Action.SHOW_TEXT);
+        Component text = hover instanceof HoverEvent.ShowText(Component shown) ? shown : null;
         assertNotNull(text, "hover event on \"" + line.getString() + "\" is not SHOW_TEXT");
         return text;
     }

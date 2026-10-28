@@ -146,7 +146,9 @@ class TextureReferenceAuditTest {
         }
         JsonObject textures = root.getAsJsonObject().getAsJsonObject("textures");
         for (Map.Entry<String, JsonElement> entry : textures.entrySet()) {
-            String value = entry.getValue().getAsString();
+            // 26.x: a texture is a bare sprite id or {"sprite": ..., "force_translucent": true}.
+            JsonElement texture = entry.getValue();
+            String value = texture.isJsonObject() ? texture.getAsJsonObject().get("sprite").getAsString() : texture.getAsString();
             if (value.startsWith("#")) {
                 continue; // reference to another texture variable, not a file
             }

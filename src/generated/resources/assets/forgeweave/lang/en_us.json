@@ -1923,7 +1923,7 @@
   "jei.category.forgeweave.smeltery_fuel.vs_lava": "%s° hotter than lava -- reaches recipes lava alone cannot",
   "jei.category.forgeweave.tool_assembly": "Assembly",
   "jei.category.forgeweave.tool_repair": "Tool Repair",
-  "key.categories.forgeweave": "Forgeweave",
+  "key.category.forgeweave.forgeweave": "Forgeweave",
   "key.forgeweave.veinmine": "Vein Mine (hold)",
   "material.forgeweave.allthemodium": "Allthemodium",
   "material.forgeweave.alpha_yeti_fur": "Alpha Yeti Fur",

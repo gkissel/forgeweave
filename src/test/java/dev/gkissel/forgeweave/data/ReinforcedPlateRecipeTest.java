@@ -1,7 +1,6 @@
 package dev.gkissel.forgeweave.data;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -9,6 +8,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -42,10 +42,10 @@ class ReinforcedPlateRecipeTest {
                 .resolve("src/generated/resources/data/forgeweave/recipe/reinforced_plate.json");
         assertTrue(Files.isRegularFile(recipe), "expected recipe JSON at " + recipe);
         JsonObject json = JsonParser.parseString(Files.readString(recipe, StandardCharsets.UTF_8)).getAsJsonObject();
-        JsonObject center = json.getAsJsonObject("key").getAsJsonObject("B");
+        JsonElement center = json.getAsJsonObject("key").get("B");
 
-        assertFalse(center.has("item"), "center slot still keys a plain item, not the gold-casts tag: " + center);
-        assertTrue(center.has("tag"), "center slot should key the gold-casts tag: " + center);
-        assertEquals("forgeweave:casts/gold", center.get("tag").getAsString());
+        assertTrue(center.isJsonPrimitive(), "center slot should be a single ingredient string: " + center);
+        assertTrue(center.getAsString().startsWith("#"), "center slot still keys a plain item, not the gold-casts tag: " + center);
+        assertEquals("#forgeweave:casts/gold", center.getAsString());
     }
 }

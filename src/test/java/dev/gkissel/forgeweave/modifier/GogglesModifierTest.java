@@ -113,7 +113,7 @@ class GogglesModifierTest {
         }
 
         assertEquals("forgeweave:goggles", json.get("modifier").getAsString());
-        assertEquals("create:goggles", json.getAsJsonObject("reagent").get("item").getAsString());
+        assertEquals("create:goggles", json.get("reagent").getAsString());
         assertEquals(1, json.get("cost").getAsInt());
         assertEquals(1, json.get("max_level").getAsInt());
 

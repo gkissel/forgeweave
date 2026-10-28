@@ -301,6 +301,8 @@ public class ToolItem extends Item {
     // stay answerable for any mod still asking by name.
     private static final ItemAbility PICKAXE_DIG = ItemAbility.get("pickaxe_dig");
     private static final ItemAbility HOE_DIG = ItemAbility.get("hoe_dig");
+    private static final ItemAbility AXE_DIG = ItemAbility.get("axe_dig");
+    private static final ItemAbility SHOVEL_DIG = ItemAbility.get("shovel_dig");
     private static final ItemAbility SWORD_DIG = ItemAbility.get("sword_dig");
 
     private static Set<ItemAbility> abilitiesFor(List<TagKey<Block>> mineableBlocks) {
@@ -309,8 +311,10 @@ public class ToolItem extends Item {
             if (tag == BlockTags.MINEABLE_WITH_PICKAXE) {
                 abilities.add(PICKAXE_DIG);
             } else if (tag == BlockTags.MINEABLE_WITH_AXE) {
+                abilities.add(AXE_DIG);
                 abilities.addAll(ItemAbilities.DEFAULT_AXE_ACTIONS);
             } else if (tag == BlockTags.MINEABLE_WITH_SHOVEL) {
+                abilities.add(SHOVEL_DIG);
                 abilities.addAll(ItemAbilities.DEFAULT_SHOVEL_ACTIONS);
             } else if (tag == BlockTags.MINEABLE_WITH_HOE) {
                 abilities.add(HOE_DIG);

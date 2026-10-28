@@ -54,10 +54,15 @@ class StainedGlassTintTest {
     private static final List<String> FRAMES = List.of(
             "normal", "u", "r", "ud", "ul", "ur", "lr", "udr", "udl", "ulr", "udlr");
 
-    /** Each glass's texture set and the render layer upstream draws it on. */
-    private static final Map<String, String> GLASS_SETS = Map.of(
-            "clear_glass", "minecraft:cutout",
-            "clear_stained_glass", "minecraft:translucent");
+    /**
+     * Each glass's texture set and whether upstream draws it on the translucent layer (the stained
+     * glass) or the cutout one (the clear glass). 26.x models carry no {@code render_type}: the
+     * chunk layer comes from the sprite's alpha, which lands a glass with holes on cutout by itself,
+     * and a face that must blend says {@code force_translucent} on its texture instead.
+     */
+    private static final Map<String, Boolean> GLASS_SETS = Map.of(
+            "clear_glass", false,
+            "clear_stained_glass", true);
 
     private static Path projectRoot() {
         Path dir = Path.of("").toAbsolutePath();
@@ -72,6 +77,16 @@ class StainedGlassTintTest {
     private static JsonObject readJson(Path path) throws IOException {
         assertTrue(Files.isRegularFile(path), "expected model JSON at " + path);
         return JsonParser.parseString(Files.readString(path, StandardCharsets.UTF_8)).getAsJsonObject();
+    }
+
+    /** A 26.x model texture: a bare sprite id, or {@code {"sprite": ..., "force_translucent": ...}}. */
+    private static String sprite(JsonElement texture) {
+        return texture.isJsonObject() ? texture.getAsJsonObject().get("sprite").getAsString() : texture.getAsString();
+    }
+
+    private static boolean forcesTranslucent(JsonElement texture) {
+        return texture.isJsonObject() && texture.getAsJsonObject().has("force_translucent")
+                && texture.getAsJsonObject().get("force_translucent").getAsBoolean();
     }
 
     @Test
@@ -101,7 +116,7 @@ class StainedGlassTintTest {
         Path sprites = root.resolve("src/main/resources/assets/forgeweave/textures/derived/block/connected");
         Path models = root.resolve("src/generated/resources/assets/forgeweave/models/block/connected");
 
-        for (Map.Entry<String, String> glass : GLASS_SETS.entrySet()) {
+        for (Map.Entry<String, Boolean> glass : GLASS_SETS.entrySet()) {
             String set = glass.getKey();
             for (String frame : FRAMES) {
                 assertTrue(Files.isRegularFile(sprites.resolve(set).resolve(frame + ".png")),
@@ -115,12 +130,12 @@ class StainedGlassTintTest {
                         set + "/" + suffix + " is back on vanilla's untinted cube (issue #951)");
                 assertEquals("forgeweave:block/tinted_cube", model.get("parent").getAsString(),
                         set + "/" + suffix + " must inherit the tinted cube parent");
-                assertEquals(glass.getValue(), model.get("render_type").getAsString(),
-                        set + "/" + suffix + " must keep upstream's render layer");
-
                 JsonObject textures = model.getAsJsonObject("textures");
                 for (String face : FACES) {
-                    String texture = textures.get(face).getAsString();
+                    assertEquals(glass.getValue(), forcesTranslucent(textures.get(face)),
+                            set + "/" + suffix + "'s " + face + " face must keep upstream's render layer ("
+                                    + (glass.getValue() ? "translucent" : "cutout") + ")");
+                    String texture = sprite(textures.get(face));
                     assertTrue(texture.startsWith("forgeweave:derived/block/connected/" + set + "/"),
                             set + "/" + suffix + "'s " + face + " face must bind one of that glass's own "
                                     + "connected frames, got " + texture);
@@ -132,7 +147,7 @@ class StainedGlassTintTest {
             JsonObject isolated = readJson(models.resolve(set).resolve("0.json")).getAsJsonObject("textures");
             for (String face : FACES) {
                 assertEquals("forgeweave:derived/block/connected/" + set + "/normal",
-                        isolated.get(face).getAsString(),
+                        sprite(isolated.get(face)),
                         set + "/0 is the no-neighbours model; every face must be the isolated frame");
             }
         }
@@ -164,6 +179,14 @@ class StainedGlassTintTest {
             assertEquals("forgeweave:block/connected/clear_stained_glass/0",
                     readJson(items.resolve(name + ".json")).get("parent").getAsString(),
                     name + "'s item model must be the isolated frame");
+            // 26.x: an item's tint index is answered by its client item's "tints" list, not by a
+            // registered item colour handler, so that list is where the colour has to be.
+            JsonObject clientItem = readJson(root.resolve("src/generated/resources/assets/forgeweave/items/" + name + ".json"))
+                    .getAsJsonObject("model");
+            assertEquals("forgeweave:item/" + name, clientItem.get("model").getAsString(),
+                    name + "'s client item must draw its item model");
+            assertTrue(clientItem.has("tints") && clientItem.getAsJsonArray("tints").size() == 1,
+                    name + "'s client item must tint index 0, or the inventory sprite is the bare greyscale (issue #951)");
         }
     }
 }

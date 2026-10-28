@@ -89,7 +89,7 @@ public final class ForgeweaveSmelteryScenes {
 
         scene.world().showSection(util.select().position(CORE), Direction.SOUTH);
         scene.overlay().showControls(util.vector().blockSurface(CORE, Direction.NORTH), Pointing.LEFT, 40)
-                .withItem(new ItemStack(ForgeweaveItems.STANDARD_CORE.get()));
+                .withItem(PonderStacks.of(ForgeweaveItems.STANDARD_CORE.get()));
         scene.idle(10);
         scene.overlay().showText(70)
                 .attachKeyFrame()
@@ -212,7 +212,7 @@ public final class ForgeweaveSmelteryScenes {
         ForgeweaveCastingScenes.searedTank(scene, util, TIERS_TANK, LAVA, SearedTankBlockEntity.CAPACITY);
         scene.idle(10);
         scene.overlay().showControls(util.vector().blockSurface(TIERS_CORE, Direction.NORTH), Pointing.LEFT, 40)
-                .withItem(new ItemStack(Items.IRON_ORE));
+                .withItem(PonderStacks.of(Items.IRON_ORE));
         scene.overlay().showText(90)
                 .attachKeyFrame()
                 .text("The core in a smeltery's wall sets how much melt each ore gives. Under a Standard Core, the only core that is crafted, one iron ore melts to one and a half ingots' worth")

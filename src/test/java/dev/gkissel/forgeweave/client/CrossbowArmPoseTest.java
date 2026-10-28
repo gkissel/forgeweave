@@ -10,7 +10,7 @@ import net.minecraft.SharedConstants;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.ItemUseAnimation;
 
 import dev.gkissel.forgeweave.item.CrossbowItem;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -80,14 +80,14 @@ class CrossbowArmPoseTest {
      * a guard, not a leftover: vanilla's {@code ItemInHandRenderer} switch has <em>no</em>
      * {@code CROSSBOW} case at all -- that first-person animation is reached only through its
      * {@code instanceof net.minecraft.world.item.CrossbowItem} special case -- so a Forgeweave
-     * crossbow declaring {@code UseAnim.CROSSBOW} would fall out of the switch with no
+     * crossbow declaring {@code ItemUseAnimation.CROSSBOW} would fall out of the switch with no
      * {@code applyItemArmTransform} applied and render its first-person model detached from the
      * hand, losing issue #413's cranking poses. The third-person pose comes from
      * {@link ForgeweaveItemClientExtensions} instead, which costs first person nothing.
      */
     @Test
     void theUseAnimationStaysNone() {
-        assertEquals(UseAnim.NONE, crossbow(false).getUseAnimation());
-        assertEquals(UseAnim.NONE, crossbow(true).getUseAnimation());
+        assertEquals(ItemUseAnimation.NONE, crossbow(false).getUseAnimation());
+        assertEquals(ItemUseAnimation.NONE, crossbow(true).getUseAnimation());
     }
 }

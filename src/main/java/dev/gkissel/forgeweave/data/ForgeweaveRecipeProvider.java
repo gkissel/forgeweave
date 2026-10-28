@@ -32,6 +32,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CookingBookCategory;
@@ -1032,7 +1033,7 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                         'T', Ingredient.of(ForgeweaveItems.TOOL_STATION.get())),
                 "BBB", "MTM", "M M");
         RetexturedShapedRecipe recipe = new RetexturedShapedRecipe("", CraftingBookCategory.MISC, pattern,
-                new ItemStack(ForgeweaveItems.TOOL_FORGE.get()), Optional.of(metal));
+                new ItemStackTemplate(ForgeweaveItems.TOOL_FORGE.get()), Optional.of(metal));
 
         AdvancementHolder advancement = recipeOutput.advancement()
                 .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(key(id)))
@@ -1057,7 +1058,7 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                         'C', tag(Tags.Items.INGOTS_COPPER)),
                 "ACA", "ABA", "ACA");
         EnergizedTankRecipe recipe = new EnergizedTankRecipe("", CraftingBookCategory.MISC, pattern,
-                new ItemStack(ForgeweaveItems.ENERGIZED_TANK.get()));
+                new ItemStackTemplate(ForgeweaveItems.ENERGIZED_TANK.get()));
 
         AdvancementHolder advancement = recipeOutput.advancement()
                 .addCriterion("has_seared_brick", has(ForgeweaveItems.SEARED_BRICK.get()))
@@ -1069,7 +1070,7 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
 
     private void gravelFlintRecipe(RecipeOutput recipeOutput) {
         Identifier id = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "flint_from_gravel");
-        GravelFlintRecipe recipe = new GravelFlintRecipe("", CraftingBookCategory.MISC, new ItemStack(Items.FLINT),
+        GravelFlintRecipe recipe = new GravelFlintRecipe("", CraftingBookCategory.MISC, new ItemStackTemplate(Items.FLINT),
                 List.of(Ingredient.of(Items.GRAVEL), Ingredient.of(Items.GRAVEL), Ingredient.of(Items.GRAVEL)));
 
         AdvancementHolder advancement = recipeOutput.advancement()
@@ -1085,7 +1086,7 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
         ShapedRecipePattern pattern = ShapedRecipePattern.of(
                 Map.of('A', Ingredient.of(patternItem), 'B', ingredient), "A", "B");
         RetexturedShapedRecipe recipe =
-                new RetexturedShapedRecipe("", CraftingBookCategory.MISC, pattern, new ItemStack(result));
+                new RetexturedShapedRecipe("", CraftingBookCategory.MISC, pattern, new ItemStackTemplate(result.asItem()));
 
         AdvancementHolder advancement = recipeOutput.advancement()
                 .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(key(id)))

@@ -23,6 +23,7 @@ import net.neoforged.neoforge.common.Tags;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import dev.gkissel.forgeweave.TestTags;
 import dev.gkissel.forgeweave.block.SlimeColour;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 
@@ -39,7 +40,7 @@ class MixedSlimeBlockRecipeTest {
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        // `c:slimeballs` is a datapack tag, and no datapack is loaded here -- bind it by hand to the
+        // `c:slime_balls` is a datapack tag, and no datapack is loaded here -- bind it by hand to the
         // six items ForgeweaveItemTagsProvider and NeoForge between them put in it.
         List<Holder<Item>> slimeballs = new ArrayList<>();
         slimeballs.add(BuiltInRegistries.ITEM.wrapAsHolder(Items.SLIME_BALL));
@@ -48,7 +49,7 @@ class MixedSlimeBlockRecipeTest {
                 slimeballs.add(BuiltInRegistries.ITEM.wrapAsHolder(ball(colour)));
             }
         }
-        BuiltInRegistries.ITEM.bindTags(Map.of(Tags.Items.SLIMEBALLS, slimeballs));
+        TestTags.bindItemTags(Map.of(Tags.Items.SLIME_BALLS, slimeballs));
     }
 
     private final MixedSlimeBlockRecipe recipe = new MixedSlimeBlockRecipe(CraftingBookCategory.BUILDING);
@@ -95,7 +96,10 @@ class MixedSlimeBlockRecipeTest {
      */
     @Test
     void theResultIsReadableBeforeAnyServerConfigIsLoaded() {
-        assertEquals(Items.SLIME_BLOCK, recipe.getResultItem(null).getItem());
+        assertEquals(Items.SLIME_BLOCK, recipe.assemble(grid(
+                Items.SLIME_BALL, Items.SLIME_BALL, Items.SLIME_BALL,
+                Items.SLIME_BALL, Items.SLIME_BALL, Items.SLIME_BALL,
+                Items.SLIME_BALL, Items.SLIME_BALL, ball(SlimeColour.MAGMA))).getItem());
     }
 
     private static Item ball(SlimeColour colour) {

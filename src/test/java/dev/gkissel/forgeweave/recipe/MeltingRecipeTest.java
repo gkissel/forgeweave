@@ -26,6 +26,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.material.Fluids;
 
+import dev.gkissel.forgeweave.TestRegistries;
+
 /**
  * Pins upstream 1.12's melting math (NOTICE.md) and the JSON shape docs/SCOPE.md M2 promises datapack
  * authors. The molten metals themselves are {@code DeferredHolder}-backed and so unavailable without
@@ -41,7 +43,7 @@ class MeltingRecipeTest {
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(JsonOps.INSTANCE);
     }
 
     private static MeltingRecipe parse(String json) {
@@ -101,7 +103,7 @@ class MeltingRecipeTest {
     @Test
     void oreDefaultsToFalseForDatapackCompatibility() {
         MeltingRecipe recipe = parse("""
-                {"input": {"item": "minecraft:iron_ingot"}, "fluid": "minecraft:lava", "amount": 144}
+                {"input": "minecraft:iron_ingot", "fluid": "minecraft:lava", "amount": 144}
                 """);
 
         assertTrue(!recipe.ore(), "a recipe with no ore key must default to false");
@@ -110,7 +112,7 @@ class MeltingRecipeTest {
     @Test
     void oreCanBeMarkedTrueAndRoundTrips() {
         MeltingRecipe recipe = parse("""
-                {"input": {"tag": "c:ores/iron"}, "fluid": "minecraft:lava", "amount": 144, "ore": true}
+                {"input": "#c:ores/iron", "fluid": "minecraft:lava", "amount": 144, "ore": true}
                 """);
 
         assertTrue(recipe.ore());
@@ -123,7 +125,7 @@ class MeltingRecipeTest {
     @Test
     void temperatureDefaultsToTheOutputFluidsCurve() {
         MeltingRecipe recipe = parse("""
-                {"input": {"item": "minecraft:iron_ingot"}, "fluid": "minecraft:lava", "amount": 144}
+                {"input": "minecraft:iron_ingot", "fluid": "minecraft:lava", "amount": 144}
                 """);
 
         assertEquals(MeltingRecipe.calcTemperature(Fluids.LAVA.getFluidType().getTemperature(), 144), recipe.temperature());
@@ -139,7 +141,7 @@ class MeltingRecipeTest {
     @Test
     void oreClassRecipesDeriveTemperatureFromTheDoubledAmount() {
         MeltingRecipe recipe = parse("""
-                {"input": {"tag": "c:ores/iron"}, "fluid": "minecraft:lava", "amount": 144, "ore": true}
+                {"input": "#c:ores/iron", "fluid": "minecraft:lava", "amount": 144, "ore": true}
                 """);
 
         assertEquals(MeltingRecipe.calcTemperature(Fluids.LAVA.getFluidType().getTemperature(), 288), recipe.temperature(),
@@ -149,7 +151,7 @@ class MeltingRecipeTest {
     @Test
     void aTagInputIsAcceptedAndIsWhatMakesTheCTagLadderWork() {
         MeltingRecipe recipe = parse("""
-                {"input": {"tag": "c:ingots/iron"}, "fluid": "minecraft:lava", "amount": 144}
+                {"input": "#c:ingots/iron", "fluid": "minecraft:lava", "amount": 144}
                 """);
 
         // Tag contents are not bound without a server, so this only pins that a tag input parses --
@@ -160,7 +162,7 @@ class MeltingRecipeTest {
     @Test
     void aRecipeWithoutAnAmountIsRejected() {
         DataResult<MeltingRecipe> result = MeltingRecipe.CODEC.parse(ops, JsonParser.parseString("""
-                {"input": {"item": "minecraft:iron_ingot"}, "fluid": "minecraft:lava"}
+                {"input": "minecraft:iron_ingot", "fluid": "minecraft:lava"}
                 """));
 
         assertTrue(result.isError(), "a melting recipe with no output amount must not parse");
@@ -178,7 +180,7 @@ class MeltingRecipeTest {
     void theShippedIronOreRecipeHoldsTheBaseAmountAndIsTagKeyed() {
         JsonObject json = shipped("iron_ore");
 
-        assertEquals("c:ores/iron", json.getAsJsonObject("input").get("tag").getAsString());
+        assertEquals("#c:ores/iron", json.get("input").getAsString());
         assertEquals("forgeweave:molten_iron", json.get("fluid").getAsString());
         assertEquals(MeltingRecipe.VALUE_INGOT, json.get("amount").getAsInt(), "one raw iron, not the Standard Core's 1.5x of it");
         assertTrue(json.get("ore").getAsBoolean(), "an ore-class input, so issue #99's core multiplier applies");
@@ -237,13 +239,13 @@ class MeltingRecipeTest {
     @Test
     void itemInputsAreMoreSpecificThanTagInputs() {
         assertTrue(parse("""
-                {"input": {"tag": "c:ores/copper"}, "fluid": "minecraft:lava", "amount": 144}
+                {"input": "#c:ores/copper", "fluid": "minecraft:lava", "amount": 144}
                 """).isTagInput(), "a c: tag recipe is the family default");
         assertTrue(!parse("""
-                {"input": {"item": "minecraft:copper_ore"}, "fluid": "minecraft:lava", "amount": 504}
+                {"input": "minecraft:copper_ore", "fluid": "minecraft:lava", "amount": 504}
                 """).isTagInput(), "a per-item override is not");
         assertTrue(!parse("""
-                {"input": [{"item": "minecraft:copper_ore"}, {"item": "minecraft:deepslate_copper_ore"}],
+                {"input": ["minecraft:copper_ore", "minecraft:deepslate_copper_ore"],
                  "fluid": "minecraft:lava", "amount": 504}
                 """).isTagInput(), "nor is a list of items, which is how the shipped override is written");
     }
@@ -277,7 +279,7 @@ class MeltingRecipeTest {
     void theShippedEmeraldOreRecipeHoldsTheBaseGemAmountAndIsOreClass() {
         JsonObject json = shipped("emerald_ore");
 
-        assertEquals("c:ores/emerald", json.getAsJsonObject("input").get("tag").getAsString());
+        assertEquals("#c:ores/emerald", json.get("input").getAsString());
         assertEquals("forgeweave:molten_emerald", json.get("fluid").getAsString());
         assertEquals(666, json.get("amount").getAsInt(), "Material.VALUE_Gem, not the Standard Core's 1.5x of it");
         assertTrue(json.get("ore").getAsBoolean(), "an ore-class input, so issue #99's core multiplier applies");
@@ -287,7 +289,7 @@ class MeltingRecipeTest {
     void theShippedEmeraldGemRecipeRemeltsOneForOne() {
         JsonObject json = shipped("emerald");
 
-        assertEquals("c:gems/emerald", json.getAsJsonObject("input").get("tag").getAsString());
+        assertEquals("#c:gems/emerald", json.get("input").getAsString());
         assertEquals(666, json.get("amount").getAsInt(), "Material.VALUE_Gem");
         assertTrue(!json.has("ore"), "the refined gem re-melt must not be marked ore-class");
     }
@@ -306,7 +308,7 @@ class MeltingRecipeTest {
     void theShippedEmeraldBlockRecipeIsNotOreClassAndPinsAnExplicitTemperature() {
         JsonObject json = shipped("emerald_block");
 
-        assertEquals("c:storage_blocks/emerald", json.getAsJsonObject("input").get("tag").getAsString());
+        assertEquals("#c:storage_blocks/emerald", json.get("input").getAsString());
         assertEquals(5994, json.get("amount").getAsInt(), "Material.VALUE_Gem * 9");
         assertEquals(999, json.get("temperature").getAsInt(), "pinned at the fluid's own temperature");
         assertTrue(!json.has("ore"), "a storage block re-melt must not be marked ore-class");
@@ -316,7 +318,7 @@ class MeltingRecipeTest {
                 "sanity check: without the pin, calcTemperature's 1296 mB assumption overshoots the fluid's own temperature (" + derivedInstead + ")");
 
         MeltingRecipe decoded = parse("""
-                {"input": {"tag": "c:storage_blocks/emerald"}, "fluid": "minecraft:lava", "amount": 5994, "temperature": 999}
+                {"input": "#c:storage_blocks/emerald", "fluid": "minecraft:lava", "amount": 5994, "temperature": 999}
                 """);
         assertEquals(999, decoded.temperature(), "the codec must honour the pinned temperature rather than re-deriving it");
         assertEquals(699 * MeltingRecipe.TIME_FACTOR, decoded.heatRequired());
@@ -407,17 +409,17 @@ class MeltingRecipeTest {
     @Test
     void theShippedGlassMeltingRowsMatchUpstreamsAmountsAndTags() {
         JsonObject sand = shipped("sand");
-        assertEquals("c:sands", sand.getAsJsonObject("input").get("tag").getAsString(), "upstream's \"sand\" ore dict, red sand included");
+        assertEquals("#c:sands", sand.get("input").getAsString(), "upstream's \"sand\" ore dict, red sand included");
         assertEquals("forgeweave:molten_glass", sand.get("fluid").getAsString());
         assertEquals(1000, sand.get("amount").getAsInt(), "Material.VALUE_Glass");
 
         JsonObject glass = shipped("glass");
-        assertEquals("c:glass_blocks", glass.getAsJsonObject("input").get("tag").getAsString(), "upstream's \"blockGlass\" ore dict");
+        assertEquals("#c:glass_blocks", glass.get("input").getAsString(), "upstream's \"blockGlass\" ore dict");
         assertEquals("forgeweave:molten_glass", glass.get("fluid").getAsString());
         assertEquals(1000, glass.get("amount").getAsInt(), "Material.VALUE_Glass");
 
         JsonObject pane = shipped("glass_pane");
-        assertEquals("c:glass_panes", pane.getAsJsonObject("input").get("tag").getAsString(), "upstream's \"paneGlass\" ore dict");
+        assertEquals("#c:glass_panes", pane.get("input").getAsString(), "upstream's \"paneGlass\" ore dict");
         assertEquals("forgeweave:molten_glass", pane.get("fluid").getAsString());
         assertEquals(375, pane.get("amount").getAsInt(), "Material.VALUE_Glass * 6 / 16");
 
@@ -648,7 +650,7 @@ class MeltingRecipeTest {
         for (String[] piece : pieces) {
             int units = Integer.parseInt(piece[1]);
             JsonObject json = shipped(piece[0]);
-            assertEquals("minecraft:" + piece[0], json.getAsJsonObject("input").get("item").getAsString());
+            assertEquals("minecraft:" + piece[0], json.get("input").getAsString());
             assertEquals("forgeweave:molten_iron", json.get("fluid").getAsString());
             assertEquals(MeltingRecipe.VALUE_NUGGET * 6 * units, json.get("amount").getAsInt(),
                     piece[0] + " melts at 6 iron nuggets per armor-recipe unit");
@@ -689,7 +691,7 @@ class MeltingRecipeTest {
     @Test
     void aByproductParsesAndRoundTripsThroughTheCodec() {
         MeltingRecipe recipe = parse("""
-                {"input": {"item": "minecraft:chainmail_boots"}, "fluid": "minecraft:lava", "amount": 384,
+                {"input": "minecraft:chainmail_boots", "fluid": "minecraft:lava", "amount": 384,
                  "byproduct": {"fluid": "minecraft:water", "amount": 192}}
                 """);
 
@@ -706,7 +708,7 @@ class MeltingRecipeTest {
     @Test
     void aRecipeWithoutAByproductParsesToAnEmptyOne() {
         MeltingRecipe recipe = parse("""
-                {"input": {"item": "minecraft:iron_ingot"}, "fluid": "minecraft:lava", "amount": 144}
+                {"input": "minecraft:iron_ingot", "fluid": "minecraft:lava", "amount": 144}
                 """);
 
         assertTrue(recipe.byproduct().isEmpty(), "no byproduct key must mean no byproduct");
@@ -731,7 +733,7 @@ class MeltingRecipeTest {
 
     private static MeltingRecipe lavaRecipe(int amount, int temperature) {
         return parse("""
-                {"input": {"item": "minecraft:iron_ingot"}, "fluid": "minecraft:lava",
+                {"input": "minecraft:iron_ingot", "fluid": "minecraft:lava",
                  "amount": %d, "temperature": %d}
                 """.formatted(amount, temperature));
     }

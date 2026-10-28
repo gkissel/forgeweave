@@ -19,6 +19,7 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.component.Weapon;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -78,16 +79,22 @@ class ToolItemTest {
 
     /**
      * Sunder's shield-disable half (docs/SCOPE.md M3 issue #164): "make the hatchet count as an axe
-     * for shield-disabling" is {@link ToolItem#canDisableShield} returning {@code true} only for the
-     * hatchet -- the {@link #weapon} flag it already reads is upstream's one {@code Category.WEAPON}
-     * tool. All four parameters are ignored by that override, so {@code null} is fine here.
+     * for shield-disabling". 26.x retired {@code Item#canDisableShield}: a hit disables a shield for
+     * as long as the attacking stack's {@code minecraft:weapon} component says, so the hatchet -- the
+     * one upstream {@code Category.WEAPON} tool -- carries an axe's full five seconds and every other
+     * tool none.
      */
     @Test
     void onlyTheHatchetCanDisableShields() {
-        assertTrue(ForgeweaveItems.TOOL_HATCHET.get().canDisableShield(null, null, null, null),
+        assertEquals(Weapon.AXE_DISABLES_BLOCKING_FOR_SECONDS, shieldDisableSeconds(ForgeweaveItems.TOOL_HATCHET.get()),
                 "the hatchet should count as an axe for vanilla's shield-disable mechanic");
-        assertFalse(ForgeweaveItems.TOOL_PICKAXE.get().canDisableShield(null, null, null, null));
-        assertFalse(ForgeweaveItems.TOOL_SHOVEL.get().canDisableShield(null, null, null, null));
+        assertEquals(0.0F, shieldDisableSeconds(ForgeweaveItems.TOOL_PICKAXE.get()));
+        assertEquals(0.0F, shieldDisableSeconds(ForgeweaveItems.TOOL_SHOVEL.get()));
+    }
+
+    private static float shieldDisableSeconds(net.minecraft.world.item.Item item) {
+        Weapon weapon = new ItemStack(item).get(DataComponents.WEAPON);
+        return weapon == null ? 0.0F : weapon.disableBlockingForSeconds();
     }
 
     // ------------------------------------------------------------------ #108 batch: modern-vanilla modifiers

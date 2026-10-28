@@ -24,7 +24,6 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.item.crafting.Ingredient;
 
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.SideInventorySlots;
@@ -65,7 +64,7 @@ class StationPanelHoverTest {
                 TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace("incorrect_for_stone_tool")),
                 Material.Traits.general(TRAIT_A, TRAIT_B),
                 List.of(),
-                Ingredient.EMPTY,
+                Material.NONE,
                 null);
     }
 
@@ -75,7 +74,7 @@ class StationPanelHoverTest {
         if (hover == null) {
             return null;
         }
-        Component text = hover.getValue(HoverEvent.Action.SHOW_TEXT);
+        Component text = hover instanceof HoverEvent.ShowText(Component shown) ? shown : null;
         return text == null ? null : text.getString();
     }
 

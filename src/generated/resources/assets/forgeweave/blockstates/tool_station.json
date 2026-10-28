@@ -1,17 +1,21 @@
 {
   "variants": {
     "facing=east": {
+      "type": "forgeweave:retextured_table",
       "model": "forgeweave:block/tool_station",
       "y": 90
     },
     "facing=north": {
+      "type": "forgeweave:retextured_table",
       "model": "forgeweave:block/tool_station"
     },
     "facing=south": {
+      "type": "forgeweave:retextured_table",
       "model": "forgeweave:block/tool_station",
       "y": 180
     },
     "facing=west": {
+      "type": "forgeweave:retextured_table",
       "model": "forgeweave:block/tool_station",
       "y": 270
     }

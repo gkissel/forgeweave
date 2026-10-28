@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import net.minecraft.SharedConstants;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
-import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.client.book.ModifyPageContent;
@@ -205,7 +205,7 @@ class BookModifyPageTest {
             ToolAssemblyRecipes.Entry entry = ModifyPageContent.representativeEntry(null, modifier);
 
             assertTrue(entry.tool().get() instanceof ArmorPieceItem armor
-                            && armor.getType() == ArmorItem.Type.CHESTPLATE,
+                            && armor.getType() == ArmorType.CHESTPLATE,
                     entry.tool().get() + " is not a chestplate, so " + modifier + " would refuse it");
             assertTrue(entry.tool().get() == ForgeweaveItems.ARMOR_CHESTPLATE.get(),
                     "the light chestplate comes first in Category.ARMOR order, got " + entry.tool().get());

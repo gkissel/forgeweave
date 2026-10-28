@@ -1,7 +1,9 @@
 {
   "parent": "minecraft:block/cube_all",
-  "render_type": "minecraft:translucent",
   "textures": {
-    "all": "forgeweave:derived/block/pink_slime_block"
+    "all": {
+      "force_translucent": true,
+      "sprite": "forgeweave:derived/block/pink_slime_block"
+    }
   }
 }

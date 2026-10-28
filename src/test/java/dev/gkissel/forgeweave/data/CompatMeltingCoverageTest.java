@@ -32,8 +32,8 @@ class CompatMeltingCoverageTest {
                 boolean guarded = false;
                 for (var condition : recipe.getAsJsonArray("neoforge:conditions")) {
                     var object = condition.getAsJsonObject();
-                    guarded |= object.get("type").getAsString().equals("neoforge:item_exists")
-                            && object.has("item") && object.get("item").getAsString().equals(output);
+                    guarded |= object.get("type").getAsString().equals("neoforge:registered")
+                            && object.has("value") && object.get("value").getAsString().equals(output);
                 }
                 assertTrue(guarded, path + " must require its own output item " + output);
             }
@@ -71,9 +71,9 @@ class CompatMeltingCoverageTest {
                 "atomic_alloy", "alloy_atomic").entrySet()) {
             JsonObject material = read("material/" + entry.getKey() + ".json");
             assertFalse(material.has("cast_only") && material.get("cast_only").getAsBoolean());
-            assertEquals("mekanism:" + entry.getValue(), material.getAsJsonObject("repair_item").get("item").getAsString());
+            assertEquals("mekanism:" + entry.getValue(), material.get("repair_item").getAsString());
             assertEquals("mekanism:" + entry.getValue(), material.getAsJsonArray("neoforge:conditions")
-                    .get(0).getAsJsonObject().get("item").getAsString());
+                    .get(0).getAsJsonObject().get("value").getAsString());
             assertTrue(material.getAsJsonObject("traits").has("armor"));
         }
     }
@@ -83,7 +83,7 @@ class CompatMeltingCoverageTest {
         for (String form : List.of("ore", "ingot", "block", "raw", "raw_block", "dust", "fragment", "gravel")) {
             JsonObject recipe = read("melting_recipe/hellforged_" + form + ".json");
             if (!form.equals("ore")) {
-                assertTrue(recipe.getAsJsonObject("input").get("item").getAsString().startsWith("neovitae:"));
+                assertTrue(recipe.get("input").getAsString().startsWith("neovitae:"));
             }
             assertEquals(form.equals("ore") || form.startsWith("raw"), recipe.has("ore") && recipe.get("ore").getAsBoolean());
             assertEquals(1600, recipe.get("temperature").getAsInt());
@@ -132,11 +132,8 @@ class CompatMeltingCoverageTest {
         try (var files = Files.list(DATA.resolve("melting_recipe"))) {
             for (Path path : files.filter(p -> p.toString().endsWith(".json")).sorted().toList()) {
                 JsonObject recipe = JsonParser.parseString(Files.readString(path)).getAsJsonObject();
-                if (recipe.get("input").isJsonObject()) {
-                    var input = recipe.getAsJsonObject("input");
-                    if (input.has("tag") && input.get("tag").getAsString().equals(tag)) {
-                        return recipe;
-                    }
+                if (recipe.get("input").isJsonPrimitive() && recipe.get("input").getAsString().equals("#" + tag)) {
+                    return recipe;
                 }
             }
         }

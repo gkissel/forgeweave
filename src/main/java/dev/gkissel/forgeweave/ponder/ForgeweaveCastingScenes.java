@@ -138,7 +138,7 @@ public final class ForgeweaveCastingScenes {
         scene.effects().indicateSuccess(TABLE);
         scene.effects().indicateSuccess(BASIN);
         scene.overlay().showControls(util.vector().topOf(TABLE), Pointing.DOWN, 40)
-                .withItem(new ItemStack(Items.IRON_INGOT));
+                .withItem(PonderStacks.of(Items.IRON_INGOT));
         scene.idle(10);
         scene.overlay().showText(90)
                 .attachKeyFrame()

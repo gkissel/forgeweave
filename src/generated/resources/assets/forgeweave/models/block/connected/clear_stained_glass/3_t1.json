@@ -1,13 +1,30 @@
 {
   "parent": "forgeweave:block/tinted_cube",
-  "render_type": "minecraft:translucent",
   "textures": {
-    "down": "forgeweave:derived/block/connected/clear_stained_glass/udlr",
-    "east": "forgeweave:derived/block/connected/clear_stained_glass/ud",
-    "north": "forgeweave:derived/block/connected/clear_stained_glass/udr",
+    "down": {
+      "force_translucent": true,
+      "sprite": "forgeweave:derived/block/connected/clear_stained_glass/udlr"
+    },
+    "east": {
+      "force_translucent": true,
+      "sprite": "forgeweave:derived/block/connected/clear_stained_glass/ud"
+    },
+    "north": {
+      "force_translucent": true,
+      "sprite": "forgeweave:derived/block/connected/clear_stained_glass/udr"
+    },
     "particle": "forgeweave:derived/block/connected/clear_stained_glass/normal",
-    "south": "forgeweave:derived/block/connected/clear_stained_glass/udl",
-    "up": "forgeweave:derived/block/connected/clear_stained_glass/udlr",
-    "west": "forgeweave:derived/block/connected/clear_stained_glass/udlr"
+    "south": {
+      "force_translucent": true,
+      "sprite": "forgeweave:derived/block/connected/clear_stained_glass/udl"
+    },
+    "up": {
+      "force_translucent": true,
+      "sprite": "forgeweave:derived/block/connected/clear_stained_glass/udlr"
+    },
+    "west": {
+      "force_translucent": true,
+      "sprite": "forgeweave:derived/block/connected/clear_stained_glass/udlr"
+    }
   }
 }

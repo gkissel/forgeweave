@@ -1,0 +1,16 @@
+{
+  "model": {
+    "type": "minecraft:condition",
+    "on_false": {
+      "type": "forgeweave:tool",
+      "model": "forgeweave:item/kama",
+      "tool": "kama"
+    },
+    "on_true": {
+      "type": "forgeweave:tool",
+      "model": "forgeweave:item/kama_broken",
+      "tool": "kama"
+    },
+    "property": "forgeweave:broken"
+  }
+}

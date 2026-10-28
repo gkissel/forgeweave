@@ -46,8 +46,8 @@ class CompatProviderCoverageTest {
             element.getAsJsonArray().forEach(value -> collect(value, items));
         } else {
             var object = element.getAsJsonObject();
-            if (object.has("item")) {
-                items.add(object.get("item").getAsString());
+            if (object.get("type").getAsString().equals("neoforge:registered")) {
+                items.add(object.get("value").getAsString());
             } else if (object.has("values")) {
                 collect(object.get("values"), items);
             }

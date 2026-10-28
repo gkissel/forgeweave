@@ -1,6 +1,5 @@
 {
   "parent": "minecraft:block/grass_block",
-  "render_type": "minecraft:cutout_mipped",
   "textures": {
     "bottom": "forgeweave:derived/block/magma_slime_dirt",
     "overlay": "forgeweave:derived/block/slime_grass_side_overlay",

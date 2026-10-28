@@ -1,0 +1,16 @@
+{
+  "model": {
+    "type": "minecraft:condition",
+    "on_false": {
+      "type": "forgeweave:tool",
+      "model": "forgeweave:item/hammer",
+      "tool": "hammer"
+    },
+    "on_true": {
+      "type": "forgeweave:tool",
+      "model": "forgeweave:item/hammer_broken",
+      "tool": "hammer"
+    },
+    "property": "forgeweave:broken"
+  }
+}

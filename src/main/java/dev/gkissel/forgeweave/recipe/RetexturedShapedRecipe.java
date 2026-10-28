@@ -80,14 +80,14 @@ public class RetexturedShapedRecipe extends ShapedRecipe {
      */
     private final Optional<Ingredient> textureSource;
 
-    public RetexturedShapedRecipe(String group, CraftingBookCategory category, ShapedRecipePattern pattern, ItemStack result) {
+    public RetexturedShapedRecipe(String group, CraftingBookCategory category, ShapedRecipePattern pattern, ItemStackTemplate result) {
         this(group, category, pattern, result, Optional.empty());
     }
 
     public RetexturedShapedRecipe(String group, CraftingBookCategory category, ShapedRecipePattern pattern,
-            ItemStack result, Optional<Ingredient> textureSource) {
+            ItemStackTemplate result, Optional<Ingredient> textureSource) {
         this(new Recipe.CommonInfo(true), new CraftingRecipe.CraftingBookInfo(category, group), pattern,
-                ItemStackTemplate.fromNonEmptyStack(result), textureSource);
+                result, textureSource);
     }
 
     public RetexturedShapedRecipe(Recipe.CommonInfo commonInfo, CraftingRecipe.CraftingBookInfo bookInfo,

@@ -26,9 +26,11 @@ import dev.gkissel.forgeweave.tool.ToolArt;
  * Guards issue #284: a Broken tool rendered identically to an intact one. Upstream 1.12 swaps the
  * broken art for exactly one layer of the tool -- its {@code models/item/tools/*.tcon.json} declare a
  * {@code broken<N>} texture beside their {@code layer<N>} keys and {@code BakedToolModel#
- * getOverrides} substitutes it on {@code ToolHelper#isBroken} -- so every Forgeweave tool model must
- * carry a {@code forgeweave:broken} override pointing at a sibling model that differs from it in
- * exactly that one layer.
+ * getOverrides} substitutes it on {@code ToolHelper#isBroken} -- so every Forgeweave tool must
+ * switch on {@code forgeweave:broken} to a sibling model that differs from its own in exactly that
+ * one layer. On 1.21.1 that switch was an {@code overrides} entry in the item model; on 26.x it is a
+ * {@code minecraft:condition} node in the tool's client item ({@code assets/forgeweave/items/}),
+ * read here through {@link ClientItemTree}.
  *
  * <p>Plain filesystem scan of the generated JSON walked off {@code ToolAssemblyRecipes.ENTRIES},
  * same approach as {@link TextureReferenceAuditTest} and {@link ChestModelTest}: a tool added later
@@ -37,6 +39,7 @@ import dev.gkissel.forgeweave.tool.ToolArt;
 class BrokenToolModelTest {
 
     private static final String BROKEN_PREDICATE = "forgeweave:broken";
+    private static final String MODERN_POSE_PREDICATE = "forgeweave:modern_pose";
 
     private static Path projectRoot() {
         Path dir = Path.of("").toAbsolutePath();
@@ -94,23 +97,26 @@ class BrokenToolModelTest {
             String brokenLayer = ToolArt.brokenLayer(tool);
 
             JsonObject intact = readJson(models.resolve(tool + ".json"));
-            JsonArray overrides = intact.getAsJsonArray("overrides");
-            assertNotNull(overrides, tool + " has no overrides block, so a Broken tool still renders intact"
-                    + " (issue #284)");
 
-            String brokenModel = null;
-            for (JsonElement element : overrides) {
-                JsonObject override = element.getAsJsonObject();
-                JsonObject predicate = override.getAsJsonObject("predicate");
-                // The plain {"broken": 1} entry -- a bow also carries a modern_pose-gated one after
-                // it (issue #723), which BowDrawModelTest pins.
-                if (predicate != null && predicate.size() == 1 && predicate.has(BROKEN_PREDICATE)
-                        && predicate.get(BROKEN_PREDICATE).getAsInt() == 1) {
-                    brokenModel = override.get("model").getAsString();
-                }
+            // The classic tree (a bow also has a modern_pose-gated one, issue #723, which
+            // BowDrawModelTest pins). Broken must be decided on every path before anything else
+            // could pick a model, and its true branch must be exactly the _broken sibling.
+            List<ClientItemTree.Leaf> classic = ClientItemTree.leaves(projectRoot(), tool).stream()
+                    .filter(leaf -> !Boolean.TRUE.equals(leaf.is(MODERN_POSE_PREDICATE)))
+                    .toList();
+            for (ClientItemTree.Leaf leaf : classic) {
+                assertNotNull(leaf.is(BROKEN_PREDICATE), tool + " can reach " + leaf.model()
+                        + " without asking " + BROKEN_PREDICATE + ", so a Broken tool can render intact (issue #284)");
             }
-            assertEquals("forgeweave:item/" + tool + "_broken", brokenModel,
-                    tool + " must override on \"" + BROKEN_PREDICATE + "\": 1 (issue #284)");
+            List<String> brokenModels = classic.stream().filter(leaf -> leaf.is(BROKEN_PREDICATE))
+                    .map(ClientItemTree.Leaf::model).toList();
+            assertEquals(List.of("forgeweave:item/" + tool + "_broken"), brokenModels,
+                    tool + " must switch to its _broken model on " + BROKEN_PREDICATE + " (issue #284)");
+            ClientItemTree.Leaf brokenLeaf = ClientItemTree.leafFor(classic, "forgeweave:item/" + tool + "_broken");
+            assertEquals(java.util.Set.of(BROKEN_PREDICATE),
+                    java.util.Set.copyOf(brokenLeaf.conditions().keySet().stream()
+                            .filter(key -> !key.equals(MODERN_POSE_PREDICATE)).toList()),
+                    tool + "_broken must depend on Broken alone, whatever else is true of the tool");
 
             JsonObject broken = readJson(models.resolve(tool + "_broken.json"));
             assertEquals(intact.get("parent"), broken.get("parent"),

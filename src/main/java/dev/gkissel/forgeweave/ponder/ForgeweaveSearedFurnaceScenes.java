@@ -83,7 +83,7 @@ public final class ForgeweaveSearedFurnaceScenes {
 
         scene.world().showSection(util.select().position(CONTROLLER), Direction.SOUTH);
         scene.overlay().showControls(util.vector().blockSurface(CONTROLLER, Direction.NORTH), Pointing.LEFT, 40)
-                .withItem(new ItemStack(ForgeweaveItems.SEARED_FURNACE_CONTROLLER.get()));
+                .withItem(PonderStacks.of(ForgeweaveItems.SEARED_FURNACE_CONTROLLER.get()));
         scene.idle(10);
         scene.overlay().showText(80)
                 .attachKeyFrame()

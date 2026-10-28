@@ -20,6 +20,7 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -47,7 +48,7 @@ class ItemTooltipParityTest {
 
     private static List<Component> hover(ItemStack stack) {
         List<Component> tooltip = new ArrayList<>();
-        stack.getItem().appendHoverText(stack, Item.TooltipContext.EMPTY, tooltip, TooltipFlag.NORMAL);
+        stack.getItem().appendHoverText(stack, Item.TooltipContext.EMPTY, TooltipDisplay.DEFAULT, tooltip::add, TooltipFlag.NORMAL);
         return tooltip;
     }
 
@@ -173,7 +174,7 @@ class ItemTooltipParityTest {
         assertFalse(ForgeweaveItems.CLAY_CASTS.isEmpty());
         for (String castName : ForgeweaveItems.CLAY_CASTS.keySet()) {
             Item goldCast = BuiltInRegistries.ITEM
-                    .get(Identifier.fromNamespaceAndPath(Forgeweave.MODID, castName));
+                    .getValue(Identifier.fromNamespaceAndPath(Forgeweave.MODID, castName));
             assertEquals(List.of(reagentLine("tooltip.forgeweave.cast")),
                     hover(new ItemStack(goldCast)), castName + " (gold cast)");
             assertEquals(List.of(reagentLine("tooltip.forgeweave.clay_cast")),
@@ -189,8 +190,8 @@ class ItemTooltipParityTest {
      */
     @Test
     void slimeBallBlueListsBothItsPotionEffectsInOrder() {
-        assertEquals(List.of(MobEffects.MOVEMENT_SLOWDOWN.value().getDisplayName(),
-                MobEffects.JUMP.value().getDisplayName()),
+        assertEquals(List.of(MobEffects.SLOWNESS.value().getDisplayName(),
+                MobEffects.JUMP_BOOST.value().getDisplayName()),
                 hover(stackOf(ForgeweaveItems.slimeBallItem(SlimeColour.BLUE))));
     }
 

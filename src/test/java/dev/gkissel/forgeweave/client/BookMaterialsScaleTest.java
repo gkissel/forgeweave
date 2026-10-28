@@ -27,6 +27,7 @@ import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.client.book.BookContent;
 import dev.gkissel.forgeweave.client.book.BookLayout;
 import dev.gkissel.forgeweave.client.book.BookLayout.Slot;
@@ -67,8 +68,7 @@ class BookMaterialsScaleTest {
     }
 
     private static List<Map.Entry<Identifier, Material>> shippedMaterials() throws Exception {
-        RegistryOps<JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE,
-                RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        RegistryOps<JsonElement> ops = TestRegistries.ops(JsonOps.INSTANCE);
         Path materialDir = projectRoot().resolve("src/main/resources/data/forgeweave/forgeweave/material");
         List<Map.Entry<Identifier, Material>> materials = new ArrayList<>();
         try (Stream<Path> files = Files.list(materialDir)) {

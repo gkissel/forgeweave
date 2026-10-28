@@ -1,0 +1,12 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "forgeweave:item/blue_slime_leaves",
+    "tints": [
+      {
+        "type": "minecraft:constant",
+        "value": -13964159
+      }
+    ]
+  }
+}

@@ -41,6 +41,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.menu.PartBuilderRecipes;
 
@@ -52,7 +53,7 @@ class MaterialTest {
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(JsonOps.INSTANCE);
     }
 
     private static JsonElement parse(String json) {
@@ -91,11 +92,11 @@ class MaterialTest {
         assertEquals(material.incorrectForTool(), decoded.incorrectForTool());
         assertEquals(material.traits(), decoded.traits());
         assertEquals(material.color(), decoded.color());
-        assertEquals(material.repairItem().getItems()[0].getItem(), decoded.repairItem().getItems()[0].getItem());
+        assertEquals(material.repairItem().items().findFirst().orElseThrow().value(), decoded.repairItem().items().findFirst().orElseThrow().value());
         assertEquals(1, decoded.craftingItems().size());
         assertEquals(2, decoded.craftingItems().get(0).value());
-        assertEquals(material.craftingItems().get(0).ingredient().getItems()[0].getItem(),
-                decoded.craftingItems().get(0).ingredient().getItems()[0].getItem());
+        assertEquals(material.craftingItems().get(0).ingredient().items().findFirst().orElseThrow().value(),
+                decoded.craftingItems().get(0).ingredient().items().findFirst().orElseThrow().value());
     }
 
     /**
@@ -219,45 +220,45 @@ class MaterialTest {
     @ParameterizedTest
     @ValueSource(strings = { "bronze", "lead", "silver", "electrum",
             // #833 M6 Track A batch 1: same neoforge:conditions convention, one or more
-            // item_exists primitives (uranium is an neoforge:or over three providers).
+            // registered primitives (uranium is an neoforge:or over three providers).
             "tin", "aluminium", "nickel", "constantan", "invar", "platinum", "titanium", "tungsten",
             "iridium", "uranium", "graphite",
             // #834 M6 Track A batch 2: Mekanism, AE2 and Occultism.
             "osmium", "refined_obsidian", "refined_glowstone", "hdpe", "fluorite", "certus_quartz",
             "fluix", "sky_stone", "iesnium", "dragonyst",
-            // #835 M6 Track A batch 3: single item_exists each, verified against Ender IO's own
+            // #835 M6 Track A batch 3: single registered each, verified against Ender IO's own
             // 1.21.1 tree (EnderIoAlloyGameTests).
             "redstone_alloy", "energetic_alloy", "pulsating_alloy", "conductive_alloy", "vibrant_alloy",
             "soularium", "dark_steel", "end_steel",
-            // #836 M6 Track A batch 4: single item_exists each, verified against Draconic Evolution's
+            // #836 M6 Track A batch 4: single registered each, verified against Draconic Evolution's
             // own 3.1.4.632 jar (DraconicEvolutionGameTests).
             "draconium", "draconium_awakened",
-            // #837 M6 Track A batch 5: single item_exists each, verified against each mod's own
+            // #837 M6 Track A batch 5: single registered each, verified against each mod's own
             // 1.21.1 tree (PresetBatch5GameTests).
             "black_quartz", "restonia_crystal", "palis_crystal", "diamatine_crystal", "void_crystal",
             "emeradic_crystal", "enori_crystal", "uraninite", "psimetal", "psigem", "ivory_psimetal",
             "ebony_psimetal", "pink_slime", "cyanite", "blutonium", "ludicrite",
-            // #872 M6 recovery batch: single item_exists each, verified against each mod's own
+            // #872 M6 recovery batch: single registered each, verified against each mod's own
             // 1.21.1 tree (RecoveryBatchGameTests, DraconicEvolutionGameTests).
             "dark_matter", "red_matter", "crystal_matrix", "cosmic_neutronium", "infinity",
             "wyvern", "chaotic", "quartz_enriched_iron", "silicon", "energised_steel",
-            // Issue #1031 (D-M8-21): Just Dire Things' four tool tiers, single item_exists each,
+            // Issue #1031 (D-M8-21): Just Dire Things' four tool tiers, single registered each,
             // verified against Direwolf20-MC/JustDireThings@v1.5.7 (JustDireThingsGameTests).
             "ferricore", "blazegold", "celestigem", "eclipsealloy",
             // Issue #1059 (D-M8-25): Twilight Forest and Ice and Fire Community Edition, single
-            // item_exists each, verified against TeamTwilight/twilightforest@1.21.1 and
+            // registered each, verified against TeamTwilight/twilightforest@1.21.1 and
             // IAFEnvoy/IceAndFire-CE@1.21.1 (TwilightForestGameTests, IceAndFireGameTests).
             "ironwood", "steeleaf", "knightmetal", "fiery",
             "naga_scale", "arctic_fur", "alpha_yeti_fur", "carminite",
             "dragon_bone", "dragonsteel_fire", "dragonsteel_ice", "dragonsteel_lightning",
             "deathworm_chitin_yellow", "deathworm_chitin_white", "deathworm_chitin_red",
             "troll_leather_mountain", "troll_leather_forest", "troll_leather_frost",
-            // Issue #1058 (D-M8-24): single item_exists each, verified against each mod's own
+            // Issue #1058 (D-M8-24): single registered each, verified against each mod's own
             // 1.21.1 tree (SilentGearGameTests, PneumaticCraftGameTests, ForbiddenArcanusGameTests,
             // AetherGameTests, CataclysmGameTests).
             "crimson_steel", "azure_silver", "azure_electrum", "blaze_gold", "tyrian_steel",
             "compressed_iron", "deorum", "zanite", "gravitite", "ambrosium", "ignitium", "cursium",
-            // Issue #1069 (D-M8-26): single item_exists each, verified against the shipped
+            // Issue #1069 (D-M8-26): single registered each, verified against the shipped
             // actuallyadditions-1.3.24+mc1.21.1.jar (EmpoweredCrystalsGameTests).
             "empowered_restonia_crystal", "empowered_palis_crystal", "empowered_diamatine_crystal",
             "empowered_void_crystal", "empowered_emeradic_crystal", "empowered_enori_crystal" })
@@ -569,8 +570,8 @@ class MaterialTest {
                   "extra_durability": 15,
                   "incorrect_for_tool": "minecraft:incorrect_for_wooden_tool",
                   %s
-                  "crafting_items": [{"ingredient": {"tag": "minecraft:planks"}, "value": 2}],
-                  "repair_item": {"tag": "minecraft:planks"},
+                  "crafting_items": [{"ingredient": "#minecraft:planks", "value": 2}],
+                  "repair_item": "#minecraft:planks",
                   "color": "#8E661B"
                 }""".formatted(traitsField == null ? "" : traitsField + ",");
     }
@@ -677,8 +678,8 @@ class MaterialTest {
                   "extra_durability": 15,
                   "incorrect_for_tool": "minecraft:incorrect_for_wooden_tool",
                   "trait": "forgeweave:ecological",
-                  "crafting_items": [{"ingredient": {"tag": "minecraft:planks"}, "value": 2}],
-                  "repair_item": {"tag": "minecraft:planks"},
+                  "crafting_items": [{"ingredient": "#minecraft:planks", "value": 2}],
+                  "repair_item": "#minecraft:planks",
                   "color": "#8E661B"
                 }""");
 
@@ -696,7 +697,7 @@ class MaterialTest {
                   "extra_durability": 15,
                   "incorrect_for_tool": "minecraft:incorrect_for_wooden_tool",
                   "trait": "forgeweave:ecological",
-                  "repair_item": {"tag": "minecraft:planks"},
+                  "repair_item": "#minecraft:planks",
                   "color": "#8E661B"
                 }""");
 
@@ -714,8 +715,8 @@ class MaterialTest {
                   "extra_durability": 15,
                   "incorrect_for_tool": "minecraft:incorrect_for_wooden_tool",
                   "trait": "forgeweave:ecological",
-                  "crafting_items": [{"ingredient": {"tag": "minecraft:planks"}, "value": 0}],
-                  "repair_item": {"tag": "minecraft:planks"},
+                  "crafting_items": [{"ingredient": "#minecraft:planks", "value": 0}],
+                  "repair_item": "#minecraft:planks",
                   "color": "#8E661B"
                 }""");
 
@@ -734,7 +735,7 @@ class MaterialTest {
                   "incorrect_for_tool": "minecraft:incorrect_for_wooden_tool",
                   "trait": "forgeweave:ecological",
                   "crafting_items": [{"value": 2}],
-                  "repair_item": {"tag": "minecraft:planks"},
+                  "repair_item": "#minecraft:planks",
                   "color": "#8E661B"
                 }""");
 
@@ -923,9 +924,9 @@ class MaterialTest {
 
         boolean hasBlockRow = material.craftingItems().stream()
                 .filter(item -> item.value() == 9 * PartBuilderRecipes.INGOT_VALUE)
-                .flatMap(item -> java.util.Arrays.stream(item.ingredient().getItems()))
-                .anyMatch(stack -> Identifier.parse(blockId).equals(
-                        net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem())));
+                .flatMap(item -> item.ingredient().items())
+                .anyMatch(holder -> Identifier.parse(blockId).equals(
+                        net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(holder.value())));
 
         assertTrue(hasBlockRow, name + " must list its storage block (" + blockId + ") at 9 ingots (VALUE_Block)");
     }
@@ -975,8 +976,8 @@ class MaterialTest {
                   "extra_durability": 15,
                   "incorrect_for_tool": "minecraft:incorrect_for_wooden_tool",
                   "traits": {},
-                  "crafting_items": [{"ingredient": {"item": "projecte:dark_matter"}, "value": 144}],
-                  "repair_item": {"item": "projecte:dark_matter"},
+                  "crafting_items": [{"ingredient": "projecte:dark_matter", "value": 144}],
+                  "repair_item": "projecte:dark_matter",
                   "color": "#8E661B"
                 }""")).getOrThrow();
 
@@ -1006,11 +1007,11 @@ class MaterialTest {
     void projectEAndAvaritiaMaterialsCarryTheirConcreteItemId(String name, String expectedItem) {
         JsonObject json = shipped(name).getAsJsonObject();
 
-        assertEquals(expectedItem, json.getAsJsonObject("repair_item").get("item").getAsString(),
+        assertEquals(expectedItem, json.get("repair_item").getAsString(),
                 name + "'s repair_item must key on its provider's concrete item id");
         assertEquals(expectedItem,
                 json.getAsJsonArray("crafting_items").get(0).getAsJsonObject()
-                        .getAsJsonObject("ingredient").get("item").getAsString(),
+                        .get("ingredient").getAsString(),
                 name + "'s crafting_items must key on its provider's concrete item id");
 
         // Still parses cleanly through the real codec, matching #shippedMaterialsParse.
@@ -1073,13 +1074,13 @@ class MaterialTest {
     void actuallyAdditionsMaterialsBuildFromTheirOwnRawItem(String name, String expectedItem) {
         JsonObject json = shipped(name).getAsJsonObject();
 
-        assertEquals(expectedItem, json.getAsJsonObject("repair_item").get("item").getAsString(),
+        assertEquals(expectedItem, json.get("repair_item").getAsString(),
                 name + "'s repair_item must key on its own raw item, not the storage block");
 
         boolean hasRawItemRow = false;
         for (JsonElement item : json.getAsJsonArray("crafting_items")) {
-            JsonObject ingredient = item.getAsJsonObject().getAsJsonObject("ingredient");
-            if (ingredient.has("item") && expectedItem.equals(ingredient.get("item").getAsString())) {
+            JsonElement ingredient = item.getAsJsonObject().get("ingredient");
+            if (ingredient.isJsonPrimitive() && expectedItem.equals(ingredient.getAsString())) {
                 assertEquals(PartBuilderRecipes.INGOT_VALUE, item.getAsJsonObject().get("value").getAsInt(),
                         name + "'s raw item row must be worth one ingot (144), matching black_quartz's gem row");
                 hasRawItemRow = true;
@@ -1118,9 +1119,9 @@ class MaterialTest {
     void powahMaterialsCarryTheirConcreteItemId(String name, String expected) {
         JsonObject json = shipped(name).getAsJsonObject();
 
-        assertEquals(expected, json.getAsJsonObject("repair_item").get("item").getAsString());
+        assertEquals(expected, json.get("repair_item").getAsString());
         assertEquals(expected, json.getAsJsonArray("crafting_items").get(0).getAsJsonObject()
-                .getAsJsonObject("ingredient").get("item").getAsString());
+                .get("ingredient").getAsString());
 
         Material.CODEC.parse(ops, json).getOrThrow();
     }
@@ -1246,7 +1247,7 @@ class MaterialTest {
             "silicon,eternalores:silicon_ingot" })
     void eternalOresOnlyIngotsMeltUnderEternalOresAlone(String name, String eoItem) throws Exception {
         JsonObject melting = recipe("melting_recipe", name + "_ingot");
-        assertEquals("c:ingots/" + name, melting.getAsJsonObject("input").get("tag").getAsString());
+        assertEquals("#c:ingots/" + name, melting.get("input").getAsString());
         assertEquals("forgeweave:molten_" + name, melting.get("fluid").getAsString());
         assertTrue(conditionNamesItem(melting.getAsJsonArray("neoforge:conditions"), eoItem),
                 name + "'s Eternal Ores ingot must melt with Eternal Ores as the only provider");
@@ -1500,14 +1501,14 @@ class MaterialTest {
         for (JsonElement entry : conditions) {
             JsonObject node = entry.getAsJsonObject();
             String type = node.get("type").getAsString();
-            if (type.equals("neoforge:item_exists") && node.get("item").getAsString().equals(item)) {
+            if (type.equals("neoforge:registered") && node.get("value").getAsString().equals(item)) {
                 return true;
             }
             if (type.equals("neoforge:or")) {
                 for (JsonElement branch : node.getAsJsonArray("values")) {
                     JsonObject branchNode = branch.getAsJsonObject();
-                    if (branchNode.get("type").getAsString().equals("neoforge:item_exists")
-                            && branchNode.get("item").getAsString().equals(item)) {
+                    if (branchNode.get("type").getAsString().equals("neoforge:registered")
+                            && branchNode.get("value").getAsString().equals(item)) {
                         return true;
                     }
                 }

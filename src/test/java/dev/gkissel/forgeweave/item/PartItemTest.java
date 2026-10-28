@@ -31,6 +31,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.crafting.Ingredient;
 
 import dev.gkissel.forgeweave.material.Material;
@@ -73,7 +74,7 @@ class PartItemTest {
         stack.set(ForgeweaveDataComponents.MATERIAL.get(), Identifier.fromNamespaceAndPath("forgeweave", "wood"));
 
         List<Component> tooltip = new ArrayList<>();
-        pickaxeHead().appendHoverText(stack, Item.TooltipContext.EMPTY, tooltip, TooltipFlag.NORMAL);
+        pickaxeHead().appendHoverText(stack, Item.TooltipContext.EMPTY, TooltipDisplay.DEFAULT, tooltip::add, TooltipFlag.NORMAL);
 
         assertEquals(List.of(Component.translatable("material.forgeweave.wood")), tooltip);
     }
@@ -87,7 +88,7 @@ class PartItemTest {
         ItemStack stack = new ItemStack(pickaxeHead());
 
         List<Component> tooltip = new ArrayList<>();
-        pickaxeHead().appendHoverText(stack, Item.TooltipContext.EMPTY, tooltip, TooltipFlag.NORMAL);
+        pickaxeHead().appendHoverText(stack, Item.TooltipContext.EMPTY, TooltipDisplay.DEFAULT, tooltip::add, TooltipFlag.NORMAL);
 
         assertEquals(List.of(Component.translatable("tooltip.forgeweave.part.missing_info")), tooltip);
     }
@@ -304,7 +305,7 @@ class PartItemTest {
 
     private static Component withHover(MutableComponent line, Component description) {
         Component hover = line.copy().append("\n").append(description.copy().withStyle(ChatFormatting.GRAY));
-        return line.withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover)));
+        return line.withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(hover)));
     }
 
     private static Component tierLine(String tier) {
@@ -320,7 +321,7 @@ class PartItemTest {
     private static HolderLookup.Provider registriesWith(Identifier id, Material material) {
         MappedRegistry<Material> registry = new MappedRegistry<>(Material.REGISTRY, Lifecycle.stable());
         registry.register(ResourceKey.create(Material.REGISTRY, id), material, RegistrationInfo.BUILT_IN);
-        return HolderLookup.Provider.create(Stream.of(registry.asLookup()));
+        return HolderLookup.Provider.create(Stream.<HolderLookup.RegistryLookup<?>>of(registry));
     }
 
     /** {@link #stone()}'s stats under a different {@code incorrect_for_tool} tag -- only the tier line changes. */

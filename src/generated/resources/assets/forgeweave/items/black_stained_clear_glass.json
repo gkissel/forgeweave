@@ -1,0 +1,12 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "forgeweave:item/black_stained_clear_glass",
+    "tints": [
+      {
+        "type": "minecraft:constant",
+        "value": -15132391
+      }
+    ]
+  }
+}

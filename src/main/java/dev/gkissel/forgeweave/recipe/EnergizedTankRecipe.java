@@ -51,9 +51,8 @@ public class EnergizedTankRecipe extends ShapedRecipe {
     private final ItemStackTemplate result;
 
     public EnergizedTankRecipe(String group, CraftingBookCategory category, ShapedRecipePattern pattern,
-            ItemStack result) {
-        this(new Recipe.CommonInfo(true), new CraftingRecipe.CraftingBookInfo(category, group), pattern,
-                ItemStackTemplate.fromNonEmptyStack(result));
+            ItemStackTemplate result) {
+        this(new Recipe.CommonInfo(true), new CraftingRecipe.CraftingBookInfo(category, group), pattern, result);
     }
 
     public EnergizedTankRecipe(Recipe.CommonInfo commonInfo, CraftingRecipe.CraftingBookInfo bookInfo,

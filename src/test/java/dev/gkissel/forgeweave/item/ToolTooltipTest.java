@@ -36,6 +36,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.Block;
 
@@ -257,7 +258,7 @@ class ToolTooltipTest {
         MappedRegistry<Material> registry = new MappedRegistry<>(Material.REGISTRY, Lifecycle.stable());
         registry.register(ResourceKey.create(Material.REGISTRY, STONE_ID), stone(), RegistrationInfo.BUILT_IN);
         registry.register(ResourceKey.create(Material.REGISTRY, WOOD_ID), woodWithBloodtally(), RegistrationInfo.BUILT_IN);
-        HolderLookup.Provider registries = HolderLookup.Provider.create(Stream.of(registry.asLookup()));
+        HolderLookup.Provider registries = HolderLookup.Provider.create(Stream.<HolderLookup.RegistryLookup<?>>of(registry));
 
         List<Component> tooltip = new ArrayList<>();
         ToolTooltip.append(stack, registries, true, 3.0F, tooltip);
@@ -689,7 +690,7 @@ class ToolTooltipTest {
         stack.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(HASTE_ID, 50)));
 
         HoverEvent hover = StationText.toolModifiers(stack).get(0).getStyle().getHoverEvent();
-        assertTrue(hover != null && hover.getValue(HoverEvent.Action.SHOW_TEXT).toString()
+        assertTrue(hover instanceof HoverEvent.ShowText(Component shown) && shown.toString()
                         .contains("modifier.forgeweave.haste.extra"),
                 "the haste row explains its draw-speed bonus on hover");
     }
@@ -735,7 +736,7 @@ class ToolTooltipTest {
         ItemStack stack = assembledPickaxe(40, List.of());
 
         List<Component> tooltip = new ArrayList<>();
-        ForgeweaveItems.TOOL_PICKAXE.get().appendHoverText(stack, Item.TooltipContext.EMPTY, tooltip, TooltipFlag.NORMAL);
+        ForgeweaveItems.TOOL_PICKAXE.get().appendHoverText(stack, Item.TooltipContext.EMPTY, TooltipDisplay.DEFAULT, tooltip::add, TooltipFlag.NORMAL);
 
         // TooltipFlag.NORMAL.hasShiftDown() is NeoForge's TooltipFlagExtension default (false off-client).
         assertEquals(List.of(durabilityLine(120, 160), attackLine(3.0F), pierceLine(), slotsLine(3)), tooltip);
@@ -818,7 +819,7 @@ class ToolTooltipTest {
         MappedRegistry<Material> registry = new MappedRegistry<>(Material.REGISTRY, Lifecycle.stable());
         registry.register(ResourceKey.create(Material.REGISTRY, STONE_ID), stone(), RegistrationInfo.BUILT_IN);
         registry.register(ResourceKey.create(Material.REGISTRY, WOOD_ID), wood(), RegistrationInfo.BUILT_IN);
-        return HolderLookup.Provider.create(Stream.of(registry.asLookup()));
+        return HolderLookup.Provider.create(Stream.<HolderLookup.RegistryLookup<?>>of(registry));
     }
 
     private static Material stone() {
@@ -924,7 +925,7 @@ class ToolTooltipTest {
                 Component.literal(value).withStyle(Style.EMPTY.withColor(color)));
         Component hover = line.copy().append("\n").append(
                 Component.translatable("gui.forgeweave.stat." + key + ".desc").withStyle(ChatFormatting.GRAY));
-        return line.withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover)));
+        return line.withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(hover)));
     }
 
     private static Component tierLine(String tier) {
