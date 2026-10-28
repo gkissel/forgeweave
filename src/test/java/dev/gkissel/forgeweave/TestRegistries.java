@@ -70,11 +70,7 @@ public final class TestRegistries {
     public static synchronized HolderLookup.Provider vanilla() {
         if (vanilla == null) {
             RegistryAccess.Frozen builtins = RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
-            PackRepository packs = ServerPacksSource.createVanillaTrustedRepository();
-            packs.reload();
-            packs.setSelected(packs.getAvailableIds().stream()
-                    .filter(id -> id.equals("vanilla") || id.startsWith("mod/")).toList());
-            ResourceManager data = new MultiPackResourceManager(PackType.SERVER_DATA, packs.openAllSelected());
+            ResourceManager data = serverData();
             List<Registry.PendingTags<?>> staticTags = TagLoader.loadTagsForExistingRegistries(data, builtins);
             List<HolderLookup.RegistryLookup<?>> context = TagLoader.buildUpdatedLookups(builtins, staticTags);
             RegistryAccess.Frozen loaded = RegistryDataLoader.load(data, context,
@@ -85,6 +81,20 @@ public final class TestRegistries {
     }
 
     private static HolderLookup.Provider vanilla;
+
+    /** The server data a world would start with: the vanilla pack plus every loaded mod's pack. */
+    public static synchronized ResourceManager serverData() {
+        if (serverData == null) {
+            PackRepository packs = ServerPacksSource.createVanillaTrustedRepository();
+            packs.reload();
+            packs.setSelected(packs.getAvailableIds().stream()
+                    .filter(id -> id.equals("vanilla") || id.startsWith("mod/")).toList());
+            serverData = new MultiPackResourceManager(PackType.SERVER_DATA, packs.openAllSelected());
+        }
+        return serverData;
+    }
+
+    private static ResourceManager serverData;
 
     /** {@code provider}, answering a missing tag the way {@link #ops} does: bound, empty. */
     public static HolderLookup.Provider lenient(HolderLookup.Provider provider) {
