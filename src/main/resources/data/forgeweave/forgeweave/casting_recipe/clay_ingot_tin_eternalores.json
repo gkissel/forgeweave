@@ -9,8 +9,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "eternalores:tin_ingot"
+      "type": "neoforge:registered",
+      "value": "eternalores:tin_ingot"
     }
   ],
   "priority": -1

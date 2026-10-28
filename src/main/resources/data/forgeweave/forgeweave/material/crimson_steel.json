@@ -63,8 +63,8 @@
   "color": "#DC143C",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "silentgear:crimson_steel_ingot"
+      "type": "neoforge:registered",
+      "value": "silentgear:crimson_steel_ingot"
     }
   ]
 }

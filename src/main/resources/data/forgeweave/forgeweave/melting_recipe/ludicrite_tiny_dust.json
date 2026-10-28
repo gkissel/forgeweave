@@ -5,8 +5,8 @@
   "temperature": 1600,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "bigreactors:ludicrite_ingot"
+      "type": "neoforge:registered",
+      "value": "bigreactors:ludicrite_ingot"
     }
   ]
 }

@@ -8,8 +8,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "twilightforest:steeleaf_ingot"
+      "type": "neoforge:registered",
+      "value": "twilightforest:steeleaf_ingot"
     }
   ]
 }

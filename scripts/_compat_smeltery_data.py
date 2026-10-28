@@ -167,7 +167,7 @@ def build_table():
 
 
 def extract_provider_items(condition) -> list[str]:
-    """Every neoforge:item_exists item id a (possibly neoforge:or) condition list touches, in
+    """Every neoforge:registered item id a (possibly neoforge:or) condition list touches, in
     casting preference order: the condition's own order, with FALLBACK_LAST_NAMESPACES moved last."""
     items = []
     for entry in condition:
@@ -180,8 +180,8 @@ ITEMLESS_CONDITIONS = ("neoforge:mod_loaded", "forgeweave:compat_toggle")
 
 
 def _collect(entry: dict, items: list[str]) -> None:
-    if entry["type"] == "neoforge:item_exists":
-        items.append(entry["item"])
+    if entry["type"] == "neoforge:registered" and entry.get("registry", "minecraft:item") == "minecraft:item":
+        items.append(entry["value"])
     elif entry["type"] == "neoforge:or":
         for value in entry["values"]:
             _collect(value, items)

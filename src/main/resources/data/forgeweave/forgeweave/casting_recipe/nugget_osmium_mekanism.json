@@ -8,8 +8,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:nugget_osmium"
+      "type": "neoforge:registered",
+      "value": "mekanism:nugget_osmium"
     }
   ]
 }

@@ -19,6 +19,6 @@
   "repair_item": "#c:ingots/bronze",
   "color": "#8E661B",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "minecraft:diamond" }
+    { "type": "neoforge:registered", "value": "minecraft:diamond" }
   ]
 }

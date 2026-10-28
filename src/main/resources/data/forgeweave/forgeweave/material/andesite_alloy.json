@@ -57,8 +57,8 @@
   "color": "#829579",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "create:andesite_alloy"
+      "type": "neoforge:registered",
+      "value": "create:andesite_alloy"
     }
   ]
 }

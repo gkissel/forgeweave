@@ -5,8 +5,8 @@
   "temperature": 1600,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "cataclysm:ignitium_ingot"
+      "type": "neoforge:registered",
+      "value": "cataclysm:ignitium_ingot"
     }
   ]
 }

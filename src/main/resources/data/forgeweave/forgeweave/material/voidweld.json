@@ -68,8 +68,8 @@
   "color": "#8A2BE2",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "draconicevolution:chaotic_core"
+      "type": "neoforge:registered",
+      "value": "draconicevolution:chaotic_core"
     }
   ]
 }

@@ -5,8 +5,8 @@
   "temperature": 1200,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "create:brass_ingot"
+      "type": "neoforge:registered",
+      "value": "create:brass_ingot"
     }
   ]
 }

@@ -51,8 +51,8 @@
   "color": "#D99BD9",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "industrialforegoing:pink_slime_ingot"
+      "type": "neoforge:registered",
+      "value": "industrialforegoing:pink_slime_ingot"
     }
   ]
 }

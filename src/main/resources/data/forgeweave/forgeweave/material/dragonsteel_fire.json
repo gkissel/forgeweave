@@ -63,8 +63,8 @@
   "color": "#B23A1E",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "iceandfire:dragonsteel_fire_ingot"
+      "type": "neoforge:registered",
+      "value": "iceandfire:dragonsteel_fire_ingot"
     }
   ]
 }

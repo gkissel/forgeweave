@@ -5,8 +5,8 @@
   "temperature": 1800,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "allthemodium:allthemodium_ingot"
+      "type": "neoforge:registered",
+      "value": "allthemodium:allthemodium_ingot"
     }
   ]
 }

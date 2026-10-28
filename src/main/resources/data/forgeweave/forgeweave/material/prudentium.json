@@ -58,8 +58,8 @@
   "color": "#00AD1A",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mysticalagriculture:prudentium_ingot"
+      "type": "neoforge:registered",
+      "value": "mysticalagriculture:prudentium_ingot"
     }
   ]
 }

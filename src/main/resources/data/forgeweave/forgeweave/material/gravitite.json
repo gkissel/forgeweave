@@ -57,8 +57,8 @@
   "color": "#A52F9A",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "aether:enchanted_gravitite"
+      "type": "neoforge:registered",
+      "value": "aether:enchanted_gravitite"
     }
   ]
 }

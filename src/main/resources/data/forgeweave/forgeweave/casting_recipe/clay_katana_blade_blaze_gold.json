@@ -12,8 +12,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "silentgear:blaze_gold_ingot"
+      "type": "neoforge:registered",
+      "value": "silentgear:blaze_gold_ingot"
     }
   ]
 }

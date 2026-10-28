@@ -62,8 +62,8 @@
   "color": "#8C36C8",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "allthemodium:unobtainium_ingot"
+      "type": "neoforge:registered",
+      "value": "allthemodium:unobtainium_ingot"
     }
   ]
 }

@@ -5,8 +5,8 @@
   "temperature": 1800,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "draconicevolution:wyvern_core"
+      "type": "neoforge:registered",
+      "value": "draconicevolution:wyvern_core"
     }
   ]
 }

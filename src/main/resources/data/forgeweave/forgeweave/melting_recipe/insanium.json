@@ -5,8 +5,8 @@
   "temperature": 2000,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mysticalagradditions:insanium_ingot"
+      "type": "neoforge:registered",
+      "value": "mysticalagradditions:insanium_ingot"
     }
   ]
 }

@@ -50,8 +50,8 @@
   "color": "#7E5BA6",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "occultism:spirit_attuned_gem"
+      "type": "neoforge:registered",
+      "value": "occultism:spirit_attuned_gem"
     }
   ]
 }

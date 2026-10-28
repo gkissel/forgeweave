@@ -8,8 +8,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "modern_industrialization:invar_ingot"
+      "type": "neoforge:registered",
+      "value": "modern_industrialization:invar_ingot"
     }
   ]
 }

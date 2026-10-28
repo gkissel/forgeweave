@@ -70,8 +70,8 @@
   "color": "#75ACB3",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "occultism:iesnium_ingot"
+      "type": "neoforge:registered",
+      "value": "occultism:iesnium_ingot"
     }
   ]
 }

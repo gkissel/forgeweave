@@ -54,8 +54,8 @@
   "color": "#C9D6DC",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "twilightforest:alpha_yeti_fur"
+      "type": "neoforge:registered",
+      "value": "twilightforest:alpha_yeti_fur"
     }
   ]
 }

@@ -12,8 +12,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:ingot_refined_obsidian"
+      "type": "neoforge:registered",
+      "value": "mekanism:ingot_refined_obsidian"
     }
   ]
 }

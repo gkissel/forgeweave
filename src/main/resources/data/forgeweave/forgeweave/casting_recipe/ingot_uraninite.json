@@ -8,8 +8,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "powah:uraninite_raw"
+      "type": "neoforge:registered",
+      "value": "powah:uraninite_raw"
     }
   ]
 }

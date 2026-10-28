@@ -54,8 +54,8 @@
   "color": "#3FBF6B",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "actuallyadditions:emeradic_crystal"
+      "type": "neoforge:registered",
+      "value": "actuallyadditions:emeradic_crystal"
     }
   ]
 }

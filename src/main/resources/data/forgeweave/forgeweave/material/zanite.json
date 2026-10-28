@@ -58,8 +58,8 @@
   "color": "#7A36E0",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "aether:zanite_gemstone"
+      "type": "neoforge:registered",
+      "value": "aether:zanite_gemstone"
     }
   ]
 }

@@ -8,8 +8,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "forbidden_arcanus:deorum_ingot"
+      "type": "neoforge:registered",
+      "value": "forbidden_arcanus:deorum_ingot"
     }
   ]
 }

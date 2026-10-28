@@ -36,6 +36,6 @@
   "enchantability": 12,
   "color": "#F5C7F8",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "immersiveengineering:ingot_aluminum" }
+    { "type": "neoforge:registered", "value": "immersiveengineering:ingot_aluminum" }
   ]
 }

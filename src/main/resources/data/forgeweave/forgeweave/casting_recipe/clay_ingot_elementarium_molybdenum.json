@@ -17,8 +17,8 @@
       "toggle": "elementariumMaterials"
     },
     {
-      "type": "neoforge:item_exists",
-      "item": "elementarium:molybdenum_ingot"
+      "type": "neoforge:registered",
+      "value": "elementarium:molybdenum_ingot"
     }
   ]
 }

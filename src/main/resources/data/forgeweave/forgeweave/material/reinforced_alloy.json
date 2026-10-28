@@ -57,8 +57,8 @@
   "color": "#62BAC8",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:alloy_reinforced"
+      "type": "neoforge:registered",
+      "value": "mekanism:alloy_reinforced"
     }
   ]
 }

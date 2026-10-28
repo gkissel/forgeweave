@@ -57,8 +57,8 @@
   "color": "#2B2B2E",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "actuallyadditions:black_quartz"
+      "type": "neoforge:registered",
+      "value": "actuallyadditions:black_quartz"
     }
   ]
 }

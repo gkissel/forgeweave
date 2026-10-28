@@ -16,8 +16,8 @@
       "toggle": "elementariumMaterials"
     },
     {
-      "type": "neoforge:item_exists",
-      "item": "elementarium:palladium_ingot"
+      "type": "neoforge:registered",
+      "value": "elementarium:palladium_ingot"
     }
   ]
 }

@@ -58,8 +58,8 @@
   "color": "#E63946",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "powah:crystal_nitro"
+      "type": "neoforge:registered",
+      "value": "powah:crystal_nitro"
     }
   ]
 }

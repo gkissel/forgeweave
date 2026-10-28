@@ -58,8 +58,8 @@
   "color": "#F2C94C",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "aether:ambrosium_shard"
+      "type": "neoforge:registered",
+      "value": "aether:ambrosium_shard"
     }
   ]
 }

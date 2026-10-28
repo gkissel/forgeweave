@@ -50,8 +50,8 @@
   "color": "#5C7A3D",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "twilightforest:naga_scale"
+      "type": "neoforge:registered",
+      "value": "twilightforest:naga_scale"
     }
   ]
 }

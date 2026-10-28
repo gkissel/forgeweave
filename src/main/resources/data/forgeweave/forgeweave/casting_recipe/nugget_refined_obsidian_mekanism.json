@@ -8,8 +8,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:nugget_refined_obsidian"
+      "type": "neoforge:registered",
+      "value": "mekanism:nugget_refined_obsidian"
     }
   ]
 }

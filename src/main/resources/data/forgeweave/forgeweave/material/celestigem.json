@@ -58,8 +58,8 @@
   "color": "#19B1AD",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "justdirethings:celestigem"
+      "type": "neoforge:registered",
+      "value": "justdirethings:celestigem"
     }
   ]
 }

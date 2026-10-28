@@ -62,12 +62,12 @@
       "type": "neoforge:or",
       "values": [
         {
-          "type": "neoforge:item_exists",
-          "item": "immersiveengineering:ingot_constantan"
+          "type": "neoforge:registered",
+          "value": "immersiveengineering:ingot_constantan"
         },
         {
-          "type": "neoforge:item_exists",
-          "item": "eternalores:constantan_ingot"
+          "type": "neoforge:registered",
+          "value": "eternalores:constantan_ingot"
         }
       ]
     }

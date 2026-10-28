@@ -57,8 +57,8 @@
   "color": "#B479D1",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:alloy_atomic"
+      "type": "neoforge:registered",
+      "value": "mekanism:alloy_atomic"
     }
   ]
 }

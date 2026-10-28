@@ -8,8 +8,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:nugget_uranium"
+      "type": "neoforge:registered",
+      "value": "mekanism:nugget_uranium"
     }
   ]
 }

@@ -8,8 +8,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:ingot_uranium"
+      "type": "neoforge:registered",
+      "value": "mekanism:ingot_uranium"
     }
   ]
 }

@@ -5,8 +5,8 @@
   "temperature": 1200,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "pneumaticcraft:ingot_iron_compressed"
+      "type": "neoforge:registered",
+      "value": "pneumaticcraft:ingot_iron_compressed"
     }
   ]
 }

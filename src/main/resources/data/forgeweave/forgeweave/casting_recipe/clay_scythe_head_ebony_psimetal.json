@@ -12,8 +12,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "psi:ebony_psimetal"
+      "type": "neoforge:registered",
+      "value": "psi:ebony_psimetal"
     }
   ]
 }

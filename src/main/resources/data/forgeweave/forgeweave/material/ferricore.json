@@ -63,8 +63,8 @@
   "color": "#88B9BC",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "justdirethings:ferricore_ingot"
+      "type": "neoforge:registered",
+      "value": "justdirethings:ferricore_ingot"
     }
   ]
 }

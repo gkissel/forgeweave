@@ -8,8 +8,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "immersiveengineering:ingot_electrum"
+      "type": "neoforge:registered",
+      "value": "immersiveengineering:ingot_electrum"
     }
   ]
 }

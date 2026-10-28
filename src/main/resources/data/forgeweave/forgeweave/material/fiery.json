@@ -63,8 +63,8 @@
   "color": "#861540",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "twilightforest:fiery_ingot"
+      "type": "neoforge:registered",
+      "value": "twilightforest:fiery_ingot"
     }
   ]
 }

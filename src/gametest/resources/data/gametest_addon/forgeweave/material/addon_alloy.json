@@ -14,10 +14,8 @@
     "general": ["gametest_addon:addon_pack_trait", "gametest_addon:addon_java_trait"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:sniffer_egg" }, "value": 144 }
+    { "ingredient": "minecraft:sniffer_egg", "value": 144 }
   ],
-  "repair_item": {
-    "item": "minecraft:sniffer_egg"
-  },
+  "repair_item": "minecraft:sniffer_egg",
   "color": "#4FA3C8"
 }

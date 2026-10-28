@@ -58,8 +58,8 @@
   "color": "#FF7A29",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "powah:crystal_blazing"
+      "type": "neoforge:registered",
+      "value": "powah:crystal_blazing"
     }
   ]
 }

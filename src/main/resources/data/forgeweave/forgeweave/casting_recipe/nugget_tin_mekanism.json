@@ -8,8 +8,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:nugget_tin"
+      "type": "neoforge:registered",
+      "value": "mekanism:nugget_tin"
     }
   ]
 }

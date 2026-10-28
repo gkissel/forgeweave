@@ -61,8 +61,8 @@
   "color": "#7A2E8C",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "occultism:dragonyst_dust"
+      "type": "neoforge:registered",
+      "value": "occultism:dragonyst_dust"
     }
   ]
 }

@@ -53,8 +53,8 @@
   "color": "#8A3FA0",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "ae2:fluix_crystal"
+      "type": "neoforge:registered",
+      "value": "ae2:fluix_crystal"
     }
   ]
 }

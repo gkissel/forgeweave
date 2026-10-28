@@ -8,8 +8,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "refinedstorage:silicon"
+      "type": "neoforge:registered",
+      "value": "refinedstorage:silicon"
     }
   ]
 }

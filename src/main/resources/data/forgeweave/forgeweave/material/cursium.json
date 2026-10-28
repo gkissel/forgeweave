@@ -66,8 +66,8 @@
   "color": "#35BFA2",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "cataclysm:cursium_ingot"
+      "type": "neoforge:registered",
+      "value": "cataclysm:cursium_ingot"
     }
   ]
 }

@@ -11,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "avaritia:crystal_matrix_ingot"
+      "type": "neoforge:registered",
+      "value": "avaritia:crystal_matrix_ingot"
     }
   ]
 }

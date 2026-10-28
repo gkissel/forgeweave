@@ -5,8 +5,8 @@
   "temperature": 1400,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "twilightforest:knightmetal_ingot"
+      "type": "neoforge:registered",
+      "value": "twilightforest:knightmetal_ingot"
     }
   ]
 }

@@ -12,8 +12,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "occultism:iesnium_ingot"
+      "type": "neoforge:registered",
+      "value": "occultism:iesnium_ingot"
     }
   ]
 }

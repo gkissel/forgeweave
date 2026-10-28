@@ -58,8 +58,8 @@
   "color": "#00A4BD",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "powah:crystal_niotic"
+      "type": "neoforge:registered",
+      "value": "powah:crystal_niotic"
     }
   ]
 }

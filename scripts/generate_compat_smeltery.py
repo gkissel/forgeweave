@@ -9,7 +9,7 @@ and, for compat metals only, a concrete-item-id fix on the ingot casting row (se
 Casting scope note (disclosed, not silent): a compat metal's tool-part casting rows (68 of the 73
 template files -- pickaxe head, sword blade, plating, etc.) all cast into Forgeweave's own generic part
 items, so they clone unchanged. Only the ingot row casts into the *provider's* own item, and only that
-one concrete id is independently verified (it is the same id the material's own `neoforge:item_exists`
+one concrete id is independently verified (it is the same id the material's own `neoforge:registered`
 condition already names). Nugget and block casting are cut from this pass: Forgeweave cannot safely
 name a concrete nugget/block item for ~13 different provider mods without the per-mod verification
 PR #874 did for its ten materials, and shipping a guessed id risks a hard decode failure the moment
@@ -53,14 +53,14 @@ OR_MATERIALS = {
 # to dev.gkissel.forgeweave.trackb.TrackBAlloy.ALL), so their full 73-file casting template needs no
 # result-id surgery -- only the condition injection every compat recipe gets.
 ALLOYS = {
-    "alumite": [{"type": "neoforge:item_exists", "item": "immersiveengineering:ingot_aluminum"}],
+    "alumite": [{"type": "neoforge:registered", "value": "immersiveengineering:ingot_aluminum"}],
     "osgloglas": [
-        {"type": "neoforge:item_exists", "item": "mekanism:ingot_osmium"},
-        {"type": "neoforge:item_exists", "item": "mekanism:ingot_refined_obsidian"},
+        {"type": "neoforge:registered", "value": "mekanism:ingot_osmium"},
+        {"type": "neoforge:registered", "value": "mekanism:ingot_refined_obsidian"},
     ],
     "osmiridium": [
-        {"type": "neoforge:item_exists", "item": "mekanism:ingot_osmium"},
-        {"type": "neoforge:item_exists", "item": "modern_industrialization:iridium_ingot"},
+        {"type": "neoforge:registered", "value": "mekanism:ingot_osmium"},
+        {"type": "neoforge:registered", "value": "modern_industrialization:iridium_ingot"},
     ],
     # Issue #946: the three Draconic Evolution fusion metals. Same treatment as the three alloys
     # above -- Forgeweave-owned ingot/nugget/block items, so the 73-file casting template clones
@@ -70,16 +70,16 @@ ALLOYS = {
     # it is the only loop the smeltery closes.
     # #965 -- duskweld, the inert-tier weld metal, gated on the Draconic Evolution core its own
     # fusion recipe consumes exactly as the three below it are.
-    "duskweld": [{"type": "neoforge:item_exists", "item": "draconicevolution:draconium_core"}],
-    "emberweld": [{"type": "neoforge:item_exists", "item": "draconicevolution:wyvern_core"}],
-    "starweld": [{"type": "neoforge:item_exists", "item": "draconicevolution:awakened_core"}],
-    "voidweld": [{"type": "neoforge:item_exists", "item": "draconicevolution:chaotic_core"}],
+    "duskweld": [{"type": "neoforge:registered", "value": "draconicevolution:draconium_core"}],
+    "emberweld": [{"type": "neoforge:registered", "value": "draconicevolution:wyvern_core"}],
+    "starweld": [{"type": "neoforge:registered", "value": "draconicevolution:awakened_core"}],
+    "voidweld": [{"type": "neoforge:registered", "value": "draconicevolution:chaotic_core"}],
     # Issue #993: atomic matter alloy, the same treatment one mod over. It gets no alloy_recipe row
     # either -- a nucleosynthesis run on Mekanism's own Antiprotonic Nucleosynthesizer is the only
     # thing that makes the ingot, and melting it back down and recasting it is the only loop the
     # smeltery closes. Its material JSON deliberately carries no condition (see TrackBAlloy), but
     # these recipes do: a melting or casting row keyed on an absent mod's item is a broken recipe.
-    "atomic_matter_alloy": [{"type": "neoforge:item_exists", "item": "mekanism:alloy_atomic"}],
+    "atomic_matter_alloy": [{"type": "neoforge:registered", "value": "mekanism:alloy_atomic"}],
 }
 
 VALUE_NUGGET = 16
@@ -151,7 +151,7 @@ def melting_recipes() -> None:
             # alone; the material's wider neoforge:or would load the row with the item missing
             # (quartz_enriched_iron's RefinedStorage item under Eternal Ores alone).
             item = None if entry["ingredient"].startswith("#") else entry["ingredient"]
-            condition = [{"type": "neoforge:item_exists", "item": item}] if item else info["condition"]
+            condition = [{"type": "neoforge:registered", "value": item}] if item else info["condition"]
             write_json(MELTING_DIR / name, {
                 "input": entry["ingredient"],
                 "fluid": fluid,
@@ -211,7 +211,7 @@ def casting_recipes() -> None:
                         variant_name = out_name.replace(f"_{material_id}.json", f"_{material_id}_{provider_mod}.json")
                         variant = dict(data)
                         variant["result"] = {"id": provider_item}
-                        variant["neoforge:conditions"] = [{"type": "neoforge:item_exists", "item": provider_item}]
+                        variant["neoforge:conditions"] = [{"type": "neoforge:registered", "value": provider_item}]
                         if rank == 0:
                             (CASTING_DIR / variant_name).unlink(missing_ok=True)  # Its pre-priority name.
                             variant_name = out_name
@@ -223,7 +223,7 @@ def casting_recipes() -> None:
                 if material_id in INGOT_RESULT_OVERRIDES:
                     ingot = INGOT_RESULT_OVERRIDES[material_id]
                     data["result"] = {"id": ingot}
-                    data["neoforge:conditions"] = condition + [{"type": "neoforge:item_exists", "item": ingot}]
+                    data["neoforge:conditions"] = condition + [{"type": "neoforge:registered", "value": ingot}]
                 else:
                     data["result"] = {"id": provider_items[0]}
                     data["neoforge:conditions"] = condition

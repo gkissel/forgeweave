@@ -62,8 +62,8 @@
   "color": "#4E7A3D",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "twilightforest:steeleaf_ingot"
+      "type": "neoforge:registered",
+      "value": "twilightforest:steeleaf_ingot"
     }
   ]
 }

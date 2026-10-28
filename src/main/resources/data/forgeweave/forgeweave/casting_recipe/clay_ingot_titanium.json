@@ -9,8 +9,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "modern_industrialization:titanium_ingot"
+      "type": "neoforge:registered",
+      "value": "modern_industrialization:titanium_ingot"
     }
   ]
 }

@@ -5,6 +5,6 @@
   "amount": 144,
   "result": { "id": "minecraft:gold_ingot" },
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "minecraft:diamond" }
+    { "type": "neoforge:registered", "value": "minecraft:diamond" }
   ]
 }

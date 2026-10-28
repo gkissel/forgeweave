@@ -8,8 +8,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "neovitae:ingot_hellforged"
+      "type": "neoforge:registered",
+      "value": "neovitae:ingot_hellforged"
     }
   ]
 }

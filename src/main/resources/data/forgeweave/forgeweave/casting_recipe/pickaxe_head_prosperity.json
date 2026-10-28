@@ -11,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mysticalagriculture:prosperity_ingot"
+      "type": "neoforge:registered",
+      "value": "mysticalagriculture:prosperity_ingot"
     }
   ]
 }

@@ -34,6 +34,6 @@
   "enchantability": 16,
   "color": "#EDEDED",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "actuallyadditions:enori_crystal" }
+    { "type": "neoforge:registered", "value": "actuallyadditions:enori_crystal" }
   ]
 }

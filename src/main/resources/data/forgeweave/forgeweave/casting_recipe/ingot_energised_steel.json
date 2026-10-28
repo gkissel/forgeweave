@@ -8,8 +8,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "powah:steel_energized"
+      "type": "neoforge:registered",
+      "value": "powah:steel_energized"
     }
   ]
 }

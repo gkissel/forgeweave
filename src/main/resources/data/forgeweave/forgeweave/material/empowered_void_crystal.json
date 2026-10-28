@@ -61,8 +61,8 @@
   "color": "#8B4FCC",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "actuallyadditions:empowered_void_crystal"
+      "type": "neoforge:registered",
+      "value": "actuallyadditions:empowered_void_crystal"
     }
   ]
 }

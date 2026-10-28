@@ -8,8 +8,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "iceandfire:dragonbone"
+      "type": "neoforge:registered",
+      "value": "iceandfire:dragonbone"
     }
   ]
 }

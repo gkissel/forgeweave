@@ -54,8 +54,8 @@
   "color": "#8FB8E0",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:fluorite_gem"
+      "type": "neoforge:registered",
+      "value": "mekanism:fluorite_gem"
     }
   ]
 }

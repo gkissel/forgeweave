@@ -33,6 +33,6 @@
   "enchantability": 16,
   "color": "#9574D5",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "psi:psigem" }
+    { "type": "neoforge:registered", "value": "psi:psigem" }
   ]
 }

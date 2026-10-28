@@ -11,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "cataclysm:cursium_ingot"
+      "type": "neoforge:registered",
+      "value": "cataclysm:cursium_ingot"
     }
   ]
 }

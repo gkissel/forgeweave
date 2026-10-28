@@ -58,8 +58,8 @@
   "color": "#D84800",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mysticalagriculture:tertium_ingot"
+      "type": "neoforge:registered",
+      "value": "mysticalagriculture:tertium_ingot"
     }
   ]
 }

@@ -9,8 +9,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "bigreactors:cyanite_ingot"
+      "type": "neoforge:registered",
+      "value": "bigreactors:cyanite_ingot"
     }
   ]
 }

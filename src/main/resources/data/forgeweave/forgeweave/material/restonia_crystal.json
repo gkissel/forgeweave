@@ -57,8 +57,8 @@
   "color": "#C23B3B",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "actuallyadditions:restonia_crystal"
+      "type": "neoforge:registered",
+      "value": "actuallyadditions:restonia_crystal"
     }
   ]
 }

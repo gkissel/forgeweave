@@ -8,8 +8,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "bigreactors:graphite_ingot"
+      "type": "neoforge:registered",
+      "value": "bigreactors:graphite_ingot"
     }
   ]
 }

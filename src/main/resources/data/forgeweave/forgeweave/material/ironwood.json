@@ -63,8 +63,8 @@
   "color": "#8A9B5E",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "twilightforest:ironwood_ingot"
+      "type": "neoforge:registered",
+      "value": "twilightforest:ironwood_ingot"
     }
   ]
 }

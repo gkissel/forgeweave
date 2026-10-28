@@ -34,6 +34,6 @@
   "enchantability": 18,
   "color": "#D9E8F5",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "ae2:certus_quartz_crystal" }
+    { "type": "neoforge:registered", "value": "ae2:certus_quartz_crystal" }
   ]
 }

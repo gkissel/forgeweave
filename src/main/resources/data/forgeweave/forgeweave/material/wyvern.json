@@ -59,8 +59,8 @@
   "color": "#75428D",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "draconicevolution:wyvern_core"
+      "type": "neoforge:registered",
+      "value": "draconicevolution:wyvern_core"
     }
   ]
 }

@@ -59,8 +59,8 @@
   "color": "#E3A645",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "silentgear:blaze_gold_ingot"
+      "type": "neoforge:registered",
+      "value": "silentgear:blaze_gold_ingot"
     }
   ]
 }

@@ -53,8 +53,8 @@
   "color": "#EDE7D9",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:hdpe_stick"
+      "type": "neoforge:registered",
+      "value": "mekanism:hdpe_stick"
     }
   ]
 }

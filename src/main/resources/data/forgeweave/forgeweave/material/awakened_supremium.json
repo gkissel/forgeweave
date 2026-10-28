@@ -62,8 +62,8 @@
   "color": "#D37B00",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mysticalagriculture:awakened_supremium_ingot"
+      "type": "neoforge:registered",
+      "value": "mysticalagriculture:awakened_supremium_ingot"
     }
   ]
 }

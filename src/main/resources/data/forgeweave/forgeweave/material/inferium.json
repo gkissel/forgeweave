@@ -54,8 +54,8 @@
   "color": "#94B200",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mysticalagriculture:inferium_ingot"
+      "type": "neoforge:registered",
+      "value": "mysticalagriculture:inferium_ingot"
     }
   ]
 }

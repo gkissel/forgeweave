@@ -11,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "create:zinc_ingot"
+      "type": "neoforge:registered",
+      "value": "create:zinc_ingot"
     }
   ]
 }

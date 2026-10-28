@@ -9,8 +9,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "eternalores:nickel_ingot"
+      "type": "neoforge:registered",
+      "value": "eternalores:nickel_ingot"
     }
   ],
   "priority": -1

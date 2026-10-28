@@ -8,8 +8,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:nugget_bronze"
+      "type": "neoforge:registered",
+      "value": "mekanism:nugget_bronze"
     }
   ]
 }

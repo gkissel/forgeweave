@@ -55,8 +55,8 @@
   "color": "#9E1B32",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "twilightforest:carminite"
+      "type": "neoforge:registered",
+      "value": "twilightforest:carminite"
     }
   ]
 }

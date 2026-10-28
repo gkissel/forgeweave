@@ -54,8 +54,8 @@
   "color": "#DCEEF5",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "twilightforest:arctic_fur"
+      "type": "neoforge:registered",
+      "value": "twilightforest:arctic_fur"
     }
   ]
 }

@@ -11,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "silentgear:tyrian_steel_ingot"
+      "type": "neoforge:registered",
+      "value": "silentgear:tyrian_steel_ingot"
     }
   ]
 }

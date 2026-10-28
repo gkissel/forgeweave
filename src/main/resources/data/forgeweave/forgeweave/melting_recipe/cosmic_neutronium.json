@@ -5,8 +5,8 @@
   "temperature": 1600,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "avaritia:neutronium_ingot"
+      "type": "neoforge:registered",
+      "value": "avaritia:neutronium_ingot"
     }
   ]
 }

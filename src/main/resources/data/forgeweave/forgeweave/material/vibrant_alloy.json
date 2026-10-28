@@ -66,8 +66,8 @@
   "color": "#D6F079",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "enderio:vibrant_alloy_ingot"
+      "type": "neoforge:registered",
+      "value": "enderio:vibrant_alloy_ingot"
     }
   ]
 }

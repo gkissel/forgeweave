@@ -58,8 +58,8 @@
   "color": "#7FD9E8",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "actuallyadditions:diamatine_crystal"
+      "type": "neoforge:registered",
+      "value": "actuallyadditions:diamatine_crystal"
     }
   ]
 }

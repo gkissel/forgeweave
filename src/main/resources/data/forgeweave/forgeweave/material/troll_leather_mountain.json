@@ -54,8 +54,8 @@
   "color": "#7A6B5C",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "iceandfire:troll_leather_mountain"
+      "type": "neoforge:registered",
+      "value": "iceandfire:troll_leather_mountain"
     }
   ]
 }

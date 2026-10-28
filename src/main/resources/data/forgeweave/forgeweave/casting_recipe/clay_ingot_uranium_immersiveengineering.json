@@ -9,8 +9,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "immersiveengineering:ingot_uranium"
+      "type": "neoforge:registered",
+      "value": "immersiveengineering:ingot_uranium"
     }
   ],
   "priority": -1

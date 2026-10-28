@@ -9,8 +9,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "draconicevolution:awakened_core"
+      "type": "neoforge:registered",
+      "value": "draconicevolution:awakened_core"
     }
   ]
 }

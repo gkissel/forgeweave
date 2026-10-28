@@ -8,8 +8,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "enderio:energetic_alloy_ingot"
+      "type": "neoforge:registered",
+      "value": "enderio:energetic_alloy_ingot"
     }
   ]
 }

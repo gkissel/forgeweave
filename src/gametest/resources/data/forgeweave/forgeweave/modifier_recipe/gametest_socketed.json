@@ -8,6 +8,6 @@
   "cost": 1,
   "max_level": 3,
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "minecraft:diamond" }
+    { "type": "neoforge:registered", "value": "minecraft:diamond" }
   ]
 }

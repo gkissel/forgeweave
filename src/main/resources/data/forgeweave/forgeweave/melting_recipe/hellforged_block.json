@@ -5,12 +5,12 @@
   "temperature": 1600,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "neovitae:hellforged_block"
+      "type": "neoforge:registered",
+      "value": "neovitae:hellforged_block"
     },
     {
-      "type": "neoforge:item_exists",
-      "item": "neovitae:ingot_hellforged"
+      "type": "neoforge:registered",
+      "value": "neovitae:ingot_hellforged"
     }
   ]
 }

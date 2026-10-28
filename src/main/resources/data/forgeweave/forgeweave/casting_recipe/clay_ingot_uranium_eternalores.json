@@ -9,8 +9,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "eternalores:uranium_ingot"
+      "type": "neoforge:registered",
+      "value": "eternalores:uranium_ingot"
     }
   ],
   "priority": -3

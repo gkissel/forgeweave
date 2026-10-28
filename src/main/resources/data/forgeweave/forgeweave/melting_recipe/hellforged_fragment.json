@@ -5,12 +5,12 @@
   "temperature": 1600,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "neovitae:demonite_fragment"
+      "type": "neoforge:registered",
+      "value": "neovitae:demonite_fragment"
     },
     {
-      "type": "neoforge:item_exists",
-      "item": "neovitae:ingot_hellforged"
+      "type": "neoforge:registered",
+      "value": "neovitae:ingot_hellforged"
     }
   ]
 }

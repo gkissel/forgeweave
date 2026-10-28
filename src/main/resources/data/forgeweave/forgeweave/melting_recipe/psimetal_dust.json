@@ -5,8 +5,8 @@
   "temperature": 1200,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "psi:psimetal"
+      "type": "neoforge:registered",
+      "value": "psi:psimetal"
     }
   ]
 }

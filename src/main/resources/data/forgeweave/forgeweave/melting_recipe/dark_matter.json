@@ -5,8 +5,8 @@
   "temperature": 1600,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "projecte:dark_matter"
+      "type": "neoforge:registered",
+      "value": "projecte:dark_matter"
     }
   ]
 }

@@ -68,8 +68,8 @@
   "color": "#1B2A4A",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "justdirethings:eclipsealloy_ingot"
+      "type": "neoforge:registered",
+      "value": "justdirethings:eclipsealloy_ingot"
     }
   ]
 }

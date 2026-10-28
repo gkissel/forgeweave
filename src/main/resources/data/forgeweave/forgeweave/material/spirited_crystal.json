@@ -58,8 +58,8 @@
   "color": "#00BD00",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "powah:crystal_spirited"
+      "type": "neoforge:registered",
+      "value": "powah:crystal_spirited"
     }
   ]
 }

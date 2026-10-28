@@ -61,8 +61,8 @@
   "color": "#A9C7C2",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "create:zinc_ingot"
+      "type": "neoforge:registered",
+      "value": "create:zinc_ingot"
     }
   ],
   "cast_only": true

@@ -8,8 +8,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "eternalores:iridium_ingot"
+      "type": "neoforge:registered",
+      "value": "eternalores:iridium_ingot"
     }
   ],
   "priority": -1

@@ -62,8 +62,8 @@
   "color": "#18A878",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "allthemodium:vibranium_ingot"
+      "type": "neoforge:registered",
+      "value": "allthemodium:vibranium_ingot"
     }
   ]
 }

@@ -12,8 +12,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "projecte:red_matter"
+      "type": "neoforge:registered",
+      "value": "projecte:red_matter"
     }
   ]
 }

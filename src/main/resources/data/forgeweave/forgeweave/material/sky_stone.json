@@ -32,6 +32,6 @@
   "enchantability": 12,
   "color": "#4A4A52",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "ae2:sky_stone_block" }
+    { "type": "neoforge:registered", "value": "ae2:sky_stone_block" }
   ]
 }

@@ -66,8 +66,8 @@
   "color": "#4575E3",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "silentgear:azure_electrum_ingot"
+      "type": "neoforge:registered",
+      "value": "silentgear:azure_electrum_ingot"
     }
   ]
 }

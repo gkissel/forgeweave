@@ -5,12 +5,12 @@
   "temperature": 1400,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:ingot_osmium"
+      "type": "neoforge:registered",
+      "value": "mekanism:ingot_osmium"
     },
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:ingot_refined_obsidian"
+      "type": "neoforge:registered",
+      "value": "mekanism:ingot_refined_obsidian"
     }
   ]
 }

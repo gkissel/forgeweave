@@ -53,8 +53,8 @@
   "color": "#D95D52",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:alloy_infused"
+      "type": "neoforge:registered",
+      "value": "mekanism:alloy_infused"
     }
   ]
 }

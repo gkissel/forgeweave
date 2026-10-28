@@ -8,8 +8,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "eternalores:titanium_ingot"
+      "type": "neoforge:registered",
+      "value": "eternalores:titanium_ingot"
     }
   ],
   "priority": -1

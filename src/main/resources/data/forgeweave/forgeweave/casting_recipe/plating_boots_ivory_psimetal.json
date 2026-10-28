@@ -11,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "psi:ivory_psimetal"
+      "type": "neoforge:registered",
+      "value": "psi:ivory_psimetal"
     }
   ]
 }

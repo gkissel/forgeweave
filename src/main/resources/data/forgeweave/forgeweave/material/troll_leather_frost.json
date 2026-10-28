@@ -54,8 +54,8 @@
   "color": "#A8C4D6",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "iceandfire:troll_leather_frost"
+      "type": "neoforge:registered",
+      "value": "iceandfire:troll_leather_frost"
     }
   ]
 }

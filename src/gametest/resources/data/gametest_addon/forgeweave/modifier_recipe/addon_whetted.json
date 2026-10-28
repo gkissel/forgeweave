@@ -2,9 +2,7 @@
   "modifier": "gametest_addon:whetted",
   "reagents": [
     {
-      "ingredient": {
-        "item": "minecraft:goat_horn"
-      }
+      "ingredient": "minecraft:goat_horn"
     }
   ],
   "cost": 1,

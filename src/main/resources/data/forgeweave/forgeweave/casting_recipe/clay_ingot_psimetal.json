@@ -9,8 +9,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "psi:psimetal"
+      "type": "neoforge:registered",
+      "value": "psi:psimetal"
     }
   ]
 }

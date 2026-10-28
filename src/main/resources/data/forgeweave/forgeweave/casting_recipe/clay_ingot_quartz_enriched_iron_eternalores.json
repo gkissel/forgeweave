@@ -9,8 +9,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "eternalores:quartz_enriched_iron_ingot"
+      "type": "neoforge:registered",
+      "value": "eternalores:quartz_enriched_iron_ingot"
     }
   ],
   "priority": -1

@@ -57,8 +57,8 @@
   "color": "#E8E4D0",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "iceandfire:deathworm_chitin_white"
+      "type": "neoforge:registered",
+      "value": "iceandfire:deathworm_chitin_white"
     }
   ]
 }

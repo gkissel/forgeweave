@@ -61,8 +61,8 @@
   "color": "#5171FF",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "actuallyadditions:empowered_palis_crystal"
+      "type": "neoforge:registered",
+      "value": "actuallyadditions:empowered_palis_crystal"
     }
   ]
 }

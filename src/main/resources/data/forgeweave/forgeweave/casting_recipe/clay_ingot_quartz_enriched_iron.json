@@ -9,8 +9,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "refinedstorage:quartz_enriched_iron"
+      "type": "neoforge:registered",
+      "value": "refinedstorage:quartz_enriched_iron"
     }
   ]
 }

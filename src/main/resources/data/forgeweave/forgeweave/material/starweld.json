@@ -68,8 +68,8 @@
   "color": "#2832D2",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "draconicevolution:awakened_core"
+      "type": "neoforge:registered",
+      "value": "draconicevolution:awakened_core"
     }
   ]
 }
