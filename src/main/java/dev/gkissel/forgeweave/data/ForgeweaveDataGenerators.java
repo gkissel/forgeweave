@@ -44,7 +44,8 @@ public final class ForgeweaveDataGenerators {
         // #103 -- puts the four metal materials with no vanilla item form into the c: convention tags
         // MeltingRecipe's tag-keyed rows expect (ForgeweaveItemTagsProvider javadoc). It copies no
         // block tags, so it no longer waits on the block tags provider.
-        event.createProvider(ForgeweaveItemTagsProvider::new);
+        event.createProvider((output, lookupProvider) ->
+                new ForgeweaveItemTagsProvider(output, lookupProvider, event.getResourceManager(PackType.SERVER_DATA)));
         // #680 -- the five protection damage-type tags the ARMOR traits and #681's modifiers filter on.
         event.createProvider(ForgeweaveDamageTypeTagsProvider::new);
         event.createProvider(ForgeweaveFluidTagsProvider::new); // #992

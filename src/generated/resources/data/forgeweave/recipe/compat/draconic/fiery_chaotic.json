@@ -6,27 +6,19 @@
     }
   ],
   "type": "forgeweave:draconic_fusion_upgrade",
-  "catalyst": {
-    "tag": "forgeweave:fusion_upgradable"
-  },
+  "catalyst": "#forgeweave:fusion_upgradable",
   "ingredients": [
     {
       "consume": true,
-      "ingredient": {
-        "item": "draconicevolution:chaotic_core"
-      }
+      "ingredient": "draconicevolution:chaotic_core"
     },
     {
       "consume": true,
-      "ingredient": {
-        "item": "draconicevolution:chaotic_core"
-      }
+      "ingredient": "draconicevolution:chaotic_core"
     },
     {
       "consume": true,
-      "ingredient": {
-        "item": "minecraft:blaze_powder"
-      }
+      "ingredient": "minecraft:blaze_powder"
     }
   ],
   "level": 125,

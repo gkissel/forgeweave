@@ -2,15 +2,12 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "#": {
-      "tag": "c:ingots/daybrass"
-    }
+    "#": "#c:ingots/daybrass"
   },
   "pattern": [
     "##"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:daybrass_plate"
   }
 }

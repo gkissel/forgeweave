@@ -13,7 +13,6 @@ import net.minecraft.advancements.AdvancementRequirements;
 import net.minecraft.advancements.AdvancementRewards;
 import net.minecraft.advancements.criterion.RecipeUnlockedTrigger;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
@@ -1103,9 +1102,10 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
      */
     private SimpleCookingRecipeBuilder smelting(Ingredient ingredient, RecipeCategory category, ItemLike result,
             float experience, int cookingTime) {
-        Item item = result.asItem();
-        CookingBookCategory book = item.components().has(DataComponents.FOOD) ? CookingBookCategory.FOOD
-                : item instanceof BlockItem ? CookingBookCategory.BLOCKS : CookingBookCategory.MISC;
+        // ponytail: no smelting result is food, and item components are not bound during datagen, so the
+        // FOOD branch is gone. Add it back through the item's properties if a food result ever appears.
+        CookingBookCategory book = result.asItem() instanceof BlockItem ? CookingBookCategory.BLOCKS
+                : CookingBookCategory.MISC;
         return SimpleCookingRecipeBuilder.smelting(ingredient, category, book, result, experience, cookingTime);
     }
 

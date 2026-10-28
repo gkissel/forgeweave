@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:dusts/amethyst_bronze"
-    }
+    "#c:dusts/amethyst_bronze"
   ],
   "result": {
     "count": 3,

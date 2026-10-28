@@ -2,15 +2,12 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "#": {
-      "tag": "c:nuggets/pig_iron"
-    }
+    "#": "#c:nuggets/pig_iron"
   },
   "pattern": [
     "###"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:pig_iron_wire"
   }
 }

@@ -2,12 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "A": {
-      "item": "forgeweave:seared_brick"
-    },
-    "B": {
-      "tag": "c:glass_blocks"
-    }
+    "A": "forgeweave:seared_brick",
+    "B": "#c:glass_blocks"
   },
   "pattern": [
     "ABA",
@@ -15,7 +11,6 @@
     "ABA"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:seared_gauge"
   }
 }

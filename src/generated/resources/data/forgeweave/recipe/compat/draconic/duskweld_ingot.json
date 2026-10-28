@@ -6,33 +6,23 @@
     }
   ],
   "type": "draconicevolution:fusion_crafting",
-  "catalyst": {
-    "item": "forgeweave:weldheart"
-  },
+  "catalyst": "forgeweave:weldheart",
   "ingredients": [
     {
       "consume": true,
-      "ingredient": {
-        "item": "draconicevolution:draconium_core"
-      }
+      "ingredient": "draconicevolution:draconium_core"
     },
     {
       "consume": true,
-      "ingredient": {
-        "item": "minecraft:emerald_block"
-      }
+      "ingredient": "minecraft:emerald_block"
     },
     {
       "consume": true,
-      "ingredient": {
-        "tag": "c:ingots/draconium"
-      }
+      "ingredient": "#c:ingots/draconium"
     },
     {
       "consume": true,
-      "ingredient": {
-        "tag": "c:ingots/draconium"
-      }
+      "ingredient": "#c:ingots/draconium"
     }
   ],
   "result": {

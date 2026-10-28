@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:small_dusts/voidglass"
-    }
+    "#c:small_dusts/voidglass"
   ],
   "result": {
     "count": 3,

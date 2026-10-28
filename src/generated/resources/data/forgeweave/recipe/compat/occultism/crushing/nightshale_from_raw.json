@@ -8,9 +8,7 @@
   "type": "occultism:crushing",
   "crushing_time": 200,
   "ignore_crushing_multiplier": true,
-  "ingredient": {
-    "tag": "c:raw_materials/nightshale"
-  },
+  "ingredient": "#c:raw_materials/nightshale",
   "min_tier": 3,
   "result": {
     "type": "occultism:tag",

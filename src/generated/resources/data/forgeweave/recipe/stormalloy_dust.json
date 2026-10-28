@@ -2,18 +2,11 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:small_dusts/stormalloy"
-    },
-    {
-      "tag": "c:small_dusts/stormalloy"
-    },
-    {
-      "tag": "c:small_dusts/stormalloy"
-    }
+    "#c:small_dusts/stormalloy",
+    "#c:small_dusts/stormalloy",
+    "#c:small_dusts/stormalloy"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:stormalloy_dust"
   }
 }

@@ -2,15 +2,12 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "#": {
-      "tag": "c:ingots/voltcinder"
-    }
+    "#": "#c:ingots/voltcinder"
   },
   "pattern": [
     "##"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:voltcinder_plate"
   }
 }

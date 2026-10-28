@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:dusts/warspar"
-    }
+    "#c:dusts/warspar"
   ],
   "result": {
     "count": 3,

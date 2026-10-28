@@ -8,9 +8,7 @@
   "type": "occultism:crushing",
   "crushing_time": 200,
   "ignore_crushing_multiplier": true,
-  "ingredient": {
-    "tag": "c:raw_materials/starfall_stone"
-  },
+  "ingredient": "#c:raw_materials/starfall_stone",
   "min_tier": 2,
   "result": {
     "type": "occultism:tag",

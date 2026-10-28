@@ -1,8 +1,6 @@
 {
   "type": "minecraft:stonecutting",
-  "ingredient": {
-    "item": "forgeweave:seared_paver"
-  },
+  "ingredient": "forgeweave:seared_paver",
   "result": {
     "count": 2,
     "id": "forgeweave:seared_slab_paver"

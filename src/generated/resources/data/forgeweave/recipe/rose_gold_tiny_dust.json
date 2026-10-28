@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:small_dusts/rose_gold"
-    }
+    "#c:small_dusts/rose_gold"
   ],
   "result": {
     "count": 3,

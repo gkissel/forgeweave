@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:dusts/voltcinder"
-    }
+    "#c:dusts/voltcinder"
   ],
   "result": {
     "count": 3,

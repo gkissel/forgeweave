@@ -3,11 +3,8 @@
   "category": "misc",
   "cookingtime": 200,
   "experience": 0.75,
-  "ingredient": {
-    "item": "forgeweave:slimy_mud_blue"
-  },
+  "ingredient": "forgeweave:slimy_mud_blue",
   "result": {
-    "count": 1,
     "id": "forgeweave:blue_slime_crystal"
   }
 }

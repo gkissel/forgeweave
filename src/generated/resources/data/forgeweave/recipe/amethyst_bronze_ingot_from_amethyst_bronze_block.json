@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "item": "forgeweave:amethyst_bronze_block"
-    }
+    "forgeweave:amethyst_bronze_block"
   ],
   "result": {
     "count": 9,

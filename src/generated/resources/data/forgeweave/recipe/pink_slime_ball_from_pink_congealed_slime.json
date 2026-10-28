@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "item": "forgeweave:pink_congealed_slime"
-    }
+    "forgeweave:pink_congealed_slime"
   ],
   "result": {
     "count": 4,

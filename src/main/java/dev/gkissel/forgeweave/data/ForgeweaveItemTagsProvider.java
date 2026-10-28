@@ -7,6 +7,7 @@ import java.util.stream.Stream;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
+import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.data.tags.TagAppender;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
@@ -40,8 +41,12 @@ import net.neoforged.neoforge.registries.DeferredHolder;
  * extended to Forgeweave's own items, exactly as any other mod's ore/ingot would register into it.
  */
 public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
-    public ForgeweaveItemTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider) {
+    private final ResourceManager resources;
+
+    public ForgeweaveItemTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider,
+            ResourceManager resources) {
         super(output, lookupProvider, Forgeweave.MODID);
+        this.resources = resources;
     }
 
     @Override
@@ -521,7 +526,7 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
     private void addAlloyDepthTags() {
         TagAppender<Item, Item> deep = tag(ALLOYS_DEEP);
         TagAppender<Item, Item> deepest = tag(ALLOYS_DEEPEST);
-        AlloyDepths.byMaterial().forEach((metal, depth) -> {
+        AlloyDepths.byMaterial(resources).forEach((metal, depth) -> {
             if (depth >= DEEP_ALLOY_DEPTH) {
                 deep.addTag(cTag("ingots/" + metal));
             }

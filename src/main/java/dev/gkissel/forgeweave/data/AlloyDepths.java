@@ -23,6 +23,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import net.minecraft.server.packs.resources.ResourceManager;
 import dev.gkissel.forgeweave.recipe.AlloyRecipe;
 
 /**
@@ -56,7 +57,27 @@ final class AlloyDepths {
      * its depth.
      */
     static Map<String, Integer> byMaterial() {
-        Map<String, List<List<String>>> recipes = readRecipes();
+        return depths(readRecipes());
+    }
+
+    /**
+     * {@link #byMaterial()} for the data run, which reads the recipes through its resource manager:
+     * 26.1's loader does not hand out the mod's resource directory through {@code Class#getResource}.
+     */
+    static Map<String, Integer> byMaterial(ResourceManager resources) {
+        Map<String, List<List<String>>> recipes = new HashMap<>();
+        resources.listResources(Forgeweave.MODID + "/alloy_recipe", id -> id.getPath().endsWith(".json"))
+                .forEach((id, resource) -> {
+                    try (Reader reader = resource.openAsReader()) {
+                        addRecipe(recipes, JsonParser.parseReader(reader).getAsJsonObject());
+                    } catch (IOException e) {
+                        throw new UncheckedIOException("could not read the alloy recipe " + id, e);
+                    }
+                });
+        return depths(recipes);
+    }
+
+    private static Map<String, Integer> depths(Map<String, List<List<String>>> recipes) {
         Map<String, Integer> depths = new TreeMap<>();
         recipes.keySet().forEach(alloy -> depths.put(alloy, depth(alloy, recipes, new HashSet<>())));
         return depths;
@@ -84,15 +105,18 @@ final class AlloyDepths {
         Map<String, List<List<String>>> recipes = new HashMap<>();
         try (Stream<Path> files = Files.list(directory())) {
             for (Path file : files.filter(path -> path.getFileName().toString().endsWith(".json")).toList()) {
-                JsonObject json = parse(file);
-                List<String> inputs = new ArrayList<>();
-                json.getAsJsonArray("inputs").forEach(input -> inputs.add(material(input)));
-                recipes.computeIfAbsent(material(json.get("result")), key -> new ArrayList<>()).add(inputs);
+                addRecipe(recipes, parse(file));
             }
         } catch (IOException e) {
             throw new UncheckedIOException("could not read the alloy recipes under " + DIRECTORY, e);
         }
         return recipes;
+    }
+
+    private static void addRecipe(Map<String, List<List<String>>> recipes, JsonObject json) {
+        List<String> inputs = new ArrayList<>();
+        json.getAsJsonArray("inputs").forEach(input -> inputs.add(material(input)));
+        recipes.computeIfAbsent(material(json.get("result")), key -> new ArrayList<>()).add(inputs);
     }
 
     private static JsonObject parse(Path file) throws IOException {

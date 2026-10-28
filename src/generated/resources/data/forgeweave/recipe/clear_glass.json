@@ -3,11 +3,8 @@
   "category": "blocks",
   "cookingtime": 200,
   "experience": 0.1,
-  "ingredient": {
-    "item": "minecraft:glass"
-  },
+  "ingredient": "minecraft:glass",
   "result": {
-    "count": 1,
     "id": "forgeweave:clear_glass"
   }
 }

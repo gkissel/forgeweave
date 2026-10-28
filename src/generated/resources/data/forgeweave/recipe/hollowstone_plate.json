@@ -2,15 +2,12 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "#": {
-      "tag": "c:ingots/hollowstone"
-    }
+    "#": "#c:ingots/hollowstone"
   },
   "pattern": [
     "##"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:hollowstone_plate"
   }
 }

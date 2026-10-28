@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shaped",
   "category": "building",
   "key": {
-    "#": {
-      "item": "forgeweave:seared_tile"
-    }
+    "#": "forgeweave:seared_tile"
   },
   "pattern": [
     "###"

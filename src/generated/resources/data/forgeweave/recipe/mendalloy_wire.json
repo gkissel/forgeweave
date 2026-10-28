@@ -2,15 +2,12 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "#": {
-      "tag": "c:nuggets/mendalloy"
-    }
+    "#": "#c:nuggets/mendalloy"
   },
   "pattern": [
     "###"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:mendalloy_wire"
   }
 }

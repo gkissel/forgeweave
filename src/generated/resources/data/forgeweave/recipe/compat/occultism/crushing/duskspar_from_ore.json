@@ -8,9 +8,7 @@
   "type": "occultism:crushing",
   "crushing_time": 400,
   "ignore_crushing_multiplier": false,
-  "ingredient": {
-    "tag": "c:ores/duskspar"
-  },
+  "ingredient": "#c:ores/duskspar",
   "min_tier": 2,
   "result": {
     "type": "occultism:tag",

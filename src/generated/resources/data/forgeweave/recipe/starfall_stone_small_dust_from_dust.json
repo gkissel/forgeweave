@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:dusts/starfall_stone"
-    }
+    "#c:dusts/starfall_stone"
   ],
   "result": {
     "count": 3,

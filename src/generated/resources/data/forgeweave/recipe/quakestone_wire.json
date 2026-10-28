@@ -2,15 +2,12 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "#": {
-      "tag": "c:nuggets/quakestone"
-    }
+    "#": "#c:nuggets/quakestone"
   },
   "pattern": [
     "###"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:quakestone_wire"
   }
 }

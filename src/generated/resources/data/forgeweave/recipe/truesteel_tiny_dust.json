@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:small_dusts/truesteel"
-    }
+    "#c:small_dusts/truesteel"
   ],
   "result": {
     "count": 3,

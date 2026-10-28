@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:dusts/nightshale"
-    }
+    "#c:dusts/nightshale"
   ],
   "result": {
     "count": 3,

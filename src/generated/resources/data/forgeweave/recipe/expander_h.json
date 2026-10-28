@@ -2,15 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "A": {
-      "item": "minecraft:lapis_lazuli"
-    },
-    "B": {
-      "item": "minecraft:piston"
-    },
-    "C": {
-      "item": "minecraft:slime_ball"
-    }
+    "A": "minecraft:lapis_lazuli",
+    "B": "minecraft:piston",
+    "C": "minecraft:slime_ball"
   },
   "pattern": [
     " B ",
@@ -18,7 +12,6 @@
     " B "
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:expander_h"
   }
 }

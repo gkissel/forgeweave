@@ -2,15 +2,12 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "#": {
-      "tag": "c:nuggets/atomic_matter_alloy"
-    }
+    "#": "#c:nuggets/atomic_matter_alloy"
   },
   "pattern": [
     "###"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:atomic_matter_alloy_wire"
   }
 }

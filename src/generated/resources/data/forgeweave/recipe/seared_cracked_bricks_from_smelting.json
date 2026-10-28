@@ -3,11 +3,8 @@
   "category": "blocks",
   "cookingtime": 200,
   "experience": 0.1,
-  "ingredient": {
-    "item": "forgeweave:seared_bricks"
-  },
+  "ingredient": "forgeweave:seared_bricks",
   "result": {
-    "count": 1,
     "id": "forgeweave:seared_cracked_bricks"
   }
 }

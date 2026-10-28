@@ -2,21 +2,12 @@
   "type": "minecraft:crafting_shapeless",
   "category": "building",
   "ingredients": [
-    {
-      "item": "minecraft:blaze_powder"
-    },
-    {
-      "tag": "minecraft:planks"
-    },
-    {
-      "item": "minecraft:blaze_powder"
-    },
-    {
-      "item": "minecraft:lava_bucket"
-    }
+    "minecraft:blaze_powder",
+    "#minecraft:planks",
+    "minecraft:blaze_powder",
+    "minecraft:lava_bucket"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:firewood"
   }
 }

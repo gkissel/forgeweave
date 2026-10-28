@@ -2,15 +2,12 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "#": {
-      "tag": "c:ingots/voidglass"
-    }
+    "#": "#c:ingots/voidglass"
   },
   "pattern": [
     "##"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:voidglass_plate"
   }
 }
