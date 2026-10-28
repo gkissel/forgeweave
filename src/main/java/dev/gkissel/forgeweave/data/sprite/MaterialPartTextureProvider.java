@@ -16,9 +16,8 @@ import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.resources.ResourceManager;
 
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 import dev.gkissel.forgeweave.Forgeweave;
 
@@ -42,11 +41,12 @@ import dev.gkissel.forgeweave.Forgeweave;
 public final class MaterialPartTextureProvider implements DataProvider {
 
     private final PackOutput.PathProvider pathProvider;
-    private final ExistingFileHelper existingFileHelper;
+    private final ResourceManager resources;
 
-    public MaterialPartTextureProvider(PackOutput output, ExistingFileHelper existingFileHelper) {
+    /** {@code resources} is the data run's client resource manager, which holds the existing (main) resources. */
+    public MaterialPartTextureProvider(PackOutput output, ResourceManager resources) {
         this.pathProvider = output.createPathProvider(PackOutput.Target.RESOURCE_PACK, "textures");
-        this.existingFileHelper = existingFileHelper;
+        this.resources = resources;
     }
 
     @Override
@@ -71,9 +71,8 @@ public final class MaterialPartTextureProvider implements DataProvider {
 
     /** Reads a greyscale base sprite from the existing (main) resources. */
     private BufferedImage readBase(String part) throws IOException {
-        Identifier base = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "derived/item/" + part);
-        try (InputStream stream = existingFileHelper
-                .getResource(base, PackType.CLIENT_RESOURCES, ".png", "textures").open()) {
+        Identifier base = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/item/" + part + ".png");
+        try (InputStream stream = resources.getResourceOrThrow(base).open()) {
             BufferedImage image = ImageIO.read(stream);
             if (image == null) {
                 throw new IOException("Could not decode greyscale base sprite " + base);

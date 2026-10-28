@@ -3,6 +3,7 @@ package dev.gkissel.forgeweave.data;
 import java.util.List;
 
 import net.minecraft.data.advancements.AdvancementProvider;
+import net.minecraft.server.packs.PackType;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
 import dev.gkissel.forgeweave.data.sprite.MaterialPartTextureProvider;
@@ -22,7 +23,7 @@ public final class ForgeweaveDataGenerators {
         event.createProvider(ForgeweaveBlockStateProvider::new);
         // #280 -- greyscale texture pipeline proof slice: recolors greyscale part sprites through
         // per-material palettes into textures/staging/part/ (M9 groundwork, epic #30).
-        event.createProvider(MaterialPartTextureProvider::new);
+        event.createProvider(output -> new MaterialPartTextureProvider(output, event.getResourceManager(PackType.CLIENT_RESOURCES)));
         event.createProvider(ForgeweaveLanguageProvider::new);
         event.createProvider(ForgeweaveRecipeProvider.Runner::new);
         // #915 -- the Draconic Evolution fusion recipes (docs/SCOPE.md M8). A plain DataProvider
