@@ -160,29 +160,11 @@ class SaveCompatCorpusTest {
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        // T80: the built-ins alone (Item, Block, ...) used to be enough, but a tool can now carry a
-        // real vanilla enchantment (allowVanillaEnchanting) whose Holder<Enchantment> codec needs the
-        // ENCHANTMENT registry populated. That registry is data-driven (data/minecraft/enchantment/
-        // *.json), so it is loaded from the vanilla resource pack the same way a real server loads it
-        // -- NOT via RegistrySetBuilder/VanillaRegistries (the datagen-only helper), whose registries
-        // bind every Holder to a shared "UniversalOwner" that is never the owner RegistryOps derives
-        // from the same Provider's own lookup(), so a real Holder built that way fails its own
-        // canSerializeIn check the moment anything tries to re-encode it. RegistryDataLoader has no
-        // such indirection: every registry it loads owns its own holders, exactly like a running
-        // server's.
-        // 26.x: data-driven entries name built-in tags (an enchantment's supported_items), and a
-        // built-in registry's tags are no longer silently empty before a datapack binds them, so the
-        // static tags are loaded and handed in as pending lookups, the way WorldLoader does it.
-        RegistryAccess.Frozen builtins = RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
-        ResourceManager vanillaData = new MultiPackResourceManager(PackType.SERVER_DATA,
-                List.of(ServerPacksSource.createVanillaPackSource()));
-        List<Registry.PendingTags<?>> staticTags = TagLoader.loadTagsForExistingRegistries(vanillaData, builtins);
-        List<HolderLookup.RegistryLookup<?>> context = TagLoader.buildUpdatedLookups(builtins, staticTags);
-        RegistryAccess.Frozen loaded = RegistryDataLoader.load(vanillaData, context, RegistryDataLoader.WORLDGEN_REGISTRIES,
-                Runnable::run, staticTags).join();
-        // 26.x: an ingredient's tag is now looked up through the ops' item registry, which the
-        // data-driven set alone does not have, so the built-ins ride along beside it.
-        registries = HolderLookup.Provider.create(Stream.concat(builtins.listRegistries(), loaded.listRegistries()));
+        // T80: a tool can carry a real vanilla enchantment, whose Holder<Enchantment> codec needs the
+        // data-driven ENCHANTMENT registry. TestRegistries.vanilla() loads it from the vanilla data
+        // pack the way a server does -- not through RegistrySetBuilder/VanillaRegistries, whose holders
+        // belong to a shared "UniversalOwner" and so fail canSerializeIn when re-encoded.
+        registries = TestRegistries.vanilla();
     }
 
     static Stream<Path> corpus() throws Exception {

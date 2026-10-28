@@ -4,20 +4,27 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import com.mojang.serialization.DynamicOps;
 
 import net.minecraft.core.Holder;
-import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.RegistryDataLoader;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.packs.PackType;
+import net.minecraft.server.packs.repository.PackRepository;
+import net.minecraft.server.packs.repository.ServerPacksSource;
+import net.minecraft.server.packs.resources.MultiPackResourceManager;
+import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.tags.TagKey;
 import net.minecraft.tags.TagLoader;
+import net.neoforged.neoforge.registries.DataPackRegistriesHooks;
 
 /**
  * {@link RegistryOps} for plain JUnit, where no datapack is loaded and so no tag exists.
@@ -49,11 +56,56 @@ public final class TestRegistries {
         });
     }
 
-    private static <E> RegistryOps.RegistryInfo<E> lenient(HolderLookup.RegistryLookup<E> lookup) {
-        HolderGetter<E> getter = new HolderGetter<>() {
+    /**
+     * The built-in registries plus the data-driven ones (enchantments, damage types, banner patterns,
+     * jukebox songs, ...), loaded from the vanilla data pack and every loaded mod's pack the way a
+     * server loads them, so every registry owns its own holders and they encode again. A mod's item
+     * can name its own data-driven entry (Apotheosis's jukebox songs), so vanilla's pack alone is not
+     * enough to bind every item's components. Built once per test run.
+     *
+     * <p>26.x: data-driven entries name built-in tags (an enchantment's supported_items), so the
+     * static tags are loaded and handed to the loader as pending lookups, the way WorldLoader does
+     * it. They are not applied: the built-in registries keep the empty tags a unit test expects.
+     */
+    public static synchronized HolderLookup.Provider vanilla() {
+        if (vanilla == null) {
+            RegistryAccess.Frozen builtins = RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
+            PackRepository packs = ServerPacksSource.createVanillaTrustedRepository();
+            packs.reload();
+            packs.setSelected(packs.getAvailableIds().stream()
+                    .filter(id -> id.equals("vanilla") || id.startsWith("mod/")).toList());
+            ResourceManager data = new MultiPackResourceManager(PackType.SERVER_DATA, packs.openAllSelected());
+            List<Registry.PendingTags<?>> staticTags = TagLoader.loadTagsForExistingRegistries(data, builtins);
+            List<HolderLookup.RegistryLookup<?>> context = TagLoader.buildUpdatedLookups(builtins, staticTags);
+            RegistryAccess.Frozen loaded = RegistryDataLoader.load(data, context,
+                    DataPackRegistriesHooks.getDataPackRegistries(), Runnable::run, staticTags).join();
+            vanilla = HolderLookup.Provider.create(Stream.concat(builtins.listRegistries(), loaded.listRegistries()));
+        }
+        return vanilla;
+    }
+
+    private static HolderLookup.Provider vanilla;
+
+    /** {@code provider}, answering a missing tag the way {@link #ops} does: bound, empty. */
+    public static HolderLookup.Provider lenient(HolderLookup.Provider provider) {
+        return new HolderLookup.Provider() {
             @Override
-            public Optional<Holder.Reference<E>> get(ResourceKey<E> id) {
-                return lookup.get(id);
+            public Stream<ResourceKey<? extends Registry<?>>> listRegistryKeys() {
+                return provider.listRegistryKeys();
+            }
+
+            @Override
+            public <E> Optional<HolderLookup.RegistryLookup<E>> lookup(ResourceKey<? extends Registry<? extends E>> key) {
+                return provider.<E>lookup(key).map(TestRegistries::lenientLookup);
+            }
+        };
+    }
+
+    private static <E> HolderLookup.RegistryLookup<E> lenientLookup(HolderLookup.RegistryLookup<E> lookup) {
+        return new HolderLookup.RegistryLookup.Delegate<>() {
+            @Override
+            public HolderLookup.RegistryLookup<E> parent() {
+                return lookup;
             }
 
             @Override
@@ -62,8 +114,11 @@ public final class TestRegistries {
                 return bound.isPresent() ? bound : bindEmpty(lookup, id);
             }
         };
+    }
+
+    private static <E> RegistryOps.RegistryInfo<E> lenient(HolderLookup.RegistryLookup<E> lookup) {
         // The owner stays the registry itself, so a holder or tag it hands out serializes back.
-        return new RegistryOps.RegistryInfo<>(lookup, getter, lookup.registryLifecycle());
+        return new RegistryOps.RegistryInfo<>(lookup, lenientLookup(lookup), lookup.registryLifecycle());
     }
 
     /** Adds {@code tag}, empty, to {@code lookup}'s registry, keeping every tag it already has as it is. */
