@@ -26,6 +26,7 @@ import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.block.TransferBridge;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.ClayCastItem;
 import dev.gkissel.forgeweave.menu.ContentFamilies;
@@ -204,13 +205,17 @@ public record CastingRecipe(Station station, Optional<Ingredient> cast, Optional
     /**
      * Pours {@link #amount} of {@code poured} into the container in {@code slot}; {@code commit}
      * false is a simulation. The amount that went in, or -1 when the container holds no fluid at all.
+     *
+     * <p>The table asks this from inside its own fill, which NeoForge's legacy fluid adapter already
+     * runs in a root transaction, so the pour nests in whatever transaction is open: a second root
+     * would throw.
      */
     private int fill(ItemStacksResourceHandler slot, Fluid poured, boolean commit) {
         ResourceHandler<FluidResource> handler = ItemAccess.forHandlerIndex(slot, 0).getCapability(Capabilities.Fluid.ITEM);
         if (handler == null) {
             return -1;
         }
-        try (Transaction transaction = Transaction.openRoot()) {
+        try (Transaction transaction = TransferBridge.openNested()) {
             int filled = handler.insert(FluidResource.of(poured), amount, transaction);
             if (commit) {
                 transaction.commit();

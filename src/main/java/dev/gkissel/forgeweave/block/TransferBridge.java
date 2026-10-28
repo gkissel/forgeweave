@@ -24,7 +24,9 @@ import net.neoforged.neoforge.transfer.TransferPreconditions;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.ItemUtil;
 import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
 /**
@@ -112,18 +114,41 @@ public final class TransferBridge {
         return new Energy(storage, state);
     }
 
-    /** A neighbour's fluid capability in the old shape, or {@code null}. */
+    /**
+     * A transaction inside whatever transaction this thread has open, or a root one when none is. Old-shape
+     * storage code runs inside the root transaction NeoForge's legacy adapters ({@code IFluidHandler.of},
+     * {@code IItemHandler.of}) open around every call, so opening a second root there throws.
+     */
+    @SuppressWarnings("deprecation")
+    public static Transaction openNested() {
+        return Transaction.open(Transaction.getCurrentOpenedTransaction());
+    }
+
+    /**
+     * A neighbour's fluid capability in the old shape, or {@code null}. A Forgeweave neighbour hands back the
+     * old-shape handler its bridge wraps, so Forgeweave-to-Forgeweave moves run exactly the 1.21.1 code.
+     */
     @Nullable
     public static IFluidHandler fluidAt(Level level, BlockPos pos, @Nullable Direction side) {
         ResourceHandler<FluidResource> handler = level.getCapability(Capabilities.Fluid.BLOCK, pos, side);
+        if (handler instanceof Fluids bridge) {
+            return bridge.handler;
+        }
         return handler == null ? null : IFluidHandler.of(handler);
     }
 
-    /** A neighbour's item capability in the old shape, or {@code null}. */
+    /**
+     * A neighbour's item capability in the old shape, or {@code null}. Always an {@link IItemHandlerModifiable},
+     * which the stations' side-panel slots need to put a stack back: a Forgeweave neighbour's own handler when
+     * its bridge wraps a modifiable one (the 1.21.1 object, live stacks and all), otherwise {@link ResourceItems}.
+     */
     @Nullable
-    public static IItemHandler itemsAt(Level level, BlockPos pos, @Nullable Direction side) {
+    public static IItemHandlerModifiable itemsAt(Level level, BlockPos pos, @Nullable Direction side) {
         ResourceHandler<ItemResource> handler = level.getCapability(Capabilities.Item.BLOCK, pos, side);
-        return handler == null ? null : IItemHandler.of(handler);
+        if (handler instanceof Items bridge && bridge.handler instanceof IItemHandlerModifiable live) {
+            return live;
+        }
+        return handler == null ? null : new ResourceItems(handler);
     }
 
     /** Snapshot plumbing shared by the three bridges. */
@@ -341,6 +366,85 @@ public final class TransferBridge {
             }
             updateSnapshots(transaction);
             return handler.extractItem(index, amount, false).getCount();
+        }
+    }
+
+    /**
+     * Any other mod's item handler in the old modifiable shape. Unlike NeoForge's {@code IItemHandler.of} it
+     * nests in an open transaction instead of throwing, and {@link #setStackInSlot} swaps the slot's contents
+     * in one transaction: it does nothing unless the old stack comes out and the new one goes in whole.
+     * Stacks it returns are copies, so a slot built on it must write changes back (see {@code SideSlot}).
+     */
+    private static final class ResourceItems implements IItemHandlerModifiable {
+        private final ResourceHandler<ItemResource> handler;
+
+        ResourceItems(ResourceHandler<ItemResource> handler) {
+            this.handler = handler;
+        }
+
+        @Override
+        public int getSlots() {
+            return handler.size();
+        }
+
+        @Override
+        public ItemStack getStackInSlot(int slot) {
+            return ItemUtil.getStack(handler, slot);
+        }
+
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+            if (stack.isEmpty()) {
+                return ItemStack.EMPTY;
+            }
+            try (Transaction transaction = openNested()) {
+                int inserted = handler.insert(slot, ItemResource.of(stack), stack.getCount(), transaction);
+                if (!simulate) {
+                    transaction.commit();
+                }
+                return inserted == stack.getCount() ? ItemStack.EMPTY : stack.copyWithCount(stack.getCount() - inserted);
+            }
+        }
+
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+            ItemResource resource = handler.getResource(slot);
+            if (amount <= 0 || resource.isEmpty()) {
+                return ItemStack.EMPTY;
+            }
+            try (Transaction transaction = openNested()) {
+                int extracted = handler.extract(slot, resource, Math.min(amount, resource.getMaxStackSize()), transaction);
+                if (!simulate) {
+                    transaction.commit();
+                }
+                return resource.toStack(extracted);
+            }
+        }
+
+        @Override
+        public void setStackInSlot(int slot, ItemStack stack) {
+            try (Transaction transaction = openNested()) {
+                ItemResource current = handler.getResource(slot);
+                int amount = handler.getAmountAsInt(slot);
+                if (!current.isEmpty() && handler.extract(slot, current, amount, transaction) != amount) {
+                    return;
+                }
+                if (!stack.isEmpty()
+                        && handler.insert(slot, ItemResource.of(stack), stack.getCount(), transaction) != stack.getCount()) {
+                    return;
+                }
+                transaction.commit();
+            }
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            return handler.getCapacityAsInt(slot, ItemResource.EMPTY);
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            return handler.isValid(slot, ItemResource.of(stack));
         }
     }
 

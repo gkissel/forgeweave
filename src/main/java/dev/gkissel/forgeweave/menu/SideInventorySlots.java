@@ -7,8 +7,10 @@ import javax.annotation.Nullable;
 
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.items.SlotItemHandler;
 
@@ -153,9 +155,17 @@ public final class SideInventorySlots {
      * Slot#isActive} is a client render/click concern only -- the server never consults it -- so
      * shift-click transfers still reach scrolled-away slots, exactly as upstream's client-only
      * {@code shouldDrawSlot} leaves its container's transfers alone.
+     *
+     * <p>Another mod's neighbour hands out copies of its stacks on 26.1 ({@code TransferBridge#itemsAt}),
+     * while vanilla's menu code grows the stack {@link #getItem} returned and then calls {@link
+     * #setChanged}. So, like NeoForge's {@code StackCopySlot}, this remembers the stack it handed out and
+     * writes it back on {@code setChanged} when the handler's own copy no longer matches. Over a live
+     * handler (a Forgeweave chest) the two are the same object and nothing is written.
      */
     public static final class SideSlot extends SlotItemHandler {
         private final boolean visible;
+        @Nullable
+        private ItemStack handedOut;
 
         SideSlot(IItemHandler handler, int index, int x, int y) {
             this(handler, index, x, y, true);
@@ -169,6 +179,30 @@ public final class SideInventorySlots {
         @Override
         public boolean isActive() {
             return visible;
+        }
+
+        @Override
+        public ItemStack getItem() {
+            return handedOut = super.getItem();
+        }
+
+        @Override
+        public void set(ItemStack stack) {
+            ((IItemHandlerModifiable) getItemHandler()).setStackInSlot(index, stack);
+            handedOut = stack;
+        }
+
+        @Override
+        public void setChanged() {
+            if (handedOut != null && !ItemStack.matches(handedOut, super.getItem())) {
+                set(handedOut);
+            }
+        }
+
+        @Override
+        public ItemStack remove(int amount) {
+            handedOut = null;
+            return super.remove(amount);
         }
     }
 }
