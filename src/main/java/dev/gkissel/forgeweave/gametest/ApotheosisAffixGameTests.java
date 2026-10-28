@@ -106,7 +106,7 @@ public class ApotheosisAffixGameTests {
             helper.assertTrue(ApotheosisAffixes.enchantingEnabled(),
                     "and stay inert with Apothic Enchanting absent: there is no Apotheosis table here "
                             + "to refuse the tool at");
-            helper.assertTrue(pickaxe.isEnchantable(),
+            helper.assertTrue(EnchantingGameTests.tableOpens(helper, pickaxe),
                     "so allowVanillaEnchanting alone still decides the vanilla table, unchanged");
         } finally {
             ForgeweaveConfig.APOTHEOSIS_ENCHANTING.set(true);
@@ -115,7 +115,7 @@ public class ApotheosisAffixGameTests {
 
         helper.assertTrue(ApotheosisAffixes.enchantingConfigured(),
                 "turning it back on must restore it with no reload");
-        helper.assertTrue(!pickaxe.isEnchantable(),
+        helper.assertTrue(!EnchantingGameTests.tableOpens(helper, pickaxe),
                 "and the gameplay flag must be back at its own default of off");
         helper.succeed();
     }

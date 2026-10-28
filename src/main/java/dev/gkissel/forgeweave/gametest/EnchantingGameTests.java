@@ -360,7 +360,7 @@ public class EnchantingGameTests {
      * to NeoForge's {@code EnchantmentLevelSetEvent}, which is where Forgeweave's config gate closes
      * the table since 1.21.5 retired {@code Item#isEnchantable}.
      */
-    private static boolean tableOpens(GameTestHelper helper, ItemStack stack) {
+    static boolean tableOpens(GameTestHelper helper, ItemStack stack) {
         if (!stack.isEnchantable()) {
             return false;
         }
