@@ -43,7 +43,7 @@ public final class CastingCoolingProvider implements IBlockComponentProvider, ID
         if (!ForgeweaveConfig.enabled(ForgeweaveConfig.OVERLAYS)) {
             return;
         }
-        int percent = accessor.getData().raw().getInt(TAG_PERCENT);
+        int percent = accessor.getData().raw().getIntOr(TAG_PERCENT, 0);
         if (percent > 0) {
             tooltip.addLine(Component.translatable("waila.forgeweave.casting.cooling", percent + "%"));
         }

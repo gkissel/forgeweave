@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/cinderforge"
-  },
+  "input": "#c:storage_blocks/cinderforge",
   "fluid": "forgeweave:molten_cinderforge",
   "amount": 1296,
   "temperature": 1400

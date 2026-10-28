@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/refined_obsidian"
-  },
+  "input": "#c:ingots/refined_obsidian",
   "fluid": "forgeweave:molten_refined_obsidian",
   "amount": 144,
   "temperature": 1600,

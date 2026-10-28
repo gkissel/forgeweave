@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_pan"
-  },
+  "cast": "forgeweave:clay_cast_pan",
   "fluid": "forgeweave:molten_copper",
   "amount": 432,
   "result": {

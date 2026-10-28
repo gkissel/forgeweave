@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/soularium"
-  },
+  "input": "#c:small_dusts/soularium",
   "fluid": "forgeweave:molten_soularium",
   "amount": 36,
   "temperature": 1400,

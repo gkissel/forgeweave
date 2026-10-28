@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_maille"
-  },
+  "cast": "forgeweave:cast_maille",
   "fluid": "forgeweave:molten_cosmic_neutronium",
   "amount": 288,
   "result": {

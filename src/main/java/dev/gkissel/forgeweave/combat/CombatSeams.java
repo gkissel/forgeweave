@@ -27,7 +27,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 
 import dev.gkissel.forgeweave.api.combat.CombatDefense;
@@ -357,14 +357,14 @@ public final class CombatSeams {
         dispatchingOnHit = true;
         try {
             for (CombatSeam seam : CombatProviders.seams(hit.weapon())) {
-                seam.onHit(hit, event.getNewDamage());
+                seam.onHit(hit, event.getHealthDamage());
             }
         } finally {
             dispatchingOnHit = false;
         }
         // #919 -- M7's melee XP, which is paid on the kill and never on the hit: a blow the target
         // survives banks its damage on the target, a killing one pays out here. See DamageXpLedger.
-        DamageXpLedger.afterMeleeHit(hit, event.getNewDamage());
+        DamageXpLedger.afterMeleeHit(hit, event.getHealthDamage());
         // The flat push CombatSeam#knockback scales is still ahead of us -- LivingEntity#hurt calls its
         // own this.knockback(0.4F, ...) after actuallyHurt (which posted the event that led here)
         // returns, but before hurt() itself returns. Remember this hit so onKnockback can attribute
@@ -569,7 +569,7 @@ public final class CombatSeams {
         Entity causing = source.getEntity();
         LivingEntity attacker = causing instanceof LivingEntity living ? living : null;
         ItemStack used = defender.isUsingItem() ? defender.getUseItem() : ItemStack.EMPTY;
-        boolean blocking = used.getUseAnimation() == UseAnim.BLOCK;
+        boolean blocking = used.getUseAnimation() == ItemUseAnimation.BLOCK;
         List<CombatDefense> defenses = new ArrayList<>(2);
         for (InteractionHand hand : InteractionHand.values()) {
             ItemStack held = defender.getItemInHand(hand);

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/aluminum"
-  },
+  "input": "#c:storage_blocks/aluminum",
   "fluid": "forgeweave:molten_aluminium",
   "amount": 1296,
   "temperature": 1200,

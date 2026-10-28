@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/osmium"
-  },
+  "input": "#c:storage_blocks/osmium",
   "fluid": "forgeweave:molten_osmium",
   "amount": 1296,
   "temperature": 1200,

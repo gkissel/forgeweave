@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/duskspar"
-  },
+  "input": "#c:ingots/duskspar",
   "fluid": "forgeweave:molten_duskspar",
   "amount": 144
 }

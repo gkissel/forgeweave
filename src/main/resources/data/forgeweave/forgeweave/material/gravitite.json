@@ -48,15 +48,11 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "aether:enchanted_gravitite"
-      },
+      "ingredient": "aether:enchanted_gravitite",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "aether:enchanted_gravitite"
-  },
+  "repair_item": "aether:enchanted_gravitite",
   "enchantability": 12,
   "color": "#A52F9A",
   "neoforge:conditions": [

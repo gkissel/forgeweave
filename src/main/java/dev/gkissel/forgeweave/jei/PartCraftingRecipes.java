@@ -73,7 +73,7 @@ final class PartCraftingRecipes {
     private static List<Option> craftingOptions(Identifier materialId, Material material) {
         List<Option> options = new ArrayList<>();
         for (Material.CraftingItem craftingItem : material.craftingItems()) {
-            ItemStack[] representatives = craftingItem.ingredient().getItems();
+            ItemStack[] representatives = IngredientStacks.of(craftingItem.ingredient());
             if (representatives.length > 0) {
                 options.add(new Option(representatives[0], craftingItem.value()));
             }

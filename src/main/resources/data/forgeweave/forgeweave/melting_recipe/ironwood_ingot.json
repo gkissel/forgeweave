@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/ironwood"
-  },
+  "input": "#c:ingots/ironwood",
   "fluid": "forgeweave:molten_ironwood",
   "amount": 144,
   "temperature": 1200,

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/uranium"
-  },
+  "input": "#c:nuggets/uranium",
   "fluid": "forgeweave:molten_uranium",
   "amount": 16,
   "temperature": 1400,

@@ -52,15 +52,11 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "allthemodium:unobtainium_vibranium_alloy_ingot"
-      },
+      "ingredient": "allthemodium:unobtainium_vibranium_alloy_ingot",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "allthemodium:unobtainium_vibranium_alloy_ingot"
-  },
+  "repair_item": "allthemodium:unobtainium_vibranium_alloy_ingot",
   "cast_only": true,
   "enchantability": 10,
   "color": "#367E9A",

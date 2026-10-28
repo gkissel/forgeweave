@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/electrum"
-  },
+  "input": "#c:small_dusts/electrum",
   "fluid": "forgeweave:molten_electrum",
   "amount": 36,
   "temperature": 1200,

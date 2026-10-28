@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/vibranium"
-  },
+  "input": "#c:ingots/vibranium",
   "fluid": "forgeweave:molten_vibranium",
   "amount": 144,
   "temperature": 1800,

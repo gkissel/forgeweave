@@ -48,27 +48,19 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:ingots/vibrant_alloy"
-      },
+      "ingredient": "#c:ingots/vibrant_alloy",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:nuggets/vibrant_alloy"
-      },
+      "ingredient": "#c:nuggets/vibrant_alloy",
       "value": 16
     },
     {
-      "ingredient": {
-        "tag": "c:storage_blocks/vibrant_alloy"
-      },
+      "ingredient": "#c:storage_blocks/vibrant_alloy",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/vibrant_alloy"
-  },
+  "repair_item": "#c:ingots/vibrant_alloy",
   "cast_only": true,
   "enchantability": 20,
   "color": "#D6F079",

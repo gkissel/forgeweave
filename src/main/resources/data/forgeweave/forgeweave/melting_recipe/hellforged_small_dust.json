@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/hellforged"
-  },
+  "input": "#c:small_dusts/hellforged",
   "fluid": "forgeweave:molten_hellforged",
   "amount": 36,
   "temperature": 1600,

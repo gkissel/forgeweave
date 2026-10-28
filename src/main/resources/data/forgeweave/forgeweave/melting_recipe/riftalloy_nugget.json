@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/riftalloy"
-  },
+  "input": "#c:nuggets/riftalloy",
   "fluid": "forgeweave:molten_riftalloy",
   "amount": 16
 }

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "justdirethings:blazegold_block"
-  },
+  "input": "justdirethings:blazegold_block",
   "fluid": "forgeweave:molten_blazegold",
   "amount": 1296,
   "temperature": 1400,

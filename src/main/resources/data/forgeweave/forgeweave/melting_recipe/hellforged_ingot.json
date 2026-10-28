@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "neovitae:ingot_hellforged"
-  },
+  "input": "neovitae:ingot_hellforged",
   "fluid": "forgeweave:molten_hellforged",
   "amount": 144,
   "temperature": 1600,

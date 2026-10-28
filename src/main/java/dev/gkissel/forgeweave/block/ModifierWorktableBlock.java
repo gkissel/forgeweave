@@ -95,12 +95,4 @@ public class ModifierWorktableBlock extends HorizontalDirectionalBlock implement
         return InteractionResult.SUCCESS;
     }
 
-    @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (state.getBlock() != newState.getBlock()
-                && level.getBlockEntity(pos) instanceof ModifierWorktableBlockEntity worktable) {
-            Containers.dropContents(level, pos, worktable.container());
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
-    }
 }

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/voidglass"
-  },
+  "input": "#c:small_dusts/voidglass",
   "fluid": "forgeweave:molten_voidglass",
   "amount": 48
 }

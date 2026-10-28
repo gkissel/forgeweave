@@ -1,8 +1,6 @@
 {
   "modifier": "forgeweave:searing",
-  "reagent": {
-    "item": "minecraft:magma_cream"
-  },
+  "reagent": "minecraft:magma_cream",
   "cost": 1,
   "max_level": 1
 }

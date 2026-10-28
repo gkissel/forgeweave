@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/blutonium"
-  },
+  "input": "#c:ingots/blutonium",
   "fluid": "forgeweave:molten_blutonium",
   "amount": 144,
   "temperature": 1400,

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/ludicrite"
-  },
+  "input": "#c:small_dusts/ludicrite",
   "fluid": "forgeweave:molten_ludicrite",
   "amount": 36,
   "temperature": 1600,

@@ -52,27 +52,19 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:ingots/soularium"
-      },
+      "ingredient": "#c:ingots/soularium",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:nuggets/soularium"
-      },
+      "ingredient": "#c:nuggets/soularium",
       "value": 16
     },
     {
-      "ingredient": {
-        "tag": "c:storage_blocks/soularium"
-      },
+      "ingredient": "#c:storage_blocks/soularium",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/soularium"
-  },
+  "repair_item": "#c:ingots/soularium",
   "cast_only": true,
   "enchantability": 22,
   "color": "#A88863",

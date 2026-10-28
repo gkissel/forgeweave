@@ -1,5 +1,5 @@
 {
-  "input": { "item": "minecraft:chain" },
+  "input": "minecraft:chain",
   "fluid": "forgeweave:molten_iron",
   "amount": 176
 }

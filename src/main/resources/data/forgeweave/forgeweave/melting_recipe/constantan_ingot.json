@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/constantan"
-  },
+  "input": "#c:ingots/constantan",
   "fluid": "forgeweave:molten_constantan",
   "amount": 144,
   "temperature": 1200,

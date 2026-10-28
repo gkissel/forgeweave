@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/hollowstone"
-  },
+  "input": "#c:nuggets/hollowstone",
   "fluid": "forgeweave:molten_hollowstone",
   "amount": 16
 }

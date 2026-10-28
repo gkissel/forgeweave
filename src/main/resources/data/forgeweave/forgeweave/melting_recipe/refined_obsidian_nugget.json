@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/refined_obsidian"
-  },
+  "input": "#c:nuggets/refined_obsidian",
   "fluid": "forgeweave:molten_refined_obsidian",
   "amount": 16,
   "temperature": 1600,

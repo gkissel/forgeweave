@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/uraninite"
-  },
+  "input": "#c:storage_blocks/uraninite",
   "fluid": "forgeweave:molten_uraninite",
   "amount": 1296,
   "temperature": 1400,

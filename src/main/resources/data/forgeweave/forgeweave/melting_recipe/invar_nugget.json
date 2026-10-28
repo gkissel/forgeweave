@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/invar"
-  },
+  "input": "#c:nuggets/invar",
   "fluid": "forgeweave:molten_invar",
   "amount": 16,
   "temperature": 1200,

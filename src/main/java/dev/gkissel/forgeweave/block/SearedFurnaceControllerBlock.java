@@ -5,6 +5,7 @@ import javax.annotation.Nullable;
 import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -74,18 +75,11 @@ public class SearedFurnaceControllerBlock extends HorizontalDirectionalBlock imp
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, block, fromPos, movedByPiston);
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @Nullable Orientation orientation, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
         updateStructure(level, pos);
     }
 
-    @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof SearedFurnaceBlockEntity furnace) {
-            Containers.dropContents(level, pos, furnace.container());
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
-    }
 
     /** Rescans, then opens the furnace GUI or -- when nothing formed -- says why in chat, as the smeltery cores do. */
     @Override
@@ -95,7 +89,7 @@ public class SearedFurnaceControllerBlock extends HorizontalDirectionalBlock imp
             if (furnace.isFormed()) {
                 furnace.open(player);
             } else {
-                player.displayClientMessage(furnace.lastResult(), false);
+                player.sendSystemMessage(furnace.lastResult());
             }
         }
         return InteractionResult.SUCCESS;

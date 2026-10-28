@@ -45,27 +45,19 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:ingots/ferricore"
-      },
+      "ingredient": "#c:ingots/ferricore",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:raw_materials/ferricore"
-      },
+      "ingredient": "#c:raw_materials/ferricore",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "justdirethings:ferricore_block"
-      },
+      "ingredient": "justdirethings:ferricore_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/ferricore"
-  },
+  "repair_item": "#c:ingots/ferricore",
   "cast_only": true,
   "enchantability": 12,
   "color": "#88B9BC",

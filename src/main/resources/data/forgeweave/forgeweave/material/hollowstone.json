@@ -32,13 +32,11 @@
     ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:hollowstone_ingot" }, "value": 144 },
-    { "ingredient": { "item": "forgeweave:hollowstone_nugget" }, "value": 16 },
-    { "ingredient": { "item": "forgeweave:hollowstone_block" }, "value": 1296 }
+    { "ingredient": "forgeweave:hollowstone_ingot", "value": 144 },
+    { "ingredient": "forgeweave:hollowstone_nugget", "value": 16 },
+    { "ingredient": "forgeweave:hollowstone_block", "value": 1296 }
   ],
-  "repair_item": {
-    "tag": "c:ingots/hollowstone"
-  },
+  "repair_item": "#c:ingots/hollowstone",
   "cast_only": true,
   "enchantability": 10,
   "color": "#F8EEB3"

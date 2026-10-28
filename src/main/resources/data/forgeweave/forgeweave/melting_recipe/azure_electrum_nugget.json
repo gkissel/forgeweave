@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/azure_electrum"
-  },
+  "input": "#c:nuggets/azure_electrum",
   "fluid": "forgeweave:molten_azure_electrum",
   "amount": 16,
   "temperature": 1600,

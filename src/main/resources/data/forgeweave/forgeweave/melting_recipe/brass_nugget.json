@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "create:brass_nugget"
-  },
+  "input": "create:brass_nugget",
   "fluid": "forgeweave:molten_brass",
   "amount": 16,
   "temperature": 1200,

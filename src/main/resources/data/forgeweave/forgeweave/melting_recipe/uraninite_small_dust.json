@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/uraninite"
-  },
+  "input": "#c:small_dusts/uraninite",
   "fluid": "forgeweave:molten_uraninite",
   "amount": 36,
   "temperature": 1400,

@@ -1,7 +1,7 @@
 {
   "input": [
-    { "item": "minecraft:golden_shovel" },
-    { "item": "minecraft:powered_rail" }
+    "minecraft:golden_shovel",
+    "minecraft:powered_rail"
   ],
   "fluid": "forgeweave:molten_gold",
   "amount": 144

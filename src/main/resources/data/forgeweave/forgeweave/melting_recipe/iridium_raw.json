@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:raw_materials/iridium"
-  },
+  "input": "#c:raw_materials/iridium",
   "fluid": "forgeweave:molten_iridium",
   "amount": 144,
   "ore": true,

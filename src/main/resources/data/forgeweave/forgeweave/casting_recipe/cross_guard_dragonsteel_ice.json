@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_cross_guard"
-  },
+  "cast": "forgeweave:cast_cross_guard",
   "fluid": "forgeweave:molten_dragonsteel_ice",
   "amount": 144,
   "result": {

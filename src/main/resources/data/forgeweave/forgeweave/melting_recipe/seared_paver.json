@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "forgeweave:seared_paver"
-  },
+  "input": "forgeweave:seared_paver",
   "fluid": "forgeweave:molten_seared_stone",
   "amount": 288
 }

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/duskweld"
-  },
+  "input": "#c:storage_blocks/duskweld",
   "fluid": "forgeweave:molten_duskweld",
   "amount": 1296,
   "temperature": 1600,

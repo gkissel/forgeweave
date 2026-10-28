@@ -48,21 +48,15 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:ingots/knightmetal"
-      },
+      "ingredient": "#c:ingots/knightmetal",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:storage_blocks/knightmetal"
-      },
+      "ingredient": "#c:storage_blocks/knightmetal",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/knightmetal"
-  },
+  "repair_item": "#c:ingots/knightmetal",
   "cast_only": true,
   "enchantability": 15,
   "color": "#7A8FA6",

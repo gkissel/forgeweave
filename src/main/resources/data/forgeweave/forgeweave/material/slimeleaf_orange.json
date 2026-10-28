@@ -11,11 +11,9 @@
     ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:orange_slime_leaves" }, "value": 72 }
+    { "ingredient": "forgeweave:orange_slime_leaves", "value": 72 }
   ],
-  "repair_item": {
-    "item": "forgeweave:orange_slime_leaves"
-  },
+  "repair_item": "forgeweave:orange_slime_leaves",
   "enchantability": 15,
   "color": "#FF960D"
 }

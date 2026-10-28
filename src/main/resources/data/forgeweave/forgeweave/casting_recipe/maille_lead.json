@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_maille"
-  },
+  "cast": "forgeweave:cast_maille",
   "fluid": "forgeweave:molten_lead",
   "amount": 288,
   "result": {

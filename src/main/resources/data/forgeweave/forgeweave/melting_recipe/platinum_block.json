@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/platinum"
-  },
+  "input": "#c:storage_blocks/platinum",
   "fluid": "forgeweave:molten_platinum",
   "amount": 1296,
   "temperature": 1400,

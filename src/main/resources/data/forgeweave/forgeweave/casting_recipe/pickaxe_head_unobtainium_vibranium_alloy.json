@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_pickaxe_head"
-  },
+  "cast": "forgeweave:cast_pickaxe_head",
   "fluid": "forgeweave:molten_unobtainium_vibranium_alloy",
   "amount": 288,
   "result": {

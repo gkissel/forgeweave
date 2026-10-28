@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "avaritia:neutronium_ingot"
-  },
+  "input": "avaritia:neutronium_ingot",
   "fluid": "forgeweave:molten_cosmic_neutronium",
   "amount": 144,
   "temperature": 1600,

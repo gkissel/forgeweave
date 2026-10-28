@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/blazegold"
-  },
+  "input": "#c:ingots/blazegold",
   "fluid": "forgeweave:molten_blazegold",
   "amount": 144,
   "temperature": 1400,

@@ -48,15 +48,11 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "projecte:dark_matter"
-      },
+      "ingredient": "projecte:dark_matter",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "projecte:dark_matter"
-  },
+  "repair_item": "projecte:dark_matter",
   "cast_only": true,
   "enchantability": 10,
   "color": "#1A0A26",

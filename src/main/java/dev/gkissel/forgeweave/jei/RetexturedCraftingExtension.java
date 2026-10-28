@@ -7,9 +7,9 @@ import mezz.jei.api.gui.ingredient.ICraftingGridHelper;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.category.extensions.vanilla.crafting.ICraftingCategoryExtension;
 
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.display.SlotDisplay;
 
 import dev.gkissel.forgeweave.recipe.RetexturedShapedRecipe;
 
@@ -26,10 +26,13 @@ final class RetexturedCraftingExtension implements ICraftingCategoryExtension<Re
     public void setRecipe(RecipeHolder<RetexturedShapedRecipe> holder, IRecipeLayoutBuilder builder,
             ICraftingGridHelper helper, IFocusGroup focuses) {
         RetexturedShapedRecipe recipe = holder.value();
-        List<List<ItemStack>> inputs = recipe.getIngredients().stream()
-                .map(Ingredient::getItems).map(List::of).toList();
-        helper.createAndSetInputs(builder, inputs, recipe.getWidth(), recipe.getHeight());
+        helper.createAndSetIngredientsFromDisplays(builder, getIngredients(holder), recipe.getWidth(), recipe.getHeight());
         helper.createAndSetOutputs(builder, recipe.displayResults());
+    }
+
+    @Override
+    public List<SlotDisplay> getIngredients(RecipeHolder<RetexturedShapedRecipe> holder) {
+        return holder.value().getIngredients().stream().map(Ingredient::optionalIngredientToDisplay).toList();
     }
 
     @Override

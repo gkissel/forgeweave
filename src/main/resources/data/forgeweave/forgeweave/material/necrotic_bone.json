@@ -16,11 +16,9 @@
     "armor": ["forgeweave:restore"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:necrotic_bone" }, "value": 144 }
+    { "ingredient": "forgeweave:necrotic_bone", "value": 144 }
   ],
-  "repair_item": {
-    "item": "forgeweave:necrotic_bone"
-  },
+  "repair_item": "forgeweave:necrotic_bone",
   "enchantability": 15,
   "color": "#4D4D4D"
 }

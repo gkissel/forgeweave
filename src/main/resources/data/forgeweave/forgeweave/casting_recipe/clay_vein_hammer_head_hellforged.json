@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_vein_hammer_head"
-  },
+  "cast": "forgeweave:clay_cast_vein_hammer_head",
   "fluid": "forgeweave:molten_hellforged",
   "amount": 1152,
   "result": {

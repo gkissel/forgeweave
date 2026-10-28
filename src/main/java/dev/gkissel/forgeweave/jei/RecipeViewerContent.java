@@ -149,7 +149,7 @@ public record RecipeViewerContent(
     private static List<CastingRecipe> castingEnabled(List<CastingRecipe> recipes) {
         return recipes.stream()
                 .filter(recipe -> ContentFamilies.itemEnabled(recipe.result())
-                        && recipe.cast().map(cast -> Arrays.stream(cast.getItems())
+                        && recipe.cast().map(cast -> Arrays.stream(IngredientStacks.of(cast))
                                 .anyMatch(ContentFamilies::itemEnabled)).orElse(true))
                 .toList();
     }
@@ -173,7 +173,7 @@ public record RecipeViewerContent(
         }
         Map<Identifier, T> entries = new LinkedHashMap<>();
         for (Map.Entry<ResourceKey<T>, T> entry : registries.lookupOrThrow(key).entrySet()) {
-            entries.put(entry.getKey().location(), entry.getValue());
+            entries.put(entry.getKey().identifier(), entry.getValue());
         }
         return entries;
     }

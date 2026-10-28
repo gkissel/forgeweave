@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "cataclysm:ignitium_ingot"
-  },
+  "input": "cataclysm:ignitium_ingot",
   "fluid": "forgeweave:molten_ignitium",
   "amount": 144,
   "temperature": 1600,

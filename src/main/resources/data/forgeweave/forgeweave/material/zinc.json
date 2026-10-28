@@ -44,27 +44,19 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "create:zinc_ingot"
-      },
+      "ingredient": "create:zinc_ingot",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "create:zinc_nugget"
-      },
+      "ingredient": "create:zinc_nugget",
       "value": 16
     },
     {
-      "ingredient": {
-        "item": "create:zinc_block"
-      },
+      "ingredient": "create:zinc_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "item": "create:zinc_ingot"
-  },
+  "repair_item": "create:zinc_ingot",
   "enchantability": 12,
   "color": "#A9C7C2",
   "neoforge:conditions": [

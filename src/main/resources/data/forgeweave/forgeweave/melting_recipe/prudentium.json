@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "mysticalagriculture:prudentium_ingot"
-  },
+  "input": "mysticalagriculture:prudentium_ingot",
   "fluid": "forgeweave:molten_prudentium",
   "amount": 144,
   "temperature": 1200,

@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.util.FastColor;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.item.CreativeModeTab;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -252,7 +252,7 @@ final class HarnessChecks {
     /** Every creative tab Forgeweave registers, in registry order. */
     static List<CreativeModeTab> forgeweaveTabs() {
         return BuiltInRegistries.CREATIVE_MODE_TAB.entrySet().stream()
-                .filter(e -> e.getKey().location().getNamespace().equals(Forgeweave.MODID))
+                .filter(e -> e.getKey().identifier().getNamespace().equals(Forgeweave.MODID))
                 .map(java.util.Map.Entry::getValue)
                 .toList();
     }
@@ -302,9 +302,8 @@ final class HarnessChecks {
         int count = 0;
         for (int y = 0; y < image.getHeight(); y++) {
             for (int x = 0; x < image.getWidth(); x++) {
-                int abgr = image.getPixelRGBA(x, y);
-                if (isMissingTextureMagenta(FastColor.ABGR32.red(abgr), FastColor.ABGR32.green(abgr),
-                        FastColor.ABGR32.blue(abgr))) {
+                int argb = image.getPixel(x, y);
+                if (isMissingTextureMagenta(ARGB.red(argb), ARGB.green(argb), ARGB.blue(argb))) {
                     count++;
                 }
             }

@@ -13,7 +13,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.functions.LootItemConditionalFunction;
-import net.minecraft.world.level.storage.loot.functions.LootItemFunctionType;
+import net.minecraft.world.level.storage.loot.functions.LootItemFunction;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -64,7 +64,7 @@ import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
  */
 public class AssembleTool extends LootItemConditionalFunction {
 
-    public static final DeferredRegister<LootItemFunctionType<?>> LOOT_FUNCTIONS =
+    public static final DeferredRegister<MapCodec<? extends LootItemFunction>> LOOT_FUNCTIONS =
             DeferredRegister.create(Registries.LOOT_FUNCTION_TYPE, Forgeweave.MODID);
 
     public static final MapCodec<AssembleTool> CODEC = RecordCodecBuilder.mapCodec(instance ->
@@ -73,8 +73,9 @@ public class AssembleTool extends LootItemConditionalFunction {
                             .forGetter(function -> function.materials))
                     .apply(instance, AssembleTool::new));
 
-    public static final DeferredHolder<LootItemFunctionType<?>, LootItemFunctionType<AssembleTool>> TYPE =
-            LOOT_FUNCTIONS.register("assemble_tool", () -> new LootItemFunctionType<>(CODEC));
+    /** 1.21.2 dropped {@code LootItemFunctionType}: the registry holds the codec itself. */
+    public static final DeferredHolder<MapCodec<? extends LootItemFunction>, MapCodec<AssembleTool>> TYPE =
+            LOOT_FUNCTIONS.register("assemble_tool", () -> CODEC);
 
     private final List<Identifier> materials;
 
@@ -89,8 +90,8 @@ public class AssembleTool extends LootItemConditionalFunction {
     }
 
     @Override
-    public LootItemFunctionType<AssembleTool> getType() {
-        return TYPE.get();
+    public MapCodec<AssembleTool> codec() {
+        return CODEC;
     }
 
     /**

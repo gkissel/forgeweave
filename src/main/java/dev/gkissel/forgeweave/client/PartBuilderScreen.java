@@ -7,6 +7,8 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.Rect2i;
@@ -115,9 +117,7 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
             new SideInventoryPanel(PartBuilderMenu.SIDE_PANEL_X, PartBuilderMenu.SIDE_PANEL_Y);
 
     public PartBuilderScreen(PartBuilderMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
-        imageWidth = BASE_WIDTH;
-        imageHeight = BASE_HEIGHT;
+        super(menu, playerInventory, title, BASE_WIDTH, BASE_HEIGHT);
     }
 
     @Override
@@ -201,7 +201,7 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
 
     @Override
     protected void renderPanel(GuiGraphicsExtractor graphics, float partialTick, int mouseX, int mouseY) {
-        graphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, BASE_WIDTH, BASE_HEIGHT);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, BASE_WIDTH, BASE_HEIGHT);
         renderSlotIcons(graphics);
         renderMaterialValue(graphics);
         InfoPanel.render(graphics, font, panelX(), panelY(),
@@ -234,8 +234,8 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
             int y = topPos + buttonY(i);
             int u = isHovering(buttonX(i), buttonY(i), BUTTON_SIZE, BUTTON_SIZE, mouseX, mouseY)
                     ? BUTTON_HOVER_U : BUTTON_IDLE_U;
-            graphics.blit(ICONS, x, y, u, BUTTON_V, BUTTON_SIZE, BUTTON_SIZE, SHEET, SHEET);
-            graphics.renderItem(patternStack(buttons.get(i)), x + 1, y + 1);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, ICONS, x, y, u, BUTTON_V, BUTTON_SIZE, BUTTON_SIZE, SHEET, SHEET);
+            graphics.item(patternStack(buttons.get(i)), x + 1, y + 1);
         }
     }
 
@@ -266,7 +266,10 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         List<Integer> buttons = menu.patternButtons();
         for (int i = 0; i < buttons.size(); i++) {
             if (isHovering(buttonX(i), buttonY(i), BUTTON_SIZE, BUTTON_SIZE, mouseX, mouseY) && minecraft != null) {
@@ -277,16 +280,16 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
                 return true;
             }
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override
-    protected void renderTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        super.renderTooltip(graphics, mouseX, mouseY);
+    protected void extractTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        super.extractTooltip(graphics, mouseX, mouseY);
         List<Integer> buttons = menu.patternButtons();
         for (int i = 0; i < buttons.size(); i++) {
             if (isHovering(buttonX(i), buttonY(i), BUTTON_SIZE, BUTTON_SIZE, mouseX, mouseY)) {
-                graphics.renderTooltip(font, patternStack(buttons.get(i)), mouseX, mouseY);
+                graphics.setTooltipForNextFrame(font, patternStack(buttons.get(i)), mouseX, mouseY);
                 return;
             }
         }
@@ -299,7 +302,7 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
         Style hovered = InfoPanel.hoveredStyle(font, panelX(), panelY(), InfoPanel.WIDTH, PANEL_HEIGHT,
                 caption != null, lines, scroll, mouseX, mouseY);
         if (hovered != null) {
-            graphics.renderComponentHoverEffect(font, hovered, mouseX, mouseY);
+            graphics.componentHoverEffect(font, hovered, mouseX, mouseY);
         }
     }
 
@@ -348,7 +351,7 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
             if (SLOT_ICON_U[i] < 0 || menu.getSlot(i).hasItem()) {
                 continue;
             }
-            graphics.blit(ICONS, leftPos + menu.getSlot(i).x - 1, topPos + menu.getSlot(i).y - 1,
+            graphics.blit(RenderPipelines.GUI_TEXTURED, ICONS, leftPos + menu.getSlot(i).x - 1, topPos + menu.getSlot(i).y - 1,
                     SLOT_ICON_U[i], SLOT_ICON_V[i], ICON_SIZE, ICON_SIZE, SHEET, SHEET);
         }
     }
@@ -370,8 +373,8 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
                 .orElse(true);
         Component line = StationText.materialValue(
                 available / (float) PartBuilderRecipes.INGOT_VALUE, enough, matched.get().id());
-        graphics.drawString(font, line, leftPos + BASE_WIDTH / 2 - font.width(line) / 2,
-                topPos + MATERIAL_VALUE_Y, 0x777777, false);
+        graphics.text(font, line, leftPos + BASE_WIDTH / 2 - font.width(line) / 2,
+                topPos + MATERIAL_VALUE_Y, 0xFF777777, false);
     }
 
     @Override

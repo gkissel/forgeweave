@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/fiery"
-  },
+  "input": "#c:storage_blocks/fiery",
   "fluid": "forgeweave:molten_fiery",
   "amount": 1296,
   "temperature": 1600,

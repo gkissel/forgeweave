@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:shards/tungsten"
-  },
+  "input": "#c:shards/tungsten",
   "fluid": "forgeweave:molten_tungsten",
   "amount": 144,
   "temperature": 1400,

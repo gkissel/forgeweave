@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/quakestone"
-  },
+  "input": "#c:storage_blocks/quakestone",
   "fluid": "forgeweave:molten_quakestone",
   "amount": 1296
 }

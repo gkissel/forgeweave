@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/blaze_gold"
-  },
+  "input": "#c:storage_blocks/blaze_gold",
   "fluid": "forgeweave:molten_blaze_gold",
   "amount": 1296,
   "temperature": 1200,

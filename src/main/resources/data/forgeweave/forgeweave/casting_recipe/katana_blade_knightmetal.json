@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_katana_blade"
-  },
+  "cast": "forgeweave:cast_katana_blade",
   "fluid": "forgeweave:molten_knightmetal",
   "amount": 432,
   "result": {

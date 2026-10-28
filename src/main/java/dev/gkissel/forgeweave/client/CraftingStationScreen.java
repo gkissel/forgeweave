@@ -2,6 +2,7 @@ package dev.gkissel.forgeweave.client;
 
 import java.util.List;
 
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.Rect2i;
@@ -54,14 +55,12 @@ public class CraftingStationScreen extends StationScreen<CraftingStationMenu> im
             new SideInventoryPanel(CraftingStationMenu.SIDE_PANEL_X, CraftingStationMenu.SIDE_PANEL_Y);
 
     public CraftingStationScreen(CraftingStationMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
-        imageWidth = BASE_WIDTH;
-        imageHeight = BASE_HEIGHT;
+        super(menu, playerInventory, title, BASE_WIDTH, BASE_HEIGHT);
     }
 
     @Override
     protected void renderPanel(GuiGraphicsExtractor guiGraphics, float partialTick, int mouseX, int mouseY) {
-        guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, SHEET, SHEET);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, SHEET, SHEET);
         sidePanel.render(guiGraphics, menu, leftPos, topPos, imageHeight, menu.sideSlots, menu.sideInventorySlotCount);
     }
 

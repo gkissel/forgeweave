@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/titanium"
-  },
+  "input": "#c:nuggets/titanium",
   "fluid": "forgeweave:molten_titanium",
   "amount": 16,
   "temperature": 1400,

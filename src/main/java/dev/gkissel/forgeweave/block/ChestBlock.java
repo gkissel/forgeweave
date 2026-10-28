@@ -9,7 +9,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -100,32 +99,16 @@ public class ChestBlock extends HorizontalDirectionalBlock implements EntityBloc
      * hand, or nothing fit) is what opens the GUI as before.
      */
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
             Player player, InteractionHand hand, BlockHitResult hit) {
         if (level.getBlockEntity(pos) instanceof ChestBlockEntity chest && chest.insertHeldItem(player, hand)) {
-            return ItemInteractionResult.sidedSuccess(level.isClientSide());
+            return InteractionResult.SUCCESS;
         }
         return super.useItemOn(stack, state, level, pos, player, hand, hit);
     }
 
     /**
-     * With {@code chestsKeepInventory} on (upstream's default, parity audit T47) the contents ride
-     * out on the dropped item instead -- see {@link ChestBlockEntity#collectImplicitComponents} --
-     * so spilling them here as well would duplicate every one of them. With the option off this is
-     * upstream's other branch: a plain container that drops what it held.
-     */
-    @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (state.getBlock() != newState.getBlock() && !ForgeweaveConfig.read(ForgeweaveConfig.CHESTS_KEEP_INVENTORY)) {
-            if (level.getBlockEntity(pos) instanceof ChestBlockEntity chest) {
-                Containers.dropContents(level, pos, chest.container());
-            }
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
-    }
-
-    /**
-     * A creative break runs no loot table, so the packed item {@link #onRemove} is deliberately not
+     * A creative break runs no loot table, so the packed item {@link ChestBlockEntity#preRemoveSideEffects} is deliberately not
      * spilling for would never be created and the contents would simply vanish. Vanilla's shulker
      * box hands the packed item over itself in exactly this case ({@code
      * ShulkerBoxBlock#playerWillDestroy}) and this does the same -- upstream 1.12 loses the contents

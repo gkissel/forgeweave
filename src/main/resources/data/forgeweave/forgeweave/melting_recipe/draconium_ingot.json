@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/draconium"
-  },
+  "input": "#c:ingots/draconium",
   "fluid": "forgeweave:molten_draconium",
   "amount": 144,
   "temperature": 1600,

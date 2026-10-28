@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.client;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.joml.Matrix4f;
@@ -7,21 +8,24 @@ import org.joml.Matrix4f;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.BlockPos;
-import net.minecraft.util.FastColor;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
-import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.fluids.FluidStack;
+
+import org.jspecify.annotations.Nullable;
 
 import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryStructure;
@@ -43,7 +47,7 @@ import dev.gkissel.forgeweave.block.SmelteryTank;
  * stacked layers is two coincident quads that nothing can see between, and skipping them costs
  * nothing but the z-fighting they would otherwise flicker with.
  */
-public class SmelteryControllerBlockEntityRenderer implements BlockEntityRenderer<SmelteryControllerBlockEntity> {
+public class SmelteryControllerBlockEntityRenderer implements BlockEntityRenderer<SmelteryControllerBlockEntity, SmelteryControllerBlockEntityRenderer.State> {
     /** Keeps the pool a hair inside the interior walls and floor so it doesn't z-fight them (upstream's {@code FLUID_OFFSET}). */
     private static final float INSET = 0.01f;
 
@@ -56,9 +60,24 @@ public class SmelteryControllerBlockEntityRenderer implements BlockEntityRendere
 
     public SmelteryControllerBlockEntityRenderer(BlockEntityRendererProvider.Context context) {}
 
+    /** One fluid band, bottom first, resolved off the block entity for {@link #submit}. */
+    record Layer(TextureAtlasSprite sprite, int tint, int light, float height) {}
+
+    /** What {@link #submit} needs: the interior's block-local bounds and its bands, none for an idle smeltery. */
+    public static class State extends BlockEntityRenderState {
+        final List<Layer> layers = new ArrayList<>();
+        float x1, x2, z1, z2, y;
+    }
+
     @Override
-    public void render(SmelteryControllerBlockEntity blockEntity, float partialTick, PoseStack poseStack,
-            MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+    public State createRenderState() {
+        return new State();
+    }
+
+    @Override
+    public void extractRenderState(SmelteryControllerBlockEntity blockEntity, State state, float partialTick,
+            Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
+        BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTick, cameraPosition, breakProgress);
         SmelteryStructure structure = blockEntity.structure();
         SmelteryTank tank = blockEntity.tank();
         List<FluidStack> fluids = tank.fluids();
@@ -69,11 +88,11 @@ public class SmelteryControllerBlockEntityRenderer implements BlockEntityRendere
         BlockPos origin = blockEntity.getBlockPos();
         BlockPos min = structure.interiorMin();
         BlockPos max = structure.interiorMax();
-        float x1 = min.getX() - origin.getX() + INSET;
-        float x2 = max.getX() - origin.getX() + 1f - INSET;
-        float z1 = min.getZ() - origin.getZ() + INSET;
-        float z2 = max.getZ() - origin.getZ() + 1f - INSET;
-        float y = min.getY() - origin.getY() + INSET;
+        state.x1 = min.getX() - origin.getX() + INSET;
+        state.x2 = max.getX() - origin.getX() + 1f - INSET;
+        state.z1 = min.getZ() - origin.getZ() + INSET;
+        state.z2 = max.getZ() - origin.getZ() + 1f - INSET;
+        state.y = min.getY() - origin.getY() + INSET;
 
         float[] heights = layerHeights(fluids, tank.getCapacity(), structure.height() - 2f * INSET);
 
@@ -81,25 +100,35 @@ public class SmelteryControllerBlockEntityRenderer implements BlockEntityRendere
         // wall's -- upstream lights the pool from the interior instead, which is what actually shines
         // on it. Fluid luminosity (molten metal is light level 10) floors the block-light channel the
         // same way upstream's getCombinedLight(pos, luminosity) does.
-        int interiorLight = LevelRenderer.getLightColor(blockEntity.getLevel(), min);
-        int skyLight = LightTexture.sky(interiorLight);
-        int blockLight = LightTexture.block(interiorLight);
+        int interiorLight = LevelRenderer.getLightCoords(blockEntity.getLevel(), min);
+        int skyLight = LightCoordsUtil.sky(interiorLight);
+        int blockLight = LightCoordsUtil.block(interiorLight);
 
-        Matrix4f pose = poseStack.last().pose();
-        VertexConsumer buffer = bufferSource.getBuffer(RenderType.translucent());
         for (int i = 0; i < fluids.size(); i++) {
             FluidStack fluid = fluids.get(i);
-            IClientFluidTypeExtensions extensions = IClientFluidTypeExtensions.of(fluid.getFluid());
-            TextureAtlasSprite sprite = Minecraft.getInstance().getModelManager()
-                    .getAtlas(TextureAtlas.LOCATION_BLOCKS).getSprite(extensions.getStillTexture(fluid));
-            int tint = FastColor.ARGB32.opaque(extensions.getTintColor(fluid));
-            int light = LightTexture.pack(
+            int light = LightCoordsUtil.pack(
                     Math.max(blockLight, fluid.getFluid().getFluidType().getLightLevel(fluid)), skyLight);
-
-            renderLayer(buffer, pose, sprite, tint, light, packedOverlay,
-                    x1, y, z1, x2, y + heights[i], z2, i == 0, i == fluids.size() - 1);
-            y += heights[i];
+            state.layers.add(new Layer(FluidRenderUtil.stillSprite(fluid), FluidRenderUtil.tint(fluid), light,
+                    heights[i]));
         }
+    }
+
+    @Override
+    public void submit(State state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
+        List<Layer> layers = state.layers;
+        if (layers.isEmpty()) {
+            return;
+        }
+        collector.submitCustomGeometry(poseStack, RenderTypes.translucentMovingBlock(), (last, buffer) -> {
+            Matrix4f pose = last.pose();
+            float y = state.y;
+            for (int i = 0; i < layers.size(); i++) {
+                Layer layer = layers.get(i);
+                renderLayer(buffer, pose, layer.sprite(), layer.tint(), layer.light(), OverlayTexture.NO_OVERLAY,
+                        state.x1, y, state.z1, state.x2, y + layer.height(), state.z2, i == 0, i == layers.size() - 1);
+                y += layer.height();
+            }
+        });
     }
 
     /**
@@ -125,7 +154,7 @@ public class SmelteryControllerBlockEntityRenderer implements BlockEntityRendere
      * not full keeps {@link #MIN_LAYER_HEIGHT} of headroom clear so a nearly-full smeltery still
      * reads as "not full".
      *
-     * <p>Pulled out of {@link #render} as a pure function for the same reason {@code
+     * <p>Pulled out of {@link #submit} as a pure function for the same reason {@code
      * SearedTankBlockEntityRenderer#topY} is: it is the whole height model, and a screenshot is a
      * poor place to check arithmetic. See {@code SmelteryControllerBlockEntityRendererTest}.
      */

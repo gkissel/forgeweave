@@ -1,7 +1,7 @@
 {
   "input": [
-    { "item": "minecraft:golden_pickaxe" },
-    { "item": "minecraft:golden_axe" }
+    "minecraft:golden_pickaxe",
+    "minecraft:golden_axe"
   ],
   "fluid": "forgeweave:molten_gold",
   "amount": 432

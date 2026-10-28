@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/osmium"
-  },
+  "input": "#c:ingots/osmium",
   "fluid": "forgeweave:molten_osmium",
   "amount": 144,
   "temperature": 1200,

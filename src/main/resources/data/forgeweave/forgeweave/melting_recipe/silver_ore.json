@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ores/silver"
-  },
+  "input": "#c:ores/silver",
   "fluid": "forgeweave:molten_silver",
   "amount": 144,
   "ore": true,

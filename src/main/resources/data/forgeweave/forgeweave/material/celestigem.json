@@ -45,21 +45,15 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "justdirethings:celestigem"
-      },
+      "ingredient": "justdirethings:celestigem",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "justdirethings:celestigem_block"
-      },
+      "ingredient": "justdirethings:celestigem_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "item": "justdirethings:celestigem"
-  },
+  "repair_item": "justdirethings:celestigem",
   "enchantability": 16,
   "color": "#19B1AD",
   "neoforge:conditions": [

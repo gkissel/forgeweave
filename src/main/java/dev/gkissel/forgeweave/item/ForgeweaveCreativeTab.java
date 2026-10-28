@@ -422,7 +422,7 @@ public final class ForgeweaveCreativeTab {
                     continue;
                 }
                 ItemStack stack = new ItemStack(partItem.get());
-                stack.set(ForgeweaveDataComponents.MATERIAL.get(), material.key().location());
+                stack.set(ForgeweaveDataComponents.MATERIAL.get(), material.key().identifier());
                 output.accept(stack);
             }
         }
@@ -606,7 +606,7 @@ public final class ForgeweaveCreativeTab {
      */
     private static void addTableVariants(CreativeModeTab.Output output, Item table, TagKey<Item> textureSource,
             boolean listAllTableVariants) {
-        List<Holder<Item>> variants = BuiltInRegistries.ITEM.getTag(textureSource)
+        List<Holder<Item>> variants = BuiltInRegistries.ITEM.get(textureSource)
                 .map(HolderSet::stream).map(Stream::toList).orElse(List.of());
         if (variants.isEmpty()) {
             output.accept(new ItemStack(table));

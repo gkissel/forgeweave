@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "mysticalagriculture:imperium_ingot"
-  },
+  "input": "mysticalagriculture:imperium_ingot",
   "fluid": "forgeweave:molten_imperium",
   "amount": 144,
   "temperature": 1600,

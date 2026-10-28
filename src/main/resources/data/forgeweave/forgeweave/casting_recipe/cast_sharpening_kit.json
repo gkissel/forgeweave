@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:sharpening_kit"
-  },
+  "cast": "forgeweave:sharpening_kit",
   "fluid": "forgeweave:molten_gold",
   "amount": 288,
   "result": {

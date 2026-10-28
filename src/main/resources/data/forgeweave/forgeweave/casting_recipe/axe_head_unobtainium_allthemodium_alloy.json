@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_axe_head"
-  },
+  "cast": "forgeweave:cast_axe_head",
   "fluid": "forgeweave:molten_unobtainium_allthemodium_alloy",
   "amount": 288,
   "result": {

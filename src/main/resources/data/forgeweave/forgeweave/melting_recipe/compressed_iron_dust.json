@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/compressed_iron"
-  },
+  "input": "#c:dusts/compressed_iron",
   "fluid": "forgeweave:molten_compressed_iron",
   "amount": 144,
   "temperature": 1200,

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/electrum"
-  },
+  "input": "#c:ingots/electrum",
   "fluid": "forgeweave:molten_electrum",
   "amount": 144,
   "temperature": 1200,

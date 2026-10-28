@@ -50,27 +50,19 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "forgeweave:emberweld_ingot"
-      },
+      "ingredient": "forgeweave:emberweld_ingot",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "forgeweave:emberweld_nugget"
-      },
+      "ingredient": "forgeweave:emberweld_nugget",
       "value": 16
     },
     {
-      "ingredient": {
-        "item": "forgeweave:emberweld_block"
-      },
+      "ingredient": "forgeweave:emberweld_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/emberweld"
-  },
+  "repair_item": "#c:ingots/emberweld",
   "cast_only": true,
   "enchantability": 19,
   "color": "#FF5A4A",

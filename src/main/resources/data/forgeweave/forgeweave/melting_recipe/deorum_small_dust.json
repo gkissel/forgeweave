@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/deorum"
-  },
+  "input": "#c:small_dusts/deorum",
   "fluid": "forgeweave:molten_deorum",
   "amount": 36,
   "temperature": 1600,

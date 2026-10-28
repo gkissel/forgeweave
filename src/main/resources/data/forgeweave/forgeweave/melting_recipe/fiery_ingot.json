@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/fiery"
-  },
+  "input": "#c:ingots/fiery",
   "fluid": "forgeweave:molten_fiery",
   "amount": 144,
   "temperature": 1600,

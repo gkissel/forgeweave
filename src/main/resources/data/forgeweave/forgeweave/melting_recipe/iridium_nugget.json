@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/iridium"
-  },
+  "input": "#c:nuggets/iridium",
   "fluid": "forgeweave:molten_iridium",
   "amount": 16,
   "temperature": 1600,

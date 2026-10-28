@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/compressed_iron"
-  },
+  "input": "#c:storage_blocks/compressed_iron",
   "fluid": "forgeweave:molten_compressed_iron",
   "amount": 1296,
   "temperature": 1200,

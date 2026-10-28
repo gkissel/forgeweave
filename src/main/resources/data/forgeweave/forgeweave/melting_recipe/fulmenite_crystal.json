@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "forgeweave:fulmenite_crystal"
-  },
+  "input": "forgeweave:fulmenite_crystal",
   "fluid": "forgeweave:molten_fulmenite",
   "amount": 144
 }

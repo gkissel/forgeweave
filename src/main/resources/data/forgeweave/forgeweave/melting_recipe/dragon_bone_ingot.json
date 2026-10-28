@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "iceandfire:dragonbone"
-  },
+  "input": "iceandfire:dragonbone",
   "fluid": "forgeweave:molten_dragon_bone",
   "amount": 144,
   "temperature": 1200,

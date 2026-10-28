@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:clumps/iridium"
-  },
+  "input": "#c:clumps/iridium",
   "fluid": "forgeweave:molten_iridium",
   "amount": 144,
   "temperature": 1600,

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "neovitae:raw_demonite_block"
-  },
+  "input": "neovitae:raw_demonite_block",
   "fluid": "forgeweave:molten_hellforged",
   "amount": 1296,
   "temperature": 1600,

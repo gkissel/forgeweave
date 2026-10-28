@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:crystals/platinum"
-  },
+  "input": "#c:crystals/platinum",
   "fluid": "forgeweave:molten_platinum",
   "amount": 144,
   "temperature": 1400,

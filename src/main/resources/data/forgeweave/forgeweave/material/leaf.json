@@ -10,11 +10,9 @@
     ]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "minecraft:leaves" }, "value": 72 }
+    { "ingredient": "#minecraft:leaves", "value": 72 }
   ],
-  "repair_item": {
-    "tag": "minecraft:leaves"
-  },
+  "repair_item": "#minecraft:leaves",
   "enchantability": 15,
   "color": "#1D730C"
 }

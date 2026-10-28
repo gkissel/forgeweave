@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/palladium"
-  },
+  "input": "#c:storage_blocks/palladium",
   "fluid": "forgeweave:molten_elementarium_palladium",
   "amount": 1296,
   "temperature": 1200,

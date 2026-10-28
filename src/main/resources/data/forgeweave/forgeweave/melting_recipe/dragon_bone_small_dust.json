@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/dragon_bone"
-  },
+  "input": "#c:small_dusts/dragon_bone",
   "fluid": "forgeweave:molten_dragon_bone",
   "amount": 36,
   "temperature": 1200,

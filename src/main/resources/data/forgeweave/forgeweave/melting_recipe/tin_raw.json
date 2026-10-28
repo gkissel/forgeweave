@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:raw_materials/tin"
-  },
+  "input": "#c:raw_materials/tin",
   "fluid": "forgeweave:molten_tin",
   "amount": 144,
   "ore": true,

@@ -7,16 +7,14 @@ import java.util.stream.Stream;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
-import net.minecraft.data.tags.ItemTagsProvider;
-import net.minecraft.data.tags.TagsProvider;
+import net.minecraft.data.tags.TagAppender;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Block;
 
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.common.data.ItemTagsProvider;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ChestKind;
@@ -42,9 +40,8 @@ import net.neoforged.neoforge.registries.DeferredHolder;
  * extended to Forgeweave's own items, exactly as any other mod's ore/ingot would register into it.
  */
 public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
-    public ForgeweaveItemTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider,
-            CompletableFuture<TagsProvider.TagLookup<Block>> blockTags, ExistingFileHelper existingFileHelper) {
-        super(output, lookupProvider, blockTags, Forgeweave.MODID, existingFileHelper);
+    public ForgeweaveItemTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider) {
+        super(output, lookupProvider, Forgeweave.MODID);
     }
 
     @Override
@@ -251,9 +248,9 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         //
         // FIRE_ASPECT_ENCHANTABLE, WEAPON_ENCHANTABLE and VANISHING_ENCHANTABLE are not listed for the
         // shapes that reach them through vanilla's own tag-of-tag references (fire_aspect includes
-        // #sword_enchantable, weapon includes #sharp_weapon_enchantable, vanishing includes
+        // #melee_weapon_enchantable, weapon includes #sharp_weapon_enchantable, vanishing includes
         // #durability_enchantable).
-        // The sword shapes -- vanilla's #minecraft:swords, which is what feeds both #sword_enchantable
+        // The sword shapes -- vanilla's #minecraft:swords, which is what feeds both #melee_weapon_enchantable
         // (Looting, Knockback, Sweeping Edge, and Fire Aspect through its tag reference) and the sharp
         // line below.
         List<Item> swords = List.of(ForgeweaveItems.TOOL_BROADSWORD.get(), ForgeweaveItems.TOOL_LONGSWORD.get(),
@@ -283,7 +280,10 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         List<Item> launchers = List.of(ForgeweaveItems.TOOL_SHORTBOW.get(), ForgeweaveItems.TOOL_LONGBOW.get(),
                 ForgeweaveItems.TOOL_CROSSBOW.get());
 
-        addAll(ItemTags.SWORD_ENCHANTABLE, swords);
+        // 1.21.5+ split vanilla's enchantable/sword into melee_weapon (Looting, Knockback, Fire Aspect) and
+        // sweeping (Sweeping Edge); the swords join both, which is what enchantable/sword gave them.
+        addAll(ItemTags.MELEE_WEAPON_ENCHANTABLE, swords);
+        addAll(ItemTags.SWEEPING_ENCHANTABLE, swords);
         addAll(ItemTags.SHARP_WEAPON_ENCHANTABLE, swords, axes);
         addAll(ItemTags.WEAPON_ENCHANTABLE, bluntWeapons);
         addAll(ItemTags.MINING_ENCHANTABLE, miningTools);
@@ -519,8 +519,8 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
      * from the smeltery itself, so a tag naming every shallow alloy would have no reader.
      */
     private void addAlloyDepthTags() {
-        IntrinsicTagAppender<Item> deep = tag(ALLOYS_DEEP);
-        IntrinsicTagAppender<Item> deepest = tag(ALLOYS_DEEPEST);
+        TagAppender<Item, Item> deep = tag(ALLOYS_DEEP);
+        TagAppender<Item, Item> deepest = tag(ALLOYS_DEEPEST);
         AlloyDepths.byMaterial().forEach((metal, depth) -> {
             if (depth >= DEEP_ALLOY_DEPTH) {
                 deep.addTag(cTag("ingots/" + metal));
@@ -551,7 +551,7 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         return cTag("storage_blocks/" + metal);
     }
 
-    private IntrinsicTagAppender<Item> tag(String path) {
+    private TagAppender<Item, Item> tag(String path) {
         return tag(TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", path)));
     }
 
@@ -561,7 +561,7 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
      */
     @SafeVarargs
     private void addAll(TagKey<Item> tag, List<Item>... families) {
-        IntrinsicTagAppender<Item> appender = tag(tag);
+        TagAppender<Item, Item> appender = tag(tag);
         Stream.of(families).flatMap(List::stream).distinct().forEach(appender::add);
     }
 }

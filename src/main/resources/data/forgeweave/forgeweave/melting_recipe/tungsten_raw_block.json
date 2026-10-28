@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/raw_tungsten"
-  },
+  "input": "#c:storage_blocks/raw_tungsten",
   "fluid": "forgeweave:molten_tungsten",
   "amount": 1296,
   "ore": true,

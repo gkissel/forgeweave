@@ -1,6 +1,6 @@
 package dev.gkissel.forgeweave.jade;
 
-import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 
@@ -45,7 +45,7 @@ public final class SmelteryFluidComponentProvider implements IBlockComponentProv
         if (!(accessor.getBlockEntity() instanceof SmelteryControllerBlockEntity smeltery)) {
             return;
         }
-        if (!Screen.hasShiftDown()) {
+        if (!Minecraft.getInstance().hasShiftDown()) {
             if (!smeltery.tank().fluids().isEmpty()) {
                 tooltip.add(Component.translatable("tooltip.forgeweave.hold_shift"));
             }

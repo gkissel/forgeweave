@@ -4,14 +4,15 @@ import org.lwjgl.glfw.GLFW;
 
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.resources.Identifier;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 import dev.gkissel.forgeweave.tool.VeinmineKey;
 
@@ -24,13 +25,18 @@ import dev.gkissel.forgeweave.tool.VeinmineKey;
 @EventBusSubscriber(modid = "forgeweave", value = Dist.CLIENT)
 public final class VeinmineKeyMapping {
 
+    /** 26.1 key categories are registered records; the label is {@code key.category.forgeweave.forgeweave}. */
+    public static final KeyMapping.Category CATEGORY =
+            new KeyMapping.Category(Identifier.fromNamespaceAndPath("forgeweave", "forgeweave"));
+
     public static final KeyMapping KEY = new KeyMapping("key.forgeweave.veinmine", GLFW.GLFW_KEY_GRAVE_ACCENT,
-            "key.categories.forgeweave");
+            CATEGORY);
 
     private static boolean lastSent;
 
     @SubscribeEvent
     static void register(RegisterKeyMappingsEvent event) {
+        event.registerCategory(CATEGORY);
         event.register(KEY);
         NeoForge.EVENT_BUS.addListener(VeinmineKeyMapping::onClientTick);
     }
@@ -43,7 +49,7 @@ public final class VeinmineKeyMapping {
         boolean down = KEY.isDown();
         if (down != lastSent) {
             lastSent = down;
-            PacketDistributor.sendToServer(new VeinmineKey.Payload(down));
+            ClientPacketDistributor.sendToServer(new VeinmineKey.Payload(down));
         }
     }
 

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "mysticalagriculture:soulium_ingot"
-  },
+  "input": "mysticalagriculture:soulium_ingot",
   "fluid": "forgeweave:molten_soulium",
   "amount": 144,
   "temperature": 1400,

@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_wide_guard"
-  },
+  "cast": "forgeweave:cast_wide_guard",
   "fluid": "forgeweave:molten_knightmetal",
   "amount": 144,
   "result": {

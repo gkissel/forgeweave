@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_tool_handle"
-  },
+  "cast": "forgeweave:cast_tool_handle",
   "fluid": "forgeweave:molten_hellforged",
   "amount": 144,
   "result": {

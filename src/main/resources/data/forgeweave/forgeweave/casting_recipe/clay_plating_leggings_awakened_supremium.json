@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_plating_leggings"
-  },
+  "cast": "forgeweave:clay_cast_plating_leggings",
   "fluid": "forgeweave:molten_awakened_supremium",
   "amount": 720,
   "result": {

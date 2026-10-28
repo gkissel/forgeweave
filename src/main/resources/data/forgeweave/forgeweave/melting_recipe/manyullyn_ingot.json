@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/manyullyn"
-  },
+  "input": "#c:ingots/manyullyn",
   "fluid": "forgeweave:molten_manyullyn",
   "amount": 144
 }

@@ -27,13 +27,11 @@
     "armor": ["forgeweave:mendward"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:mendalloy_ingot" }, "value": 144 },
-    { "ingredient": { "item": "forgeweave:mendalloy_nugget" }, "value": 16 },
-    { "ingredient": { "item": "forgeweave:mendalloy_block" }, "value": 1296 }
+    { "ingredient": "forgeweave:mendalloy_ingot", "value": 144 },
+    { "ingredient": "forgeweave:mendalloy_nugget", "value": 16 },
+    { "ingredient": "forgeweave:mendalloy_block", "value": 1296 }
   ],
-  "repair_item": {
-    "tag": "c:ingots/mendalloy"
-  },
+  "repair_item": "#c:ingots/mendalloy",
   "cast_only": true,
   "enchantability": 10,
   "color": "#87D780"

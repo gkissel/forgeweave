@@ -132,8 +132,6 @@ public class Forgeweave {
         ForgeweaveFluids.BLOCKS.register(modEventBus);
         ForgeweaveFluids.BUCKETS.register(modEventBus); // #286
         ForgeweaveItems.ITEMS.register(modEventBus);
-        // #452 -- the slime boots' armour material (parity audit T21). See SlimeBootsItem.
-        SlimeBootsItem.ARMOR_MATERIALS.register(modEventBus);
         // #447 -- the entity every dropped tool spawns as (parity audit T16). See
         // entity.IndestructibleItemEntity for why it is a registered type rather than a flag.
         ForgeweaveEntities.ENTITY_TYPES.register(modEventBus);
@@ -316,6 +314,9 @@ public class Forgeweave {
         // #452 -- parity audit T21: the slime boots' bounce and fall-damage cancel, upstream's
         // ItemSlimeBoots#onFall. See SlimeBootsItem for the side split.
         NeoForge.EVENT_BUS.addListener(SlimeBootsItem::onFall);
+        // 1.21.5 moved enchanting-table eligibility onto a static component; the allowVanillaEnchanting
+        // and Apotheosis gates close the table here instead. See ToolItem#onEnchantmentLevelSet.
+        NeoForge.EVENT_BUS.addListener(ToolItem::onEnchantmentLevelSet);
         // #452/#453 -- parity audit T21 and T22: the boots' rebound and the momentum a Slimesling-flung
         // player keeps through the arc, both upstream's shared SlimeBounceHandler. See that class.
         NeoForge.EVENT_BUS.addListener(SlimeBounceHandler::onPlayerTickPost);

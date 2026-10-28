@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:shards/tin"
-  },
+  "input": "#c:shards/tin",
   "fluid": "forgeweave:molten_tin",
   "amount": 144,
   "temperature": 1200,

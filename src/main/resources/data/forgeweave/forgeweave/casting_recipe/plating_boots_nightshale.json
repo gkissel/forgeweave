@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_plating_boots"
-  },
+  "cast": "forgeweave:cast_plating_boots",
   "fluid": "forgeweave:molten_nightshale",
   "amount": 288,
   "result": {

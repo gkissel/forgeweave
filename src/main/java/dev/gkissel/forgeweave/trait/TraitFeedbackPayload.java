@@ -92,7 +92,7 @@ public record TraitFeedbackPayload(Optional<Identifier> particle, Optional<Ident
     static TraitFeedbackPayload of(Entity at, TraitFeedback.Feedback feedback) {
         return new TraitFeedbackPayload(
                 feedback.particle().map(BuiltInRegistries.PARTICLE_TYPE::getKey),
-                feedback.sound().map(SoundEvent::getLocation),
+                feedback.sound().map(SoundEvent::location),
                 at.getX(), at.getY() + at.getBbHeight() * 0.5, at.getZ());
     }
 
@@ -126,11 +126,11 @@ public record TraitFeedbackPayload(Optional<Identifier> particle, Optional<Ident
             return;
         }
         Level level = player.level();
-        particle.map(BuiltInRegistries.PARTICLE_TYPE::get)
+        particle.map(BuiltInRegistries.PARTICLE_TYPE::getValue)
                 .filter(SimpleParticleType.class::isInstance)
                 .map(SimpleParticleType.class::cast)
                 .ifPresent(type -> spawn(level, type));
-        sound.map(BuiltInRegistries.SOUND_EVENT::get)
+        sound.map(BuiltInRegistries.SOUND_EVENT::getValue)
                 .ifPresent(event -> level.playLocalSound(x, y, z, event, SoundSource.PLAYERS, VOLUME, 1.0F, false));
     }
 

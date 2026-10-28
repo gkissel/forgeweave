@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/netherite"
-  },
+  "input": "#c:storage_blocks/netherite",
   "fluid": "forgeweave:molten_netherite",
   "amount": 1296
 }

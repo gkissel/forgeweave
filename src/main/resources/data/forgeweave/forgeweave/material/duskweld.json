@@ -50,27 +50,19 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "forgeweave:duskweld_ingot"
-      },
+      "ingredient": "forgeweave:duskweld_ingot",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "forgeweave:duskweld_nugget"
-      },
+      "ingredient": "forgeweave:duskweld_nugget",
       "value": 16
     },
     {
-      "ingredient": {
-        "item": "forgeweave:duskweld_block"
-      },
+      "ingredient": "forgeweave:duskweld_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/duskweld"
-  },
+  "repair_item": "#c:ingots/duskweld",
   "cast_only": true,
   "enchantability": 18,
   "color": "#7E2A6E",

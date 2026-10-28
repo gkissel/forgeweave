@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/duskweld"
-  },
+  "input": "#c:nuggets/duskweld",
   "fluid": "forgeweave:molten_duskweld",
   "amount": 16,
   "temperature": 1600,

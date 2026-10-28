@@ -41,15 +41,11 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:gems/amethyst"
-      },
+      "ingredient": "#c:gems/amethyst",
       "value": 100
     }
   ],
-  "repair_item": {
-    "tag": "c:gems/amethyst"
-  },
+  "repair_item": "#c:gems/amethyst",
   "enchantability": 22,
   "color": "#B38EF1"
 }

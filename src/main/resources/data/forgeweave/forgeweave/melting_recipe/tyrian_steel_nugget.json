@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/tyrian_steel"
-  },
+  "input": "#c:nuggets/tyrian_steel",
   "fluid": "forgeweave:molten_tyrian_steel",
   "amount": 16,
   "temperature": 1600,

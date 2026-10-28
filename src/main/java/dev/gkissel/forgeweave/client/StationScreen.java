@@ -3,10 +3,10 @@ package dev.gkissel.forgeweave.client;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.BlockPos;
@@ -26,18 +26,11 @@ import dev.gkissel.forgeweave.menu.StationMenu;
  *
  * <h2>Tooltips (issue #75 defect 2)</h2>
  *
- * <p>{@link AbstractContainerScreen#render} does <em>not</em> call {@link #renderTooltip}. Every
- * vanilla container screen overrides {@code render} to add that call, and a mod screen that forgets
- * to is silently shipped with no item tooltips at all -- no compile error, no test failure, nothing
- * visible until someone hovers a slot in a playtest. That happened once already (issue #43, fixed in
- * #57 by adding the override to {@code PartBuilderScreen} and {@code ToolStationScreen}) and then
- * happened again to {@link CraftingStationScreen}, {@link StencilTableScreen} and {@link
- * ChestScreen}, because the #57 fix was three copies of a two-line override rather than one shared
- * place. So the override lives here, once, and {@code StationScreenTooltipTest} fails the build if
- * any {@code AbstractContainerScreen} subclass in this package neither extends this class nor
- * overrides {@code render} itself. Subclasses that need extra hover text (tool tabs, pattern buttons
- * -- things that aren't slots) override {@link #renderTooltip}, call {@code super}, and are picked
- * up automatically.
+ * <p>On 1.21.1 {@code AbstractContainerScreen#render} did not draw item tooltips and every screen
+ * had to add the call itself; issues #43 and #75 were screens that forgot. Since 26.1 vanilla's
+ * {@link AbstractContainerScreen#extractRenderState} calls {@link #extractTooltip} on its own, so
+ * no override is needed any more. Subclasses that need extra hover text (tool tabs, pattern buttons
+ * -- things that aren't slots) override {@link #extractTooltip} and call {@code super}.
  *
  * <h2>Station-group tabs (issue #78)</h2>
  *
@@ -45,7 +38,7 @@ import dev.gkissel.forgeweave.menu.StationMenu;
  * block in the group, and clicking one opens that block ({@code GuiTinkerStation} +
  * {@code GuiTinkerTabs}). It belongs here for the same reason the tooltip override does: all six
  * Forgeweave stations get it, and the row has to be drawn <em>underneath</em> the station's own
- * background so the selected tab merges into the panel -- which is why {@link #renderBg} is final
+ * background so the selected tab merges into the panel -- which is why {@link #extractBackground} is final
  * and subclasses implement {@link #renderPanel} instead. The alternative was trusting five screens
  * to remember two calls in the right order.
  *
@@ -92,6 +85,11 @@ public abstract class StationScreen<T extends StationMenu> extends AbstractConta
         super(menu, playerInventory, title);
     }
 
+    /** For stations whose panel is not vanilla's default 176x166; 26.1 made the size final. */
+    protected StationScreen(T menu, Inventory playerInventory, Component title, int imageWidth, int imageHeight) {
+        super(menu, playerInventory, title, imageWidth, imageHeight);
+    }
+
     /**
      * Re-centres the screen on the panel <em>plus</em> its tab row (issue #86).
      *
@@ -131,47 +129,15 @@ public abstract class StationScreen<T extends StationMenu> extends AbstractConta
         return TAB_STRIP + (screenHeight - (imageHeight + TAB_STRIP)) / 2;
     }
 
-    @Override
-    public void render(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        super.render(graphics, mouseX, mouseY, partialTick);
-        renderTooltip(graphics, mouseX, mouseY);
-    }
-
-    /** Draws this station's own panel and chrome; the tab row is layered around it by {@link #renderBg}. */
+    /** Draws this station's own panel and chrome; the tab row is layered around it by {@link #extractBackground}. */
     protected abstract void renderPanel(GuiGraphicsExtractor graphics, float partialTick, int mouseX, int mouseY);
 
     @Override
-    protected final void renderBg(GuiGraphicsExtractor graphics, float partialTick, int mouseX, int mouseY) {
+    public final void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(graphics, mouseX, mouseY, partialTick);
         renderTabs(graphics, false);
-        restoreBlending();
         renderPanel(graphics, partialTick, mouseX, mouseY);
         renderTabs(graphics, true);
-    }
-
-    /**
-     * Turns blending back on for the panel, because {@link #renderTabs} just drew item stacks and
-     * that leaves it off (issue #84).
-     *
-     * <p>{@link GuiGraphicsExtractor#renderItem} calls {@code flush()} and draws through the item render
-     * types, whose {@code clearRenderState} ends in {@code RenderSystem.disableBlend()}. Anything
-     * translucent drawn afterwards lands at full opacity instead. That is not a hypothetical: the
-     * Tool Station's repair slots turned into solid black squares, because upstream's {@code
-     * SlotBackground} is an opaque black mask sprite only ever meant to be seen at 28%, and its dark
-     * grey hint glyphs then had no contrast left to sit on.
-     *
-     * <p>Upstream hits exactly this and handles it the same way -- {@code
-     * GuiToolStation#drawGuiContainerBackgroundLayer} re-enables blending immediately after its own
-     * item draw, under the comment "reset state after item drawing". We had never needed the port
-     * because nothing rendered an item before the panel until the tab row (#83) did.
-     *
-     * <p>Here rather than in each {@code renderPanel}: the tab row is what clobbers the state, so
-     * this is the one place all five screens route through. Blending is deliberately left on
-     * afterwards -- the slots, labels and tooltips {@code AbstractContainerScreen} draws next all
-     * expect it, and it is what {@code renderBg} is entered with on the first frame.
-     */
-    private static void restoreBlending() {
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
     }
 
     private void renderTabs(GuiGraphicsExtractor graphics, boolean selectedPass) {
@@ -184,9 +150,9 @@ public abstract class StationScreen<T extends StationMenu> extends AbstractConta
             }
             int x = leftPos + tabX(i);
             int y = topPos + TAB_TOP;
-            graphics.blitSprite(Identifier.withDefaultNamespace(
+            graphics.blitSprite(RenderPipelines.GUI_TEXTURED, Identifier.withDefaultNamespace(
                     TAB_SPRITE + (selected ? "selected_" : "unselected_") + (i + 1)), x, y, TAB_WIDTH, TAB_HEIGHT);
-            graphics.renderItem(tabIcon(members.get(i)), x + ICON_X, y + ICON_Y);
+            graphics.item(tabIcon(members.get(i)), x + ICON_X, y + ICON_Y);
         }
     }
 
@@ -197,7 +163,7 @@ public abstract class StationScreen<T extends StationMenu> extends AbstractConta
             return ItemStack.EMPTY;
         }
         BlockState state = level.getBlockState(pos);
-        return state.getBlock().getCloneItemStack(level, pos, state);
+        return state.getCloneItemStack(level, pos, false);
     }
 
     private static int tabX(int index) {
@@ -215,11 +181,11 @@ public abstract class StationScreen<T extends StationMenu> extends AbstractConta
     }
 
     @Override
-    protected void renderTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        super.renderTooltip(graphics, mouseX, mouseY);
+    protected void extractTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        super.extractTooltip(graphics, mouseX, mouseY);
         int tab = hoveredTab(mouseX, mouseY);
         if (tab >= 0) {
-            graphics.renderTooltip(font, tabIcon(menu.stationGroup().members().get(tab)), mouseX, mouseY);
+            graphics.setTooltipForNextFrame(font, tabIcon(menu.stationGroup().members().get(tab)), mouseX, mouseY);
         }
     }
 
@@ -243,18 +209,20 @@ public abstract class StationScreen<T extends StationMenu> extends AbstractConta
     protected void sliderReleased() {}
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        return sliderDragged(mouseX, mouseY) || super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
+        return sliderDragged(event.x(), event.y()) || super.mouseDragged(event, dragX, dragY);
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+    public boolean mouseReleased(MouseButtonEvent event) {
         sliderReleased();
-        return super.mouseReleased(mouseX, mouseY, button);
+        return super.mouseReleased(event);
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
         if (sliderClicked(mouseX, mouseY)) {
             return true;
         }
@@ -270,7 +238,7 @@ public abstract class StationScreen<T extends StationMenu> extends AbstractConta
             // is how a container screen decides to throw the stack on the cursor onto the floor.
             return true;
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     /**

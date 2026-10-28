@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:shards/osmium"
-  },
+  "input": "#c:shards/osmium",
   "fluid": "forgeweave:molten_osmium",
   "amount": 144,
   "temperature": 1200,

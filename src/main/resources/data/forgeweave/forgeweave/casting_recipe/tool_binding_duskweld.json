@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_tool_binding"
-  },
+  "cast": "forgeweave:cast_tool_binding",
   "fluid": "forgeweave:molten_duskweld",
   "amount": 144,
   "result": {

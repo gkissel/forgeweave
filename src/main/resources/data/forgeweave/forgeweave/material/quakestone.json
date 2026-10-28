@@ -31,13 +31,11 @@
     ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:quakestone_ingot" }, "value": 144 },
-    { "ingredient": { "item": "forgeweave:quakestone_nugget" }, "value": 16 },
-    { "ingredient": { "item": "forgeweave:quakestone_block" }, "value": 1296 }
+    { "ingredient": "forgeweave:quakestone_ingot", "value": 144 },
+    { "ingredient": "forgeweave:quakestone_nugget", "value": 16 },
+    { "ingredient": "forgeweave:quakestone_block", "value": 1296 }
   ],
-  "repair_item": {
-    "tag": "c:ingots/quakestone"
-  },
+  "repair_item": "#c:ingots/quakestone",
   "cast_only": true,
   "enchantability": 12,
   "color": "#7A9B44"

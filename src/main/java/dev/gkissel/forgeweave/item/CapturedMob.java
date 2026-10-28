@@ -1,5 +1,9 @@
 package dev.gkissel.forgeweave.item;
 
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.util.ProblemReporter;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -49,8 +53,9 @@ public record CapturedMob(Identifier entityType, CompoundTag data) {
 
     /** Snapshots {@code entity} as it stands right now; the caller removes it from the world. */
     public static CapturedMob of(LivingEntity entity) {
-        return new CapturedMob(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()),
-                entity.saveWithoutId(new CompoundTag()));
+        TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, entity.registryAccess());
+        entity.saveWithoutId(output);
+        return new CapturedMob(BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType()), output.buildResult());
     }
 
     /** The captured mob's own name, for the cage's item name and tooltip. */
@@ -68,14 +73,14 @@ public record CapturedMob(Identifier entityType, CompoundTag data) {
      */
     public Optional<Entity> release(ServerLevel level, Vec3 pos, float yRot) {
         Entity entity = BuiltInRegistries.ENTITY_TYPE.getOptional(entityType)
-                .map(type -> type.create(level))
+                .map(type -> (Entity) type.create(level, EntitySpawnReason.LOAD))
                 .orElse(null);
         if (entity == null) {
             return Optional.empty();
         }
-        entity.load(data);
+        entity.load(TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), data));
         entity.setUUID(UUID.randomUUID());
-        entity.moveTo(pos.x, pos.y, pos.z, yRot, 0.0F);
+        entity.snapTo(pos.x, pos.y, pos.z, yRot, 0.0F);
         return level.addFreshEntity(entity) ? Optional.of(entity) : Optional.empty();
     }
 }

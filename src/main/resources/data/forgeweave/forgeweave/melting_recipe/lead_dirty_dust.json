@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dirty_dusts/lead"
-  },
+  "input": "#c:dirty_dusts/lead",
   "fluid": "forgeweave:molten_lead",
   "amount": 144,
   "temperature": 1200,

@@ -27,11 +27,9 @@
     "armor": ["forgeweave:depth_protection"]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:ingots/allthemodium" }, "value": 144 }
+    { "ingredient": "#c:ingots/allthemodium", "value": 144 }
   ],
-  "repair_item": {
-    "tag": "c:ingots/allthemodium"
-  },
+  "repair_item": "#c:ingots/allthemodium",
   "cast_only": true,
   "enchantability": 10,
   "color": "#E98219",

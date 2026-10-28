@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/tin"
-  },
+  "input": "#c:nuggets/tin",
   "fluid": "forgeweave:molten_tin",
   "amount": 16,
   "temperature": 1200,

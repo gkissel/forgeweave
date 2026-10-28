@@ -1,8 +1,6 @@
 {
   "modifier": "forgeweave:beheading",
-  "reagent": {
-    "item": "minecraft:obsidian"
-  },
+  "reagent": "minecraft:obsidian",
   "cost": 1,
   "max_level": 10
 }

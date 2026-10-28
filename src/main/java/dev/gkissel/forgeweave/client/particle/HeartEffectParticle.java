@@ -5,7 +5,9 @@ import net.minecraft.client.particle.CritParticle;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.SpriteSet;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.util.RandomSource;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
@@ -47,8 +49,8 @@ public class HeartEffectParticle extends CritParticle {
     private static final double SCATTER = 0.5;
 
     protected HeartEffectParticle(ClientLevel level, double x, double y, double z,
-            double xSpeed, double ySpeed, double zSpeed) {
-        super(level, x, y, z, xSpeed, ySpeed, zSpeed);
+            double xSpeed, double ySpeed, double zSpeed, TextureAtlasSprite sprite) {
+        super(level, x, y, z, xSpeed, ySpeed, zSpeed, sprite);
         this.lifetime = LIFETIME;
         this.yd += EXTRA_RISE;
         this.xd += -SCATTER / 2.0 + this.random.nextFloat() * SCATTER;
@@ -79,10 +81,8 @@ public class HeartEffectParticle extends CritParticle {
 
         @Override
         public Particle createParticle(SimpleParticleType type, ClientLevel level, double x, double y, double z,
-                double xSpeed, double ySpeed, double zSpeed) {
-            HeartEffectParticle particle = new HeartEffectParticle(level, x, y, z, xSpeed, ySpeed, zSpeed);
-            particle.pickSprite(this.sprites);
-            return particle;
+                double xSpeed, double ySpeed, double zSpeed, RandomSource random) {
+            return new HeartEffectParticle(level, x, y, z, xSpeed, ySpeed, zSpeed, this.sprites.get(random));
         }
     }
 }

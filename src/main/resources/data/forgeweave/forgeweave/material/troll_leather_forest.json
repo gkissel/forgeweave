@@ -45,15 +45,11 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "iceandfire:troll_leather_forest"
-      },
+      "ingredient": "iceandfire:troll_leather_forest",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "iceandfire:troll_leather_forest"
-  },
+  "repair_item": "iceandfire:troll_leather_forest",
   "enchantability": 14,
   "color": "#4A5C3A",
   "neoforge:conditions": [

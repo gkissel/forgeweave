@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/nightshale"
-  },
+  "input": "#c:dusts/nightshale",
   "fluid": "forgeweave:molten_nightshale",
   "amount": 144
 }

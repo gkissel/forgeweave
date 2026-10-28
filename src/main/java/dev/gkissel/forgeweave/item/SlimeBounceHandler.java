@@ -118,7 +118,7 @@ public final class SlimeBounceHandler {
             Vec3 motion = player.getDeltaMovement();
             if (motion.x != lastMovX || motion.z != lastMovZ) {
                 player.setDeltaMovement(motion.x / AIR_DRAG, motion.y, motion.z / AIR_DRAG);
-                player.hasImpulse = true;
+                player.needsSync = true;
                 lastMovX = player.getDeltaMovement().x;
                 lastMovZ = player.getDeltaMovement().z;
             }

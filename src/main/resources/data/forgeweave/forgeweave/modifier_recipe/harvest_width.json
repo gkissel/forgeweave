@@ -1,8 +1,6 @@
 {
   "modifier": "forgeweave:harvest_width",
-  "reagent": {
-    "item": "forgeweave:expander_w"
-  },
+  "reagent": "forgeweave:expander_w",
   "cost": 1,
   "max_level": 1
 }

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "justdirethings:eclipsealloy_block"
-  },
+  "input": "justdirethings:eclipsealloy_block",
   "fluid": "forgeweave:molten_eclipsealloy",
   "amount": 1296,
   "temperature": 1600,

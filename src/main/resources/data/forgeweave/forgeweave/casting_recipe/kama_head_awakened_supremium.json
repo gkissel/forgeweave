@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_kama_head"
-  },
+  "cast": "forgeweave:cast_kama_head",
   "fluid": "forgeweave:molten_awakened_supremium",
   "amount": 288,
   "result": {

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/silver"
-  },
+  "input": "#c:storage_blocks/silver",
   "fluid": "forgeweave:molten_silver",
   "amount": 1296,
   "temperature": 1200,

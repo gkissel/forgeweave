@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/tantalum"
-  },
+  "input": "#c:ingots/tantalum",
   "fluid": "forgeweave:molten_elementarium_tantalum",
   "amount": 144,
   "temperature": 1400,

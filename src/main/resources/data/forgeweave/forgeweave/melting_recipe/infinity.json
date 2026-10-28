@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "avaritia:infinity_ingot"
-  },
+  "input": "avaritia:infinity_ingot",
   "fluid": "forgeweave:molten_infinity",
   "amount": 144,
   "temperature": 1600,

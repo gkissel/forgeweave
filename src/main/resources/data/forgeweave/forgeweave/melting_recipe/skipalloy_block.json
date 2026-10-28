@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/skipalloy"
-  },
+  "input": "#c:storage_blocks/skipalloy",
   "fluid": "forgeweave:molten_skipalloy",
   "amount": 1296,
   "temperature": 1400

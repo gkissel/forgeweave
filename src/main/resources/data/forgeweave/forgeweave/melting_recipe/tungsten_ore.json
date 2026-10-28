@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ores/tungsten"
-  },
+  "input": "#c:ores/tungsten",
   "fluid": "forgeweave:molten_tungsten",
   "amount": 144,
   "ore": true,

@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_bow_limb"
-  },
+  "cast": "forgeweave:clay_cast_bow_limb",
   "fluid": "forgeweave:molten_cosmic_neutronium",
   "amount": 432,
   "result": {

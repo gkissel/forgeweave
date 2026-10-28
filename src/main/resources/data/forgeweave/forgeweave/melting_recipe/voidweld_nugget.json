@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/voidweld"
-  },
+  "input": "#c:nuggets/voidweld",
   "fluid": "forgeweave:molten_voidweld",
   "amount": 16,
   "temperature": 2000,

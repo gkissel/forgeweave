@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/osgloglas"
-  },
+  "input": "#c:nuggets/osgloglas",
   "fluid": "forgeweave:molten_osgloglas",
   "amount": 16,
   "temperature": 1400,

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/fiery"
-  },
+  "input": "#c:dusts/fiery",
   "fluid": "forgeweave:molten_fiery",
   "amount": 144,
   "temperature": 1600,

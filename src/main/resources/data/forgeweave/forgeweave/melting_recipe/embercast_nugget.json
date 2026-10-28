@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/embercast"
-  },
+  "input": "#c:nuggets/embercast",
   "fluid": "forgeweave:molten_embercast",
   "amount": 16
 }

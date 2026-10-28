@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:tiny_dusts/constantan"
-  },
+  "input": "#c:tiny_dusts/constantan",
   "fluid": "forgeweave:molten_constantan",
   "amount": 16,
   "temperature": 1200,

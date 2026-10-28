@@ -25,7 +25,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.Enchantable;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
@@ -34,6 +33,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.trait.Trait;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.ArmorPieceItem;
+import dev.gkissel.forgeweave.item.Enchantability;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PartItem;
@@ -665,7 +665,7 @@ public final class ToolAssemblyRecipes {
         result.set(ForgeweaveDataComponents.ARMOR_STATS.get(), fresh.get(ForgeweaveDataComponents.ARMOR_STATS.get()));
         // #593: the swapped-in material changes the mean, so this is rebuilt from the new part set
         // exactly like the stat block above rather than riding along on the copy.
-        setEnchantability(result, fresh.get(ForgeweaveDataComponents.ENCHANTABILITY.get()));
+        Enchantability.set(result, fresh.get(ForgeweaveDataComponents.ENCHANTABILITY.get()));
         // #777: the swapped-in head material changes the base tier the same way it changes the mean
         // enchantability above, so this rides along on the fresh rebuild too rather than the copy.
         result.set(ForgeweaveDataComponents.BASE_TOOL_TIER.get(),
@@ -925,7 +925,7 @@ public final class ToolAssemblyRecipes {
         result.set(ForgeweaveDataComponents.TOOL_STATS.get(), stats);
         // #593: what the vanilla enchanting table reads while allowVanillaEnchanting is on, averaged
         // over every part's material here because ToolItem#getEnchantmentValue gets no registry.
-        setEnchantability(result, ToolStats.averageEnchantability(materials));
+        Enchantability.set(result, ToolStats.averageEnchantability(materials));
         // M3.5 #394: a bow's ranged half (upstream ProjectileLauncherNBT#limb) -- present only for
         // a tool with LIMB slots, so every other tool's component set is exactly what it was.
         LauncherStats.of(entry.constants(), materials)
@@ -993,7 +993,7 @@ public final class ToolAssemblyRecipes {
         result.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(),
                 ToolMaterials.of(entry.constants().parts(), materialIds));
         result.set(ForgeweaveDataComponents.ARMOR_STATS.get(), stats);
-        setEnchantability(result, platingMaterial(entry, materials).enchantability());
+        Enchantability.set(result, platingMaterial(entry, materials).enchantability());
         result.set(ForgeweaveDataComponents.TRAITS.get(), traits);
         result.set(DataComponents.MAX_DAMAGE, stats.durability());
         result.set(DataComponents.DAMAGE, 0);
@@ -1335,19 +1335,6 @@ public final class ToolAssemblyRecipes {
         return registries.lookup(Material.REGISTRY)
                 .flatMap(lookup -> lookup.get(ResourceKey.create(Material.REGISTRY, id)))
                 .map(holder -> holder.value());
-    }
-
-    /**
-     * Writes Forgeweave's enchantability and, since 1.21.5, vanilla's {@code minecraft:enchantable},
-     * which is the only value the enchanting table reads. {@code null} clears both.
-     */
-    private static void setEnchantability(ItemStack result, @Nullable Integer value) {
-        result.set(ForgeweaveDataComponents.ENCHANTABILITY.get(), value);
-        if (value == null) {
-            result.remove(DataComponents.ENCHANTABLE);
-        } else {
-            result.set(DataComponents.ENCHANTABLE, new Enchantable(value));
-        }
     }
 
     private ToolAssemblyRecipes() {}

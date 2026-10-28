@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/electrum"
-  },
+  "input": "#c:nuggets/electrum",
   "fluid": "forgeweave:molten_electrum",
   "amount": 16,
   "temperature": 1200,

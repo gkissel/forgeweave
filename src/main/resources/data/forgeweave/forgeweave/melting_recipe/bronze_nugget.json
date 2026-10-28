@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/bronze"
-  },
+  "input": "#c:nuggets/bronze",
   "fluid": "forgeweave:molten_bronze",
   "amount": 16,
   "temperature": 1200,

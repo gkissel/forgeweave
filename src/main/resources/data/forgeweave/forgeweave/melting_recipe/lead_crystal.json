@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:crystals/lead"
-  },
+  "input": "#c:crystals/lead",
   "fluid": "forgeweave:molten_lead",
   "amount": 144,
   "temperature": 1200,

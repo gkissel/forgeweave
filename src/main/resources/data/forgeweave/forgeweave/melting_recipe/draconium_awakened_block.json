@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/draconium_awakened"
-  },
+  "input": "#c:storage_blocks/draconium_awakened",
   "fluid": "forgeweave:molten_draconium_awakened",
   "amount": 1296,
   "temperature": 1800,

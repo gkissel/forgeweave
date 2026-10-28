@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/osgloglas"
-  },
+  "input": "#c:storage_blocks/osgloglas",
   "fluid": "forgeweave:molten_osgloglas",
   "amount": 1296,
   "temperature": 1400,

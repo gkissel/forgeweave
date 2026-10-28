@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/soularium"
-  },
+  "input": "#c:nuggets/soularium",
   "fluid": "forgeweave:molten_soularium",
   "amount": 16,
   "temperature": 1400,

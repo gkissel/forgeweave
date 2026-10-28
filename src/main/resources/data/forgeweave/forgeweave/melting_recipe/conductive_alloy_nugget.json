@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/conductive_alloy"
-  },
+  "input": "#c:nuggets/conductive_alloy",
   "fluid": "forgeweave:molten_conductive_alloy",
   "amount": 16,
   "temperature": 1200,

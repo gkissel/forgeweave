@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "minecraft:bucket"
-  },
+  "cast": "minecraft:bucket",
   "amount": 1000,
   "result": {
     "id": "minecraft:bucket"

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/osmium"
-  },
+  "input": "#c:dusts/osmium",
   "fluid": "forgeweave:molten_osmium",
   "amount": 144,
   "temperature": 1200,

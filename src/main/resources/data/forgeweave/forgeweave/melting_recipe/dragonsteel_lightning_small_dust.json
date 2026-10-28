@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/dragonsteel_lightning"
-  },
+  "input": "#c:small_dusts/dragonsteel_lightning",
   "fluid": "forgeweave:molten_dragonsteel_lightning",
   "amount": 36,
   "temperature": 1600,

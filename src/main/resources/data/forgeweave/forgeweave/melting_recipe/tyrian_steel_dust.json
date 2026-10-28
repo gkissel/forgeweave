@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/tyrian_steel"
-  },
+  "input": "#c:dusts/tyrian_steel",
   "fluid": "forgeweave:molten_tyrian_steel",
   "amount": 144,
   "temperature": 1600,

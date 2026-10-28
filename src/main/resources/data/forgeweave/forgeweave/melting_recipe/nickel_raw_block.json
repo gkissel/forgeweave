@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/raw_nickel"
-  },
+  "input": "#c:storage_blocks/raw_nickel",
   "fluid": "forgeweave:molten_nickel",
   "amount": 1296,
   "ore": true,

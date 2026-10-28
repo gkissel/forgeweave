@@ -26,11 +26,9 @@
     "general": ["forgeweave:emberdrink"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "allthemodium:unobtainium_allthemodium_alloy_ingot" }, "value": 144 }
+    { "ingredient": "allthemodium:unobtainium_allthemodium_alloy_ingot", "value": 144 }
   ],
-  "repair_item": {
-    "item": "allthemodium:unobtainium_allthemodium_alloy_ingot"
-  },
+  "repair_item": "allthemodium:unobtainium_allthemodium_alloy_ingot",
   "cast_only": true,
   "enchantability": 10,
   "color": "#B75A75",

@@ -52,15 +52,11 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:ingots/unobtainium"
-      },
+      "ingredient": "#c:ingots/unobtainium",
       "value": 144
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/unobtainium"
-  },
+  "repair_item": "#c:ingots/unobtainium",
   "cast_only": true,
   "enchantability": 10,
   "color": "#8C36C8",

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:gems/amethyst"
-  },
+  "input": "#c:gems/amethyst",
   "fluid": "forgeweave:molten_amethyst",
   "amount": 100
 }

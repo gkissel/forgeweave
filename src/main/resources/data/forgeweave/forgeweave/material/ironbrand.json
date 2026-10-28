@@ -27,13 +27,11 @@
     "armor": ["forgeweave:bloodward"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:ironbrand_ingot" }, "value": 144 },
-    { "ingredient": { "item": "forgeweave:ironbrand_nugget" }, "value": 16 },
-    { "ingredient": { "item": "forgeweave:ironbrand_block" }, "value": 1296 }
+    { "ingredient": "forgeweave:ironbrand_ingot", "value": 144 },
+    { "ingredient": "forgeweave:ironbrand_nugget", "value": 16 },
+    { "ingredient": "forgeweave:ironbrand_block", "value": 1296 }
   ],
-  "repair_item": {
-    "tag": "c:ingots/ironbrand"
-  },
+  "repair_item": "#c:ingots/ironbrand",
   "cast_only": true,
   "enchantability": 10,
   "color": "#BA6749"

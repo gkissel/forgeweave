@@ -1,6 +1,5 @@
 package dev.gkissel.forgeweave.recipe;
 
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
@@ -212,7 +211,7 @@ public record MeltingRecipe(Ingredient input, Fluid fluid, int amount, int tempe
      */
     public boolean isTagInput() {
         return !input.isCustom()
-                && Arrays.stream(input.getValues()).anyMatch(value -> value instanceof Ingredient.TagValue);
+                && input.getValues().unwrapKey().isPresent();
     }
 
     /**
@@ -241,7 +240,7 @@ public record MeltingRecipe(Ingredient input, Fluid fluid, int amount, int tempe
                 // false sorts before true, so item inputs come first.
                 .min(Comparator.<Map.Entry<ResourceKey<MeltingRecipe>, MeltingRecipe>, Boolean>comparing(
                                 entry -> entry.getValue().isTagInput())
-                        .thenComparing(entry -> entry.getKey().location()))
+                        .thenComparing(entry -> entry.getKey().identifier()))
                 .map(Map.Entry::getValue)
                 .or(() -> meltBackOfACastPart(registries, stack))
                 .or(() -> meltBackOfStonePart(stack));

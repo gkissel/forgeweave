@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/conductive_alloy"
-  },
+  "input": "#c:storage_blocks/conductive_alloy",
   "fluid": "forgeweave:molten_conductive_alloy",
   "amount": 1296,
   "temperature": 1200,

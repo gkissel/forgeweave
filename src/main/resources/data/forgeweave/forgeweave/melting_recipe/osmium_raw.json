@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:raw_materials/osmium"
-  },
+  "input": "#c:raw_materials/osmium",
   "fluid": "forgeweave:molten_osmium",
   "amount": 144,
   "ore": true,

@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "minecraft:heavy_core"
-  },
+  "cast": "minecraft:heavy_core",
   "fluid": "forgeweave:molten_gold",
   "amount": 288,
   "result": {

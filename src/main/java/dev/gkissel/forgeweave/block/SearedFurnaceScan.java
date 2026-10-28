@@ -117,7 +117,7 @@ public final class SearedFurnaceScan {
 
         Part layerFailure = null;
         int height = 0;
-        for (int y = bottom.getY(); y < level.getMaxBuildHeight(); y++) {
+        for (int y = bottom.getY(); y <= level.getMaxY(); y++) {
             Part layer = detectLayer(level, corePos, y, west, east, north, south);
             if (layer.failure() != null) {
                 layerFailure = layer;

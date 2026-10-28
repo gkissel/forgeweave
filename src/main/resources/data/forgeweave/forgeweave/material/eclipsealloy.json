@@ -50,27 +50,19 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:ingots/eclipsealloy"
-      },
+      "ingredient": "#c:ingots/eclipsealloy",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:raw_materials/eclipsealloy"
-      },
+      "ingredient": "#c:raw_materials/eclipsealloy",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "justdirethings:eclipsealloy_block"
-      },
+      "ingredient": "justdirethings:eclipsealloy_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/eclipsealloy"
-  },
+  "repair_item": "#c:ingots/eclipsealloy",
   "cast_only": true,
   "enchantability": 15,
   "color": "#1B2A4A",

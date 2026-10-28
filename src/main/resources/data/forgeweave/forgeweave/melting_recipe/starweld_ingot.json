@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/starweld"
-  },
+  "input": "#c:ingots/starweld",
   "fluid": "forgeweave:molten_starweld",
   "amount": 144,
   "temperature": 2000,

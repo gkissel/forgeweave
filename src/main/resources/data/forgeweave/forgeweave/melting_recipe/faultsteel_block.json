@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/faultsteel"
-  },
+  "input": "#c:storage_blocks/faultsteel",
   "fluid": "forgeweave:molten_faultsteel",
   "amount": 1296,
   "temperature": 1400

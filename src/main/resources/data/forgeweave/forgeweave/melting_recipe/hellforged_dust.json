@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "neovitae:hellforged_dust"
-  },
+  "input": "neovitae:hellforged_dust",
   "fluid": "forgeweave:molten_hellforged",
   "amount": 144,
   "temperature": 1600,

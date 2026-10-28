@@ -112,8 +112,8 @@ final class WorktableCategory implements IRecipeCategory<WorktableDisplay> {
         Component title = Component.translatable(
                 "jei.category.forgeweave.modifier_worktable."
                         + display.recipe().kind().getSerializedName());
-        guiGraphics.drawString(Minecraft.getInstance().font,
+        guiGraphics.text(Minecraft.getInstance().font,
                 JeiCategoryGeometry.trimToWidth(Minecraft.getInstance().font, title, TITLE_WIDTH),
-                TITLE_X, TITLE_Y, TITLE_COLOR, false);
+                TITLE_X, TITLE_Y, JeiCategoryGeometry.opaque(TITLE_COLOR), false);
     }
 }

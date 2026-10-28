@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:raw_materials/titanium"
-  },
+  "input": "#c:raw_materials/titanium",
   "fluid": "forgeweave:molten_titanium",
   "amount": 144,
   "ore": true,

@@ -1,5 +1,8 @@
 package dev.gkissel.forgeweave.item;
 
+import java.util.function.Consumer;
+import net.minecraft.world.item.component.TooltipDisplay;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -155,10 +158,13 @@ public class PartItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
+            Consumer<Component> builder, TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, builder, flag);
+        List<Component> tooltip = new ArrayList<>();
         append(stack, context.registries(), ToolTooltip.detailed(flag), tooltip);
         ToolTooltip.appendShiftHint(ToolTooltip.shiftHint(flag), tooltip);
+        tooltip.forEach(builder);
     }
 
     /**

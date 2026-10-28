@@ -1,5 +1,8 @@
 package dev.gkissel.forgeweave.item;
 
+import java.util.function.Consumer;
+import net.minecraft.world.item.component.TooltipDisplay;
+
 import java.util.List;
 
 import net.minecraft.ChatFormatting;
@@ -27,10 +30,11 @@ public class DescribedItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
+            Consumer<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, tooltip, flag);
         for (String key : tooltipKeys) {
-            tooltip.add(Component.translatable(key).withStyle(ChatFormatting.GRAY));
+            tooltip.accept(Component.translatable(key).withStyle(ChatFormatting.GRAY));
         }
     }
 }

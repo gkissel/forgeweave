@@ -6,9 +6,7 @@
     }
   ],
   "modifier": "forgeweave:goggles",
-  "reagent": {
-    "item": "create:goggles"
-  },
+  "reagent": "create:goggles",
   "cost": 1,
   "max_level": 1
 }

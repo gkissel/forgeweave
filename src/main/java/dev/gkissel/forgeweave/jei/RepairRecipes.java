@@ -59,7 +59,7 @@ final class RepairRecipes {
                 .toList());
         ingredients.add(material.repairItem());
         for (Ingredient ingredient : ingredients) {
-            for (ItemStack stack : ingredient.getItems()) {
+            for (ItemStack stack : IngredientStacks.of(ingredient)) {
                 if (seen.add(stack.getItem())) {
                     accepted.add(stack.copyWithCount(1));
                 }

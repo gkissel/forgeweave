@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/raw_uranium"
-  },
+  "input": "#c:storage_blocks/raw_uranium",
   "fluid": "forgeweave:molten_uranium",
   "amount": 1296,
   "ore": true,

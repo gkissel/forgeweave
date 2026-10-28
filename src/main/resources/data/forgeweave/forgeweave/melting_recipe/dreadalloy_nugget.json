@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/dreadalloy"
-  },
+  "input": "#c:nuggets/dreadalloy",
   "fluid": "forgeweave:molten_dreadalloy",
   "amount": 16
 }

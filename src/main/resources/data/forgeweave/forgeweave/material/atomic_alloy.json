@@ -48,15 +48,11 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "mekanism:alloy_atomic"
-      },
+      "ingredient": "mekanism:alloy_atomic",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "mekanism:alloy_atomic"
-  },
+  "repair_item": "mekanism:alloy_atomic",
   "enchantability": 14,
   "color": "#B479D1",
   "neoforge:conditions": [

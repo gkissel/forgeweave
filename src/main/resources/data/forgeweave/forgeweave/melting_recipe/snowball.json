@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "minecraft:snowball"
-  },
+  "input": "minecraft:snowball",
   "fluid": "minecraft:water",
   "amount": 125,
   "temperature": 301

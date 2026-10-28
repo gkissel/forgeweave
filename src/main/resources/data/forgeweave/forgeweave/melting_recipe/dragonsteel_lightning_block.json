@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "iceandfire:dragonsteel_lightning_block"
-  },
+  "input": "iceandfire:dragonsteel_lightning_block",
   "fluid": "forgeweave:molten_dragonsteel_lightning",
   "amount": 1296,
   "temperature": 1600,

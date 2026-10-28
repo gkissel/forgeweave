@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "cataclysm:cursium_block"
-  },
+  "input": "cataclysm:cursium_block",
   "fluid": "forgeweave:molten_cursium",
   "amount": 1296,
   "temperature": 1600,

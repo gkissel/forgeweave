@@ -1,8 +1,6 @@
 {
   "station": "basin",
-  "cast": {
-    "item": "minecraft:furnace"
-  },
+  "cast": "minecraft:furnace",
   "fluid": "forgeweave:molten_seared_stone",
   "amount": 1152,
   "result": {

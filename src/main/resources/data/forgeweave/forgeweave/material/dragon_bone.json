@@ -44,15 +44,11 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "iceandfire:dragonbone"
-      },
+      "ingredient": "iceandfire:dragonbone",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "iceandfire:dragonbone"
-  },
+  "repair_item": "iceandfire:dragonbone",
   "cast_only": true,
   "enchantability": 14,
   "color": "#E3D6A0",

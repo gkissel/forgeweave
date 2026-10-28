@@ -21,8 +21,8 @@ public record StackingSlownessOnHitSeam(int durationTicks, int maxAmplifier) imp
 
     @Override
     public void onHit(CombatHit hit, float damageDealt) {
-        MobEffectInstance current = hit.target().getEffect(MobEffects.MOVEMENT_SLOWDOWN);
+        MobEffectInstance current = hit.target().getEffect(MobEffects.SLOWNESS);
         int amplifier = Math.min(maxAmplifier, (current == null ? -1 : current.getAmplifier()) + 1);
-        hit.target().addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, durationTicks, amplifier));
+        hit.target().addEffect(new MobEffectInstance(MobEffects.SLOWNESS, durationTicks, amplifier));
     }
 }

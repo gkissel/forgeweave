@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/draconium"
-  },
+  "input": "#c:nuggets/draconium",
   "fluid": "forgeweave:molten_draconium",
   "amount": 16,
   "temperature": 1600,

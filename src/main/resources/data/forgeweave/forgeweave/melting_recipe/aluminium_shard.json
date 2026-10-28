@@ -1,12 +1,11 @@
 {
-  "input": [
-    {
-      "tag": "c:shards/aluminium"
-    },
-    {
-      "tag": "c:shards/aluminum"
-    }
-  ],
+  "input": {
+    "neoforge:ingredient_type": "neoforge:compound",
+    "children": [
+      "#c:shards/aluminium",
+      "#c:shards/aluminum"
+    ]
+  },
   "fluid": "forgeweave:molten_aluminium",
   "amount": 144,
   "temperature": 1200,

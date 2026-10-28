@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/lead"
-  },
+  "input": "#c:storage_blocks/lead",
   "fluid": "forgeweave:molten_lead",
   "amount": 1296,
   "temperature": 1200,

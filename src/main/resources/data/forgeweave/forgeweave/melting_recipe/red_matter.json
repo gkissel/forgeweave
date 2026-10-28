@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "projecte:red_matter"
-  },
+  "input": "projecte:red_matter",
   "fluid": "forgeweave:molten_red_matter",
   "amount": 144,
   "temperature": 1600,

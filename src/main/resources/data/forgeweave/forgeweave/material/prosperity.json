@@ -40,15 +40,11 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "mysticalagriculture:prosperity_ingot"
-      },
+      "ingredient": "mysticalagriculture:prosperity_ingot",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "mysticalagriculture:prosperity_ingot"
-  },
+  "repair_item": "mysticalagriculture:prosperity_ingot",
   "cast_only": true,
   "enchantability": 14,
   "color": "#84A2A2",

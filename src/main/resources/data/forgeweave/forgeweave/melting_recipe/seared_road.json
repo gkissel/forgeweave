@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "forgeweave:seared_road"
-  },
+  "input": "forgeweave:seared_road",
   "fluid": "forgeweave:molten_seared_stone",
   "amount": 288
 }

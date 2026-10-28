@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/dreadalloy"
-  },
+  "input": "#c:ingots/dreadalloy",
   "fluid": "forgeweave:molten_dreadalloy",
   "amount": 144
 }

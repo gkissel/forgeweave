@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/faultsteel"
-  },
+  "input": "#c:dusts/faultsteel",
   "fluid": "forgeweave:molten_faultsteel",
   "amount": 144,
   "temperature": 1400

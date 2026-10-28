@@ -8,15 +8,11 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "minecraft:vine"
-      },
+      "ingredient": "minecraft:vine",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "minecraft:vine"
-  },
+  "repair_item": "minecraft:vine",
   "enchantability": 15,
   "color": "#40A10F",
   "bowstring": {

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/hardcinder"
-  },
+  "input": "#c:ingots/hardcinder",
   "fluid": "forgeweave:molten_hardcinder",
   "amount": 144
 }

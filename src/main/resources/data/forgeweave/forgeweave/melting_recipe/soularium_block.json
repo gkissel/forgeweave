@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/soularium"
-  },
+  "input": "#c:storage_blocks/soularium",
   "fluid": "forgeweave:molten_soularium",
   "amount": 1296,
   "temperature": 1400,

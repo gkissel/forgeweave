@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/emerald"
-  },
+  "input": "#c:storage_blocks/emerald",
   "fluid": "forgeweave:molten_emerald",
   "amount": 5994,
   "temperature": 999

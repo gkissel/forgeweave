@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_sharpening_kit"
-  },
+  "cast": "forgeweave:clay_cast_sharpening_kit",
   "fluid": "forgeweave:molten_unobtainium_allthemodium_alloy",
   "amount": 288,
   "result": {

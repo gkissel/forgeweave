@@ -49,21 +49,15 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:ingots/deorum"
-      },
+      "ingredient": "#c:ingots/deorum",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:storage_blocks/deorum"
-      },
+      "ingredient": "#c:storage_blocks/deorum",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/deorum"
-  },
+  "repair_item": "#c:ingots/deorum",
   "cast_only": true,
   "enchantability": 20,
   "color": "#D29224",

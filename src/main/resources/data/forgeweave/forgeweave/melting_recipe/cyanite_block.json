@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/cyanite"
-  },
+  "input": "#c:storage_blocks/cyanite",
   "fluid": "forgeweave:molten_cyanite",
   "amount": 1296,
   "temperature": 1400,

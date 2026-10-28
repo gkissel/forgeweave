@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:clumps/tin"
-  },
+  "input": "#c:clumps/tin",
   "fluid": "forgeweave:molten_tin",
   "amount": 144,
   "temperature": 1200,

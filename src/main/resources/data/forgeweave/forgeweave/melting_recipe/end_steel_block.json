@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/end_steel"
-  },
+  "input": "#c:storage_blocks/end_steel",
   "fluid": "forgeweave:molten_end_steel",
   "amount": 1296,
   "temperature": 1600,

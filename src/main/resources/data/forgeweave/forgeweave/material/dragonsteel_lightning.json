@@ -52,21 +52,15 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "iceandfire:dragonsteel_lightning_ingot"
-      },
+      "ingredient": "iceandfire:dragonsteel_lightning_ingot",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "iceandfire:dragonsteel_lightning_block"
-      },
+      "ingredient": "iceandfire:dragonsteel_lightning_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "item": "iceandfire:dragonsteel_lightning_ingot"
-  },
+  "repair_item": "iceandfire:dragonsteel_lightning_ingot",
   "cast_only": true,
   "enchantability": 18,
   "color": "#6A4C93",

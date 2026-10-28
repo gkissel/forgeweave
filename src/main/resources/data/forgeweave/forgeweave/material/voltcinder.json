@@ -53,27 +53,19 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "forgeweave:voltcinder_ingot"
-      },
+      "ingredient": "forgeweave:voltcinder_ingot",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "forgeweave:voltcinder_nugget"
-      },
+      "ingredient": "forgeweave:voltcinder_nugget",
       "value": 16
     },
     {
-      "ingredient": {
-        "item": "forgeweave:voltcinder_block"
-      },
+      "ingredient": "forgeweave:voltcinder_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/voltcinder"
-  },
+  "repair_item": "#c:ingots/voltcinder",
   "cast_only": true,
   "enchantability": 10,
   "color": "#00C9F2"

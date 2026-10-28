@@ -1,17 +1,20 @@
 package dev.gkissel.forgeweave.item;
 
+import java.util.function.Consumer;
+import net.minecraft.world.item.component.TooltipDisplay;
+
 import java.util.List;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
@@ -79,14 +82,14 @@ public class SlimeSlingItem extends Item {
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
         player.startUsingItem(hand);
-        return InteractionResultHolder.consume(player.getItemInHand(hand));
+        return InteractionResult.CONSUME;
     }
 
     @Override
-    public UseAnim getUseAnimation(ItemStack stack) {
-        return UseAnim.BOW;
+    public ItemUseAnimation getUseAnimation(ItemStack stack) {
+        return ItemUseAnimation.BOW;
     }
 
     @Override
@@ -114,13 +117,13 @@ public class SlimeSlingItem extends Item {
      * registers per side exactly as before, unaffected by this.
      */
     @Override
-    public void releaseUsing(ItemStack stack, Level level, LivingEntity entity, int timeLeft) {
+    public boolean releaseUsing(ItemStack stack, Level level, LivingEntity entity, int timeLeft) {
         if (!(entity instanceof Player player) || !player.onGround()) {
-            return;
+            return false;
         }
         BlockHitResult target = getPlayerPOVHitResult(level, player, ClipContext.Fluid.NONE);
         if (target.getType() != HitResult.Type.BLOCK) {
-            return;
+            return false;
         }
 
         float force = launchForce(USE_DURATION - timeLeft);
@@ -129,13 +132,15 @@ public class SlimeSlingItem extends Item {
                 look.z * -force * HORIZONTAL_SCALE);
         player.playSound(ForgeweaveSounds.SLIME_SLING.get(), 1.0F, 1.0F);
         SlimeBounceHandler.addBounceHandler(player);
+        return false;
     }
 
     /** Upstream's {@code item.tconstruct.slimesling.tooltip}, both lines. */
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
-        tooltip.add(Component.translatable("tooltip.forgeweave.slime_sling").withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.forgeweave.slime_sling.boots").withStyle(ChatFormatting.GRAY));
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
+            Consumer<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, tooltip, flag);
+        tooltip.accept(Component.translatable("tooltip.forgeweave.slime_sling").withStyle(ChatFormatting.GRAY));
+        tooltip.accept(Component.translatable("tooltip.forgeweave.slime_sling.boots").withStyle(ChatFormatting.GRAY));
     }
 }

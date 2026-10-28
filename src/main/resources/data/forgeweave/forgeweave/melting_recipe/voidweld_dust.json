@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/voidweld"
-  },
+  "input": "#c:dusts/voidweld",
   "fluid": "forgeweave:molten_voidweld",
   "amount": 144,
   "temperature": 2000,

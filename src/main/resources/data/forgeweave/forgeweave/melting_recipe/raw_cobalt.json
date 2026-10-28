@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:raw_materials/cobalt"
-  },
+  "input": "#c:raw_materials/cobalt",
   "fluid": "forgeweave:molten_cobalt",
   "amount": 144,
   "ore": true

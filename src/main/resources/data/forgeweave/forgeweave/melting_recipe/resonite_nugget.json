@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/resonite"
-  },
+  "input": "#c:nuggets/resonite",
   "fluid": "forgeweave:molten_resonite",
   "amount": 16
 }

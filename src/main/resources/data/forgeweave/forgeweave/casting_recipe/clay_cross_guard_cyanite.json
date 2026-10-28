@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_cross_guard"
-  },
+  "cast": "forgeweave:clay_cast_cross_guard",
   "fluid": "forgeweave:molten_cyanite",
   "amount": 144,
   "result": {

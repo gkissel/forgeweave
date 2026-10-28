@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:shards/platinum"
-  },
+  "input": "#c:shards/platinum",
   "fluid": "forgeweave:molten_platinum",
   "amount": 144,
   "temperature": 1400,

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/dragonsteel_fire"
-  },
+  "input": "#c:dusts/dragonsteel_fire",
   "fluid": "forgeweave:molten_dragonsteel_fire",
   "amount": 144,
   "temperature": 1600,

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/blaze_gold"
-  },
+  "input": "#c:dusts/blaze_gold",
   "fluid": "forgeweave:molten_blaze_gold",
   "amount": 144,
   "temperature": 1200,

@@ -52,15 +52,11 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "mysticalagriculture:awakened_supremium_ingot"
-      },
+      "ingredient": "mysticalagriculture:awakened_supremium_ingot",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "mysticalagriculture:awakened_supremium_ingot"
-  },
+  "repair_item": "mysticalagriculture:awakened_supremium_ingot",
   "cast_only": true,
   "enchantability": 22,
   "color": "#D37B00",

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "create:zinc_ingot"
-  },
+  "input": "create:zinc_ingot",
   "fluid": "forgeweave:molten_zinc",
   "amount": 144,
   "temperature": 1200,

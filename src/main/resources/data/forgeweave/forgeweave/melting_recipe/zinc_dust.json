@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/zinc"
-  },
+  "input": "#c:dusts/zinc",
   "fluid": "forgeweave:molten_zinc",
   "amount": 144,
   "temperature": 1200,

@@ -6,6 +6,7 @@ import java.util.Optional;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import net.minecraft.core.NonNullList;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
@@ -17,9 +18,11 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.material.Fluid;
 
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
@@ -167,13 +170,38 @@ public record CastingRecipe(Station station, Optional<Ingredient> cast, Optional
         if (fluid.isPresent()) {
             return result.copy();
         }
-        ItemStack container = result.copy();
-        IFluidHandlerItem handler = container.getCapability(Capabilities.FluidHandler.ITEM);
-        if (handler == null) {
-            return container;
+        ItemStacksResourceHandler slot = containerSlot();
+        if (fill(slot, poured, true) < 0) {
+            return result.copy();
         }
-        handler.fill(new FluidStack(poured, amount), IFluidHandler.FluidAction.EXECUTE);
-        return handler.getContainer();
+        return slot.getResource(0).toStack(slot.getAmountAsInt(0));
+    }
+
+    /**
+     * {@link #result} alone in a one-slot inventory. NeoForge 26.1's item fluid handlers fill through
+     * an {@link ItemAccess}, which needs somewhere to put the filled container back -- the 1.21.1
+     * {@code IFluidHandlerItem#getContainer} had it to hand.
+     */
+    private ItemStacksResourceHandler containerSlot() {
+        return new ItemStacksResourceHandler(NonNullList.of(ItemStack.EMPTY, result.copy()));
+    }
+
+    /**
+     * Pours {@link #amount} of {@code poured} into the container in {@code slot}; {@code commit}
+     * false is a simulation. The amount that went in, or -1 when the container holds no fluid at all.
+     */
+    private int fill(ItemStacksResourceHandler slot, Fluid poured, boolean commit) {
+        ResourceHandler<FluidResource> handler = ItemAccess.forHandlerIndex(slot, 0).getCapability(Capabilities.Fluid.ITEM);
+        if (handler == null) {
+            return -1;
+        }
+        try (Transaction transaction = Transaction.openRoot()) {
+            int filled = handler.insert(FluidResource.of(poured), amount, transaction);
+            if (commit) {
+                transaction.commit();
+            }
+            return filled;
+        }
     }
 
     /**
@@ -183,9 +211,7 @@ public record CastingRecipe(Station station, Optional<Ingredient> cast, Optional
      * bucket item -- some other mod's -- from being poured away into a bucket that comes back empty.
      */
     private boolean containerHolds(Fluid poured) {
-        IFluidHandlerItem handler = result.copy().getCapability(Capabilities.FluidHandler.ITEM);
-        return handler != null
-                && handler.fill(new FluidStack(poured, amount), IFluidHandler.FluidAction.SIMULATE) >= amount;
+        return fill(containerSlot(), poured, false) >= amount;
     }
 
     /**

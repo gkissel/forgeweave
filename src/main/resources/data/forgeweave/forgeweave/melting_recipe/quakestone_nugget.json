@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/quakestone"
-  },
+  "input": "#c:nuggets/quakestone",
   "fluid": "forgeweave:molten_quakestone",
   "amount": 16
 }

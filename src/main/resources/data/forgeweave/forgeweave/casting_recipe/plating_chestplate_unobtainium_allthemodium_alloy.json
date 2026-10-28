@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_plating_chestplate"
-  },
+  "cast": "forgeweave:cast_plating_chestplate",
   "fluid": "forgeweave:molten_unobtainium_allthemodium_alloy",
   "amount": 864,
   "result": {

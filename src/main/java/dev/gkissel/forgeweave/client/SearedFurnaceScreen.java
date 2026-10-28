@@ -6,6 +6,8 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.Rect2i;
@@ -86,19 +88,17 @@ public class SearedFurnaceScreen extends StationScreen<SearedFurnaceMenu> {
     private boolean draggingSlider;
 
     public SearedFurnaceScreen(SearedFurnaceMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
-        imageWidth = BASE_WIDTH;
-        imageHeight = BASE_HEIGHT;
+        super(menu, playerInventory, title, BASE_WIDTH, BASE_HEIGHT);
     }
 
     @Override
     protected void renderPanel(GuiGraphicsExtractor graphics, float partialTick, int mouseX, int mouseY) {
-        graphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, SHEET, SHEET);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, SHEET, SHEET);
         renderGrid(graphics);
         float fuel = menu.fuelPercentage(level());
         if (fuel > 0) {
             int height = 1 + Math.round(fuel * (FLAME_SIZE - 1));
-            graphics.blit(TEXTURE, leftPos + FLAME_X, topPos + FLAME_Y + FLAME_SIZE - height,
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + FLAME_X, topPos + FLAME_Y + FLAME_SIZE - height,
                     FLAME_U, FLAME_V + FLAME_SIZE - height, FLAME_SIZE, height, SHEET, SHEET);
         }
         renderFuel(graphics);
@@ -115,7 +115,7 @@ public class SearedFurnaceScreen extends StationScreen<SearedFurnaceMenu> {
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < SmelteryMenu.MELT_COLUMNS; col++) {
                 int index = (menu.scrollRow() + row) * SmelteryMenu.MELT_COLUMNS + col;
-                graphics.blit(TEXTURE,
+                graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE,
                         gridLeft + col * SmelteryMenu.CELL_WIDTH, gridTop + row * SmelteryMenu.SLOT_SIZE,
                         index < slots ? CELL_U : CELL_EMPTY_U, CELL_V,
                         SmelteryMenu.CELL_WIDTH, SmelteryMenu.SLOT_SIZE, SHEET, SHEET);
@@ -127,7 +127,7 @@ public class SearedFurnaceScreen extends StationScreen<SearedFurnaceMenu> {
                 int height = 1 + Math.round(Math.clamp(progress, 0f, 1f) * (BAR_HEIGHT - 1));
                 int x = gridLeft + col * SmelteryMenu.CELL_WIDTH + 1;
                 int y = gridTop + row * SmelteryMenu.SLOT_SIZE + 1;
-                graphics.blit(TEXTURE, x, y + BAR_HEIGHT - height, barU(state), BAR_V + BAR_HEIGHT - height,
+                graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y + BAR_HEIGHT - height, barU(state), BAR_V + BAR_HEIGHT - height,
                         BAR_WIDTH, height, SHEET, SHEET);
             }
         }
@@ -175,10 +175,10 @@ public class SearedFurnaceScreen extends StationScreen<SearedFurnaceMenu> {
     }
 
     @Override
-    protected void renderTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        super.renderTooltip(graphics, mouseX, mouseY);
+    protected void extractTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        super.extractTooltip(graphics, mouseX, mouseY);
         if (isHovering(FUEL_X, FUEL_Y, FUEL_WIDTH, FUEL_HEIGHT, mouseX, mouseY)) {
-            graphics.renderComponentTooltip(font, fuelTooltip(), mouseX, mouseY);
+            graphics.setComponentTooltipForNextFrame(font, fuelTooltip(), mouseX, mouseY);
             return;
         }
         int slots = menu.slotCount();
@@ -190,7 +190,7 @@ public class SearedFurnaceScreen extends StationScreen<SearedFurnaceMenu> {
         }
         String key = barTooltip(menu.progressState(level(), index));
         if (key != null) {
-            graphics.renderTooltip(font, Component.translatable(KEY_PREFIX + key), mouseX, mouseY);
+            graphics.setTooltipForNextFrame(font, Component.translatable(KEY_PREFIX + key), mouseX, mouseY);
         }
     }
 
@@ -208,7 +208,7 @@ public class SearedFurnaceScreen extends StationScreen<SearedFurnaceMenu> {
             return tooltip;
         }
         tooltip.add(fuel.getHoverName().copy());
-        SmelteryScreen.addAmount(tooltip, fuel.getAmount(), Screen.hasShiftDown(), SmelteryScreen.gemValued(level(), fuel));
+        SmelteryScreen.addAmount(tooltip, fuel.getAmount(), Minecraft.getInstance().hasShiftDown(), SmelteryScreen.gemValued(level(), fuel));
         tooltip.add(Component.translatable(SMELTERY_PREFIX + "fuel.heat", TemperatureText.format(menu.temperature(level())))
                 .withStyle(ChatFormatting.GRAY));
         return tooltip;
@@ -268,7 +268,7 @@ public class SearedFurnaceScreen extends StationScreen<SearedFurnaceMenu> {
 
     /** Upstream's {@code GuiMultiModule} draws no title or inventory label. */
     @Override
-    protected void renderLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {}
+    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {}
 
     @Override
     public List<Rect2i> extraGuiAreas() {

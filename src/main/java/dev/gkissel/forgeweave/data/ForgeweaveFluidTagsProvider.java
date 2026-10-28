@@ -10,7 +10,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.material.Fluid;
 
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
@@ -37,9 +36,8 @@ import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
  */
 public class ForgeweaveFluidTagsProvider extends FluidTagsProvider {
 
-    public ForgeweaveFluidTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider,
-            ExistingFileHelper existingFileHelper) {
-        super(output, lookupProvider, Forgeweave.MODID, existingFileHelper);
+    public ForgeweaveFluidTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider) {
+        super(output, lookupProvider, Forgeweave.MODID);
     }
 
     @Override

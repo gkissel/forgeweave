@@ -6,21 +6,24 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import net.minecraft.core.HolderLookup;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.item.crafting.ShapedRecipePattern;
@@ -52,22 +55,22 @@ import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
  */
 public class RetexturedShapedRecipe extends ShapedRecipe {
     public static final MapCodec<RetexturedShapedRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            Codec.STRING.optionalFieldOf("group", "").forGetter(RetexturedShapedRecipe::getGroup),
-            CraftingBookCategory.CODEC.fieldOf("category").orElse(CraftingBookCategory.MISC).forGetter(RetexturedShapedRecipe::category),
+            Recipe.CommonInfo.MAP_CODEC.forGetter(recipe -> recipe.commonInfo),
+            CraftingRecipe.CraftingBookInfo.MAP_CODEC.forGetter(recipe -> recipe.bookInfo),
             ShapedRecipePattern.MAP_CODEC.forGetter(recipe -> recipe.pattern),
-            ItemStack.STRICT_CODEC.fieldOf("result").forGetter(RetexturedShapedRecipe::result),
+            ItemStackTemplate.CODEC.fieldOf("result").forGetter(RetexturedShapedRecipe::result),
             Ingredient.CODEC.optionalFieldOf("texture_source").forGetter(RetexturedShapedRecipe::textureSource))
             .apply(instance, RetexturedShapedRecipe::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, RetexturedShapedRecipe> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.STRING_UTF8, RetexturedShapedRecipe::getGroup,
-            CraftingBookCategory.STREAM_CODEC, RetexturedShapedRecipe::category,
+            Recipe.CommonInfo.STREAM_CODEC, recipe -> recipe.commonInfo,
+            CraftingRecipe.CraftingBookInfo.STREAM_CODEC, recipe -> recipe.bookInfo,
             ShapedRecipePattern.STREAM_CODEC, recipe -> recipe.pattern,
-            ItemStack.STREAM_CODEC, RetexturedShapedRecipe::result,
+            ItemStackTemplate.STREAM_CODEC, RetexturedShapedRecipe::result,
             ByteBufCodecs.optional(Ingredient.CONTENTS_STREAM_CODEC), RetexturedShapedRecipe::textureSource,
             RetexturedShapedRecipe::new);
 
-    private final ItemStack result;
+    private final ItemStackTemplate result;
     /**
      * Which ingredient decides the crafted block's appearance, when "the first block in the grid"
      * isn't it (issue #152). Every M1 table recipe is a pattern over one block, so the default scan
@@ -83,12 +86,18 @@ public class RetexturedShapedRecipe extends ShapedRecipe {
 
     public RetexturedShapedRecipe(String group, CraftingBookCategory category, ShapedRecipePattern pattern,
             ItemStack result, Optional<Ingredient> textureSource) {
-        super(group, category, pattern, result);
+        this(new Recipe.CommonInfo(true), new CraftingRecipe.CraftingBookInfo(category, group), pattern,
+                ItemStackTemplate.fromNonEmptyStack(result), textureSource);
+    }
+
+    public RetexturedShapedRecipe(Recipe.CommonInfo commonInfo, CraftingRecipe.CraftingBookInfo bookInfo,
+            ShapedRecipePattern pattern, ItemStackTemplate result, Optional<Ingredient> textureSource) {
+        super(commonInfo, bookInfo, pattern, result);
         this.result = result;
         this.textureSource = textureSource;
     }
 
-    private ItemStack result() {
+    private ItemStackTemplate result() {
         return result;
     }
 
@@ -96,20 +105,22 @@ public class RetexturedShapedRecipe extends ShapedRecipe {
         return textureSource;
     }
 
+    /** The vanilla parent pins its own serializer type; ours encodes this subclass, which is all dispatch needs. */
     @Override
-    public RecipeSerializer<? extends RetexturedShapedRecipe> getSerializer() {
-        return ForgeweaveRecipeSerializers.RETEXTURED_SHAPED.get();
+    @SuppressWarnings("unchecked")
+    public RecipeSerializer<ShapedRecipe> getSerializer() {
+        return (RecipeSerializer<ShapedRecipe>) (RecipeSerializer<?>) ForgeweaveRecipeSerializers.RETEXTURED_SHAPED.get();
     }
 
     @Override
-    public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
+    public ItemStack assemble(CraftingInput input) {
         for (int i = 0; i < input.size(); i++) {
             Optional<ItemStack> crafted = textured(input.getItem(i));
             if (crafted.isPresent()) {
                 return crafted.get();
             }
         }
-        return result.copy();
+        return result.create();
     }
 
     /**
@@ -123,7 +134,7 @@ public class RetexturedShapedRecipe extends ShapedRecipe {
         if (textureSource.isPresent() && !textureSource.get().test(ingredient)) {
             return Optional.empty();
         }
-        ItemStack crafted = result.copy();
+        ItemStack crafted = result.create();
         crafted.set(ForgeweaveDataComponents.TEXTURE.get(), BuiltInRegistries.BLOCK.getKey(blockItem.getBlock()));
         return Optional.of(crafted);
     }
@@ -138,15 +149,15 @@ public class RetexturedShapedRecipe extends ShapedRecipe {
     public List<ItemStack> displayResults() {
         List<ItemStack> results = new ArrayList<>();
         Set<Identifier> seen = new HashSet<>();
-        for (Ingredient ingredient : getIngredients()) {
-            for (ItemStack candidate : ingredient.getItems()) {
-                textured(candidate).ifPresent(crafted -> {
+        for (Optional<Ingredient> ingredient : getIngredients()) {
+            for (Holder<Item> candidate : ingredient.map(i -> i.items().toList()).orElse(List.of())) {
+                textured(new ItemStack(candidate)).ifPresent(crafted -> {
                     if (seen.add(crafted.get(ForgeweaveDataComponents.TEXTURE.get()))) {
                         results.add(crafted);
                     }
                 });
             }
         }
-        return results.isEmpty() ? List.of(result.copy()) : results;
+        return results.isEmpty() ? List.of(result.create()) : results;
     }
 }

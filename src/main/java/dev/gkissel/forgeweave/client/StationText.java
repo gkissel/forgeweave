@@ -516,7 +516,7 @@ public final class StationText {
      */
     private static Component withHover(MutableComponent line, Component description) {
         Component hover = line.copy().append("\n").append(description.copy().withStyle(ChatFormatting.GRAY));
-        return line.withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover)));
+        return line.withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(hover)));
     }
 
     private StationText() {}

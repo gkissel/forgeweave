@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/conductive_alloy"
-  },
+  "input": "#c:ingots/conductive_alloy",
   "fluid": "forgeweave:molten_conductive_alloy",
   "amount": 144,
   "temperature": 1200,

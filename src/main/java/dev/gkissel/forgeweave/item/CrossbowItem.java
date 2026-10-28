@@ -5,11 +5,11 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.level.Level;
 
 import dev.gkissel.forgeweave.tool.ToolConstants;
@@ -71,7 +71,7 @@ public class CrossbowItem extends BowItem {
      * {@code CrossBow#getItemUseAction() = EnumAction.NONE}: no bow-pull pose while cranking.
      *
      * <p>Deliberately still {@code NONE} after issue #425 gave the crossbow its third-person arm
-     * poses. {@code UseAnim.CROSSBOW} would have been the obvious way to ask vanilla for
+     * poses. {@code ItemUseAnimation.CROSSBOW} would have been the obvious way to ask vanilla for
      * {@code CROSSBOW_CHARGE}, but vanilla's first-person {@code ItemInHandRenderer} has no
      * {@code CROSSBOW} case in its use-animation switch -- its own crossbow never reaches it -- so
      * the crossbow would render detached from the hand and lose issue #413's poses. The arm poses
@@ -79,13 +79,13 @@ public class CrossbowItem extends BowItem {
      * from here.
      */
     @Override
-    public UseAnim getUseAnimation(ItemStack stack) {
-        return UseAnim.NONE;
+    public ItemUseAnimation getUseAnimation(ItemStack stack) {
+        return ItemUseAnimation.NONE;
     }
 
     /** {@code CrossBow#onItemRightClick}: loaded fires, unloaded starts a draw. */
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         if (!isLoaded(stack) || isBroken(stack)) {
             return super.use(level, player, hand);
@@ -94,18 +94,18 @@ public class CrossbowItem extends BowItem {
         // timeLeft 0 means the whole 72000-tick duration was "drawn", so the shot is at full power.
         super.releaseUsing(stack, level, player, 0);
         setLoaded(stack, false);
-        return InteractionResultHolder.success(stack);
+        return InteractionResult.SUCCESS;
     }
 
     /** {@code CrossBow#onPlayerStoppedUsing}: a completed draw loads the crossbow instead of firing. */
     @Override
-    public void releaseUsing(ItemStack stack, Level level, LivingEntity user, int timeLeft) {
+    public boolean releaseUsing(ItemStack stack, Level level, LivingEntity user, int timeLeft) {
         if (isBroken(stack) || !(user instanceof Player)) {
-            return;
+            return false;
         }
         int useTime = getUseDuration(stack, user) - timeLeft;
         if (drawbackProgress(stack, useTime) < 1.0F) {
-            return;
+            return false;
         }
         // Sounds.crossbow_reload at volume 1.5, pitch 0.9 + rand*0.1. Deviation (recorded in the PR):
         // that is a Tinkers' sound file M3.5 does not ship, so vanilla's own crossbow reload plays at
@@ -113,6 +113,7 @@ public class CrossbowItem extends BowItem {
         level.playSound(null, user.getX(), user.getY(), user.getZ(), SoundEvents.CROSSBOW_LOADING_END,
                 SoundSource.PLAYERS, 1.5F, 0.9F + level.getRandom().nextFloat() * 0.1F);
         setLoaded(stack, true);
+        return false;
     }
 
     /**

@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_sword_blade"
-  },
+  "cast": "forgeweave:cast_sword_blade",
   "fluid": "forgeweave:molten_dark_steel",
   "amount": 288,
   "result": {

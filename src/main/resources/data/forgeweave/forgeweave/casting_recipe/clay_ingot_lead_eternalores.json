@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_ingot"
-  },
+  "cast": "forgeweave:clay_cast_ingot",
   "fluid": "forgeweave:molten_lead",
   "amount": 144,
   "result": {

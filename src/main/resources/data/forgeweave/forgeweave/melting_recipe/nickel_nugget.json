@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/nickel"
-  },
+  "input": "#c:nuggets/nickel",
   "fluid": "forgeweave:molten_nickel",
   "amount": 16,
   "temperature": 1200,

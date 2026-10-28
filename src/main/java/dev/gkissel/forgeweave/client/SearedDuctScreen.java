@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.client;
 
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -28,23 +29,16 @@ public class SearedDuctScreen extends AbstractContainerScreen<SearedDuctMenu> {
     private static final int SHEET = 256;
 
     public SearedDuctScreen(SearedDuctMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
-        imageWidth = SearedDuctMenu.PANEL_WIDTH;
-        imageHeight = SearedDuctMenu.PANEL_HEIGHT;
+        super(menu, playerInventory, title, SearedDuctMenu.PANEL_WIDTH, SearedDuctMenu.PANEL_HEIGHT);
         inventoryLabelY = imageHeight - 94;
     }
 
     @Override
-    protected void renderBg(GuiGraphicsExtractor guiGraphics, float partialTick, int mouseX, int mouseY) {
-        guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight, SHEET, SHEET);
+    public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(guiGraphics, mouseX, mouseY, partialTick);
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight, SHEET, SHEET);
     }
 
-    @Override
-    public void render(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(guiGraphics, mouseX, mouseY, partialTick);
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
-        renderTooltip(guiGraphics, mouseX, mouseY);
-    }
 
     @SubscribeEvent
     static void registerScreen(RegisterMenuScreensEvent event) {

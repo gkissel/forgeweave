@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/uranium"
-  },
+  "input": "#c:small_dusts/uranium",
   "fluid": "forgeweave:molten_uranium",
   "amount": 36,
   "temperature": 1400,

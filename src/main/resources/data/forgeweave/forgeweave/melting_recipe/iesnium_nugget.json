@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/iesnium"
-  },
+  "input": "#c:nuggets/iesnium",
   "fluid": "forgeweave:molten_iesnium",
   "amount": 16,
   "temperature": 1600,

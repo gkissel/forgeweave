@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/blaze_gold"
-  },
+  "input": "#c:nuggets/blaze_gold",
   "fluid": "forgeweave:molten_blaze_gold",
   "amount": 16,
   "temperature": 1200,

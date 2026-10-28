@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_broad_axe_head"
-  },
+  "cast": "forgeweave:clay_cast_broad_axe_head",
   "fluid": "forgeweave:molten_constantan",
   "amount": 1152,
   "result": {

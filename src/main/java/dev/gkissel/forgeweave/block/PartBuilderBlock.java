@@ -100,14 +100,14 @@ public class PartBuilderBlock extends HorizontalDirectionalBlock implements Enti
         if (level.getBlockEntity(pos) instanceof PartBuilderBlockEntity partBuilder) {
             Identifier textureId = stack.get(ForgeweaveDataComponents.TEXTURE.get());
             if (textureId != null && BuiltInRegistries.BLOCK.containsKey(textureId)) {
-                partBuilder.setTexture(BuiltInRegistries.BLOCK.get(textureId));
+                partBuilder.setTexture(BuiltInRegistries.BLOCK.getValue(textureId));
             }
         }
     }
 
     @Override
-    public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
-        ItemStack stack = super.getCloneItemStack(level, pos, state);
+    protected ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
+        ItemStack stack = super.getCloneItemStack(level, pos, state, includeData);
         if (level.getBlockEntity(pos) instanceof PartBuilderBlockEntity partBuilder) {
             stack.set(ForgeweaveDataComponents.TEXTURE.get(), BuiltInRegistries.BLOCK.getKey(partBuilder.getTexture()));
         }
@@ -124,13 +124,4 @@ public class PartBuilderBlock extends HorizontalDirectionalBlock implements Enti
         return InteractionResult.SUCCESS;
     }
 
-    @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (state.getBlock() != newState.getBlock()) {
-            if (level.getBlockEntity(pos) instanceof PartBuilderBlockEntity partBuilder) {
-                Containers.dropContents(level, pos, partBuilder.container());
-            }
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
-    }
 }

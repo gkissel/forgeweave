@@ -41,15 +41,11 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "occultism:spirit_attuned_gem"
-      },
+      "ingredient": "occultism:spirit_attuned_gem",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "occultism:spirit_attuned_gem"
-  },
+  "repair_item": "occultism:spirit_attuned_gem",
   "enchantability": 16,
   "color": "#7E5BA6",
   "neoforge:conditions": [

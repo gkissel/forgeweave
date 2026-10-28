@@ -49,21 +49,15 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "iceandfire:dragonsteel_fire_ingot"
-      },
+      "ingredient": "iceandfire:dragonsteel_fire_ingot",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "iceandfire:dragonsteel_fire_block"
-      },
+      "ingredient": "iceandfire:dragonsteel_fire_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "item": "iceandfire:dragonsteel_fire_ingot"
-  },
+  "repair_item": "iceandfire:dragonsteel_fire_ingot",
   "cast_only": true,
   "enchantability": 17,
   "color": "#B23A1E",

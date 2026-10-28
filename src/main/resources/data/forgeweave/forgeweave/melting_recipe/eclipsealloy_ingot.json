@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/eclipsealloy"
-  },
+  "input": "#c:ingots/eclipsealloy",
   "fluid": "forgeweave:molten_eclipsealloy",
   "amount": 144,
   "temperature": 1600,

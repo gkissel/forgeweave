@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/knightslime"
-  },
+  "input": "#c:nuggets/knightslime",
   "fluid": "forgeweave:molten_knightslime",
   "amount": 16
 }

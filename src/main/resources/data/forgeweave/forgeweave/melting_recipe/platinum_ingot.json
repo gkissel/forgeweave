@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/platinum"
-  },
+  "input": "#c:ingots/platinum",
   "fluid": "forgeweave:molten_platinum",
   "amount": 144,
   "temperature": 1400,

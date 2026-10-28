@@ -44,15 +44,11 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "mysticalagriculture:inferium_ingot"
-      },
+      "ingredient": "mysticalagriculture:inferium_ingot",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "mysticalagriculture:inferium_ingot"
-  },
+  "repair_item": "mysticalagriculture:inferium_ingot",
   "cast_only": true,
   "enchantability": 10,
   "color": "#94B200",

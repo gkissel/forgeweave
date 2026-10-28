@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "refinedstorage:quartz_enriched_iron"
-  },
+  "input": "refinedstorage:quartz_enriched_iron",
   "fluid": "forgeweave:molten_quartz_enriched_iron",
   "amount": 144,
   "temperature": 1200,

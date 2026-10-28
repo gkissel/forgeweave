@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:raw_materials/platinum"
-  },
+  "input": "#c:raw_materials/platinum",
   "fluid": "forgeweave:molten_platinum",
   "amount": 144,
   "ore": true,

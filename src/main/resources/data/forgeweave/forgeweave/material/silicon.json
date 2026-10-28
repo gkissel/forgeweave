@@ -41,26 +41,21 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:silicon"
-      },
+      "ingredient": "#c:silicon",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:ingots/silicon"
-      },
+      "ingredient": "#c:ingots/silicon",
       "value": 144
     }
   ],
-  "repair_item": [
-    {
-      "tag": "c:silicon"
-    },
-    {
-      "tag": "c:ingots/silicon"
-    }
-  ],
+  "repair_item": {
+    "neoforge:ingredient_type": "neoforge:compound",
+    "children": [
+      "#c:silicon",
+      "#c:ingots/silicon"
+    ]
+  },
   "cast_only": true,
   "enchantability": 10,
   "color": "#4A4A4A",

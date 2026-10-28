@@ -45,21 +45,15 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:ingots/compressed_iron"
-      },
+      "ingredient": "#c:ingots/compressed_iron",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:storage_blocks/compressed_iron"
-      },
+      "ingredient": "#c:storage_blocks/compressed_iron",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/compressed_iron"
-  },
+  "repair_item": "#c:ingots/compressed_iron",
   "cast_only": true,
   "enchantability": 11,
   "color": "#858585",

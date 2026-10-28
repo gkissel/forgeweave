@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.block;
 
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.ResourceHandler;
 import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
@@ -35,9 +37,16 @@ public class SearedDrainBlockEntity extends SmelteryIoBlockEntity {
         return formedTank();
     }
 
+    /** {@link #fluidHandler()} as the 21.9 transfer API sees it; what the capability hands out. */
+    @Nullable
+    public ResourceHandler<FluidResource> fluidCapability() {
+        SmelteryTank tank = formedTank();
+        return tank == null ? null : tank.transferHandler();
+    }
+
     /** Wires the fluid-handler capability; called from {@code Forgeweave}'s constructor. */
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ForgeweaveBlockEntities.SEARED_DRAIN.get(),
-                (blockEntity, side) -> blockEntity.fluidHandler());
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, ForgeweaveBlockEntities.SEARED_DRAIN.get(),
+                (blockEntity, side) -> blockEntity.fluidCapability());
     }
 }

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/platinum"
-  },
+  "input": "#c:nuggets/platinum",
   "fluid": "forgeweave:molten_platinum",
   "amount": 16,
   "temperature": 1400,

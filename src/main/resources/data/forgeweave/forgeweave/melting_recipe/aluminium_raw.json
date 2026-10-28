@@ -1,12 +1,11 @@
 {
-  "input": [
-    {
-      "tag": "c:raw_materials/aluminium"
-    },
-    {
-      "tag": "c:raw_materials/aluminum"
-    }
-  ],
+  "input": {
+    "neoforge:ingredient_type": "neoforge:compound",
+    "children": [
+      "#c:raw_materials/aluminium",
+      "#c:raw_materials/aluminum"
+    ]
+  },
   "fluid": "forgeweave:molten_aluminium",
   "amount": 144,
   "ore": true,

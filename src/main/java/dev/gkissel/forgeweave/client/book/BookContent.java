@@ -74,7 +74,7 @@ public final class BookContent {
             .filter(page -> page.type().equals("tool"))
             .<Supplier<? extends Item>>map(page -> {
                 Identifier id = Identifier.parse(page.item());
-                return () -> BuiltInRegistries.ITEM.get(id);
+                return () -> BuiltInRegistries.ITEM.getValue(id);
             })
             .toList();
 
@@ -84,9 +84,9 @@ public final class BookContent {
     /** Builds the full section list; needs registry access for the material listing. */
     public static List<BookSection> sections(RegistryAccess registries) {
         return sections(registries.lookupOrThrow(Material.REGISTRY).entrySet().stream()
-                .sorted(Comparator.comparing(entry -> entry.getKey().location().getPath()))
+                .sorted(Comparator.comparing(entry -> entry.getKey().identifier().getPath()))
                 .map((Map.Entry<ResourceKey<Material>, Material> entry) ->
-                        Map.entry(entry.getKey().location(), entry.getValue()))
+                        Map.entry(entry.getKey().identifier(), entry.getValue()))
                 .toList(),
                 MaterialStage.Lookup.of(registries.lookupOrThrow(Material.REGISTRY),
                         registries.lookupOrThrow(AlloyRecipe.REGISTRY)));
@@ -144,7 +144,7 @@ public final class BookContent {
     private static BookPage pageOf(String sectionName, PageDef def) {
         if (def.type().equals("tool")) {
             Identifier id = Identifier.parse(def.item());
-            return new ToolPage(BuiltInRegistries.ITEM.get(id));
+            return new ToolPage(BuiltInRegistries.ITEM.getValue(id));
         }
         if (def.type().equals("structure")) {
             return new BookPage.StructurePage(def.name(), StructureInfo.load(def.data()));
@@ -164,7 +164,7 @@ public final class BookContent {
 
     private static Supplier<ItemStack> iconOf(String itemId) {
         Identifier id = Identifier.parse(itemId);
-        return () -> new ItemStack(BuiltInRegistries.ITEM.get(id));
+        return () -> new ItemStack(BuiltInRegistries.ITEM.getValue(id));
     }
 
     /**
@@ -314,7 +314,7 @@ public final class BookContent {
      * (a tag no pack fills) falls back to the blank pattern rather than rendering nothing.
      */
     private static ItemStack representativeItem(Material material) {
-        ItemStack[] items = material.repairItem().getItems();
+        ItemStack[] items = material.repairItem().items().map(ItemStack::new).toArray(ItemStack[]::new);
         return items.length > 0 ? items[0] : new ItemStack(ForgeweaveItems.PATTERN_BLANK.get());
     }
 

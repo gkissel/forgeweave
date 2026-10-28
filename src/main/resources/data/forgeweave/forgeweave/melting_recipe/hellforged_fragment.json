@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "neovitae:demonite_fragment"
-  },
+  "input": "neovitae:demonite_fragment",
   "fluid": "forgeweave:molten_hellforged",
   "amount": 144,
   "temperature": 1600,

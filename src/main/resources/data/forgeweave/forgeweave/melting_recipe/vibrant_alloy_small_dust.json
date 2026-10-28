@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/vibrant_alloy"
-  },
+  "input": "#c:small_dusts/vibrant_alloy",
   "fluid": "forgeweave:molten_vibrant_alloy",
   "amount": 36,
   "temperature": 1400,

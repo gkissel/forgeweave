@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/graphite"
-  },
+  "input": "#c:storage_blocks/graphite",
   "fluid": "forgeweave:molten_graphite",
   "amount": 1296,
   "temperature": 1200,

@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_tool_handle"
-  },
+  "cast": "forgeweave:clay_cast_tool_handle",
   "fluid": "forgeweave:molten_prudentium",
   "amount": 144,
   "result": {

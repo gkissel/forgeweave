@@ -90,7 +90,7 @@ public class BleedEffect extends MobEffect {
     }
 
     @Override
-    public boolean applyEffectTick(LivingEntity entity, int amplifier) {
+    public boolean applyEffectTick(ServerLevel level, LivingEntity entity, int amplifier) {
         LivingEntity attacker = entity.getLastHurtByMob();
         DamageSource source = attacker != null
                 ? new DamageSource(indirectMagic(entity), null, attacker)
@@ -99,9 +99,7 @@ public class BleedEffect extends MobEffect {
         SecondaryDamage.deal(entity, source, DAMAGE_PER_TICK);
         // #482 -- upstream TraitSharp#dealDamage puts one blood heart over the target on every tick,
         // ungated (it spawns the particle after attackEntitySecondary without reading its result).
-        if (entity.level() instanceof ServerLevel level) {
-            ForgeweaveParticles.spawnHearts(ForgeweaveParticles.HEART_BLOOD.get(), level, entity, 1);
-        }
+        ForgeweaveParticles.spawnHearts(ForgeweaveParticles.HEART_BLOOD.get(), level, entity, 1);
         enableKnockback(knockbackResistance);
         return true;
     }
@@ -130,6 +128,6 @@ public class BleedEffect extends MobEffect {
 
     private static Holder<DamageType> indirectMagic(LivingEntity entity) {
         return entity.level().registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE)
-                .getHolderOrThrow(DamageTypes.INDIRECT_MAGIC);
+                .getOrThrow(DamageTypes.INDIRECT_MAGIC);
     }
 }

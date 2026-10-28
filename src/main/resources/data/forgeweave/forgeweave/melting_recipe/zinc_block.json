@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "create:zinc_block"
-  },
+  "input": "create:zinc_block",
   "fluid": "forgeweave:molten_zinc",
   "amount": 1296,
   "temperature": 1200,

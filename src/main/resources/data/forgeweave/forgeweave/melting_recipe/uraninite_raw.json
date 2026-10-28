@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:raw_materials/uraninite"
-  },
+  "input": "#c:raw_materials/uraninite",
   "fluid": "forgeweave:molten_uraninite",
   "amount": 144,
   "ore": true,

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/deorum"
-  },
+  "input": "#c:ingots/deorum",
   "fluid": "forgeweave:molten_deorum",
   "amount": 144,
   "temperature": 1600,

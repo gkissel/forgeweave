@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_pickaxe_head"
-  },
+  "cast": "forgeweave:cast_pickaxe_head",
   "fluid": "forgeweave:molten_psimetal",
   "amount": 288,
   "result": {

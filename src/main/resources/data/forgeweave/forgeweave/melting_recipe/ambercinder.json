@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "minecraft:honeycomb"
-  },
+  "input": "minecraft:honeycomb",
   "fluid": "forgeweave:molten_ambercinder",
   "amount": 32
 }

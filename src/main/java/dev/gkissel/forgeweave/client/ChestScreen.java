@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.client;
 
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
@@ -60,15 +61,13 @@ public class ChestScreen extends StationScreen<ChestMenu> {
     private boolean draggingSlider;
 
     public ChestScreen(ChestMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
-        imageWidth = PANEL_WIDTH;
-        imageHeight = PANEL_HEIGHT;
+        super(menu, playerInventory, title, PANEL_WIDTH, PANEL_HEIGHT);
         inventoryLabelY = imageHeight - 94;
     }
 
     @Override
     protected void renderPanel(GuiGraphicsExtractor graphics, float partialTick, int mouseX, int mouseY) {
-        graphics.blit(TEXTURE, leftPos, topPos, 0, 0, PANEL_WIDTH, PANEL_HEIGHT, SHEET, SHEET);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, PANEL_WIDTH, PANEL_HEIGHT, SHEET, SHEET);
 
         scrollRow = Math.clamp(scrollRow, 0, maxScrollRow());
         menu.scrollTo(scrollRow);

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/osmiridium"
-  },
+  "input": "#c:ingots/osmiridium",
   "fluid": "forgeweave:molten_osmiridium",
   "amount": 144,
   "temperature": 1600,

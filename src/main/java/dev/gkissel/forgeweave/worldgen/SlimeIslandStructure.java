@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.worldgen;
 
+import net.minecraft.world.level.dimension.DimensionType;
 import java.util.Optional;
 
 import com.mojang.serialization.MapCodec;
@@ -102,10 +103,13 @@ public class SlimeIslandStructure extends Structure {
         if (superflat && !ForgeweaveConfig.read(ForgeweaveConfig.GEN_ISLANDS_IN_SUPERFLAT)) {
             return false;
         }
-        if (ForgeweaveConfig.read(ForgeweaveConfig.SLIME_ISLANDS_ONLY_IN_SURFACE_WORLDS) && !level.dimensionType().natural()) {
+        // 1.21.11 removed DimensionType#natural (upstream's isSurfaceWorld); an overworld sky is the
+        // nearest thing it left, true for the overworld and false for the Nether and the End alike.
+        if (ForgeweaveConfig.read(ForgeweaveConfig.SLIME_ISLANDS_ONLY_IN_SURFACE_WORLDS)
+                && level.dimensionType().skybox() != DimensionType.Skybox.OVERWORLD) {
             return false;
         }
-        String dimension = level.dimension().location().toString();
+        String dimension = level.dimension().identifier().toString();
         return !ForgeweaveConfig.read(ForgeweaveConfig.SLIME_ISLAND_BLACKLIST).contains(dimension);
     }
 
@@ -173,10 +177,10 @@ public class SlimeIslandStructure extends Structure {
         // Upstream generates against 1.12's fixed 0..255 column and never clamps; a 1.21 dimension
         // can be shorter than the surface height plus an island plus its canopies, so the island is
         // pulled down to fit rather than silently losing its treetops to the build ceiling.
-        int ceiling = heights.getMaxBuildHeight() - 1;
+        int ceiling = heights.getMaxY();
         islandTop = Math.min(islandTop, ceiling - size.canvasTop() + size.yRange());
         int bottom = islandTop - size.yRange();
-        if (bottom <= heights.getMinBuildHeight()) {
+        if (bottom <= heights.getMinY()) {
             return Optional.empty();
         }
 

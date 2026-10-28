@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/cobalt"
-  },
+  "input": "#c:nuggets/cobalt",
   "fluid": "forgeweave:molten_cobalt",
   "amount": 16
 }

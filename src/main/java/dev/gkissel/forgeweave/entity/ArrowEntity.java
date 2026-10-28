@@ -1,7 +1,8 @@
 package dev.gkissel.forgeweave.entity;
 
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.world.entity.EntityType;
@@ -24,7 +25,7 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 /**
  * A fired material arrow (issue #653, parity audit T17): upstream 1.12's
  * {@code tools/common/entity/EntityArrow} on {@code EntityProjectileBase}, re-based on vanilla's
- * {@link net.minecraft.world.entity.projectile.AbstractArrow} exactly as {@code ShurikenEntity} is
+ * {@link net.minecraft.world.entity.projectile.arrow.AbstractArrow} exactly as {@code ShurikenEntity} is
  * (see that class's javadoc for the shared reasoning -- upstream itself bases its projectile on
  * {@code EntityArrow} "otherwise minecraft does derp things").
  *
@@ -75,7 +76,7 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
  *       beyond particles -- same posture as the shuriken's recorded vanilla-plumbing deviations.</li>
  * </ul>
  */
-public class ArrowEntity extends net.minecraft.world.entity.projectile.AbstractArrow
+public class ArrowEntity extends net.minecraft.world.entity.projectile.arrow.AbstractArrow
         implements IEntityWithComplexSpawn {
 
     /** Upstream {@code EntityProjectileBase#getGravity} = 0.05, vanilla's own arrow gravity too. */
@@ -155,7 +156,7 @@ public class ArrowEntity extends net.minecraft.world.entity.projectile.AbstractA
 
     @Override
     public void tick() {
-        if (!this.inGround) {
+        if (!this.isInGround()) {
             this.rollTicks++;
         }
         super.tick();
@@ -163,21 +164,21 @@ public class ArrowEntity extends net.minecraft.world.entity.projectile.AbstractA
             return;
         }
         boolean endspeed = hasTrait(ForgeweaveTraits.ENDSPEED);
-        if (endspeed && !this.inGround) {
+        if (endspeed && !this.isInGround()) {
             // TraitEndspeed#onMovement: revert the slowdown so we don't get stuck midair, and droop
             // a whisker (gravity itself is off, MaterialArrowItem#createProjectile).
             setDeltaMovement(getDeltaMovement().scale(1.0 / 0.99).subtract(0.0, ENDSPEED_DROOP, 0.0));
         }
         if (level().isClientSide()) {
             // TraitHovering#onMovement's flame trail: one flame every other tick on average.
-            if (!this.inGround && hasTrait(ForgeweaveTraits.HOVERING) && this.random.nextInt(2) == 0) {
+            if (!this.isInGround() && hasTrait(ForgeweaveTraits.HOVERING) && this.random.nextInt(2) == 0) {
                 level().addParticle(ParticleTypes.FLAME, getX(), getY(), getZ(),
                         (this.random.nextFloat() - 0.5F) / 15.0F, this.random.nextFloat() / 15.0F,
                         (this.random.nextFloat() - 0.5F) / 15.0F);
             }
             return;
         }
-        if (endspeed && !this.inGround && this.tickCount > 1) {
+        if (endspeed && !this.isInGround() && this.tickCount > 1) {
             fastForward();
         }
     }
@@ -192,7 +193,7 @@ public class ArrowEntity extends net.minecraft.world.entity.projectile.AbstractA
         try {
             double traveledSqr = 0.0;
             double lastParticle = 0.0;
-            while (!this.inGround && !this.isRemoved() && traveledSqr < ENDSPEED_DISTANCE_SQR_PER_TICK) {
+            while (!this.isInGround() && !this.isRemoved() && traveledSqr < ENDSPEED_DISTANCE_SQR_PER_TICK) {
                 Vec3 before = position();
                 super.tick();
                 setDeltaMovement(getDeltaMovement().scale(1.0 / 0.99).subtract(0.0, ENDSPEED_DROOP, 0.0));
@@ -258,19 +259,19 @@ public class ArrowEntity extends net.minecraft.world.entity.projectile.AbstractA
     public float roll(float partialTicks) {
         float rollSpeed = (int) ((getDeltaMovement().length() * 80.0) / 3.0)
                 * (Math.floorMod(getId(), 2) == 0 ? 1 : -1);
-        return (this.rollTicks + (this.inGround ? 0.0F : partialTicks)) * rollSpeed;
+        return (this.rollTicks + (this.isInGround() ? 0.0F : partialTicks)) * rollSpeed;
     }
 
     @Override
-    public void addAdditionalSaveData(CompoundTag tag) {
+    protected void addAdditionalSaveData(ValueOutput tag) {
         super.addAdditionalSaveData(tag);
         tag.putFloat("forgeweave:flat_damage", this.flatDamage);
     }
 
     @Override
-    public void readAdditionalSaveData(CompoundTag tag) {
+    protected void readAdditionalSaveData(ValueInput tag) {
         super.readAdditionalSaveData(tag);
-        this.flatDamage = tag.getFloat("forgeweave:flat_damage");
+        this.flatDamage = tag.getFloatOr("forgeweave:flat_damage", 0.0F);
     }
 
     /**

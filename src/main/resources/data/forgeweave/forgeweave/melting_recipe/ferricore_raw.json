@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:raw_materials/ferricore"
-  },
+  "input": "#c:raw_materials/ferricore",
   "fluid": "forgeweave:molten_ferricore",
   "amount": 144,
   "temperature": 1200,

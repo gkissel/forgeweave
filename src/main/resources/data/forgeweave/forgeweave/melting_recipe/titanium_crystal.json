@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:crystals/titanium"
-  },
+  "input": "#c:crystals/titanium",
   "fluid": "forgeweave:molten_titanium",
   "amount": 144,
   "temperature": 1400,

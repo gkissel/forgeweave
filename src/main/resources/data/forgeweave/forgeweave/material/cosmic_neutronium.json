@@ -52,15 +52,11 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "avaritia:neutronium_ingot"
-      },
+      "ingredient": "avaritia:neutronium_ingot",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "avaritia:neutronium_ingot"
-  },
+  "repair_item": "avaritia:neutronium_ingot",
   "cast_only": true,
   "enchantability": 15,
   "color": "#3F424D",

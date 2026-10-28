@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/cursium"
-  },
+  "input": "#c:dusts/cursium",
   "fluid": "forgeweave:molten_cursium",
   "amount": 144,
   "temperature": 1600,

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:tiny_dusts/tungsten"
-  },
+  "input": "#c:tiny_dusts/tungsten",
   "fluid": "forgeweave:molten_tungsten",
   "amount": 16,
   "temperature": 1400,

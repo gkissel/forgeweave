@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/end_steel"
-  },
+  "input": "#c:nuggets/end_steel",
   "fluid": "forgeweave:molten_end_steel",
   "amount": 16,
   "temperature": 1600,

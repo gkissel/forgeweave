@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/iesnium"
-  },
+  "input": "#c:storage_blocks/iesnium",
   "fluid": "forgeweave:molten_iesnium",
   "amount": 1296,
   "temperature": 1600,

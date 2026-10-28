@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_plating_chestplate"
-  },
+  "cast": "forgeweave:cast_plating_chestplate",
   "fluid": "forgeweave:molten_elementarium_hafnium",
   "amount": 864,
   "result": {

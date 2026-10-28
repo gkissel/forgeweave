@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/titanium"
-  },
+  "input": "#c:small_dusts/titanium",
   "fluid": "forgeweave:molten_titanium",
   "amount": 36,
   "temperature": 1400,

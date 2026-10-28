@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/dark_steel"
-  },
+  "input": "#c:ingots/dark_steel",
   "fluid": "forgeweave:molten_dark_steel",
   "amount": 144,
   "temperature": 1600,

@@ -949,7 +949,7 @@ public class ToolStationMenu extends StationMenu {
 
         /** Upstream {@code AchievementEvents#grantAdvancement}: every remaining criterion, once. */
         private static void grantVanillaAdvancement(ServerPlayer player, String path) {
-            AdvancementHolder holder = player.getServer().getAdvancements()
+            AdvancementHolder holder = player.level().getServer().getAdvancements()
                     .get(Identifier.withDefaultNamespace(path));
             if (holder == null) {
                 return;

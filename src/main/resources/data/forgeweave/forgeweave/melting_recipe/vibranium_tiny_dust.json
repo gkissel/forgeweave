@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:tiny_dusts/vibranium"
-  },
+  "input": "#c:tiny_dusts/vibranium",
   "fluid": "forgeweave:molten_vibranium",
   "amount": 16,
   "temperature": 1800,

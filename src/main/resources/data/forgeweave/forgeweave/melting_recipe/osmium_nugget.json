@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/osmium"
-  },
+  "input": "#c:nuggets/osmium",
   "fluid": "forgeweave:molten_osmium",
   "amount": 16,
   "temperature": 1200,

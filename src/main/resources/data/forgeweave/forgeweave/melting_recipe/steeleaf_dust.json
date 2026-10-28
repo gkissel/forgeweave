@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/steeleaf"
-  },
+  "input": "#c:dusts/steeleaf",
   "fluid": "forgeweave:molten_steeleaf",
   "amount": 144,
   "temperature": 1400,

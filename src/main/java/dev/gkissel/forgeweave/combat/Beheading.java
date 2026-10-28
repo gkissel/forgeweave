@@ -129,7 +129,7 @@ public final class Beheading implements CombatSeam {
     public static ItemStack headDrop(LivingEntity target) {
         if (target instanceof Player player) {
             ItemStack head = new ItemStack(Items.PLAYER_HEAD);
-            head.set(DataComponents.PROFILE, new ResolvableProfile(player.getGameProfile()));
+            head.set(DataComponents.PROFILE, ResolvableProfile.createResolved(player.getGameProfile()));
             return head;
         }
         return headDropFor(target.getType());
@@ -182,7 +182,7 @@ public final class Beheading implements CombatSeam {
         }
         ItemStack head = headDrop(hit.target());
         if (!head.isEmpty()) {
-            hit.target().spawnAtLocation(head);
+            hit.target().spawnAtLocation(hit.level(), head);
         }
     }
 }

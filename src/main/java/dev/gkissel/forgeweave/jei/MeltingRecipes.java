@@ -49,7 +49,7 @@ final class MeltingRecipes {
 
     private static List<ItemStack> wonInputs(Map<Identifier, MeltingRecipe> recipes, MeltingRecipe recipe) {
         List<ItemStack> inputs = new ArrayList<>();
-        for (ItemStack candidate : recipe.input().getItems()) {
+        for (ItemStack candidate : IngredientStacks.of(recipe.input())) {
             if (MeltingRecipe.resolve(recipes, candidate).orElse(null) == recipe) {
                 inputs.add(candidate);
             }

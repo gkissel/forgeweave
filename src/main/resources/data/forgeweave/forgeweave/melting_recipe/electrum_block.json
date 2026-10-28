@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/electrum"
-  },
+  "input": "#c:storage_blocks/electrum",
   "fluid": "forgeweave:molten_electrum",
   "amount": 1296,
   "temperature": 1200,

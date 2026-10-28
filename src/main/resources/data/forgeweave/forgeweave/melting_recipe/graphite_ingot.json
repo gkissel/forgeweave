@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/graphite"
-  },
+  "input": "#c:ingots/graphite",
   "fluid": "forgeweave:molten_graphite",
   "amount": 144,
   "temperature": 1200,

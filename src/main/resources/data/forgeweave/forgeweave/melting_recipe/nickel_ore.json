@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ores/nickel"
-  },
+  "input": "#c:ores/nickel",
   "fluid": "forgeweave:molten_nickel",
   "amount": 144,
   "ore": true,

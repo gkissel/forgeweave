@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:tiny_dusts/eclipsealloy"
-  },
+  "input": "#c:tiny_dusts/eclipsealloy",
   "fluid": "forgeweave:molten_eclipsealloy",
   "amount": 16,
   "temperature": 1600,

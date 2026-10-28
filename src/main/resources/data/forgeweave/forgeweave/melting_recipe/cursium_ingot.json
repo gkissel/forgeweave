@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "cataclysm:cursium_ingot"
-  },
+  "input": "cataclysm:cursium_ingot",
   "fluid": "forgeweave:molten_cursium",
   "amount": 144,
   "temperature": 1600,

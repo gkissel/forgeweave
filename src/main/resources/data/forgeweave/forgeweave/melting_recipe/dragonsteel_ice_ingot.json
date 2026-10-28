@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "iceandfire:dragonsteel_ice_ingot"
-  },
+  "input": "iceandfire:dragonsteel_ice_ingot",
   "fluid": "forgeweave:molten_dragonsteel_ice",
   "amount": 144,
   "temperature": 1600,

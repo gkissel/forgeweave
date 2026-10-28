@@ -122,7 +122,7 @@ public final class SmelteryScan {
         List<BlockPos> tanks = new ArrayList<>();
         Component layerFailure = null;
         int height = 0;
-        for (int y = bottom.getY(); y < level.getMaxBuildHeight(); y++) {
+        for (int y = bottom.getY(); y <= level.getMaxY(); y++) {
             Layer layer = detectLayer(level, corePos, y, west, east, north, south);
             if (layer.failure() != null) {
                 layerFailure = layer.failure();

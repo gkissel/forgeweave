@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/platinum"
-  },
+  "input": "#c:small_dusts/platinum",
   "fluid": "forgeweave:molten_platinum",
   "amount": 36,
   "temperature": 1400,

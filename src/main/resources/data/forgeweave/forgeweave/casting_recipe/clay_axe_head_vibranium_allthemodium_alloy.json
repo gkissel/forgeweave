@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_axe_head"
-  },
+  "cast": "forgeweave:clay_cast_axe_head",
   "fluid": "forgeweave:molten_vibranium_allthemodium_alloy",
   "amount": 288,
   "result": {

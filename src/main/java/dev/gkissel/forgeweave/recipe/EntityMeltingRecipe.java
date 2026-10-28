@@ -125,7 +125,7 @@ public record EntityMeltingRecipe(List<EntityType<?>> entities, Fluid fluid, int
         Registry<EntityMeltingRecipe> recipes = registries.lookupOrThrow(REGISTRY);
         return recipes.entrySet().stream()
                 .filter(entry -> entry.getValue().entities.contains(type))
-                .min(Comparator.comparing(entry -> entry.getKey().location()))
+                .min(Comparator.comparing(entry -> entry.getKey().identifier()))
                 .map(java.util.Map.Entry::getValue);
     }
 }

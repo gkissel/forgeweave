@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/compressed_iron"
-  },
+  "input": "#c:ingots/compressed_iron",
   "fluid": "forgeweave:molten_compressed_iron",
   "amount": 144,
   "temperature": 1200,

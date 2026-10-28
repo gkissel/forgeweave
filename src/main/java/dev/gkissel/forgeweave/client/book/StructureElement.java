@@ -2,17 +2,11 @@ package dev.gkissel.forgeweave.client.book;
 
 import javax.annotation.Nullable;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
+import java.util.ArrayList;
+import java.util.List;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.level.block.state.BlockState;
-
-import net.neoforged.neoforge.model.data.ModelData;
 
 /**
  * The rotating 3D schematic on a {@code structure} book page (issue #651): a port of Mantle's
@@ -24,12 +18,11 @@ import net.neoforged.neoforge.model.data.ModelData;
  * {@link StructureInfo#step} every 20 draws, a five-step pause once the structure completes,
  * everything visible while the toggle is off).
  *
- * <p>Rendering is the 1.21 adaptation: upstream tessellated through {@code BlockRendererDispatcher
- * #renderBlock} against a fake {@code IBlockAccess}; here each visible cell goes through
- * {@code BlockRenderDispatcher#renderSingleBlock} on the {@code GuiGraphicsExtractor} pose/buffer at
- * full-bright -- the same translate/scale(scale, -scale, scale)/rotate/centre matrix stack, at the
- * z = 150 plane GUI items render on. {@code renderSingleBlock} draws item-style single blocks, so
- * faces between touching blocks are not neighbour-culled the way upstream's block access culled
+ * <p>Rendering is the modern adaptation: upstream tessellated through {@code BlockRendererDispatcher
+ * #renderBlock} against a fake {@code IBlockAccess}; here each frame snapshots the visible cells
+ * and {@link StructureRenderer} draws them as full-bright block models into a picture-in-picture
+ * texture the size of this element -- the same translate/scale(scale, -scale, scale)/rotate/centre
+ * matrix stack. Single block models are not neighbour-culled the way upstream's block access culled
  * them; on the smeltery's opaque shell the difference is invisible.
  */
 public final class StructureElement {
@@ -43,8 +36,6 @@ public final class StructureElement {
     private static final float DRAG_MAX_SPEED = 10f;
     /** {@code setShowLayer(9)}: upstream's show-everything layer while the animation is off. */
     private static final int SHOW_ALL_LAYER = 9;
-    /** The z plane GUI items render at ({@code GuiGraphicsExtractor#renderItem}); blocks join them there. */
-    private static final float GUI_Z = 150f;
 
     private final StructureInfo structure;
     private final float scale;
@@ -126,32 +117,20 @@ public final class StructureElement {
             this.structure.setShowLayer(SHOW_ALL_LAYER);
         }
 
-        PoseStack pose = graphics.pose();
-        pose.pushPose();
-        pose.translate(x + this.xTranslate, y + this.yTranslate, GUI_Z);
-        pose.scale(this.scale, -this.scale, this.scale);
-        pose.mulPose(Axis.XP.rotationDegrees(this.rotX));
-        pose.mulPose(Axis.YP.rotationDegrees(this.rotY));
-        pose.translate(this.structure.length() / -2f, this.structure.height() / -2f,
-                this.structure.width() / -2f);
-
-        BlockRenderDispatcher renderer = Minecraft.getInstance().getBlockRenderer();
+        List<StructureRenderer.Cell> cells = new ArrayList<>();
         for (int h = 0; h < this.structure.height(); h++) {
             for (int l = 0; l < this.structure.length(); l++) {
                 for (int w = 0; w < this.structure.width(); w++) {
                     BlockState state = this.structure.visibleStateAt(l, h, w);
                     if (state != null) {
-                        pose.pushPose();
-                        pose.translate(l, h, w);
-                        renderer.renderSingleBlock(state, pose, graphics.bufferSource(),
-                                LightTexture.FULL_BRIGHT, OverlayTexture.NO_OVERLAY,
-                                ModelData.EMPTY, null);
-                        pose.popPose();
+                        cells.add(new StructureRenderer.Cell(l, h, w, state));
                     }
                 }
             }
         }
-        graphics.flush();
-        pose.popPose();
+        // The box ignores the pose stack, which the book never moves: (x, y) is already on screen.
+        graphics.submitPictureInPictureRenderState(new StructureRenderer.State(List.copyOf(cells),
+                this.structure.length(), this.structure.height(), this.structure.width(), this.rotX, this.rotY,
+                x, y, x + Math.round(this.xTranslate * 2), y + Math.round(this.yTranslate * 2), this.scale));
     }
 }

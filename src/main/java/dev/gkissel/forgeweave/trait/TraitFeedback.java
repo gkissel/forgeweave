@@ -72,11 +72,13 @@ public final class TraitFeedback {
         /** A discharge: chain arcs, lightning, a spent kinetic charge. */
         SHOCK(ForgeweaveParticles.HEART_ELECTRO::get, () -> SoundEvents.TRIDENT_THUNDER.value()),
         /** A status effect applied, stripped or blunted. */
-        AFFLICT(() -> ParticleTypes.EFFECT, () -> SoundEvents.BREWING_STAND_BREW),
+        // 26.1 gave minecraft:effect a colour option, so it is no longer a plain particle; witch is
+        // the closest plain spell swirl left.
+        AFFLICT(() -> ParticleTypes.WITCH, () -> SoundEvents.BREWING_STAND_BREW),
         /** Armor doing its job: an immunity, an invulnerability window, a vented blast. */
         WARD(ForgeweaveParticles.HEART_ARMOR::get, () -> SoundEvents.AMETHYST_BLOCK_CHIME),
         /** A blow that missed entirely: evasion. */
-        DODGE(() -> ParticleTypes.POOF, () -> SoundEvents.SHIELD_BLOCK),
+        DODGE(() -> ParticleTypes.POOF, () -> SoundEvents.SHIELD_BLOCK.value()),
         /** Durability or health coming back: self-repair, damage converted to healing. */
         MEND(() -> ParticleTypes.HAPPY_VILLAGER, () -> null),
         /** A death spent on the gear instead of the wearer. */

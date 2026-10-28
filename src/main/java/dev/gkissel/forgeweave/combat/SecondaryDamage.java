@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.combat;
 
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -28,7 +29,7 @@ public final class SecondaryDamage {
         int invulnerableTime = target.invulnerableTime;
         float lastHurt = target.lastHurt;
         target.invulnerableTime = 0;
-        boolean hit = target.hurt(source, amount);
+        boolean hit = target.level() instanceof ServerLevel level && target.hurtServer(level, source, amount);
         target.invulnerableTime = invulnerableTime;
         if (hit) {
             target.lastHurt += lastHurt;

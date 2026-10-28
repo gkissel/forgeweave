@@ -49,21 +49,15 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:ingots/crimson_steel"
-      },
+      "ingredient": "#c:ingots/crimson_steel",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:storage_blocks/crimson_steel"
-      },
+      "ingredient": "#c:storage_blocks/crimson_steel",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/crimson_steel"
-  },
+  "repair_item": "#c:ingots/crimson_steel",
   "cast_only": true,
   "enchantability": 17,
   "color": "#DC143C",

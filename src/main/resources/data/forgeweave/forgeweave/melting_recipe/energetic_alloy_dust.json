@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/energetic_alloy"
-  },
+  "input": "#c:dusts/energetic_alloy",
   "fluid": "forgeweave:molten_energetic_alloy",
   "amount": 144,
   "temperature": 1200,

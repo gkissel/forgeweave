@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_scythe_head"
-  },
+  "cast": "forgeweave:clay_cast_scythe_head",
   "fluid": "forgeweave:molten_steeleaf",
   "amount": 1152,
   "result": {

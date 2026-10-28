@@ -1,12 +1,11 @@
 {
-  "input": [
-    {
-      "tag": "c:small_dusts/aluminium"
-    },
-    {
-      "tag": "c:small_dusts/aluminum"
-    }
-  ],
+  "input": {
+    "neoforge:ingredient_type": "neoforge:compound",
+    "children": [
+      "#c:small_dusts/aluminium",
+      "#c:small_dusts/aluminum"
+    ]
+  },
   "fluid": "forgeweave:molten_aluminium",
   "amount": 36,
   "temperature": 1200,

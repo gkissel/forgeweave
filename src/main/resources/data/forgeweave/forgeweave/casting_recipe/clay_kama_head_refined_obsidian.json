@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_kama_head"
-  },
+  "cast": "forgeweave:clay_cast_kama_head",
   "fluid": "forgeweave:molten_refined_obsidian",
   "amount": 288,
   "result": {

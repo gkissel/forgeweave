@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/ironwood"
-  },
+  "input": "#c:dusts/ironwood",
   "fluid": "forgeweave:molten_ironwood",
   "amount": 144,
   "temperature": 1200,

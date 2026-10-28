@@ -101,14 +101,14 @@ public class CraftingStationBlock extends HorizontalDirectionalBlock implements 
         if (level.getBlockEntity(pos) instanceof CraftingStationBlockEntity craftingStation) {
             Identifier textureId = stack.get(ForgeweaveDataComponents.TEXTURE.get());
             if (textureId != null && BuiltInRegistries.BLOCK.containsKey(textureId)) {
-                craftingStation.setTexture(BuiltInRegistries.BLOCK.get(textureId));
+                craftingStation.setTexture(BuiltInRegistries.BLOCK.getValue(textureId));
             }
         }
     }
 
     @Override
-    public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
-        ItemStack stack = super.getCloneItemStack(level, pos, state);
+    protected ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
+        ItemStack stack = super.getCloneItemStack(level, pos, state, includeData);
         if (level.getBlockEntity(pos) instanceof CraftingStationBlockEntity craftingStation) {
             stack.set(ForgeweaveDataComponents.TEXTURE.get(), BuiltInRegistries.BLOCK.getKey(craftingStation.getTexture()));
         }
@@ -128,13 +128,4 @@ public class CraftingStationBlock extends HorizontalDirectionalBlock implements 
         return InteractionResult.SUCCESS;
     }
 
-    @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (state.getBlock() != newState.getBlock()) {
-            if (level.getBlockEntity(pos) instanceof CraftingStationBlockEntity craftingStation) {
-                Containers.dropContents(level, pos, craftingStation.container());
-            }
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
-    }
 }

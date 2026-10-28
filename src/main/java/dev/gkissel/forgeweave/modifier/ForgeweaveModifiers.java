@@ -392,12 +392,8 @@ public final class ForgeweaveModifiers {
      * diamond/emerald bump changes the stack's rule without changing its head material.
      */
     public static int tierIndexOf(HolderSet<Block> blocks) {
-        for (int i = 0; i < TIER_TAGS.size(); i++) {
-            if (blocks.equals(BuiltInRegistries.BLOCK.getOrCreateTag(TIER_TAGS.get(i)))) {
-                return i;
-            }
-        }
-        return -1;
+        // 26.1 has no getOrCreateTag to compare instances against; a tag-backed set names its tag.
+        return blocks.unwrapKey().map(TIER_TAGS::indexOf).orElse(-1);
     }
 
     /**
@@ -413,6 +409,17 @@ public final class ForgeweaveModifiers {
 
     public static TagKey<Block> tierTag(int index) {
         return TIER_TAGS.get(index);
+    }
+
+    /**
+     * {@link #tierTag} as the block set a {@code Tool.Rule} takes since 26.1 -- 1.21.1's
+     * {@code getOrCreateTag}, so a ladder tag no datapack defines is an empty set, not a crash.
+     */
+    public static HolderSet<Block> tierSet(int index) {
+        TagKey<Block> tag = tierTag(index);
+        return BuiltInRegistries.BLOCK.get(tag)
+                .<HolderSet<Block>>map(set -> set)
+                .orElseGet(() -> HolderSet.emptyNamed(BuiltInRegistries.BLOCK, tag));
     }
 
     /**
@@ -1101,7 +1108,7 @@ public final class ForgeweaveModifiers {
     private static final int WEBBED_DURATION_TICKS_PER_LEVEL = 20;
     /**
      * Upstream {@code ModWebbed}'s hardcoded {@code PotionEffect(MobEffects.SLOWNESS, ..., 1)}: Slowness
-     * II -- {@code MobEffects.MOVEMENT_SLOWDOWN} is 1.21's field name for the same effect.
+     * II -- {@code MobEffects.SLOWNESS} is 1.21's field name for the same effect.
      */
     private static final int WEBBED_SLOWNESS_AMPLIFIER = 1;
 
@@ -1114,7 +1121,7 @@ public final class ForgeweaveModifiers {
         @Override
         public Optional<CombatSeam> combatSeam(int level) {
             return Optional.of(new PotionEffectOnHitSeam(
-                    MobEffects.MOVEMENT_SLOWDOWN, WEBBED_SLOWNESS_AMPLIFIER, level * WEBBED_DURATION_TICKS_PER_LEVEL));
+                    MobEffects.SLOWNESS, WEBBED_SLOWNESS_AMPLIFIER, level * WEBBED_DURATION_TICKS_PER_LEVEL));
         }
     };
 
@@ -1971,9 +1978,9 @@ public final class ForgeweaveModifiers {
      */
     public static void onTagsUpdated(TagsUpdatedEvent event) {
         Map<Identifier, Modifier> loaded = new LinkedHashMap<>();
-        event.getRegistryAccess().registry(ModifierDefinition.REGISTRY).ifPresent(registry -> registry.entrySet()
+        event.getRegistries().lookup(ModifierDefinition.REGISTRY).ifPresent(registry -> registry.entrySet()
                 .forEach(entry -> {
-                    Identifier id = entry.getKey().location();
+                    Identifier id = entry.getKey().identifier();
                     if (REGISTRY.containsKey(id)) {
                         LOGGER.warn("Datapack modifier definition '{}' names a built-in Forgeweave modifier; the "
                                 + "built-in behavior wins and the definition is ignored (issue #973).", id);
@@ -2526,15 +2533,16 @@ public final class ForgeweaveModifiers {
         int xpGained = 0;
         for (ItemEntity itemEntity : event.getDrops()) {
             ItemStack drop = itemEntity.getItem();
-            Optional<RecipeHolder<SmeltingRecipe>> recipe = level.getRecipeManager()
-                    .getRecipeFor(RecipeType.SMELTING, new SingleRecipeInput(drop), level);
+            SingleRecipeInput input = new SingleRecipeInput(drop);
+            Optional<RecipeHolder<SmeltingRecipe>> recipe = level.recipeAccess()
+                    .getRecipeFor(RecipeType.SMELTING, input, level);
             if (recipe.isEmpty()) {
                 continue;
             }
-            ItemStack smelted = recipe.get().value().getResultItem(level.registryAccess()).copy();
+            ItemStack smelted = recipe.get().value().assemble(input);
             smelted.setCount(drop.getCount());
             itemEntity.setItem(smelted);
-            xpGained += roundedSmeltingXp(recipe.get().value().getExperience(), level.getRandom());
+            xpGained += roundedSmeltingXp(recipe.get().value().experience(), level.getRandom());
         }
         if (xpGained > 0) {
             event.setDroppedExperience(event.getDroppedExperience() + xpGained);
@@ -2694,10 +2702,10 @@ public final class ForgeweaveModifiers {
                 continue;
             }
             int stored = stack.getOrDefault(ForgeweaveDataComponents.MENDING_MOSS_XP.get(), 0);
-            int change = Math.min(orb.value, mendingMossXpCap(entry.level()) - stored);
+            int change = Math.min(orb.getValue(), mendingMossXpCap(entry.level()) - stored);
             if (change > 0) {
                 stack.set(ForgeweaveDataComponents.MENDING_MOSS_XP.get(), stored + change);
-                orb.value -= change;
+                orb.setValue(orb.getValue() - change);
             }
         }
     }
@@ -2717,8 +2725,8 @@ public final class ForgeweaveModifiers {
         Player player = event.getEntity();
         if (player.experienceLevel < MENDING_MOSS_ACQUIRE_LEVELS) {
             if (!event.getLevel().isClientSide()) {
-                player.displayClientMessage(Component.translatable("message.forgeweave.mending_moss.not_enough_levels",
-                        MENDING_MOSS_ACQUIRE_LEVELS), true);
+                player.sendOverlayMessage(Component.translatable("message.forgeweave.mending_moss.not_enough_levels",
+                        MENDING_MOSS_ACQUIRE_LEVELS));
             }
             event.setCanceled(true);
             return;

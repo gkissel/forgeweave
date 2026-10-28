@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/raw_tin"
-  },
+  "input": "#c:storage_blocks/raw_tin",
   "fluid": "forgeweave:molten_tin",
   "amount": 1296,
   "ore": true,

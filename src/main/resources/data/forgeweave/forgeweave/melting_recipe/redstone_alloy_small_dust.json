@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/redstone_alloy"
-  },
+  "input": "#c:small_dusts/redstone_alloy",
   "fluid": "forgeweave:molten_redstone_alloy",
   "amount": 36,
   "temperature": 1200,

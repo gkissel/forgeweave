@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/iesnium"
-  },
+  "input": "#c:ingots/iesnium",
   "fluid": "forgeweave:molten_iesnium",
   "amount": 144,
   "temperature": 1600,

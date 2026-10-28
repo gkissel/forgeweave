@@ -1,8 +1,8 @@
 package dev.gkissel.forgeweave.ponder;
 
-import net.createmod.ponder.api.registration.PonderPlugin;
-import net.createmod.ponder.api.registration.PonderSceneRegistrationHelper;
-import net.createmod.ponder.foundation.PonderIndex;
+import net.createmod.ponder.api.client.registration.PonderPlugin;
+import net.createmod.ponder.api.client.registration.PonderSceneRegistrationHelper;
+import net.createmod.ponder.api.client.PonderIndex;
 import net.minecraft.resources.Identifier;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 

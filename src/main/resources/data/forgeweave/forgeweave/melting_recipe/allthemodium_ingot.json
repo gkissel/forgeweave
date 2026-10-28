@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/allthemodium"
-  },
+  "input": "#c:ingots/allthemodium",
   "fluid": "forgeweave:molten_allthemodium",
   "amount": 144,
   "temperature": 1800,

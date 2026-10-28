@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_sharpening_kit"
-  },
+  "cast": "forgeweave:clay_cast_sharpening_kit",
   "fluid": "forgeweave:molten_uraninite",
   "amount": 288,
   "result": {

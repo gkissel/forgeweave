@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:plating_helmet"
-  },
+  "cast": "forgeweave:plating_helmet",
   "fluid": "forgeweave:molten_gold",
   "amount": 288,
   "result": {

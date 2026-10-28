@@ -44,27 +44,19 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "create:brass_ingot"
-      },
+      "ingredient": "create:brass_ingot",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "create:brass_nugget"
-      },
+      "ingredient": "create:brass_nugget",
       "value": 16
     },
     {
-      "ingredient": {
-        "item": "create:brass_block"
-      },
+      "ingredient": "create:brass_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "item": "create:brass_ingot"
-  },
+  "repair_item": "create:brass_ingot",
   "enchantability": 12,
   "color": "#CCB66A",
   "neoforge:conditions": [

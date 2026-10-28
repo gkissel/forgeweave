@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "neovitae:hellforged_block"
-  },
+  "input": "neovitae:hellforged_block",
   "fluid": "forgeweave:molten_hellforged",
   "amount": 1296,
   "temperature": 1600,

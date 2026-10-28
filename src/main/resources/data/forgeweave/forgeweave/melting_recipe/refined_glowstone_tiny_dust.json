@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:tiny_dusts/refined_glowstone"
-  },
+  "input": "#c:tiny_dusts/refined_glowstone",
   "fluid": "forgeweave:molten_refined_glowstone",
   "amount": 16,
   "temperature": 1400,

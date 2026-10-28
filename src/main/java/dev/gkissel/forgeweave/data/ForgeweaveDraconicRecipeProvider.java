@@ -6,6 +6,7 @@ import java.util.concurrent.CompletableFuture;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.CachedOutput;
@@ -165,11 +166,12 @@ public class ForgeweaveDraconicRecipeProvider implements DataProvider {
         return json;
     }
 
-    /** {@code "#namespace:path"} reads as a tag ingredient, anything else as an item ingredient. */
-    private static JsonObject ingredient(String id) {
-        JsonObject json = new JsonObject();
-        json.addProperty(id.startsWith("#") ? "tag" : "item", id.startsWith("#") ? id.substring(1) : id);
-        return json;
+    /**
+     * {@code "#namespace:path"} is a tag ingredient, anything else an item one. Since 1.21.2 an
+     * ingredient is that bare string, not a {@code {"item"|"tag": ...}} object.
+     */
+    private static JsonPrimitive ingredient(String id) {
+        return new JsonPrimitive(id);
     }
 
     /** Draconic Evolution's injector list: one entry per injector, each consumed by the craft. */

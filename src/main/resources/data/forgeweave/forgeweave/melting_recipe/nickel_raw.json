@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:raw_materials/nickel"
-  },
+  "input": "#c:raw_materials/nickel",
   "fluid": "forgeweave:molten_nickel",
   "amount": 144,
   "ore": true,

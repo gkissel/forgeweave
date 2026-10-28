@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/knightmetal"
-  },
+  "input": "#c:ingots/knightmetal",
   "fluid": "forgeweave:molten_knightmetal",
   "amount": 144,
   "temperature": 1400,

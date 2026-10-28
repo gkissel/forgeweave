@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/silver"
-  },
+  "input": "#c:nuggets/silver",
   "fluid": "forgeweave:molten_silver",
   "amount": 16,
   "temperature": 1200,

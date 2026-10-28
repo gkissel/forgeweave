@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:excavator_head"
-  },
+  "cast": "forgeweave:excavator_head",
   "fluid": "forgeweave:molten_clay",
   "amount": 288,
   "result": {

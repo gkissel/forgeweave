@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:raw_materials/azure_silver"
-  },
+  "input": "#c:raw_materials/azure_silver",
   "fluid": "forgeweave:molten_azure_silver",
   "amount": 144,
   "temperature": 1400,

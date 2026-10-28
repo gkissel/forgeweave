@@ -44,15 +44,11 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "create:rose_quartz"
-      },
+      "ingredient": "create:rose_quartz",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "create:rose_quartz"
-  },
+  "repair_item": "create:rose_quartz",
   "enchantability": 18,
   "color": "#E997B7",
   "neoforge:conditions": [

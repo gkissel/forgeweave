@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/amethyst"
-  },
+  "input": "#c:storage_blocks/amethyst",
   "fluid": "forgeweave:molten_amethyst",
   "amount": 400
 }

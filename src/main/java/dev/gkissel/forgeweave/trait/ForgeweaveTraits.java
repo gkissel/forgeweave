@@ -37,6 +37,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
@@ -803,7 +804,7 @@ public final class ForgeweaveTraits {
             if (charge.isFull()) {
                 LivingEntity target = hit.target();
                 SecondaryDamage.deal(target, hit.level().damageSources().lightningBolt(), SHOCKING_DISCHARGE_DAMAGE);
-                attacker.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 50, 5));
+                attacker.addEffect(new MobEffectInstance(MobEffects.SPEED, 50, 5));
                 dischargeShockingCharge(stack, hit.level(), target.getX(),
                         target.getY() + target.getBbHeight() * 0.5, target.getZ(), charge);
             } else if (attacker instanceof Player && !hit.isProjectile()) {
@@ -823,7 +824,7 @@ public final class ForgeweaveTraits {
                 // Upstream discharges a mining-filled charge on the spot, into haste rather than damage --
                 // both the full-charge and discharge cues fire in this one tick, same as upstream's
                 // addCharge-then-discharge back-to-back calls.
-                breaker.addEffect(new MobEffectInstance(MobEffects.DIG_SPEED, 50, 2));
+                breaker.addEffect(new MobEffectInstance(MobEffects.HASTE, 50, 2));
                 spawnShockingFullChargeFeedback(level, breaker);
                 dischargeShockingCharge(stack, level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, charged);
             } else {
@@ -954,7 +955,7 @@ public final class ForgeweaveTraits {
      */
     public static void spawnTraitSlime(EntityType<? extends Slime> type, ServerLevel level, LivingEntity owner,
             double x, double y, double z) {
-        Slime slime = type.create(level);
+        Slime slime = type.create(level, EntitySpawnReason.MOB_SUMMONED);
         if (slime == null) {
             return;
         }
@@ -1044,7 +1045,7 @@ public final class ForgeweaveTraits {
             return;
         }
         player.getFoodData().eat(1, 0.0F);
-        level.playSound(null, player.blockPosition(), SoundEvents.GENERIC_EAT, SoundSource.PLAYERS, 0.8F, 1.0F);
+        level.playSound(null, player.blockPosition(), SoundEvents.GENERIC_EAT.value(), SoundSource.PLAYERS, 0.8F, 1.0F);
         stack.hurtAndBreak(TASTY_NOM_COST, player, EquipmentSlot.MAINHAND);
     }
 
@@ -1752,7 +1753,7 @@ public final class ForgeweaveTraits {
 
     /** {@code effect_on_hit(SLOWNESS, duration, amplifier, 0)}: issue #828's "brief root/slow" instance. */
     public static final Trait SHACKLING = seamTrait(
-            new EffectOnHit(MobEffects.MOVEMENT_SLOWDOWN, SHACKLING_TICKS, SHACKLING_AMPLIFIER, 0));
+            new EffectOnHit(MobEffects.SLOWNESS, SHACKLING_TICKS, SHACKLING_AMPLIFIER, 0));
 
     /** Proposed (issue #828 maintainer decision): 10 seconds of Glowing, refreshed each hit. */
     private static final int REVEALING_TICKS = 200;
@@ -1779,7 +1780,7 @@ public final class ForgeweaveTraits {
      * "Foot Fleet" reference instance, a self speed burst on a fully-charged swing.
      */
     public static final Trait QUICKSTEP = seamTrait(new ConditionalSeam(HitCondition.FULL_CHARGE, 1.0F,
-            new EffectOnSelfOnHit(MobEffects.MOVEMENT_SPEED, QUICKSTEP_TICKS, QUICKSTEP_AMPLIFIER)));
+            new EffectOnSelfOnHit(MobEffects.SPEED, QUICKSTEP_TICKS, QUICKSTEP_AMPLIFIER)));
 
     /**
      * {@code strip_effects(chance, count=1, chargedOnly=true)}: a leveled I-III buff strip on a
@@ -2348,7 +2349,7 @@ public final class ForgeweaveTraits {
             for (int i = 0; i < ENDERCLEARANCE_TRIES; i++) {
                 double x = attacker.getX() + (random.nextDouble() - 0.5) * ENDERCLEARANCE_DIAMETER;
                 double y = Mth.clamp(attacker.getY() + (random.nextInt(ENDERCLEARANCE_DIAMETER) - ENDERCLEARANCE_DIAMETER / 2),
-                        defense.level().getMinBuildHeight(), defense.level().getMaxBuildHeight() - 1);
+                        defense.level().getMinY(), defense.level().getMaxY());
                 double z = attacker.getZ() + (random.nextDouble() - 0.5) * ENDERCLEARANCE_DIAMETER;
                 if (attacker.randomTeleport(x, y, z, true)) {
                     return;
@@ -2517,7 +2518,11 @@ public final class ForgeweaveTraits {
      */
     public static void onArmorKnockback(LivingKnockBackEvent event) {
         int level = 0;
-        for (ItemStack piece : event.getEntity().getArmorSlots()) {
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
+            if (slot.getType() != EquipmentSlot.Type.HUMANOID_ARMOR) {
+                continue; // 1.21.1's getArmorSlots: the four humanoid armor slots
+            }
+            ItemStack piece = event.getEntity().getItemBySlot(slot);
             if (piece.getItem() instanceof ArmorPieceItem && !ToolItem.isBroken(piece) && has(piece, CRYSTALSTRIKE)) {
                 level++;
             }
@@ -2765,7 +2770,7 @@ public final class ForgeweaveTraits {
         @Override
         public void combatSeams(Consumer<CombatSeam> out) {
             out.accept(new ConditionalSeam(HitCondition.ANY, 0.4F,
-                    new PotionEffectOnHitSeam(MobEffects.MOVEMENT_SPEED, 1, 100)));
+                    new PotionEffectOnHitSeam(MobEffects.SPEED, 1, 100)));
         }
     };
 
@@ -2774,7 +2779,7 @@ public final class ForgeweaveTraits {
         @Override
         public void combatSeams(Consumer<CombatSeam> out) {
             out.accept(new ConditionalSeam(HitCondition.BURNING, 1.0F,
-                    new PotionEffectOnHitSeam(MobEffects.MOVEMENT_SPEED, 0, 40)));
+                    new PotionEffectOnHitSeam(MobEffects.SPEED, 0, 40)));
         }
     };
 
@@ -2783,7 +2788,7 @@ public final class ForgeweaveTraits {
         @Override
         public void combatSeams(Consumer<CombatSeam> out) {
             out.accept(new ConditionalSeam(HitCondition.ANY, 0.35F,
-                    new PotionEffectOnHitSeam(MobEffects.CONFUSION, 0, 140)));
+                    new PotionEffectOnHitSeam(MobEffects.NAUSEA, 0, 140)));
         }
     };
 
@@ -2827,7 +2832,7 @@ public final class ForgeweaveTraits {
         @Override
         public void combatSeams(Consumer<CombatSeam> out) {
             out.accept(new ConditionalSeam(HitCondition.ANY, 0.4F,
-                    new PotionEffectOnHitSeam(MobEffects.DIG_SPEED, 1, 100)));
+                    new PotionEffectOnHitSeam(MobEffects.HASTE, 1, 100)));
         }
     };
 
@@ -2924,7 +2929,7 @@ public final class ForgeweaveTraits {
         public void afterBlockBreak(ItemStack stack, ServerLevel level, BlockState state, BlockPos pos,
                 LivingEntity breaker, boolean effective) {
             if (effective && level.getRandom().nextFloat() < OVERBURDENED_CHANCE) {
-                breaker.addEffect(new MobEffectInstance(MobEffects.DIG_SLOWDOWN, OVERBURDENED_DURATION_TICKS, 0));
+                breaker.addEffect(new MobEffectInstance(MobEffects.MINING_FATIGUE, OVERBURDENED_DURATION_TICKS, 0));
             }
         }
     };
@@ -3018,7 +3023,7 @@ public final class ForgeweaveTraits {
             if (holder.tickCount % DAYBOUND_TICK_PERIOD != 0) {
                 return;
             }
-            if (level.isDay()) {
+            if (level.isBrightOutside()) {
                 holder.addEffect(new MobEffectInstance(MobEffects.GLOWING, DAYBOUND_GLOW_TICKS, 0));
             } else if (level.getRandom().nextFloat() < DAYBOUND_NIGHT_VISION_CHANCE) {
                 holder.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, DAYBOUND_NIGHT_VISION_TICKS, 0));
@@ -3140,7 +3145,7 @@ public final class ForgeweaveTraits {
         if (!target.isAlive() || target instanceof Player) {
             return false;
         }
-        if (target.getType().is(Tags.EntityTypes.BOSSES) || target.getType().is(Tags.EntityTypes.CAPTURING_NOT_SUPPORTED)) {
+        if (target.is(Tags.EntityTypes.BOSSES) || target.is(Tags.EntityTypes.CAPTURING_NOT_SUPPORTED)) {
             return false;
         }
         if (target instanceof Raider raider && raider.isCaptain()) {
@@ -3414,7 +3419,7 @@ public final class ForgeweaveTraits {
     public static final Trait DREADGRIP = new Trait() {
         @Override
         public void afterHit(ItemStack stack, ServerLevel level, LivingEntity attacker, LivingEntity target) {
-            target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, DREADGRIP_TICKS, DREADGRIP_SLOW_AMPLIFIER));
+            target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, DREADGRIP_TICKS, DREADGRIP_SLOW_AMPLIFIER));
             target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, DREADGRIP_TICKS, 0));
             if (target instanceof Mob mob) {
                 mob.setTarget(null);
@@ -3891,9 +3896,9 @@ public final class ForgeweaveTraits {
         Map<Identifier, Trait> loaded = new LinkedHashMap<>();
         Map<Identifier, TraitFamilies.Rung> rungs = new LinkedHashMap<>();
         Map<Identifier, TraitDefinition> definitions = new LinkedHashMap<>();
-        event.getRegistryAccess().registry(TraitDefinition.REGISTRY).ifPresent(registry -> registry.entrySet()
+        event.getRegistries().lookup(TraitDefinition.REGISTRY).ifPresent(registry -> registry.entrySet()
                 .forEach(entry -> {
-                    Identifier id = entry.getKey().location();
+                    Identifier id = entry.getKey().identifier();
                     if (REGISTRY.containsKey(id)) {
                         LOGGER.warn("Datapack trait definition '{}' names a built-in Forgeweave trait; the built-in "
                                 + "behavior wins and the definition is ignored (issue #832).", id);
@@ -4406,7 +4411,7 @@ public final class ForgeweaveTraits {
      * covered both paths, NeoForge splits them. (Ender-pearl throws are a player-only teleport no
      * trait can mark in practice and are left alone.)
      */
-    public static void onChorusFruitTeleport(EntityTeleportEvent.ChorusFruit event) {
+    public static void onChorusFruitTeleport(EntityTeleportEvent.ItemConsumption event) {
         if (event.getEntityLiving().hasEffect(ForgeweaveMobEffects.ENDERFERENCE)) {
             event.setCanceled(true);
         }

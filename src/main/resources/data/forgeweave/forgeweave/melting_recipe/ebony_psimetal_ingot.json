@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/ebony_psimetal"
-  },
+  "input": "#c:ingots/ebony_psimetal",
   "fluid": "forgeweave:molten_ebony_psimetal",
   "amount": 144,
   "temperature": 1400,

@@ -55,21 +55,15 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "neovitae:ingot_hellforged"
-      },
+      "ingredient": "neovitae:ingot_hellforged",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "neovitae:hellforged_block"
-      },
+      "ingredient": "neovitae:hellforged_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "item": "neovitae:ingot_hellforged"
-  },
+  "repair_item": "neovitae:ingot_hellforged",
   "cast_only": true,
   "enchantability": 8,
   "color": "#99D6CB",

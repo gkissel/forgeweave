@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "create:zinc_nugget"
-  },
+  "input": "create:zinc_nugget",
   "fluid": "forgeweave:molten_zinc",
   "amount": 16,
   "temperature": 1200,

@@ -51,7 +51,7 @@ public record Protection(float perLevel, int level, Predicate<DamageSource> sour
     public static final Predicate<LivingEntity> ANY_ATTACKER = attacker -> true;
 
     /** Upstream's {@code MobTypePredicate(MobType.UNDEAD)}, 1.21's {@code #minecraft:undead}. */
-    public static final Predicate<LivingEntity> UNDEAD_ATTACKER = attacker -> attacker.getType().is(EntityTypeTags.UNDEAD);
+    public static final Predicate<LivingEntity> UNDEAD_ATTACKER = attacker -> attacker.is(EntityTypeTags.UNDEAD);
 
     public static final TagKey<DamageType> MELEE_PROTECTION = tag("melee_protection");
     public static final TagKey<DamageType> PROJECTILE_PROTECTION = tag("projectile_protection");

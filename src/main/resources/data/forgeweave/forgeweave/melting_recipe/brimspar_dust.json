@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/brimspar"
-  },
+  "input": "#c:dusts/brimspar",
   "fluid": "forgeweave:molten_brimspar",
   "amount": 144
 }

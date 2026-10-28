@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/draconium_awakened"
-  },
+  "input": "#c:small_dusts/draconium_awakened",
   "fluid": "forgeweave:molten_draconium_awakened",
   "amount": 36,
   "temperature": 1800,

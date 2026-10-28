@@ -15,7 +15,7 @@ import dev.gkissel.forgeweave.item.ShurikenItem;
 
 /**
  * A thrown shuriken (issue #448, parity audit T17): upstream 1.12's {@code EntityShuriken} on
- * {@code EntityProjectileBase}, re-based on vanilla's {@link net.minecraft.world.entity.projectile.AbstractArrow}
+ * {@code EntityProjectileBase}, re-based on vanilla's {@link net.minecraft.world.entity.projectile.arrow.AbstractArrow}
  * exactly as upstream bases its projectile on {@code EntityArrow} ("otherwise minecraft does derp
  * things because everything is handled based on class").
  *
@@ -53,7 +53,7 @@ import dev.gkissel.forgeweave.item.ShurikenItem;
  *       mean forking the whole method for a sound effect.</li>
  * </ul>
  */
-public class ShurikenEntity extends net.minecraft.world.entity.projectile.AbstractArrow
+public class ShurikenEntity extends net.minecraft.world.entity.projectile.arrow.AbstractArrow
         implements IEntityWithComplexSpawn {
 
     public ShurikenEntity(EntityType<? extends ShurikenEntity> type, Level level) {
@@ -112,7 +112,7 @@ public class ShurikenEntity extends net.minecraft.world.entity.projectile.Abstra
 
     @Override
     public void tick() {
-        if (!this.inGround) {
+        if (!this.isInGround()) {
             this.spinTicks++;
         }
         super.tick();
@@ -123,7 +123,7 @@ public class ShurikenEntity extends net.minecraft.world.entity.projectile.Abstra
      * {@code entity.spin += 20 * partialTicks} every frame while airborne and stops once stuck.
      */
     public float spin(float partialTicks) {
-        return (this.spinTicks + (this.inGround ? 0.0F : partialTicks)) * 20.0F;
+        return (this.spinTicks + (this.isInGround() ? 0.0F : partialTicks)) * 20.0F;
     }
 
     /**

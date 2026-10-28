@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:tiny_dusts/psimetal"
-  },
+  "input": "#c:tiny_dusts/psimetal",
   "fluid": "forgeweave:molten_psimetal",
   "amount": 16,
   "temperature": 1200,

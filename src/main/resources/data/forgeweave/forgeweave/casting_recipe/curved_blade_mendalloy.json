@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_curved_blade"
-  },
+  "cast": "forgeweave:cast_curved_blade",
   "fluid": "forgeweave:molten_mendalloy",
   "amount": 288,
   "result": {

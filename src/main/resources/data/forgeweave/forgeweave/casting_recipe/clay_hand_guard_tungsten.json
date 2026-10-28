@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_hand_guard"
-  },
+  "cast": "forgeweave:clay_cast_hand_guard",
   "fluid": "forgeweave:molten_tungsten",
   "amount": 144,
   "result": {

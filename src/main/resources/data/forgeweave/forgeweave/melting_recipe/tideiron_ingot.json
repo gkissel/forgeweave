@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/tideiron"
-  },
+  "input": "#c:ingots/tideiron",
   "fluid": "forgeweave:molten_tideiron",
   "amount": 144,
   "temperature": 1400

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/invar"
-  },
+  "input": "#c:small_dusts/invar",
   "fluid": "forgeweave:molten_invar",
   "amount": 36,
   "temperature": 1200,

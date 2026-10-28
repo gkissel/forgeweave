@@ -574,7 +574,7 @@ public final class ForgeweaveFluids {
                 props -> new BucketItem(stillRef[0].get(), props),
                 // Vanilla's own bucket properties (see Items#LAVA_BUCKET): one per slot, and the
                 // empty bucket comes back when the filled one is used up in a recipe.
-                new Item.Properties().craftRemainder(Items.BUCKET).stacksTo(1));
+                () -> new Item.Properties().craftRemainder(Items.BUCKET).stacksTo(1));
 
         Supplier<BaseFlowingFluid.Properties> properties = () -> new BaseFlowingFluid.Properties(
                 type, () -> stillRef[0].get(), () -> flowingRef[0].get())
@@ -595,15 +595,15 @@ public final class ForgeweaveFluids {
 
         stillRef[0] = FLUIDS.register(name, () -> new BaseFlowingFluid.Source(properties.get()));
         flowingRef[0] = FLUIDS.register("flowing_" + name, () -> new BaseFlowingFluid.Flowing(properties.get()));
-        blockRef[0] = BLOCKS.register(name, () -> new LiquidBlock(stillRef[0].get(), BlockBehaviour.Properties.of()
+        blockRef[0] = BLOCKS.registerBlock(name, props -> new LiquidBlock(stillRef[0].get(), props), () -> BlockBehaviour.Properties.of()
                 .mapColor(MapColor.METAL)
                 .replaceable()
-                .noCollission()
+                .noCollision()
                 .strength(100f)
                 .noLootTable()
                 .liquid()
                 .pushReaction(PushReaction.DESTROY)
-                .lightLevel(state -> lightLevel)));
+                .lightLevel(state -> lightLevel));
 
         MoltenMetal fluid = new MoltenMetal(name, type, stillRef[0], flowingRef[0], blockRef[0], bucket,
                 color, temperature, stillTexture, flowingTexture);

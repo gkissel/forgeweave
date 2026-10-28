@@ -53,27 +53,19 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "forgeweave:sunsteel_ingot"
-      },
+      "ingredient": "forgeweave:sunsteel_ingot",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "forgeweave:sunsteel_nugget"
-      },
+      "ingredient": "forgeweave:sunsteel_nugget",
       "value": 16
     },
     {
-      "ingredient": {
-        "item": "forgeweave:sunsteel_block"
-      },
+      "ingredient": "forgeweave:sunsteel_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/sunsteel"
-  },
+  "repair_item": "#c:ingots/sunsteel",
   "cast_only": true,
   "enchantability": 10,
   "color": "#DED26D"

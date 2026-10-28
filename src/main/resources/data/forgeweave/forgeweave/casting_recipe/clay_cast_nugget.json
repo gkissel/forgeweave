@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "tag": "c:nuggets"
-  },
+  "cast": "#c:nuggets",
   "fluid": "forgeweave:molten_clay",
   "amount": 288,
   "result": {

@@ -2,11 +2,11 @@ package dev.gkissel.forgeweave.client;
 
 import java.util.List;
 
-import net.createmod.catnip.gui.ScreenOpener;
-import net.createmod.ponder.api.element.WorldSectionElement;
-import net.createmod.ponder.foundation.PonderIndex;
-import net.createmod.ponder.foundation.PonderScene;
-import net.createmod.ponder.foundation.ui.PonderUI;
+import net.createmod.catnip.api.client.gui.ScreenOpener;
+import net.createmod.ponder.api.client.element.WorldSectionElement;
+import net.createmod.ponder.api.client.PonderIndex;
+import net.createmod.ponder.api.client.scene.PonderScene;
+import net.createmod.ponder.impl.client.gui.PonderUI;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
 

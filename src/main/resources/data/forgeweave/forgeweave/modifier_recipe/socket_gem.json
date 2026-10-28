@@ -2,9 +2,7 @@
   "modifier": "forgeweave:socket_gem",
   "reagents": [
     {
-      "ingredient": {
-        "item": "apotheosis:gem"
-      }
+      "ingredient": "apotheosis:gem"
     }
   ],
   "cost": 1,

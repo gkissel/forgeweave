@@ -19,11 +19,9 @@
     "general": ["forgeweave:autosmelt"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:firewood" }, "value": 144 }
+    { "ingredient": "forgeweave:firewood", "value": 144 }
   ],
-  "repair_item": {
-    "item": "forgeweave:firewood"
-  },
+  "repair_item": "forgeweave:firewood",
   "enchantability": 15,
   "color": "#CC5300"
 }

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:tiny_dusts/ferricore"
-  },
+  "input": "#c:tiny_dusts/ferricore",
   "fluid": "forgeweave:molten_ferricore",
   "amount": 16,
   "temperature": 1200,

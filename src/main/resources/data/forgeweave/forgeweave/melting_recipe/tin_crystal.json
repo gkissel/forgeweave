@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:crystals/tin"
-  },
+  "input": "#c:crystals/tin",
   "fluid": "forgeweave:molten_tin",
   "amount": 144,
   "temperature": 1200,

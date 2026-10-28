@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ores/hellforged"
-  },
+  "input": "#c:ores/hellforged",
   "fluid": "forgeweave:molten_hellforged",
   "amount": 144,
   "temperature": 1600,

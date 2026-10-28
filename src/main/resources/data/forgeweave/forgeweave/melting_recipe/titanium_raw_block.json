@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/raw_titanium"
-  },
+  "input": "#c:storage_blocks/raw_titanium",
   "fluid": "forgeweave:molten_titanium",
   "amount": 1296,
   "ore": true,

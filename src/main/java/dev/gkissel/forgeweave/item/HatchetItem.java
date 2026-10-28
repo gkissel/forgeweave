@@ -3,6 +3,7 @@ package dev.gkissel.forgeweave.item;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.level.block.state.BlockState;
@@ -50,7 +51,7 @@ public class HatchetItem extends ToolItem {
     @Override
     public List<Tool.Rule> miningRules(ToolStats.Stats stats) {
         List<Tool.Rule> rules = new ArrayList<>(super.miningRules(stats));
-        rules.add(Tool.Rule.overrideSpeed(BlockTags.LEAVES, miningSpeed(stats)));
+        rules.add(Tool.Rule.overrideSpeed(BuiltInRegistries.BLOCK.getOrThrow(BlockTags.LEAVES), miningSpeed(stats)));
         return rules;
     }
 

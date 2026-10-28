@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/tin"
-  },
+  "input": "#c:storage_blocks/tin",
   "fluid": "forgeweave:molten_tin",
   "amount": 1296,
   "temperature": 1200,

@@ -8,11 +8,9 @@
     "general": ["forgeweave:endspeed"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:end_rod" }, "value": 144 }
+    { "ingredient": "minecraft:end_rod", "value": 144 }
   ],
-  "repair_item": {
-    "item": "minecraft:end_rod"
-  },
+  "repair_item": "minecraft:end_rod",
   "enchantability": 15,
   "color": "#E8FFD6"
 }

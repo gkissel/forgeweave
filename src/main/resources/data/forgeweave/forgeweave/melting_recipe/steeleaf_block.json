@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/steeleaf"
-  },
+  "input": "#c:storage_blocks/steeleaf",
   "fluid": "forgeweave:molten_steeleaf",
   "amount": 1296,
   "temperature": 1400,

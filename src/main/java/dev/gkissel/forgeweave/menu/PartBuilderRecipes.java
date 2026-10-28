@@ -372,7 +372,7 @@ public final class PartBuilderRecipes {
                     .map(id -> new MaterialMatch(id, SHARD_VALUE));
         }
 
-        Optional<HolderLookup.RegistryLookup<Material>> lookup = registries.lookup(Material.REGISTRY);
+        Optional<? extends HolderLookup.RegistryLookup<Material>> lookup = registries.lookup(Material.REGISTRY);
         if (lookup.isEmpty()) {
             return Optional.empty();
         }
@@ -382,7 +382,7 @@ public final class PartBuilderRecipes {
             }
             for (Material.CraftingItem craftingItem : holder.value().craftingItems()) {
                 if (craftingItem.ingredient().test(stack)) {
-                    return Optional.of(new MaterialMatch(holder.key().location(), craftingItem.value()));
+                    return Optional.of(new MaterialMatch(holder.key().identifier(), craftingItem.value()));
                 }
             }
         }

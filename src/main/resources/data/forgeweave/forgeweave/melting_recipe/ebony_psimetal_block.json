@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/ebony_psimetal"
-  },
+  "input": "#c:storage_blocks/ebony_psimetal",
   "fluid": "forgeweave:molten_ebony_psimetal",
   "amount": 1296,
   "temperature": 1400,

@@ -1,18 +1,22 @@
 package dev.gkissel.forgeweave.recipe;
 
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
+import java.util.List;
+
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import net.minecraft.core.NonNullList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.ShapedRecipePattern;
 import net.minecraft.world.item.crafting.ShapelessRecipe;
 import net.minecraft.world.level.Level;
 
@@ -34,53 +38,36 @@ import dev.gkissel.forgeweave.config.ForgeweaveConfig;
  */
 public class GravelFlintRecipe extends ShapelessRecipe {
     public static final MapCodec<GravelFlintRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            Codec.STRING.optionalFieldOf("group", "").forGetter(GravelFlintRecipe::getGroup),
-            CraftingBookCategory.CODEC.fieldOf("category").orElse(CraftingBookCategory.MISC).forGetter(GravelFlintRecipe::category),
-            ItemStack.STRICT_CODEC.fieldOf("result").forGetter(GravelFlintRecipe::result),
-            Ingredient.CODEC_NONEMPTY.listOf().fieldOf("ingredients").flatXmap(GravelFlintRecipe::toIngredientList, DataResult::success)
-                    .forGetter(GravelFlintRecipe::getIngredients))
+            Recipe.CommonInfo.MAP_CODEC.forGetter(recipe -> recipe.commonInfo),
+            CraftingRecipe.CraftingBookInfo.MAP_CODEC.forGetter(recipe -> recipe.bookInfo),
+            ItemStackTemplate.CODEC.fieldOf("result").forGetter(ShapelessRecipe::result),
+            Ingredient.CODEC.listOf(1, ShapedRecipePattern.getMaxWidth() * ShapedRecipePattern.getMaxHeight())
+                    .fieldOf("ingredients").forGetter(GravelFlintRecipe::ingredients))
             .apply(instance, GravelFlintRecipe::new));
 
-    public static final StreamCodec<RegistryFriendlyByteBuf, GravelFlintRecipe> STREAM_CODEC =
-            StreamCodec.of(GravelFlintRecipe::toNetwork, GravelFlintRecipe::fromNetwork);
+    public static final StreamCodec<RegistryFriendlyByteBuf, GravelFlintRecipe> STREAM_CODEC = StreamCodec.composite(
+            Recipe.CommonInfo.STREAM_CODEC, recipe -> recipe.commonInfo,
+            CraftingRecipe.CraftingBookInfo.STREAM_CODEC, recipe -> recipe.bookInfo,
+            ItemStackTemplate.STREAM_CODEC, ShapelessRecipe::result,
+            Ingredient.CONTENTS_STREAM_CODEC.apply(ByteBufCodecs.list()), GravelFlintRecipe::ingredients,
+            GravelFlintRecipe::new);
 
-    /** {@link RetexturedShapedRecipe#result}'s reasoning: the superclass's own field is private. */
-    private final ItemStack result;
+    /** The superclass's own ingredient list is private; kept here for {@link #CODEC}. */
+    private final List<Ingredient> ingredients;
 
-    public GravelFlintRecipe(String group, CraftingBookCategory category, ItemStack result, NonNullList<Ingredient> ingredients) {
-        super(group, category, result, ingredients);
-        this.result = result;
+    public GravelFlintRecipe(String group, CraftingBookCategory category, ItemStack result, List<Ingredient> ingredients) {
+        this(new Recipe.CommonInfo(true), new CraftingRecipe.CraftingBookInfo(category, group),
+                ItemStackTemplate.fromNonEmptyStack(result), ingredients);
     }
 
-    private ItemStack result() {
-        return result;
+    public GravelFlintRecipe(Recipe.CommonInfo commonInfo, CraftingRecipe.CraftingBookInfo bookInfo,
+            ItemStackTemplate result, List<Ingredient> ingredients) {
+        super(commonInfo, bookInfo, result, ingredients);
+        this.ingredients = List.copyOf(ingredients);
     }
 
-    private static DataResult<NonNullList<Ingredient>> toIngredientList(java.util.List<Ingredient> ingredients) {
-        if (ingredients.isEmpty()) {
-            return DataResult.error(() -> "No ingredients for shapeless recipe");
-        }
-        return DataResult.success(NonNullList.of(Ingredient.EMPTY, ingredients.toArray(Ingredient[]::new)));
-    }
-
-    private static GravelFlintRecipe fromNetwork(RegistryFriendlyByteBuf buf) {
-        String group = buf.readUtf();
-        CraftingBookCategory category = buf.readEnum(CraftingBookCategory.class);
-        int size = buf.readVarInt();
-        NonNullList<Ingredient> ingredients = NonNullList.withSize(size, Ingredient.EMPTY);
-        ingredients.replaceAll(ignored -> Ingredient.CONTENTS_STREAM_CODEC.decode(buf));
-        ItemStack result = ItemStack.STREAM_CODEC.decode(buf);
-        return new GravelFlintRecipe(group, category, result, ingredients);
-    }
-
-    private static void toNetwork(RegistryFriendlyByteBuf buf, GravelFlintRecipe recipe) {
-        buf.writeUtf(recipe.getGroup());
-        buf.writeEnum(recipe.category());
-        buf.writeVarInt(recipe.getIngredients().size());
-        for (Ingredient ingredient : recipe.getIngredients()) {
-            Ingredient.CONTENTS_STREAM_CODEC.encode(buf, ingredient);
-        }
-        ItemStack.STREAM_CODEC.encode(buf, recipe.result());
+    private List<Ingredient> ingredients() {
+        return ingredients;
     }
 
     /** Upstream's config check, run every match instead of baked into the datapack load. */
@@ -89,8 +76,10 @@ public class GravelFlintRecipe extends ShapelessRecipe {
         return ForgeweaveConfig.read(ForgeweaveConfig.ADD_FLINT_RECIPE) && super.matches(input, level);
     }
 
+    /** The vanilla parent pins its own serializer type; ours encodes this subclass, which is all dispatch needs. */
     @Override
-    public RecipeSerializer<?> getSerializer() {
-        return ForgeweaveRecipeSerializers.GRAVEL_FLINT.get();
+    @SuppressWarnings("unchecked")
+    public RecipeSerializer<ShapelessRecipe> getSerializer() {
+        return (RecipeSerializer<ShapelessRecipe>) (RecipeSerializer<?>) ForgeweaveRecipeSerializers.GRAVEL_FLINT.get();
     }
 }

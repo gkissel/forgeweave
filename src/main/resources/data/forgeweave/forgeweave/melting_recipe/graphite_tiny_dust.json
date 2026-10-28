@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:tiny_dusts/graphite"
-  },
+  "input": "#c:tiny_dusts/graphite",
   "fluid": "forgeweave:molten_graphite",
   "amount": 16,
   "temperature": 1200,

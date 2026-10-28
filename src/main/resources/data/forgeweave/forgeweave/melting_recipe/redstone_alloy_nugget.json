@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/redstone_alloy"
-  },
+  "input": "#c:nuggets/redstone_alloy",
   "fluid": "forgeweave:molten_redstone_alloy",
   "amount": 16,
   "temperature": 1200,

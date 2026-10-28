@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/refined_glowstone"
-  },
+  "input": "#c:nuggets/refined_glowstone",
   "fluid": "forgeweave:molten_refined_glowstone",
   "amount": 16,
   "temperature": 1400,

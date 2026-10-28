@@ -52,15 +52,11 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:ingots/vibranium"
-      },
+      "ingredient": "#c:ingots/vibranium",
       "value": 144
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/vibranium"
-  },
+  "repair_item": "#c:ingots/vibranium",
   "cast_only": true,
   "enchantability": 10,
   "color": "#18A878",

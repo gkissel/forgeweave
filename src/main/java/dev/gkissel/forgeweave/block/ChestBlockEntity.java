@@ -1,5 +1,11 @@
 package dev.gkissel.forgeweave.block;
 
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.core.component.DataComponentGetter;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.minecraft.world.Containers;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -70,14 +76,16 @@ public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
 
     private final ChestKind kind;
     private final FilteredContainer container;
-    private final IItemHandler itemHandler;
+    /** The container in the old item-handler shape, which the insertion helpers below use. */
+    private final InvWrapper slots;
+    private final ResourceHandler<ItemResource> itemHandler;
 
     public ChestBlockEntity(BlockPos pos, BlockState state, ChestKind kind) {
         super(kind.blockEntityType().get(), pos, state);
         this.kind = kind;
-        this.container = new FilteredContainer(kind);
-        this.itemHandler = new InvWrapper(container);
-        container.addListener(c -> setChanged());
+        this.container = new FilteredContainer(kind, this::setChanged);
+        this.slots = new InvWrapper(container);
+        this.itemHandler = TransferBridge.items(slots);
     }
 
     public ChestKind kind() {
@@ -89,14 +97,14 @@ public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        tag.put(TAG_INVENTORY, container.createTag(registries));
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        container.storeAsItemList(output.list(TAG_INVENTORY, ItemStack.CODEC));
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
         // Reset to the floor first: SimpleContainer#fromTag's list is positionless (it refills
         // through #addItem, low slot to high -- see the save-compat fixture this issue adds), so
         // capacity grows back to exactly what the reloaded contents need as #setItem's own growth
@@ -110,7 +118,7 @@ public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
         // in-game placement afterwards still goes through ChestKind#maxStackSize() as normal.
         container.loading = true;
         try {
-            container.fromTag(tag.getList(TAG_INVENTORY, Tag.TAG_COMPOUND), registries);
+            container.fromItemList(input.listOrEmpty(TAG_INVENTORY, ItemStack.CODEC));
         } finally {
             container.loading = false;
         }
@@ -144,7 +152,7 @@ public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
 
     /** The other half of {@link #collectImplicitComponents}: placing the item back refills the chest. */
     @Override
-    protected void applyImplicitComponents(BlockEntity.DataComponentInput componentInput) {
+    protected void applyImplicitComponents(DataComponentGetter componentInput) {
         super.applyImplicitComponents(componentInput);
         ItemContainerContents stored = componentInput.get(DataComponents.CONTAINER);
         if (stored != null) {
@@ -188,7 +196,7 @@ public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
         if (held.isEmpty()) {
             return false;
         }
-        ItemStack remainder = ItemHandlerHelper.insertItem(itemHandler, held, false);
+        ItemStack remainder = ItemHandlerHelper.insertItem(slots, held, false);
         if (remainder.getCount() == held.getCount()) {
             return false;
         }
@@ -208,11 +216,11 @@ public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
         StationGroup.STREAM_CODEC.encode(buf, StationGroup.tabsFor(level, worldPosition));
     }
 
-    /** Wires {@link Capabilities.ItemHandler#BLOCK} for both chest types; called from {@code Forgeweave}'s constructor. */
+    /** Wires {@link Capabilities.Item#BLOCK} for both chest types; called from {@code Forgeweave}'s constructor. */
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ForgeweaveBlockEntities.PATTERN_CHEST.get(),
+        event.registerBlockEntity(Capabilities.Item.BLOCK, ForgeweaveBlockEntities.PATTERN_CHEST.get(),
                 (blockEntity, side) -> blockEntity.itemHandler);
-        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ForgeweaveBlockEntities.PART_CHEST.get(),
+        event.registerBlockEntity(Capabilities.Item.BLOCK, ForgeweaveBlockEntities.PART_CHEST.get(),
                 (blockEntity, side) -> blockEntity.itemHandler);
     }
 
@@ -232,13 +240,21 @@ public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
      */
     private static final class FilteredContainer extends SimpleContainer {
         private final ChestKind kind;
+        private final Runnable onChanged;
         private int capacity = MINIMUM_SLOTS;
         /** See {@link #loadAdditional}: true only while a save is being decoded. */
         private boolean loading;
 
-        FilteredContainer(ChestKind kind) {
+        FilteredContainer(ChestKind kind, Runnable onChanged) {
             super(MAX_SLOTS);
             this.kind = kind;
+            this.onChanged = onChanged;
+        }
+
+        /** What {@code SimpleContainer#addListener} did before 1.21.5 removed it. */
+        @Override
+        public void setChanged() {
+            onChanged.run();
         }
 
         @Override
@@ -293,6 +309,15 @@ public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
             while (capacity > MINIMUM_SLOTS && getItem(capacity - 2).isEmpty()) {
                 capacity--;
             }
+        }
+    }
+
+    /** Drops the inventory when the block is broken, unless the config keeps it in the item (was {@code ChestBlock#onRemove}). */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        if (level != null && !ForgeweaveConfig.read(ForgeweaveConfig.CHESTS_KEEP_INVENTORY)) {
+            Containers.dropContents(level, pos, container());
         }
     }
 }

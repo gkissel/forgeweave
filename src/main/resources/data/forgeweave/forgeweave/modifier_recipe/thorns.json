@@ -1,8 +1,6 @@
 {
   "modifier": "forgeweave:thorns",
-  "reagent": {
-    "item": "minecraft:cactus"
-  },
+  "reagent": "minecraft:cactus",
   "cost": 1,
   "max_level": 75
 }

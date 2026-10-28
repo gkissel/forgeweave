@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/iridium"
-  },
+  "input": "#c:storage_blocks/iridium",
   "fluid": "forgeweave:molten_iridium",
   "amount": 1296,
   "temperature": 1600,

@@ -5,7 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.equipment.ArmorMaterial;
+import net.minecraft.client.resources.model.EquipmentClientInfo;
 import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.api.distmarker.Dist;
@@ -90,7 +90,7 @@ public final class ForgeweaveItemClientExtensions {
      * Registered off {@link ToolAssemblyRecipes#ENTRIES} for the reason {@link ForgeweaveItemProperties} is.
      *
      * <p>The armor extension is #726's runtime tint: {@code HumanoidArmorLayer} asks {@code
-     * getArmorLayerTintColor} once per {@link ArmorMaterial.Layer} pass, and each pass gets its own
+     * getArmorLayerTintColor} once per {@link EquipmentClientInfo.Layer} pass, and each pass gets its own
      * part's {@code Material.color} over the shared gray base ({@link ArmorPieceItem#layerMaterial}),
      * the same colour {@link ForgeweaveItemColors} puts on the item sprite. A stack without
      * materials returns white, vanilla's untinted answer.
@@ -99,9 +99,9 @@ public final class ForgeweaveItemClientExtensions {
     static void registerItemClientExtensions(RegisterClientExtensionsEvent event) {
         IClientItemExtensions armor = new IClientItemExtensions() {
             @Override
-            public int getArmorLayerTintColor(ItemStack stack, LivingEntity entity, ArmorMaterial.Layer layer, int layerIdx,
+            public int getArmorLayerTintColor(ItemStack stack, EquipmentClientInfo.Layer layer, int layerIdx,
                     int fallbackColor) {
-                return ForgeweaveItemColors.opaqueMaterialColor(ArmorPieceItem.layerMaterial(stack, layerIdx));
+                return ForgeweaveItemColors.opaqueMaterialColor(ArmorPieceItem.layerMaterial(stack, layer.textureId()));
             }
         };
         IClientItemExtensions crossbow = new IClientItemExtensions() {

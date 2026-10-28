@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -61,32 +64,25 @@ public class SearedReservoirScreen extends AbstractContainerScreen<SearedReservo
     private static final String KEY_PREFIX = "gui.forgeweave.smeltery.";
 
     public SearedReservoirScreen(SearedReservoirMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
-        imageWidth = BASE_WIDTH;
-        imageHeight = BASE_HEIGHT;
+        super(menu, playerInventory, title, BASE_WIDTH, BASE_HEIGHT);
     }
 
     @Override
-    protected void renderBg(GuiGraphicsExtractor graphics, float partialTick, int mouseX, int mouseY) {
-        graphics.blit(TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight, SHEET, SHEET);
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(graphics, mouseX, mouseY, partialTick);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, imageWidth, imageHeight, SHEET, SHEET);
         renderTank(graphics);
         // The scale overlay goes on top of the fluids, exactly as upstream draws it in its
         // foreground layer after the background layer has painted the liquids.
-        graphics.blit(TEXTURE, leftPos + TANK_X, topPos + TANK_Y, SCALA_U, SCALA_V, TANK_WIDTH, TANK_HEIGHT, SHEET, SHEET);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + TANK_X, topPos + TANK_Y, SCALA_U, SCALA_V, TANK_WIDTH, TANK_HEIGHT, SHEET, SHEET);
     }
 
     /** Upstream's {@code drawContainerName} at {@code (8, 6)}; there is no inventory label to draw. */
     @Override
-    protected void renderLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        graphics.drawString(font, title, 8, 6, 0x404040, false);
+    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        graphics.text(font, title, 8, 6, 0xFF404040, false);
     }
 
-    @Override
-    public void render(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(graphics, mouseX, mouseY, partialTick);
-        super.render(graphics, mouseX, mouseY, partialTick);
-        renderTooltip(graphics, mouseX, mouseY);
-    }
 
     private void renderTank(GuiGraphicsExtractor graphics) {
         List<FluidStack> fluids = menu.fluids(level());
@@ -117,10 +113,10 @@ public class SearedReservoirScreen extends AbstractContainerScreen<SearedReservo
     }
 
     @Override
-    protected void renderTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        super.renderTooltip(graphics, mouseX, mouseY);
+    protected void extractTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        super.extractTooltip(graphics, mouseX, mouseY);
         if (isHovering(TANK_X, TANK_Y, TANK_WIDTH, TANK_HEIGHT, mouseX, mouseY)) {
-            graphics.renderComponentTooltip(font, tankTooltip(mouseX, mouseY), mouseX, mouseY);
+            graphics.setComponentTooltipForNextFrame(font, tankTooltip(mouseX, mouseY), mouseX, mouseY);
         }
     }
 
@@ -132,7 +128,7 @@ public class SearedReservoirScreen extends AbstractContainerScreen<SearedReservo
         if (hovered >= 0) {
             FluidStack fluid = fluids.get(hovered);
             tooltip.add(fluid.getHoverName().copy().withStyle(ChatFormatting.WHITE));
-            SmelteryScreen.addAmount(tooltip, fluid.getAmount(), Screen.hasShiftDown(),
+            SmelteryScreen.addAmount(tooltip, fluid.getAmount(), Minecraft.getInstance().hasShiftDown(),
                     SmelteryScreen.gemValued(level(), fluid));
             return tooltip;
         }
@@ -143,12 +139,12 @@ public class SearedReservoirScreen extends AbstractContainerScreen<SearedReservo
         }
         int capacity = menu.capacity(level());
         tooltip.add(translate("capacity").withStyle(ChatFormatting.WHITE));
-        SmelteryScreen.addAmount(tooltip, capacity, Screen.hasShiftDown(), false);
+        SmelteryScreen.addAmount(tooltip, capacity, Minecraft.getInstance().hasShiftDown(), false);
         tooltip.add(translate("capacity_available"));
-        SmelteryScreen.addAmount(tooltip, capacity - used, Screen.hasShiftDown(), false);
+        SmelteryScreen.addAmount(tooltip, capacity - used, Minecraft.getInstance().hasShiftDown(), false);
         tooltip.add(translate("capacity_used"));
-        SmelteryScreen.addAmount(tooltip, used, Screen.hasShiftDown(), false);
-        if (!Screen.hasShiftDown()) {
+        SmelteryScreen.addAmount(tooltip, used, Minecraft.getInstance().hasShiftDown(), false);
+        if (!Minecraft.getInstance().hasShiftDown()) {
             tooltip.add(Component.empty());
             tooltip.add(Component.translatable("tooltip.forgeweave.hold_shift").withStyle(ChatFormatting.GRAY));
         }
@@ -157,14 +153,17 @@ public class SearedReservoirScreen extends AbstractContainerScreen<SearedReservo
 
     /** Clicking a band makes it the drain fluid; index 0 already is, so that click is not sent. */
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         int fluid = button == 0 ? hoveredFluid(mouseX, mouseY) : -1;
         if (fluid > 0 && minecraft != null && minecraft.player != null && minecraft.gameMode != null) {
             minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
             minecraft.gameMode.handleInventoryButtonClick(menu.containerId, fluid);
             return true;
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     private Level level() {

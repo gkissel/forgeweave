@@ -6,11 +6,9 @@
     ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:string" }, "value": 144 }
+    { "ingredient": "minecraft:string", "value": 144 }
   ],
-  "repair_item": {
-    "item": "minecraft:string"
-  },
+  "repair_item": "minecraft:string",
   "enchantability": 15,
   "color": "#EEEEEE",
   "bowstring": {

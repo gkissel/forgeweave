@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/knightslime"
-  },
+  "input": "#c:storage_blocks/knightslime",
   "fluid": "forgeweave:molten_knightslime",
   "amount": 1296
 }

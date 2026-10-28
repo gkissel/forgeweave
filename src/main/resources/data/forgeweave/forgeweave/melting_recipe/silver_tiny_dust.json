@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:tiny_dusts/silver"
-  },
+  "input": "#c:tiny_dusts/silver",
   "fluid": "forgeweave:molten_silver",
   "amount": 16,
   "temperature": 1200,

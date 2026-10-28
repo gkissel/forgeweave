@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dirty_dusts/tin"
-  },
+  "input": "#c:dirty_dusts/tin",
   "fluid": "forgeweave:molten_tin",
   "amount": 144,
   "temperature": 1200,

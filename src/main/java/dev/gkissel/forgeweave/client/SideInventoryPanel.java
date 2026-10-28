@@ -2,6 +2,7 @@ package dev.gkissel.forgeweave.client;
 
 import java.util.List;
 
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.resources.Identifier;
@@ -176,7 +177,7 @@ final class SideInventoryPanel {
      * sibling over a grid sized by the chest rather than by a neighbour's inventory.
      */
     static void renderSlotTile(GuiGraphicsExtractor graphics, int x, int y, boolean filled) {
-        graphics.blit(TEXTURE, x, y, filled ? SLOT_U : SLOT_EMPTY_U, SLOT_V, SLOT, SLOT, SHEET, SHEET);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, filled ? SLOT_U : SLOT_EMPTY_U, SLOT_V, SLOT, SLOT, SHEET, SHEET);
     }
 
     private void renderSlider(GuiGraphicsExtractor graphics) {
@@ -193,14 +194,14 @@ final class SideInventoryPanel {
         int x = sliderTrack.getX();
         int y = sliderTrack.getY();
         int trackH = sliderTrack.getHeight();
-        graphics.blit(TEXTURE, x, y, SLIDER_TRACK_U, SLIDER_TOP_V, SLIDER_WIDTH, SLIDER_CAP_H, SHEET, SHEET);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, SLIDER_TRACK_U, SLIDER_TOP_V, SLIDER_WIDTH, SLIDER_CAP_H, SHEET, SHEET);
         for (int drawn = SLIDER_CAP_H; drawn < trackH - SLIDER_CAP_H; drawn += SLIDER_BAR_H) {
-            graphics.blit(TEXTURE, x, y + drawn, SLIDER_TRACK_U, SLIDER_BAR_V, SLIDER_WIDTH,
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y + drawn, SLIDER_TRACK_U, SLIDER_BAR_V, SLIDER_WIDTH,
                     Math.min(SLIDER_BAR_H, trackH - SLIDER_CAP_H - drawn), SHEET, SHEET);
         }
-        graphics.blit(TEXTURE, x, y + trackH - SLIDER_CAP_H, SLIDER_TRACK_U, SLIDER_BOTTOM_V,
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y + trackH - SLIDER_CAP_H, SLIDER_TRACK_U, SLIDER_BOTTOM_V,
                 SLIDER_WIDTH, SLIDER_CAP_H, SHEET, SHEET);
-        graphics.blit(TEXTURE, x + (SLIDER_WIDTH - SLIDER_KNOB_W) / 2,
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x + (SLIDER_WIDTH - SLIDER_KNOB_W) / 2,
                 knobY(y, trackH, scrollRow, maxScrollRow), SLIDER_KNOB_U, SLIDER_KNOB_V,
                 SLIDER_KNOB_W, SLIDER_KNOB_H, SHEET, SHEET);
     }
@@ -354,6 +355,6 @@ final class SideInventoryPanel {
      */
     private static void blit(GuiGraphicsExtractor graphics, int x, int y, int width, int height,
             int u, int v, int uWidth, int vHeight) {
-        graphics.blit(TEXTURE, x, y, width, height, u, v, uWidth, vHeight, SHEET, SHEET);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, u, v, width, height, uWidth, vHeight, SHEET, SHEET);
     }
 }

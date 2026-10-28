@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/atomic_matter_alloy"
-  },
+  "input": "#c:dusts/atomic_matter_alloy",
   "fluid": "forgeweave:molten_atomic_matter_alloy",
   "amount": 144,
   "temperature": 2000,

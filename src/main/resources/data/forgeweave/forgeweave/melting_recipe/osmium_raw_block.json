@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/raw_osmium"
-  },
+  "input": "#c:storage_blocks/raw_osmium",
   "fluid": "forgeweave:molten_osmium",
   "amount": 1296,
   "ore": true,

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/ironbrand"
-  },
+  "input": "#c:dusts/ironbrand",
   "fluid": "forgeweave:molten_ironbrand",
   "amount": 144
 }

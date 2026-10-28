@@ -1,5 +1,8 @@
 package dev.gkissel.forgeweave.block;
 
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -315,8 +318,13 @@ public class SearedFurnaceBlockEntity extends BlockEntity implements StationMenu
         if (level == null || stack.isEmpty() || !ForgeweaveConfig.enabled(ForgeweaveConfig.SMELTERY)) {
             return ItemStack.EMPTY;
         }
-        return level.getRecipeManager().getRecipeFor(RecipeType.SMELTING, new SingleRecipeInput(stack), level)
-                .map(holder -> holder.value().getResultItem(level.registryAccess()))
+        // 26.1 keeps recipes on the server only; the furnace smelts server-side anyway.
+        if (!(level instanceof ServerLevel server)) {
+            return ItemStack.EMPTY;
+        }
+        SingleRecipeInput input = new SingleRecipeInput(stack);
+        return server.recipeAccess().getRecipeFor(RecipeType.SMELTING, input, server)
+                .map(holder -> holder.value().assemble(input))
                 .orElse(ItemStack.EMPTY);
     }
 
@@ -714,50 +722,38 @@ public class SearedFurnaceBlockEntity extends BlockEntity implements StationMenu
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        if (structure != null) {
-            SmelteryStructure.CODEC.encodeStart(NbtOps.INSTANCE, structure)
-                    .resultOrPartial(error -> {})
-                    .ifPresent(encoded -> tag.put(TAG_STRUCTURE, encoded));
-        }
-        BlockPos.CODEC.listOf().encodeStart(NbtOps.INSTANCE, tanks)
-                .resultOrPartial(error -> {})
-                .ifPresent(encoded -> tag.put(TAG_TANKS, encoded));
-        tag.put(TAG_ITEMS, ContainerHelper.saveAllItems(new CompoundTag(), items, true, registries));
-        tag.putIntArray(TAG_ITEM_TEMPERATURES, itemTemperatures);
-        tag.putIntArray(TAG_ITEM_TEMP_REQUIRED, itemTempRequired);
-        tag.putInt(TAG_FUEL, fuel);
-        tag.putInt(TAG_FUEL_QUALITY, fuelQuality);
-        tag.putInt(TAG_TEMPERATURE, fuelTemperature);
-        if (currentTank != null) {
-            tag.put(TAG_CURRENT_TANK, NbtUtils.writeBlockPos(currentTank));
-        }
-        tag.put(TAG_CURRENT_FUEL, currentFuel.saveOptional(registries));
-        tag.put(TAG_FUEL_DISPLAY, fuelDisplayFluid.saveOptional(registries));
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.storeNullable(TAG_STRUCTURE, SmelteryStructure.CODEC, structure);
+        output.store(TAG_TANKS, BlockPos.CODEC.listOf(), tanks);
+        ContainerHelper.saveAllItems(output.child(TAG_ITEMS), items, true);
+        output.putIntArray(TAG_ITEM_TEMPERATURES, itemTemperatures);
+        output.putIntArray(TAG_ITEM_TEMP_REQUIRED, itemTempRequired);
+        output.putInt(TAG_FUEL, fuel);
+        output.putInt(TAG_FUEL_QUALITY, fuelQuality);
+        output.putInt(TAG_TEMPERATURE, fuelTemperature);
+        output.storeNullable(TAG_CURRENT_TANK, BlockPos.CODEC, currentTank);
+        output.store(TAG_CURRENT_FUEL, FluidStack.OPTIONAL_CODEC, currentFuel);
+        output.store(TAG_FUEL_DISPLAY, FluidStack.OPTIONAL_CODEC, fuelDisplayFluid);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        structure = tag.contains(TAG_STRUCTURE)
-                ? SmelteryStructure.CODEC.parse(NbtOps.INSTANCE, tag.get(TAG_STRUCTURE)).resultOrPartial(error -> {}).orElse(null)
-                : null;
-        tanks = new ArrayList<>(tag.contains(TAG_TANKS)
-                ? BlockPos.CODEC.listOf().parse(NbtOps.INSTANCE, tag.get(TAG_TANKS)).resultOrPartial(error -> {}).orElse(List.of())
-                : List.of());
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        structure = input.read(TAG_STRUCTURE, SmelteryStructure.CODEC).orElse(null);
+        tanks = new ArrayList<>(input.read(TAG_TANKS, BlockPos.CODEC.listOf()).orElse(List.of()));
         resizeInventory(structure == null ? 0 : 9 + 3 * structure.interiorVolume());
-        ContainerHelper.loadAllItems(tag.getCompound(TAG_ITEMS), items, registries);
-        int[] temperatures = tag.getIntArray(TAG_ITEM_TEMPERATURES);
+        ContainerHelper.loadAllItems(input.childOrEmpty(TAG_ITEMS), items);
+        int[] temperatures = input.getIntArray(TAG_ITEM_TEMPERATURES).orElse(new int[0]);
         System.arraycopy(temperatures, 0, itemTemperatures, 0, Math.min(temperatures.length, itemTemperatures.length));
-        int[] required = tag.getIntArray(TAG_ITEM_TEMP_REQUIRED);
+        int[] required = input.getIntArray(TAG_ITEM_TEMP_REQUIRED).orElse(new int[0]);
         System.arraycopy(required, 0, itemTempRequired, 0, Math.min(required.length, itemTempRequired.length));
-        fuel = tag.getInt(TAG_FUEL);
-        fuelQuality = tag.getInt(TAG_FUEL_QUALITY);
-        fuelTemperature = tag.getInt(TAG_TEMPERATURE);
-        currentTank = tag.contains(TAG_CURRENT_TANK) ? NbtUtils.readBlockPos(tag, TAG_CURRENT_TANK).orElse(null) : null;
-        currentFuel = FluidStack.parseOptional(registries, tag.getCompound(TAG_CURRENT_FUEL));
-        fuelDisplayFluid = FluidStack.parseOptional(registries, tag.getCompound(TAG_FUEL_DISPLAY));
+        fuel = input.getIntOr(TAG_FUEL, 0);
+        fuelQuality = input.getIntOr(TAG_FUEL_QUALITY, 0);
+        fuelTemperature = input.getIntOr(TAG_TEMPERATURE, 0);
+        currentTank = input.read(TAG_CURRENT_TANK, BlockPos.CODEC).orElse(null);
+        currentFuel = input.read(TAG_CURRENT_FUEL, FluidStack.OPTIONAL_CODEC).orElse(FluidStack.EMPTY);
+        fuelDisplayFluid = input.read(TAG_FUEL_DISPLAY, FluidStack.OPTIONAL_CODEC).orElse(FluidStack.EMPTY);
     }
 
     @Override
@@ -769,5 +765,14 @@ public class SearedFurnaceBlockEntity extends BlockEntity implements StationMenu
     @Override
     public Packet<ClientGamePacketListener> getUpdatePacket() {
         return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    /** Drops the inventory when the block is broken (1.21.1's {@code onRemove}, moved here in 1.21.5). */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        if (level != null) {
+            Containers.dropContents(level, pos, container());
+        }
     }
 }

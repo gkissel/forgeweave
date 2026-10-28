@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/uranium"
-  },
+  "input": "#c:storage_blocks/uranium",
   "fluid": "forgeweave:molten_uranium",
   "amount": 1296,
   "temperature": 1400,

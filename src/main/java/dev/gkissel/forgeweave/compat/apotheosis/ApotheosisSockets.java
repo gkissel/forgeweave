@@ -116,7 +116,7 @@ public final class ApotheosisSockets {
         if (count <= 0) {
             return List.of();
         }
-        List<ItemStack> stored = stored(stack).gems().stream().toList();
+        List<ItemStack> stored = stored(stack).gems().allItemsCopyStream().toList();
         List<ItemStack> gems = new ArrayList<>(count);
         for (int i = 0; i < count; i++) {
             gems.add(i < stored.size() ? stored.get(i) : ItemStack.EMPTY);

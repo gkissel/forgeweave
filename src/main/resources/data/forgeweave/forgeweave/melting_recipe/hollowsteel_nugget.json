@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/hollowsteel"
-  },
+  "input": "#c:nuggets/hollowsteel",
   "fluid": "forgeweave:molten_hollowsteel",
   "amount": 16,
   "temperature": 1600

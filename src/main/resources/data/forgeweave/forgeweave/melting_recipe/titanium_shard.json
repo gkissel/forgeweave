@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:shards/titanium"
-  },
+  "input": "#c:shards/titanium",
   "fluid": "forgeweave:molten_titanium",
   "amount": 144,
   "temperature": 1400,

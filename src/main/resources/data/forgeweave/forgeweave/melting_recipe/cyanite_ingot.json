@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/cyanite"
-  },
+  "input": "#c:ingots/cyanite",
   "fluid": "forgeweave:molten_cyanite",
   "amount": 144,
   "temperature": 1400,

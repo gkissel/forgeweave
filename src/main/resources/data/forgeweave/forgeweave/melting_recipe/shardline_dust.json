@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/shardline"
-  },
+  "input": "#c:dusts/shardline",
   "fluid": "forgeweave:molten_shardline",
   "amount": 144,
   "temperature": 1400

@@ -1,6 +1,6 @@
 {
   "modifier": "forgeweave:surgebound",
-  "reagent": { "item": "powah:crystal_niotic" },
+  "reagent": "powah:crystal_niotic",
   "max_level": 3,
   "neoforge:conditions": [
     { "type": "neoforge:item_exists", "item": "powah:crystal_niotic" }

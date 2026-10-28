@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/chromium"
-  },
+  "input": "#c:ingots/chromium",
   "fluid": "forgeweave:molten_elementarium_chromium",
   "amount": 144,
   "temperature": 1200,

@@ -2,14 +2,10 @@
   "modifier": "forgeweave:luck",
   "reagents": [
     {
-      "ingredient": {
-        "item": "minecraft:lapis_lazuli"
-      }
+      "ingredient": "minecraft:lapis_lazuli"
     },
     {
-      "ingredient": {
-        "item": "minecraft:lapis_block"
-      },
+      "ingredient": "minecraft:lapis_block",
       "units": 9
     }
   ],

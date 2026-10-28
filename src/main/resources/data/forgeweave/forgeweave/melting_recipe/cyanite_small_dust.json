@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/cyanite"
-  },
+  "input": "#c:small_dusts/cyanite",
   "fluid": "forgeweave:molten_cyanite",
   "amount": 36,
   "temperature": 1400,

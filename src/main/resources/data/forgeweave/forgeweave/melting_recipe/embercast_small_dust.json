@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/embercast"
-  },
+  "input": "#c:small_dusts/embercast",
   "fluid": "forgeweave:molten_embercast",
   "amount": 48
 }

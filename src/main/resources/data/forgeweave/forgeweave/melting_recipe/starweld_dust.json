@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/starweld"
-  },
+  "input": "#c:dusts/starweld",
   "fluid": "forgeweave:molten_starweld",
   "amount": 144,
   "temperature": 2000,

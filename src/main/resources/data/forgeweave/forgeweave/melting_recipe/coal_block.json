@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "minecraft:coal_block"
-  },
+  "input": "minecraft:coal_block",
   "fluid": "forgeweave:molten_carbon",
   "amount": 648
 }

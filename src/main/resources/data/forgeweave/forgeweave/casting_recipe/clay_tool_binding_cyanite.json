@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_tool_binding"
-  },
+  "cast": "forgeweave:clay_cast_tool_binding",
   "fluid": "forgeweave:molten_cyanite",
   "amount": 144,
   "result": {

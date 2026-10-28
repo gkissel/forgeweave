@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ores/platinum"
-  },
+  "input": "#c:ores/platinum",
   "fluid": "forgeweave:molten_platinum",
   "amount": 144,
   "ore": true,

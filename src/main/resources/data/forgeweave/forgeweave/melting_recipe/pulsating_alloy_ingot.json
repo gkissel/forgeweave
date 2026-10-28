@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/pulsating_alloy"
-  },
+  "input": "#c:ingots/pulsating_alloy",
   "fluid": "forgeweave:molten_pulsating_alloy",
   "amount": 144,
   "temperature": 1200,

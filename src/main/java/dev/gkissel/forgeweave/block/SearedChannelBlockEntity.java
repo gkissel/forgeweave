@@ -1,5 +1,13 @@
 package dev.gkissel.forgeweave.block;
 
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import java.nio.ByteBuffer;
+
+import com.mojang.serialization.Codec;
+
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
@@ -71,6 +79,20 @@ public class SearedChannelBlockEntity extends BlockEntity {
         return side != Direction.UP && isFlowing[flowIndex(side)] > 0;
     }
 
+    /**
+     * Horizontal sides that held a fluid handler at the last {@link SearedChannelBlock#neighborChanged},
+     * one {@code 1 << side.get2DDataValue()} bit each; {@code -1} before the first one. Not saved, so
+     * the first neighbour update after a load only records.
+     */
+    private int fluidNeighbours = -1;
+
+    /** Stores the current fluid-holding sides and returns the previous ones ({@code -1} if unknown). */
+    int swapFluidNeighbours(int holders) {
+        int before = fluidNeighbours;
+        fluidNeighbours = holders;
+        return before;
+    }
+
     private static int flowIndex(Direction side) {
         return side.getAxis().isVertical() ? 0 : side.get3DDataValue() - 1;
     }
@@ -132,8 +154,7 @@ public class SearedChannelBlockEntity extends BlockEntity {
         if (tank.fluid.isEmpty() || !isOutput(side) || level == null) {
             return false;
         }
-        IFluidHandler target = level.getCapability(Capabilities.FluidHandler.BLOCK,
-                worldPosition.relative(side), side.getOpposite());
+        IFluidHandler target = TransferBridge.fluidAt(level, worldPosition.relative(side), side.getOpposite());
         if (target == null) {
             setFlow(side, false);
             return false;
@@ -213,17 +234,38 @@ public class SearedChannelBlockEntity extends BlockEntity {
 
     /** Wires the fluid-handler capability; called from {@code Forgeweave}'s constructor. */
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ForgeweaveBlockEntities.SEARED_CHANNEL.get(),
-                (blockEntity, side) -> blockEntity.handlerFor(side));
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, ForgeweaveBlockEntities.SEARED_CHANNEL.get(),
+                (blockEntity, side) -> blockEntity.fluidCapability(side));
     }
+
+    /** The fluid capability on {@code side} (21.9 transfer API), or {@code null} where the side takes none. */
+    @Nullable
+    public ResourceHandler<FluidResource> fluidCapability(@Nullable Direction side) {
+        IFluidHandler handler = handlerFor(side);
+        return handler == null ? null : TransferBridge.fluids(handler, transferState);
+    }
+
+    /** One journal for the buffer, shared by every side's bridge. */
+    private final TransferBridge.State<Snapshot> transferState = TransferBridge.State.of(
+            () -> new Snapshot(tank.fluid.copy(), tank.locked, isFlowing.clone()),
+            snapshot -> {
+                tank.fluid = snapshot.fluid();
+                tank.locked = snapshot.locked();
+                System.arraycopy(snapshot.isFlowing(), 0, isFlowing, 0, isFlowing.length);
+                setChanged();
+                sync();
+            });
+
+    /** What a fill can change, for rolling back a transaction. */
+    private record Snapshot(FluidStack fluid, int locked, byte[] isFlowing) {}
 
     // ------------------------------------------------------------------ saving
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        tag.put(TAG_FLUID, tank.fluid.saveOptional(registries));
-        tag.putByteArray(TAG_IS_FLOWING, isFlowing.clone());
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.store(TAG_FLUID, FluidStack.OPTIONAL_CODEC, tank.fluid);
+        output.store(TAG_IS_FLOWING, Codec.BYTE_BUFFER, ByteBuffer.wrap(isFlowing.clone()));
     }
 
     /**
@@ -232,12 +274,12 @@ public class SearedChannelBlockEntity extends BlockEntity {
      * a field in the save format.
      */
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        tank.fluid = FluidStack.parseOptional(registries, tag.getCompound(TAG_FLUID));
-        byte[] saved = tag.getByteArray(TAG_IS_FLOWING);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        tank.fluid = input.read(TAG_FLUID, FluidStack.OPTIONAL_CODEC).orElse(FluidStack.EMPTY);
+        ByteBuffer saved = input.read(TAG_IS_FLOWING, Codec.BYTE_BUFFER).orElse(ByteBuffer.allocate(0));
         for (int i = 0; i < isFlowing.length; i++) {
-            isFlowing[i] = i < saved.length ? (byte) Mth.clamp(saved[i], 0, FLOW_TICKS) : 0;
+            isFlowing[i] = i < saved.limit() ? (byte) Mth.clamp(saved.get(i), 0, FLOW_TICKS) : 0;
         }
     }
 

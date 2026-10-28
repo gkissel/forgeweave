@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:tiny_dusts/crimson_steel"
-  },
+  "input": "#c:tiny_dusts/crimson_steel",
   "fluid": "forgeweave:molten_crimson_steel",
   "amount": 16,
   "temperature": 1600,

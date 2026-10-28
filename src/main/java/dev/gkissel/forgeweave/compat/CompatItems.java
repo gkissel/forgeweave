@@ -5,7 +5,7 @@ import java.util.List;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 
@@ -121,7 +121,7 @@ public final class CompatItems {
     }
 
     /** An armour piece, the same split as {@link #tool}. */
-    public static ArmorPieceItem armor(ArmorItem.Type type, boolean heavy, Item.Properties properties) {
+    public static ArmorPieceItem armor(ArmorType type, boolean heavy, Item.Properties properties) {
         if (MYSTICAL_AGRICULTURE) {
             return MysticalItems.armor(type, heavy, properties);
         }

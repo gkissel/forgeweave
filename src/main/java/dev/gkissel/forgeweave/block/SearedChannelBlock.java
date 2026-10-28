@@ -9,13 +9,13 @@ import javax.annotation.Nullable;
 import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -23,6 +23,8 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.ScheduledTickAccess;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EntityBlock;
@@ -187,7 +189,7 @@ public class SearedChannelBlock extends Block implements EntityBlock {
     }
 
     @Override
-    protected boolean propagatesSkylightDown(BlockState state, BlockGetter level, BlockPos pos) {
+    protected boolean propagatesSkylightDown(BlockState state) {
         return true;
     }
 
@@ -203,7 +205,7 @@ public class SearedChannelBlock extends Block implements EntityBlock {
     static boolean canConnect(Level level, BlockPos pos, Direction side) {
         BlockPos facing = pos.relative(side);
         return level.getBlockState(facing).getBlock() instanceof SearedChannelBlock
-                || level.getCapability(Capabilities.FluidHandler.BLOCK, facing, side.getOpposite()) != null;
+                || level.getCapability(Capabilities.Fluid.BLOCK, facing, side.getOpposite()) != null;
     }
 
     /**
@@ -233,7 +235,7 @@ public class SearedChannelBlock extends Block implements EntityBlock {
         if (level.getBlockState(placedOn).getBlock() instanceof SearedChannelBlock) {
             Player player = context.getPlayer();
             connection = player != null && player.isShiftKeyDown() ? ChannelConnection.OUT : ChannelConnection.IN;
-        } else if (level.getCapability(Capabilities.FluidHandler.BLOCK, placedOn, clicked) != null) {
+        } else if (level.getCapability(Capabilities.Fluid.BLOCK, placedOn, clicked) != null) {
             connection = ChannelConnection.OUT;
         }
         return state.setValue(SIDES.get(toward), connection);
@@ -247,8 +249,8 @@ public class SearedChannelBlock extends Block implements EntityBlock {
      * there is a capability actually resolvable.
      */
     @Override
-    protected BlockState updateShape(BlockState state, Direction facing, BlockState facingState,
-            LevelAccessor level, BlockPos pos, BlockPos facingPos) {
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos,
+            Direction facing, BlockPos facingPos, BlockState facingState, RandomSource random) {
         if (facing == Direction.DOWN) {
             return state.getValue(DOWN) && facingState.isAir() ? state.setValue(DOWN, false) : state;
         }
@@ -282,7 +284,7 @@ public class SearedChannelBlock extends Block implements EntityBlock {
         if (level.getBlockState(pos.relative(side)).getBlock() instanceof SearedChannelBlock) {
             return state;
         }
-        boolean holdsFluid = level.getCapability(Capabilities.FluidHandler.BLOCK, pos.relative(side),
+        boolean holdsFluid = level.getCapability(Capabilities.Fluid.BLOCK, pos.relative(side),
                 side.getOpposite()) != null;
         if (!holdsFluid) {
             return state.getValue(property) == ChannelConnection.NONE
@@ -304,13 +306,13 @@ public class SearedChannelBlock extends Block implements EntityBlock {
      * mis-clicked into a stray block still toggles.
      */
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
             Player player, InteractionHand hand, BlockHitResult hit) {
         if (stack.getItem() == asItem() && hit.getDirection() != Direction.UP
                 && level.getBlockState(pos.relative(hit.getDirection())).canBeReplaced()) {
-            return ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION;
+            return InteractionResult.PASS;
         }
-        return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+        return InteractionResult.TRY_WITH_EMPTY_HAND;
     }
 
     /** Upstream's {@code onBlockActivated}: cycle the connection on whichever arm was clicked. */
@@ -324,7 +326,7 @@ public class SearedChannelBlock extends Block implements EntityBlock {
         if (!level.isClientSide()) {
             level.setBlockAndUpdate(pos, updated);
         }
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     /**
@@ -378,17 +380,17 @@ public class SearedChannelBlock extends Block implements EntityBlock {
                 return interact(state, level, pos, player, Direction.DOWN);
             }
             ChannelConnection next = state.getValue(property).getNext(player.isShiftKeyDown());
-            player.displayClientMessage(
-                    Component.translatable("message.forgeweave.channel.side." + next.getSerializedName()), true);
+            player.sendOverlayMessage(
+                    Component.translatable("message.forgeweave.channel.side." + next.getSerializedName()));
             return state.setValue(property, next);
         }
 
         if (!state.getValue(DOWN) && canConnect(level, pos, Direction.DOWN)) {
-            player.displayClientMessage(Component.translatable("message.forgeweave.channel.down.out"), true);
+            player.sendOverlayMessage(Component.translatable("message.forgeweave.channel.down.out"));
             return state.setValue(DOWN, true);
         }
         if (state.getValue(DOWN)) {
-            player.displayClientMessage(Component.translatable("message.forgeweave.channel.down.none"), true);
+            player.sendOverlayMessage(Component.translatable("message.forgeweave.channel.down.none"));
             return state.setValue(DOWN, false);
         }
         return null;
@@ -401,17 +403,29 @@ public class SearedChannelBlock extends Block implements EntityBlock {
      * else about a channel is redstone-controlled.
      */
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos,
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @Nullable Orientation orientation,
             boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, block, fromPos, movedByPiston);
+        super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
         if (level.isClientSide()) {
             return;
         }
         BlockState updated = state;
-        Direction side = Direction.fromDelta(fromPos.getX() - pos.getX(), fromPos.getY() - pos.getY(),
-                fromPos.getZ() - pos.getZ());
-        if (side != null && side.getAxis().isHorizontal()) {
-            updated = updateSideFor(updated, level, pos, side, block == Blocks.AIR);
+        // Since 1.21.2 the update no longer says which neighbour changed, so every horizontal side is
+        // rechecked. The block entity remembers which sides held fluid last time, so only a side that
+        // just gained a fluid holder counts as upstream's didPlace.
+        int holders = 0;
+        for (Direction side : Direction.Plane.HORIZONTAL) {
+            if (level.getCapability(Capabilities.Fluid.BLOCK, pos.relative(side), side.getOpposite()) != null) {
+                holders |= 1 << side.get2DDataValue();
+            }
+        }
+        int before = level.getBlockEntity(pos) instanceof SearedChannelBlockEntity channel
+                ? channel.swapFluidNeighbours(holders)
+                : -1;
+        int appeared = before == -1 ? 0 : holders & ~before;
+        for (Direction side : Direction.Plane.HORIZONTAL) {
+            boolean didPlace = block == Blocks.AIR && (appeared & 1 << side.get2DDataValue()) != 0;
+            updated = updateSideFor(updated, level, pos, side, didPlace);
         }
         boolean powered = level.hasNeighborSignal(pos);
         if (powered != state.getValue(POWERED)) {

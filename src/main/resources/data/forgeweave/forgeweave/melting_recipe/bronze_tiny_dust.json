@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:tiny_dusts/bronze"
-  },
+  "input": "#c:tiny_dusts/bronze",
   "fluid": "forgeweave:molten_bronze",
   "amount": 16,
   "temperature": 1200,

@@ -32,10 +32,11 @@ import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.Identifier;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.util.FastColor;
+import net.minecraft.util.ARGB;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.decoration.ItemFrame;
@@ -46,7 +47,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.InteractionHand;
 
-import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.LevelSettings;
 import net.minecraft.world.level.WorldDataConfiguration;
@@ -71,6 +71,9 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
 
@@ -175,6 +178,10 @@ public final class ScreenshotHarness {
      * report from the server thread.
      */
     private static final List<String> FAILED_FRAMES = java.util.Collections.synchronizedList(new ArrayList<>());
+    /** Screenshots whose asynchronous framebuffer read-back has not been written to disk yet. */
+    private static final java.util.concurrent.atomic.AtomicInteger PENDING_CAPTURES =
+            new java.util.concurrent.atomic.AtomicInteger();
+    private static boolean finishPending;
 
     /**
      * Ceiling on how long {@link #awaitReady} will wait for the expected screen to become current --
@@ -678,6 +685,11 @@ public final class ScreenshotHarness {
         }
         stageTicks++;
         Minecraft mc = Minecraft.getInstance();
+        if (finishPending && PENDING_CAPTURES.get() == 0) {
+            finishPending = false;
+            finishHarness(mc);
+            return;
+        }
         switch (stage) {
             case AWAIT_TITLE -> awaitTitle(mc);
             case TITLE_RELOAD -> titleReload(mc);
@@ -773,7 +785,8 @@ public final class ScreenshotHarness {
         }
         LOGGER.info("{}creating flat world '{}'", LOG_PREFIX, LEVEL_NAME);
         LevelSettings levelSettings = new LevelSettings(
-                LEVEL_NAME, GameType.CREATIVE, false, Difficulty.PEACEFUL, true, new GameRules(), WorldDataConfiguration.DEFAULT);
+                LEVEL_NAME, GameType.CREATIVE, new LevelSettings.DifficultySettings(Difficulty.PEACEFUL, false, false), true,
+                WorldDataConfiguration.DEFAULT);
         // Fixed seed, no structures, no bonus chest: a deterministic flat world is all the harness needs.
         WorldOptions worldOptions = new WorldOptions(0L, false, false);
         mc.createWorldOpenFlows().createFreshLevel(
@@ -781,8 +794,14 @@ public final class ScreenshotHarness {
         advance(Stage.AWAIT_WORLD);
     }
 
-    private static WorldDimensions flatWorldDimensions(RegistryAccess registryAccess) {
-        return registryAccess.lookupOrThrow(Registries.WORLD_PRESET).getHolderOrThrow(WorldPresets.FLAT).value().createWorldDimensions();
+    /** 1.21.1's {@code BlockColors#getColor(state, level, pos, 0)}: layer 0's world tint, or -1 untinted. */
+    private static int blockTint(Minecraft mc, net.minecraft.world.level.block.state.BlockState state, BlockPos pos) {
+        net.minecraft.client.color.block.BlockTintSource source = mc.getBlockColors().getTintSource(state, 0);
+        return source == null ? -1 : source.colorInWorld(state, mc.level, pos);
+    }
+
+    private static WorldDimensions flatWorldDimensions(HolderLookup.Provider registries) {
+        return registries.lookupOrThrow(Registries.WORLD_PRESET).getOrThrow(WorldPresets.FLAT).value().createWorldDimensions();
     }
 
     private static void awaitWorld(Minecraft mc) {
@@ -869,7 +888,7 @@ public final class ScreenshotHarness {
         LOGGER.info("{}placing seared tank/gauge/window world scene near {}", LOG_PREFIX, origin);
         server.execute(() -> {
             ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
-            ServerLevel level = serverPlayer.serverLevel();
+            ServerLevel level = serverPlayer.level();
             // The player's actual position right now, not a value captured earlier -- ties the scene
             // to where the camera really is instead of an assumption about the flat world's layout.
             BlockPos feet = serverPlayer.blockPosition();
@@ -985,7 +1004,7 @@ public final class ScreenshotHarness {
         LOGGER.info("{}placing Tool Forge / Tool Station world scene near {}", LOG_PREFIX, origin);
         server.execute(() -> {
             ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
-            ServerLevel level = serverPlayer.serverLevel();
+            ServerLevel level = serverPlayer.level();
             BlockPos feet = serverPlayer.blockPosition();
             BlockPos stationPos = feet.offset(0, 0, TABLE_SCENE_DISTANCE);
             BlockPos forgePos = stationPos.offset(TABLE_SCENE_SPACING, 0, 0);
@@ -1047,7 +1066,7 @@ public final class ScreenshotHarness {
                 LOG_PREFIX, origin);
         server.execute(() -> {
             ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
-            ServerLevel level = serverPlayer.serverLevel();
+            ServerLevel level = serverPlayer.level();
             BlockPos craftingPos = origin.offset(-STATION_ITEMS_SCENE_OFFSET_X, 0, 0);
             BlockPos stencilPos = craftingPos.offset(STATION_ITEMS_SCENE_SPACING, 0, 0);
             BlockPos partBuilderPos = stencilPos.offset(STATION_ITEMS_SCENE_SPACING, 0, 0);
@@ -1117,7 +1136,7 @@ public final class ScreenshotHarness {
         LOGGER.info("{}placing smeltery world scene near {}", LOG_PREFIX, origin);
         server.execute(() -> {
             ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
-            ServerLevel level = serverPlayer.serverLevel();
+            ServerLevel level = serverPlayer.level();
             // Off the spawn point rather than off wherever the previous scene left the camera: the
             // other scenes and the GUI captures all sit in +X/+Z from spawn, and a 5x5-footprint
             // multiblock dropped on top of one of them would rewrite blocks another artifact shows.
@@ -1211,7 +1230,7 @@ public final class ScreenshotHarness {
         LOGGER.info("{}placing casting table/basin/faucet world scene near {}", LOG_PREFIX, origin);
         server.execute(() -> {
             ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
-            ServerLevel level = serverPlayer.serverLevel();
+            ServerLevel level = serverPlayer.level();
             BlockPos castTable = origin.offset(-CASTING_SCENE_OFFSET_X, 0, 0);
             BlockPos pouringTable = castTable.offset(CASTING_SCENE_SPACING, 0, 0);
             BlockPos emptyBasin = castTable.offset(2 * CASTING_SCENE_SPACING, 0, 0);
@@ -1228,11 +1247,14 @@ public final class ScreenshotHarness {
             putCast(serverPlayer, level, pouringTable, ForgeweaveItems.CAST_INGOT.get());
             // Through the block's own fluid handler, so the scene can only ever hold fluid the real
             // casting rules would have let a faucet put there.
-            IFluidHandler pouringTableTank = level.getCapability(
-                    Capabilities.FluidHandler.BLOCK, pouringTable, Direction.UP);
+            ResourceHandler<FluidResource> pouringTableTank = level.getCapability(
+                    Capabilities.Fluid.BLOCK, pouringTable, Direction.UP);
             if (pouringTableTank != null) {
-                pouringTableTank.fill(new FluidStack(ForgeweaveFluids.IRON.still().get(), CASTING_SCENE_PARTIAL_POUR),
-                        IFluidHandler.FluidAction.EXECUTE);
+                try (Transaction tx = Transaction.openRoot()) {
+                    pouringTableTank.insert(FluidResource.of(ForgeweaveFluids.IRON.still().get()),
+                            CASTING_SCENE_PARTIAL_POUR, tx);
+                    tx.commit();
+                }
             }
 
             // An ingot cast wants one transaction, so this faucet is done and idle by capture time.
@@ -1372,7 +1394,7 @@ public final class ScreenshotHarness {
                 materialSceneIndex + 1, group.size(), group);
         server.execute(() -> {
             ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
-            ServerLevel level = serverPlayer.serverLevel();
+            ServerLevel level = serverPlayer.level();
             BlockPos wallBase = origin.offset(
                     materialSceneIndex * MATERIAL_SCENE_GROUP_SPACING, 0, MATERIAL_SCENE_DISTANCE);
             // The frames hang one block south of the wall; the box covers both frame rows.
@@ -1479,7 +1501,7 @@ public final class ScreenshotHarness {
         LOGGER.info("{}placing #256 part-tint wall (curved blade, scimitar, katana blade, katana)", LOG_PREFIX);
         server.execute(() -> {
             ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
-            ServerLevel level = serverPlayer.serverLevel();
+            ServerLevel level = serverPlayer.level();
             BlockPos wallBase = origin.offset(-MATERIAL_SCENE_GROUP_SPACING, 0, MATERIAL_SCENE_DISTANCE);
 
             ItemStack curvedBlade = new ItemStack(ForgeweaveItems.PART_CURVED_BLADE.get());
@@ -1570,7 +1592,7 @@ public final class ScreenshotHarness {
                 LOG_PREFIX, colors.size());
         server.execute(() -> {
             ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
-            ServerLevel level = serverPlayer.serverLevel();
+            ServerLevel level = serverPlayer.level();
             BlockPos wallBase = origin.offset(-2 * MATERIAL_SCENE_GROUP_SPACING, 0, MATERIAL_SCENE_DISTANCE);
             List<BlockPos> placed = new java.util.ArrayList<>();
 
@@ -1627,7 +1649,7 @@ public final class ScreenshotHarness {
                 } else {
                     LOGGER.info("{}#951 scene check: client sees {} at {}, tint {}, connected {}",
                             LOG_PREFIX, BuiltInRegistries.BLOCK.getKey(state.getBlock()), pos,
-                            String.format("#%06X", mc.getBlockColors().getColor(state, mc.level, pos, 0) & 0xFFFFFF),
+                            String.format("#%06X", blockTint(mc, state, pos) & 0xFFFFFF),
                             ConnectedGlassBlock.SIDES.entrySet().stream()
                                     .filter(side -> state.getValue(side.getValue()))
                                     .map(side -> side.getKey().getName())
@@ -2185,7 +2207,7 @@ public final class ScreenshotHarness {
         // integrated server on its own thread, so this must be scheduled rather than called directly.
         server.execute(() -> {
             ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
-            ServerLevel level = serverPlayer.serverLevel();
+            ServerLevel level = serverPlayer.level();
             level.setBlockAndUpdate(pos, screen.block().get().defaultBlockState());
             screen.prepare().accept(level, pos);
             // Within the menu's stillValid distance (vanilla's 8-block cap) so it doesn't auto-close.
@@ -2438,7 +2460,9 @@ public final class ScreenshotHarness {
      * shot through even once {@link #awaitReady} says the right screen is up.
      */
     private static void capture(Minecraft mc, String fileName, @Nullable AbstractContainerScreen<?> panelScreen) {
-        NativeImage image = Screenshot.takeScreenshot(mc.getMainRenderTarget());
+        // 26.1 reads the framebuffer back asynchronously; finishHarness waits for this to land.
+        PENDING_CAPTURES.incrementAndGet();
+        Screenshot.takeScreenshot(mc.getMainRenderTarget(), image -> {
         try {
             if (!isExpectedFrameShape(image.getWidth(), image.getHeight())) {
                 failCheck("{}#712 scene check FAILED: {} captured at {}x{}, expected the {}x{} window from build.gradle"
@@ -2461,7 +2485,9 @@ public final class ScreenshotHarness {
             failCheck("{}failed to write {}", LOG_PREFIX, fileName, e);
         } finally {
             image.close();
+            PENDING_CAPTURES.decrementAndGet();
         }
+        });
     }
 
     /**
@@ -2516,9 +2542,9 @@ public final class ScreenshotHarness {
             for (int gy = 0; gy < WORLD_SHOT_SAMPLE_GRID; gy++) {
                 int x = clampToImage((gx + 0.5) * width / WORLD_SHOT_SAMPLE_GRID + left, image.getWidth());
                 int y = clampToImage((gy + 0.5) * height / WORLD_SHOT_SAMPLE_GRID + top, image.getHeight());
-                int abgr = image.getPixelRGBA(x, y);
-                double luminance = 0.299 * FastColor.ABGR32.red(abgr) + 0.587 * FastColor.ABGR32.green(abgr)
-                        + 0.114 * FastColor.ABGR32.blue(abgr);
+                int argb = image.getPixel(x, y);
+                double luminance = 0.299 * ARGB.red(argb) + 0.587 * ARGB.green(argb)
+                        + 0.114 * ARGB.blue(argb);
                 sum += luminance;
                 sumSq += luminance * luminance;
                 count++;
@@ -2586,6 +2612,10 @@ public final class ScreenshotHarness {
      * alone only asks the client to shut down cleanly, it never sets an exit code by itself.
      */
     private static void finishHarness(Minecraft mc) {
+        if (PENDING_CAPTURES.get() > 0) {
+            finishPending = true; // onClientTick calls back once the last screenshot is written
+            return;
+        }
         mc.stop();
         if (FAILED_FRAMES.isEmpty()) {
             LOGGER.info("{}every frame captured cleanly and every self-check passed", LOG_PREFIX);
@@ -2701,7 +2731,7 @@ public final class ScreenshotHarness {
         var server = mc.getSingleplayerServer();
         server.execute(() -> {
             ServerPlayer serverPlayer = server.getPlayerList().getPlayers().get(0);
-            List<AbstractArrow> arrows = serverPlayer.serverLevel().getEntitiesOfClass(AbstractArrow.class,
+            List<AbstractArrow> arrows = serverPlayer.level().getEntitiesOfClass(AbstractArrow.class,
                     serverPlayer.getBoundingBox().inflate(64.0));
             int ammo = serverPlayer.getInventory().countItem(Items.ARROW);
             if (arrows.size() == 1 && ammo == FIRE_BOW_AMMO - 1 && !clientUsing && !serverPlayer.isUsingItem()) {

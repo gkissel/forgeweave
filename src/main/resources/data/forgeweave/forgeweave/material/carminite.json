@@ -46,15 +46,11 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "twilightforest:carminite"
-      },
+      "ingredient": "twilightforest:carminite",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "twilightforest:carminite"
-  },
+  "repair_item": "twilightforest:carminite",
   "enchantability": 16,
   "color": "#9E1B32",
   "neoforge:conditions": [

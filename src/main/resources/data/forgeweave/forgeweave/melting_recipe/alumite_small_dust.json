@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/alumite"
-  },
+  "input": "#c:small_dusts/alumite",
   "fluid": "forgeweave:molten_alumite",
   "amount": 48,
   "temperature": 1400,

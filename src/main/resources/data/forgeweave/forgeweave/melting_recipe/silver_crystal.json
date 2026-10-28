@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:crystals/silver"
-  },
+  "input": "#c:crystals/silver",
   "fluid": "forgeweave:molten_silver",
   "amount": 144,
   "temperature": 1200,

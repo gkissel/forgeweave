@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/emberweld"
-  },
+  "input": "#c:storage_blocks/emberweld",
   "fluid": "forgeweave:molten_emberweld",
   "amount": 1296,
   "temperature": 1800,

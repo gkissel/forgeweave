@@ -72,7 +72,7 @@ public record SmelteryFuel(Fluid fluid, int amount, int duration, int temperatur
         Registry<SmelteryFuel> fuels = registries.lookupOrThrow(REGISTRY);
         return fuels.entrySet().stream()
                 .filter(entry -> entry.getValue().fluid() == fluid)
-                .min(Comparator.comparing(entry -> entry.getKey().location()))
+                .min(Comparator.comparing(entry -> entry.getKey().identifier()))
                 .map(Map.Entry::getValue);
     }
 }

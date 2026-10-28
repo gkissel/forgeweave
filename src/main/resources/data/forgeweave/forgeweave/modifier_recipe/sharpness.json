@@ -2,14 +2,10 @@
   "modifier": "forgeweave:sharpness",
   "reagents": [
     {
-      "ingredient": {
-        "item": "minecraft:quartz"
-      }
+      "ingredient": "minecraft:quartz"
     },
     {
-      "ingredient": {
-        "item": "minecraft:quartz_block"
-      },
+      "ingredient": "minecraft:quartz_block",
       "units": 4
     }
   ],

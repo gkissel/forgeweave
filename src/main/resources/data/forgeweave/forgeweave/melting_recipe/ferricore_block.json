@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "justdirethings:ferricore_block"
-  },
+  "input": "justdirethings:ferricore_block",
   "fluid": "forgeweave:molten_ferricore",
   "amount": 1296,
   "temperature": 1200,

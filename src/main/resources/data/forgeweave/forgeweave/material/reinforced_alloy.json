@@ -48,15 +48,11 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "mekanism:alloy_reinforced"
-      },
+      "ingredient": "mekanism:alloy_reinforced",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "mekanism:alloy_reinforced"
-  },
+  "repair_item": "mekanism:alloy_reinforced",
   "enchantability": 14,
   "color": "#62BAC8",
   "neoforge:conditions": [

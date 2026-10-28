@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/constantan"
-  },
+  "input": "#c:storage_blocks/constantan",
   "fluid": "forgeweave:molten_constantan",
   "amount": 1296,
   "temperature": 1200,

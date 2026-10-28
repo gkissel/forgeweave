@@ -15,6 +15,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.trait.Trait;
 import dev.gkissel.forgeweave.item.PartItem;
 
+import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -284,20 +285,26 @@ public record Material(
     }
 
     /**
-     * The single {@code {"item": "<id>"}} shape {@link Ingredient.ItemValue} accepts, minus the
-     * registry lookup -- see {@link #LENIENT_INGREDIENT_CODEC}.
+     * The single-item shape {@link Ingredient#CODEC} accepts -- since 1.21.2 a bare {@code "<id>"}
+     * string -- minus the registry lookup. See {@link #LENIENT_INGREDIENT_CODEC}.
      */
     private record UnresolvedItem(Identifier id) {
-        static final Codec<UnresolvedItem> CODEC = RecordCodecBuilder.create(instance -> instance
-                .group(Identifier.CODEC.fieldOf("item").forGetter(UnresolvedItem::id))
-                .apply(instance, UnresolvedItem::new));
+        static final Codec<UnresolvedItem> CODEC = Identifier.CODEC.xmap(UnresolvedItem::new, UnresolvedItem::id);
     }
 
     /**
+     * An ingredient that matches nothing, which is what 1.21.1's {@code Ingredient.EMPTY} was. 26.1
+     * refuses an empty direct item list, so this is an empty tag instead: it parses, it encodes as
+     * {@code #forgeweave:unresolved}, and no item is ever in it.
+     */
+    public static final Ingredient NONE = Ingredient.of(HolderSet.emptyNamed(BuiltInRegistries.ITEM,
+            TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(Forgeweave.MODID, "unresolved"))));
+
+    /**
      * Same JSON shapes {@link Ingredient#CODEC} accepts, except a concrete (non-vanilla) item id
-     * that is not currently registered decodes to {@link Ingredient#EMPTY} instead of failing the
+     * that is not currently registered decodes to {@link #NONE} instead of failing the
      * whole material's parse (issue #872, following the constraint #826 hit in #860 and again in
-     * #865/#866). Vanilla's own codec resolves a {@code {"item": "..."}} entry through {@code
+     * #865/#866). Vanilla's own codec resolves a single-item entry through {@code
      * BuiltInRegistries.ITEM.holderByNameCodec()}, which errors on an unknown id -- correct for a
      * hand-typed recipe, wrong for a Track A compat material whose crafting item only exists once
      * its provider mod is loaded.
@@ -308,7 +315,7 @@ public record Material(
      * actually decodes. The only place an unknown id reaches this codec is a mod-less parse of the
      * raw JSON -- this repo's own test suite -- and the fallback gives it exactly the behavior an
      * empty {@code c:} tag already has: it parses fine and simply never matches a real item stack
-     * ({@link Ingredient#EMPTY}'s {@code test} always answers {@code false} for a non-empty stack).
+     * ({@link #NONE}'s {@code test} always answers {@code false} for a non-empty stack).
      *
      * <p>Tries the unresolved-item shape first and only accepts it when the id is genuinely
      * unregistered ({@link UnresolvedItem#CODEC}'s {@code validate} step) -- a known item, a tag, or
@@ -320,7 +327,7 @@ public record Material(
                     ? DataResult.error(() -> "known item id, defer to the real ingredient codec")
                     : DataResult.success(unresolved)),
             Ingredient.CODEC)
-            .xmap(either -> either.map(unresolved -> Ingredient.EMPTY, ingredient -> ingredient),
+            .xmap(either -> either.map(unresolved -> NONE, ingredient -> ingredient),
                     ingredient -> Either.right(ingredient));
 
     /**

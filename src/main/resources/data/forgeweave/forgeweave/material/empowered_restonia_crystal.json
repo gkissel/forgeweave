@@ -48,21 +48,15 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "actuallyadditions:empowered_restonia_crystal"
-      },
+      "ingredient": "actuallyadditions:empowered_restonia_crystal",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:storage_blocks/empowered_restonia_crystal"
-      },
+      "ingredient": "#c:storage_blocks/empowered_restonia_crystal",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "item": "actuallyadditions:empowered_restonia_crystal"
-  },
+  "repair_item": "actuallyadditions:empowered_restonia_crystal",
   "enchantability": 20,
   "color": "#FF2F21",
   "neoforge:conditions": [

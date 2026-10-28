@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "minecraft:iron_chestplate"
-  },
+  "input": "minecraft:iron_chestplate",
   "fluid": "forgeweave:molten_iron",
   "amount": 1152
 }

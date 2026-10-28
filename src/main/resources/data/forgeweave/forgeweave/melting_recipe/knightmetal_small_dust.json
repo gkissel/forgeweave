@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/knightmetal"
-  },
+  "input": "#c:small_dusts/knightmetal",
   "fluid": "forgeweave:molten_knightmetal",
   "amount": 36,
   "temperature": 1400,

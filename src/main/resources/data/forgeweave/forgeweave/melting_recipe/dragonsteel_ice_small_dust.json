@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/dragonsteel_ice"
-  },
+  "input": "#c:small_dusts/dragonsteel_ice",
   "fluid": "forgeweave:molten_dragonsteel_ice",
   "amount": 36,
   "temperature": 1600,

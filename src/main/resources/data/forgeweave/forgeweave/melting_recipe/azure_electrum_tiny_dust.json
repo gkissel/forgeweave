@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:tiny_dusts/azure_electrum"
-  },
+  "input": "#c:tiny_dusts/azure_electrum",
   "fluid": "forgeweave:molten_azure_electrum",
   "amount": 16,
   "temperature": 1600,

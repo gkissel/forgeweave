@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "mysticalagriculture:prosperity_ingot"
-  },
+  "input": "mysticalagriculture:prosperity_ingot",
   "fluid": "forgeweave:molten_prosperity",
   "amount": 144,
   "temperature": 1200,

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:tiny_dusts/nickel"
-  },
+  "input": "#c:tiny_dusts/nickel",
   "fluid": "forgeweave:molten_nickel",
   "amount": 16,
   "temperature": 1200,

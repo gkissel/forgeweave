@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "allthemodium:vibranium_allthemodium_alloy_ingot"
-  },
+  "input": "allthemodium:vibranium_allthemodium_alloy_ingot",
   "fluid": "forgeweave:molten_vibranium_allthemodium_alloy",
   "amount": 144,
   "temperature": 2000,

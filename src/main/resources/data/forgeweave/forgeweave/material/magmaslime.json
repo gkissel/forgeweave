@@ -25,15 +25,11 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "forgeweave:magma_slime_crystal"
-      },
+      "ingredient": "forgeweave:magma_slime_crystal",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "forgeweave:magma_slime_crystal"
-  },
+  "repair_item": "forgeweave:magma_slime_crystal",
   "enchantability": 15,
   "color": "#ff960d"
 }

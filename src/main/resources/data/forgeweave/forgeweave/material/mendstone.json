@@ -52,27 +52,19 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "forgeweave:mendstone_ingot"
-      },
+      "ingredient": "forgeweave:mendstone_ingot",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "forgeweave:mendstone_nugget"
-      },
+      "ingredient": "forgeweave:mendstone_nugget",
       "value": 16
     },
     {
-      "ingredient": {
-        "item": "forgeweave:mendstone_block"
-      },
+      "ingredient": "forgeweave:mendstone_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/mendstone"
-  },
+  "repair_item": "#c:ingots/mendstone",
   "cast_only": true,
   "enchantability": 10,
   "color": "#E2B288"

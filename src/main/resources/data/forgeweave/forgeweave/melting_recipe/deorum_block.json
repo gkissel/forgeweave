@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/deorum"
-  },
+  "input": "#c:storage_blocks/deorum",
   "fluid": "forgeweave:molten_deorum",
   "amount": 1296,
   "temperature": 1600,

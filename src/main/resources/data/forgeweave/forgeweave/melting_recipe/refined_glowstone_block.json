@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/refined_glowstone"
-  },
+  "input": "#c:storage_blocks/refined_glowstone",
   "fluid": "forgeweave:molten_refined_glowstone",
   "amount": 1296,
   "temperature": 1400,

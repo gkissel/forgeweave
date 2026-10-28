@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/alumite"
-  },
+  "input": "#c:nuggets/alumite",
   "fluid": "forgeweave:molten_alumite",
   "amount": 16,
   "temperature": 1400,

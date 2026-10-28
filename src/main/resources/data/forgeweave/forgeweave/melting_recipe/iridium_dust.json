@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/iridium"
-  },
+  "input": "#c:dusts/iridium",
   "fluid": "forgeweave:molten_iridium",
   "amount": 144,
   "temperature": 1600,

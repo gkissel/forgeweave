@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "minecraft:basalt"
-  },
+  "input": "minecraft:basalt",
   "fluid": "forgeweave:molten_basalt",
   "amount": 144
 }

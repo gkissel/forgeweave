@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/truesteel"
-  },
+  "input": "#c:ingots/truesteel",
   "fluid": "forgeweave:molten_truesteel",
   "amount": 144,
   "temperature": 1600

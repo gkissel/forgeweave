@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/pulsating_alloy"
-  },
+  "input": "#c:storage_blocks/pulsating_alloy",
   "fluid": "forgeweave:molten_pulsating_alloy",
   "amount": 1296,
   "temperature": 1200,

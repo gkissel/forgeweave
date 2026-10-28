@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_plating_helmet"
-  },
+  "cast": "forgeweave:cast_plating_helmet",
   "fluid": "forgeweave:molten_osmiridium",
   "amount": 432,
   "result": {

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/tungsten"
-  },
+  "input": "#c:ingots/tungsten",
   "fluid": "forgeweave:molten_tungsten",
   "amount": 144,
   "temperature": 1400,

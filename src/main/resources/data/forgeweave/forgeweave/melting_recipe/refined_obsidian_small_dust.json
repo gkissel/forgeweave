@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/refined_obsidian"
-  },
+  "input": "#c:small_dusts/refined_obsidian",
   "fluid": "forgeweave:molten_refined_obsidian",
   "amount": 36,
   "temperature": 1600,

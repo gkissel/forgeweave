@@ -10,6 +10,9 @@ import javax.annotation.Nullable;
 import com.mojang.blaze3d.platform.InputConstants;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -22,6 +25,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
@@ -33,7 +37,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -323,9 +327,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     private final StandPreview preview = new StandPreview();
 
     public ToolStationScreen(ToolStationMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
-        imageWidth = BASE_WIDTH;
-        imageHeight = BASE_HEIGHT;
+        super(menu, playerInventory, title, BASE_WIDTH, BASE_HEIGHT);
         inventoryLabelY = imageHeight - 94;
     }
 
@@ -336,7 +338,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
                 Component.translatable("gui.forgeweave.tool_station.name"));
         nameField.setBordered(false);
         nameField.setMaxLength(NAME_MAX_LENGTH);
-        nameField.setTextColor(0xFFFFFF);
+        nameField.setTextColor(0xFFFFFFFF);
         // The menu outlives a resize (which re-runs init), so it is also where the typed name is kept.
         nameField.setValue(menu.getToolName());
         nameField.setResponder(this::onNameChanged);
@@ -416,7 +418,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
         // Server-authoritative all the same: the server menu applies (and validates) the name onto
         // the output stack, and the renamed stack comes back down the ordinary slot sync. Upstream
         // sends per keystroke too.
-        PacketDistributor.sendToServer(new RenameStationItemPayload(menu.containerId, name));
+        ClientPacketDistributor.sendToServer(new RenameStationItemPayload(menu.containerId, name));
     }
 
     @Override
@@ -552,14 +554,14 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
 
     @Override
     protected void renderPanel(GuiGraphicsExtractor graphics, float partialTick, int mouseX, int mouseY) {
-        graphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, SHEET, SHEET);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, SHEET, SHEET);
         renderToolPreview(graphics);
         renderSlots(graphics);
         renderSidebar(graphics, mouseX, mouseY);
         renderInfoPanels(graphics);
         sidePanel.render(graphics, menu, leftPos, topPos, imageHeight, menu.sideSlots, menu.sideInventorySlotCount);
         if (nameField != null && nameField.isFocused()) {
-            graphics.blit(TEXTURE, leftPos + NAME_FIELD_X - 2, topPos + NAME_FIELD_Y - 1,
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + NAME_FIELD_X - 2, topPos + NAME_FIELD_Y - 1,
                     TEXT_FIELD_U, TEXT_FIELD_V, TEXT_FIELD_W, TEXT_FIELD_H, SHEET, SHEET);
         }
         // Last, as upstream's renderBg draws its own armor stand last: it is 3D, so it has to land on
@@ -581,11 +583,11 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     private void renderToolPreview(GuiGraphicsExtractor graphics) {
         Tab tab = menu.tab();
         ItemStack plating = menu.getSlot(ToolStationMenu.HEAD_SLOT).getItem();
-        graphics.pose().pushPose();
-        graphics.pose().translate(leftPos + 10.0F, topPos + 22.0F, 0.0F);
-        graphics.pose().scale(PREVIEW_SCALE, PREVIEW_SCALE, 1.0F);
+        graphics.pose().pushMatrix();
+        graphics.pose().translate(leftPos + 10.0F, topPos + 22.0F);
+        graphics.pose().scale(PREVIEW_SCALE, PREVIEW_SCALE);
         if (tab.isRepair()) {
-            graphics.blit(ICONS, 0, 0, ANVIL_U, ANVIL_V, SLOT_SPRITE_SIZE, SLOT_SPRITE_SIZE, SHEET, SHEET);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, ICONS, 0, 0, ANVIL_U, ANVIL_V, SLOT_SPRITE_SIZE, SLOT_SPRITE_SIZE, SHEET, SHEET);
         } else if (isFamily(tab) && plating.isEmpty()) {
             // #1081: four pieces share this tab and nothing has picked one yet, so the preview shows
             // the same glyph the button does instead of guessing at a piece.
@@ -595,11 +597,10 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
             renderToolLayers(graphics, entry, 0, 0, ToolStationPreview.layerColors(entry,
                     slot -> menu.getSlot(slot).getItem(), ForgeweaveItemColors::materialColor));
         }
-        graphics.pose().popPose();
+        graphics.pose().popMatrix();
 
-        graphics.setColor(1.0F, 1.0F, 1.0F, COVER_ALPHA);
-        graphics.blit(TEXTURE, leftPos + 7, topPos + 18, COVER_U, COVER_V, COVER_W, COVER_H, SHEET, SHEET);
-        graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + 7, topPos + 18, COVER_U, COVER_V, COVER_W, COVER_H, SHEET, SHEET,
+                ARGB.white(COVER_ALPHA));
     }
 
     /**
@@ -630,13 +631,11 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
         List<String> layers = ToolArt.layers(entry.constants().parts());
         for (int layer = 0; layer < layers.size(); layer++) {
             int color = colors.get(layer);
-            graphics.setColor((color >> 16 & 0xFF) / 255.0F, (color >> 8 & 0xFF) / 255.0F, (color & 0xFF) / 255.0F, 1.0F);
             Identifier texture = ToolArt.layerTexture(path, layers.get(layer));
-            graphics.blit(
+            graphics.blit(RenderPipelines.GUI_TEXTURED,
                     texture.withPath(file -> "textures/" + file + ".png"),
-                    x, y, 0, 0, 16, 16, 16, 16);
+                    x, y, 0, 0, 16, 16, 16, 16, ARGB.opaque(color));
         }
-        graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
     }
 
     /** Slot plate, border and -- while empty -- the ghost of whatever belongs in that slot. */
@@ -653,29 +652,26 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
             int x = leftPos + slot.x - 1;
             int y = topPos + slot.y - 1;
 
-            graphics.setColor(1.0F, 1.0F, 1.0F, SLOT_BACKGROUND_ALPHA);
-            graphics.blit(TEXTURE, x, y, SLOT_BACKGROUND_U, SLOT_SPRITE_V,
-                    SLOT_SPRITE_SIZE, SLOT_SPRITE_SIZE, SHEET, SHEET);
-            graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
-            graphics.blit(TEXTURE, x, y, SLOT_BORDER_U, SLOT_SPRITE_V,
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, SLOT_BACKGROUND_U, SLOT_SPRITE_V,
+                    SLOT_SPRITE_SIZE, SLOT_SPRITE_SIZE, SHEET, SHEET, ARGB.white(SLOT_BACKGROUND_ALPHA));
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, SLOT_BORDER_U, SLOT_SPRITE_V,
                     SLOT_SPRITE_SIZE, SLOT_SPRITE_SIZE, SHEET, SHEET);
 
             if (slot.hasItem()) {
                 continue;
             }
             if (tab.isRepair()) {
-                graphics.blit(ICONS, x, y, REPAIR_ICON_U[i], REPAIR_ICON_V,
+                graphics.blit(RenderPipelines.GUI_TEXTURED, ICONS, x, y, REPAIR_ICON_U[i], REPAIR_ICON_V,
                         SLOT_SPRITE_SIZE, SLOT_SPRITE_SIZE, SHEET, SHEET);
             } else {
-                graphics.setColor(1.0F, 1.0F, 1.0F, GHOST_ALPHA);
                 // The plating slot of an armor tab takes any of the four, so its ghost is upstream's
                 // own generic plating outline rather than one piece's (#1081); every other slot ghosts
                 // the part the resolved piece wants there.
                 Identifier ghost = isFamily(tab) && i == ToolStationMenu.HEAD_SLOT
                         ? PLATING_ICON
                         : partTexture(entry.part(i));
-                graphics.blit(ghost, leftPos + slot.x, topPos + slot.y, 0, 0, 16, 16, 16, 16);
-                graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+                graphics.blit(RenderPipelines.GUI_TEXTURED, ghost, leftPos + slot.x, topPos + slot.y, 0, 0, 16, 16, 16, 16,
+                        ARGB.white(GHOST_ALPHA));
             }
         }
     }
@@ -691,13 +687,12 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
      * whole of the difference between the two sets. Drawn into the usual 16x16 box.
      */
     private void renderFamilyIcon(GuiGraphicsExtractor graphics, Tab tab, int x, int y) {
-        graphics.blit(ARMOR_ICON, x, y, 0, 0, 16, 16, 16, 16);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, ARMOR_ICON, x, y, 0, 0, 16, 16, 16, 16);
         if (!ToolAssemblyRecipes.isLargeTool(tab.entry())) {
             return; // the light set: the plain icon is the whole of it
         }
         Identifier plate = partTexture(tab.entry().part(tab.slots().size() - 1));
-        graphics.blit(plate, x + 16 - HEAVY_BADGE_SIZE, y + 16 - HEAVY_BADGE_SIZE,
-                HEAVY_BADGE_SIZE, HEAVY_BADGE_SIZE, 0.0F, 0.0F, 16, 16, 16, 16);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, plate, x + 16 - HEAVY_BADGE_SIZE, y + 16 - HEAVY_BADGE_SIZE, 0.0F, 0.0F, HEAVY_BADGE_SIZE, HEAVY_BADGE_SIZE, 16, 16, 16, 16);
     }
 
     /** A part item's own inventory sprite, blitted straight from its file (GUI draws bypass the atlas). */
@@ -733,11 +728,11 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
             int y = topPos + buttonY(slot);
             boolean hovered = isHovering(buttonX(slot), buttonY(slot), BUTTON_SIZE, BUTTON_SIZE, mouseX, mouseY);
             int u = index == selected ? BUTTON_PRESSED_U : hovered ? BUTTON_HOVER_U : BUTTON_IDLE_U;
-            graphics.blit(ICONS, x, y, u, buttonV(), BUTTON_SIZE, BUTTON_SIZE, SHEET, SHEET);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, ICONS, x, y, u, buttonV(), BUTTON_SIZE, BUTTON_SIZE, SHEET, SHEET);
 
             Tab tab = ToolStationTabs.get(index);
             if (tab.isRepair()) {
-                graphics.blit(ICONS, x, y, ANVIL_U, ANVIL_V, BUTTON_SIZE, BUTTON_SIZE, SHEET, SHEET);
+                graphics.blit(RenderPipelines.GUI_TEXTURED, ICONS, x, y, ANVIL_U, ANVIL_V, BUTTON_SIZE, BUTTON_SIZE, SHEET, SHEET);
             } else if (isFamily(tab)) {
                 renderFamilyIcon(graphics, tab, x + 1, y + 1);
             } else {
@@ -758,9 +753,9 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     /** Upstream's horizontal beam that visually ties a side module to the main panel. */
     private void beam(GuiGraphicsExtractor graphics, int x, int y, int width) {
         int v = beamV();
-        graphics.blit(TEXTURE, x, y, 0, v, BEAM_END_W, BEAM_H, SHEET, SHEET);
-        graphics.blit(TEXTURE, x + BEAM_END_W, y, width, BEAM_H, BEAM_CENTER_U, v, BEAM_CENTER_W, BEAM_H, SHEET, SHEET);
-        graphics.blit(TEXTURE, x + BEAM_END_W + width, y, BEAM_RIGHT_U, v, BEAM_END_W, BEAM_H, SHEET, SHEET);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0, v, BEAM_END_W, BEAM_H, SHEET, SHEET);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x + BEAM_END_W, y, BEAM_CENTER_U, v, width, BEAM_H, BEAM_CENTER_W, BEAM_H, SHEET, SHEET);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x + BEAM_END_W + width, y, BEAM_RIGHT_U, v, BEAM_END_W, BEAM_H, SHEET, SHEET);
     }
 
     // ------------------------------------------------------------------ sidebar geometry & input
@@ -813,19 +808,19 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     }
 
     @Override
-    protected void renderTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        super.renderTooltip(graphics, mouseX, mouseY);
+    protected void extractTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        super.extractTooltip(graphics, mouseX, mouseY);
         List<Integer> tabs = menu.visibleTabs();
         for (int slot = pageFrom(); slot < pageTo(); slot++) {
             if (isHovering(buttonX(slot), buttonY(slot), BUTTON_SIZE, BUTTON_SIZE, mouseX, mouseY)) {
-                graphics.renderTooltip(font, ToolStationTabs.get(tabs.get(slot)).title(), mouseX, mouseY);
+                graphics.setTooltipForNextFrame(font, ToolStationTabs.get(tabs.get(slot)).title(), mouseX, mouseY);
                 return;
             }
         }
         // #1043: upstream leaves the ring under the stand unlabelled, which reads as decoration
         // rather than as something to drag. One line of hover text is the whole of the deviation.
         if (preview.isMouseOver(mouseX, mouseY)) {
-            graphics.renderTooltip(font,
+            graphics.setTooltipForNextFrame(font,
                     Component.translatable("gui.forgeweave.tool_station.rotate_preview"), mouseX, mouseY);
             return;
         }
@@ -842,7 +837,7 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
                     traitCaption != null, traitLines, traitScroll, mouseX, mouseY);
         }
         if (hovered != null) {
-            graphics.renderComponentHoverEffect(font, hovered, mouseX, mouseY);
+            graphics.componentHoverEffect(font, hovered, mouseX, mouseY);
         }
     }
 
@@ -908,7 +903,10 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         if (preview.mouseClicked(mouseX, mouseY)) {
             return true; // grabbed the stand; see StandPreview#mouseClicked for why it is swallowed
         }
@@ -925,20 +923,24 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
                 return true;
             }
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     /** #1043: every cursor move while the stand is grabbed turns it, as upstream's does. */
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+    public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
+        double mouseX = event.x();
+        double mouseY = event.y();
         preview.mouseDragged(mouseX);
-        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+        return super.mouseDragged(event, dragX, dragY);
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+    public boolean mouseReleased(MouseButtonEvent event) {
+        double mouseX = event.x();
+        double mouseY = event.y();
         preview.mouseReleased();
-        return super.mouseReleased(mouseX, mouseY, button);
+        return super.mouseReleased(event);
     }
 
     @Override
@@ -967,16 +969,16 @@ public class ToolStationScreen extends StationScreen<ToolStationMenu> implements
      * inventory key doesn't close the screen mid-word, but Escape still does.
      */
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyEvent event) {
         if (nameField == null) {
-            return super.keyPressed(keyCode, scanCode, modifiers);
+            return super.keyPressed(event);
         }
-        if (keyCode == InputConstants.KEY_ESCAPE) {
+        if (event.key() == InputConstants.KEY_ESCAPE) {
             minecraft.player.closeContainer();
             return true;
         }
-        return nameField.keyPressed(keyCode, scanCode, modifiers) || nameField.canConsumeInput()
-                || super.keyPressed(keyCode, scanCode, modifiers);
+        return nameField.keyPressed(event) || nameField.canConsumeInput()
+                || super.keyPressed(event);
     }
 
     @SubscribeEvent

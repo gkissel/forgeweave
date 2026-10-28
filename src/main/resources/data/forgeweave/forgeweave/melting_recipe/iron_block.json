@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/iron"
-  },
+  "input": "#c:storage_blocks/iron",
   "fluid": "forgeweave:molten_iron",
   "amount": 1296
 }

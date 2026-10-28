@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/raw_platinum"
-  },
+  "input": "#c:storage_blocks/raw_platinum",
   "fluid": "forgeweave:molten_platinum",
   "amount": 1296,
   "ore": true,

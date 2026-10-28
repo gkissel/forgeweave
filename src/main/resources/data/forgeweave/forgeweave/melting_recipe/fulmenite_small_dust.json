@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/fulmenite"
-  },
+  "input": "#c:small_dusts/fulmenite",
   "fluid": "forgeweave:molten_fulmenite",
   "amount": 48
 }

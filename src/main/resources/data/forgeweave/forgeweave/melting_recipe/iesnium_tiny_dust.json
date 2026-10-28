@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:tiny_dusts/iesnium"
-  },
+  "input": "#c:tiny_dusts/iesnium",
   "fluid": "forgeweave:molten_iesnium",
   "amount": 16,
   "temperature": 1600,

@@ -48,27 +48,19 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "forgeweave:osgloglas_ingot"
-      },
+      "ingredient": "forgeweave:osgloglas_ingot",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "forgeweave:osgloglas_nugget"
-      },
+      "ingredient": "forgeweave:osgloglas_nugget",
       "value": 16
     },
     {
-      "ingredient": {
-        "item": "forgeweave:osgloglas_block"
-      },
+      "ingredient": "forgeweave:osgloglas_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/osgloglas"
-  },
+  "repair_item": "#c:ingots/osgloglas",
   "cast_only": true,
   "enchantability": 14,
   "color": "#638D76",

@@ -76,7 +76,7 @@ final class ApotheosisGemBonuses implements ApotheosisSockets.Bridge {
         List<ApotheosisSockets.AttributeGrant> grants = new ArrayList<>();
         for (StackAttributeModifiers.Entry entry : event.getModifiers()) {
             Identifier attribute = entry.attribute().unwrapKey()
-                    .map(ResourceKey::location)
+                    .map(ResourceKey::identifier)
                     .orElse(null);
             if (attribute != null) {
                 grants.add(new ApotheosisSockets.AttributeGrant(attribute, entry.modifier()));

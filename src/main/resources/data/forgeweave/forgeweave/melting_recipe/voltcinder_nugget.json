@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/voltcinder"
-  },
+  "input": "#c:nuggets/voltcinder",
   "fluid": "forgeweave:molten_voltcinder",
   "amount": 16
 }

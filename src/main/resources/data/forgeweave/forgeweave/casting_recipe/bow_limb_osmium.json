@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_bow_limb"
-  },
+  "cast": "forgeweave:cast_bow_limb",
   "fluid": "forgeweave:molten_osmium",
   "amount": 432,
   "result": {

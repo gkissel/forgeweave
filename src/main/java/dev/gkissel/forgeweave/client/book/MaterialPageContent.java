@@ -173,7 +173,7 @@ public final class MaterialPageContent {
         Component hover = TraitFamilies.description(id).withStyle(Style.EMPTY.withColor(material.color()));
         return TraitFamilies.name(id)
                 .withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.UNDERLINE)
-                .withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover)));
+                .withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(hover)));
     }
 
     /**
@@ -227,7 +227,7 @@ public final class MaterialPageContent {
         Component hover = Component.translatable(stage.unlockKey()).withStyle(ChatFormatting.GRAY);
         return Component.translatable(STAGE_LINE, Component.translatable(stage.nameKey()))
                 .withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.UNDERLINE)
-                .withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover)));
+                .withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(hover)));
     }
 
     /**
@@ -336,7 +336,7 @@ public final class MaterialPageContent {
                 .filter(recipe -> recipe.fluid() == result)
                 .sorted(Comparator.comparingInt(recipe -> meltingRank(recipe, representative)))
                 .forEach(recipe -> {
-                    ItemStack[] items = recipe.input().getItems();
+                    ItemStack[] items = recipe.input().items().map(ItemStack::new).toArray(ItemStack[]::new);
                     if (items.length > 0 && sources.size() < MELTING_SOURCES) {
                         sources.add(new Source(items[0], items[0].getHoverName(), null));
                     }
@@ -358,7 +358,7 @@ public final class MaterialPageContent {
      */
     public static ItemStack representativeItem(Material material) {
         Ingredient repair = material.repairItem();
-        ItemStack[] items = repair.getItems();
+        ItemStack[] items = repair.items().map(ItemStack::new).toArray(ItemStack[]::new);
         return items.length > 0 ? items[0] : ItemStack.EMPTY;
     }
 

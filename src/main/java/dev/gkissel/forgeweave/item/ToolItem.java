@@ -12,6 +12,8 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.HolderSet;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
@@ -23,7 +25,6 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
@@ -33,11 +34,14 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemInstance;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.UseAnim;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.component.Tool;
+import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.item.component.Weapon;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.item.context.UseOnContext;
@@ -51,6 +55,7 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.common.ItemAbility;
+import net.neoforged.neoforge.event.enchanting.EnchantmentLevelSetEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.combat.CombatSeam;
@@ -221,7 +226,13 @@ public class ToolItem extends Item {
     public ToolItem(Properties properties, List<TagKey<Block>> mineableBlocks, float attackSpeed,
             float damagePotential, float miningSpeedModifier, float damageCutoff, boolean weapon,
             @Nullable ForgeweaveInnates.Innate innate, AoeHarvest.Shape aoeShape) {
-        super(properties);
+        // 1.21.5 retired the item hooks for these two: the enchanting table now only looks at a stack
+        // with an `enchantable` component (its value is the material's, set at assembly next to
+        // forgeweave:enchantability; the config gate is #onEnchantmentLevelSet), and an attack only
+        // reaches #postHurtEnemy, and a shield is only disabled, when the stack carries `weapon`.
+        // Its own per-hit damage is 0 because #postHurtEnemy pays upstream's cost itself.
+        super(properties.enchantable(Material.DEFAULT_ENCHANTABILITY)
+                .component(DataComponents.WEAPON, new Weapon(0, weapon ? SHIELD_DISABLE_SECONDS : 0.0F)));
         this.mineableBlocks = List.copyOf(mineableBlocks);
         this.attackSpeed = attackSpeed;
         this.damagePotential = damagePotential;
@@ -280,19 +291,31 @@ public class ToolItem extends Item {
      * </ul>
      *
      */
+    /**
+     * 1.21.1's {@code Player#disableShield} cooldown, 100 ticks, which every {@code canDisableShield}
+     * item got; 26.1 reads it in seconds off the {@code weapon} component.
+     */
+    private static final float SHIELD_DISABLE_SECONDS = 5.0F;
+
+    // NeoForge 26.1 dropped the *_DIG abilities (mining is the tool component's alone); the same ids
+    // stay answerable for any mod still asking by name.
+    private static final ItemAbility PICKAXE_DIG = ItemAbility.get("pickaxe_dig");
+    private static final ItemAbility HOE_DIG = ItemAbility.get("hoe_dig");
+    private static final ItemAbility SWORD_DIG = ItemAbility.get("sword_dig");
+
     private static Set<ItemAbility> abilitiesFor(List<TagKey<Block>> mineableBlocks) {
         Set<ItemAbility> abilities = new LinkedHashSet<>();
         for (TagKey<Block> tag : mineableBlocks) {
             if (tag == BlockTags.MINEABLE_WITH_PICKAXE) {
-                abilities.add(ItemAbilities.PICKAXE_DIG);
+                abilities.add(PICKAXE_DIG);
             } else if (tag == BlockTags.MINEABLE_WITH_AXE) {
                 abilities.addAll(ItemAbilities.DEFAULT_AXE_ACTIONS);
             } else if (tag == BlockTags.MINEABLE_WITH_SHOVEL) {
                 abilities.addAll(ItemAbilities.DEFAULT_SHOVEL_ACTIONS);
             } else if (tag == BlockTags.MINEABLE_WITH_HOE) {
-                abilities.add(ItemAbilities.HOE_DIG);
+                abilities.add(HOE_DIG);
             } else if (tag == BlockTags.SWORD_EFFICIENT) {
-                abilities.add(ItemAbilities.SWORD_DIG);
+                abilities.add(SWORD_DIG);
             }
         }
         return Set.copyOf(abilities);
@@ -305,8 +328,8 @@ public class ToolItem extends Item {
      * before it will till, strip, scrape or flatten anything.
      */
     @Override
-    public boolean canPerformAction(ItemStack stack, ItemAbility itemAbility) {
-        return !isBroken(stack) && abilities.contains(itemAbility);
+    public boolean canPerformAction(ItemInstance stack, ItemAbility itemAbility) {
+        return !stack.getOrDefault(ForgeweaveDataComponents.BROKEN.get(), false) && abilities.contains(itemAbility);
     }
 
     /** Which extra blocks a break with this tool takes along -- see {@link AoeHarvest#onBlockBreak}. */
@@ -352,8 +375,8 @@ public class ToolItem extends Item {
                 .map(entry -> (ItemLike) entry.tool().get())
                 .distinct()
                 .toArray(ItemLike[]::new);
-        event.registerItem(Capabilities.EnergyStorage.ITEM,
-                (stack, context) -> EnergyBuffer.capability(stack), items);
+        event.registerItem(Capabilities.Energy.ITEM,
+                (stack, access) -> EnergyBuffer.capability(stack, access), items);
     }
 
     /**
@@ -430,11 +453,27 @@ public class ToolItem extends Item {
      * slot on this same method, so a world with it installed has one table and both flags decide it.
      * Enchanting needs both, and neither replaces the other.
      */
-    @Override
     public boolean isEnchantable(ItemStack stack) {
-        return ForgeweaveConfig.read(ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING)
-                && ApotheosisAffixes.enchantingEnabled()
-                && super.isEnchantable(stack);
+        return vanillaEnchantingAllowed() && stack.isEnchantable();
+    }
+
+    /** Both flags {@link #isEnchantable} and {@link #isBookEnchantable} gate on. */
+    public static boolean vanillaEnchantingAllowed() {
+        return ForgeweaveConfig.read(ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING) && ApotheosisAffixes.enchantingEnabled();
+    }
+
+    /**
+     * The enchanting table's door since 1.21.5, when {@code Item#isEnchantable} went away: the table
+     * offers a stack anything only when its {@code enchantable} component is there, which is static
+     * per item, so the runtime flags close it here instead -- every row's level forced to 0, the
+     * same "looks and offers nothing" the old 0 enchantment value gave. Tools and armor pieces alike.
+     */
+    public static void onEnchantmentLevelSet(EnchantmentLevelSetEvent event) {
+        ItemStack stack = event.getItem();
+        if ((stack.getItem() instanceof ToolItem || stack.getItem() instanceof ArmorPieceItem)
+                && !vanillaEnchantingAllowed()) {
+            event.setEnchantLevel(0);
+        }
     }
 
     /**
@@ -453,11 +492,8 @@ public class ToolItem extends Item {
      * at the two doors is what "enchanting needs both flags" means; making an already granted
      * enchantment stop working is not.
      */
-    @Override
     public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
-        return ForgeweaveConfig.read(ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING)
-                && ApotheosisAffixes.enchantingEnabled()
-                && super.isBookEnchantable(stack, book);
+        return vanillaEnchantingAllowed();
     }
 
     /**
@@ -482,7 +518,6 @@ public class ToolItem extends Item {
      * component and falls back to {@link Material#DEFAULT_ENCHANTABILITY} -- the same flat 14 it
      * already enchanted at, so no existing world changes.
      */
-    @Override
     public int getEnchantmentValue(ItemStack stack) {
         if (!ForgeweaveConfig.read(ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING)) {
             return 0;
@@ -546,9 +581,9 @@ public class ToolItem extends Item {
      */
     public Tool toolComponent(Material head, ToolStats.Stats stats) {
         List<Tool.Rule> rules = new ArrayList<>();
-        rules.add(Tool.Rule.deniesDrops(head.incorrectForTool()));
+        rules.add(Tool.Rule.deniesDrops(BuiltInRegistries.BLOCK.getOrThrow(head.incorrectForTool())));
         rules.addAll(miningRules(stats));
-        return new Tool(rules, 1.0F, 1);
+        return new Tool(rules, 1.0F, 1, true);
     }
 
     /**
@@ -569,10 +604,10 @@ public class ToolItem extends Item {
             // it relative preserves upstream's per-material scaling. Tool#getMiningSpeed returns the
             // first matching rule, so this has to precede the tag rule below. The sword set is the
             // only mineable family upstream gives a per-block multiplier at all.
-            rules.add(Tool.Rule.minesAndDrops(List.of(Blocks.COBWEB), speed * 7.5F));
+            rules.add(Tool.Rule.minesAndDrops(HolderSet.direct(Blocks.COBWEB.builtInRegistryHolder()), speed * 7.5F));
         }
         for (TagKey<Block> tag : mineableBlocks) {
-            rules.add(Tool.Rule.minesAndDrops(tag, speed));
+            rules.add(Tool.Rule.minesAndDrops(BuiltInRegistries.BLOCK.getOrThrow(tag), speed));
         }
         return rules;
     }
@@ -859,16 +894,21 @@ public class ToolItem extends Item {
      * same seam, one call below traits.
      */
     @Override
-    public void inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean isSelected) {
-        if (level instanceof ServerLevel serverLevel && entity instanceof LivingEntity holder && !isBroken(stack)) {
+    public void inventoryTick(ItemStack stack, ServerLevel serverLevel, Entity entity, @Nullable EquipmentSlot slot) {
+        // 26.1.2: a tool or armor piece assembled on 1.21.1 has no minecraft:enchantable of its own;
+        // give it the one its material set calls for (see Enchantability).
+        Enchantability.backfill(stack);
+        if (entity instanceof LivingEntity holder && !isBroken(stack)) {
             ForgeweaveTraits.inventoryTick(stack, serverLevel, holder);
-            ForgeweaveModifiers.inventoryTick(stack, serverLevel, holder, isSelected);
+            // 26.1 passes MAINHAND for the selected hotbar slot, what 1.21.1's isSelected meant.
+            ForgeweaveModifiers.inventoryTick(stack, serverLevel, holder, slot == EquipmentSlot.MAINHAND);
         }
         // #993: the free ICustomModule hooks on an installed Mekanism module, which need no interaction
         // site of their own, only this tick. Both sides, because tickClient is half the pair. Does
         // nothing without Mekanism, without an atomic_matter_alloy part, or with the toggle off.
         if (entity instanceof Player player && !isBroken(stack)) {
-            MekanismGearModules.tickModules(stack, player, !level.isClientSide());
+            // 26.1 ticks items on the server only, so the client half of the pair no longer runs.
+            MekanismGearModules.tickModules(stack, player, true);
         }
     }
 
@@ -1146,9 +1186,13 @@ public class ToolItem extends Item {
         return false;
     }
 
-    /** Upstream 1.12 refuses the attack outright while Broken ({@code ToolHelper#attackEntity}). */
-    @Override
-    public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+    /**
+     * Upstream 1.12 refuses the attack outright while Broken ({@code ToolHelper#attackEntity}). 1.21.1
+     * answered that from {@code hurtEnemy}'s boolean, which gated {@link #postHurtEnemy}; 26.1's
+     * {@code hurtEnemy} is void and the gate is the {@code weapon} component, so the same test now
+     * opens {@link #postHurtEnemy} itself.
+     */
+    static boolean hitCounts(ItemStack stack) {
         return !isBroken(stack) && stack.get(ForgeweaveDataComponents.TOOL_STATS.get()) != null;
     }
 
@@ -1170,6 +1214,9 @@ public class ToolItem extends Item {
      */
     @Override
     public void postHurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+        if (!hitCounts(stack)) {
+            return;
+        }
         // Upstream's ToolHelper#attackEntity runs every trait's afterHit before reduceDurabilityOnHit
         // (issue #297 parity fix): a hit that crosses insatiable's stack threshold pays that same
         // hit's own bonus cost, not the cost the stack owed before this swing.
@@ -1205,10 +1252,8 @@ public class ToolItem extends Item {
      * on the same {@link #weapon} flag that already marks it upstream's one {@code Category.WEAPON}
      * tool: "make the hatchet count as an axe for shield-disabling", per the issue.
      */
-    @Override
-    public boolean canDisableShield(ItemStack stack, ItemStack shield, LivingEntity entity, LivingEntity attacker) {
-        return weapon;
-    }
+    // 26.1: no item hook any more -- the constructor's weapon component carries
+    // SHIELD_DISABLE_SECONDS exactly when this flag is set.
 
     /**
      * Durability/broken state, mining speed, attack damage, tool tier, the three parts and their
@@ -1218,10 +1263,13 @@ public class ToolItem extends Item {
      * plain {@code boolean} so it stays callable with an explicit value from unit tests.
      */
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
+            Consumer<Component> builder, TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, builder, flag);
+        List<Component> tooltip = new ArrayList<>();
         ToolTooltip.append(stack, context.registries(), ToolTooltip.detailed(flag), attackDamage(stack), tooltip);
         ToolTooltip.appendShiftHint(ToolTooltip.shiftHint(flag), tooltip);
+        tooltip.forEach(builder);
     }
 
     // ------------------------------------------------------------------ innate item use (issue #155)
@@ -1236,25 +1284,25 @@ public class ToolItem extends Item {
      * reach {@code startUsingItem}.
      */
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         ToolUseAction action = useAction();
         if (isBroken(stack)) {
-            return InteractionResultHolder.pass(stack);
+            return InteractionResult.PASS;
         }
         if (action == null) {
             // #994: a Mekanism teleportation module gets the click a tool kind has no innate use for.
             // Only there, so a longsword's leap charge is never replaced by a jump -- a module adds.
             return MekanismGearModules.teleport(stack, player)
-                    ? InteractionResultHolder.success(stack)
-                    : InteractionResultHolder.pass(stack);
+                    ? InteractionResult.SUCCESS
+                    : InteractionResult.PASS;
         }
-        InteractionResultHolder<ItemStack> instant = action.onUse(stack, level, player, hand);
+        InteractionResult instant = action.onUse(stack, level, player, hand);
         if (instant != null) {
             return instant;
         }
         player.startUsingItem(hand);
-        return InteractionResultHolder.consume(stack);
+        return InteractionResult.CONSUME;
     }
 
     /**
@@ -1342,7 +1390,7 @@ public class ToolItem extends Item {
     }
 
     @Override
-    public UseAnim getUseAnimation(ItemStack stack) {
+    public ItemUseAnimation getUseAnimation(ItemStack stack) {
         ToolUseAction action = useAction();
         return action == null ? super.getUseAnimation(stack) : action.animation();
     }
@@ -1354,10 +1402,11 @@ public class ToolItem extends Item {
     }
 
     @Override
-    public void releaseUsing(ItemStack stack, Level level, LivingEntity user, int timeLeft) {
+    public boolean releaseUsing(ItemStack stack, Level level, LivingEntity user, int timeLeft) {
         ToolUseAction action = useAction();
         if (action != null && level instanceof ServerLevel serverLevel) {
             action.onRelease(stack, serverLevel, user, action.durationTicks() - timeLeft);
         }
+        return false;
     }
 }

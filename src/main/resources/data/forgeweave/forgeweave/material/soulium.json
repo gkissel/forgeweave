@@ -48,15 +48,11 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "mysticalagriculture:soulium_ingot"
-      },
+      "ingredient": "mysticalagriculture:soulium_ingot",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "mysticalagriculture:soulium_ingot"
-  },
+  "repair_item": "mysticalagriculture:soulium_ingot",
   "cast_only": true,
   "enchantability": 18,
   "color": "#8C563C",

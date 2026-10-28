@@ -49,21 +49,15 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:ingots/tyrian_steel"
-      },
+      "ingredient": "#c:ingots/tyrian_steel",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:storage_blocks/tyrian_steel"
-      },
+      "ingredient": "#c:storage_blocks/tyrian_steel",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/tyrian_steel"
-  },
+  "repair_item": "#c:ingots/tyrian_steel",
   "cast_only": true,
   "enchantability": 14,
   "color": "#B01080",

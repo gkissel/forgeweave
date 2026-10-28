@@ -30,27 +30,19 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "forgeweave:amethyst_bronze_ingot"
-      },
+      "ingredient": "forgeweave:amethyst_bronze_ingot",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "forgeweave:amethyst_bronze_nugget"
-      },
+      "ingredient": "forgeweave:amethyst_bronze_nugget",
       "value": 16
     },
     {
-      "ingredient": {
-        "item": "forgeweave:amethyst_bronze_block"
-      },
+      "ingredient": "forgeweave:amethyst_bronze_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/amethyst_bronze"
-  },
+  "repair_item": "#c:ingots/amethyst_bronze",
   "cast_only": true,
   "enchantability": 18,
   "color": "#C687BD"

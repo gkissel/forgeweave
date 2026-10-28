@@ -51,15 +51,11 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "draconicevolution:awakened_core"
-      },
+      "ingredient": "draconicevolution:awakened_core",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "draconicevolution:awakened_core"
-  },
+  "repair_item": "draconicevolution:awakened_core",
   "enchantability": 17,
   "color": "#D7510A",
   "neoforge:conditions": [

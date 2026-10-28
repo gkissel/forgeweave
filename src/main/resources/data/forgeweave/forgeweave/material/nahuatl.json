@@ -27,11 +27,9 @@
     "armor": ["forgeweave:venomward"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:nahuatl_board" }, "value": 144 }
+    { "ingredient": "forgeweave:nahuatl_board", "value": 144 }
   ],
-  "repair_item": {
-    "item": "minecraft:obsidian"
-  },
+  "repair_item": "minecraft:obsidian",
   "enchantability": 12,
   "color": "#3B2754"
 }

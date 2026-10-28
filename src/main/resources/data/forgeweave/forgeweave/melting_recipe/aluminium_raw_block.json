@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/raw_aluminium"
-  },
+  "input": "#c:storage_blocks/raw_aluminium",
   "fluid": "forgeweave:molten_aluminium",
   "amount": 1296,
   "ore": true,

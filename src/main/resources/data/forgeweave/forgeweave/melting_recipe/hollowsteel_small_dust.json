@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/hollowsteel"
-  },
+  "input": "#c:small_dusts/hollowsteel",
   "fluid": "forgeweave:molten_hollowsteel",
   "amount": 48,
   "temperature": 1600

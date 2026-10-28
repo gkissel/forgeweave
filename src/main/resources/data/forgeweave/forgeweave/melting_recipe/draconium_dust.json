@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/draconium"
-  },
+  "input": "#c:dusts/draconium",
   "fluid": "forgeweave:molten_draconium",
   "amount": 144,
   "temperature": 1600,

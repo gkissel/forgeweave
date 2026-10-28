@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "mysticalagradditions:insanium_ingot"
-  },
+  "input": "mysticalagradditions:insanium_ingot",
   "fluid": "forgeweave:molten_insanium",
   "amount": 144,
   "temperature": 2000,

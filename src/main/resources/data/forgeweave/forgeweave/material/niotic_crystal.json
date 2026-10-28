@@ -49,15 +49,11 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "powah:crystal_niotic"
-      },
+      "ingredient": "powah:crystal_niotic",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "powah:crystal_niotic"
-  },
+  "repair_item": "powah:crystal_niotic",
   "enchantability": 14,
   "color": "#00A4BD",
   "neoforge:conditions": [

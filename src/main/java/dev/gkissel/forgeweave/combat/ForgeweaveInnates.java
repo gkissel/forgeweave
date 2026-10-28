@@ -22,7 +22,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
@@ -35,7 +35,7 @@ import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
@@ -333,7 +333,7 @@ public final class ForgeweaveInnates {
     public static final CombatSeam PIERCE = new FlatArmorPiercingDamage(PIERCE_DAMAGE);
     /** Shovel. */
     public static final CombatSeam FLATTEN =
-            new PotionEffectOnHit(MobEffects.MOVEMENT_SLOWDOWN, 0, FLATTEN_SLOWNESS_DURATION_TICKS);
+            new PotionEffectOnHit(MobEffects.SLOWNESS, 0, FLATTEN_SLOWNESS_DURATION_TICKS);
     /** Hatchet. Bonus damage only -- the shield-disable half lives on {@code ToolItem}. */
     public static final CombatSeam SUNDER = new BonusDamageVsBlocking(SUNDER_BONUS_DAMAGE_FRACTION);
 
@@ -349,7 +349,7 @@ public final class ForgeweaveInnates {
      * Both are constructor parameters, so a playtest re-tune is a number here.
      */
     public static final SweepingBlow SWEEPING_BLOW_SEAM =
-            new SweepingBlow(0.5F, 3.0, 120.0, MobEffects.MOVEMENT_SLOWDOWN, FLATTEN_SLOWNESS_DURATION_TICKS, 0);
+            new SweepingBlow(0.5F, 3.0, 120.0, MobEffects.SLOWNESS, FLATTEN_SLOWNESS_DURATION_TICKS, 0);
     public static final Innate SWEEPING_BLOW = new Innate("sweeping_blow", SWEEPING_BLOW_SEAM, null);
 
     /**
@@ -372,7 +372,7 @@ public final class ForgeweaveInnates {
 
     /** Hammer: a chance to leave what it hits reeling. */
     public static final CombatSeam CONCUSSION_SEAM = new ConditionalSeam(HitCondition.ANY, CONCUSSION_CHANCE,
-            new PotionEffectOnHit(MobEffects.MOVEMENT_SLOWDOWN, 1, CONCUSSION_DURATION_TICKS));
+            new PotionEffectOnHit(MobEffects.SLOWNESS, 1, CONCUSSION_DURATION_TICKS));
     /** Hammer: upstream's own flat +3..+6 damage against the undead (parity audit T35, issue #466). */
     public static final CombatSeam HAMMER_UNDEAD_SEAM = new ConditionalSeam(HitCondition.UNDEAD, 1.0F,
             new RandomBonusDamage(HAMMER_UNDEAD_BONUS_BASE, HAMMER_UNDEAD_BONUS_ROLL));
@@ -613,7 +613,7 @@ public final class ForgeweaveInnates {
      * The broadsword's parry: a short window opened with the use button that negates one incoming
      * melee blow and slows whoever threw it.
      *
-     * <p>{@link UseAnim#NONE} deliberately, not {@code BLOCK}: {@code BLOCK} would hand the window
+     * <p>{@link ItemUseAnimation#NONE} deliberately, not {@code BLOCK}: {@code BLOCK} would hand the window
      * vanilla's whole shield mechanic ({@code LivingEntity#isDamageSourceBlocked}), which negates
      * <em>every</em> front-facing blow for as long as it is held and never ends the parry -- a
      * strictly stronger behavior than the one that was decided, arrived at by accident.
@@ -621,8 +621,8 @@ public final class ForgeweaveInnates {
     public record Parry(int windowTicks, int slowAmplifier, int slowTicks) implements CombatSeam, ToolUseAction {
 
         @Override
-        public UseAnim animation() {
-            return UseAnim.NONE;
+        public ItemUseAnimation animation() {
+            return ItemUseAnimation.NONE;
         }
 
         @Override
@@ -641,7 +641,7 @@ public final class ForgeweaveInnates {
             }
             LivingEntity attacker = defense.attacker();
             if (attacker != null) {
-                attacker.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, slowTicks, slowAmplifier));
+                attacker.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, slowTicks, slowAmplifier));
             }
             defense.defender().stopUsingItem(); // one blow per parry
             return 0.0F;
@@ -657,7 +657,7 @@ public final class ForgeweaveInnates {
     }
 
     /**
-     * The battlesign's blocking stance. {@link UseAnim#BLOCK} is upstream's own ({@code BattleSign}
+     * The battlesign's blocking stance. {@link ItemUseAnimation#BLOCK} is upstream's own ({@code BattleSign}
      * returns {@code EnumAction.BLOCK}), which also gives it vanilla's shield blocking -- the same
      * thing 1.12's BLOCK action gave it there.
      *
@@ -680,8 +680,8 @@ public final class ForgeweaveInnates {
             float meleeReflectFraction) implements CombatSeam, ToolUseAction {
 
         @Override
-        public UseAnim animation() {
-            return UseAnim.BLOCK;
+        public ItemUseAnimation animation() {
+            return ItemUseAnimation.BLOCK;
         }
 
         @Override
@@ -726,7 +726,7 @@ public final class ForgeweaveInnates {
 
             double speed = motion.length() + speedBonus;
             projectile.setDeltaMovement(look.scale(speed));
-            projectile.hasImpulse = true;
+            projectile.needsSync = true;
             projectile.setOwner(defense.defender());
             // Upstream spends durability equal to the damage stopped.
             defense.tool().hurtAndBreak(Math.max(1, (int) originalDamage), defense.defender(),
@@ -775,8 +775,8 @@ public final class ForgeweaveInnates {
     public static final class ChargedLeap implements ToolUseAction {
 
         @Override
-        public UseAnim animation() {
-            return UseAnim.BOW;
+        public ItemUseAnimation animation() {
+            return ItemUseAnimation.BOW;
         }
 
         @Override
@@ -796,9 +796,9 @@ public final class ForgeweaveInnates {
          */
         @Override
         @Nullable
-        public InteractionResultHolder<ItemStack> onUse(ItemStack stack, Level level, Player player,
+        public InteractionResult onUse(ItemStack stack, Level level, Player player,
                 InteractionHand hand) {
-            return player.isFallFlying() ? InteractionResultHolder.pass(stack) : null;
+            return player.isFallFlying() ? InteractionResult.PASS : null;
         }
 
         @Override
@@ -816,7 +816,7 @@ public final class ForgeweaveInnates {
             user.hurtMarked = true; // a player's own client is authoritative; push the new motion down.
             if (user instanceof Player player) {
                 player.causeFoodExhaustion(LEAP_EXHAUSTION);
-                player.getCooldowns().addCooldown(stack.getItem(), LEAP_COOLDOWN_TICKS);
+                player.getCooldowns().addCooldown(stack, LEAP_COOLDOWN_TICKS);
             }
         }
     }
@@ -844,8 +844,8 @@ public final class ForgeweaveInnates {
     public static final class Lunge implements ToolUseAction {
 
         @Override
-        public UseAnim animation() {
-            return UseAnim.NONE; // never held; present only because the interface asks for it
+        public ItemUseAnimation animation() {
+            return ItemUseAnimation.NONE; // never held; present only because the interface asks for it
         }
 
         @Override
@@ -855,7 +855,7 @@ public final class ForgeweaveInnates {
 
         @Override
         @Nullable
-        public InteractionResultHolder<ItemStack> onUse(ItemStack stack, Level level, Player player,
+        public InteractionResult onUse(ItemStack stack, Level level, Player player,
                 InteractionHand hand) {
             if (player.onGround() && !level.isClientSide()) {
                 Vec3 look = Vec3.directionFromRotation(player.getXRot(), player.getYRot());
@@ -864,17 +864,17 @@ public final class ForgeweaveInnates {
                         -look.z * LUNGE_SPEED);
                 player.hurtMarked = true; // a player's own client is authoritative; push the motion down.
                 player.causeFoodExhaustion(LUNGE_EXHAUSTION);
-                player.getCooldowns().addCooldown(stack.getItem(), LUNGE_COOLDOWN_TICKS);
+                player.getCooldowns().addCooldown(stack, LUNGE_COOLDOWN_TICKS);
             }
             // The lunge has already happened either way; the offhand only decides the answer. A
             // "shield-like" offhand is upstream's vanilla-shield-or-battlesign test, read off the
             // behavior rather than a list of items: a raised-block animation is what both have in
             // common. PASS hands the click on so that shield still goes up.
             if (hand == InteractionHand.MAIN_HAND
-                    && player.getOffhandItem().getUseAnimation() == UseAnim.BLOCK) {
-                return InteractionResultHolder.pass(stack);
+                    && player.getOffhandItem().getUseAnimation() == ItemUseAnimation.BLOCK) {
+                return InteractionResult.PASS;
             }
-            return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
+            return InteractionResult.SUCCESS;
         }
     }
 
@@ -901,8 +901,8 @@ public final class ForgeweaveInnates {
         private static final Identifier CHARGE_BONUS = id("charged_launch");
 
         @Override
-        public UseAnim animation() {
-            return UseAnim.BOW;
+        public ItemUseAnimation animation() {
+            return ItemUseAnimation.BOW;
         }
 
         @Override
@@ -981,7 +981,7 @@ public final class ForgeweaveInnates {
                     .expandTowards(look.scale(LAUNCH_RANGE))
                     .inflate(1.0);
             EntityHitResult hit = ProjectileUtil.getEntityHitResult(player.level(), player, eye, end, searched,
-                    candidate -> candidate.isAlive() && !candidate.isSpectator());
+                    candidate -> candidate.isAlive() && !candidate.isSpectator(), 0.3F); // 1.21.1's default margin
             return hit == null ? null : hit.getEntity();
         }
     }
@@ -995,7 +995,7 @@ public final class ForgeweaveInnates {
     static DamageSource armorBypassing(ServerLevel level, @Nullable LivingEntity attacker) {
         Holder<DamageType> type = level.registryAccess()
                 .lookupOrThrow(Registries.DAMAGE_TYPE)
-                .getHolderOrThrow(DamageTypes.GENERIC);
+                .getOrThrow(DamageTypes.GENERIC);
         return new DamageSource(type, null, attacker);
     }
 
@@ -1007,7 +1007,7 @@ public final class ForgeweaveInnates {
     static DamageSource thorns(ServerLevel level, LivingEntity source) {
         Holder<DamageType> type = level.registryAccess()
                 .lookupOrThrow(Registries.DAMAGE_TYPE)
-                .getHolderOrThrow(DamageTypes.THORNS);
+                .getOrThrow(DamageTypes.THORNS);
         return new DamageSource(type, null, source);
     }
 

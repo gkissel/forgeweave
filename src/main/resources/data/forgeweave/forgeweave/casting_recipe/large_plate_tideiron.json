@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_large_plate"
-  },
+  "cast": "forgeweave:cast_large_plate",
   "fluid": "forgeweave:molten_tideiron",
   "amount": 1152,
   "result": {

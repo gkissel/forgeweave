@@ -151,7 +151,7 @@ public enum MaterialStage {
             Map<Identifier, MaterialStage> overrides = new HashMap<>();
             for (MaterialStage stage : values()) {
                 for (Holder<Material> holder : materials.getTagOrEmpty(stage.tag())) {
-                    holder.unwrapKey().map(ResourceKey::location)
+                    holder.unwrapKey().map(ResourceKey::identifier)
                             .ifPresent(id -> overrides.putIfAbsent(id, stage));
                 }
             }

@@ -7,7 +7,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 
-import net.createmod.ponder.foundation.PonderIndex;
+import net.createmod.ponder.api.client.PonderIndex;
 
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
@@ -60,7 +60,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + " an armor stand, or your own character in your skin.");
         add("itemGroup.forgeweave.general", "Forgeweave General Items");
         // #719 -- the veinmine hold-key in vanilla's Controls menu (client/VeinmineKeyMapping).
-        add("key.categories.forgeweave", "Forgeweave");
+        add("key.category.forgeweave.forgeweave", "Forgeweave");
         add("key.forgeweave.veinmine", "Vein Mine (hold)");
         add("itemGroup.forgeweave.tools", "Forgeweave Tools");
         add("itemGroup.forgeweave.parts", "Forgeweave Tool Parts");

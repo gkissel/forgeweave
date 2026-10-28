@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:shards/iron"
-  },
+  "input": "#c:shards/iron",
   "fluid": "forgeweave:molten_iron",
   "amount": 144
 }

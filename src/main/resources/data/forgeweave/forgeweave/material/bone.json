@@ -27,12 +27,10 @@
     "shaft": ["forgeweave:splitting"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:bone" }, "value": 144 },
-    { "ingredient": { "item": "minecraft:bone_meal" }, "value": 36 }
+    { "ingredient": "minecraft:bone", "value": 144 },
+    { "ingredient": "minecraft:bone_meal", "value": 36 }
   ],
-  "repair_item": {
-    "item": "minecraft:bone"
-  },
+  "repair_item": "minecraft:bone",
   "enchantability": 15,
   "color": "#EDE6BF"
 }

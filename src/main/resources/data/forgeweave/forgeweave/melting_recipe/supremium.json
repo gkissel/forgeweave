@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "mysticalagriculture:supremium_ingot"
-  },
+  "input": "mysticalagriculture:supremium_ingot",
   "fluid": "forgeweave:molten_supremium",
   "amount": 144,
   "temperature": 1800,

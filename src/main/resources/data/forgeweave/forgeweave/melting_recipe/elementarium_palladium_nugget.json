@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/palladium"
-  },
+  "input": "#c:nuggets/palladium",
   "fluid": "forgeweave:molten_elementarium_palladium",
   "amount": 16,
   "temperature": 1200,

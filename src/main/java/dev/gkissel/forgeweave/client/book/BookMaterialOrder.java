@@ -6,8 +6,9 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
+import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.Ingredient;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -124,9 +125,9 @@ public final class BookMaterialOrder {
     }
 
     private static String namespaceOf(Ingredient ingredient) {
-        for (ItemStack stack : ingredient.getItems()) {
-            String namespace = stack.getItemHolder().unwrapKey()
-                    .map(key -> key.location().getNamespace()).orElse("minecraft");
+        for (Holder<Item> item : (Iterable<Holder<Item>>) ingredient.items()::iterator) {
+            String namespace = item.unwrapKey()
+                    .map(key -> key.identifier().getNamespace()).orElse("minecraft");
             if (!namespace.equals("minecraft") && !namespace.equals(Forgeweave.MODID)) {
                 return namespace;
             }

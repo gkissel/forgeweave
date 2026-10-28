@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/constantan"
-  },
+  "input": "#c:nuggets/constantan",
   "fluid": "forgeweave:molten_constantan",
   "amount": 16,
   "temperature": 1200,

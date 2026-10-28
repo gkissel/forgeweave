@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:shards/nickel"
-  },
+  "input": "#c:shards/nickel",
   "fluid": "forgeweave:molten_nickel",
   "amount": 144,
   "temperature": 1200,

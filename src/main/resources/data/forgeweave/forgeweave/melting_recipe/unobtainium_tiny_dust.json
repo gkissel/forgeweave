@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:tiny_dusts/unobtainium"
-  },
+  "input": "#c:tiny_dusts/unobtainium",
   "fluid": "forgeweave:molten_unobtainium",
   "amount": 16,
   "temperature": 2000,

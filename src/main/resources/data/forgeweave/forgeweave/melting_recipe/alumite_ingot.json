@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/alumite"
-  },
+  "input": "#c:ingots/alumite",
   "fluid": "forgeweave:molten_alumite",
   "amount": 144,
   "temperature": 1400,

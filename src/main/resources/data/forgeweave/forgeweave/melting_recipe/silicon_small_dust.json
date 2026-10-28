@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/silicon"
-  },
+  "input": "#c:small_dusts/silicon",
   "fluid": "forgeweave:molten_silicon",
   "amount": 36,
   "temperature": 1200,

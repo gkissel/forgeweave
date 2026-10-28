@@ -1,14 +1,20 @@
 package dev.gkissel.forgeweave.block;
 
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.ResourceHandler;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Optional;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -191,26 +197,69 @@ public class SmelteryTank implements IFluidHandler {
         return FluidStack.EMPTY;
     }
 
-    /* Saving and loading. Capacity is not saved: the block entity recomputes it from the interior. */
+    /* Transactions (see TransferBridge): a deep copy of the melt, and putting one back. */
 
-    public CompoundTag writeToNBT(HolderLookup.Provider registries, CompoundTag tag) {
-        ListTag list = new ListTag();
-        for (FluidStack fluid : fluids) {
-            list.add(fluid.save(registries));
-        }
-        tag.put(TAG_FLUIDS, list);
-        return tag;
+    private final TransferBridge.State<List<FluidStack>> transferState = TransferBridge.State.of(this::snapshot, this::restore);
+    private final ResourceHandler<FluidResource> transferHandler = TransferBridge.fluids(this, transferState);
+
+    /** The melt's one transaction journal; every bridge over this tank (drain, duct, core) must use it. */
+    TransferBridge.State<List<FluidStack>> transferState() {
+        return transferState;
     }
 
-    public void readFromNBT(HolderLookup.Provider registries, CompoundTag tag) {
+    /** This tank as the 21.9 transfer API sees it. */
+    public ResourceHandler<FluidResource> transferHandler() {
+        return transferHandler;
+    }
+
+    List<FluidStack> snapshot() {
+        List<FluidStack> copy = new ArrayList<>(fluids.size());
+        for (FluidStack fluid : fluids) {
+            copy.add(fluid.copy());
+        }
+        return copy;
+    }
+
+    void restore(List<FluidStack> snapshot) {
         fluids.clear();
-        if (tag.contains(TAG_FLUIDS, Tag.TAG_LIST)) {
-            for (Tag entry : tag.getList(TAG_FLUIDS, Tag.TAG_COMPOUND)) {
-                FluidStack.parse(registries, entry).filter(fluid -> !fluid.isEmpty()).ifPresent(fluids::add);
+        fluids.addAll(snapshot);
+        onChanged.run();
+    }
+
+    /* Saving and loading. Capacity is not saved: the block entity recomputes it from the interior. */
+
+    public void serialize(ValueOutput output) {
+        ValueOutput.TypedOutputList<FluidStack> list = output.list(TAG_FLUIDS, FluidStack.CODEC);
+        for (FluidStack fluid : fluids) {
+            list.add(fluid);
+        }
+    }
+
+    public void deserialize(ValueInput input) {
+        fluids.clear();
+        Optional<ValueInput.TypedInputList<FluidStack>> list = input.list(TAG_FLUIDS, FluidStack.CODEC);
+        if (list.isPresent()) {
+            for (FluidStack fluid : list.get()) {
+                if (!fluid.isEmpty()) {
+                    fluids.add(fluid);
+                }
             }
             return;
         }
-        readLegacySingleFluid(registries, tag);
+        readLegacySingleFluid(input);
+    }
+
+    /** {@link #serialize} into a plain compound, the shape 1.21.1 saved. */
+    public CompoundTag writeToNBT(HolderLookup.Provider registries, CompoundTag tag) {
+        TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, registries);
+        serialize(output);
+        tag.merge(output.buildResult());
+        return tag;
+    }
+
+    /** {@link #deserialize} from a plain compound. */
+    public void readFromNBT(HolderLookup.Provider registries, CompoundTag tag) {
+        deserialize(TagValueInput.create(ProblemReporter.DISCARDING, registries, tag));
     }
 
     /**
@@ -225,10 +274,7 @@ public class SmelteryTank implements IFluidHandler {
      * <p>Read-only compatibility: the next save writes the list form, so this converts on load and
      * costs nothing afterwards.
      */
-    private void readLegacySingleFluid(HolderLookup.Provider registries, CompoundTag tag) {
-        FluidStack legacy = FluidStack.parseOptional(registries, tag.getCompound(LEGACY_TAG_FLUID));
-        if (!legacy.isEmpty()) {
-            fluids.add(legacy);
-        }
+    private void readLegacySingleFluid(ValueInput input) {
+        input.read(LEGACY_TAG_FLUID, FluidStack.CODEC).filter(fluid -> !fluid.isEmpty()).ifPresent(fluids::add);
     }
 }

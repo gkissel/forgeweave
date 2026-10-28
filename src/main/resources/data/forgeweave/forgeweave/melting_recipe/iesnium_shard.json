@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:shards/iesnium"
-  },
+  "input": "#c:shards/iesnium",
   "fluid": "forgeweave:molten_iesnium",
   "amount": 144,
   "temperature": 1600,

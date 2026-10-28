@@ -24,7 +24,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * {@code isForge()} from the block it sits on, so nothing here needs a flag of its own, and
  * {@code ForgeweaveBlockEntities.TOOL_STATION} simply lists both blocks as valid. That is also why
  * {@link ToolStationBlock}'s inherited {@code setPlacedBy}/{@code getCloneItemStack}/{@code
- * onRemove}/{@code useWithoutItem} work here unchanged -- they all test for
+ * useWithoutItem} and the block entity's {@code preRemoveSideEffects} work here unchanged -- they all test for
  * {@code ToolStationBlockEntity}, which is exactly what a Tool Forge has.
  */
 public class ToolForgeBlock extends ToolStationBlock {

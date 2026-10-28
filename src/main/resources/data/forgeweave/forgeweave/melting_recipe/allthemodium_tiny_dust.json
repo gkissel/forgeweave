@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:tiny_dusts/allthemodium"
-  },
+  "input": "#c:tiny_dusts/allthemodium",
   "fluid": "forgeweave:molten_allthemodium",
   "amount": 16,
   "temperature": 1800,

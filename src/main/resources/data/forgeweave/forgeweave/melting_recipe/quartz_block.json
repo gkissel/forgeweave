@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "minecraft:quartz_block"
-  },
+  "input": "minecraft:quartz_block",
   "fluid": "forgeweave:molten_quartz",
   "amount": 400
 }

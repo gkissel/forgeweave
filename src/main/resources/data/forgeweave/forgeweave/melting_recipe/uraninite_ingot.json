@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/uraninite"
-  },
+  "input": "#c:ingots/uraninite",
   "fluid": "forgeweave:molten_uraninite",
   "amount": 144,
   "temperature": 1400,

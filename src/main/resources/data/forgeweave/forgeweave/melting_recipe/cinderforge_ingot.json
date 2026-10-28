@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/cinderforge"
-  },
+  "input": "#c:ingots/cinderforge",
   "fluid": "forgeweave:molten_cinderforge",
   "amount": 144,
   "temperature": 1400

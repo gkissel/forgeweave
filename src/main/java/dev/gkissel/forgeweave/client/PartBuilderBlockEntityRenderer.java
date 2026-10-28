@@ -2,10 +2,15 @@ package dev.gkissel.forgeweave.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
+
+import org.jspecify.annotations.Nullable;
 
 import dev.gkissel.forgeweave.block.PartBuilderBlockEntity;
 import dev.gkissel.forgeweave.menu.PartBuilderMenu;
@@ -24,7 +29,7 @@ import dev.gkissel.forgeweave.menu.PartBuilderMenu;
  * raw index, since the two containers order their slots differently and role is what a player
  * actually recognizes.
  */
-public class PartBuilderBlockEntityRenderer implements BlockEntityRenderer<PartBuilderBlockEntity> {
+public class PartBuilderBlockEntityRenderer implements BlockEntityRenderer<PartBuilderBlockEntity, TableItemRenderer.State> {
     private static final float C = 0.2125f;
     /** {@code item.s *= 0.46875f}, upstream's corner-item scale-down from the default 0.8f/0.375f. */
     static final float SCALE_FACTOR = 0.46875f;
@@ -40,26 +45,30 @@ public class PartBuilderBlockEntityRenderer implements BlockEntityRenderer<PartB
     static final int ROLE_OUTPUT = 3;
 
     @Override
-    public void render(PartBuilderBlockEntity blockEntity, float partialTick, PoseStack poseStack,
-            MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        Container container = blockEntity.container();
-        renderCorner(container.getItem(PartBuilderMenu.MATERIAL_SLOT), ROLE_MATERIAL, poseStack, bufferSource,
-                packedLight, packedOverlay, blockEntity);
-        renderCorner(container.getItem(PartBuilderMenu.MATERIAL_SLOT_2), ROLE_MATERIAL_2, poseStack, bufferSource,
-                packedLight, packedOverlay, blockEntity);
-        renderCorner(container.getItem(PartBuilderMenu.PATTERN_SLOT), ROLE_PATTERN, poseStack, bufferSource,
-                packedLight, packedOverlay, blockEntity);
-        renderCorner(container.getItem(PartBuilderMenu.OUTPUT_SLOT), ROLE_OUTPUT, poseStack, bufferSource,
-                packedLight, packedOverlay, blockEntity);
+    public TableItemRenderer.State createRenderState() {
+        return new TableItemRenderer.State();
     }
 
-    private static void renderCorner(ItemStack stack, int role, PoseStack poseStack, MultiBufferSource bufferSource,
-            int packedLight, int packedOverlay, PartBuilderBlockEntity blockEntity) {
-        if (stack.isEmpty()) {
-            return;
-        }
-        TableItemRenderer.render(stack, X_BY_ROLE[role], Z_BY_ROLE[role], scaleFor(stack), poseStack, bufferSource,
-                packedLight, packedOverlay, blockEntity);
+    @Override
+    public void extractRenderState(PartBuilderBlockEntity blockEntity, TableItemRenderer.State state, float partialTick,
+            Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
+        BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTick, cameraPosition, breakProgress);
+        Container container = blockEntity.container();
+        addCorner(state, container.getItem(PartBuilderMenu.MATERIAL_SLOT), ROLE_MATERIAL, blockEntity);
+        addCorner(state, container.getItem(PartBuilderMenu.MATERIAL_SLOT_2), ROLE_MATERIAL_2, blockEntity);
+        addCorner(state, container.getItem(PartBuilderMenu.PATTERN_SLOT), ROLE_PATTERN, blockEntity);
+        addCorner(state, container.getItem(PartBuilderMenu.OUTPUT_SLOT), ROLE_OUTPUT, blockEntity);
+    }
+
+    @Override
+    public void submit(TableItemRenderer.State state, PoseStack poseStack, SubmitNodeCollector collector,
+            CameraRenderState camera) {
+        state.submitAll(poseStack, collector);
+    }
+
+    private static void addCorner(TableItemRenderer.State state, ItemStack stack, int role,
+            PartBuilderBlockEntity blockEntity) {
+        state.add(stack, X_BY_ROLE[role], Z_BY_ROLE[role], scaleFor(stack), blockEntity);
     }
 
     static float scaleFor(ItemStack stack) {

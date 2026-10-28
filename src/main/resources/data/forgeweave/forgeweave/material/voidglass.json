@@ -26,13 +26,11 @@
     "general": ["forgeweave:alien2"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:voidglass_ingot" }, "value": 144 },
-    { "ingredient": { "item": "forgeweave:voidglass_nugget" }, "value": 16 },
-    { "ingredient": { "item": "forgeweave:voidglass_block" }, "value": 1296 }
+    { "ingredient": "forgeweave:voidglass_ingot", "value": 144 },
+    { "ingredient": "forgeweave:voidglass_nugget", "value": 16 },
+    { "ingredient": "forgeweave:voidglass_block", "value": 1296 }
   ],
-  "repair_item": {
-    "tag": "c:ingots/voidglass"
-  },
+  "repair_item": "#c:ingots/voidglass",
   "cast_only": true,
   "enchantability": 10,
   "color": "#4A1951"

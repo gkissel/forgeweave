@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "allthemodium:unobtainium_vibranium_alloy_ingot"
-  },
+  "input": "allthemodium:unobtainium_vibranium_alloy_ingot",
   "fluid": "forgeweave:molten_unobtainium_vibranium_alloy",
   "amount": 144,
   "temperature": 2000,

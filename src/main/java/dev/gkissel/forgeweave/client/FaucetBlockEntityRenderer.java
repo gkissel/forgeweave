@@ -1,19 +1,25 @@
 package dev.gkissel.forgeweave.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
 import net.neoforged.neoforge.fluids.FluidStack;
+
+import org.jspecify.annotations.Nullable;
 
 import dev.gkissel.forgeweave.block.CastingBlock;
 import dev.gkissel.forgeweave.block.FaucetBlock;
@@ -35,7 +41,7 @@ import dev.gkissel.forgeweave.block.SearedChannelBlock;
  * its update tag, and re-sends on every transaction boundary, so a client knows both that a pour is
  * running and what is in it for free.
  */
-public class FaucetBlockEntityRenderer implements BlockEntityRenderer<FaucetBlockEntity> {
+public class FaucetBlockEntityRenderer implements BlockEntityRenderer<FaucetBlockEntity, FaucetBlockEntityRenderer.State> {
     /** Upstream's default {@code yMin}: how far the stream sinks into a block with no opinion. */
     private static final float DEFAULT_FLOW_DEPTH = 15f / 16f;
 
@@ -50,30 +56,57 @@ public class FaucetBlockEntityRenderer implements BlockEntityRenderer<FaucetBloc
     private static final float FALL_BACK_Z = 10f / 16f;
     private static final float FALL_FRONT_Z = 8f / 16f;
 
+    /** What {@link #submit} needs, captured off the block entity: no sprite means an idle faucet. */
+    public static class State extends BlockEntityRenderState {
+        @Nullable TextureAtlasSprite sprite;
+        int tint;
+        float depth;
+        Direction facing = Direction.SOUTH;
+    }
+
     @Override
-    public void render(FaucetBlockEntity blockEntity, float partialTick, PoseStack poseStack,
-            MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+    public State createRenderState() {
+        return new State();
+    }
+
+    @Override
+    public void extractRenderState(FaucetBlockEntity blockEntity, State state, float partialTick,
+            Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
+        BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTick, cameraPosition, breakProgress);
         FluidStack fluid = blockEntity.buffered();
         if (fluid.isEmpty()) {
             return; // An idle faucet is the overwhelmingly common case; nothing else runs.
         }
+        state.sprite = FluidRenderUtil.flowingSprite(fluid);
+        state.tint = FluidRenderUtil.tint(fluid);
+        state.depth = flowDepth(blockEntity.getLevel(), blockEntity.getBlockPos().below());
+        state.facing = blockEntity.getBlockState().getValue(FaucetBlock.FACING);
+    }
 
-        TextureAtlasSprite sprite = FluidRenderUtil.flowingSprite(fluid);
-        int tint = FluidRenderUtil.tint(fluid);
-        VertexConsumer buffer = bufferSource.getBuffer(RenderType.translucent());
-        float depth = flowDepth(blockEntity.getLevel(), blockEntity.getBlockPos().below());
-        Direction facing = blockEntity.getBlockState().getValue(FaucetBlock.FACING);
+    @Override
+    public void submit(State state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
+        TextureAtlasSprite sprite = state.sprite;
+        if (sprite == null) {
+            return;
+        }
+        int tint = state.tint;
+        float depth = state.depth;
+        Direction facing = state.facing;
+        int packedLight = state.lightCoords;
+        int packedOverlay = OverlayTexture.NO_OVERLAY;
 
         poseStack.pushPose();
         if (facing == Direction.UP) {
             // The top faucet has no trough: the fluid falls straight through it. Upstream's own
             // special case, and the only one its model file needs either.
-            FluidRenderUtil.cuboid(buffer, poseStack.last().pose(),
-                    SPOUT_MIN_XZ, 0f, SPOUT_MIN_XZ, SPOUT_MAX_XZ, 1f, SPOUT_MAX_XZ,
-                    sprite, tint, packedLight, packedOverlay);
-            FluidRenderUtil.cuboid(buffer, poseStack.last().pose(),
-                    SPOUT_MIN_XZ, -depth, SPOUT_MIN_XZ, SPOUT_MAX_XZ, 0f, SPOUT_MAX_XZ,
-                    sprite, tint, packedLight, packedOverlay);
+            collector.submitCustomGeometry(poseStack, RenderTypes.translucentMovingBlock(), (pose, buffer) -> {
+                FluidRenderUtil.cuboid(buffer, pose.pose(),
+                        SPOUT_MIN_XZ, 0f, SPOUT_MIN_XZ, SPOUT_MAX_XZ, 1f, SPOUT_MAX_XZ,
+                        sprite, tint, packedLight, packedOverlay);
+                FluidRenderUtil.cuboid(buffer, pose.pose(),
+                        SPOUT_MIN_XZ, -depth, SPOUT_MIN_XZ, SPOUT_MAX_XZ, 0f, SPOUT_MAX_XZ,
+                        sprite, tint, packedLight, packedOverlay);
+            });
         } else {
             // A blockstate y-rotation turns the model clockwise seen from above; a PoseStack
             // rotation about +Y turns it the other way, so the pose angle is the negated one the
@@ -82,15 +115,17 @@ public class FaucetBlockEntityRenderer implements BlockEntityRenderer<FaucetBloc
             poseStack.mulPose(Axis.YP.rotationDegrees(-modelRotation(facing)));
             poseStack.translate(-0.5f, 0f, -0.5f);
 
-            FluidRenderUtil.cuboid(buffer, poseStack.last().pose(),
-                    SPOUT_MIN_XZ, TROUGH_FLOOR_Y, FALL_BACK_Z, SPOUT_MAX_XZ, TROUGH_TOP_Y, TROUGH_BACK_Z,
-                    sprite, tint, packedLight, packedOverlay);
-            FluidRenderUtil.cuboid(buffer, poseStack.last().pose(),
-                    SPOUT_MIN_XZ, 0f, FALL_FRONT_Z, SPOUT_MAX_XZ, TROUGH_TOP_Y, FALL_BACK_Z,
-                    sprite, tint, packedLight, packedOverlay);
-            FluidRenderUtil.cuboid(buffer, poseStack.last().pose(),
-                    SPOUT_MIN_XZ, -depth, FALL_FRONT_Z, SPOUT_MAX_XZ, 0f, FALL_BACK_Z,
-                    sprite, tint, packedLight, packedOverlay);
+            collector.submitCustomGeometry(poseStack, RenderTypes.translucentMovingBlock(), (pose, buffer) -> {
+                FluidRenderUtil.cuboid(buffer, pose.pose(),
+                        SPOUT_MIN_XZ, TROUGH_FLOOR_Y, FALL_BACK_Z, SPOUT_MAX_XZ, TROUGH_TOP_Y, TROUGH_BACK_Z,
+                        sprite, tint, packedLight, packedOverlay);
+                FluidRenderUtil.cuboid(buffer, pose.pose(),
+                        SPOUT_MIN_XZ, 0f, FALL_FRONT_Z, SPOUT_MAX_XZ, TROUGH_TOP_Y, FALL_BACK_Z,
+                        sprite, tint, packedLight, packedOverlay);
+                FluidRenderUtil.cuboid(buffer, pose.pose(),
+                        SPOUT_MIN_XZ, -depth, FALL_FRONT_Z, SPOUT_MAX_XZ, 0f, FALL_BACK_Z,
+                        sprite, tint, packedLight, packedOverlay);
+            });
         }
         poseStack.popPose();
     }

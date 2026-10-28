@@ -45,21 +45,15 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:ingots/blaze_gold"
-      },
+      "ingredient": "#c:ingots/blaze_gold",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:storage_blocks/blaze_gold"
-      },
+      "ingredient": "#c:storage_blocks/blaze_gold",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/blaze_gold"
-  },
+  "repair_item": "#c:ingots/blaze_gold",
   "cast_only": true,
   "enchantability": 20,
   "color": "#E3A645",

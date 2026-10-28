@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_hand_guard"
-  },
+  "cast": "forgeweave:cast_hand_guard",
   "fluid": "forgeweave:molten_quartz_enriched_iron",
   "amount": 144,
   "result": {

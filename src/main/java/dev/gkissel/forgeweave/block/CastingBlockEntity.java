@@ -1,5 +1,10 @@
 package dev.gkissel.forgeweave.block;
 
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
@@ -72,6 +77,10 @@ public class CastingBlockEntity extends BlockEntity {
     private final FluidTank tank = new FluidTank(0);
     private final IFluidHandler fluidHandler = new CastingFluidHandler();
     private final IItemHandler itemHandler = new CastingItemHandler();
+    /** The two handlers above as the 21.9 transfer API sees them; what the capabilities hand out. */
+    private final TransferBridge.State<Snapshot> transferState = castingState();
+    private final ResourceHandler<FluidResource> fluidCapability = TransferBridge.fluids(fluidHandler, transferState);
+    private final ResourceHandler<ItemResource> itemCapability = TransferBridge.items(itemHandler, transferState);
 
     private ItemStack input = ItemStack.EMPTY;
     private ItemStack output = ItemStack.EMPTY;
@@ -255,28 +264,28 @@ public class CastingBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(ValueOutput out) {
+        super.saveAdditional(out);
         if (!input.isEmpty()) {
-            tag.put(TAG_INPUT, input.save(registries));
+            out.store(TAG_INPUT, ItemStack.CODEC, input);
         }
         if (!output.isEmpty()) {
-            tag.put(TAG_OUTPUT, output.save(registries));
+            out.store(TAG_OUTPUT, ItemStack.CODEC, output);
         }
-        tag.put(TAG_TANK, tank.writeToNBT(registries, new CompoundTag()));
+        out.putChild(TAG_TANK, tank);
         // #720: so the Jade/WTHIT overlay's cooling percentage survives a save/reload mid-pour.
-        tag.putLong(TAG_COOL_START, coolStartGameTime);
-        tag.putInt(TAG_COOL_DURATION, coolDurationTicks);
+        out.putLong(TAG_COOL_START, coolStartGameTime);
+        out.putInt(TAG_COOL_DURATION, coolDurationTicks);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        input = tag.contains(TAG_INPUT) ? ItemStack.parseOptional(registries, tag.getCompound(TAG_INPUT)) : ItemStack.EMPTY;
-        output = tag.contains(TAG_OUTPUT) ? ItemStack.parseOptional(registries, tag.getCompound(TAG_OUTPUT)) : ItemStack.EMPTY;
-        tank.readFromNBT(registries, tag.getCompound(TAG_TANK));
-        coolStartGameTime = tag.contains(TAG_COOL_START) ? tag.getLong(TAG_COOL_START) : -1;
-        coolDurationTicks = tag.getInt(TAG_COOL_DURATION);
+    protected void loadAdditional(ValueInput in) {
+        super.loadAdditional(in);
+        input = in.read(TAG_INPUT, ItemStack.CODEC).orElse(ItemStack.EMPTY);
+        output = in.read(TAG_OUTPUT, ItemStack.CODEC).orElse(ItemStack.EMPTY);
+        tank.deserialize(in.childOrEmpty(TAG_TANK));
+        coolStartGameTime = in.getLongOr(TAG_COOL_START, -1);
+        coolDurationTicks = in.getIntOr(TAG_COOL_DURATION, 0);
         // FluidTank's own NBT carries no capacity, so the capacity the renderer draws its fill
         // fraction against is re-derived here, from the recipe the fluid in the tank is being poured
         // for. #204: doing it in onLoad alone was not enough. A block entity read from disk has no
@@ -463,17 +472,53 @@ public class CastingBlockEntity extends BlockEntity {
         }
     }
 
+    /** Everything a pour or an automated slot move can change, for rolling back a transaction. */
+    private record Snapshot(FluidStack fluid, int capacity, ItemStack input, ItemStack output, long coolStart,
+            int coolDuration) {}
+
+    private TransferBridge.State<Snapshot> castingState() {
+        return TransferBridge.State.of(
+                () -> new Snapshot(tank.getFluid().copy(), tank.getCapacity(), input.copy(), output.copy(),
+                        coolStartGameTime, coolDurationTicks),
+                snapshot -> {
+                    tank.setCapacity(snapshot.capacity());
+                    tank.setFluid(snapshot.fluid());
+                    input = snapshot.input();
+                    output = snapshot.output();
+                    coolStartGameTime = snapshot.coolStart();
+                    coolDurationTicks = snapshot.coolDuration();
+                    contentsChanged();
+                });
+    }
+
+    /** The fluid capability (21.9 transfer API). */
+    public ResourceHandler<FluidResource> fluidCapability() {
+        return fluidCapability;
+    }
+
+    /** The item capability (21.9 transfer API). */
+    public ResourceHandler<ItemResource> itemCapability() {
+        return itemCapability;
+    }
+
     /** Wires the fluid- and item-handler capabilities for both casting blocks; called from {@code Forgeweave}'s constructor. */
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ForgeweaveBlockEntities.CASTING_TABLE.get(),
-                (blockEntity, side) -> blockEntity.fluidHandler);
-        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ForgeweaveBlockEntities.CASTING_BASIN.get(),
-                (blockEntity, side) -> blockEntity.fluidHandler);
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, ForgeweaveBlockEntities.CASTING_TABLE.get(),
+                (blockEntity, side) -> blockEntity.fluidCapability);
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, ForgeweaveBlockEntities.CASTING_BASIN.get(),
+                (blockEntity, side) -> blockEntity.fluidCapability);
         // Every side, as upstream does: it builds one SidedInvWrapper for DOWN and hands it back for
         // any facing, and its own canInsert/canExtract ignore the side entirely.
-        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ForgeweaveBlockEntities.CASTING_TABLE.get(),
-                (blockEntity, side) -> blockEntity.itemHandler);
-        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ForgeweaveBlockEntities.CASTING_BASIN.get(),
-                (blockEntity, side) -> blockEntity.itemHandler);
+        event.registerBlockEntity(Capabilities.Item.BLOCK, ForgeweaveBlockEntities.CASTING_TABLE.get(),
+                (blockEntity, side) -> blockEntity.itemCapability);
+        event.registerBlockEntity(Capabilities.Item.BLOCK, ForgeweaveBlockEntities.CASTING_BASIN.get(),
+                (blockEntity, side) -> blockEntity.itemCapability);
+    }
+
+    /** Drops both slots when the block is broken (was {@code CastingBlock#onRemove}). */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        dropContents();
     }
 }

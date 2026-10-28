@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/dark_steel"
-  },
+  "input": "#c:small_dusts/dark_steel",
   "fluid": "forgeweave:molten_dark_steel",
   "amount": 36,
   "temperature": 1600,

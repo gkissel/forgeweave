@@ -23,15 +23,11 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "forgeweave:green_slime_crystal"
-      },
+      "ingredient": "forgeweave:green_slime_crystal",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "forgeweave:green_slime_crystal"
-  },
+  "repair_item": "forgeweave:green_slime_crystal",
   "enchantability": 15,
   "color": "#82c873"
 }

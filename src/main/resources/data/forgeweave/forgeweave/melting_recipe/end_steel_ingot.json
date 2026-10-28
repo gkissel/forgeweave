@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/end_steel"
-  },
+  "input": "#c:ingots/end_steel",
   "fluid": "forgeweave:molten_end_steel",
   "amount": 144,
   "temperature": 1600,

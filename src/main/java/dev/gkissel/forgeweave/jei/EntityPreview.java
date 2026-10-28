@@ -4,12 +4,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.joml.Quaternionf;
+import org.joml.Vector2f;
 import org.joml.Vector3f;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -20,10 +22,8 @@ import net.minecraft.world.entity.LivingEntity;
  *
  * <p>Upstream renders the entity through a Mantle custom JEI ingredient type ({@code
  * EntityIngredientRenderer}), machinery this project has no equivalent of, so this draws it directly
- * with vanilla's own {@code InventoryScreen#renderEntityInInventory} -- the lower-level call, not the
- * mouse-following wrapper: that one calls {@code GuiGraphicsExtractor#enableScissor} with coordinates in
- * absolute window-pixel space, which would clip at the wrong place here since the viewer has already
- * translated the pose stack to the category's on-screen position. It needs only a live {@link
+ * with vanilla's own {@code GuiGraphicsExtractor#entity}, the call {@code InventoryScreen} itself
+ * ends in, without the mouse-following rotation it adds on top. It needs only a live {@link
  * LivingEntity} instance, which {@link EntityType#create} builds against the client level for
  * rendering alone; it is never added to the world.
  */
@@ -44,7 +44,15 @@ public final class EntityPreview {
         float scale = (size - MARGIN) / Math.max(1f, Math.max(entity.getBbHeight(), entity.getBbWidth()));
         Vector3f offset = new Vector3f(0f, entity.getBbHeight() / 2f, 0f);
         Quaternionf pose = new Quaternionf().rotateZ((float) Math.PI);
-        InventoryScreen.renderEntityInInventory(guiGraphics, x + size / 2f, y + size / 2f, scale, offset, pose, null, entity);
+        // 26.1 draws entities as a picture-in-picture into a screen-space box centred on the old
+        // render origin, and that box ignores the pose stack, so map the corner through it first.
+        Vector2f corner = guiGraphics.pose().transformPosition(x, y, new Vector2f());
+        int x0 = Math.round(corner.x);
+        int y0 = Math.round(corner.y);
+        EntityRenderState state = Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(entity).createRenderState(entity, 1f);
+        state.shadowPieces.clear();
+        state.outlineColor = 0;
+        guiGraphics.entity(state, scale, offset, pose, null, x0, y0, x0 + size, y0 + size);
     }
 
     /**
@@ -57,6 +65,6 @@ public final class EntityPreview {
         if (level == null) {
             return null;
         }
-        return renderEntities.computeIfAbsent(type, t -> t.create(level) instanceof LivingEntity living ? living : null);
+        return renderEntities.computeIfAbsent(type, t -> t.create(level, EntitySpawnReason.LOAD) instanceof LivingEntity living ? living : null);
     }
 }

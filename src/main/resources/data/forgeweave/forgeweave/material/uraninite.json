@@ -44,27 +44,19 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:raw_materials/uraninite"
-      },
+      "ingredient": "#c:raw_materials/uraninite",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:ingots/uraninite"
-      },
+      "ingredient": "#c:ingots/uraninite",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:storage_blocks/uraninite"
-      },
+      "ingredient": "#c:storage_blocks/uraninite",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:raw_materials/uraninite"
-  },
+  "repair_item": "#c:raw_materials/uraninite",
   "cast_only": true,
   "enchantability": 12,
   "color": "#7FA83B",

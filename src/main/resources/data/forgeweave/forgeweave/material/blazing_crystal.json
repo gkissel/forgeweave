@@ -49,15 +49,11 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "powah:crystal_blazing"
-      },
+      "ingredient": "powah:crystal_blazing",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "powah:crystal_blazing"
-  },
+  "repair_item": "powah:crystal_blazing",
   "enchantability": 13,
   "color": "#FF7A29",
   "neoforge:conditions": [

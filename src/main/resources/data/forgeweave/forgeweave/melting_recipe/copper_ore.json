@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ores/copper"
-  },
+  "input": "#c:ores/copper",
   "fluid": "forgeweave:molten_copper",
   "amount": 144,
   "ore": true

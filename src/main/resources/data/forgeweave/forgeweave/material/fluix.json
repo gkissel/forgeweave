@@ -44,15 +44,11 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:gems/fluix"
-      },
+      "ingredient": "#c:gems/fluix",
       "value": 144
     }
   ],
-  "repair_item": {
-    "tag": "c:gems/fluix"
-  },
+  "repair_item": "#c:gems/fluix",
   "enchantability": 14,
   "color": "#8A3FA0",
   "neoforge:conditions": [

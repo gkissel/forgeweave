@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_large_sword_blade"
-  },
+  "cast": "forgeweave:clay_cast_large_sword_blade",
   "fluid": "forgeweave:molten_ludicrite",
   "amount": 1152,
   "result": {

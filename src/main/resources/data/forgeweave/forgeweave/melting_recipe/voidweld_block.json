@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/voidweld"
-  },
+  "input": "#c:storage_blocks/voidweld",
   "fluid": "forgeweave:molten_voidweld",
   "amount": 1296,
   "temperature": 2000,

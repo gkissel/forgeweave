@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/blutonium"
-  },
+  "input": "#c:storage_blocks/blutonium",
   "fluid": "forgeweave:molten_blutonium",
   "amount": 1296,
   "temperature": 1400,

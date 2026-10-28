@@ -1,13 +1,12 @@
 package dev.gkissel.forgeweave.entity;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.tags.DamageTypeTags;
-import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.TagValueOutput;
 
 /**
  * The item entity every dropped Forgeweave tool spawns as (issue #447, parity audit T16): immune to
@@ -22,7 +21,7 @@ import net.minecraft.world.level.Level;
  * <h2>What "indestructible" means</h2>
  *
  * <ul>
- *   <li>{@link #isInvulnerableTo} refuses every damage source that is not tagged
+ *   <li>The vanilla invulnerable flag, set in the constructor, refuses every damage source that is not tagged
  *       {@code bypasses_invulnerability} -- fire, lava, explosions, cacti, a player's attack. 1.12
  *       spells the same rule out as "refuse everything except {@code OUT_OF_WORLD}"; the tag is the
  *       modern name for that one exception, and keeping it is what stops a tool that fell into the
@@ -52,6 +51,9 @@ public class IndestructibleItemEntity extends ItemEntity {
     public IndestructibleItemEntity(EntityType<? extends IndestructibleItemEntity> type, Level level) {
         super(type, level);
         this.lifespan = NEVER;
+        // 26.1 made ItemEntity#hurtServer final; the vanilla invulnerable flag is the same refusal
+        // (Entity#isInvulnerableToBase lets only bypasses_invulnerability through).
+        this.setInvulnerable(true);
     }
 
     /** The drop constructor: {@code ToolItem#createEntity} replacing a vanilla item entity. */
@@ -69,15 +71,11 @@ public class IndestructibleItemEntity extends ItemEntity {
      */
     public void copyThrowFrom(Entity original) {
         if (original instanceof ItemEntity) {
-            CompoundTag tag = new CompoundTag();
+            TagValueOutput tag = TagValueOutput.createWithoutContext(ProblemReporter.DISCARDING);
             original.saveWithoutId(tag);
-            this.setPickUpDelay(tag.getShort("PickupDelay"));
+            this.setPickUpDelay(tag.buildResult().getShortOr("PickupDelay", (short) 0));
         }
         this.setDeltaMovement(original.getDeltaMovement());
     }
 
-    @Override
-    public boolean isInvulnerableTo(DamageSource source) {
-        return !source.is(DamageTypeTags.BYPASSES_INVULNERABILITY) || super.isInvulnerableTo(source);
-    }
 }

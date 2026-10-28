@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/silver"
-  },
+  "input": "#c:ingots/silver",
   "fluid": "forgeweave:molten_silver",
   "amount": 144,
   "temperature": 1200,

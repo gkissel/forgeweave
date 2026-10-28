@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "neovitae:demonite_gravel"
-  },
+  "input": "neovitae:demonite_gravel",
   "fluid": "forgeweave:molten_hellforged",
   "amount": 144,
   "temperature": 1600,

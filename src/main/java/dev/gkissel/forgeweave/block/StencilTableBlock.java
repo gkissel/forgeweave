@@ -92,14 +92,14 @@ public class StencilTableBlock extends HorizontalDirectionalBlock implements Ent
         if (level.getBlockEntity(pos) instanceof StencilTableBlockEntity stencilTable) {
             Identifier textureId = stack.get(ForgeweaveDataComponents.TEXTURE.get());
             if (textureId != null && BuiltInRegistries.BLOCK.containsKey(textureId)) {
-                stencilTable.setTexture(BuiltInRegistries.BLOCK.get(textureId));
+                stencilTable.setTexture(BuiltInRegistries.BLOCK.getValue(textureId));
             }
         }
     }
 
     @Override
-    public ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state) {
-        ItemStack stack = super.getCloneItemStack(level, pos, state);
+    protected ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
+        ItemStack stack = super.getCloneItemStack(level, pos, state, includeData);
         if (level.getBlockEntity(pos) instanceof StencilTableBlockEntity stencilTable) {
             stack.set(ForgeweaveDataComponents.TEXTURE.get(), BuiltInRegistries.BLOCK.getKey(stencilTable.getTexture()));
         }
@@ -114,13 +114,4 @@ public class StencilTableBlock extends HorizontalDirectionalBlock implements Ent
         return InteractionResult.SUCCESS;
     }
 
-    @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (state.getBlock() != newState.getBlock()) {
-            if (level.getBlockEntity(pos) instanceof StencilTableBlockEntity stencilTable) {
-                Containers.dropContents(level, pos, stencilTable.container());
-            }
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
-    }
 }

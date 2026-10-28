@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -81,7 +83,7 @@ public class EnergizedTankScreen extends AbstractContainerScreen<EnergizedTankMe
     private static final int LINE_HEIGHT = 10;
 
     /** Vanilla's own label grey, which is what every other label on this panel is drawn in. */
-    private static final int TEXT_COLOR = 0x404040;
+    private static final int TEXT_COLOR = 0xFF404040;
     /** The bar's recess and its charge, dark-on-panel and Forge Energy's own orange. */
     private static final int BAR_TRACK_COLOR = 0xFF373737;
     private static final int BAR_FILL_COLOR = 0xFFE8620E;
@@ -91,9 +93,7 @@ public class EnergizedTankScreen extends AbstractContainerScreen<EnergizedTankMe
     private Button overdrive;
 
     public EnergizedTankScreen(EnergizedTankMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
-        imageWidth = EnergizedTankMenu.PANEL_WIDTH;
-        imageHeight = EnergizedTankMenu.PANEL_HEIGHT;
+        super(menu, playerInventory, title, EnergizedTankMenu.PANEL_WIDTH, EnergizedTankMenu.PANEL_HEIGHT);
         inventoryLabelY = imageHeight - 94;
     }
 
@@ -128,8 +128,9 @@ public class EnergizedTankScreen extends AbstractContainerScreen<EnergizedTankMe
     }
 
     @Override
-    protected void renderBg(GuiGraphicsExtractor graphics, float partialTick, int mouseX, int mouseY) {
-        graphics.blit(PANEL, leftPos, topPos, 0, 0, imageWidth, imageHeight, SHEET, SHEET);
+    public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractBackground(graphics, mouseX, mouseY, partialTick);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, PANEL, leftPos, topPos, 0, 0, imageWidth, imageHeight, SHEET, SHEET);
         renderSample(graphics);
         renderEnergyBar(graphics);
     }
@@ -143,7 +144,7 @@ public class EnergizedTankScreen extends AbstractContainerScreen<EnergizedTankMe
             SmelteryScreen.renderFluid(graphics, sample, leftPos + GAUGE_X,
                     topPos + GAUGE_Y + GAUGE_SIZE - height, GAUGE_SIZE, height);
         }
-        graphics.blit(SMELTERY_SHEET, leftPos + GAUGE_X, topPos + GAUGE_Y, SCALA_U, SCALA_V,
+        graphics.blit(RenderPipelines.GUI_TEXTURED, SMELTERY_SHEET, leftPos + GAUGE_X, topPos + GAUGE_Y, SCALA_U, SCALA_V,
                 GAUGE_SIZE, GAUGE_SIZE, SHEET, SHEET);
     }
 
@@ -163,8 +164,8 @@ public class EnergizedTankScreen extends AbstractContainerScreen<EnergizedTankMe
 
     /** Vanilla's two labels, plus the right-hand column's readouts. */
     @Override
-    protected void renderLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        super.renderLabels(graphics, mouseX, mouseY);
+    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        super.extractLabels(graphics, mouseX, mouseY);
         if (menu.active()) {
             line(graphics, HEAT_Y, translate("heat", TemperatureText.format(menu.temperature(level()))));
             line(graphics, COST_Y, translate("cost", menu.costPerMeltTick(level())));
@@ -174,28 +175,22 @@ public class EnergizedTankScreen extends AbstractContainerScreen<EnergizedTankMe
             List<net.minecraft.util.FormattedCharSequence> wrapped =
                     font.split(translate("disabled"), COLUMN_WIDTH);
             for (int i = 0; i < wrapped.size(); i++) {
-                graphics.drawString(font, wrapped.get(i), COLUMN_X, HEAT_Y + i * LINE_HEIGHT, TEXT_COLOR, false);
+                graphics.text(font, wrapped.get(i), COLUMN_X, HEAT_Y + i * LINE_HEIGHT, TEXT_COLOR, false);
             }
         }
         line(graphics, ENERGY_Y, translate("energy", menu.energy(level()), menu.energyCapacity(level())));
     }
 
     private void line(GuiGraphicsExtractor graphics, int y, Component text) {
-        graphics.drawString(font, text, COLUMN_X, y, TEXT_COLOR, false);
+        graphics.text(font, text, COLUMN_X, y, TEXT_COLOR, false);
     }
 
-    @Override
-    public void render(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(graphics, mouseX, mouseY, partialTick);
-        super.render(graphics, mouseX, mouseY, partialTick);
-        renderTooltip(graphics, mouseX, mouseY);
-    }
 
     @Override
-    protected void renderTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        super.renderTooltip(graphics, mouseX, mouseY);
+    protected void extractTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        super.extractTooltip(graphics, mouseX, mouseY);
         if (isHovering(GAUGE_X, GAUGE_Y, GAUGE_SIZE, GAUGE_SIZE, mouseX, mouseY)) {
-            graphics.renderComponentTooltip(font, sampleTooltip(), mouseX, mouseY);
+            graphics.setComponentTooltipForNextFrame(font, sampleTooltip(), mouseX, mouseY);
         }
     }
 
@@ -208,7 +203,7 @@ public class EnergizedTankScreen extends AbstractContainerScreen<EnergizedTankMe
             return tooltip;
         }
         tooltip.add(sample.getHoverName().copy().withStyle(ChatFormatting.WHITE));
-        SmelteryScreen.addAmount(tooltip, sample.getAmount(), Screen.hasShiftDown(), false);
+        SmelteryScreen.addAmount(tooltip, sample.getAmount(), Minecraft.getInstance().hasShiftDown(), false);
         return tooltip;
     }
 

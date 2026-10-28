@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.block;
 
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -32,18 +34,16 @@ public interface WoodTexturedBlockEntity {
     /** Sets the texture, marks the block entity changed, and pushes a client model-data update. */
     void setTexture(Block texture);
 
-    static Block readTexture(CompoundTag tag, Block fallback) {
-        if (tag.contains(TAG_TEXTURE, Tag.TAG_STRING)) {
-            Identifier id = Identifier.tryParse(tag.getString(TAG_TEXTURE));
-            if (id != null && BuiltInRegistries.BLOCK.containsKey(id)) {
-                return BuiltInRegistries.BLOCK.get(id);
-            }
+    static Block readTexture(ValueInput input, Block fallback) {
+        Identifier id = input.getString(TAG_TEXTURE).map(Identifier::tryParse).orElse(null);
+        if (id != null && BuiltInRegistries.BLOCK.containsKey(id)) {
+            return BuiltInRegistries.BLOCK.getValue(id);
         }
         return fallback;
     }
 
-    static void writeTexture(CompoundTag tag, Block texture) {
-        tag.putString(TAG_TEXTURE, BuiltInRegistries.BLOCK.getKey(texture).toString());
+    static void writeTexture(ValueOutput output, Block texture) {
+        output.putString(TAG_TEXTURE, BuiltInRegistries.BLOCK.getKey(texture).toString());
     }
 
     /**

@@ -1,5 +1,12 @@
 package dev.gkissel.forgeweave.block;
 
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.Containers;
 import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
@@ -23,7 +30,8 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
+import net.neoforged.neoforge.transfer.fluid.FluidUtil;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
@@ -60,6 +68,7 @@ public class SearedDuctBlockEntity extends SmelteryIoBlockEntity implements Menu
 
     private final FilterSlot filter = new FilterSlot();
     private final FilteredTank filteredTank = new FilteredTank();
+    private final ResourceHandler<ItemResource> filterCapability = TransferBridge.items(filter);
 
     public SearedDuctBlockEntity(BlockPos pos, BlockState state) {
         super(ForgeweaveBlockEntities.SEARED_DUCT.get(), pos, state);
@@ -96,25 +105,35 @@ public class SearedDuctBlockEntity extends SmelteryIoBlockEntity implements Menu
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        tag.put(TAG_FILTER, filter.serializeNBT(registries));
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.putChild(TAG_FILTER, filter);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        if (tag.contains(TAG_FILTER, Tag.TAG_COMPOUND)) {
-            filter.deserializeNBT(registries, tag.getCompound(TAG_FILTER));
-        }
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        input.readChild(TAG_FILTER, filter);
     }
 
     /** Wires both capabilities; called from {@code Forgeweave}'s constructor. */
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ForgeweaveBlockEntities.SEARED_DUCT.get(),
-                (blockEntity, side) -> blockEntity.fluidHandler());
-        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ForgeweaveBlockEntities.SEARED_DUCT.get(),
-                (blockEntity, side) -> blockEntity.filter);
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, ForgeweaveBlockEntities.SEARED_DUCT.get(),
+                (blockEntity, side) -> blockEntity.fluidCapability());
+        event.registerBlockEntity(Capabilities.Item.BLOCK, ForgeweaveBlockEntities.SEARED_DUCT.get(),
+                (blockEntity, side) -> blockEntity.filterCapability);
+    }
+
+    /** {@link #fluidHandler()} as the 21.9 transfer API sees it, journalled on the smeltery's own tank. */
+    @Nullable
+    public ResourceHandler<FluidResource> fluidCapability() {
+        SmelteryControllerBlockEntity core = formedCore();
+        return core == null ? null : TransferBridge.fluids(filteredTank, core.tank().transferState());
+    }
+
+    /** {@link #filterSlot()} as the 21.9 transfer API sees it; what the item capability hands out. */
+    public ResourceHandler<ItemResource> filterCapability() {
+        return filterCapability;
     }
 
     /**
@@ -142,13 +161,13 @@ public class SearedDuctBlockEntity extends SmelteryIoBlockEntity implements Menu
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
             if (!stack.is(DUCT_CONTAINERS)) {
-                ItemStack empty = stack.getCraftingRemainingItem();
+                ItemStackTemplate remainder = stack.getCraftingRemainder();
+                ItemStack empty = remainder == null ? ItemStack.EMPTY : remainder.create();
                 if (empty.isEmpty() || !empty.is(DUCT_CONTAINERS)) {
                     return false;
                 }
             }
-            IFluidHandlerItem contents = stack.getCapability(Capabilities.FluidHandler.ITEM);
-            return contents != null && !contents.getFluidInTank(0).isEmpty();
+            return !FluidUtil.getFirstStackContained(stack).isEmpty();
         }
 
         @Override
@@ -164,11 +183,7 @@ public class SearedDuctBlockEntity extends SmelteryIoBlockEntity implements Menu
 
         FluidStack fluid() {
             if (cached == null) {
-                ItemStack stack = getStackInSlot(0);
-                IFluidHandlerItem contents = stack.isEmpty()
-                        ? null
-                        : stack.getCapability(Capabilities.FluidHandler.ITEM);
-                cached = contents == null ? FluidStack.EMPTY : contents.getFluidInTank(0).copy();
+                cached = FluidUtil.getFirstStackContained(getStackInSlot(0));
             }
             return cached;
         }
@@ -247,6 +262,15 @@ public class SearedDuctBlockEntity extends SmelteryIoBlockEntity implements Menu
                 return FluidStack.EMPTY;
             }
             return smeltery.drain(resource, action);
+        }
+    }
+
+    /** Drops the filter item when the block is broken (was {@code SearedDuctBlock#onRemove}). */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        if (level != null) {
+            Containers.dropContents(level, pos, new SimpleContainer(filterSlot().getStackInSlot(0)));
         }
     }
 }

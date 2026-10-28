@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/faultsteel"
-  },
+  "input": "#c:nuggets/faultsteel",
   "fluid": "forgeweave:molten_faultsteel",
   "amount": 16,
   "temperature": 1400

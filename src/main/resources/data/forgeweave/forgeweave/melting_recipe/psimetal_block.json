@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/psimetal"
-  },
+  "input": "#c:storage_blocks/psimetal",
   "fluid": "forgeweave:molten_psimetal",
   "amount": 1296,
   "temperature": 1200,

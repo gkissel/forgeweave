@@ -150,7 +150,7 @@ public class MagmaSlimeIslandStructure extends Structure {
 
         int islandTop = LAVA_PROBE_Y + 1;
         int bottom = islandTop - size.yRange();
-        if (bottom <= heights.getMinBuildHeight()) {
+        if (bottom <= heights.getMinY()) {
             return Optional.empty();
         }
 

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ores/osmium"
-  },
+  "input": "#c:ores/osmium",
   "fluid": "forgeweave:molten_osmium",
   "amount": 144,
   "ore": true,

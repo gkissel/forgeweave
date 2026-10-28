@@ -15,7 +15,6 @@ import net.minecraft.world.level.block.SoundType;
 
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -47,8 +46,8 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
     /** Every vanilla sound type a wooden block uses, so the axe sweep below needs no per-block list. */
     private static final Set<SoundType> WOOD_SOUNDS = Set.of(SoundType.WOOD, SoundType.BAMBOO_WOOD,
             SoundType.CHERRY_WOOD, SoundType.NETHER_WOOD, SoundType.HANGING_SIGN, SoundType.LADDER);
-    public ForgeweaveBlockTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider, ExistingFileHelper existingFileHelper) {
-        super(output, lookupProvider, Forgeweave.MODID, existingFileHelper);
+    public ForgeweaveBlockTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider) {
+        super(output, lookupProvider, Forgeweave.MODID);
     }
 
     @Override

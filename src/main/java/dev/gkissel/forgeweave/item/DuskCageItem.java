@@ -1,5 +1,8 @@
 package dev.gkissel.forgeweave.item;
 
+import java.util.function.Consumer;
+import net.minecraft.world.item.component.TooltipDisplay;
+
 import java.util.List;
 
 import net.minecraft.ChatFormatting;
@@ -36,12 +39,13 @@ public class DuskCageItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
+            Consumer<Component> tooltip, TooltipFlag flag) {
         CapturedMob captured = stack.get(ForgeweaveDataComponents.CAPTURED_MOB.get());
         Component line = captured == null
                 ? Component.translatable("tooltip.forgeweave.dusk_cage.empty")
                 : Component.translatable("tooltip.forgeweave.dusk_cage", captured.name());
-        tooltip.add(line.copy().withStyle(ChatFormatting.GRAY));
+        tooltip.accept(line.copy().withStyle(ChatFormatting.GRAY));
     }
 
     @Override

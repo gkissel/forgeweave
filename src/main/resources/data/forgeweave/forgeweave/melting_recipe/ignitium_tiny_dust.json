@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:tiny_dusts/ignitium"
-  },
+  "input": "#c:tiny_dusts/ignitium",
   "fluid": "forgeweave:molten_ignitium",
   "amount": 16,
   "temperature": 1600,

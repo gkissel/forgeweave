@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_sign_plate"
-  },
+  "cast": "forgeweave:cast_sign_plate",
   "fluid": "forgeweave:molten_prosperity",
   "amount": 432,
   "result": {

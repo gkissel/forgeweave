@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/unobtainium"
-  },
+  "input": "#c:ingots/unobtainium",
   "fluid": "forgeweave:molten_unobtainium",
   "amount": 144,
   "temperature": 2000,

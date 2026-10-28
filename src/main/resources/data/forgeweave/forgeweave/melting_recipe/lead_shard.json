@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:shards/lead"
-  },
+  "input": "#c:shards/lead",
   "fluid": "forgeweave:molten_lead",
   "amount": 144,
   "temperature": 1200,

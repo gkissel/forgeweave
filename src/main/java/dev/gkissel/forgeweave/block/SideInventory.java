@@ -11,7 +11,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.items.IItemHandler;
 
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
@@ -113,7 +112,7 @@ public final class SideInventory {
     private static IItemHandler handlerAt(BlockEntity blockEntity, Direction direction) {
         Level level = blockEntity.getLevel();
         BlockPos neighborPos = blockEntity.getBlockPos().relative(direction);
-        return level.getCapability(Capabilities.ItemHandler.BLOCK, neighborPos, direction.getOpposite());
+        return TransferBridge.itemsAt(level, neighborPos, direction.getOpposite());
     }
 
     /**

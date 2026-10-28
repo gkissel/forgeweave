@@ -87,7 +87,15 @@ public final class JeiCategoryGeometry {
 
     /** Draws {@code text} centred on {@code centerX}, the way every upstream category centres its own. */
     public static void drawCentered(GuiGraphicsExtractor guiGraphics, Font font, Component text, int centerX, int y, int colour, boolean shadow) {
-        guiGraphics.drawString(font, text, centerX - font.width(text) / 2, y, colour, shadow);
+        guiGraphics.text(font, text, centerX - font.width(text) / 2, y, opaque(colour), shadow);
+    }
+
+    /**
+     * 1.21.1's font treated a colour with no alpha byte as opaque; 26.1 skips alpha-0 text
+     * entirely. Every colour constant here is plain RGB, so text draws route through this.
+     */
+    public static int opaque(int colour) {
+        return (colour & 0xFC000000) == 0 ? colour | 0xFF000000 : colour;
     }
 
     /**

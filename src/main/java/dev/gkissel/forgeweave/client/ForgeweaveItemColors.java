@@ -6,17 +6,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.FastColor;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
-import net.neoforged.neoforge.client.model.item.DynamicFluidContainerModel;
-
-import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.PartItem;
@@ -33,31 +26,14 @@ import dev.gkissel.forgeweave.tool.ToolMaterials;
  * per material. Assembled tools reuse the same idea across three layers -- see
  * {@link #toolMaterialTint} -- per docs/SCOPE.md issue #10 ("reuse the existing greyscale parts +
  * ItemColor layered tint approach").
+ *
+ * <p>26.1 has no item color handlers: tints come from the client item, so this is now the colour
+ * math the {@code forgeweave:part} and {@code forgeweave:tool} item models call per stack. The fluid
+ * buckets' tint moved into NeoForge's {@code neoforge:fluid_container} item model itself, and the
+ * glass and foliage block items take a {@code minecraft:constant} tint in their generated client
+ * items.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public final class ForgeweaveItemColors {
-
-    /**
-     * The tint index {@link dev.gkissel.forgeweave.client.ModifierOverlayModels} bakes a
-     * fortification overlay quad at (T70, issue #501): upstream {@code ModFortify#hasTexturePerMaterial}
-     * bakes one overlay per <em>material color</em> rather than one file per material
-     * ({@code ModifierModel#bakeModels}'s {@code hasTexturePerMaterial} branch, {@code MaterialModel}).
-     * Reserved well above any real part-layer index -- the largest tool (the hammer) has four --
-     * so it can never collide with a {@link #toolMaterialTint} layer read.
-     */
-    static final int FORTIFICATION_TINT_INDEX = 100;
-
-    @SubscribeEvent
-    static void registerItemColors(RegisterColorHandlersEvent.Item event) {
-        event.register(ForgeweaveItemColors::materialTint, tintedPartItems());
-        event.register(ForgeweaveItemColors::toolMaterialTint, tintedToolItems());
-        // #286 -- the fluid buckets. NeoForge's own dynamic fluid container model draws the fluid
-        // layer as tintIndex 1 and leaves the coloring to an ItemColor; its stock implementation
-        // reads the contained fluid's IClientFluidTypeExtensions#getTintColor, which is the same
-        // per-fluid tint ForgeweaveFluidClientExtensions already registers. So the buckets pick up
-        // each molten fluid's color with no bucket art of our own.
-        event.register(new DynamicFluidContainerModel.Colors(), tintedBucketItems());
-    }
 
     /** Every fluid bucket (#286), off {@link ForgeweaveFluids#all} rather than a hand list -- same reason as {@link #tintedPartItems}. Package-private so {@code ItemColorCoverageTest} can pin the coverage. */
     static Item[] tintedBucketItems() {
@@ -91,7 +67,8 @@ public final class ForgeweaveItemColors {
         return ToolAssemblyRecipes.ENTRIES.stream().map(entry -> entry.tool().get()).toArray(Item[]::new);
     }
 
-    private static int materialTint(ItemStack stack, int tintIndex) {
+    /** A part's tint: its material's color on layer 0, untinted elsewhere. */
+    public static int materialTint(ItemStack stack, int tintIndex) {
         if (tintIndex != 0) {
             return -1;
         }
@@ -105,10 +82,7 @@ public final class ForgeweaveItemColors {
      * second head or a broadsword's guard (issue #159). Layer order is upstream's own drawing order
      * (handle behind, then heads, then the extra part), which is not every tool's part order.
      */
-    private static int toolMaterialTint(ItemStack stack, int tintIndex) {
-        if (tintIndex == FORTIFICATION_TINT_INDEX) {
-            return fortificationTint(stack);
-        }
+    public static int toolMaterialTint(ItemStack stack, int tintIndex) {
         ToolMaterials materials = stack.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
         if (materials == null) {
             return -1;
@@ -128,36 +102,35 @@ public final class ForgeweaveItemColors {
      * fortification never draws this overlay in the first place ({@link
      * dev.gkissel.forgeweave.tool.ModifierArt#overlay}), so this only runs for a stack that has one.
      */
-    private static int fortificationTint(ItemStack stack) {
+    public static int fortificationTint(ItemStack stack) {
         ModifierEntry entry = Fortification.on(stack);
         return entry == null ? -1 : opaqueMaterialColor(Fortification.materialOf(entry.id()));
     }
 
     /** A material's bare 0xRRGGBB from the client level's registry, or -1 when unknown (#733's station preview). */
-    static int materialColor(@Nullable Identifier materialId) {
+    public static int materialColor(@Nullable Identifier materialId) {
         int opaque = opaqueMaterialColor(materialId);
         return opaque == -1 ? -1 : opaque & 0xFFFFFF;
     }
 
     /** The material's opaque ARGB colour, or {@code -1} (untinted white) when there is no such material or no level yet. Shared with the worn armor tint ({@code ForgeweaveItemClientExtensions}, #726). */
-    static int opaqueMaterialColor(@Nullable Identifier materialId) {
+    public static int opaqueMaterialColor(@Nullable Identifier materialId) {
         ClientLevel level = Minecraft.getInstance().level;
         if (materialId == null || level == null) {
             return -1;
         }
-        Material material = level.registryAccess().lookupOrThrow(Material.REGISTRY).get(materialId);
+        Material material = level.registryAccess().lookupOrThrow(Material.REGISTRY).getValue(materialId);
         return material != null ? opaqueColor(material.color().getValue()) : -1;
     }
 
     /**
-     * {@code Material.color()} (TextColor) is a bare 0xRRGGBB with alpha 0; ItemColor needs opaque
-     * ARGB or the tinted layer renders fully transparent (#8). Same fixup vanilla uses for
-     * potion/spawn-egg item colors (see {@code ItemColors#register} uses of {@code
-     * FastColor.ARGB32.opaque}). Split out from {@link #opaqueMaterialColor} so it can be exercised
+     * {@code Material.color()} (TextColor) is a bare 0xRRGGBB with alpha 0; a tint needs opaque
+     * ARGB or the tinted layer renders fully transparent (#8). Same fixup vanilla's own tint
+     * sources apply ({@code ARGB#opaque}). Split out from {@link #opaqueMaterialColor} so it can be exercised
      * directly by a test without a live {@code ClientLevel}/material registry (#79).
      */
     static int opaqueColor(int rawColor) {
-        return FastColor.ARGB32.opaque(rawColor);
+        return ARGB.opaque(rawColor);
     }
 
     private ForgeweaveItemColors() {}

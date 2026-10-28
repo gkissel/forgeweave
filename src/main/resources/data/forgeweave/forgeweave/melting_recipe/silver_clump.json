@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:clumps/silver"
-  },
+  "input": "#c:clumps/silver",
   "fluid": "forgeweave:molten_silver",
   "amount": 144,
   "temperature": 1200,

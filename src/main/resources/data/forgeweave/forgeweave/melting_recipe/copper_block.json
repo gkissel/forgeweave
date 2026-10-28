@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/copper"
-  },
+  "input": "#c:storage_blocks/copper",
   "fluid": "forgeweave:molten_copper",
   "amount": 1296
 }
