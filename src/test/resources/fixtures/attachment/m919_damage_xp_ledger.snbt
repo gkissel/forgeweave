@@ -1,0 +1,12 @@
+{
+    nbt: {
+        "00000000-0000-0000-0000-0000000000a1": {
+            "00000000-0000-0000-0000-000000000011": 3.5f,
+            "00000000-0000-0000-0000-000000000022": 1.0f
+        },
+        "00000000-0000-0000-0000-0000000000b2": {
+            "00000000-0000-0000-0000-000000000011": 7.25f
+        }
+    },
+    what: "#919 (M7, D-M7-4): a mob's melee damage ledger as 1.21.1 saved it, the tag under the entity's neoforge:attachments \"forgeweave:damage_xp\" key. 1.21.1's codec attachment serializer stored DamageXpLedger.CODEC's map as that tag directly: player UUID -> tool UUID -> damage. Never regenerate."
+}
