@@ -2,12 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "category": "redstone",
   "key": {
-    "C": {
-      "item": "minecraft:chest"
-    },
-    "W": {
-      "tag": "minecraft:planks"
-    }
+    "C": "minecraft:chest",
+    "W": "#minecraft:planks"
   },
   "pattern": [
     "W W",
@@ -15,7 +11,6 @@
     " W "
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:wooden_hopper"
   }
 }

@@ -2,18 +2,10 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "A": {
-      "item": "forgeweave:pattern_blank"
-    },
-    "B": {
-      "item": "minecraft:stick"
-    },
-    "C": {
-      "item": "minecraft:chest"
-    },
-    "D": {
-      "tag": "minecraft:planks"
-    }
+    "A": "forgeweave:pattern_blank",
+    "B": "minecraft:stick",
+    "C": "minecraft:chest",
+    "D": "#minecraft:planks"
   },
   "pattern": [
     " A ",
@@ -21,7 +13,6 @@
     " D "
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:part_chest"
   }
 }

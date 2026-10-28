@@ -42,10 +42,9 @@ public class GatedShapedRecipe extends ShapedRecipe {
     private final ItemStackTemplate result;
 
     public GatedShapedRecipe(ShapedRecipe recipe) {
-        // ponytail: a shaped recipe's assemble ignores its input and returns a fresh copy of its result.
         this(new Recipe.CommonInfo(recipe.showNotification()),
                 new CraftingRecipe.CraftingBookInfo(recipe.category(), recipe.group()), recipe.pattern,
-                ItemStackTemplate.fromNonEmptyStack(recipe.assemble(CraftingInput.EMPTY)));
+                recipe.result);
     }
 
     public GatedShapedRecipe(Recipe.CommonInfo commonInfo, CraftingRecipe.CraftingBookInfo bookInfo,
