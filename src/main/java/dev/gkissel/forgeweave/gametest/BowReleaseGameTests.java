@@ -93,6 +93,11 @@ public class BowReleaseGameTests {
         helper.assertTrue(player.isUsingItem(), "the server must be drawing after the click");
     }
 
+    /**
+     * Checked on the release tick itself, before the arrow's first tick: 26.1 walls every test in
+     * barriers ({@code TestInstanceBlockEntity#encaseStructure}), and a full-draw arrow reaches them
+     * within two ticks and stops dead.
+     */
     private static void assertFired(GameTestHelper helper, ServerPlayer player, List<AbstractArrow> arrows, String bow) {
         helper.assertTrue(!player.isUsingItem(), bow + ": the release must end the draw");
         helper.assertTrue(arrows.size() == 1, bow + ": one arrow per release, got " + arrows.size());
@@ -116,7 +121,7 @@ public class BowReleaseGameTests {
         click(helper, player, bow);
         helper.runAfterDelay(DRAW_TICKS, () -> {
             player.releaseUsingItem();
-            helper.runAfterDelay(2, () -> assertFired(helper, player, arrows, "shortbow"));
+            assertFired(helper, player, arrows, "shortbow");
         });
     }
 
@@ -131,7 +136,7 @@ public class BowReleaseGameTests {
         click(helper, player, bow);
         helper.runAfterDelay(DRAW_TICKS, () -> {
             player.releaseUsingItem();
-            helper.runAfterDelay(2, () -> assertFired(helper, player, arrows, "longbow"));
+            assertFired(helper, player, arrows, "longbow");
         });
     }
 
@@ -152,7 +157,7 @@ public class BowReleaseGameTests {
             helper.assertTrue(arrows.isEmpty(), "loading fires nothing, got " + arrows);
             InteractionResult fire = player.gameMode.useItem(player, helper.getLevel(), held, InteractionHand.MAIN_HAND);
             helper.assertTrue(fire.consumesAction(), "a loaded crossbow fires on the click, got " + fire);
-            helper.runAfterDelay(2, () -> assertFired(helper, player, arrows, "crossbow"));
+            assertFired(helper, player, arrows, "crossbow");
         });
     }
 
@@ -183,16 +188,14 @@ public class BowReleaseGameTests {
             player.absSnapRotationTo(90.0F, 0.0F);
             player.setYHeadRot(0.0F);
             player.gameMode.useItem(player, helper.getLevel(), held, InteractionHand.MAIN_HAND);
-            helper.runAfterDelay(2, () -> {
-                helper.assertTrue(arrows.size() == 1, "one bolt, got " + arrows.size());
-                Vec3 flight = arrows.get(0).getDeltaMovement().normalize();
-                Vec3 aim = Vec3.directionFromRotation(0.0F, 90.0F);
-                helper.assertTrue(flight.dot(aim) > 0.95,
-                        "the bolt must follow the aim " + aim + ", got " + flight + " (the stale head points +Z)");
-                arrows.forEach(AbstractArrow::discard);
-                player.discard();
-                helper.succeed();
-            });
+            helper.assertTrue(arrows.size() == 1, "one bolt, got " + arrows.size());
+            Vec3 flight = arrows.get(0).getDeltaMovement().normalize();
+            Vec3 aim = Vec3.directionFromRotation(0.0F, 90.0F);
+            helper.assertTrue(flight.dot(aim) > 0.95,
+                    "the bolt must follow the aim " + aim + ", got " + flight + " (the stale head points +Z)");
+            arrows.forEach(AbstractArrow::discard);
+            player.discard();
+            helper.succeed();
         });
     }
 
