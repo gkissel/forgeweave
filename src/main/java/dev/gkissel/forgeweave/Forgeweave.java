@@ -89,6 +89,7 @@ import dev.gkissel.forgeweave.modifier.ModifierDefinition; // #973
 import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 import dev.gkissel.forgeweave.modifier.WorktableRecipe; // #1057
 import dev.gkissel.forgeweave.particle.ForgeweaveParticles; // #482
+import dev.gkissel.forgeweave.ponder.CatnipArgumentTypes;
 import dev.gkissel.forgeweave.ponder.ForgeweavePonderPlugin;
 import dev.gkissel.forgeweave.recipe.AlloyRecipe; // #98
 import dev.gkissel.forgeweave.recipe.CoreTransformRecipe; // #845
@@ -157,6 +158,11 @@ public class Forgeweave {
         // #482 -- upstream's heart-effect particles (parity audit T51): the little coloured heart a
         // landed secondary hit puts over its target. See ForgeweaveParticles.
         ForgeweaveParticles.PARTICLE_TYPES.register(modEventBus);
+        // Catnip (embedded with Ponder) uses three command argument types it never registers, which
+        // kicks every joining player. See CatnipArgumentTypes.
+        if (ModList.get().isLoaded("catnip")) {
+            CatnipArgumentTypes.register(modEventBus);
+        }
         // T22 (#453) -- the Slimesling's launch sound, upstream's own slimesling.ogg.
         ForgeweaveSounds.SOUND_EVENTS.register(modEventBus);
         ForgeweaveRecipeSerializers.RECIPE_SERIALIZERS.register(modEventBus);
