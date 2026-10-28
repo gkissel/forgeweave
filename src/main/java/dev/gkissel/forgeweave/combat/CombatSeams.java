@@ -272,6 +272,8 @@ public final class CombatSeams {
      * by the next; the identity check is only there so it can never leak onto another entity.
      */
     public static void onDamagePre(LivingDamageEvent.Pre event) {
+        pendingOnHitTarget = event.getEntity();
+        pendingOnHitContainer = event.getContainer();
         DefendedBlow blow = pendingArmorBlow;
         if (blow == null || event.getEntity() != pendingArmorDefender) {
             return;
@@ -345,36 +347,61 @@ public final class CombatSeams {
     private static final float PROTECTION_CAP = 20.0F;
     private static final float PROTECTION_DIVISOR = 25.0F;
 
-    /** Registered on the game event bus in {@code Forgeweave}. See the class javadoc's table. */
+    /**
+     * Registered on the game event bus in {@code Forgeweave}. See the class javadoc's table.
+     *
+     * <p>26.1 posts {@code LivingDamageEvent.Post} at the very end of {@code LivingEntity#hurtServer},
+     * after vanilla's flat push and after {@code die}; 1.21.1 posted it from {@code actuallyHurt},
+     * right after the health dropped. So the blow {@link #onDamagePre} remembered runs its on-hit at
+     * whichever comes first of that flat push ({@link #onKnockback}), the death ({@link #onDeath}) or
+     * this event, which keeps the 1.21.1 order: on-hit, then the push it scales, then post-kill.
+     */
     public static void onDamageDealt(LivingDamageEvent.Post event) {
-        CombatHit hit = hitOf(event.getSource(), event.getEntity());
+        flushOnHit(event.getEntity(), false);
+    }
+
+    /** The blow {@link #onDamagePre} saw land on {@code target}, if its on-hit has not run yet. */
+    private static void flushOnHit(LivingEntity target, boolean pushAhead) {
+        DamageContainer container = pendingOnHitContainer;
+        if (target != pendingOnHitTarget || container == null) {
+            return;
+        }
+        pendingOnHitTarget = null;
+        pendingOnHitContainer = null;
+        CombatHit hit = hitOf(container.getSource(), target);
         if (hit == null) {
             return;
         }
+        float healthDamage = container.getNewDamage();
         // #465/T34: a seam's own onHit can call LivingEntity#knockback (KnockbackOnHitSeam, the
         // frying pan's HeavyKnockback), which fires the very LivingKnockBackEvent onKnockback listens
         // for. dispatchingOnHit marks those pushes as none of onKnockback's business while they happen.
         dispatchingOnHit = true;
         try {
             for (CombatSeam seam : CombatProviders.seams(hit.weapon())) {
-                seam.onHit(hit, event.getHealthDamage());
+                seam.onHit(hit, healthDamage);
             }
         } finally {
             dispatchingOnHit = false;
         }
         // #919 -- M7's melee XP, which is paid on the kill and never on the hit: a blow the target
         // survives banks its damage on the target, a killing one pays out here. See DamageXpLedger.
-        DamageXpLedger.afterMeleeHit(hit, event.getHealthDamage());
+        DamageXpLedger.afterMeleeHit(hit, healthDamage);
         // The flat push CombatSeam#knockback scales is still ahead of us -- LivingEntity#hurt calls its
         // own this.knockback(0.4F, ...) after actuallyHurt (which posted the event that led here)
         // returns, but before hurt() itself returns. Remember this hit so onKnockback can attribute
         // that next push, consumed once it does -- which is also what keeps Player#attack's own later,
         // separate sprint/enchant-driven knockback() call (fired only after hurt() has fully returned)
-        // from matching a second time; see CombatSeam#knockback's javadoc.
-        pendingKnockbackHit = hit;
+        // from matching a second time; see CombatSeam#knockback's javadoc. Run from the Post event,
+        // the flat push is already over, so there is nothing left to remember.
+        pendingKnockbackHit = pushAhead ? hit : null;
     }
 
     private static boolean dispatchingOnHit;
+    @Nullable
+    private static LivingEntity pendingOnHitTarget;
+    @Nullable
+    private static DamageContainer pendingOnHitContainer;
     @Nullable
     private static CombatHit pendingKnockbackHit;
 
@@ -384,6 +411,9 @@ public final class CombatSeams {
      * not just ones a Forgeweave tool caused, so most calls exit on the first check below.
      */
     public static void onKnockback(LivingKnockBackEvent event) {
+        if (!dispatchingOnHit) {
+            flushOnHit(event.getEntity(), true);
+        }
         CombatHit hit = pendingKnockbackHit;
         if (dispatchingOnHit || hit == null || event.getEntity() != hit.target()) {
             return;
@@ -400,6 +430,7 @@ public final class CombatSeams {
 
     /** Registered on the game event bus in {@code Forgeweave}. See the class javadoc's table. */
     public static void onDeath(LivingDeathEvent event) {
+        flushOnHit(event.getEntity(), false);
         // #919 -- M7's melee ledger is paid out before the Forgeweave-tool gate below, because what
         // finally killed the mob is none of its business: a sword that hurt it an hour ago is owed
         // its XP whether the kill came from another player, a fall, or fire. See DamageXpLedger.
