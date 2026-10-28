@@ -81,8 +81,9 @@ public class SearedChannelBlockEntity extends BlockEntity {
 
     /**
      * Horizontal sides that held a fluid handler at the last {@link SearedChannelBlock#neighborChanged},
-     * one {@code 1 << side.get2DDataValue()} bit each; {@code -1} before the first one. Not saved, so
-     * the first neighbour update after a load only records.
+     * one {@code 1 << side.get2DDataValue()} bit each. Not saved: {@link #onLoad} takes it from the
+     * neighbours as they stand, so the first table placed beside a fresh or reloaded channel already
+     * counts as new. {@code -1} only before that, on the client or with no level.
      */
     private int fluidNeighbours = -1;
 
@@ -287,6 +288,9 @@ public class SearedChannelBlockEntity extends BlockEntity {
     @Override
     public void onLoad() {
         super.onLoad();
+        if (level != null && !level.isClientSide()) {
+            fluidNeighbours = SearedChannelBlock.fluidHolders(level, worldPosition);
+        }
         scheduleIfBusy();
     }
 

@@ -413,12 +413,7 @@ public class SearedChannelBlock extends Block implements EntityBlock {
         // Since 1.21.2 the update no longer says which neighbour changed, so every horizontal side is
         // rechecked. The block entity remembers which sides held fluid last time, so only a side that
         // just gained a fluid holder counts as upstream's didPlace.
-        int holders = 0;
-        for (Direction side : Direction.Plane.HORIZONTAL) {
-            if (level.getCapability(Capabilities.Fluid.BLOCK, pos.relative(side), side.getOpposite()) != null) {
-                holders |= 1 << side.get2DDataValue();
-            }
-        }
+        int holders = fluidHolders(level, pos);
         int before = level.getBlockEntity(pos) instanceof SearedChannelBlockEntity channel
                 ? channel.swapFluidNeighbours(holders)
                 : -1;
@@ -435,6 +430,23 @@ public class SearedChannelBlock extends Block implements EntityBlock {
         if (updated != state) {
             level.setBlock(pos, updated, Block.UPDATE_ALL);
         }
+    }
+
+    /**
+     * The horizontal sides of {@code pos} whose neighbour holds fluid, one {@code 1 << side.get2DDataValue()}
+     * bit each. A neighbour in an unloaded chunk counts as holding none, so a channel loading at a chunk edge
+     * never pulls the next chunk in.
+     */
+    static int fluidHolders(Level level, BlockPos pos) {
+        int holders = 0;
+        for (Direction side : Direction.Plane.HORIZONTAL) {
+            BlockPos neighbour = pos.relative(side);
+            if (level.isLoaded(neighbour)
+                    && level.getCapability(Capabilities.Fluid.BLOCK, neighbour, side.getOpposite()) != null) {
+                holders |= 1 << side.get2DDataValue();
+            }
+        }
+        return holders;
     }
 
     /** Dust routed at a channel connects to it, so the gate above can be wired from any side. */

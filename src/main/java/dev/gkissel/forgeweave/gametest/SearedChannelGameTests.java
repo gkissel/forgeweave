@@ -239,17 +239,23 @@ public class SearedChannelGameTests {
     /**
      * Upstream's {@code handleBlockUpdate} with {@code didPlace}: putting something that holds fluid
      * beside a channel plumbs it, so a casting table dropped next to a run needs no clicking at all.
+     *
+     * <p>The table goes down a tick after the channel. Since 1.21.2 a neighbour update no longer says
+     * which neighbour changed, so the channel remembers its fluid-holding sides, and it first takes
+     * them when its block entity loads, at the start of the next tick.
      */
     @GameTest(template = "empty")
     public static void placingAFluidHolderBesideAChannelOpensThatSide(GameTestHelper helper) {
         helper.setBlock(SOURCE, ForgeweaveBlocks.SEARED_CHANNEL.get());
         helper.setBlock(NEXT, Blocks.AIR);
 
-        helper.setBlock(NEXT, ForgeweaveBlocks.CASTING_TABLE.get());
+        helper.runAfterDelay(1, () -> {
+            helper.setBlock(NEXT, ForgeweaveBlocks.CASTING_TABLE.get());
 
-        helper.assertValueEqual(helper.getBlockState(SOURCE).getValue(SearedChannelBlock.SOUTH),
-                ChannelConnection.OUT, "the side the casting table appeared on");
-        helper.succeed();
+            helper.assertValueEqual(helper.getBlockState(SOURCE).getValue(SearedChannelBlock.SOUTH),
+                    ChannelConnection.OUT, "the side the casting table appeared on");
+            helper.succeed();
+        });
     }
 
     /** A side whose target stops holding fluid closes, not only one whose target became air. */
