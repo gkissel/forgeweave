@@ -581,7 +581,7 @@ class MeltingRecipeTest {
             // 5 ingots: iron/ingot_5
             {"iron_ingot_5", "minecraft:blast_furnace", "720"},
             // "non-standard": an ingot plus the two nuggets of its crafting recipe
-            {"iron_chain", "minecraft:chain", "176"},
+            {"iron_chain", "minecraft:iron_chain", "176"},
             // 8 nuggets: iron/lantern
             {"iron_lantern", "minecraft:lantern", "128"},
             {"iron_lantern", "minecraft:soul_lantern", "128"},
