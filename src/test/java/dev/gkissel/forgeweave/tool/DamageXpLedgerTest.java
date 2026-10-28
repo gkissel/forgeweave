@@ -79,7 +79,7 @@ class DamageXpLedgerTest {
     }
 
     /**
-     * A ledger a 1.21.1 world saved still loads on 26.1, through the same {@code ValueInput#read}
+     * A ledger a 1.21.1 server saved (captured from its region file) still loads on 26.1, through the same {@code ValueInput#read}
      * NeoForge's codec attachment serializer calls, and is written back as the same bytes. Losing it
      * would be quiet: NeoForge logs a failed attachment and skips it, and the mob just stops owing XP.
      */
@@ -91,9 +91,11 @@ class DamageXpLedgerTest {
         DamageXpLedger loaded = TagValueInput.create(ProblemReporter.DISCARDING, registries, saved)
                 .read(DamageXpLedger.MAP_CODEC).orElseThrow();
 
-        assertEquals(3.5F, loaded.damage(PLAYER_A, TOOL_1));
-        assertEquals(1.0F, loaded.damage(PLAYER_A, TOOL_2));
-        assertEquals(7.25F, loaded.damage(PLAYER_B, TOOL_1));
+        UUID dev = UUID.fromString("380df991-f603-344c-a090-369bad2a924a");
+        UUID pickaxe = UUID.fromString("0bcd6e74-9820-4eb8-b656-c9fb9a231210");
+        assertEquals(3.5F, loaded.damage(dev, pickaxe));
+        assertEquals(1.0F, loaded.damage(dev, TOOL_2));
+        assertEquals(7.25F, loaded.damage(PLAYER_B, pickaxe));
 
         TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, registries);
         output.store(DamageXpLedger.MAP_CODEC, loaded);

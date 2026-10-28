@@ -1,12 +1,12 @@
 {
     nbt: {
-        "00000000-0000-0000-0000-0000000000a1": {
-            "00000000-0000-0000-0000-000000000011": 3.5f,
-            "00000000-0000-0000-0000-000000000022": 1.0f
-        },
         "00000000-0000-0000-0000-0000000000b2": {
-            "00000000-0000-0000-0000-000000000011": 7.25f
+            "0bcd6e74-9820-4eb8-b656-c9fb9a231210": 7.25f
+        },
+        "380df991-f603-344c-a090-369bad2a924a": {
+            "0bcd6e74-9820-4eb8-b656-c9fb9a231210": 3.5f,
+            "00000000-0000-0000-0000-000000000022": 1.0f
         }
     },
-    what: "#919 (M7, D-M7-4): a mob's melee damage ledger as 1.21.1 saved it, the tag under the entity's neoforge:attachments \"forgeweave:damage_xp\" key. 1.21.1's codec attachment serializer stored DamageXpLedger.CODEC's map as that tag directly: player UUID -> tool UUID -> damage. Never regenerate."
+    what: "#919 (M7, D-M7-4): a zombie's melee damage ledger read back out of world/entities/r.0.0.mca after a 1.21.1 dedicated server (NeoForge 21.1.248, Forgeweave 1.0.0 release jar) saved it: the tag under the entity's neoforge:attachments \"forgeweave:damage_xp\" key, player UUID -> tool UUID -> damage. A ledger normally comes from a player's melee hit, which a player-less server can't make, so the values went in through `data merge entity` (1.21.1's own attachment deserializer) and the server's save wrote them back out. 380df991-... is the offline-mode UUID of a player named Dev and 0bcd6e74-... is m7_tool_level.snbt's forgeweave:tool_id. Never regenerate."
 }
