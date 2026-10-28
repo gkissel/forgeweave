@@ -252,6 +252,11 @@ neoForge {
             // Overrides the run's default mod binding (loadedMods' convention is every mod in the
             // block above) with just the one that includes the GameTest-only fixtures (issue #927).
             loadedMods.set([project.neoForge.mods.getByName("${mod_id}GameTest")])
+            // `-PfwTests=forgeweave:castinggametests.*` runs only the matching tests (vanilla's
+            // --tests selector, wildcards allowed); without it every registered test runs.
+            if (project.hasProperty('fwTests')) {
+                programArguments.addAll '--tests', project.property('fwTests').toString()
+            }
         }
 
         data {
