@@ -21,7 +21,6 @@ import com.google.gson.JsonParser;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.server.Bootstrap;
 
 import dev.gkissel.forgeweave.client.book.BookGeometry;
 import dev.gkissel.forgeweave.client.book.BookLayout;
@@ -44,9 +43,9 @@ class BookTextFitTest {
 
     @BeforeAll
     static void loadGlyphsAndLang() throws IOException {
-        // Through a Minecraft class: the test runs as the forgeweave module, which cannot see another
-        // module's resources by its own class.
-        try (InputStream in = Bootstrap.class.getResourceAsStream("/assets/minecraft/textures/font/ascii.png")) {
+        // Through the application class loader: 26.x unit tests boot a dedicated server, whose game
+        // layer hides the client's assets, but the Minecraft jar on the test classpath still has them.
+        try (InputStream in = ClassLoader.getSystemResourceAsStream("assets/minecraft/textures/font/ascii.png")) {
             assertNotNull(in, "vanilla ascii.png is not on the test classpath");
             BufferedImage sheet = ImageIO.read(in);
             for (int c = 0; c < ADVANCE.length; c++) {

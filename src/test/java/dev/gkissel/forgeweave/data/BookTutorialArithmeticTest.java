@@ -62,7 +62,7 @@ class BookTutorialArithmeticTest {
 
         pagePrices.forEach((recipe, price) -> assertEquals(price, bricksIn(recipe),
                 "the grout page prices " + recipe + " at " + price + " bricks"));
-        assertEquals(3, recipe("seared_channel").getAsJsonObject("result").get("count").getAsInt(),
+        assertEquals(3, resultCount(recipe("seared_channel")),
                 "the page says five bricks make three channels");
         assertTrue(recipe("seared_tank").getAsJsonObject("key").toString().contains("c:glass_blocks"),
                 "the page says the tank takes a glass block");
@@ -75,9 +75,9 @@ class BookTutorialArithmeticTest {
         assertTrue(text.contains("That is " + smallest + " bricks"), "the page's own sum: " + text);
         assertTrue(text.contains("Call it " + working + " seared bricks"), "the page's own total: " + text);
 
-        int groutPerCraft = recipe("grout").getAsJsonObject("result").get("count").getAsInt();
+        int groutPerCraft = resultCount(recipe("grout"));
         JsonObject smelting = recipe("seared_brick_from_smelting");
-        assertEquals(1, smelting.getAsJsonObject("result").get("count").getAsInt(), "one grout bakes into one brick");
+        assertEquals(1, resultCount(smelting), "one grout bakes into one brick");
         assertEquals(200, smelting.get("cookingtime").getAsInt(), "the page says ten seconds a brick");
         assertTrue(text.contains(working / groutPerCraft + " grout crafts"),
                 "56 bricks at " + groutPerCraft + " grout a craft: " + text);
@@ -137,6 +137,12 @@ class BookTutorialArithmeticTest {
             }
         }
         return bricks;
+    }
+
+    /** A recipe's result count; 26.x datagen leaves out a count of 1, the codec's default. */
+    private static int resultCount(JsonObject recipe) {
+        JsonElement count = recipe.getAsJsonObject("result").get("count");
+        return count == null ? 1 : count.getAsInt();
     }
 
     private static JsonObject recipe(String name) {

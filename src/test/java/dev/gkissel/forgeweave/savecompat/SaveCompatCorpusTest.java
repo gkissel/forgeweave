@@ -29,6 +29,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.NumericTag;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TagParser;
@@ -168,9 +169,11 @@ class SaveCompatCorpusTest {
     }
 
     static Stream<Path> corpus() throws Exception {
-        URL dir = SaveCompatCorpusTest.class.getResource(CORPUS);
-        assertNotNull(dir, "the corpus directory is missing from the test resources");
-        try (Stream<Path> files = Files.list(Path.of(dir.toURI()))) {
+        // 26.x: the game layer's class loader resolves files only, never a directory, so the corpus
+        // directory is found as the parent of one fixture it is known to hold.
+        URL anchor = SaveCompatCorpusTest.class.getResource(CORPUS + "/m2_tool_pickaxe_modifiers.snbt");
+        assertNotNull(anchor, "the corpus directory is missing from the test resources");
+        try (Stream<Path> files = Files.list(Path.of(anchor.toURI()).getParent())) {
             List<Path> snbt = files.filter(path -> path.toString().endsWith(".snbt")).sorted().toList();
             assertTrue(snbt.size() >= 72,
                     "the M2 four, #101's tank, #154's embossment, #160's ramp, #167's audit five, "
@@ -199,7 +202,8 @@ class SaveCompatCorpusTest {
 
         CompoundTag reEncoded = decodeAndReEncode(fixture);
 
-        assertContains(expected(fixture), reEncoded, file.getFileName().toString());
+        assertContains((CompoundTag) withoutUnitCounts(expected(fixture)), (CompoundTag) withoutUnitCounts(reEncoded),
+                file.getFileName().toString());
     }
 
     /**
@@ -438,6 +442,32 @@ class SaveCompatCorpusTest {
         } catch (Exception e) {
             throw new AssertionError("fixture is not valid SNBT: " + file, e);
         }
+    }
+
+    /**
+     * {@code tag} with every item stack's {@code count: 1} dropped. 1.21.1 wrote the count of every
+     * stack; 26.x leaves it out when it is 1, the codec's default, so a stack nested in a container
+     * re-encodes without it. Both read back as the same stack.
+     */
+    private static Tag withoutUnitCounts(Tag tag) {
+        if (tag instanceof CompoundTag compound) {
+            CompoundTag copy = new CompoundTag();
+            for (String key : compound.keySet()) {
+                Tag value = compound.get(key);
+                boolean unitCount = key.equals("count") && compound.contains("id")
+                        && value instanceof NumericTag number && number.intValue() == 1;
+                if (!unitCount) {
+                    copy.put(key, withoutUnitCounts(value));
+                }
+            }
+            return copy;
+        }
+        if (tag instanceof ListTag list) {
+            ListTag copy = new ListTag();
+            list.forEach(element -> copy.add(withoutUnitCounts(element)));
+            return copy;
+        }
+        return tag;
     }
 
     /** Asserts every key in {@code expected} is present in {@code actual} with the same value, recursively. */

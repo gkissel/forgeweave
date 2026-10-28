@@ -230,13 +230,13 @@ class ModifierBehaviorsTest {
         String body = "\"behavior\":\"forgeweave:stat_bonus\",\"stat\":\"durability\",\"flat\":500.0}";
 
         Optional<ModifierDefinition> failing = ConditionalOps.createConditionalCodec(ModifierDefinition.CODEC)
-                .parse(conditional, JsonParser.parseString("{\"neoforge:conditions\":[{\"type\":\"neoforge:false\"}],"
+                .parse(conditional, JsonParser.parseString("{\"neoforge:conditions\":[{\"type\":\"neoforge:never\"}],"
                         + body))
                 .getOrThrow();
         assertTrue(failing.isEmpty(), "a failing condition must drop the definition");
 
         Optional<ModifierDefinition> passing = ConditionalOps.createConditionalCodec(ModifierDefinition.CODEC)
-                .parse(conditional, JsonParser.parseString("{\"neoforge:conditions\":[{\"type\":\"neoforge:true\"}],"
+                .parse(conditional, JsonParser.parseString("{\"neoforge:conditions\":[{\"type\":\"neoforge:always\"}],"
                         + body))
                 .getOrThrow();
         assertEquals(Optional.of(Identifier.fromNamespaceAndPath("forgeweave", "stat_bonus")),

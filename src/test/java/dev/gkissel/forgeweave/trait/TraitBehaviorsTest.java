@@ -200,12 +200,12 @@ class TraitBehaviorsTest {
         String body = "\"behavior\":\"forgeweave:effect_on_hit\",\"effect\":\"minecraft:poison\",\"duration\":100}";
 
         Optional<TraitDefinition> failing = ConditionalOps.createConditionalCodec(TraitDefinition.CODEC)
-                .parse(conditional, JsonParser.parseString("{\"neoforge:conditions\":[{\"type\":\"neoforge:false\"}]," + body))
+                .parse(conditional, JsonParser.parseString("{\"neoforge:conditions\":[{\"type\":\"neoforge:never\"}]," + body))
                 .getOrThrow();
         assertTrue(failing.isEmpty(), "a failing condition must drop the definition");
 
         Optional<TraitDefinition> passing = ConditionalOps.createConditionalCodec(TraitDefinition.CODEC)
-                .parse(conditional, JsonParser.parseString("{\"neoforge:conditions\":[{\"type\":\"neoforge:true\"}]," + body))
+                .parse(conditional, JsonParser.parseString("{\"neoforge:conditions\":[{\"type\":\"neoforge:always\"}]," + body))
                 .getOrThrow();
         assertEquals(Optional.of(Identifier.fromNamespaceAndPath("forgeweave", "effect_on_hit")),
                 passing.map(TraitDefinition::behavior));

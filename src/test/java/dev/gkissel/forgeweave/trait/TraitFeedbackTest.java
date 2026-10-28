@@ -53,7 +53,7 @@ class TraitFeedbackTest {
     void aTraitWithNoDefinitionUsesItsKindsOwnPair() {
         TraitFeedback.Feedback dodge = TraitFeedback.resolve(new Evasion(0.15F), TraitFeedback.Kind.DODGE);
         assertEquals(Optional.of(ParticleTypes.POOF), dodge.particle());
-        assertEquals(Optional.of(SoundEvents.SHIELD_BLOCK), dodge.sound());
+        assertEquals(Optional.of(SoundEvents.SHIELD_BLOCK.value()), dodge.sound());
         assertFalse(dodge.isEmpty());
     }
 

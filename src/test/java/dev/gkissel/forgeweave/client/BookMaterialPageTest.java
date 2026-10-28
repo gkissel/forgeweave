@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -27,9 +28,12 @@ import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 import dev.gkissel.forgeweave.TestRegistries;
+import dev.gkissel.forgeweave.TestTags;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.client.book.MaterialPageContent;
 import dev.gkissel.forgeweave.client.book.MaterialPageContent.Icon;
@@ -155,7 +159,15 @@ class BookMaterialPageTest {
 
     @Test
     void theDisplayBarLeadsWithTheRepresentativeItemAndTheStationsThatMakeIt() {
-        List<Icon> wood = MaterialPageContent.craftIcons(fw("wood"), shipped("wood"));
+        // 26.x: an empty tag lists no items (1.21.1 listed a barrier), so wood's #minecraft:planks
+        // repair item needs a plank in it to have a representative item at all.
+        List<Icon> wood;
+        TestTags.bindItemTags(Map.of(ItemTags.PLANKS, List.of(BuiltInRegistries.ITEM.wrapAsHolder(Items.OAK_PLANKS))));
+        try {
+            wood = MaterialPageContent.craftIcons(fw("wood"), shipped("wood"));
+        } finally {
+            TestTags.bindItemTags(Map.of());
+        }
 
         assertTrue(wood.size() >= 2, "upstream leads with the representative item, then the Part Builder");
         assertEquals(null, wood.get(0).tooltip(),
