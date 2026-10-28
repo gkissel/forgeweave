@@ -45,7 +45,8 @@ public record RenameStationItemPayload(int containerId, String name) implements 
 
     /** Registered from {@code Forgeweave}'s {@code RegisterPayloadHandlersEvent} listener. */
     public static void register(PayloadRegistrar registrar) {
-        registrar.playBidirectional(TYPE, STREAM_CODEC, RenameStationItemPayload::handle);
+        // 26.1 takes the client-bound handler separately; one handler serves both directions.
+        registrar.playBidirectional(TYPE, STREAM_CODEC, RenameStationItemPayload::handle, RenameStationItemPayload::handle);
     }
 
     /**
