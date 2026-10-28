@@ -66,7 +66,7 @@ public class CataclysmGameTests {
     public static void unsuppliedCataclysmMaterialsDoNotExistAtAll(GameTestHelper helper) {
         Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         for (String name : CATACLYSM_MATERIALS) {
-            helper.assertTrue(materials.get(id(name)) == null,
+            helper.assertTrue(materials.getValue(id(name)) == null,
                     "expected the " + name + " material to be absent without L_Ender's Cataclysm, found it registered");
         }
         helper.succeed();

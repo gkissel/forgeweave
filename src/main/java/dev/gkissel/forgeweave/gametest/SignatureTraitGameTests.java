@@ -122,9 +122,9 @@ public class SignatureTraitGameTests {
     @GameTest(template = "empty")
     public static void hollowstoneCarriesVeinseekerAndFaultsteelBacklash(GameTestHelper helper) {
         var materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
-        Material hollowstone = materials.getOrThrow(net.minecraft.resources.ResourceKey.create(Material.REGISTRY,
+        Material hollowstone = materials.getValueOrThrow(net.minecraft.resources.ResourceKey.create(Material.REGISTRY,
                 id("hollowstone")));
-        Material faultsteel = materials.getOrThrow(net.minecraft.resources.ResourceKey.create(Material.REGISTRY,
+        Material faultsteel = materials.getValueOrThrow(net.minecraft.resources.ResourceKey.create(Material.REGISTRY,
                 id("faultsteel")));
         helper.assertTrue(hollowstone.traits().general().contains(id("veinseeker")),
                 "hollowstone must carry veinseeker, got " + hollowstone.traits().general());
@@ -366,13 +366,13 @@ public class SignatureTraitGameTests {
         player.setItemInHand(InteractionHand.MAIN_HAND, pickaxe(List.of(id("sunforged"))));
         helper.assertTrue(!level.isRaining(), "test assumes a clear sky");
 
-        level.setDayTime(NOON);
+        GameTestCompat.setDayTime(level, NOON);
         level.updateSkyBrightness();
         helper.assertTrue(level.canSeeSky(player.blockPosition()), "test assumes open sky above the player");
         float sunlit = speed(helper, player, pos);
         helper.assertTrue(Math.abs(sunlit - 2.8F) < 0.001F, "expected 2 + 40% = 2.8 in the sun, got " + sunlit);
 
-        level.setDayTime(MIDNIGHT);
+        GameTestCompat.setDayTime(level, MIDNIGHT);
         level.updateSkyBrightness();
         float dark = speed(helper, player, pos);
         helper.assertTrue(Math.abs(dark - 1.8F) < 0.001F, "expected 2 - 10% = 1.8 out of the sun, got " + dark);

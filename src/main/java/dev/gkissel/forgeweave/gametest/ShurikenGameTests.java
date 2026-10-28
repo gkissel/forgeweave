@@ -66,7 +66,7 @@ public class ShurikenGameTests {
      * several ticks after the throw. See {@link SpawnCapture}'s javadoc.
      */
     private static List<ShurikenEntity> throwOnce(GameTestHelper helper, Player player, ItemStack shuriken) {
-        player.moveTo(helper.absoluteVec(new Vec3(2.5, 2.0, 2.5)));
+        player.snapTo(helper.absoluteVec(new Vec3(2.5, 2.0, 2.5)));
         player.setItemInHand(InteractionHand.MAIN_HAND, shuriken);
         return SpawnCapture.spawnedDuring(helper, ShurikenEntity.class,
                 new AABB(player.position(), player.position()).inflate(4.0),
@@ -167,7 +167,7 @@ public class ShurikenGameTests {
         List<ShurikenEntity> after = SpawnCapture.spawnedDuring(helper, ShurikenEntity.class,
                 new AABB(player.position(), player.position()).inflate(4.0), () -> {
                     InteractionResult broken = shuriken.getItem()
-                            .use(helper.getLevel(), player, InteractionHand.MAIN_HAND).getResult();
+                            .use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
                     helper.assertTrue(broken == InteractionResult.FAIL,
                             "a broken shuriken refuses to throw, got " + broken);
                 });
@@ -268,7 +268,8 @@ public class ShurikenGameTests {
         RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(),
                 helper.getLevel().registryAccess());
         ((IEntityWithComplexSpawn) projectile).writeSpawnData(buf);
-        ShurikenEntity clientSide = ForgeweaveEntities.SHURIKEN.get().create(helper.getLevel());
+        ShurikenEntity clientSide = ForgeweaveEntities.SHURIKEN.get()
+                .create(helper.getLevel(), net.minecraft.world.entity.EntitySpawnReason.LOAD);
         ((IEntityWithComplexSpawn) clientSide).readSpawnData(buf);
         helper.assertTrue(ItemStack.matches(clientSide.getPickupItemStackOrigin(), projectile.getPickupItemStackOrigin()),
                 "a client-constructed shuriken carries the thrown stack, got " + clientSide.getPickupItemStackOrigin());

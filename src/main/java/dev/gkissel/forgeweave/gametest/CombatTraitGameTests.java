@@ -391,7 +391,7 @@ public class CombatTraitGameTests {
         int fires = 0;
         for (int duration = BleedEffect.DURATION_TICKS; duration >= 1; duration--) {
             if (effect.shouldApplyEffectTickThisTick(duration, 0)) {
-                effect.applyEffectTick(pig, 0);
+                effect.applyEffectTick(helper.getLevel(), pig, 0);
                 fires++;
             }
         }
@@ -417,7 +417,7 @@ public class CombatTraitGameTests {
         pig.setLastHurtByMob(attacker);
 
         BleedEffect effect = (BleedEffect) ForgeweaveMobEffects.BLEED.value();
-        effect.applyEffectTick(pig, 0);
+        effect.applyEffectTick(helper.getLevel(), pig, 0);
 
         helper.assertTrue(pig.getDeltaMovement().horizontalDistanceSqr() < 1.0E-6,
                 "a bleed tick must not apply knockback, got " + pig.getDeltaMovement());
@@ -554,7 +554,7 @@ public class CombatTraitGameTests {
         // still applies the effect through the real trait seam; the cadence and 4-second total are
         // WeaponInnateGameTests#lacerateBleedsOneDamagePerSecondForFourSeconds's to prove.
         pig.invulnerableTime = 0; // the first tick lands a full second after the blow (LacerateEffect javadoc)
-        ((LacerateEffect) ForgeweaveMobEffects.LACERATE.value()).applyEffectTick(pig, 0);
+        ((LacerateEffect) ForgeweaveMobEffects.LACERATE.value()).applyEffectTick(helper.getLevel(), pig, 0);
         helper.assertTrue(pig.getHealth() <= afterHit - 1.0F,
                 "the bleed's tick must cost 1 damage, health still " + pig.getHealth());
         pig.discard();
@@ -867,7 +867,7 @@ public class CombatTraitGameTests {
         Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
 
         onHit(helper, player, hatchet, pig);
-        MobEffectInstance slow = pig.getEffect(MobEffects.MOVEMENT_SLOWDOWN);
+        MobEffectInstance slow = pig.getEffect(MobEffects.SLOWNESS);
         helper.assertTrue(slow != null && slow.getAmplifier() == 3,
                 "a shackling hit must leave Slowness IV, got " + (slow == null ? "none" : slow.getAmplifier()));
         helper.assertTrue(slow.getDuration() <= 20 && slow.getDuration() > 10,
@@ -916,11 +916,11 @@ public class CombatTraitGameTests {
         Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
 
         onHitCharged(helper, player, hatchet, pig, 0.5F);
-        helper.assertFalse(player.hasEffect(MobEffects.MOVEMENT_SPEED),
+        helper.assertFalse(player.hasEffect(MobEffects.SPEED),
                 "a non-full-charge hit must not grant quickstep's speed burst");
 
         onHitCharged(helper, player, hatchet, pig, 1.0F);
-        MobEffectInstance speed = player.getEffect(MobEffects.MOVEMENT_SPEED);
+        MobEffectInstance speed = player.getEffect(MobEffects.SPEED);
         helper.assertTrue(speed != null && speed.getAmplifier() == 1,
                 "a fully-charged quickstep hit must grant Speed II, got " + (speed == null ? "none" : speed.getAmplifier()));
 
@@ -1101,9 +1101,9 @@ public class CombatTraitGameTests {
     public static void glowveilIsLuminousAndFulmeniteArcs(GameTestHelper helper) {
         var materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         List<Identifier> glowveil = materials.getOrThrow(
-                net.minecraft.resources.ResourceKey.create(Material.REGISTRY, traitId("glowveil"))).traits().general();
+                net.minecraft.resources.ResourceKey.create(Material.REGISTRY, traitId("glowveil"))).value().traits().general();
         List<Identifier> fulmenite = materials.getOrThrow(
-                net.minecraft.resources.ResourceKey.create(Material.REGISTRY, traitId("fulmenite"))).traits().general();
+                net.minecraft.resources.ResourceKey.create(Material.REGISTRY, traitId("fulmenite"))).value().traits().general();
         helper.assertTrue(glowveil.contains(traitId("luminous")), "glowveil must carry luminous, got " + glowveil);
         helper.assertTrue(fulmenite.contains(traitId("arcing")), "fulmenite must carry arcing, got " + fulmenite);
         helper.succeed();

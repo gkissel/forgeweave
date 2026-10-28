@@ -9,6 +9,9 @@ import net.minecraft.core.registries.Registries;
 import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
@@ -195,11 +198,14 @@ public class ToolXpGameTests {
         UUID toolId = sword.get(ForgeweaveDataComponents.TOOL_ID.get());
         helper.assertTrue(toolId != null, "the tool must have been given a ledger id when it banked damage");
 
-        CompoundTag tag = new CompoundTag();
-        helper.assertTrue(pig.save(tag), "a damaged pig must be saved to the region file");
+        TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING,
+                helper.getLevel().registryAccess());
+        helper.assertTrue(pig.save(output), "a damaged pig must be saved to the region file");
+        CompoundTag tag = output.buildResult();
         pig.discard();
 
-        Entity reloaded = EntityType.loadEntityRecursive(tag, helper.getLevel(), entity -> entity);
+        Entity reloaded = EntityType.loadEntityRecursive(tag, helper.getLevel(), EntitySpawnReason.LOAD,
+                entity -> entity);
         helper.assertTrue(reloaded instanceof Pig, "the saved pig must reload as a pig");
         helper.assertTrue(reloaded.getData(ForgeweaveAttachments.DAMAGE_XP).damage(player.getUUID(), toolId) == 3.0F,
                 "the reloaded pig must still owe the tool the 3 damage it banked");

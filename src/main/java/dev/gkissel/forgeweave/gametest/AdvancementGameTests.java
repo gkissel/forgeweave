@@ -671,7 +671,7 @@ public class AdvancementGameTests {
     }
 
     private static boolean hintShown(ServerPlayer player) {
-        return player.getPersistentData().getCompound("PlayerPersisted").getBoolean("forgeweave_ponder_hint_shown");
+        return player.getPersistentData().getCompoundOrEmpty("PlayerPersisted").getBooleanOr("forgeweave_ponder_hint_shown", false);
     }
 
     private AdvancementGameTests() {}

@@ -168,7 +168,7 @@ public class M615MaterialGameTests {
                 "hepatizon", "recurrent_protection");
 
         general.forEach((name, trait) -> {
-            Material material = materials.get(materialId(name));
+            Material material = materials.getValue(materialId(name));
             helper.assertTrue(material != null, name + " should be in the synced material registry");
             List<Identifier> expectedGeneral = split(trait);
             helper.assertTrue(expectedGeneral.equals(material.traits().general()),
@@ -196,7 +196,7 @@ public class M615MaterialGameTests {
         // P(no proc in 300 one-second steps at 5%) = 0.95^300 ~ 1.3e-7, the thorns-test bar.
         for (int i = 1; i <= 300 && ForgeweaveTraits.overslime(pickaxe) == 0; i++) {
             player.tickCount = i * 20;
-            pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+            pickaxe.getItem().inventoryTick(pickaxe, level, player, null);
         }
         helper.assertTrue(ForgeweaveTraits.overslime(pickaxe) > 0, "overgrowth must have regenerated overslime at least once");
         helper.succeed();
@@ -310,11 +310,11 @@ public class M615MaterialGameTests {
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_TABLE.get());
         helper.setBlock(FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
                 .setValue(FaucetBlock.FACING, Direction.WEST));
-        return helper.getBlockEntity(CASTING);
+        return helper.getBlockEntity(CASTING, CastingBlockEntity.class);
     }
 
     private static FaucetBlockEntity faucet(GameTestHelper helper) {
-        return helper.getBlockEntity(FAUCET);
+        return helper.getBlockEntity(FAUCET, FaucetBlockEntity.class);
     }
 
     private static void insert(GameTestHelper helper, CastingBlockEntity casting, ItemStack stack) {

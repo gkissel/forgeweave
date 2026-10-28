@@ -53,9 +53,9 @@ public class GroutGameTests {
         CraftingInput input = CraftingInput.of(3, 1,
                 List.of(new ItemStack(Items.CLAY_BALL), new ItemStack(Items.SAND), new ItemStack(Items.GRAVEL)));
 
-        ItemStack crafted = level.getRecipeManager()
+        ItemStack crafted = level.recipeAccess()
                 .getRecipeFor(RecipeType.CRAFTING, input, level)
-                .map(match -> match.value().assemble(input, level.registryAccess()))
+                .map(match -> match.value().assemble(input))
                 .orElse(ItemStack.EMPTY);
 
         helper.assertTrue(crafted.is(ForgeweaveBlocks.GROUT.get().asItem()) && crafted.getCount() == 2,
@@ -72,9 +72,9 @@ public class GroutGameTests {
                         new ItemStack(Items.GRAVEL), new ItemStack(Items.CLAY), new ItemStack(Items.GRAVEL),
                         new ItemStack(Items.SAND), new ItemStack(Items.GRAVEL), new ItemStack(Items.SAND)));
 
-        ItemStack crafted = level.getRecipeManager()
+        ItemStack crafted = level.recipeAccess()
                 .getRecipeFor(RecipeType.CRAFTING, input, level)
-                .map(match -> match.value().assemble(input, level.registryAccess()))
+                .map(match -> match.value().assemble(input))
                 .orElse(ItemStack.EMPTY);
 
         helper.assertTrue(crafted.is(ForgeweaveBlocks.GROUT.get().asItem()) && crafted.getCount() == 8,
@@ -88,9 +88,9 @@ public class GroutGameTests {
         ServerLevel level = helper.getLevel();
         ItemStack grout = new ItemStack(ForgeweaveBlocks.GROUT.get());
 
-        ItemStack smelted = level.getRecipeManager()
+        ItemStack smelted = level.recipeAccess()
                 .getRecipeFor(RecipeType.SMELTING, new SingleRecipeInput(grout), level)
-                .map(match -> match.value().assemble(new SingleRecipeInput(grout), level.registryAccess()))
+                .map(match -> match.value().assemble(new SingleRecipeInput(grout)))
                 .orElse(ItemStack.EMPTY);
 
         helper.assertTrue(smelted.is(ForgeweaveItems.SEARED_BRICK.get()),

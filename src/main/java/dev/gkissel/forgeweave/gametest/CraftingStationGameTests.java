@@ -4,7 +4,7 @@ import net.minecraft.core.BlockPos;
 import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -89,7 +89,7 @@ public class CraftingStationGameTests {
         helper.setBlock(chestPos, Blocks.CHEST);
         helper.setBlock(stationPos, ForgeweaveBlocks.CRAFTING_STATION.get());
 
-        if (!(helper.getBlockEntity(chestPos) instanceof ChestBlockEntity chest)) {
+        if (!(helper.getLevel().getBlockEntity(helper.absolutePos(chestPos)) instanceof ChestBlockEntity chest)) {
             helper.fail("expected a chest block entity next to the station");
             return;
         }
@@ -131,11 +131,11 @@ public class CraftingStationGameTests {
         menu.getSlot(3).set(new ItemStack(Items.OAK_PLANKS, 3));
         menu.broadcastChanges();
 
-        menu.clicked(CraftingStationMenu.GRID_SLOTS, 0, ClickType.QUICK_MOVE, player);
+        menu.clicked(CraftingStationMenu.GRID_SLOTS, 0, ContainerInput.QUICK_MOVE, player);
 
         helper.assertTrue(menu.getSlot(0).getItem().isEmpty() && menu.getSlot(3).getItem().isEmpty(),
                 "expected all planks to be consumed, got " + menu.getSlot(0).getItem() + " / " + menu.getSlot(3).getItem());
-        int sticks = player.getInventory().items.stream()
+        int sticks = player.getInventory().getNonEquipmentItems().stream()
                 .filter(stack -> stack.is(Items.STICK))
                 .mapToInt(ItemStack::getCount).sum();
         helper.assertTrue(sticks == 12, "expected 12 sticks in the player inventory, got " + sticks);
@@ -165,9 +165,9 @@ public class CraftingStationGameTests {
         menu.getSlot(3).set(new ItemStack(Items.OAK_PLANKS));
         menu.broadcastChanges();
 
-        menu.clicked(CraftingStationMenu.GRID_SLOTS, 0, ClickType.QUICK_MOVE, player);
+        menu.clicked(CraftingStationMenu.GRID_SLOTS, 0, ContainerInput.QUICK_MOVE, player);
 
-        int sticks = player.getInventory().items.stream()
+        int sticks = player.getInventory().getNonEquipmentItems().stream()
                 .filter(stack -> stack.is(Items.STICK))
                 .mapToInt(ItemStack::getCount).sum();
         helper.assertTrue(sticks == 4, "expected 4 sticks in the player inventory, got " + sticks);
@@ -201,7 +201,7 @@ public class CraftingStationGameTests {
         }
         helper.assertTrue(chestSlot >= 0, "expected the chest's planks to be visible through a side-inventory slot");
 
-        menu.clicked(chestSlot, 0, ClickType.QUICK_MOVE, player);
+        menu.clicked(chestSlot, 0, ContainerInput.QUICK_MOVE, player);
 
         ItemStack gridSlot = menu.getSlot(0).getItem();
         helper.assertTrue(gridSlot.is(Items.OAK_PLANKS) && gridSlot.getCount() == 3,

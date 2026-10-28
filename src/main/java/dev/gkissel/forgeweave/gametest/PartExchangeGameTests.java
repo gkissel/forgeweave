@@ -323,7 +323,7 @@ public class PartExchangeGameTests {
                 load(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(), pickaxe,
                         ToolAssembly.part(ForgeweaveItems.PART_PICKAXE_HEAD.get(), "iron")));
 
-        List<ItemStack> stoneHeads = player.getInventory().items.stream()
+        List<ItemStack> stoneHeads = player.getInventory().getNonEquipmentItems().stream()
                 .filter(stack -> stack.is(ForgeweaveItems.PART_PICKAXE_HEAD.get()))
                 .toList();
         helper.assertTrue(stoneHeads.size() == 1,
@@ -366,10 +366,10 @@ public class PartExchangeGameTests {
                     load(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(), pickaxe,
                             ToolAssembly.part(ForgeweaveItems.PART_PICKAXE_HEAD.get(), "iron")));
 
-            helper.assertTrue(player.getInventory().items.stream()
+            helper.assertTrue(player.getInventory().getNonEquipmentItems().stream()
                             .noneMatch(stack -> stack.is(ForgeweaveItems.PART_PICKAXE_HEAD.get())),
                     "no displaced head may come back while returnExchangedParts is off, got "
-                            + player.getInventory().items);
+                            + player.getInventory().getNonEquipmentItems());
             helper.assertTrue(IRON.equals(materialsOf(swapped).get(0)),
                     "the swap itself must still happen, got " + materialsOf(swapped));
             helper.assertTrue(material("wood").equals(materialsOf(swapped).get(1))
@@ -399,9 +399,9 @@ public class PartExchangeGameTests {
         // structure by default (see BeheadingGameTests#playerHeadCarriesVictimProfile's own moveTo) --
         // without this the drop lands wherever the mock spawned and the capture below sees nothing.
         Vec3 stand = helper.absoluteVec(pos.getCenter());
-        player.moveTo(stand.x, stand.y, stand.z);
+        player.snapTo(stand.x, stand.y, stand.z);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
-        player.getInventory().items.replaceAll(stack -> new ItemStack(Items.COBBLESTONE, 64));
+        player.getInventory().getNonEquipmentItems().replaceAll(stack -> new ItemStack(Items.COBBLESTONE, 64));
 
         ToolStationMenu menu = load(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(), pickaxe,
                 ToolAssembly.part(ForgeweaveItems.PART_PICKAXE_HEAD.get(), "iron"));
@@ -535,7 +535,7 @@ public class PartExchangeGameTests {
     /** Exactly one {@code part} of iron came back to the player's inventory; clears it for the next swap. */
     private static void assertReturnedOnce(GameTestHelper helper, Player player, Item part,
             String what) {
-        List<ItemStack> returned = player.getInventory().items.stream().filter(stack -> stack.is(part)).toList();
+        List<ItemStack> returned = player.getInventory().getNonEquipmentItems().stream().filter(stack -> stack.is(part)).toList();
         helper.assertTrue(returned.size() == 1 && returned.get(0).getCount() == 1
                         && material("iron").equals(returned.get(0).get(ForgeweaveDataComponents.MATERIAL.get())),
                 "the displaced iron part from " + what + " must come back exactly once, got " + returned);
@@ -608,7 +608,7 @@ public class PartExchangeGameTests {
                 entry, List.of("iron", "iron"));
         take(helper, player, load(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(), helmet,
                 ToolAssembly.part(entry.part(0), "cobalt")));
-        List<ItemStack> returned = player.getInventory().items.stream()
+        List<ItemStack> returned = player.getInventory().getNonEquipmentItems().stream()
                 .filter(stack -> stack.is(entry.part(0)))
                 .toList();
         helper.assertTrue(returned.size() == 1 && returned.get(0).getCount() == 1,
@@ -626,9 +626,9 @@ public class PartExchangeGameTests {
             ItemStack swapped = take(helper, player,
                     load(helper, player, pos, ForgeweaveBlocks.TOOL_STATION.get(), second,
                             ToolAssembly.part(entry.part(0), "cobalt")));
-            helper.assertTrue(player.getInventory().items.stream().noneMatch(stack -> stack.is(entry.part(0))),
+            helper.assertTrue(player.getInventory().getNonEquipmentItems().stream().noneMatch(stack -> stack.is(entry.part(0))),
                     "no displaced plating may come back while returnExchangedParts is off, got "
-                            + player.getInventory().items);
+                            + player.getInventory().getNonEquipmentItems());
             helper.assertTrue(material("cobalt").equals(materialsOf(swapped).get(0)),
                     "the swap itself must still happen, got " + materialsOf(swapped));
         } finally {

@@ -115,8 +115,8 @@ public class TrackBOreGameTests {
     private static PlacedFeature getPlacedFeature(GameTestHelper helper, String name) {
         ResourceKey<PlacedFeature> key = ResourceKey.create(Registries.PLACED_FEATURE,
                 Identifier.fromNamespaceAndPath(Forgeweave.MODID, name));
-        PlacedFeature feature = helper.getLevel().registryAccess().lookupOrThrow(Registries.PLACED_FEATURE).get(key);
-        helper.assertTrue(feature != null, "expected a placed feature registered as " + key.location());
+        PlacedFeature feature = helper.getLevel().registryAccess().lookupOrThrow(Registries.PLACED_FEATURE).getValue(key);
+        helper.assertTrue(feature != null, "expected a placed feature registered as " + key.identifier());
         return feature;
     }
 
@@ -172,10 +172,10 @@ public class TrackBOreGameTests {
 
         BiomeModifiers.AddFeaturesBiomeModifier endModifier = modifiers.get("track_b_end_ores");
         for (String id : List.of("end_highlands", "end_midlands", "end_barrens", "small_end_islands")) {
-            Holder<Biome> biome = biomes.getHolderOrThrow(ResourceKey.create(Registries.BIOME, Identifier.withDefaultNamespace(id)));
+            Holder<Biome> biome = biomes.getOrThrow(ResourceKey.create(Registries.BIOME, Identifier.withDefaultNamespace(id)));
             helper.assertTrue(endModifier.biomes().contains(biome), "expected track_b_end_ores to include " + id);
         }
-        Holder<Biome> theEnd = biomes.getHolderOrThrow(ResourceKey.create(Registries.BIOME, Identifier.withDefaultNamespace("the_end")));
+        Holder<Biome> theEnd = biomes.getOrThrow(ResourceKey.create(Registries.BIOME, Identifier.withDefaultNamespace("the_end")));
         helper.assertFalse(endModifier.biomes().contains(theEnd),
                 "track_b_end_ores must not include the central the_end island");
 
@@ -191,8 +191,8 @@ public class TrackBOreGameTests {
         ResourceKey<ConfiguredFeature<?, ?>> key = ResourceKey.create(Registries.CONFIGURED_FEATURE,
                 Identifier.fromNamespaceAndPath(Forgeweave.MODID, ore.oreBlockId()));
         ConfiguredFeature<?, ?> configured =
-                helper.getLevel().registryAccess().lookupOrThrow(Registries.CONFIGURED_FEATURE).get(key);
-        helper.assertTrue(configured != null, "expected a configured feature registered as " + key.location());
+                helper.getLevel().registryAccess().lookupOrThrow(Registries.CONFIGURED_FEATURE).getValue(key);
+        helper.assertTrue(configured != null, "expected a configured feature registered as " + key.identifier());
         helper.assertTrue(configured.config() instanceof OreConfiguration,
                 ore.oreBlockId() + " must be a minecraft:ore feature");
 
@@ -200,7 +200,7 @@ public class TrackBOreGameTests {
         helper.assertTrue(targets.size() == 1, ore.oreBlockId() + " must have exactly one ore target");
         OreConfiguration.TargetBlockState target = targets.get(0);
 
-        Block host = BuiltInRegistries.BLOCK.get(Identifier.parse(ore.host().targetBlock));
+        Block host = BuiltInRegistries.BLOCK.getValue(Identifier.parse(ore.host().targetBlock));
         helper.assertTrue(target.target.test(host.defaultBlockState(), helper.getLevel().getRandom()),
                 ore.oreBlockId() + " must replace " + ore.host().targetBlock + ", its " + ore.host() + " host rock");
         helper.assertTrue(target.state.is(ForgeweaveBlocks.trackBOre(ore.id()).get()),
@@ -211,10 +211,10 @@ public class TrackBOreGameTests {
             GameTestHelper helper, Registry<BiomeModifier> registry, String name) {
         ResourceKey<BiomeModifier> key = ResourceKey.create(NeoForgeRegistries.Keys.BIOME_MODIFIERS,
                 Identifier.fromNamespaceAndPath(Forgeweave.MODID, name));
-        BiomeModifier modifier = registry.get(key);
-        helper.assertTrue(modifier != null, "expected a biome modifier registered as " + key.location());
+        BiomeModifier modifier = registry.getValue(key);
+        helper.assertTrue(modifier != null, "expected a biome modifier registered as " + key.identifier());
         helper.assertTrue(modifier instanceof BiomeModifiers.AddFeaturesBiomeModifier,
-                key.location() + " must be an AddFeaturesBiomeModifier");
+                key.identifier() + " must be an AddFeaturesBiomeModifier");
         return (BiomeModifiers.AddFeaturesBiomeModifier) modifier;
     }
 

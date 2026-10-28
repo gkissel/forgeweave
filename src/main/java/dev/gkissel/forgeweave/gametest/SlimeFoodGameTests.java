@@ -35,18 +35,18 @@ public class SlimeFoodGameTests {
 
     @GameTest(template = "empty")
     public static void eatingEachSlimeBallAppliesExactlyUpstreamsEffects(GameTestHelper helper) {
-        assertEats(helper, ForgeweaveItems.slimeBall(SlimeColour.BLUE), Set.of(MobEffects.MOVEMENT_SLOWDOWN, MobEffects.JUMP));
+        assertEats(helper, ForgeweaveItems.slimeBall(SlimeColour.BLUE), Set.of(MobEffects.SLOWNESS, MobEffects.JUMP_BOOST));
         assertEats(helper, ForgeweaveItems.slimeBall(SlimeColour.PURPLE), Set.of(MobEffects.UNLUCK, MobEffects.LUCK));
         assertEats(helper, ForgeweaveItems.slimeBall(SlimeColour.BLOOD), Set.of(MobEffects.POISON, MobEffects.HEALTH_BOOST));
         assertEats(helper, ForgeweaveItems.slimeBall(SlimeColour.MAGMA), Set.of(MobEffects.WEAKNESS, MobEffects.WITHER, MobEffects.FIRE_RESISTANCE));
-        assertEats(helper, ForgeweaveItems.slimeBall(SlimeColour.PINK), Set.of(MobEffects.CONFUSION));
+        assertEats(helper, ForgeweaveItems.slimeBall(SlimeColour.PINK), Set.of(MobEffects.NAUSEA));
         helper.succeed();
     }
 
     @GameTest(template = "empty")
     public static void eatingEachSlimeDropAppliesOnlyItsSinglePositiveEffect(GameTestHelper helper) {
-        assertEats(helper, ForgeweaveItems.slimeDrop(SlimeColour.GREEN), Set.of(MobEffects.MOVEMENT_SPEED));
-        assertEats(helper, ForgeweaveItems.slimeDrop(SlimeColour.BLUE), Set.of(MobEffects.JUMP));
+        assertEats(helper, ForgeweaveItems.slimeDrop(SlimeColour.GREEN), Set.of(MobEffects.SPEED));
+        assertEats(helper, ForgeweaveItems.slimeDrop(SlimeColour.BLUE), Set.of(MobEffects.JUMP_BOOST));
         assertEats(helper, ForgeweaveItems.slimeDrop(SlimeColour.PURPLE), Set.of(MobEffects.LUCK));
         assertEats(helper, ForgeweaveItems.slimeDrop(SlimeColour.BLOOD), Set.of(MobEffects.HEALTH_BOOST));
         assertEats(helper, ForgeweaveItems.slimeDrop(SlimeColour.MAGMA), Set.of(MobEffects.FIRE_RESISTANCE));

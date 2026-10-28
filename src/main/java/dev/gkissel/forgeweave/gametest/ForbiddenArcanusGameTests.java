@@ -54,7 +54,7 @@ public class ForbiddenArcanusGameTests {
     public static void unsuppliedForbiddenArcanusMaterialsDoNotExistAtAll(GameTestHelper helper) {
         Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         for (String name : FORBIDDEN_ARCANUS_MATERIALS) {
-            helper.assertTrue(materials.get(id(name)) == null,
+            helper.assertTrue(materials.getValue(id(name)) == null,
                     "expected the " + name + " material to be absent without Forbidden and Arcanus, "
                             + "found it registered");
         }

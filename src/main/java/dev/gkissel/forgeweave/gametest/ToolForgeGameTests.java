@@ -340,8 +340,8 @@ public class ToolForgeGameTests {
                 cobalt, station, cobalt,
                 cobalt, ItemStack.EMPTY, cobalt));
 
-        ItemStack crafted = level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, level)
-                .map(match -> match.value().assemble(input, level.registryAccess()))
+        ItemStack crafted = level.recipeAccess().getRecipeFor(RecipeType.CRAFTING, input, level)
+                .map(match -> match.value().assemble(input))
                 .orElse(ItemStack.EMPTY);
 
         helper.assertTrue(crafted.is(ForgeweaveItems.TOOL_FORGE.get()),

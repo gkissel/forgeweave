@@ -45,7 +45,7 @@ public class ToolLevelFeedbackGameTests {
     public static void levelingUpPlaysTheChimeOncePerLevelCrossed(GameTestHelper helper) {
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         BlockPos pos = helper.absolutePos(new BlockPos(1, 2, 1));
-        player.moveTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+        player.snapTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
 
         ItemStack pickaxe = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
         ToolLevel before = ToolLevel.of(pickaxe);
@@ -110,7 +110,7 @@ public class ToolLevelFeedbackGameTests {
     public static void noLevelCrossedPlaysNoChime(GameTestHelper helper) {
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         BlockPos pos = helper.absolutePos(new BlockPos(1, 2, 1));
-        player.moveTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+        player.snapTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
 
         ItemStack pickaxe = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
 

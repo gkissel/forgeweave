@@ -358,7 +358,8 @@ public class ArmorModifierGameTests {
         helper.assertTrue(ForgeweaveModifiers.freeSlots(piece) == 0, "and occupies no slot");
         helper.assertTrue(piece.getMaxDamage() == baseDurability + baseDurability / 5,
                 "+20% of the base durability, got " + piece.getMaxDamage() + " over " + baseDurability);
-        helper.assertTrue(piece.has(DataComponents.FIRE_RESISTANT), "the dropped piece survives fire");
+        helper.assertTrue(piece.has(DataComponents.DAMAGE_RESISTANT) && !piece.canBeHurtBy(helper.getLevel().damageSources().inFire()),
+                "the dropped piece survives fire");
 
         player.setItemSlot(EquipmentSlot.CHEST, piece);
         player.tick();

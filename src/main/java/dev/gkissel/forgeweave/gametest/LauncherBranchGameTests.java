@@ -345,16 +345,16 @@ public class LauncherBranchGameTests {
                 "the arrow hit must discharge the bow the shooter is holding, charge left " + charge(bow));
         helper.assertTrue(bow.get(DataComponents.ENCHANTMENT_GLINT_OVERRIDE) == null,
                 "and clear its full-charge glint");
-        helper.assertTrue(player.hasEffect(MobEffects.MOVEMENT_SPEED),
+        helper.assertTrue(player.hasEffect(MobEffects.SPEED),
                 "the discharge itself still rides the arrow (M3.5-5's hit effects on projectiles)");
 
         // A second arrow finds a discharged bow: no Speed, and no charge either -- an arrow hit does
         // not build charge (see the class javadoc's #416 note).
-        player.removeEffect(MobEffects.MOVEMENT_SPEED);
+        player.removeEffect(MobEffects.SPEED);
         Pig second = helper.spawn(EntityType.PIG, new BlockPos(3, 2, 2));
         second.hurt(arrowFrom(helper, player, bow), 1.0F);
 
-        helper.assertFalse(player.hasEffect(MobEffects.MOVEMENT_SPEED),
+        helper.assertFalse(player.hasEffect(MobEffects.SPEED),
                 "a second arrow from a discharged bow must grant nothing");
         helper.assertTrue(charge(bow) == 0.0F,
                 "and an arrow hit builds no charge of its own, got " + charge(bow));

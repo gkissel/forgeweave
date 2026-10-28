@@ -156,8 +156,8 @@ public class TutorialGameTests {
     private static ItemStack craft(GameTestHelper helper, int width, int height, List<ItemStack> items) {
         ServerLevel level = helper.getLevel();
         CraftingInput input = CraftingInput.of(width, height, items);
-        return level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, level)
-                .map(holder -> holder.value().assemble(input, level.registryAccess()))
+        return level.recipeAccess().getRecipeFor(RecipeType.CRAFTING, input, level)
+                .map(holder -> holder.value().assemble(input))
                 .orElse(ItemStack.EMPTY);
     }
 

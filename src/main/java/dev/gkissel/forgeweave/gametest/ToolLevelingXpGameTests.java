@@ -156,7 +156,7 @@ public class ToolLevelingXpGameTests {
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         ItemStack bow = assembleUniform(helper, player, new BlockPos(1, 1, 1), ForgeweaveItems.TOOL_SHORTBOW.get(), "wood", false);
         player.setItemInHand(InteractionHand.MAIN_HAND, bow);
-        player.moveTo(helper.absoluteVec(new Vec3(1.5, 1.0, 1.5)));
+        player.snapTo(helper.absoluteVec(new Vec3(1.5, 1.0, 1.5)));
         helper.setBlock(wallPos, Blocks.STONE);
 
         AbstractArrow arrow = ((ArrowItem) Items.ARROW).createArrow(helper.getLevel(), new ItemStack(Items.ARROW),

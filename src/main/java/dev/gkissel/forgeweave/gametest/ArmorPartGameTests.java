@@ -179,11 +179,11 @@ public class ArmorPartGameTests {
                 .fill(new FluidStack(fluid, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_TABLE.get());
         helper.setBlock(FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState().setValue(FaucetBlock.FACING, Direction.WEST));
-        return helper.getBlockEntity(CASTING);
+        return helper.getBlockEntity(CASTING, CastingBlockEntity.class);
     }
 
     private static FaucetBlockEntity faucet(GameTestHelper helper) {
-        return helper.getBlockEntity(FAUCET);
+        return helper.getBlockEntity(FAUCET, FaucetBlockEntity.class);
     }
 
     private static void insert(GameTestHelper helper, CastingBlockEntity casting, ItemStack stack) {

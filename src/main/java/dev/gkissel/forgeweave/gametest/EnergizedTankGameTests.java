@@ -383,7 +383,7 @@ public class EnergizedTankGameTests {
     }
 
     private static EnergizedTankBlockEntity tank(GameTestHelper helper, BlockPos pos) {
-        return helper.getBlockEntity(pos);
+        return helper.getBlockEntity(pos, EnergizedTankBlockEntity.class);
     }
 
     /** How much of a tank's buffer has been spent since it was filled to {@link #FULL}. */

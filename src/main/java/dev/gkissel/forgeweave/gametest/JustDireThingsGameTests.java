@@ -73,7 +73,7 @@ public class JustDireThingsGameTests {
     public static void unsuppliedJustDireThingsMaterialsDoNotExistAtAll(GameTestHelper helper) {
         Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         for (String name : JUST_DIRE_THINGS_MATERIALS) {
-            helper.assertTrue(materials.get(id(name)) == null,
+            helper.assertTrue(materials.getValue(id(name)) == null,
                     "expected the " + name + " material to be absent without Just Dire Things, found it registered");
         }
         helper.succeed();

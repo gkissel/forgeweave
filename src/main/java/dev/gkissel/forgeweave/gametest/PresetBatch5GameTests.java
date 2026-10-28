@@ -15,7 +15,7 @@ import dev.gkissel.forgeweave.material.Material;
  * Issue #837 (M6 preset batch 5): Actually Additions, Psi, Powah, Industrial Foregoing and Extreme
  * Reactors -- the epic #824's "gem/crystal tier". None of {@code actuallyadditions}, {@code psi},
  * {@code powah}, {@code industrialforegoing} or {@code bigreactors} is a build/test dependency (see
- * build.gradle), so every material's {@code neoforge:item_exists} condition fails in this GameTest
+ * build.gradle), so every material's {@code neoforge:registered} condition fails in this GameTest
  * server exactly as it would in a Forgeweave-only install, the same negative-existence proof {@link
  * PresetBatch2GameTests} and {@link EnderIoAlloyGameTests} give their own batches. The positive
  * existence path is generic infrastructure already covered by {@code ConditionalMaterialGameTests}

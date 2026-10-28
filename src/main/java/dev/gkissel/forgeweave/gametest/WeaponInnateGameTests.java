@@ -102,7 +102,7 @@ public class WeaponInnateGameTests {
 
         // Facing +Z (yaw 0), so the wedge covers the three pigs ahead and not the one behind.
         BlockPos origin = new BlockPos(3, 2, 3);
-        player.moveTo(helper.absoluteVec(new Vec3(origin.getX() + 0.5, origin.getY(), origin.getZ() + 0.5)));
+        player.snapTo(helper.absoluteVec(new Vec3(origin.getX() + 0.5, origin.getY(), origin.getZ() + 0.5)));
         player.setYRot(0.0F);
         player.setYHeadRot(0.0F);
         player.setXRot(0.0F);
@@ -124,7 +124,7 @@ public class WeaponInnateGameTests {
                     assertHealthLost(helper, flankRight, blow * 0.5F, "the pig to the right of the swing");
                     assertHealthLost(helper, behind, 0.0F, "the pig behind the swing");
 
-                    MobEffectInstance slow = primary.getEffect(MobEffects.MOVEMENT_SLOWDOWN);
+                    MobEffectInstance slow = primary.getEffect(MobEffects.SLOWNESS);
                     helper.assertTrue(slow != null, "expected the primary target to be slowed by the sweeping blow");
                     helper.assertTrue(slow.getAmplifier() == 0,
                             "expected slowness I on the primary target, got amplifier " + slow.getAmplifier());
@@ -148,7 +148,7 @@ public class WeaponInnateGameTests {
         player.setItemSlot(EquipmentSlot.MAINHAND, battleaxe(helper, player, stationPos));
 
         BlockPos origin = new BlockPos(3, 2, 3);
-        player.moveTo(helper.absoluteVec(new Vec3(origin.getX() + 0.5, origin.getY(), origin.getZ() + 0.5)));
+        player.snapTo(helper.absoluteVec(new Vec3(origin.getX() + 0.5, origin.getY(), origin.getZ() + 0.5)));
         player.setYRot(0.0F);
         player.setYHeadRot(0.0F);
 
@@ -167,7 +167,7 @@ public class WeaponInnateGameTests {
                     primary.hurt(helper.getLevel().damageSources().playerAttack(player), 4.0F);
 
                     assertHealthLost(helper, flank, 0.0F, "a bystander of an uncharged swing");
-                    helper.assertTrue(primary.getEffect(MobEffects.MOVEMENT_SLOWDOWN) == null,
+                    helper.assertTrue(primary.getEffect(MobEffects.SLOWNESS) == null,
                             "an uncharged swing must not slow its target either");
 
                     discard(primary, flank);
@@ -234,7 +234,7 @@ public class WeaponInnateGameTests {
         for (int duration = LacerateEffect.DURATION_TICKS; duration >= 1; duration--) {
             if (effect.shouldApplyEffectTickThisTick(duration, 0)) {
                 target.invulnerableTime = 0; // each simulated fire is a full second apart in game time
-                effect.applyEffectTick(target, 0);
+                effect.applyEffectTick(helper.getLevel(), target, 0);
                 fires++;
             }
         }
@@ -322,7 +322,7 @@ public class WeaponInnateGameTests {
                 .map(entry -> entry.modifier().amount())
                 .toList();
         if (found.size() != 1) {
-            throw new AssertionError("expected exactly one " + attribute.location() + " modifier on the " + name
+            throw new AssertionError("expected exactly one " + attribute.identifier() + " modifier on the " + name
                     + ", found " + found.size());
         }
         return found.get(0);

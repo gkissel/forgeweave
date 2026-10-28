@@ -135,7 +135,7 @@ public class AllthemodiumElementariumGameTests {
                 "inferium", "prudentium", "tertium", "imperium", "supremium", "awakened_supremium",
                 "insanium", "prosperity", "soulium")) {
             helper.assertTrue(ForgeweaveFluids.compatMetalFluid(name) != null, name + " has no registered molten fluid");
-            helper.assertTrue(materials.get(Identifier.fromNamespaceAndPath(Forgeweave.MODID, name)) == null,
+            helper.assertTrue(materials.getValue(Identifier.fromNamespaceAndPath(Forgeweave.MODID, name)) == null,
                     name + " registered with its mod absent");
             helper.assertFalse(CompatMaterialAvailability.isAvailable(name),
                     name + "'s bucket would show in the creative tab with its mod absent");

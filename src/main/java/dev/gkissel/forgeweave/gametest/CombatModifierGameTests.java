@@ -258,7 +258,7 @@ public class CombatModifierGameTests {
 
         Pig target = strike(helper, player, pos, tool);
 
-        MobEffectInstance slowness = target.getEffect(MobEffects.MOVEMENT_SLOWDOWN);
+        MobEffectInstance slowness = target.getEffect(MobEffects.SLOWNESS);
         helper.assertTrue(slowness != null, "expected Slowness on the struck target");
         helper.assertTrue(slowness.getAmplifier() == 1, "Slowness II, got amplifier " + slowness.getAmplifier());
         helper.assertTrue(slowness.getDuration() == 40,

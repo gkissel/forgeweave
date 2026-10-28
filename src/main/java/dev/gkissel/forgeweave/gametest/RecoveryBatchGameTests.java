@@ -29,7 +29,7 @@ import dev.gkissel.forgeweave.material.Material;
  * codec-level proof.
  *
  * <p>None of {@code projecte}, {@code avaritia}, {@code refinedstorage} or {@code powah} is a
- * build/test dependency (see build.gradle), so every material's {@code neoforge:item_exists}
+ * build/test dependency (see build.gradle), so every material's {@code neoforge:registered}
  * condition fails in this GameTest server exactly as it would in a Forgeweave-only install, the same
  * negative-existence proof every earlier Track A batch's own GameTest class gives. The positive
  * existence path is generic infrastructure already covered by {@code ConditionalMaterialGameTests}.

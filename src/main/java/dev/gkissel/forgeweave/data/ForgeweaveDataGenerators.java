@@ -17,13 +17,12 @@ import dev.gkissel.forgeweave.data.sprite.MaterialPartTextureProvider;
  */
 public final class ForgeweaveDataGenerators {
     public static void gatherData(GatherDataEvent.Client event) {
-        // TODO(port 26.1, models agent): these three take whatever constructor the model port
-        // settles on; ExistingFileHelper no longer exists.
-        event.createProvider(ForgeweaveItemModelProvider::new);
+        // Every blockstate, block and item model, and client item: one 26.1 ModelProvider, which
+        // runs ForgeweaveItemModelProvider's half itself.
+        event.createProvider(ForgeweaveBlockStateProvider::new);
         // #280 -- greyscale texture pipeline proof slice: recolors greyscale part sprites through
         // per-material palettes into textures/staging/part/ (M9 groundwork, epic #30).
         event.createProvider(MaterialPartTextureProvider::new);
-        event.createProvider(ForgeweaveBlockStateProvider::new);
         event.createProvider(ForgeweaveLanguageProvider::new);
         event.createProvider(ForgeweaveRecipeProvider.Runner::new);
         // #915 -- the Draconic Evolution fusion recipes (docs/SCOPE.md M8). A plain DataProvider

@@ -16,7 +16,6 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.material.Fluids;
 
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
@@ -27,6 +26,7 @@ import dev.gkissel.forgeweave.block.CastingBlockEntity;
 import dev.gkissel.forgeweave.block.FaucetBlock;
 import dev.gkissel.forgeweave.block.FaucetBlockEntity;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.TransferBridge;
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
@@ -87,7 +87,7 @@ public class VanillaMaterialGameTests {
                 "obsidian", List.of("blast_protection"));
 
         general.forEach((name, generalTraits) -> {
-            Material material = materials.get(Identifier.fromNamespaceAndPath(Forgeweave.MODID, name));
+            Material material = materials.getValue(Identifier.fromNamespaceAndPath(Forgeweave.MODID, name));
             helper.assertTrue(material != null, name + " should be in the synced material registry");
             for (PartItem.Kind kind : PartItem.Kind.values()) {
                 boolean armorPart = kind == PartItem.Kind.PLATING || kind == PartItem.Kind.MAILLE;
@@ -168,8 +168,7 @@ public class VanillaMaterialGameTests {
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_BASIN.get());
         CastingBlockEntity basin = helper.getBlockEntity(CASTING, CastingBlockEntity.class);
 
-        IFluidHandler handler = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK,
-                helper.absolutePos(CASTING), Direction.UP);
+        IFluidHandler handler = TransferBridge.fluidAt(helper.getLevel(), helper.absolutePos(CASTING), Direction.UP);
         helper.assertTrue(handler != null, "expected the basin to expose a fluid handler");
         int filled = handler.fill(new FluidStack(ForgeweaveFluids.OBSIDIAN.still().get(), 4000),
                 IFluidHandler.FluidAction.EXECUTE);

@@ -51,7 +51,7 @@ public class IceAndFireGameTests {
     public static void unsuppliedIceAndFireMaterialsDoNotExistAtAll(GameTestHelper helper) {
         Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         for (String name : ICE_AND_FIRE_MATERIALS) {
-            helper.assertTrue(materials.get(id(name)) == null,
+            helper.assertTrue(materials.getValue(id(name)) == null,
                     "expected the " + name + " material to be absent without Ice and Fire, found it registered");
         }
         helper.succeed();

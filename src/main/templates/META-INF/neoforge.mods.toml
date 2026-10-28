@@ -214,7 +214,7 @@ Forgeweave brings modular tool building, material traits, modifiers, melting, al
     side="BOTH"
 
 # Mystical Agriculture compat (issue #999, docs/SCOPE.md D-M8-20) is optional: without it the mod is
-# unchanged, the material presets are dropped by their own `neoforge:conditions` item_exists gate, and
+# unchanged, the material presets are dropped by their own `neoforge:conditions` registered gate, and
 # nothing registers a crop. With it, the Track B ores and brimspar get resource crops and Forgeweave
 # gear is accepted by Mystical Agriculture's Tinkering Table
 # (dev.gkissel.forgeweave.compat.mysticalagriculture). Cucumber is Mystical Agriculture's own required

@@ -86,7 +86,7 @@ public class OccultismGameTests {
     @GameTest(template = "empty")
     public static void noRitualFactoryIsRegisteredWithoutOccultism(GameTestHelper helper) {
         helper.assertTrue(helper.getLevel().registryAccess()
-                        .registry(net.minecraft.resources.ResourceKey.createRegistryKey(
+                        .lookup(net.minecraft.resources.ResourceKey.createRegistryKey(
                                 Identifier.fromNamespaceAndPath(
                                         ForgeweaveOccultismCompat.MODID, "ritual_factories")))
                         .isEmpty(),

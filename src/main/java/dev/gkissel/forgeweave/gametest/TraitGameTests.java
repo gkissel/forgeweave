@@ -72,7 +72,7 @@ public class TraitGameTests {
         Map<String, List<String>> armor = Map.of("bone", List.of("piercing_guard"));
 
         general.forEach((name, generalTraits) -> {
-            Material material = materials.get(Identifier.fromNamespaceAndPath(Forgeweave.MODID, name));
+            Material material = materials.getValue(Identifier.fromNamespaceAndPath(Forgeweave.MODID, name));
             helper.assertTrue(material != null, name + " should be in the synced material registry");
             List<Identifier> headIds = head.get(name).stream().map(TraitGameTests::traitId).toList();
             for (PartItem.Kind kind : PartItem.Kind.values()) {
@@ -297,7 +297,7 @@ public class TraitGameTests {
 
     private static void tick(GameTestHelper helper, LivingEntity holder, ItemStack stack, int ticks) {
         for (int i = 0; i < ticks; i++) {
-            stack.getItem().inventoryTick(stack, helper.getLevel(), holder, 0, false);
+            stack.getItem().inventoryTick(stack, helper.getLevel(), holder, null);
         }
     }
 
@@ -351,7 +351,7 @@ public class TraitGameTests {
         var entry = dev.gkissel.forgeweave.menu.ToolAssemblyRecipes.entryFor(new ItemStack(tool))
                 .orElseThrow(() -> new AssertionError("no Tool Station entry builds " + tool));
         return dev.gkissel.forgeweave.menu.ToolAssemblyRecipes.assemble(
-                        net.minecraft.core.HolderLookup.Provider.create(java.util.stream.Stream.of(registry.asLookup())),
+                        net.minecraft.core.HolderLookup.Provider.create(java.util.stream.Stream.of(registry)),
                         entry, java.util.Collections.nCopies(entry.slotCount(), id))
                 .orElseThrow(() -> new AssertionError("a " + material + " " + tool + " must assemble"));
     }

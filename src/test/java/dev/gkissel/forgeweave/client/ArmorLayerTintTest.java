@@ -4,9 +4,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -14,7 +20,6 @@ import org.junit.jupiter.api.Test;
 import net.minecraft.SharedConstants;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
-import net.minecraft.world.item.equipment.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.item.ArmorPieceItem;
@@ -49,17 +54,28 @@ class ArmorLayerTintTest {
         throw new AssertionError("could not locate project root (no settings.gradle found)");
     }
 
-    /** Every worn pass resolves to one of the four gray bases on disk -- no per-material file is ever looked up. */
+    /**
+     * Every worn pass resolves to one of the four gray bases on disk -- no per-material file is ever
+     * looked up. On 26.1 the passes are the layers of the piece's equipment asset,
+     * {@code equipment/plate.json}, each a texture id the game resolves under
+     * {@code textures/entity/equipment/<layer type>/}; both layer types carry maille under plating, in
+     * {@link ArmorPieceItem#PLATE_LAYERS}' order, which is the order the tint hook keys on.
+     */
     @Test
-    void everyWornLayerResolvesToAGrayBaseOnDisk() {
-        List<ArmorMaterial.Layer> layers = ArmorPieceItem.plateMaterial().layers();
-        assertEquals(2, layers.size(), "maille under plating");
-        for (ArmorMaterial.Layer layer : layers) {
-            for (boolean inner : new boolean[] {false, true}) {
-                Identifier texture = layer.texture(inner);
-                assertTrue(texture.getPath().matches("textures/models/armor/derived/(plating|maille)_layer_[12]\\.png"),
-                        texture.toString());
-                Path png = projectRoot().resolve("src/main/resources/assets/forgeweave/" + texture.getPath());
+    void everyWornLayerResolvesToAGrayBaseOnDisk() throws IOException {
+        Identifier asset = ArmorPieceItem.PLATE_ASSET.identifier();
+        Path assets = projectRoot().resolve("src/main/resources/assets/" + asset.getNamespace());
+        JsonObject layers = JsonParser.parseString(Files.readString(assets.resolve("equipment/" + asset.getPath() + ".json")))
+                .getAsJsonObject().getAsJsonObject("layers");
+        for (String layerType : List.of("humanoid", "humanoid_leggings")) {
+            List<Identifier> textures = new ArrayList<>();
+            for (JsonElement layer : layers.getAsJsonArray(layerType)) {
+                textures.add(Identifier.parse(layer.getAsJsonObject().get("texture").getAsString()));
+            }
+            assertEquals(ArmorPieceItem.PLATE_LAYERS, textures, layerType + ": maille under plating");
+            for (Identifier texture : textures) {
+                assertTrue(texture.getPath().matches("derived/(plating|maille)"), texture.toString());
+                Path png = assets.resolve("textures/entity/equipment/" + layerType + "/" + texture.getPath() + ".png");
                 assertTrue(Files.exists(png), png + " is missing -- run scripts/derive_armor_art.py");
             }
         }
@@ -73,6 +89,8 @@ class ArmorLayerTintTest {
                 ToolMaterials.of(ToolConstants.CHESTPLATE.parts(), List.of(NAHUATL, COBALT)));
         assertEquals(COBALT, ArmorPieceItem.layerMaterial(chestplate, 0));
         assertEquals(NAHUATL, ArmorPieceItem.layerMaterial(chestplate, 1));
+        assertEquals(COBALT, ArmorPieceItem.layerMaterial(chestplate, ArmorPieceItem.MAILLE_LAYER));
+        assertEquals(NAHUATL, ArmorPieceItem.layerMaterial(chestplate, ArmorPieceItem.PLATING_LAYER));
     }
 
     /** A stack without materials (creative-tab dummy, corrupted save) tints nothing and keeps the gray base. */

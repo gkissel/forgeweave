@@ -230,7 +230,7 @@ public class ApotheosisSocketGameTests {
         GemSockets missing = GemSockets.CODEC
                 .parse(registries.createSerializationContext(NbtOps.INSTANCE), missingGemSockets())
                 .getOrThrow(AssertionError::new);
-        helper.assertTrue(missing.gems().nonEmptyStream().findAny().isEmpty() && missing.unreadable().size() == 1,
+        helper.assertTrue(missing.gems().nonEmptyItemCopyStream().findAny().isEmpty() && missing.unreadable().size() == 1,
                 "setup: apotheosis:gem must be unknown here and kept raw, got " + missing);
         tool.set(ForgeweaveDataComponents.SOCKETS.get(), missing);
 
@@ -252,7 +252,7 @@ public class ApotheosisSocketGameTests {
                         && key.getKey().equals("tooltip.forgeweave.socket.missing_mod"),
                 "the tooltip must say the gem's mod is missing, got " + line);
 
-        ItemStack reloaded = ItemStack.parse(registries, tool.save(registries))
+        ItemStack reloaded = GameTestCompat.parseStack(registries, GameTestCompat.saveStack(registries, tool))
                 .orElseThrow(() -> new AssertionError("the tool must reload"));
         helper.assertTrue(missing.equals(reloaded.get(ForgeweaveDataComponents.SOCKETS.get())),
                 "and the raw gem must survive a save, got " + reloaded.get(ForgeweaveDataComponents.SOCKETS.get()));
@@ -262,7 +262,7 @@ public class ApotheosisSocketGameTests {
     /** One socket holding a real Apotheosis gem's saved form: the item, its gem and its purity. */
     private static Tag missingGemSockets() {
         try {
-            return TagParser.parseTag("{s:[{slot:0,item:{id:\"apotheosis:gem\",count:1,components:{"
+            return TagParser.parseCompoundFully("{s:[{slot:0,item:{id:\"apotheosis:gem\",count:1,components:{"
                     + "\"apotheosis:gem\":\"apotheosis:core/ballast\",\"apotheosis:purity\":\"flawless\"}}}]}")
                     .get("s");
         } catch (CommandSyntaxException e) {

@@ -186,7 +186,7 @@ public class ModernMaterialGameTests {
                 "amethyst_bronze", "crystalstrike", "nahuatl", "venomward");
 
         general.forEach((name, trait) -> {
-            Material material = materials.get(Identifier.fromNamespaceAndPath(Forgeweave.MODID, name));
+            Material material = materials.getValue(Identifier.fromNamespaceAndPath(Forgeweave.MODID, name));
             helper.assertTrue(material != null, name + " should be in the synced material registry");
             for (PartItem.Kind kind : PartItem.Kind.values()) {
                 boolean armorPart = kind == PartItem.Kind.PLATING || kind == PartItem.Kind.MAILLE;
@@ -220,11 +220,11 @@ public class ModernMaterialGameTests {
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_TABLE.get());
         helper.setBlock(FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
                 .setValue(FaucetBlock.FACING, Direction.WEST));
-        return helper.getBlockEntity(CASTING);
+        return helper.getBlockEntity(CASTING, CastingBlockEntity.class);
     }
 
     private static FaucetBlockEntity faucet(GameTestHelper helper) {
-        return helper.getBlockEntity(FAUCET);
+        return helper.getBlockEntity(FAUCET, FaucetBlockEntity.class);
     }
 
     /** Puts {@code stack} in the casting table the way a player does -- through the real right-click path. */

@@ -156,7 +156,7 @@ public class Issue884GameTests {
         pickaxe.set(ForgeweaveDataComponents.ALIEN_PROGRESS2.get(), new AlienProgress(pool, AlienProgress.Portion.ZERO));
 
         player.tickCount = 72; // durability step, tripled: +3 instead of alien's +1.
-        pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+        pickaxe.getItem().inventoryTick(pickaxe, level, player, null);
 
         helper.assertTrue(pickaxe.getMaxDamage() == 103,
                 "expected alien2's tripled 72-tick step to grow max damage to 103, got " + pickaxe.getMaxDamage());
@@ -219,7 +219,7 @@ public class Issue884GameTests {
 
         ForgeweaveTraits.DREADGRIP.afterHit(weapon, level, player, target);
 
-        helper.assertTrue(target.hasEffect(MobEffects.MOVEMENT_SLOWDOWN), "dreadgrip must apply Slowness");
+        helper.assertTrue(target.hasEffect(MobEffects.SLOWNESS), "dreadgrip must apply Slowness");
         helper.assertTrue(target.hasEffect(MobEffects.WEAKNESS), "dreadgrip must apply Weakness");
         helper.assertTrue(target.getTarget() == null, "dreadgrip must drop the target's current AI focus");
         helper.succeed();

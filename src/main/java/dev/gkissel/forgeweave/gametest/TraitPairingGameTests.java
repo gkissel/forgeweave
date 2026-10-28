@@ -296,13 +296,13 @@ public class TraitPairingGameTests {
         LivingEntity control = helper.spawn(EntityType.COW, 2, 2, 2);
         CombatTraitGameTests.onHit(helper, attacker,
                 CombatTraitGameTests.tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(), 3.0F), control);
-        helper.assertTrue(control.getEffect(MobEffects.MOVEMENT_SLOWDOWN) == null,
+        helper.assertTrue(control.getEffect(MobEffects.SLOWNESS) == null,
                 "a plain hatchet must leave the target unslowed");
 
         LivingEntity target = helper.spawn(EntityType.COW, 3, 2, 3);
         CombatTraitGameTests.onHit(helper, attacker,
                 CombatTraitGameTests.tool(ForgeweaveItems.TOOL_HATCHET.get(), ids("cyanite_chill"), 3.0F), target);
-        helper.assertTrue(target.getEffect(MobEffects.MOVEMENT_SLOWDOWN) != null,
+        helper.assertTrue(target.getEffect(MobEffects.SLOWNESS) != null,
                 "cyanite chill must slow what it strikes");
         helper.succeed();
     }
@@ -356,7 +356,7 @@ public class TraitPairingGameTests {
 
     /** How far a small blast 1.5 blocks away pushes a zombie wearing a staged chestplate of {@code traits}. */
     private static double blasted(GameTestHelper helper, int x, String... traits) {
-        net.minecraft.world.entity.monster.Zombie zombie = helper.spawn(EntityType.ZOMBIE, x, 2, 2);
+        net.minecraft.world.entity.monster.zombie.Zombie zombie = helper.spawn(EntityType.ZOMBIE, x, 2, 2);
         zombie.setNoAi(true);
         Player builder = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack piece = ToolAssembly.assembleAt(helper, builder, STATION, ForgeweaveBlocks.TOOL_STATION.get(),
@@ -430,7 +430,7 @@ public class TraitPairingGameTests {
     /** Checklist line 243: whoever strikes a cyanite wearer comes away with Slowness II for 5 seconds. */
     @GameTest(template = "empty")
     public static void cyaniteChillbackSlowsWhoeverStrikesTheWearer(GameTestHelper helper) {
-        assertTheAttackerComesAwayWith(helper, "cyanite_chillback", MobEffects.MOVEMENT_SLOWDOWN, 1);
+        assertTheAttackerComesAwayWith(helper, "cyanite_chillback", MobEffects.SLOWNESS, 1);
         helper.succeed();
     }
 
@@ -525,7 +525,7 @@ public class TraitPairingGameTests {
         registry.register(net.minecraft.resources.ResourceKey.create(
                         dev.gkissel.forgeweave.material.Material.REGISTRY, materialId),
                 parsed, net.minecraft.core.RegistrationInfo.BUILT_IN);
-        var registries = net.minecraft.core.HolderLookup.Provider.create(java.util.stream.Stream.of(registry.asLookup()));
+        var registries = net.minecraft.core.HolderLookup.Provider.create(java.util.stream.Stream.of(registry));
 
         ItemStack pickaxe = dev.gkissel.forgeweave.menu.ToolAssemblyRecipes.assemble(registries,
                         ToolAssembly.entryFor(ForgeweaveItems.TOOL_PICKAXE.get()), List.of(materialId, materialId, materialId))

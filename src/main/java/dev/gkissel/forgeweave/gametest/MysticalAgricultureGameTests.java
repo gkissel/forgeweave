@@ -9,7 +9,7 @@ import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 
@@ -88,7 +88,7 @@ public class MysticalAgricultureGameTests {
         ArmorPieceItem helmet = ForgeweaveItems.ARMOR_HELMET.get();
         helper.assertValueEqual(helmet.getClass(), ArmorPieceItem.class,
                 "the helmet's class without Mystical Agriculture");
-        helper.assertValueEqual(helmet.getType(), ArmorItem.Type.HELMET, "the helmet's armour slot");
+        helper.assertValueEqual(helmet.getType(), ArmorType.HELMET, "the helmet's armour slot");
         helper.succeed();
     }
 
@@ -203,7 +203,7 @@ public class MysticalAgricultureGameTests {
         tool.set(DataComponents.CUSTOM_DATA, CustomData.of(augments));
 
         var registries = helper.getLevel().registryAccess();
-        ItemStack decoded = ItemStack.parse(registries, tool.save(registries)).orElseThrow();
+        ItemStack decoded = GameTestCompat.parseStack(registries, GameTestCompat.saveStack(registries, tool)).orElseThrow();
 
         helper.assertValueEqual(decoded.getItem(), tool.getItem(), "the decoded item");
         helper.assertValueEqual(ForgeweaveModifiers.entry(decoded, REINFORCED).level(), 2,

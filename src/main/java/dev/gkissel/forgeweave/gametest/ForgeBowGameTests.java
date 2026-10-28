@@ -195,14 +195,14 @@ public class ForgeBowGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setYRot(0.0F);
         player.setXRot(0.0F);
-        player.moveTo(helper.absoluteVec(new Vec3(2.5, 2.0, 2.5)));
+        player.snapTo(helper.absoluteVec(new Vec3(2.5, 2.0, 2.5)));
         ItemStack bow = crossbow(helper, player, new BlockPos(1, 1, 1));
         giveArrows(player, 5);
         player.setItemInHand(InteractionHand.MAIN_HAND, bow);
 
         // Phase one: a full draw (0.5 draw speed on a 45-tick draw time, so 90 ticks) loads it.
         List<Arrow> whileLoading = arrowsFrom(helper, player, () -> {
-            InteractionResult draw = bow.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND).getResult();
+            InteractionResult draw = bow.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
             helper.assertTrue(draw == InteractionResult.CONSUME, "an unloaded crossbow starts a draw, got " + draw);
             bow.getItem().releaseUsing(bow, helper.getLevel(), player, bow.getUseDuration(player) - 90);
             player.stopUsingItem();
@@ -219,14 +219,13 @@ public class ForgeBowGameTests {
         ItemStack swapped = player.getInventory().getItem(3);
         helper.assertTrue(CrossbowItem.isLoaded(swapped), "the charge survives a hotbar swap");
         RegistryAccess registries = helper.getLevel().registryAccess();
-        ItemStack reloaded = ItemStack.parse(registries, (CompoundTag) swapped.save(registries)).orElseThrow();
+        ItemStack reloaded = GameTestCompat.parseStack(registries, GameTestCompat.saveStack(registries, swapped)).orElseThrow();
         helper.assertTrue(CrossbowItem.isLoaded(reloaded), "the charge survives a save/reload");
 
         // Phase two: the next right-click fires at full power without a draw and clears the flag.
         player.setItemInHand(InteractionHand.MAIN_HAND, swapped);
         List<Arrow> arrows = arrowsFrom(helper, player, () -> {
-            InteractionResult fire = swapped.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND)
-                    .getResult();
+            InteractionResult fire = swapped.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
             helper.assertTrue(fire == InteractionResult.SUCCESS, "a loaded crossbow fires on use, got " + fire);
         });
         helper.assertTrue(!CrossbowItem.isLoaded(swapped), "firing clears the charge");
@@ -248,7 +247,7 @@ public class ForgeBowGameTests {
     @GameTest(template = "empty")
     public static void aPartialCrankDoesNotLoadTheCrossbow(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        player.moveTo(helper.absoluteVec(new Vec3(2.5, 2.0, 2.5)));
+        player.snapTo(helper.absoluteVec(new Vec3(2.5, 2.0, 2.5)));
         ItemStack bow = crossbow(helper, player, new BlockPos(1, 1, 1));
         giveArrows(player, 5);
         player.setItemInHand(InteractionHand.MAIN_HAND, bow);
@@ -264,7 +263,7 @@ public class ForgeBowGameTests {
         helper.assertTrue(fired.isEmpty(), "and fires nothing");
         helper.assertTrue(arrowsHeld(player) == 5, "and spends nothing");
         // An unloaded crossbow's right-click is an ordinary draw, not a shot.
-        helper.assertTrue(bow.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND).getResult()
+        helper.assertTrue(bow.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND)
                         == InteractionResult.CONSUME,
                 "an unloaded crossbow still draws");
         player.stopUsingItem();
@@ -280,7 +279,7 @@ public class ForgeBowGameTests {
     @GameTest(template = "empty")
     public static void onlyALoadedCrossbowShowsABolt(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        player.moveTo(helper.absoluteVec(new Vec3(2.5, 2.0, 2.5)));
+        player.snapTo(helper.absoluteVec(new Vec3(2.5, 2.0, 2.5)));
         ItemStack bow = crossbow(helper, player, new BlockPos(1, 1, 1));
         CrossbowItem item = (CrossbowItem) bow.getItem();
         giveArrows(player, 5);
@@ -334,7 +333,7 @@ public class ForgeBowGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setYRot(0.0F);
         player.setXRot(0.0F);
-        player.moveTo(helper.absoluteVec(new Vec3(2.5, 2.0, 2.5)));
+        player.snapTo(helper.absoluteVec(new Vec3(2.5, 2.0, 2.5)));
         player.setDeltaMovement(new Vec3(4.0, 0.0, 0.0)); // moving sideways as the shot fires
         ItemStack bow = crossbow(helper, player, new BlockPos(1, 1, 1));
         CrossbowItem.setLoaded(bow, true);

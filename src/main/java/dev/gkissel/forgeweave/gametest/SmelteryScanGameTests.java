@@ -112,7 +112,7 @@ public class SmelteryScanGameTests {
     @GameTest(template = "empty", timeoutTicks = 400)
     public static void anUnloadedRegionKeepsTheStructureAndItsContents(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        level.getChunkSource().addRegionTicket(TicketType.FORCED, CORE_CHUNK, 0, CORE_CHUNK);
+        level.getChunkSource().addTicketWithRadius(TicketType.FORCED, CORE_CHUNK, 0);
         buildStraddlingSmeltery(level);
 
         SmelteryControllerBlockEntity core = (SmelteryControllerBlockEntity) level.getBlockEntity(FAR_CORE);
@@ -130,7 +130,7 @@ public class SmelteryScanGameTests {
                             "expected a scan over an unloaded region to leave the structure alone, but it reported " + reason(core));
                     helper.assertValueEqual(core.tank().getFluidAmount(), FILLED_AMOUNT,
                             "tank contents after a scan over an unloaded region");
-                    level.getChunkSource().removeRegionTicket(TicketType.FORCED, CORE_CHUNK, 0, CORE_CHUNK);
+                    level.getChunkSource().removeTicketWithRadius(TicketType.FORCED, CORE_CHUNK, 0);
                 })
                 .thenSucceed();
     }
@@ -143,7 +143,7 @@ public class SmelteryScanGameTests {
     /** Core of the straddling smeltery, far outside anything the test framework keeps loaded. */
     private static final BlockPos FAR_CORE = new BlockPos(8190, 64, 8182);
     /** The chunk holding {@link #FAR_CORE}; blocks past x = 8192 belong to the next one along. */
-    private static final ChunkPos CORE_CHUNK = new ChunkPos(FAR_CORE);
+    private static final ChunkPos CORE_CHUNK = ChunkPos.containing(FAR_CORE);
     /** The opposite wall, in that next chunk along -- the block the test waits to see unloaded. */
     private static final BlockPos FAR_WALL = new BlockPos(8194, 64, 8182);
 
@@ -205,7 +205,7 @@ public class SmelteryScanGameTests {
     private static SmelteryControllerBlockEntity placeCore(GameTestHelper helper, BlockPos pos, Direction facing) {
         helper.setBlock(pos, ForgeweaveBlocks.STANDARD_CORE.get().defaultBlockState()
                 .setValue(HorizontalDirectionalBlock.FACING, facing));
-        return helper.getBlockEntity(pos);
+        return helper.getBlockEntity(pos, SmelteryControllerBlockEntity.class);
     }
 
     private static String reason(SmelteryControllerBlockEntity core) {

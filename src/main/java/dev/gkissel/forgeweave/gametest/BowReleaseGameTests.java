@@ -52,7 +52,7 @@ public class BowReleaseGameTests {
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         player.setGameMode(mode);
         Vec3 stand = helper.absoluteVec(new Vec3(2.5, 2.0, 2.5));
-        player.moveTo(stand.x, stand.y, stand.z, 0.0F, 0.0F);
+        player.snapTo(stand.x, stand.y, stand.z, 0.0F, 0.0F);
         helper.onEachTick(() -> {
             if (!player.isRemoved()) {
                 player.doTick();
@@ -180,7 +180,7 @@ public class BowReleaseGameTests {
             ItemStack held = player.getMainHandItem();
             helper.assertTrue(CrossbowItem.isLoaded(held), "the crossbow must be loaded before the aimed shot");
             // The state handleUseItem leaves: aim updated from the packet, head not yet re-synced.
-            player.absRotateTo(90.0F, 0.0F);
+            player.absSnapRotationTo(90.0F, 0.0F);
             player.setYHeadRot(0.0F);
             player.gameMode.useItem(player, helper.getLevel(), held, InteractionHand.MAIN_HAND);
             helper.runAfterDelay(2, () -> {

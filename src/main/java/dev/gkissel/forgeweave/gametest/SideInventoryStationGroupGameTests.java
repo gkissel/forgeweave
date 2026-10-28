@@ -82,7 +82,7 @@ public class SideInventoryStationGroupGameTests {
 
         helper.setBlock(chestPos, Blocks.CHEST);
         helper.setBlock(STATION_POS, ForgeweaveBlocks.CRAFTING_STATION.get());
-        if (helper.getBlockEntity(chestPos) instanceof net.minecraft.world.level.block.entity.ChestBlockEntity chest) {
+        if (helper.getBlockEntity(chestPos, net.minecraft.world.level.block.entity.ChestBlockEntity.class) instanceof net.minecraft.world.level.block.entity.ChestBlockEntity chest) {
             chest.setItem(0, new ItemStack(Items.DIAMOND));
         }
 

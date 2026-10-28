@@ -223,14 +223,14 @@ public class UtilityTraitGameTests {
 
     /** Sets the level's day time and immediately recomputes {@code isDay}/{@code isNight}'s input. */
     private static void daytime(GameTestHelper helper, long time) {
-        helper.getLevel().setDayTime(time);
+        GameTestCompat.setDayTime(helper.getLevel(), time);
         helper.getLevel().updateSkyBrightness();
     }
 
     /** As {@link TraitGameTests}' own helper: drives {@code inventoryTick} directly, many times over. */
     private static void tick(GameTestHelper helper, Player holder, ItemStack stack, int ticks) {
         for (int i = 0; i < ticks; i++) {
-            stack.getItem().inventoryTick(stack, helper.getLevel(), holder, 0, false);
+            stack.getItem().inventoryTick(stack, helper.getLevel(), holder, null);
         }
     }
 

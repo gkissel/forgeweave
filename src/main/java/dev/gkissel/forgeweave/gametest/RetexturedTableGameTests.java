@@ -9,10 +9,12 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.storage.TagValueInput;
 
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
@@ -54,8 +56,8 @@ public class RetexturedTableGameTests {
         helper.assertTrue(blockEntity.getTexture() == Blocks.SPRUCE_LOG,
                 "expected the block entity to store spruce_log, got " + blockEntity.getTexture());
 
-        ItemStack pickedBlock = ForgeweaveBlocks.PART_BUILDER.get()
-                .getCloneItemStack(helper.getLevel(), helper.absolutePos(pos), helper.getBlockState(pos));
+        ItemStack pickedBlock = helper.getBlockState(pos)
+                .getCloneItemStack(helper.getLevel(), helper.absolutePos(pos), false);
         helper.assertTrue(spruceLog.equals(pickedBlock.get(ForgeweaveDataComponents.TEXTURE.get())),
                 "expected the picked item to carry spruce_log, got " + pickedBlock.get(ForgeweaveDataComponents.TEXTURE.get()));
 
@@ -103,9 +105,9 @@ public class RetexturedTableGameTests {
         CraftingInput input = CraftingInput.of(1, 2,
                 List.of(new ItemStack(ForgeweaveItems.PATTERN_BLANK.get()), new ItemStack(Blocks.CRAFTING_TABLE)));
 
-        ItemStack crafted = level.getRecipeManager()
+        ItemStack crafted = level.recipeAccess()
                 .getRecipeFor(RecipeType.CRAFTING, input, level)
-                .map(match -> match.value().assemble(input, level.registryAccess()))
+                .map(match -> match.value().assemble(input))
                 .orElse(ItemStack.EMPTY);
 
         helper.assertTrue(crafted.is(ForgeweaveItems.TOOL_STATION.get()),
@@ -151,7 +153,8 @@ public class RetexturedTableGameTests {
         helper.assertTrue(!updateTag.isEmpty(), "expected a non-empty update tag once a non-default texture is set");
 
         PartBuilderBlockEntity restored = new PartBuilderBlockEntity(source.getBlockPos(), source.getBlockState());
-        restored.handleUpdateTag(updateTag, helper.getLevel().registryAccess());
+        restored.handleUpdateTag(
+                TagValueInput.create(ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), updateTag));
 
         helper.assertTrue(restored.getTexture() == Blocks.SPRUCE_LOG,
                 "expected the update tag round-trip to restore spruce_log, got " + restored.getTexture());

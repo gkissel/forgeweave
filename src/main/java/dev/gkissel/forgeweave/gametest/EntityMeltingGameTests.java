@@ -3,6 +3,7 @@ package dev.gkissel.forgeweave.gametest;
 import net.minecraft.core.BlockPos;
 import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -252,9 +253,9 @@ public class EntityMeltingGameTests {
     @SuppressWarnings("unchecked")
     private static <T extends LivingEntity> T spawnInside(GameTestHelper helper, EntityType<T> type) {
         Vec3 pos = helper.absoluteVec(new BlockPos(1, 2, 1).getCenter());
-        T entity = type.create(helper.getLevel());
+        T entity = type.create(helper.getLevel(), EntitySpawnReason.MOB_SUMMONED);
         helper.assertTrue(entity != null, "expected " + type + " to be creatable");
-        entity.moveTo(pos.x, pos.y, pos.z, 0f, 0f);
+        entity.snapTo(pos.x, pos.y, pos.z, 0f, 0f);
         // No AI: a mob left to its own devices walks out of a two-block box mid-test.
         if (entity instanceof Mob mob) {
             mob.setNoAi(true);

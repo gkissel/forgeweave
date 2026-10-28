@@ -140,10 +140,10 @@ public class UpgradeReclaimGameTests {
             helper.assertTrue(player.getInventory().countItem(Items.NETHER_STAR) == 3,
                     "a host's reclaimed items must come back whatever returnExchangedParts says, found "
                             + player.getInventory().countItem(Items.NETHER_STAR));
-            helper.assertTrue(player.getInventory().items.stream()
+            helper.assertTrue(player.getInventory().getNonEquipmentItems().stream()
                             .noneMatch(stack -> stack.is(ForgeweaveItems.PART_PICKAXE_HEAD.get())),
                     "the plain displaced head must not come back while the option is off, got "
-                            + player.getInventory().items);
+                            + player.getInventory().getNonEquipmentItems());
         } finally {
             ForgeweaveConfig.RETURN_EXCHANGED_PARTS.set(true);
             UpgradeHosts.clear();

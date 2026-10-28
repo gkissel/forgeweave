@@ -116,7 +116,7 @@ public class IdleTickCostGameTests {
             helper.assertFalse(worn.isEmpty(), "the set must cover the " + slot.getName() + " slot");
             ItemStack before = worn.copy();
             for (int tick = 0; tick < TICKS; tick++) {
-                worn.inventoryTick(helper.getLevel(), player, slot.getIndex(), false);
+                worn.inventoryTick(helper.getLevel(), player, slot);
             }
             helper.assertTrue(ItemStack.isSameItemSameComponents(before, worn) && before.getCount() == worn.getCount(),
                     "the worn " + slot.getName() + " piece must be unchanged after " + TICKS + " ticks: "

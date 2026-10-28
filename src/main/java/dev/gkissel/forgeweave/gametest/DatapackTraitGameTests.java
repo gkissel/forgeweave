@@ -78,9 +78,9 @@ public class DatapackTraitGameTests {
     @GameTest(template = "empty")
     public static void aDefinitionFailingItsConditionsNeverRegisters(GameTestHelper helper) {
         Registry<TraitDefinition> definitions = helper.getLevel().registryAccess().lookupOrThrow(TraitDefinition.REGISTRY);
-        helper.assertTrue(definitions.get(PACK_ABSENT) == null,
+        helper.assertTrue(definitions.getValue(PACK_ABSENT) == null,
                 "expected the mod_loaded-gated definition to be absent from the registry");
-        helper.assertTrue(definitions.get(PACK_POISON) != null,
+        helper.assertTrue(definitions.getValue(PACK_POISON) != null,
                 "expected the unconditioned definition to be present in the registry");
         helper.assertTrue(ForgeweaveTraits.lookup(PACK_ABSENT) == null,
                 "expected no behaviour behind the mod_loaded-gated definition's id");

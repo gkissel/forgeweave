@@ -88,11 +88,11 @@ public class GemCastGameTests {
         helper.setBlock(CASTING, casting);
         helper.setBlock(FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
                 .setValue(FaucetBlock.FACING, Direction.WEST));
-        return helper.getBlockEntity(CASTING);
+        return helper.getBlockEntity(CASTING, CastingBlockEntity.class);
     }
 
     private static FaucetBlockEntity faucet(GameTestHelper helper) {
-        return helper.getBlockEntity(FAUCET);
+        return helper.getBlockEntity(FAUCET, FaucetBlockEntity.class);
     }
 
     /** Puts {@code stack} in the casting table the way a player does -- through the real right-click path. */

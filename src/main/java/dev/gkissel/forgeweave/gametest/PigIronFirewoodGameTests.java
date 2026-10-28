@@ -107,9 +107,9 @@ public class PigIronFirewoodGameTests {
                 new ItemStack(Items.BLAZE_POWDER),
                 new ItemStack(Items.LAVA_BUCKET)));
 
-        ItemStack crafted = level.getRecipeManager()
+        ItemStack crafted = level.recipeAccess()
                 .getRecipeFor(RecipeType.CRAFTING, grid, level)
-                .map(match -> match.value().assemble(grid, level.registryAccess()))
+                .map(match -> match.value().assemble(grid))
                 .orElse(ItemStack.EMPTY);
 
         helper.assertTrue(crafted.is(ForgeweaveItems.FIREWOOD.get()),

@@ -124,13 +124,14 @@ public class WeaponMiningGameTests {
                 ForgeweaveItems.TOOL_FRYING_PAN.get(), ForgeweaveItems.TOOL_BATTLESIGN.get(),
                 ForgeweaveItems.TOOL_DAGGER.get(), ForgeweaveItems.TOOL_KATANA.get(),
                 ForgeweaveItems.TOOL_SCIMITAR.get(), ForgeweaveItems.TOOL_WARMACE.get())) {
-            helper.assertFalse(weapon.canAttackBlock(stone, helper.getLevel(), helper.absolutePos(pos), creative),
+            helper.assertFalse(weapon.canDestroyBlock(new ItemStack(weapon), stone, helper.getLevel(), helper.absolutePos(pos), creative),
                     weapon + " must refuse to break blocks in creative (issue #437)");
-            helper.assertTrue(weapon.canAttackBlock(stone, helper.getLevel(), helper.absolutePos(pos), survival),
+            helper.assertTrue(weapon.canDestroyBlock(new ItemStack(weapon), stone, helper.getLevel(), helper.absolutePos(pos), survival),
                     weapon + " must still break blocks in survival");
         }
-        helper.assertTrue(ForgeweaveItems.TOOL_BATTLEAXE.get()
-                        .canAttackBlock(stone, helper.getLevel(), helper.absolutePos(pos), creative),
+        helper.assertTrue(ForgeweaveItems.TOOL_BATTLEAXE.get().canDestroyBlock(
+                        new ItemStack(ForgeweaveItems.TOOL_BATTLEAXE.get()), stone, helper.getLevel(),
+                        helper.absolutePos(pos), creative),
                 "the battleaxe is an axe upstream and keeps creative block breaking");
         helper.succeed();
     }

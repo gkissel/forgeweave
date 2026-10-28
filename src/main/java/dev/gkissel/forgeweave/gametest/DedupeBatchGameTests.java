@@ -101,7 +101,7 @@ public class DedupeBatchGameTests {
         for (int i = 0; i < 200 && !applied; i++) {
             helper.setBlock(pos, Blocks.STONE);
             player.gameMode.destroyBlock(helper.absolutePos(pos));
-            applied = player.hasEffect(MobEffects.DIG_SLOWDOWN);
+            applied = player.hasEffect(MobEffects.MINING_FATIGUE);
         }
 
         helper.assertTrue(applied, "overburdened should have applied Mining Fatigue within 200 mined blocks");
@@ -173,11 +173,11 @@ public class DedupeBatchGameTests {
     public static void dayboundGlowsByDay(GameTestHelper helper) {
         ServerPlayer player = holding(helper, List.of(traitId("daybound")));
         ItemStack pickaxe = player.getMainHandItem();
-        helper.getLevel().setDayTime(6000L);
+        GameTestCompat.setDayTime(helper.getLevel(), 6000L);
         helper.getLevel().updateSkyBrightness();
 
         for (int i = 0; i < 200 && !player.hasEffect(MobEffects.GLOWING); i++) {
-            pickaxe.getItem().inventoryTick(pickaxe, helper.getLevel(), player, 0, false);
+            pickaxe.getItem().inventoryTick(pickaxe, helper.getLevel(), player, null);
         }
 
         helper.assertTrue(player.hasEffect(MobEffects.GLOWING), "daybound should have glowed the wielder by day");
@@ -193,14 +193,14 @@ public class DedupeBatchGameTests {
         CombatHit hit = new CombatHit(helper.getLevel(), player.getMainHandItem(), player, player,
                 helper.getLevel().damageSources().generic());
 
-        helper.getLevel().setDayTime(18000L);
+        GameTestCompat.setDayTime(helper.getLevel(), 18000L);
         helper.getLevel().updateSkyBrightness();
         float nightDamage = 5.0F;
         for (CombatSeam seam : seams) {
             nightDamage = seam.preHit(hit, 5.0F, nightDamage);
         }
 
-        helper.getLevel().setDayTime(6000L);
+        GameTestCompat.setDayTime(helper.getLevel(), 6000L);
         helper.getLevel().updateSkyBrightness();
         float dayDamage = 5.0F;
         for (CombatSeam seam : seams) {

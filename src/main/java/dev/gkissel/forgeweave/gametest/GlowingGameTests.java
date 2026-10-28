@@ -170,7 +170,7 @@ public class GlowingGameTests {
     }
 
     private static void tick(GameTestHelper helper, ItemStack tool, Player player, boolean selected) {
-        tool.getItem().inventoryTick(tool, helper.getLevel(), player, 0, selected);
+        tool.getItem().inventoryTick(tool, helper.getLevel(), player, selected ? net.minecraft.world.entity.EquipmentSlot.MAINHAND : null);
     }
 
     /** Issue #780: the station loaded with {@code tool} plus every reagent, each in its own free slot. */

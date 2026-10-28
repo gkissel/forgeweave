@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
@@ -17,11 +18,13 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantable;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.GameType;
+import net.neoforged.neoforge.event.EventHooks;
 
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
@@ -29,6 +32,7 @@ import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.item.ToolItem;
 
 /**
  * docs/SCOPE.md M1 issue #13: the {@code allowVanillaEnchanting} config flag. Covers both flag
@@ -53,7 +57,7 @@ public class EnchantingGameTests {
         ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.set(false);
         ItemStack pickaxe = assembledPickaxe(helper);
 
-        helper.assertFalse(pickaxe.isEnchantable(),
+        helper.assertFalse(tableOpens(helper, pickaxe),
                 "a Forgeweave tool should be rejected by the enchanting table while allowVanillaEnchanting is off");
 
         helper.succeed();
@@ -65,7 +69,7 @@ public class EnchantingGameTests {
         try {
             ItemStack pickaxe = assembledPickaxe(helper);
 
-            helper.assertTrue(pickaxe.isEnchantable(),
+            helper.assertTrue(pickaxe.isEnchantable() && tableOpens(helper, pickaxe),
                     "a Forgeweave tool should be accepted by the enchanting table while allowVanillaEnchanting is on");
 
             helper.succeed();
@@ -85,9 +89,9 @@ public class EnchantingGameTests {
         try {
             ItemStack pickaxe = assembledPickaxe(helper);
 
-            helper.assertTrue(pickaxe.getEnchantmentValue() > 0,
+            helper.assertTrue(enchantmentValue(pickaxe) > 0,
                     "a Forgeweave tool needs a non-zero enchantment value or the table offers nothing, got "
-                            + pickaxe.getEnchantmentValue());
+                            + enchantmentValue(pickaxe));
             List<EnchantmentInstance> offers =
                     EnchantmentHelper.getAvailableEnchantmentResults(30, pickaxe, tableEnchantments(helper));
             helper.assertTrue(!offers.isEmpty(),
@@ -111,7 +115,8 @@ public class EnchantingGameTests {
         ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.set(false);
         ItemStack pickaxe = assembledPickaxe(helper);
 
-        helper.assertFalse(pickaxe.isBookEnchantable(new ItemStack(Items.ENCHANTED_BOOK)),
+        helper.assertFalse(((ToolItem) pickaxe.getItem()).isBookEnchantable(pickaxe, new ItemStack(Items.ENCHANTED_BOOK))
+                        || pickaxe.supportsEnchantment(unbreaking(helper)),
                 "a Forgeweave tool should refuse an enchanted book at the anvil while allowVanillaEnchanting is off");
 
         helper.succeed();
@@ -123,7 +128,8 @@ public class EnchantingGameTests {
         try {
             ItemStack pickaxe = assembledPickaxe(helper);
 
-            helper.assertTrue(pickaxe.isBookEnchantable(new ItemStack(Items.ENCHANTED_BOOK)),
+            helper.assertTrue(((ToolItem) pickaxe.getItem()).isBookEnchantable(pickaxe, new ItemStack(Items.ENCHANTED_BOOK))
+                            && pickaxe.supportsEnchantment(unbreaking(helper)),
                     "a Forgeweave tool should accept an enchanted book at the anvil while allowVanillaEnchanting is on");
 
             helper.succeed();
@@ -139,9 +145,8 @@ public class EnchantingGameTests {
         ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.set(false);
         ItemStack pickaxe = assembledPickaxe(helper);
 
-        helper.assertTrue(pickaxe.getEnchantmentValue() == 0,
-                "a Forgeweave tool's enchantment value must be 0 while the flag is off, got "
-                        + pickaxe.getEnchantmentValue());
+        helper.assertFalse(tableOpens(helper, pickaxe),
+                "every enchanting table row must come back at level 0 for a Forgeweave tool while the flag is off");
         helper.assertTrue(EnchantmentHelper.getAvailableEnchantmentResults(30, pickaxe, tableEnchantments(helper)).isEmpty(),
                 "an enchanting table must offer a Forgeweave tool nothing while allowVanillaEnchanting is off");
 
@@ -161,9 +166,10 @@ public class EnchantingGameTests {
         // VANISHING_ENCHANTABLE is `#durability_enchantable` plus a few extras upstream of us, so
         // durability membership is what carries Curse of Vanishing too.
         assertTagged(helper, ForgeweaveItems.TOOL_PICKAXE.get(), ItemTags.VANISHING_ENCHANTABLE);
-        assertTagged(helper, ForgeweaveItems.TOOL_BROADSWORD.get(), ItemTags.SWORD_ENCHANTABLE);
+        assertTagged(helper, ForgeweaveItems.TOOL_BROADSWORD.get(), ItemTags.MELEE_WEAPON_ENCHANTABLE);
+        assertTagged(helper, ForgeweaveItems.TOOL_BROADSWORD.get(), ItemTags.SWEEPING_ENCHANTABLE);
         assertTagged(helper, ForgeweaveItems.TOOL_BROADSWORD.get(), ItemTags.SHARP_WEAPON_ENCHANTABLE);
-        // Fire Aspect's tag is `#sword_enchantable` plus the mace, so the swords ride in on the above.
+        // Fire Aspect's tag is `#melee_weapon` plus the mace, so the swords ride in on the above.
         assertTagged(helper, ForgeweaveItems.TOOL_BROADSWORD.get(), ItemTags.FIRE_ASPECT_ENCHANTABLE);
         assertTagged(helper, ForgeweaveItems.TOOL_FRYING_PAN.get(), ItemTags.WEAPON_ENCHANTABLE);
         assertTagged(helper, ForgeweaveItems.TOOL_SHORTBOW.get(), ItemTags.BOW_ENCHANTABLE);
@@ -180,8 +186,7 @@ public class EnchantingGameTests {
      */
     @GameTest(template = "empty")
     public static void anvilBooksFollowTheFlag(GameTestHelper helper) {
-        Holder<Enchantment> unbreaking = helper.getLevel().registryAccess()
-                .lookupOrThrow(Registries.ENCHANTMENT).getHolderOrThrow(Enchantments.UNBREAKING);
+        Holder<Enchantment> unbreaking = unbreaking(helper);
         ItemStack pickaxe = ForgeweaveItems.TOOL_PICKAXE.get().getDefaultInstance();
 
         ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.set(false);
@@ -220,16 +225,16 @@ public class EnchantingGameTests {
             ItemStack warmace = ToolAssembly.assembleAtForge(helper, player, pos,
                     ToolAssembly.entryFor(ForgeweaveItems.TOOL_WARMACE.get()), List.of("wood", "stone", "wood"));
 
-            helper.assertTrue(warmace.isEnchantable(),
+            helper.assertTrue(warmace.isEnchantable() && tableOpens(helper, warmace),
                     "a warmace must be accepted by the enchanting table while allowVanillaEnchanting is on");
 
             Registry<Enchantment> enchantments = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
             List<EnchantmentInstance> offered = EnchantmentHelper.getAvailableEnchantmentResults(15, warmace,
-                    enchantments.getTag(EnchantmentTags.IN_ENCHANTING_TABLE).orElseThrow().stream());
+                    enchantments.get(EnchantmentTags.IN_ENCHANTING_TABLE).orElseThrow().stream());
 
             helper.assertTrue(
-                    offered.stream().anyMatch(instance -> instance.enchantment.is(Enchantments.DENSITY)
-                            || instance.enchantment.is(Enchantments.BREACH)),
+                    offered.stream().anyMatch(instance -> instance.enchantment().is(Enchantments.DENSITY)
+                            || instance.enchantment().is(Enchantments.BREACH)),
                     "the enchanting table must actually offer a warmace one of vanilla's own mace enchantments "
                             + "(Density/Breach), not just accept it into the slot; got " + offered);
 
@@ -269,8 +274,12 @@ public class EnchantingGameTests {
     @GameTest(template = "empty")
     public static void materialEnchantabilityStaysGatedByTheFlag(GameTestHelper helper) {
         ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.set(false);
-        assertValue(helper, pickaxe(helper, "paper", "paper", "paper"), 0,
-                "an all-paper pickaxe while allowVanillaEnchanting is off");
+        ItemStack paper = pickaxe(helper, "paper", "paper", "paper");
+        // 26.1: the value is the static minecraft:enchantable component, so it stays the material's;
+        // the flag closes the table instead, every row forced to level 0 (ToolItem#onEnchantmentLevelSet).
+        assertValue(helper, paper, 22, "an all-paper pickaxe while allowVanillaEnchanting is off");
+        helper.assertFalse(tableOpens(helper, paper),
+                "an all-paper pickaxe must still be offered nothing while allowVanillaEnchanting is off");
         helper.succeed();
     }
 
@@ -310,15 +319,15 @@ public class EnchantingGameTests {
             List<EnchantmentInstance> offers = EnchantmentHelper.selectEnchantment(
                     RandomSource.create(seed), stack, 30, tableEnchantments(helper));
             for (EnchantmentInstance offer : offers) {
-                best = Math.max(best, offer.level);
+                best = Math.max(best, offer.level());
             }
         }
         return best;
     }
 
     private static void assertValue(GameTestHelper helper, ItemStack stack, int expected, String what) {
-        helper.assertTrue(stack.getEnchantmentValue() == expected,
-                what + " should have enchantment value " + expected + ", got " + stack.getEnchantmentValue());
+        helper.assertTrue(enchantmentValue(stack) == expected,
+                what + " should have enchantment value " + expected + ", got " + enchantmentValue(stack));
     }
 
     private static ItemStack pickaxe(GameTestHelper helper, String head, String binding, String handle) {
@@ -333,7 +342,43 @@ public class EnchantingGameTests {
     /** The enchantments a table can draw from -- {@code EnchantmentMenu#getEnchantmentList}'s set. */
     private static Stream<Holder<Enchantment>> tableEnchantments(GameTestHelper helper) {
         return helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
-                .getTag(EnchantmentTags.IN_ENCHANTING_TABLE).stream().flatMap(holders -> holders.stream());
+                .get(EnchantmentTags.IN_ENCHANTING_TABLE).stream().flatMap(holders -> holders.stream());
+    }
+
+    /**
+     * The enchantment value the table and {@code EnchantmentHelper} read since 1.21.5: the stack's
+     * {@code minecraft:enchantable} component, 0 without one (vanilla's own fallback).
+     */
+    private static int enchantmentValue(ItemStack stack) {
+        Enchantable enchantable = stack.get(DataComponents.ENCHANTABLE);
+        return enchantable == null ? 0 : enchantable.value();
+    }
+
+    /**
+     * The enchanting table's three rows for {@code stack}, exactly as {@code EnchantmentMenu#slotsChanged}
+     * computes them with fifteen bookshelves: vanilla's cost, zeroed below the row's floor, then handed
+     * to NeoForge's {@code EnchantmentLevelSetEvent}, which is where Forgeweave's config gate closes
+     * the table since 1.21.5 retired {@code Item#isEnchantable}.
+     */
+    private static boolean tableOpens(GameTestHelper helper, ItemStack stack) {
+        if (!stack.isEnchantable()) {
+            return false;
+        }
+        RandomSource random = RandomSource.create(0L);
+        boolean open = false;
+        for (int row = 0; row < 3; row++) {
+            int cost = EnchantmentHelper.getEnchantmentCost(random, row, 15, stack);
+            if (cost < row + 1) {
+                cost = 0;
+            }
+            cost = EventHooks.onEnchantmentLevelSet(helper.getLevel(), helper.absolutePos(BlockPos.ZERO), row, 15, stack, cost);
+            open |= cost > 0;
+        }
+        return open;
+    }
+
+    private static Holder<Enchantment> unbreaking(GameTestHelper helper) {
+        return helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.UNBREAKING);
     }
 
     private static ItemStack assembledPickaxe(GameTestHelper helper) {

@@ -755,9 +755,9 @@ public class ModifierGameTests {
         CraftingInput repriced =
                 CraftingInput.of(2, 1, List.of(new ItemStack(Items.NETHER_STAR), new ItemStack(Items.GOLD_BLOCK)));
 
-        ItemStack crafted = level.getRecipeManager()
+        ItemStack crafted = level.recipeAccess()
                 .getRecipeFor(RecipeType.CRAFTING, repriced, level)
-                .map(match -> match.value().assemble(repriced, level.registryAccess()))
+                .map(match -> match.value().assemble(repriced))
                 .orElse(ItemStack.EMPTY);
 
         helper.assertTrue(crafted.is(ForgeweaveItems.EXTRA_MODIFIER.get()),
@@ -766,7 +766,7 @@ public class ModifierGameTests {
         CraftingInput retired =
                 CraftingInput.of(2, 1, List.of(new ItemStack(Items.GOLD_BLOCK), new ItemStack(Items.DIAMOND)));
 
-        helper.assertTrue(level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, retired, level).isEmpty(),
+        helper.assertTrue(level.recipeAccess().getRecipeFor(RecipeType.CRAFTING, retired, level).isEmpty(),
                 "gold block + diamond must no longer craft an extra modifier");
 
         helper.succeed();

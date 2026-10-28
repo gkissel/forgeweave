@@ -14,7 +14,7 @@ import dev.gkissel.forgeweave.material.Material;
 /**
  * Issue #835's negative existence path for M6 Track A batch 3 (the epic #824's "Ender IO alloys"),
  * following {@link TechMetalGameTests}'s pattern for batch 1: Ender IO ({@code enderio}) is not a
- * build dependency (see build.gradle), so every one of this batch's {@code neoforge:item_exists}
+ * build dependency (see build.gradle), so every one of this batch's {@code neoforge:registered}
  * conditions fails here exactly as it would in a Forgeweave-only install -- each material is absent
  * from the registry entirely, matching issue #826's existence-gating contract (not merely
  * present-and-uncraftable).
@@ -46,7 +46,7 @@ public class EnderIoAlloyGameTests {
     public static void unsuppliedEnderIoAlloysDoNotExistAtAll(GameTestHelper helper) {
         Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         for (String name : BATCH_3_MATERIALS) {
-            helper.assertTrue(materials.get(materialId(name)) == null,
+            helper.assertTrue(materials.getValue(materialId(name)) == null,
                     "expected the " + name + " material to be absent without Ender IO installed, found it registered");
         }
         helper.succeed();

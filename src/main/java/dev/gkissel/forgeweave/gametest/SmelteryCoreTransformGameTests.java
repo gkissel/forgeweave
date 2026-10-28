@@ -11,7 +11,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
@@ -20,6 +19,7 @@ import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.FaucetBlock;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.TransferBridge;
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryCore;
@@ -207,8 +207,7 @@ public class SmelteryCoreTransformGameTests {
         core.tank().fill(new FluidStack(ForgeweaveFluids.IRON.still().get(), MeltingRecipe.VALUE_INGOT * 2),
                 IFluidHandler.FluidAction.EXECUTE);
 
-        IFluidHandler capability = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK,
-                helper.absolutePos(SmelteryGameTests.CORE_POS), null);
+        IFluidHandler capability = TransferBridge.fluidAt(helper.getLevel(), helper.absolutePos(SmelteryGameTests.CORE_POS), null);
         helper.assertTrue(capability != null, "expected the core to expose a fluid capability for faucets");
         helper.assertValueEqual(capability.getTanks(), 0, "tanks the core's fluid capability reports to overlays");
         helper.assertValueEqual(capability.fill(new FluidStack(ForgeweaveFluids.BLAZING_BLOOD.still().get(), 100),

@@ -59,7 +59,7 @@ public class AddonSeamGameTests {
     @GameTest(template = "empty")
     public static void anAddonMaterialLoadsWithItsStats(GameTestHelper helper) {
         Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
-        Material material = materials.get(MATERIAL);
+        Material material = materials.getValue(MATERIAL);
         helper.assertTrue(material != null, "expected the addon's material in the registry, got nothing");
         helper.assertTrue(material.head().isPresent(), "expected the addon's material to carry head stats");
         helper.assertTrue(material.head().get().durability() == 320,

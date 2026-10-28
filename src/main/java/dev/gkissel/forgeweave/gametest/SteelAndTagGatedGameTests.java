@@ -144,7 +144,7 @@ public class SteelAndTagGatedGameTests {
     /**
      * Issue #826's negative existence path for the real four: neither {@code mekanism} nor
      * {@code immersiveengineering} is a build dependency (see build.gradle), so every one of
-     * bronze/lead/silver/electrum's {@code neoforge:item_exists}/{@code neoforge:or} conditions
+     * bronze/lead/silver/electrum's {@code neoforge:registered}/{@code neoforge:or} conditions
      * fails here exactly as it would in a Forgeweave-only install -- the material is absent from the
      * registry entirely, not merely present-and-uncraftable the way docs/SCOPE.md M3.2 originally
      * shipped it. An arbitrary item still crafts nothing at the Part Builder either way.
@@ -196,7 +196,7 @@ public class SteelAndTagGatedGameTests {
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_TABLE.get());
         helper.setBlock(FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
                 .setValue(FaucetBlock.FACING, Direction.WEST));
-        return helper.getBlockEntity(CASTING);
+        return helper.getBlockEntity(CASTING, CastingBlockEntity.class);
     }
 
     /** Puts {@code stack} in the casting table the way a player does -- through the real right-click path. */

@@ -52,7 +52,7 @@ public final class CreateMaterialGameTests {
             PartBuilderMenu menu = new PartBuilderMenu(0, player.getInventory(), block.container(),
                     ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)), block.findSideInventory());
             menu.getSlot(PartBuilderMenu.PATTERN_SLOT).set(new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()));
-            menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).set(new ItemStack(BuiltInRegistries.ITEM.get(item), 16));
+            menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).set(new ItemStack(BuiltInRegistries.ITEM.getValue(item), 16));
             menu.broadcastChanges();
             ItemStack output = menu.getSlot(PartBuilderMenu.OUTPUT_SLOT).getItem();
             helper.assertTrue(metal ? output.isEmpty() : material.equals(output.get(ForgeweaveDataComponents.MATERIAL.get())),

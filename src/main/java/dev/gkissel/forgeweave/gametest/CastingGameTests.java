@@ -19,7 +19,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.material.Fluid;
 
-import net.neoforged.neoforge.capabilities.Capabilities;
+import dev.gkissel.forgeweave.block.TransferBridge;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -186,7 +186,7 @@ public class CastingGameTests {
         helper.setBlock(DRAIN_CASTING, casting);
         helper.setBlock(DRAIN_FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
                 .setValue(FaucetBlock.FACING, Direction.NORTH));
-        return helper.getBlockEntity(DRAIN_CASTING);
+        return helper.getBlockEntity(DRAIN_CASTING, CastingBlockEntity.class);
     }
 
     /**
@@ -259,7 +259,7 @@ public class CastingGameTests {
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_BASIN.get());
         CastingBlockEntity basin = helper.getBlockEntity(CASTING, CastingBlockEntity.class);
 
-        IFluidHandler handler = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK,
+        IFluidHandler handler = TransferBridge.fluidAt(helper.getLevel(),
                 helper.absolutePos(CASTING), Direction.UP);
         helper.assertTrue(handler != null, "expected the basin to expose a fluid handler");
         int filled = handler.fill(new FluidStack(ForgeweaveFluids.GOLD.still().get(), 4000),
@@ -287,7 +287,7 @@ public class CastingGameTests {
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_BASIN.get());
         CastingBlockEntity basin = helper.getBlockEntity(CASTING, CastingBlockEntity.class);
 
-        IFluidHandler handler = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK,
+        IFluidHandler handler = TransferBridge.fluidAt(helper.getLevel(),
                 helper.absolutePos(CASTING), Direction.UP);
         helper.assertTrue(handler != null, "expected the basin to expose a fluid handler");
         int filled = handler.fill(new FluidStack(ForgeweaveFluids.EMERALD.still().get(), 8000),
@@ -341,7 +341,7 @@ public class CastingGameTests {
     @GameTest(template = "empty", timeoutTicks = 800)
     public static void aPartlyPouredTableGivesItsCastBackAfterAReload(GameTestHelper helper) {
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_TABLE.get());
-        insert(helper, helper.getBlockEntity(CASTING), new ItemStack(ForgeweaveItems.CAST_INGOT.get()));
+        insert(helper, helper.getBlockEntity(CASTING, CastingBlockEntity.class), new ItemStack(ForgeweaveItems.CAST_INGOT.get()));
         fill(helper, new FluidStack(ForgeweaveFluids.IRON.still().get(), 72));
 
         helper.startSequence()
@@ -468,7 +468,7 @@ public class CastingGameTests {
 
     /** Pours into the casting block through its own capability, the way a faucet does. */
     private static int fill(GameTestHelper helper, FluidStack fluid) {
-        IFluidHandler handler = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK,
+        IFluidHandler handler = TransferBridge.fluidAt(helper.getLevel(),
                 helper.absolutePos(CASTING), Direction.UP);
         helper.assertTrue(handler != null, "expected the casting block to expose a fluid handler");
         return handler.fill(fluid, IFluidHandler.FluidAction.EXECUTE);
@@ -481,7 +481,7 @@ public class CastingGameTests {
     private static void reload(GameTestHelper helper, BlockPos pos) {
         ServerLevel level = helper.getLevel();
         BlockPos absolute = helper.absolutePos(pos);
-        CompoundTag saved = level.getBlockEntity(absolute, CompoundTag.class).saveWithFullMetadata(level.registryAccess());
+        CompoundTag saved = level.getBlockEntity(absolute).saveWithFullMetadata(level.registryAccess());
         level.removeBlockEntity(absolute);
         BlockEntity reloaded = BlockEntity.loadStatic(absolute, level.getBlockState(absolute), saved,
                 level.registryAccess());
@@ -596,9 +596,9 @@ public class CastingGameTests {
 
             // A client already holds the mid-pour state when the idle packet lands on top of it.
             FaucetBlockEntity clientSide = new FaucetBlockEntity(absolute, helper.getLevel().getBlockState(absolute));
-            clientSide.loadWithComponents(midPour, registries);
+            GameTestCompat.load(clientSide, midPour, registries);
             helper.assertTrue(clientSide.isPouring(), "expected the client to have been drawing a stream");
-            clientSide.loadWithComponents(idle, registries);
+            GameTestCompat.load(clientSide, idle, registries);
             helper.assertFalse(clientSide.isPouring(), "and to stop once the pour-ended update arrives");
             helper.assertTrue(clientSide.buffered().isEmpty(), "with nothing left for the renderer to draw");
         });
@@ -618,7 +618,7 @@ public class CastingGameTests {
     @GameTest(template = "empty", timeoutTicks = 200)
     public static void aMidPourUpdateKeepsTheCapacityClientsDrawAgainst(GameTestHelper helper) {
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_TABLE.get());
-        insert(helper, helper.getBlockEntity(CASTING), new ItemStack(ForgeweaveItems.CAST_SHOVEL_HEAD.get()));
+        insert(helper, helper.getBlockEntity(CASTING, CastingBlockEntity.class), new ItemStack(ForgeweaveItems.CAST_SHOVEL_HEAD.get()));
         helper.assertValueEqual(fill(helper, new FluidStack(ForgeweaveFluids.IRON.still().get(), PART_POUR)),
                 PART_POUR, "the partial pour the table takes");
 
@@ -630,9 +630,9 @@ public class CastingGameTests {
         CastingBlockEntity clientSide = new CastingBlockEntity(absolute, level.getBlockState(absolute),
                 CastingRecipe.Station.TABLE);
         clientSide.setLevel(level);
-        clientSide.loadWithComponents(midPour, registries);
+        GameTestCompat.load(clientSide, midPour, registries);
         clientSide.onLoad();
-        clientSide.loadWithComponents(midPour, registries); // the next drop's packet
+        GameTestCompat.load(clientSide, midPour, registries); // the next drop's packet
 
         helper.assertValueEqual(clientSide.tank().getFluidAmount(), PART_POUR, "the fluid a client sees");
         helper.assertValueEqual(clientSide.tank().getCapacity(), PART_CAST_AMOUNT,
@@ -764,7 +764,7 @@ public class CastingGameTests {
         fill(helper, new FluidStack(ForgeweaveFluids.IRON.still().get(), 72));
         helper.setBlock(HOPPER, Blocks.HOPPER);
 
-        IItemHandler handler = helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK,
+        IItemHandler handler = TransferBridge.itemsAt(helper.getLevel(),
                 helper.absolutePos(CASTING), Direction.DOWN);
         helper.assertTrue(handler != null, "expected the casting table to expose an item handler");
         for (int slot = 0; slot < handler.getSlots(); slot++) {
@@ -794,11 +794,11 @@ public class CastingGameTests {
         helper.setBlock(CASTING, casting);
         helper.setBlock(FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
                 .setValue(FaucetBlock.FACING, Direction.WEST));
-        return helper.getBlockEntity(CASTING);
+        return helper.getBlockEntity(CASTING, CastingBlockEntity.class);
     }
 
     private static FaucetBlockEntity faucet(GameTestHelper helper) {
-        return helper.getBlockEntity(FAUCET);
+        return helper.getBlockEntity(FAUCET, FaucetBlockEntity.class);
     }
 
     /** Puts {@code stack} in the casting block the way a player does -- through the real right-click path. */

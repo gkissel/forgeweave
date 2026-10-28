@@ -140,8 +140,8 @@ public class KatanaGameTests {
         DamageRamp.State before = katana.get(ForgeweaveDataComponents.KATANA_RAMP.get());
         helper.assertTrue(before != null, "two landed hits should have written a ramp component");
 
-        CompoundTag saved = (CompoundTag) katana.save(helper.getLevel().registryAccess());
-        ItemStack loaded = ItemStack.parse(helper.getLevel().registryAccess(), saved)
+        CompoundTag saved = (CompoundTag) GameTestCompat.saveStack(helper.getLevel().registryAccess(), katana);
+        ItemStack loaded = GameTestCompat.parseStack(helper.getLevel().registryAccess(), saved)
                 .orElseThrow(() -> new AssertionError("a saved katana failed to load back"));
         DamageRamp.State after = loaded.get(ForgeweaveDataComponents.KATANA_RAMP.get());
 

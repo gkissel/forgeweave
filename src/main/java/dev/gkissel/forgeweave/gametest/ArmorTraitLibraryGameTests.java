@@ -87,7 +87,7 @@ public class ArmorTraitLibraryGameTests {
     }
 
     private static void daytime(GameTestHelper helper, long time) {
-        helper.getLevel().setDayTime(time);
+        GameTestCompat.setDayTime(helper.getLevel(), time);
         helper.getLevel().updateSkyBrightness();
     }
 

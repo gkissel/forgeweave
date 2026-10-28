@@ -161,8 +161,8 @@ public class MattockKamaGameTests {
 
         helper.useBlock(cropPos, player);
 
-        helper.assertBlockState(cropPos, state -> state.is(Blocks.WHEAT) && state.getValue(CropBlock.AGE) == 0,
-                () -> "expected the wheat to be replanted at age 0");
+        helper.assertTrue(helper.getBlockState(cropPos).is(Blocks.WHEAT) && helper.getBlockState(cropPos).getValue(CropBlock.AGE) == 0,
+                "expected the wheat to be replanted at age 0");
         helper.succeed();
     }
 

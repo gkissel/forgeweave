@@ -55,7 +55,7 @@ public class SlimeSlingGameTests {
     private static ItemStack fling(GameTestHelper helper, Player player, double standY, float xRot,
             boolean onGround, int ticks) {
         Vec3 stand = helper.absoluteVec(new Vec3(0.5, standY, 0.5));
-        player.moveTo(stand.x, stand.y, stand.z, 0.0F, xRot);
+        player.snapTo(stand.x, stand.y, stand.z, 0.0F, xRot);
         player.setOnGround(onGround);
         player.setDeltaMovement(Vec3.ZERO);
         player.hurtMarked = false;

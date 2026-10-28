@@ -149,12 +149,12 @@ public class MaterialFormMeltingGameTests {
 
     /** The grid resolves to the shipped recipe {@code forgeweave:<recipe>} and assembles {@code count} of {@code result}. */
     private static void assertCrafts(GameTestHelper helper, String recipe, Item result, int count, CraftingInput input) {
-        RecipeHolder<CraftingRecipe> holder = helper.getLevel().getRecipeManager()
+        RecipeHolder<CraftingRecipe> holder = helper.getLevel().recipeAccess()
                 .getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel())
                 .orElseThrow(() -> new AssertionError("expected a crafting recipe to match the grid for " + recipe));
-        helper.assertValueEqual(holder.id(), Identifier.fromNamespaceAndPath(Forgeweave.MODID, recipe),
+        helper.assertValueEqual(holder.id().identifier(), Identifier.fromNamespaceAndPath(Forgeweave.MODID, recipe),
                 "the recipe the grid resolves to");
-        ItemStack output = holder.value().assemble(input, helper.getLevel().registryAccess());
+        ItemStack output = holder.value().assemble(input);
         helper.assertTrue(output.is(result), "expected " + result + " from " + recipe + ", got " + output);
         helper.assertValueEqual(output.getCount(), count, "items crafted by " + recipe);
     }

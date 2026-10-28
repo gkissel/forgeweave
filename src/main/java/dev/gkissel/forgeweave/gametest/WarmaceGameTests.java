@@ -81,9 +81,9 @@ public class WarmaceGameTests {
         helper.assertTrue(warmace.is(ForgeweaveItems.TOOL_WARMACE.get()),
                 "expected the Tool Forge to assemble a warmace, got " + warmace);
 
-        assertModifier(helper, warmace, Attributes.ATTACK_DAMAGE.getKey().location().toString(), 7.0);
+        assertModifier(helper, warmace, Attributes.ATTACK_DAMAGE.getKey().identifier().toString(), 7.0);
         // Vanilla's ATTACK_SPEED base is 4 attacks/second and the item modifier is the offset.
-        assertModifier(helper, warmace, Attributes.ATTACK_SPEED.getKey().location().toString(),
+        assertModifier(helper, warmace, Attributes.ATTACK_SPEED.getKey().identifier().toString(),
                 ToolConstants.WARMACE.attackSpeed() - 4.0);
 
         helper.succeed();
@@ -169,8 +169,12 @@ public class WarmaceGameTests {
         helper.assertFalse(player.isIgnoringFallDamageFromCurrentImpulse(),
                 "the fixture must start without vanilla's impulse immunity, or this proves nothing");
 
-        helper.assertTrue(warmace.getItem().hurtEnemy(warmace, target, player),
+        // 26.1: hurtEnemy is void, so "accepts the hit" is its own gate (assembled and unbroken),
+        // checked up front, and the flags below prove the blow got past it.
+        helper.assertTrue(!dev.gkissel.forgeweave.item.ToolItem.isBroken(warmace)
+                        && warmace.get(ForgeweaveDataComponents.TOOL_STATS.get()) != null,
                 "an assembled, unbroken warmace must accept the hit");
+        warmace.getItem().hurtEnemy(warmace, target, player);
         helper.assertTrue(player.isIgnoringFallDamageFromCurrentImpulse(),
                 "a smash must set vanilla's ignore-fall-damage-from-impulse flag");
         helper.assertTrue(player.currentImpulseImpactPos != null,

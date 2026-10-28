@@ -33,9 +33,9 @@ public class GravelFlintGameTests {
         CraftingInput input = CraftingInput.of(3, 1,
                 List.of(new ItemStack(Items.GRAVEL), new ItemStack(Items.GRAVEL), new ItemStack(Items.GRAVEL)));
 
-        ItemStack crafted = level.getRecipeManager()
+        ItemStack crafted = level.recipeAccess()
                 .getRecipeFor(RecipeType.CRAFTING, input, level)
-                .map(match -> match.value().assemble(input, level.registryAccess()))
+                .map(match -> match.value().assemble(input))
                 .orElse(ItemStack.EMPTY);
 
         helper.assertTrue(crafted.is(Items.FLINT) && crafted.getCount() == 1,
@@ -52,7 +52,7 @@ public class GravelFlintGameTests {
 
         ForgeweaveConfig.ADD_FLINT_RECIPE.set(false);
         try {
-            boolean matched = level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, level).isPresent();
+            boolean matched = level.recipeAccess().getRecipeFor(RecipeType.CRAFTING, input, level).isPresent();
             helper.assertFalse(matched, "expected no flint recipe to match with addFlintRecipe off");
         } finally {
             ForgeweaveConfig.ADD_FLINT_RECIPE.set(true);

@@ -179,19 +179,19 @@ public class PonderSchematicGameTests {
     private static List<BlockPos> build(GameTestHelper helper, String schematic) {
         CompoundTag root = readSchematic(schematic);
         HolderGetter<Block> blocks = helper.getLevel().holderLookup(Registries.BLOCK);
-        ListTag palette = root.getList("palette", Tag.TAG_COMPOUND);
+        ListTag palette = root.getListOrEmpty("palette");
         List<BlockState> states = new ArrayList<>();
         for (int i = 0; i < palette.size(); i++) {
-            states.add(NbtUtils.readBlockState(blocks, palette.getCompound(i)));
+            states.add(NbtUtils.readBlockState(blocks, palette.getCompoundOrEmpty(i)));
         }
 
         List<BlockPos> cores = new ArrayList<>();
         List<BlockState> coreStates = new ArrayList<>();
-        for (Tag tag : root.getList("blocks", Tag.TAG_COMPOUND)) {
+        for (Tag tag : root.getListOrEmpty("blocks")) {
             CompoundTag block = (CompoundTag) tag;
-            ListTag pos = block.getList("pos", Tag.TAG_INT);
-            BlockPos at = new BlockPos(pos.getInt(0), pos.getInt(1), pos.getInt(2)).offset(OFFSET);
-            BlockState state = states.get(block.getInt("state"));
+            ListTag pos = block.getListOrEmpty("pos");
+            BlockPos at = new BlockPos(pos.getIntOr(0, 0), pos.getIntOr(1, 0), pos.getIntOr(2, 0)).offset(OFFSET);
+            BlockState state = states.get(block.getIntOr("state", 0));
             Block placed = state.getBlock();
             if (placed instanceof SmelteryControllerBlock || placed instanceof SearedFurnaceControllerBlock
                     || placed instanceof SearedReservoirControllerBlock) {

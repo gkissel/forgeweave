@@ -69,9 +69,9 @@ public class SlimeIslandGameTests {
         ServerLevel level = helper.getLevel();
         Structure structure = level.registryAccess()
                 .lookupOrThrow(Registries.STRUCTURE)
-                .get(SlimeIslandStructure.KEY);
+                .getValue(SlimeIslandStructure.KEY);
         helper.assertTrue(structure instanceof SlimeIslandStructure,
-                "expected the slime island structure registered as " + SlimeIslandStructure.KEY.location());
+                "expected the slime island structure registered as " + SlimeIslandStructure.KEY.identifier());
 
         StructureSet set = level.registryAccess().lookupOrThrow(Registries.STRUCTURE_SET).stream()
                 .filter(candidate -> candidate.structures().stream()
@@ -139,7 +139,7 @@ public class SlimeIslandGameTests {
             ForgeweaveConfig.GEN_SLIME_ISLANDS.set(true);
         }
 
-        List<? extends String> blacklist = List.of(level.dimension().location().toString());
+        List<? extends String> blacklist = List.of(level.dimension().identifier().toString());
         ForgeweaveConfig.SLIME_ISLAND_BLACKLIST.set(blacklist);
         try {
             helper.assertFalse(SlimeIslandStructure.enabledIn(level, false),
@@ -173,7 +173,7 @@ public class SlimeIslandGameTests {
         BlockPos anchor = helper.absolutePos(BlockPos.ZERO);
 
         SlimeIslandShape.Size size = SlimeIslandShape.Size.roll(RandomSource.create(1234L));
-        int bottom = Math.min(anchor.getY() + 40, level.getMaxBuildHeight() - 1 - size.canvasSizeY());
+        int bottom = Math.min(anchor.getY() + 40, level.getMaxY() - size.canvasSizeY());
         int minX = anchor.getX() + 8;
         int minZ = anchor.getZ() + 8;
         BoundingBox box = new BoundingBox(minX, bottom, minZ,
@@ -182,8 +182,8 @@ public class SlimeIslandGameTests {
         SlimeIslandPiece piece = new SlimeIslandPiece(box);
         // Vanilla hands postProcess a full-height chunk-column write box, never the piece's own --
         // and since #647 the island's vine tails reach below the piece box on purpose.
-        BoundingBox writeBox = new BoundingBox(box.minX(), level.getMinBuildHeight(), box.minZ(),
-                box.maxX(), level.getMaxBuildHeight(), box.maxZ());
+        BoundingBox writeBox = new BoundingBox(box.minX(), level.getMinY(), box.minZ(),
+                box.maxX(), level.getMaxY() + 1, box.maxZ());
         piece.postProcess(level, level.structureManager(), level.getChunkSource().getGenerator(),
                 RandomSource.create(1234L), writeBox, new ChunkPos(minX >> 4, minZ >> 4), anchor);
 
@@ -288,9 +288,9 @@ public class SlimeIslandGameTests {
         // burst of random ticks (each has a 1/45 chance per attempt of picking the dirt), then checks.
         helper.succeedWhen(() -> {
             for (int i = 0; i < 100; i++) {
-                grass.randomTick(level, absoluteGrass, level.random);
+                grass.randomTick(level, absoluteGrass, level.getRandom());
             }
-            helper.assertBlock(dirtPos, block -> block == ForgeweaveBlocks.PURPLE_SLIME_SOIL.grass().get(),
+            helper.assertTrue(helper.getBlockState(dirtPos).is(ForgeweaveBlocks.PURPLE_SLIME_SOIL.grass().get()),
                     "slime grass never spread onto the slime dirt beside it");
         });
     }
@@ -368,7 +368,7 @@ public class SlimeIslandGameTests {
 
         level.setBlock(soil, ForgeweaveBlocks.BLUE_SLIME_SOIL.grass().get().defaultBlockState(), Block.UPDATE_CLIENTS);
         level.setBlock(saplingPos, sapling, Block.UPDATE_CLIENTS);
-        saplingBlock.advanceTree(level, saplingPos, sapling, level.random);
+        saplingBlock.advanceTree(level, saplingPos, sapling, level.getRandom());
 
         List<BlockPos> grown = new ArrayList<>();
         int trunk = 0;
@@ -465,7 +465,7 @@ public class SlimeIslandGameTests {
                     BlockState state = level.getBlockState(pos);
                     if (state.getBlock() instanceof SlimeVineBlock) {
                         placed.add(pos);
-                        state.randomTick(level, pos, level.random);
+                        state.randomTick(level, pos, level.getRandom());
                         if (state.is(ForgeweaveBlocks.BLUE_SLIME_PLANTS.vineMid().get())
                                 || state.is(ForgeweaveBlocks.BLUE_SLIME_PLANTS.vineEnd().get())) {
                             thinned = true;

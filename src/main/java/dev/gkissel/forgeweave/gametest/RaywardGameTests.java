@@ -47,7 +47,7 @@ public class RaywardGameTests {
     public static void theShippedRecipeIsRegisteredAndSpendsLeadAtUpToFourLevels(GameTestHelper helper) {
         Registry<ModifierRecipe> recipes =
                 helper.getLevel().registryAccess().lookupOrThrow(ModifierRecipe.REGISTRY);
-        ModifierRecipe recipe = recipes.get(id("rayward_lead"));
+        ModifierRecipe recipe = recipes.getValue(id("rayward_lead"));
         helper.assertTrue(recipe != null, "the rayward recipe should ship unconditionally, Mekanism or not");
         helper.assertValueEqual(recipe.modifier(), ForgeweaveModifiers.RAYWARD_ID, "recipe modifier");
         helper.assertValueEqual(recipe.maxLevel(), ForgeweaveModifiers.RAYWARD_MAX_LEVEL, "recipe max level");

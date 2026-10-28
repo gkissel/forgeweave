@@ -7,7 +7,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -451,11 +451,11 @@ public class PartBuilderGameTests {
         menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).set(new ItemStack(Items.OAK_LOG, 3));
         menu.broadcastChanges();
 
-        menu.clicked(PartBuilderMenu.OUTPUT_SLOT, 0, ClickType.QUICK_MOVE, player);
+        menu.clicked(PartBuilderMenu.OUTPUT_SLOT, 0, ContainerInput.QUICK_MOVE, player);
 
         helper.assertTrue(menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).getItem().isEmpty(),
                 "expected all 3 logs to be consumed, got " + menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).getItem());
-        int heads = player.getInventory().items.stream()
+        int heads = player.getInventory().getNonEquipmentItems().stream()
                 .filter(stack -> stack.is(ForgeweaveItems.PART_PICKAXE_HEAD.get()))
                 .mapToInt(ItemStack::getCount).sum();
         helper.assertTrue(heads == 3, "expected 3 pickaxe heads in the player inventory, got " + heads);

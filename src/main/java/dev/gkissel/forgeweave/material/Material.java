@@ -52,11 +52,11 @@ import net.minecraft.world.level.block.Block;
  * <p><b>Which condition primitive.</b> Registry-element conditions evaluate with {@code
  * ICondition.IContext.TAGS_INVALID}: tags are not loaded yet at this point in startup, so any
  * tag-based condition (e.g. {@code neoforge:tag_empty}) <em>throws</em>, not just fails. The usable
- * vocabulary is {@code neoforge:mod_loaded} (a modid), {@code neoforge:item_exists} (a concrete
+ * vocabulary is {@code neoforge:mod_loaded} (a modid), {@code neoforge:registered} (a concrete
  * item id -- the item registry is frozen by now) and the {@code and}/{@code or}/{@code not}/{@code
- * true}/{@code false} combinators. One provider mod: a single {@code item_exists} (or {@code
+ * true}/{@code false} combinators. One provider mod: a single {@code registered} (or {@code
  * mod_loaded}) condition. Several providers of the same metal: an {@code or} of one {@code
- * item_exists} per provider's concrete ingot id -- never a tag, and never one preset per modid
+ * registered} per provider's concrete ingot id -- never a tag, and never one preset per modid
  * (JC2, docs/research/m6-material-expansion-references.md).
  *
  * <p><b>Keep the obtainability gate too.</b> {@link #craftingItems}/{@link #repairItem} stay

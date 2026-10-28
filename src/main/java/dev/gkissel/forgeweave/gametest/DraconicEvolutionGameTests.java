@@ -14,7 +14,7 @@ import dev.gkissel.forgeweave.material.Material;
 /**
  * Issue #836's negative existence path for M6 Track A batch 4 (the epic #824's endgame tier):
  * Draconic Evolution ({@code draconicevolution}) is not a build dependency (see build.gradle), so
- * both of this batch's {@code neoforge:item_exists} conditions fail here exactly as they would in a
+ * both of this batch's {@code neoforge:registered} conditions fail here exactly as they would in a
  * Forgeweave-only install -- each material is absent from the registry entirely, matching issue
  * #826's existence-gating contract (not merely present-and-uncraftable).
  *
@@ -69,7 +69,7 @@ public class DraconicEvolutionGameTests {
     public static void unsuppliedDraconicEvolutionMaterialsDoNotExistAtAll(GameTestHelper helper) {
         Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         for (String name : BATCH_4_MATERIALS) {
-            helper.assertTrue(materials.get(materialId(name)) == null,
+            helper.assertTrue(materials.getValue(materialId(name)) == null,
                     "expected the " + name + " material to be absent without Draconic Evolution installed, found it registered");
         }
         helper.succeed();

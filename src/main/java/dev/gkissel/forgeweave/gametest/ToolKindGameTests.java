@@ -4,6 +4,8 @@ import java.util.Collections;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.tags.ItemTags;
@@ -13,6 +15,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
@@ -91,10 +95,16 @@ public class ToolKindGameTests {
     @GameTest(template = "empty")
     public static void taggedToolsStillRefuseAnEnchantedBook(GameTestHelper helper) {
         ItemStack book = new ItemStack(Items.ENCHANTED_BOOK);
+        // 26.1: AnvilMenu no longer asks isBookEnchantable; it asks supportsEnchantment for each of the
+        // book's enchantments, so that is the gate checked here, beside the item-level method.
+        Holder<Enchantment> unbreaking = helper.getLevel().registryAccess()
+                .lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.UNBREAKING);
         for (Item tool : List.of(ForgeweaveItems.TOOL_BROADSWORD.get(), ForgeweaveItems.TOOL_PICKAXE.get(),
                 ForgeweaveItems.TOOL_HATCHET.get())) {
-            helper.assertFalse(new ItemStack(tool).isBookEnchantable(book),
+            helper.assertFalse(((ToolItem) tool).isBookEnchantable(new ItemStack(tool), book),
                     tool + " must not take an enchanted book at an anvil by default");
+            helper.assertFalse(new ItemStack(tool).supportsEnchantment(unbreaking),
+                    tool + " must not accept a book's enchantment at an anvil by default");
         }
         helper.succeed();
     }

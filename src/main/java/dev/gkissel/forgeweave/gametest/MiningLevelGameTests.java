@@ -111,7 +111,7 @@ public class MiningLevelGameTests {
     @GameTest(template = "empty")
     public static void obsidianAndAncientStandOnTheNetheriteRung(GameTestHelper helper) {
         var materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
-        Material obsidian = materials.getOrThrow(ResourceKey.create(Material.REGISTRY,
+        Material obsidian = materials.getValueOrThrow(ResourceKey.create(Material.REGISTRY,
                 Identifier.fromNamespaceAndPath(Forgeweave.MODID, "obsidian")));
         helper.assertTrue(obsidian.head().orElseThrow().durability() == 139,
                 "obsidian's head must keep upstream's 139 durability, got " + obsidian.head().orElseThrow().durability());

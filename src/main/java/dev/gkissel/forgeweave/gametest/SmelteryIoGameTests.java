@@ -12,7 +12,6 @@ import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.material.Fluids;
 
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
@@ -21,6 +20,7 @@ import net.neoforged.neoforge.items.IItemHandler;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.TransferBridge;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryStructure;
 
@@ -278,11 +278,11 @@ public class SmelteryIoGameTests {
     }
 
     private static IFluidHandler fluids(GameTestHelper helper, BlockPos pos) {
-        return helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(pos), null);
+        return TransferBridge.fluidAt(helper.getLevel(), helper.absolutePos(pos), null);
     }
 
     private static IItemHandler items(GameTestHelper helper, BlockPos pos) {
-        return helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(pos), null);
+        return TransferBridge.itemsAt(helper.getLevel(), helper.absolutePos(pos), null);
     }
 
     private static IFluidHandler requireFluids(GameTestHelper helper, BlockPos pos) {

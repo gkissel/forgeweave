@@ -88,7 +88,7 @@ public class ArmorRealPathGameTests {
     private static ServerPlayer wearing(GameTestHelper helper, EquipmentSlot slot, ItemStack piece) {
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         Vec3 at = Vec3.atBottomCenterOf(helper.absolutePos(STAND));
-        player.moveTo(at.x, at.y, at.z, 0.0F, 0.0F);
+        player.snapTo(at.x, at.y, at.z, 0.0F, 0.0F);
         player.setGameMode(GameType.SURVIVAL);
         player.setItemSlot(slot, piece);
         // What a tick on a dedicated server does to a player, from both ends: the level's entity
@@ -108,7 +108,7 @@ public class ArmorRealPathGameTests {
         player.setHealth(player.getMaxHealth());
         player.invulnerableTime = 0;
         float before = player.getHealth();
-        helper.assertTrue(zombie.doHurtTarget(player), "the zombie must land its bite");
+        helper.assertTrue(zombie.doHurtTarget(helper.getLevel(), player), "the zombie must land its bite");
         return before - player.getHealth();
     }
 

@@ -81,7 +81,7 @@ public class MetalTraitGameTests {
         helper.startSequence()
                 .thenWaitUntil(() -> SpawnCapture.assertIndexServes(helper, dropped))
                 .thenExecute(() -> {
-                    pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+                    pickaxe.getItem().inventoryTick(pickaxe, level, player, null);
                     helper.assertTrue(dropped.getDeltaMovement().x < 0.0,
                             "magnetic should push the item toward the holder (negative x), got "
                                     + dropped.getDeltaMovement());
@@ -111,7 +111,7 @@ public class MetalTraitGameTests {
         helper.startSequence()
                 .thenWaitUntil(() -> SpawnCapture.assertIndexServes(helper, dropped))
                 .thenExecute(() -> {
-                    pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+                    pickaxe.getItem().inventoryTick(pickaxe, level, player, null);
                     helper.assertTrue(dropped.getDeltaMovement().equals(Vec3.ZERO),
                             "magnetic must not pull with no recent block break or hit, got "
                                     + dropped.getDeltaMovement());
@@ -132,14 +132,14 @@ public class MetalTraitGameTests {
         ForgeweaveTraits.afterBlockBreak(pickaxe, level, Blocks.STONE.defaultBlockState(), BlockPos.ZERO, player, true);
 
         for (int i = 0; i < 30; i++) {
-            pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+            pickaxe.getItem().inventoryTick(pickaxe, level, player, null);
         }
 
         ItemEntity dropped = new ItemEntity(level, player.getX() + 1.5, player.getY(), player.getZ(),
                 new ItemStack(Items.COBBLESTONE));
         dropped.setDeltaMovement(Vec3.ZERO);
         level.addFreshEntity(dropped);
-        pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+        pickaxe.getItem().inventoryTick(pickaxe, level, player, null);
         helper.assertTrue(dropped.getDeltaMovement().equals(Vec3.ZERO),
                 "magnetic's 30-tick window should have expired, got " + dropped.getDeltaMovement());
 
@@ -173,7 +173,7 @@ public class MetalTraitGameTests {
         helper.startSequence()
                 .thenWaitUntil(() -> SpawnCapture.assertIndexServes(helper, dropped))
                 .thenExecute(() -> {
-                    pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+                    pickaxe.getItem().inventoryTick(pickaxe, level, player, null);
                     double pull = -dropped.getDeltaMovement().x;
                     helper.assertTrue(pull > 0.0,
                             "an item at 2.6 blocks should be pulled once the levels sum to range 2.7, got "
@@ -224,7 +224,7 @@ public class MetalTraitGameTests {
         helper.startSequence()
                 .thenWaitUntil(() -> SpawnCapture.assertIndexServes(helper, below, above))
                 .thenExecute(() -> {
-                    pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+                    pickaxe.getItem().inventoryTick(pickaxe, level, player, null);
                     double belowPullY = below.getDeltaMovement().y;
                     double abovePullY = above.getDeltaMovement().y;
                     helper.assertTrue(belowPullY > 0.06,
@@ -262,12 +262,12 @@ public class MetalTraitGameTests {
         helper.startSequence()
                 .thenWaitUntil(() -> SpawnCapture.assertIndexServes(helper, item))
                 .thenExecute(() -> {
-                    item.hasImpulse = false;
-                    pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+                    item.needsSync = false;
+                    pickaxe.getItem().inventoryTick(pickaxe, level, player, null);
                     helper.assertTrue(item.getDeltaMovement().x < -0.06,
                             "the item should have been pulled, got " + item.getDeltaMovement());
-                    helper.assertTrue(item.hasImpulse,
-                            "the pull must set hasImpulse so the server syncs the item's motion to clients");
+                    helper.assertTrue(item.needsSync,
+                            "the pull must set needsSync so the server syncs the item's motion to clients");
                     item.discard();
                 })
                 .thenSucceed();
@@ -291,7 +291,7 @@ public class MetalTraitGameTests {
 
         // duration = (10 / 2) * 1.5 * 20 = 150 ticks
         for (int i = 0; i < 151; i++) {
-            pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+            pickaxe.getItem().inventoryTick(pickaxe, level, player, null);
         }
         float afterDecay = ForgeweaveTraits.miningSpeed(pickaxe, true, 2.0F);
         helper.assertTrue(afterDecay == 2.0F, "momentum should have decayed to no bonus, got " + afterDecay);
@@ -380,7 +380,7 @@ public class MetalTraitGameTests {
 
         // Decay after the 5s (100-tick) window with no more hits.
         for (int i = 0; i < 101; i++) {
-            pickaxe.getItem().inventoryTick(pickaxe, level, attacker, 0, false);
+            pickaxe.getItem().inventoryTick(pickaxe, level, attacker, null);
         }
         helper.assertTrue(ForgeweaveTraits.bonusDamageAgainst(pickaxe, target, 3.0F) == 0.0F,
                 "insatiable should have decayed");

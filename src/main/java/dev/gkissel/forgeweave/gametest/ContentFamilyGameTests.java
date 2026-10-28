@@ -16,6 +16,7 @@ import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.dimension.DimensionType;
 
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
@@ -506,8 +507,8 @@ public class ContentFamilyGameTests {
 
     /** What a crafting table makes of {@code input}, or empty when no recipe matches. */
     private static ItemStack crafts(GameTestHelper helper, CraftingInput input) {
-        return helper.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel())
-                .map(holder -> holder.value().assemble(input, helper.getLevel().registryAccess()))
+        return helper.getLevel().recipeAccess().getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel())
+                .map(holder -> holder.value().assemble(input))
                 .orElse(ItemStack.EMPTY);
     }
 
@@ -562,7 +563,7 @@ public class ContentFamilyGameTests {
         ServerLevel overworld = helper.getLevel();
         ServerLevel nether = overworld.getServer().getLevel(Level.NETHER);
         helper.assertTrue(nether != null, "the GameTest server must load the Nether for this test");
-        helper.assertFalse(nether.dimensionType().natural(), "the Nether must be a non-surface dimension");
+        helper.assertFalse(nether.dimensionType().skybox() == DimensionType.Skybox.OVERWORLD, "the Nether must be a non-surface dimension");
 
         boolean original = ForgeweaveConfig.read(ForgeweaveConfig.SLIME_ISLANDS_ONLY_IN_SURFACE_WORLDS);
         List<? extends String> blacklist = ForgeweaveConfig.read(ForgeweaveConfig.SLIME_ISLAND_BLACKLIST);

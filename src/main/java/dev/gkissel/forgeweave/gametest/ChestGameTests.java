@@ -290,7 +290,7 @@ public class ChestGameTests {
 
     private static ChestBlockEntity placeChest(GameTestHelper helper, BlockPos pos, ChestKind kind) {
         helper.setBlock(pos, kind == ChestKind.PATTERN ? ForgeweaveBlocks.PATTERN_CHEST.get() : ForgeweaveBlocks.PART_CHEST.get());
-        return helper.getBlockEntity(pos);
+        return helper.getBlockEntity(pos, ChestBlockEntity.class);
     }
 
     private static void fill(ChestBlockEntity chest, int from, int toExclusive) {
@@ -419,7 +419,7 @@ public class ChestGameTests {
         ChestBlockEntity chest = placeChest(helper, pos);
         fillFullStacks(chest, 0, 60); // well past one screenful
 
-        CompoundTag saved = chest.saveWithId(helper.getLevel().registryAccess());
+        CompoundTag saved = chest.saveWithFullMetadata(helper.getLevel().registryAccess());
         BlockEntity reloaded = BlockEntity.loadStatic(pos, chest.getBlockState(), saved, helper.getLevel().registryAccess());
         helper.assertTrue(reloaded instanceof ChestBlockEntity, "expected the saved tag to still decode as a chest");
         ChestBlockEntity reloadedChest = (ChestBlockEntity) reloaded;

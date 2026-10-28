@@ -187,7 +187,7 @@ public class FluidBucketGameTests {
         helper.assertTrue(player.getMainHandItem().is(Items.BUCKET),
                 "upstream never fills a bucket off a drain, hand holds " + player.getMainHandItem());
         helper.assertValueEqual(smeltery.tank().getFluidAmount(), 1000, "millibuckets still in the smeltery");
-        helper.assertBlock(DRAIN, block -> block == ForgeweaveBlocks.SEARED_DRAIN.get(),
+        helper.assertTrue(helper.getBlockState(DRAIN).is(ForgeweaveBlocks.SEARED_DRAIN.get()),
                 "expected the drain to still be there rather than a water block over it");
         helper.succeed();
     }
@@ -209,7 +209,7 @@ public class FluidBucketGameTests {
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_TABLE.get());
         helper.setBlock(FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
                 .setValue(FaucetBlock.FACING, Direction.WEST));
-        return helper.getBlockEntity(CASTING);
+        return helper.getBlockEntity(CASTING, CastingBlockEntity.class);
     }
 
     /** Puts {@code stack} in the casting table the way a player does -- through the real right-click path. */

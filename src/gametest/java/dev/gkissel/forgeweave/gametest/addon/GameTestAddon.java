@@ -96,7 +96,7 @@ public final class GameTestAddon {
      * so the smeltery scan takes it as a wall (issue #1067).
      */
     public static final DeferredBlock<Block> WALL_BLOCK = BLOCKS.registerSimpleBlock("addon_wall",
-            BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(3.0F).sound(SoundType.STONE));
+            () -> BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(3.0F).sound(SoundType.STONE));
 
     /** The trait behavior an addon ships so packs can parameterize it from a definition file. */
     public static final Identifier TRAIT_BEHAVIOR_ID =

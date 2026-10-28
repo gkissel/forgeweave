@@ -143,8 +143,8 @@ public class NetherOreGameTests {
     private static PlacedFeature getPlacedFeature(GameTestHelper helper, String name) {
         ResourceKey<PlacedFeature> key = ResourceKey.create(Registries.PLACED_FEATURE,
                 Identifier.fromNamespaceAndPath(Forgeweave.MODID, name));
-        PlacedFeature feature = helper.getLevel().registryAccess().lookupOrThrow(Registries.PLACED_FEATURE).get(key);
-        helper.assertTrue(feature != null, "expected a placed feature registered as " + key.location());
+        PlacedFeature feature = helper.getLevel().registryAccess().lookupOrThrow(Registries.PLACED_FEATURE).getValue(key);
+        helper.assertTrue(feature != null, "expected a placed feature registered as " + key.identifier());
         return feature;
     }
 

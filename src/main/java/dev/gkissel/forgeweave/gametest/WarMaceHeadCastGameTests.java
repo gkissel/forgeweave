@@ -16,7 +16,6 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
@@ -27,6 +26,7 @@ import dev.gkissel.forgeweave.block.CastingBlockEntity;
 import dev.gkissel.forgeweave.block.FaucetBlock;
 import dev.gkissel.forgeweave.block.FaucetBlockEntity;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.TransferBridge;
 import dev.gkissel.forgeweave.block.PartBuilderBlockEntity;
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
@@ -145,8 +145,7 @@ public class WarMaceHeadCastGameTests {
         CastingBlockEntity table = rigWithoutPour(helper);
         insert(helper, table, new ItemStack(ForgeweaveItems.PART_WAR_MACE_HEAD.get()));
 
-        IFluidHandler handler = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK,
-                helper.absolutePos(CASTING), Direction.UP);
+        IFluidHandler handler = TransferBridge.fluidAt(helper.getLevel(), helper.absolutePos(CASTING), Direction.UP);
         helper.assertTrue(handler != null, "expected the casting table to expose a fluid handler");
         int filled = handler.fill(new FluidStack(ForgeweaveFluids.GOLD.still().get(), 288), IFluidHandler.FluidAction.EXECUTE);
         helper.assertValueEqual(filled, 0,
@@ -182,8 +181,8 @@ public class WarMaceHeadCastGameTests {
     @GameTest(template = "empty")
     public static void theOldPatternItemStillResolvesForSaveCompat(GameTestHelper helper) {
         ItemStack stack = new ItemStack(ForgeweaveItems.PATTERN_WAR_MACE_HEAD.get());
-        CompoundTag saved = (CompoundTag) stack.save(helper.getLevel().registryAccess());
-        ItemStack loaded = ItemStack.parseOptional(helper.getLevel().registryAccess(), saved);
+        CompoundTag saved = (CompoundTag) GameTestCompat.saveStack(helper.getLevel().registryAccess(), stack);
+        ItemStack loaded = GameTestCompat.parseStack(helper.getLevel().registryAccess(), saved).orElse(ItemStack.EMPTY);
 
         helper.assertTrue(loaded.is(ForgeweaveItems.PATTERN_WAR_MACE_HEAD.get()),
                 "expected forgeweave:pattern_war_mace_head to still resolve for a world holding one");
@@ -206,11 +205,11 @@ public class WarMaceHeadCastGameTests {
         helper.setBlock(CASTING, casting);
         helper.setBlock(FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
                 .setValue(FaucetBlock.FACING, Direction.WEST));
-        return helper.getBlockEntity(CASTING);
+        return helper.getBlockEntity(CASTING, CastingBlockEntity.class);
     }
 
     private static FaucetBlockEntity faucet(GameTestHelper helper) {
-        return helper.getBlockEntity(FAUCET);
+        return helper.getBlockEntity(FAUCET, FaucetBlockEntity.class);
     }
 
     /** Puts {@code stack} in the casting table the way a player does -- through the real right-click path. */

@@ -39,7 +39,7 @@ import dev.gkissel.forgeweave.menu.PartBuilderRecipes;
  * (see src/gametest/resources/README.md) since a GameTest server can fake a {@code c:} tag but not a
  * modid or another mod's item id (docs/research/m6-material-expansion-references.md &sect;1.4): the
  * negative material conditions on {@code neoforge:mod_loaded} for a modid nothing supplies, the
- * positive one on {@code neoforge:item_exists} for {@code minecraft:diamond} (always true). Both
+ * positive one on {@code neoforge:registered} for {@code minecraft:diamond} (always true). Both
  * halves are proven across every consumer the mechanism claims needs zero code changes at (the M6
  * epic #824 / issue #826): the material registry itself, the creative tab's part expansion
  * ({@link ForgeweaveCreativeTab#addPartItems}), the guide book's material listing
@@ -62,7 +62,7 @@ public class ConditionalMaterialGameTests {
         RegistryAccess registries = helper.getLevel().registryAccess();
 
         Registry<Material> materials = registries.lookupOrThrow(Material.REGISTRY);
-        helper.assertTrue(materials.get(ABSENT) == null,
+        helper.assertTrue(materials.getValue(ABSENT) == null,
                 "expected the mod_loaded-gated material to be absent from the registry");
 
         helper.assertTrue(partItemMaterials(helper).stream().noneMatch(ABSENT::equals),
@@ -84,14 +84,14 @@ public class ConditionalMaterialGameTests {
         RegistryAccess registries = helper.getLevel().registryAccess();
 
         Registry<Material> materials = registries.lookupOrThrow(Material.REGISTRY);
-        helper.assertTrue(materials.get(PRESENT) != null,
-                "expected the item_exists-gated material to be registered (minecraft:diamond always exists)");
+        helper.assertTrue(materials.getValue(PRESENT) != null,
+                "expected the registered-gated material to be registered (minecraft:diamond always exists)");
 
         helper.assertTrue(partItemMaterials(helper).stream().anyMatch(PRESENT::equals),
-                "expected a creative-tab part variant of the item_exists-gated material");
+                "expected a creative-tab part variant of the registered-gated material");
 
         helper.assertTrue(materialPageIds(registries).stream().anyMatch(PRESENT::equals),
-                "expected a guide-book material page for the item_exists-gated material");
+                "expected a guide-book material page for the registered-gated material");
 
         helper.succeed();
     }

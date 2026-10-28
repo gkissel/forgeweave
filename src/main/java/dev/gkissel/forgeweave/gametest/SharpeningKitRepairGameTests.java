@@ -200,8 +200,8 @@ public class SharpeningKitRepairGameTests {
             grid.add(ItemStack.EMPTY);
         }
         CraftingInput input = CraftingInput.of(3, 3, grid);
-        return level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, level)
-                .map(match -> match.value().assemble(input, level.registryAccess()))
+        return level.recipeAccess().getRecipeFor(RecipeType.CRAFTING, input, level)
+                .map(match -> match.value().assemble(input))
                 .orElse(ItemStack.EMPTY);
     }
 }

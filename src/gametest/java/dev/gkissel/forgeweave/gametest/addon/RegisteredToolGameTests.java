@@ -6,6 +6,7 @@ import net.minecraft.core.BlockPos;
 import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
@@ -151,8 +152,9 @@ public class RegisteredToolGameTests {
         helper.assertTrue(tool.getMaxDamage() > 0,
                 "an assembled tool has durability from its parts, got " + tool.getMaxDamage());
 
-        Tag saved = tool.save(helper.getLevel().registryAccess());
-        ItemStack reloaded = ItemStack.parse(helper.getLevel().registryAccess(), (CompoundTag) saved)
+        var ops = helper.getLevel().registryAccess().createSerializationContext(NbtOps.INSTANCE);
+        Tag saved = ItemStack.CODEC.encodeStart(ops, tool).getOrThrow();
+        ItemStack reloaded = ItemStack.CODEC.parse(ops, (CompoundTag) saved).result()
                 .orElse(ItemStack.EMPTY);
         helper.assertTrue(reloaded.is(GameTestAddon.TOOL.get()),
                 "the registered tool must read back as itself, got " + reloaded);

@@ -122,7 +122,7 @@ public class TrackBMaterialGameTests {
     public static void everyTrackBMaterialHasFullToolAndArmorStats(GameTestHelper helper) {
         Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         for (String name : ROSTER) {
-            Material material = materials.get(materialId(name));
+            Material material = materials.getValue(materialId(name));
             helper.assertTrue(material != null, name + " must be registered");
             helper.assertTrue(material.head().isPresent(), name + " must carry head stats");
             helper.assertTrue(material.handle().isPresent(), name + " must carry handle stats");
@@ -139,7 +139,7 @@ public class TrackBMaterialGameTests {
     public static void everyTrackBMaterialCarriesItsAssignedTrait(GameTestHelper helper) {
         Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         TRAITS.forEach((name, trait) -> {
-            Material material = materials.get(materialId(name));
+            Material material = materials.getValue(materialId(name));
             helper.assertTrue(material != null, name + " must be registered");
             Identifier traitId = traitId(trait);
             helper.assertTrue(material.traits().general().contains(traitId),
@@ -152,7 +152,7 @@ public class TrackBMaterialGameTests {
     @GameTest(template = "empty")
     public static void murkironCarriesASecondHeadScopedTrait(GameTestHelper helper) {
         Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
-        Material murkiron = materials.get(materialId("murkiron"));
+        Material murkiron = materials.getValue(materialId("murkiron"));
         helper.assertTrue(murkiron != null, "murkiron must be registered");
         helper.assertTrue(murkiron.traits().head().contains(traitId("harrying")),
                 "murkiron's head part must carry forgeweave:harrying, got " + murkiron.traits().head());
@@ -192,7 +192,7 @@ public class TrackBMaterialGameTests {
     @GameTest(template = "empty")
     public static void truesteelIngotRepairsTheTool(GameTestHelper helper) {
         Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
-        Material truesteel = materials.get(materialId("truesteel"));
+        Material truesteel = materials.getValue(materialId("truesteel"));
         helper.assertTrue(truesteel != null, "truesteel must be registered");
         Ingredient repair = truesteel.repairItem();
         helper.assertTrue(repair.test(new ItemStack(ForgeweaveItems.trackBAlloyIngot("truesteel").get())),

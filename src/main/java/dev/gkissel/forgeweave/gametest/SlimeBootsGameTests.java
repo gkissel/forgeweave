@@ -144,7 +144,7 @@ public class SlimeBootsGameTests {
         helper.setBlock(column, Blocks.WATER);
         helper.setBlock(column.above(), Blocks.WATER);
         Vec3 inside = helper.absoluteVec(new Vec3(1.5, 1.0, 1.5));
-        player.moveTo(inside.x, inside.y, inside.z, 0.0F, 0.0F);
+        player.snapTo(inside.x, inside.y, inside.z, 0.0F, 0.0F);
         player.baseTick();
         helper.assertTrue(player.isInWater(), "the probe player must actually be in water");
         player.setOnGround(false);

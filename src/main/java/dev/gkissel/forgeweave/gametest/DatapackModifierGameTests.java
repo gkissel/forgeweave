@@ -114,9 +114,9 @@ public class DatapackModifierGameTests {
     public static void aDefinitionFailingItsConditionsNeverRegisters(GameTestHelper helper) {
         Registry<ModifierDefinition> definitions =
                 helper.getLevel().registryAccess().lookupOrThrow(ModifierDefinition.REGISTRY);
-        helper.assertTrue(definitions.get(PACK_ABSENT) == null,
+        helper.assertTrue(definitions.getValue(PACK_ABSENT) == null,
                 "expected the mod_loaded-gated definition to be absent from the registry");
-        helper.assertTrue(definitions.get(PACK_CHILL) != null,
+        helper.assertTrue(definitions.getValue(PACK_CHILL) != null,
                 "expected the unconditioned definition to be present in the registry");
         helper.assertTrue(ForgeweaveModifiers.get(PACK_ABSENT) == null,
                 "expected no behavior behind the mod_loaded-gated definition's id");

@@ -146,24 +146,24 @@ public class EnergyTraitGameTests {
         player.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
         ItemStack pickaxe = pickaxe(List.of(traitId("energized"), traitId("solar_recharge")), 1000);
 
-        level.setDayTime(6000); // noon
+        GameTestCompat.setDayTime(level, 6000); // noon
         helper.runAfterDelay(5, () -> {
-            pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+            pickaxe.getItem().inventoryTick(pickaxe, level, player, null);
             int afterDaylight = EnergyBuffer.stored(pickaxe);
             helper.assertTrue(afterDaylight == 2,
                     "expected 2 FE gained on one daylight tick under open sky, got " + afterDaylight);
 
             helper.setBlock(new BlockPos(2, 6, 2), Blocks.STONE);
             helper.runAfterDelay(5, () -> {
-                pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+                pickaxe.getItem().inventoryTick(pickaxe, level, player, null);
                 int underRoof = EnergyBuffer.stored(pickaxe);
                 helper.assertTrue(underRoof == afterDaylight,
                         "must not recharge without open sky even at noon, got " + underRoof);
 
                 helper.setBlock(new BlockPos(2, 6, 2), Blocks.AIR);
-                level.setDayTime(18000); // midnight
+                GameTestCompat.setDayTime(level, 18000); // midnight
                 helper.runAfterDelay(5, () -> {
-                    pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+                    pickaxe.getItem().inventoryTick(pickaxe, level, player, null);
                     int atNight = EnergyBuffer.stored(pickaxe);
                     helper.assertTrue(atNight == afterDaylight, "must not recharge at night, got " + atNight);
                     helper.succeed();

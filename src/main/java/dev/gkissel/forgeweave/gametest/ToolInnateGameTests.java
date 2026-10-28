@@ -97,14 +97,14 @@ public class ToolInnateGameTests {
         player.setItemInHand(InteractionHand.MAIN_HAND, shovel);
 
         Pig pig = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
-        helper.assertTrue(!pig.hasEffect(MobEffects.MOVEMENT_SLOWDOWN),
+        helper.assertTrue(!pig.hasEffect(MobEffects.SLOWNESS),
                 "the pig must start without slowness, or this proves nothing");
 
         DamageSource source = helper.getLevel().damageSources().playerAttack(player);
         helper.assertTrue(source.getWeaponItem() == shovel, "the attack must be attributed to the shovel");
         pig.hurt(source, 1.0F);
 
-        MobEffectInstance slow = pig.getEffect(MobEffects.MOVEMENT_SLOWDOWN);
+        MobEffectInstance slow = pig.getEffect(MobEffects.SLOWNESS);
         helper.assertTrue(slow != null, "flatten should apply Slowness on hit");
         helper.assertTrue(slow.getAmplifier() == 0, "expected Slowness I (amplifier 0), got " + slow.getAmplifier());
         helper.assertTrue(slow.getDuration() == 30, "expected 30 ticks (1.5s) of slowness, got " + slow.getDuration());
@@ -150,21 +150,16 @@ public class ToolInnateGameTests {
         // needs getUseDuration() - useItemRemaining >= 5, and useItemRemaining is a protected field only
         // code inside a Player subclass may touch -- hence the extra method living on the subclass
         // itself.
-        var blocker = new Player(helper.getLevel(), BlockPos.ZERO, 0.0F,
+        var blocker = new Player(helper.getLevel(),
                 new GameProfile(UUID.randomUUID(), "forgeweave-sunder-test-blocker")) {
             @Override
-            public boolean isSpectator() {
-                return false;
+            public GameType gameMode() {
+                return GameType.SURVIVAL;
             }
 
             @Override
-            public boolean isCreative() {
+            public boolean isClientAuthoritative() {
                 return false;
-            }
-
-            @Override
-            public boolean isLocalPlayer() {
-                return true;
             }
 
             void forceHeldLongEnoughToBlock() {
@@ -191,7 +186,7 @@ public class ToolInnateGameTests {
         blocker.lookAt(EntityAnchorArgument.Anchor.EYES, attacker.position());
         blocker.hurt(source, 4.0F);
         helper.assertTrue(!blocker.isUsingItem(), "an axe/hatchet hit should force the shield down");
-        helper.assertTrue(blocker.getCooldowns().isOnCooldown(Items.SHIELD),
+        helper.assertTrue(blocker.getCooldowns().isOnCooldown(new ItemStack(Items.SHIELD)),
                 "expected the vanilla-axe shield-disable cooldown to be applied");
 
         helper.succeed();

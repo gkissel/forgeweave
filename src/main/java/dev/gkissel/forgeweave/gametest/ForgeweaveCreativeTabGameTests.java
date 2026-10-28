@@ -47,8 +47,8 @@ public class ForgeweaveCreativeTabGameTests {
     public static void listAllTableVariantsListsOneStencilTableAndPartBuilderPerPlankAndLog(GameTestHelper helper) {
         List<ItemStack> displayed = build(helper, true);
 
-        int planks = BuiltInRegistries.ITEM.getTag(ItemTags.PLANKS).map(tag -> tag.size()).orElse(0);
-        int logs = BuiltInRegistries.ITEM.getTag(ItemTags.LOGS).map(tag -> tag.size()).orElse(0);
+        int planks = BuiltInRegistries.ITEM.get(ItemTags.PLANKS).map(tag -> tag.size()).orElse(0);
+        int logs = BuiltInRegistries.ITEM.get(ItemTags.LOGS).map(tag -> tag.size()).orElse(0);
         helper.assertTrue(planks > 1, "expected the game to have more than one plank type loaded");
         helper.assertTrue(logs > 1, "expected the game to have more than one log type loaded");
 

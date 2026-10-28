@@ -291,7 +291,7 @@ public class SearedFurnaceGameTests {
     static SearedFurnaceBlockEntity placeController(GameTestHelper helper) {
         helper.setBlock(CORE_POS, ForgeweaveBlocks.SEARED_FURNACE_CONTROLLER.get().defaultBlockState()
                 .setValue(HorizontalDirectionalBlock.FACING, Direction.WEST));
-        return helper.getBlockEntity(CORE_POS);
+        return helper.getBlockEntity(CORE_POS, SearedFurnaceBlockEntity.class);
     }
 
     private static SearedFurnaceBlockEntity lavaFuelledFurnace(GameTestHelper helper) {

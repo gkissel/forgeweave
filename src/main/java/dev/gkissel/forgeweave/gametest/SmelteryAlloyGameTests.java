@@ -359,7 +359,7 @@ public class SmelteryAlloyGameTests {
     private static ServerPlayer playerAtTheSmeltery(GameTestHelper helper) {
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         BlockPos pos = helper.absolutePos(SmelteryGameTests.CORE_POS);
-        player.moveTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+        player.snapTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
         return player;
     }
 

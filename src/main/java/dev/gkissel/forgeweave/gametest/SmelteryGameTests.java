@@ -8,10 +8,11 @@ import net.minecraft.core.HolderLookup;
 import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -294,7 +295,8 @@ public class SmelteryGameTests {
         // The exact shape FluidTank#writeToNBT produced on master before this issue.
         CompoundTag tag = blockEntity.saveWithFullMetadata(registries);
         CompoundTag legacyTank = new CompoundTag();
-        legacyTank.put("Fluid", new FluidStack(Fluids.LAVA, 777).save(registries));
+        legacyTank.put("Fluid", FluidStack.CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE),
+                new FluidStack(Fluids.LAVA, 777)).getOrThrow());
         tag.put("tank", legacyTank);
 
         BlockState state = helper.getLevel().getBlockState(helper.absolutePos(core));
@@ -326,7 +328,7 @@ public class SmelteryGameTests {
 
         // Carry an iron ingot, then click it into melt slot 0 the way the click packet does.
         menu.setCarried(new ItemStack(Items.IRON_INGOT));
-        menu.clicked(0, 0, ClickType.PICKUP, player);
+        menu.clicked(0, 0, ContainerInput.PICKUP, player);
 
         helper.assertValueEqual(blockEntity.meltingItems().get(0).getItem(), Items.IRON_INGOT,
                 "the item the player clicked into melt slot 0");
@@ -344,7 +346,7 @@ public class SmelteryGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         SmelteryMenu menu = openMenu(helper, core);
         menu.setCarried(new ItemStack(Items.STICK));
-        menu.clicked(0, 0, ClickType.PICKUP, player);
+        menu.clicked(0, 0, ContainerInput.PICKUP, player);
 
         helper.assertTrue(blockEntity.meltingItems().get(0).isEmpty(), "a stick is not meltable and must be refused");
         helper.assertTrue(!menu.getCarried().isEmpty(), "the refused item stays on the cursor");
@@ -373,7 +375,7 @@ public class SmelteryGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         SmelteryMenu menu = openMenu(helper, core);
         menu.setCarried(new ItemStack(Items.IRON_INGOT));
-        menu.clicked(0, 0, ClickType.PICKUP, player);
+        menu.clicked(0, 0, ContainerInput.PICKUP, player);
 
         helper.runAfterDelay(60, () -> {
             float early = blockEntity.meltProgress(0);

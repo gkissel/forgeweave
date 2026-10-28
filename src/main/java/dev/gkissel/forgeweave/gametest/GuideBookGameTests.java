@@ -197,9 +197,9 @@ public class GuideBookGameTests {
                 new ItemStack(Items.BOOK),
                 new ItemStack(ForgeweaveItems.PATTERN_BLANK.get())));
 
-        ItemStack crafted = level.getRecipeManager()
+        ItemStack crafted = level.recipeAccess()
                 .getRecipeFor(RecipeType.CRAFTING, input, level)
-                .map(holder -> holder.value().assemble(input, level.registryAccess()))
+                .map(holder -> holder.value().assemble(input))
                 .orElse(ItemStack.EMPTY);
 
         helper.assertTrue(crafted.is(ForgeweaveItems.GUIDE_BOOK.get()),
@@ -218,9 +218,9 @@ public class GuideBookGameTests {
                 new ItemStack(ForgeweaveItems.PATTERN_BLANK.get()),
                 new ItemStack(ForgeweaveItems.PATTERN_BLANK.get())));
 
-        ItemStack crafted = level.getRecipeManager()
+        ItemStack crafted = level.recipeAccess()
                 .getRecipeFor(RecipeType.CRAFTING, input, level)
-                .map(holder -> holder.value().assemble(input, level.registryAccess()))
+                .map(holder -> holder.value().assemble(input))
                 .orElse(ItemStack.EMPTY);
 
         helper.assertTrue(crafted.is(Items.BOOK),

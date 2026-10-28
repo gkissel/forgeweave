@@ -8,6 +8,7 @@ import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.player.Player;
@@ -79,7 +80,7 @@ public class ArrowGameTests {
      */
     private static List<ArrowEntity> shoot(GameTestHelper helper, Player player, ItemStack bow, ItemStack ammo,
             int ticks) {
-        player.moveTo(helper.absoluteVec(new Vec3(2.5, 2.0, 2.5)));
+        player.snapTo(helper.absoluteVec(new Vec3(2.5, 2.0, 2.5)));
         player.setItemInHand(InteractionHand.MAIN_HAND, bow);
         player.setItemInHand(InteractionHand.OFF_HAND, ammo);
         AABB near = new AABB(player.position(), player.position()).inflate(4.0);
@@ -358,7 +359,7 @@ public class ArrowGameTests {
                 .thenWaitUntil(() -> SpawnCapture.assertIndexServes(helper, pig))
                 .thenExecute(() -> shoot(helper, player, bow, arrow, 11)) // just under full draw: no crit roll
                 .thenWaitUntil(() -> {
-                    MobEffectInstance slowness = pig.getEffect(MobEffects.MOVEMENT_SLOWDOWN);
+                    MobEffectInstance slowness = pig.getEffect(MobEffects.SLOWNESS);
                     helper.assertTrue(slowness != null && slowness.getAmplifier() == 0,
                             "the first hit applies Slowness I (30 ticks), got " + slowness);
                 })
@@ -373,7 +374,7 @@ public class ArrowGameTests {
                 .thenIdle(12)
                 .thenExecute(() -> shoot(helper, player, bow, arrow, 11))
                 .thenWaitUntil(() -> {
-                    MobEffectInstance slowness = pig.getEffect(MobEffects.MOVEMENT_SLOWDOWN);
+                    MobEffectInstance slowness = pig.getEffect(MobEffects.SLOWNESS);
                     helper.assertTrue(slowness != null && slowness.getAmplifier() == 1,
                             "the second hit deepens it to Slowness II, got " + slowness);
                 })
@@ -436,7 +437,7 @@ public class ArrowGameTests {
         RegistryFriendlyByteBuf buf = new RegistryFriendlyByteBuf(Unpooled.buffer(),
                 helper.getLevel().registryAccess());
         ((IEntityWithComplexSpawn) entity).writeSpawnData(buf);
-        ArrowEntity clientSide = ForgeweaveEntities.ARROW.get().create(helper.getLevel());
+        ArrowEntity clientSide = ForgeweaveEntities.ARROW.get().create(helper.getLevel(), EntitySpawnReason.LOAD);
         ((IEntityWithComplexSpawn) clientSide).readSpawnData(buf);
         helper.assertTrue(ItemStack.matches(clientSide.getPickupItemStackOrigin(), entity.getPickupItemStackOrigin()),
                 "a client-constructed arrow carries the shot stack, got " + clientSide.getPickupItemStackOrigin());

@@ -72,7 +72,7 @@ public class BowGameTests {
      * javadoc. That lag, not the shot, is what "one arrow, got 0" was reporting.
      */
     private static List<Arrow> draw(GameTestHelper helper, Player player, ItemStack bow, int ticks) {
-        player.moveTo(helper.absoluteVec(new Vec3(2.5, 2.0, 2.5)));
+        player.snapTo(helper.absoluteVec(new Vec3(2.5, 2.0, 2.5)));
         player.setItemInHand(InteractionHand.MAIN_HAND, bow);
         AABB near = new AABB(player.position(), player.position()).inflate(4.0);
         return SpawnCapture.spawnedDuring(helper, Arrow.class, near, () -> {
@@ -190,8 +190,8 @@ public class BowGameTests {
                 "the arrow flies the way the player faces (+Z), got " + arrow.getDeltaMovement());
         helper.assertTrue(arrow.isCritArrow(), "a full draw is critical");
         double expectedBase = 2.0 + 3.5 / expectedSpeed;
-        helper.assertTrue(Math.abs(arrow.getBaseDamage() - expectedBase) < 0.05,
-                "expected base damage 2 + bonus / speed = " + expectedBase + ", got " + arrow.getBaseDamage());
+        helper.assertTrue(Math.abs(GameTestCompat.baseDamage(arrow) - expectedBase) < 0.05,
+                "expected base damage 2 + bonus / speed = " + expectedBase + ", got " + GameTestCompat.baseDamage(arrow));
         helper.assertTrue(arrow.pickup == AbstractArrow.Pickup.ALLOWED,
                 "an arrow that cost ammo keeps the player-shot default (BowCore only forbids pickup on a free arrow), got "
                         + arrow.pickup);
@@ -219,8 +219,8 @@ public class BowGameTests {
         double speed = arrow.getDeltaMovement().length();
         helper.assertTrue(Math.abs(speed - expectedSpeed) < 0.15, "expected ~" + expectedSpeed + ", got " + speed);
         helper.assertTrue(!arrow.isCritArrow(), "a half draw is not critical");
-        helper.assertTrue(Math.abs(arrow.getBaseDamage() - 2.0) < EPSILON,
-                "zero bonus damage leaves vanilla's base, got " + arrow.getBaseDamage());
+        helper.assertTrue(Math.abs(GameTestCompat.baseDamage(arrow) - 2.0) < EPSILON,
+                "zero bonus damage leaves vanilla's base, got " + GameTestCompat.baseDamage(arrow));
         helper.succeed();
     }
 
@@ -235,12 +235,12 @@ public class BowGameTests {
 
         // No ammo: the click fails and a release fires nothing.
         player.setItemInHand(InteractionHand.MAIN_HAND, bow);
-        InteractionResult noAmmo = bow.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND).getResult();
+        InteractionResult noAmmo = bow.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
         helper.assertTrue(noAmmo == InteractionResult.FAIL, "no ammo must refuse the draw, got " + noAmmo);
         helper.assertTrue(draw(helper, player, bow, 40).isEmpty(), "no ammo, no arrow");
 
         giveArrows(player, 3);
-        InteractionResult withAmmo = bow.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND).getResult();
+        InteractionResult withAmmo = bow.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
         helper.assertTrue(withAmmo == InteractionResult.CONSUME, "with ammo the draw starts, got " + withAmmo);
         player.stopUsingItem();
 
@@ -251,7 +251,7 @@ public class BowGameTests {
 
         // Broken: no draw, no shot.
         bow.set(ForgeweaveDataComponents.BROKEN.get(), true);
-        InteractionResult broken = bow.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND).getResult();
+        InteractionResult broken = bow.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
         helper.assertTrue(broken == InteractionResult.FAIL, "a Broken bow refuses to draw, got " + broken);
         helper.assertTrue(draw(helper, player, bow, 40).isEmpty(), "a Broken bow fires nothing");
         helper.assertTrue(arrowsHeld(player) == 3, "a Broken bow spends no ammo");
@@ -360,7 +360,7 @@ public class BowGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setYRot(0.0F);
         player.setXRot(0.0F);
-        player.moveTo(helper.absoluteVec(new Vec3(2.5, 2.0, 2.5)));
+        player.snapTo(helper.absoluteVec(new Vec3(2.5, 2.0, 2.5)));
         player.setDeltaMovement(new Vec3(4.0, 0.0, 0.0)); // moving sideways as the shot fires
         ItemStack bow = shortbow(helper, player, "iron", "bone", "string");
         giveArrows(player, 5);

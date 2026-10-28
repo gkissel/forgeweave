@@ -11,7 +11,7 @@ import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -406,7 +406,7 @@ public class ToolStationGameTests {
         helper.setBlock(chestPos, Blocks.CHEST);
         helper.setBlock(stationPos, ForgeweaveBlocks.TOOL_STATION.get());
 
-        if (!(helper.getBlockEntity(chestPos) instanceof ChestBlockEntity chest)) {
+        if (!(helper.getBlockEntity(chestPos, ChestBlockEntity.class) instanceof ChestBlockEntity chest)) {
             helper.fail("expected a chest block entity next to the station");
             return;
         }
@@ -585,7 +585,7 @@ public class ToolStationGameTests {
         }
         helper.assertTrue(chestSlot >= 0, "expected the chest's pickaxe to be visible through a side-inventory slot");
 
-        menu.clicked(chestSlot, 0, ClickType.QUICK_MOVE, player);
+        menu.clicked(chestSlot, 0, ContainerInput.QUICK_MOVE, player);
 
         helper.assertTrue(menu.getSlot(ToolStationMenu.HEAD_SLOT).getItem().is(ForgeweaveItems.TOOL_PICKAXE.get()),
                 "expected the pickaxe in the repair tab's tool slot, got " + menu.getSlot(ToolStationMenu.HEAD_SLOT).getItem());

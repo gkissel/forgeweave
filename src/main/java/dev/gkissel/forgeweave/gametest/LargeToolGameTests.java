@@ -694,7 +694,7 @@ public class LargeToolGameTests {
         Pig pig = helper.spawn(EntityType.PIG, pos);
         pig.setNoAi(true);
         pig.setBaby(false);
-        pig.moveTo(helper.absoluteVec(new net.minecraft.world.phys.Vec3(
+        pig.snapTo(helper.absoluteVec(new net.minecraft.world.phys.Vec3(
                 pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5)));
         return pig;
     }

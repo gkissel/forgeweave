@@ -14,7 +14,7 @@ import dev.gkissel.forgeweave.material.Material;
 /**
  * Issue #834 (M6 preset batch 2): Mekanism, Applied Energistics 2 and Occultism. Every material here
  * follows the same {@code neoforge:conditions} existence gate as batch 1 (issue #833) and the
- * original four (#826) -- one {@code neoforge:item_exists} on a concrete item id, no {@code or}
+ * original four (#826) -- one {@code neoforge:registered} on a concrete item id, no {@code or}
  * combinator needed since each material has exactly one candidate source mod (unlike #833's
  * re-homed generics).
  *

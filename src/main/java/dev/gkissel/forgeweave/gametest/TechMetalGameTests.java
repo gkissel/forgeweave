@@ -17,7 +17,7 @@ import dev.gkissel.forgeweave.material.Material;
  * #unsuppliedCompatMetalsDoNotExistAtAll}'s pattern for the original four compat metals: none of
  * Mekanism, Immersive Engineering, Modern Industrialization or Extreme Reactors (modid
  * {@code bigreactors}) is a build dependency (see build.gradle), so every one of this batch's
- * {@code neoforge:item_exists}/{@code neoforge:or} conditions fails here exactly as it would in a
+ * {@code neoforge:registered}/{@code neoforge:or} conditions fails here exactly as it would in a
  * Forgeweave-only install -- each material is absent from the registry entirely, matching issue
  * #826's existence-gating contract (not merely present-and-uncraftable).
  *
