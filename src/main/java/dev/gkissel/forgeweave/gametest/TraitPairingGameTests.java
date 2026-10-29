@@ -375,7 +375,7 @@ public class TraitPairingGameTests {
     /** How far one vanilla shove moves {@code player} horizontally. */
     private static double shoved(Player player) {
         player.setDeltaMovement(net.minecraft.world.phys.Vec3.ZERO);
-        player.knockback(0.4, 1.0, 0.0);
+        player.knockback(0.4, 1.0, 0.0, player.damageSources().generic(), 0.0F);
         return player.getDeltaMovement().horizontalDistance();
     }
 

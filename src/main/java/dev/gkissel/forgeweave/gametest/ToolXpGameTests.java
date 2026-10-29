@@ -12,6 +12,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntitySpawnRequest;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
@@ -205,7 +206,7 @@ public class ToolXpGameTests {
         CompoundTag tag = output.buildResult();
         pig.discard();
 
-        Entity reloaded = EntityType.loadEntityRecursive(tag, helper.getLevel(), EntitySpawnReason.LOAD,
+        Entity reloaded = EntityType.loadEntityRecursive(tag, helper.getLevel(), new EntitySpawnRequest(EntitySpawnReason.LOAD, false),
                 entity -> entity);
         helper.assertTrue(reloaded instanceof Pig, "the saved pig must reload as a pig");
         helper.assertTrue(reloaded.getData(ForgeweaveAttachments.DAMAGE_XP).damage(player.getUUID(), toolId) == 3.0F,

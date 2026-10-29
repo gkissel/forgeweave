@@ -398,7 +398,7 @@ public class PartExchangeGameTests {
         // SpawnCapture reads world-space position, and a mock player is not placed inside the test
         // structure by default (see BeheadingGameTests#playerHeadCarriesVictimProfile's own moveTo) --
         // without this the drop lands wherever the mock spawned and the capture below sees nothing.
-        Vec3 stand = helper.absoluteVec(pos.getCenter());
+        Vec3 stand = helper.absoluteVec(Vec3.atCenterOf(pos));
         player.snapTo(stand.x, stand.y, stand.z);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
         player.getInventory().getNonEquipmentItems().replaceAll(stack -> new ItemStack(Items.COBBLESTONE, 64));

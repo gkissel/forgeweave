@@ -111,7 +111,7 @@ public class BeheadingGameTests {
         // actually keys off is `target instanceof Player` and that player's game profile
         // ({@code Beheading#headDrop}), and a mock Player has both.
         Player victim = helper.makeMockPlayer(GameType.SURVIVAL);
-        Vec3 stand = helper.absoluteVec(new BlockPos(2, 2, 2).getCenter());
+        Vec3 stand = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(2, 2, 2)));
         victim.snapTo(stand.x, stand.y, stand.z);
 
         withoutMobLoot(helper, () -> {

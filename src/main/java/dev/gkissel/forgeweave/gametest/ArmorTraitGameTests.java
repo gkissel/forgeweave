@@ -297,7 +297,7 @@ public class ArmorTraitGameTests {
                 Identifier.fromNamespaceAndPath(Forgeweave.MODID, "trait/crystalstrike/chest")) != null,
                 "the piece grants the attack speed modifier");
         player.setDeltaMovement(Vec3.ZERO);
-        player.knockback(0.4, 0.3, 1.0); // 16.7 degrees off north: not on the 11.25-degree grid
+        player.knockback(0.4, 0.3, 1.0, player.damageSources().generic(), 0.0F); // 16.7 degrees off north: not on the 11.25-degree grid
         Vec3 push = player.getDeltaMovement();
         helper.assertTrue(push.horizontalDistanceSqr() > 0.0, "the push must land");
         double increment = 2 * Math.PI / 32;

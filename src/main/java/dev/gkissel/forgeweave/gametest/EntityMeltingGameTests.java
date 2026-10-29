@@ -253,7 +253,7 @@ public class EntityMeltingGameTests {
      */
     @SuppressWarnings("unchecked")
     private static <T extends LivingEntity> T spawnInside(GameTestHelper helper, EntityType<T> type) {
-        Vec3 pos = helper.absoluteVec(new BlockPos(1, 2, 1).getCenter());
+        Vec3 pos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(1, 2, 1)));
         T entity = type.create(helper.getLevel(), EntitySpawnReason.MOB_SUMMONED);
         helper.assertTrue(entity != null, "expected " + type + " to be creatable");
         entity.snapTo(pos.x, pos.y, pos.z, 0f, 0f);

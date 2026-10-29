@@ -11,10 +11,9 @@ import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.navigation.ScreenRectangle;
 import net.minecraft.client.gui.render.pip.PictureInPictureRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.BlockModelRenderState;
 import net.minecraft.client.renderer.block.model.BlockDisplayContext;
-import net.minecraft.client.renderer.feature.FeatureRenderDispatcher;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.state.gui.pip.PictureInPictureRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.util.LightCoordsUtil;
@@ -54,10 +53,6 @@ public final class StructureRenderer extends PictureInPictureRenderer<StructureR
         }
     }
 
-    public StructureRenderer(MultiBufferSource.BufferSource bufferSource) {
-        super(bufferSource);
-    }
-
     @SubscribeEvent
     public static void register(RegisterPictureInPictureRenderersEvent event) {
         event.register(State.class, StructureRenderer::new);
@@ -69,26 +64,24 @@ public final class StructureRenderer extends PictureInPictureRenderer<StructureR
     }
 
     @Override
-    protected void renderToTexture(State state, PoseStack pose) {
+    protected void renderToTexture(State state, PoseStack pose, SubmitNodeCollector submits) {
         Minecraft minecraft = Minecraft.getInstance();
-        minecraft.gameRenderer.getLighting().setupFor(Lighting.Entry.ITEMS_3D);
+        minecraft.gameRenderer.lighting().setupFor(Lighting.Entry.ITEMS_3D);
         // The base pose is scale(s, s, -s); flipping y and z gives the 1.21 scale(s, -s, s).
         pose.scale(1f, -1f, -1f);
         pose.mulPose(Axis.XP.rotationDegrees(state.rotX()));
         pose.mulPose(Axis.YP.rotationDegrees(state.rotY()));
         pose.translate(state.length() / -2f, state.height() / -2f, state.width() / -2f);
 
-        FeatureRenderDispatcher features = minecraft.gameRenderer.getFeatureRenderDispatcher();
         BlockModelRenderState model = new BlockModelRenderState();
         for (Cell cell : state.cells()) {
             minecraft.getBlockModelResolver().update(model, cell.state(), DISPLAY_CONTEXT);
             pose.pushPose();
             pose.translate(cell.l(), cell.h(), cell.w());
-            model.submitMultiLayer(pose, features.getSubmitNodeStorage(), LightCoordsUtil.FULL_BRIGHT,
+            model.submitMultiLayer(pose, submits, LightCoordsUtil.FULL_BRIGHT,
                     OverlayTexture.NO_OVERLAY, 0);
             pose.popPose();
         }
-        features.renderAllFeatures();
     }
 
     /** Centred vertically like the entity renderer, so the box centre is the pose origin. */

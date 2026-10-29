@@ -1,6 +1,7 @@
 package dev.gkissel.forgeweave.trait;
 
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 
@@ -67,8 +68,9 @@ public record StoredRetaliation(float storedFraction, int threshold, double radi
             if (nearby == wearer) {
                 continue;
             }
-            SecondaryDamage.deal(nearby, level.damageSources().magic(), damage);
-            nearby.knockback(KNOCKBACK, wearer.getX() - nearby.getX(), wearer.getZ() - nearby.getZ());
+            DamageSource magic = level.damageSources().magic();
+            SecondaryDamage.deal(nearby, magic, damage);
+            nearby.knockback(KNOCKBACK, wearer.getX() - nearby.getX(), wearer.getZ() - nearby.getZ(), magic, damage, true);
         }
         TraitFeedback.fire(this, TraitFeedback.Kind.WARD, level, wearer);
     }

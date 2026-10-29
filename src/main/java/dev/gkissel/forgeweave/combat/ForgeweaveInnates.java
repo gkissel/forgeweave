@@ -563,7 +563,8 @@ public final class ForgeweaveInnates {
             // getX(), source.getZ() - getZ())): the vector points at the attacker and knockback
             // subtracts it, so the target is pushed away. Using the attacker's yaw instead would
             // point somewhere slightly different and partly cancel the push vanilla adds afterwards.
-            target.knockback(strength, attacker.getX() - target.getX(), attacker.getZ() - target.getZ());
+            target.knockback(strength, attacker.getX() - target.getX(), attacker.getZ() - target.getZ(),
+                    hit.source(), damageDealt, true);
             // knockback() sets hasImpulse, which syncs a mob; a player's client owns its own motion
             // and only takes a velocity packet when the server marks the entity hurt.
             target.hurtMarked = true;

@@ -28,7 +28,8 @@ public record VentExplosions(float knockbackFactor) implements Trait {
         if (blow.damage() <= 0.0F || !defense.source().is(DamageTypeTags.IS_EXPLOSION)) {
             return;
         }
-        float strength = blow.damage() * knockbackFactor;
+        float vented = blow.damage();
+        float strength = vented * knockbackFactor;
         blow.setDamage(0.0F);
         LivingEntity defender = defense.defender();
         Vec3 origin = defense.source().getSourcePosition();
@@ -37,7 +38,8 @@ public record VentExplosions(float knockbackFactor) implements Trait {
         }
         // LivingEntity#knockback takes the vector *towards* the source and pushes the other way,
         // which is exactly how vanilla's own explosion knockback is signed.
-        defender.knockback(strength, origin.x() - defender.getX(), origin.z() - defender.getZ());
+        defender.knockback(strength, origin.x() - defender.getX(), origin.z() - defender.getZ(), defense.source(),
+                vented, true);
         TraitFeedback.fire(this, TraitFeedback.Kind.WARD, defense.level(), defender);
     }
 }
