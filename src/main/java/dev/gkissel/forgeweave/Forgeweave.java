@@ -90,7 +90,7 @@ import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 import dev.gkissel.forgeweave.modifier.WorktableRecipe; // #1057
 import dev.gkissel.forgeweave.particle.ForgeweaveParticles; // #482
 import dev.gkissel.forgeweave.ponder.CatnipArgumentTypes;
-import dev.gkissel.forgeweave.ponder.CatnipConfigLoader;
+import dev.gkissel.forgeweave.ponder.PonderClientRepairs;
 import dev.gkissel.forgeweave.ponder.ForgeweavePonderPlugin;
 import dev.gkissel.forgeweave.recipe.AlloyRecipe; // #98
 import dev.gkissel.forgeweave.recipe.CoreTransformRecipe; // #845
@@ -337,9 +337,12 @@ public class Forgeweave {
         // ForgeweavePonderPlugin's javadoc for why this isn't an @EventBusSubscriber instead.
         if (ModList.get().isLoaded("ponder")) {
             modEventBus.addListener(ForgeweavePonderPlugin::onClientSetup);
-            // Ponder 1.0.52 and Catnip never load their own client configs on 26.1, so every
-            // scene would crash on open. See CatnipConfigLoader.
-            modEventBus.addListener(CatnipConfigLoader::onLoadComplete);
+            // Ponder 1.0.52 and Catnip set up their client configs and scene renderer too late on
+            // 26.1, so a scene would crash or open blank. See PonderClientRepairs.
+            modEventBus.addListener(PonderClientRepairs::onLoadComplete);
+            if (FMLEnvironment.getDist() == Dist.CLIENT) {
+                modEventBus.addListener(PonderClientRepairs::registerSceneRenderer);
+            }
         }
         // #335 -- DarkModeEverywhere compat is a soft dependency too, same idiom as ponder just above.
         // Unlike FMLClientSetupEvent (inherently client-only), InterModEnqueueEvent is a mod-bus
