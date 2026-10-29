@@ -774,6 +774,9 @@ public final class ScreenshotHarness {
         // #158: a fresh run dir is also a fresh "first world", so vanilla's tutorial toast ("Move with
         // W, A, S and D") floats over the top-right of every world-view capture for its first minute.
         mc.options.tutorialStep = TutorialSteps.NONE;
+        // 26.1 fades newly built chunk sections in; a capture mid-fade shows see-through squares of
+        // ground. 1.21.1 had no fade, so turn it off.
+        mc.options.chunkSectionFadeInTime().set(0.0);
         // Checklist line 16: a resource reload on the main menu, before any world exists.
         HarnessChecks.startTitleReload(mc);
         advance(Stage.TITLE_RELOAD);
@@ -839,7 +842,9 @@ public final class ScreenshotHarness {
         }
         origin = spawn;
         // Scenes hand the player bows and armor, which earn advancements; their chat lines and toasts
-        // would sit over the frames. The toasts are cleared every tick in onClientTick.
+        // would sit over the frames. The toasts are cleared every tick in onClientTick, and the chat
+        // line for the root advancement, earned with the guide book at login, is cleared here.
+        mc.gui.getChat().clearMessages(false);
         server.execute(() -> server.getGameRules().set(
                 net.minecraft.world.level.gamerules.GameRules.SHOW_ADVANCEMENT_MESSAGES, false, server));
         LOGGER.info("{}world ready, settling before placing stations at {}", LOG_PREFIX, origin);
