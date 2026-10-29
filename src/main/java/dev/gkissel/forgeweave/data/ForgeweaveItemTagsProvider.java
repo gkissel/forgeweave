@@ -560,11 +560,19 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
             TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(Forgeweave.MODID, "alloys/deepest"));
 
     /**
+     * Tags the gametests fill with a stand-in item ({@code src/gametest/resources/data/c/tags/item}).
+     * Main and gametest resources join into one mod file, so a generated copy at the same path would
+     * hide the stand-in. Every mod that gates bronze (Mekanism, Eternal Ores) defines this tag itself.
+     */
+    private static final Set<Identifier> GAMETEST_STAND_INS = Set.of(Identifier.fromNamespaceAndPath("c", "ingots/bronze"));
+
+    /**
      * An empty entry for every other mod's item tag that a Forgeweave material, melting, casting or
      * modifier recipe names. 26.1 refuses to load a datapack entry that names a missing tag, where
      * 1.21.1 read it as empty, so a partner mod without, say, {@code c:ingots/uraninite} stopped the
      * server from booting. The files merge, so a mod that does define the tag still fills it.
      * Vanilla and Forgeweave tags are left out: a missing one of those is a real bug and should fail.
+     * So is a tag another loaded pack already defines, such as NeoForge's {@code c:ingots/copper}.
      */
     private void addReferencedTags() {
         Pattern reference = Pattern.compile("\"#([a-z0-9_.-]+):([a-z0-9_/.-]+)\"");
@@ -583,7 +591,10 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
                         throw new UncheckedIOException("could not read " + id, e);
                     }
                 });
-        named.forEach(tag -> tag(TagKey.create(Registries.ITEM, tag)));
+        named.stream()
+                .filter(tag -> !GAMETEST_STAND_INS.contains(tag))
+                .filter(tag -> resources.getResource(tag.withPath(path -> "tags/item/" + path + ".json")).isEmpty())
+                .forEach(tag -> tag(TagKey.create(Registries.ITEM, tag)));
     }
 
     private static TagKey<Item> cTag(String path) {
