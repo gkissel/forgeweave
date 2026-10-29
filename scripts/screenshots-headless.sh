@@ -43,10 +43,39 @@ else
     echo 'earlyWindowControl = false' >> "$fml"
 fi
 
+# A fatal mod-loading error writes a crash report and then opens NeoForge's error dialog, which
+# waits for a click nobody on a headless display can give. Once a new crash report appears, give
+# the client a few seconds to exit on its own, then stop this run's client JVM (the one whose
+# working directory is our game dir) so gradle returns instead of hanging until the timeout.
+run_harness() {
+    local marker="$game_dir/.harness-start"
+    touch "$marker"
+    "$@" &
+    local runner=$!
+    while kill -0 "$runner" 2>/dev/null; do
+        if [ -n "$(find "$game_dir/crash-reports" -newer "$marker" -name '*.txt' 2>/dev/null)" ]; then
+            echo "The client wrote a crash report; stopping it if it does not exit by itself." >&2
+            sleep 15
+            local own_dir pid
+            own_dir=$(realpath "$game_dir")
+            for pid in $(pgrep -f 'net.neoforged.devlaunch.Main' || true); do
+                if [ "$(readlink "/proc/$pid/cwd" 2>/dev/null)" = "$own_dir" ]; then
+                    kill "$pid" 2>/dev/null || true
+                fi
+            done
+            break
+        fi
+        sleep 2
+    done
+    harness_status=0
+    wait "$runner" || harness_status=$?
+}
+
 if $software || ! command -v sway >/dev/null 2>&1; then
     command -v xvfb-run >/dev/null 2>&1 || { echo "Neither sway nor xvfb-run is installed." >&2; exit 1; }
     echo "Running the harness under Xvfb (software rendering)"
-    exec xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' ./gradlew "${gradle_args[@]}"
+    run_harness xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' ./gradlew "${gradle_args[@]}"
+    exit "$harness_status"
 fi
 
 work=$(mktemp -d)
@@ -83,6 +112,5 @@ if [ -z "$headless_display" ] || [ "$headless_display" = "$desktop_display" ]; t
 fi
 echo "Running the harness on headless sway, DISPLAY=$headless_display"
 
-status=0
-DISPLAY="$headless_display" ./gradlew "${gradle_args[@]}" || status=$?
-exit "$status"
+DISPLAY="$headless_display" run_harness ./gradlew "${gradle_args[@]}"
+exit "$harness_status"

@@ -739,6 +739,16 @@ public final class ScreenshotHarness {
     }
 
     private static void awaitTitle(Minecraft mc) {
+        if (mc.screen instanceof net.neoforged.neoforge.client.gui.LoadingErrorScreen) {
+            // NeoForge parks the client on this screen when mod loading reported warnings (26.1 warns
+            // on every @OnlyIn), and only a click moves it on. A player would see it too, so it fails
+            // the run instead of leaving the harness waiting for a title screen that never comes.
+            failCheck("{}mod loading FAILED: NeoForge showed its loading issues screen: {}", LOG_PREFIX,
+                    net.neoforged.fml.ModLoader.getLoadingIssues());
+            finishHarness(mc);
+            advance(Stage.DONE);
+            return;
+        }
         if (mc.screen instanceof AccessibilityOnboardingScreen) {
             // 1.21 shows accessibility onboarding in front of the title screen on a run dir's
             // first-ever launch (fresh worktree, CI), and the harness would wait on it forever.
