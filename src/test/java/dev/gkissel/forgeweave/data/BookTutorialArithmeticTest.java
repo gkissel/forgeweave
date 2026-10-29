@@ -78,7 +78,9 @@ class BookTutorialArithmeticTest {
         int groutPerCraft = resultCount(recipe("grout"));
         JsonObject smelting = recipe("seared_brick_from_smelting");
         assertEquals(1, resultCount(smelting), "one grout bakes into one brick");
-        assertEquals(200, smelting.get("cookingtime").getAsInt(), "the page says ten seconds a brick");
+        // 26.2 writes cookingtime only when it differs from smelting's default of 200.
+        int cookingTime = smelting.has("cookingtime") ? smelting.get("cookingtime").getAsInt() : 200;
+        assertEquals(200, cookingTime, "the page says ten seconds a brick");
         assertTrue(text.contains(working / groutPerCraft + " grout crafts"),
                 "56 bricks at " + groutPerCraft + " grout a craft: " + text);
     }
