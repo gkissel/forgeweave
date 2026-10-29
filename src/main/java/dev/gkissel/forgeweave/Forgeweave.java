@@ -90,6 +90,7 @@ import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 import dev.gkissel.forgeweave.modifier.WorktableRecipe; // #1057
 import dev.gkissel.forgeweave.particle.ForgeweaveParticles; // #482
 import dev.gkissel.forgeweave.ponder.CatnipArgumentTypes;
+import dev.gkissel.forgeweave.ponder.CatnipConfigLoader;
 import dev.gkissel.forgeweave.ponder.ForgeweavePonderPlugin;
 import dev.gkissel.forgeweave.recipe.AlloyRecipe; // #98
 import dev.gkissel.forgeweave.recipe.CoreTransformRecipe; // #845
@@ -336,6 +337,9 @@ public class Forgeweave {
         // ForgeweavePonderPlugin's javadoc for why this isn't an @EventBusSubscriber instead.
         if (ModList.get().isLoaded("ponder")) {
             modEventBus.addListener(ForgeweavePonderPlugin::onClientSetup);
+            // Ponder 1.0.52 and Catnip never load their own client configs on 26.1, so every
+            // scene would crash on open. See CatnipConfigLoader.
+            modEventBus.addListener(CatnipConfigLoader::onLoadComplete);
         }
         // #335 -- DarkModeEverywhere compat is a soft dependency too, same idiom as ponder just above.
         // Unlike FMLClientSetupEvent (inherently client-only), InterModEnqueueEvent is a mod-bus
