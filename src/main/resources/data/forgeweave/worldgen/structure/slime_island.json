@@ -10,8 +10,11 @@
         {
           "type": "forgeweave:blue_slime",
           "weight": 15,
-          "minCount": 2,
-          "maxCount": 4
+          "count": {
+            "type": "minecraft:uniform",
+            "min_inclusive": 2,
+            "max_inclusive": 4
+          }
         }
       ]
     }
