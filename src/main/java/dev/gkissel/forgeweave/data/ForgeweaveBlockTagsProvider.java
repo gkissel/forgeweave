@@ -344,6 +344,11 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
                 .addOptionalTag(SmelteryScan.WALL_ADDON);
     }
 
+    @Override
+    protected KeyedTagAppender<Block> tag(TagKey<Block> tag) {
+        return new KeyedTagAppender<>(super.tag(tag), entry -> entry.builtInRegistryHolder().key());
+    }
+
     private static TagKey<Block> cTag(String path) {
         return TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath("c", path));
     }
