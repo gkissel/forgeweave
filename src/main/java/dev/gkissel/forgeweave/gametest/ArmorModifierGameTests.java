@@ -272,7 +272,7 @@ public class ArmorModifierGameTests {
      */
     @GameTest(template = "empty")
     public static void fireProtectionAttenuatesFireDamageAfterArmor(GameTestHelper helper) {
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        Player player = GameTestCompat.inAir(helper.makeMockPlayer(GameType.SURVIVAL));
         ItemStack piece = apply(helper, player, chestplate(helper, player), new ItemStack(ForgeweaveItems.SEARED_BRICK.get(), 15));
         helper.assertTrue(ForgeweaveModifiers.freeSlots(piece) == 0, "three levels fill the three slots");
         player.setItemSlot(EquipmentSlot.CHEST, piece);

@@ -67,7 +67,7 @@ public class MaterialTraitCorrectionGameTests {
 
     /** A survival mock player wearing an iron chestplate whose trait list is exactly {@code traits}. */
     private static Player wearing(GameTestHelper helper, String... traits) {
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        Player player = GameTestCompat.inAir(helper.makeMockPlayer(GameType.SURVIVAL));
         ItemStack piece = ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.TOOL_STATION.get(),
                 ToolAssembly.entryOf(ToolConstants.CHESTPLATE), List.of("iron", "iron"));
         piece.set(ForgeweaveDataComponents.TRAITS.get(),

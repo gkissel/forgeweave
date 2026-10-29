@@ -58,7 +58,7 @@ public class ArmorLevelingGameTests {
 
     /** A survival mock player in a full set of {@code material}, ticked once so the attributes apply. */
     private static Player suitedUp(GameTestHelper helper, String material) {
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        Player player = GameTestCompat.inAir(helper.makeMockPlayer(GameType.SURVIVAL));
         player.setItemSlot(EquipmentSlot.HEAD, piece(helper, player, ToolConstants.HELMET, material));
         player.setItemSlot(EquipmentSlot.CHEST, piece(helper, player, ToolConstants.CHESTPLATE, material));
         player.setItemSlot(EquipmentSlot.LEGS, piece(helper, player, ToolConstants.LEGGINGS, material));

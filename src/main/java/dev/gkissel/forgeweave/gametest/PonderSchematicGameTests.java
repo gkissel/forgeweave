@@ -15,6 +15,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
+import net.minecraft.util.datafix.DataFixTypes;
+import net.minecraft.util.datafix.DataFixers;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
@@ -226,7 +228,10 @@ public class PonderSchematicGameTests {
             if (in == null) {
                 throw new IllegalStateException("assets/forgeweave/ponder/" + name + ".nbt is missing from the jar");
             }
-            return NbtIo.readCompressed(in, NbtAccounter.unlimitedHeap());
+            // The upgrade every structure file gets on load (TemplateSource#readStructure): 26.3 renamed
+            // the palette's Name/Properties keys, and these files keep the version they were saved in.
+            CompoundTag tag = NbtIo.readCompressed(in, NbtAccounter.unlimitedHeap());
+            return DataFixTypes.STRUCTURE.updateToCurrentVersion(DataFixers.getDataFixer(), tag, NbtUtils.getDataVersion(tag, 500));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
