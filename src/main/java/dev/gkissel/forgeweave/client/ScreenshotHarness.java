@@ -23,6 +23,7 @@ import org.slf4j.helpers.MessageFormatter;
 import net.minecraft.client.CameraType;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.client.Screenshot;
 import net.minecraft.client.gui.screens.AccessibilityOnboardingScreen;
 import net.minecraft.client.gui.screens.TitleScreen;
@@ -776,6 +777,8 @@ public final class ScreenshotHarness {
         // 26.1 fades newly built chunk sections in; a capture mid-fade shows see-through squares of
         // ground. 1.21.1 had no fade, so turn it off.
         mc.options.chunkSectionFadeInTime().set(0.0);
+        // Unattended, so silent: the harness plays next to whatever the desktop is playing.
+        mc.options.getSoundSourceOptionInstance(SoundSource.MASTER).set(0.0);
         // Checklist line 16: a resource reload on the main menu, before any world exists.
         HarnessChecks.startTitleReload(mc);
         advance(Stage.TITLE_RELOAD);
