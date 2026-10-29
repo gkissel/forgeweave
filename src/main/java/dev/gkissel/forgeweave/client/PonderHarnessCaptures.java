@@ -59,6 +59,9 @@ final class PonderHarnessCaptures {
         // Comfy reading slows a scene down while text is up; the harness reads nothing. This writes
         // Ponder's client config in the harness's own game directory (build.gradle), never run/config.
         ui.setComfyReadingEnabled(false);
+        // A player's way in (ScreenOpener.transitionTo) zooms the screen in and settles at 1. Catnip
+        // 26.1 draws a screen still at its starting 0 at 1.5x, so start at the settled value.
+        ui.transition.startWithValue(1.0);
         ScreenOpener.open(ui);
         for (int i = 0; i < capture.sceneIndex(); i++) {
             ui.nextScene();

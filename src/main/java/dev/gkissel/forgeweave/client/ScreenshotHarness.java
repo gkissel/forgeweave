@@ -690,6 +690,9 @@ public final class ScreenshotHarness {
             finishHarness(mc);
             return;
         }
+        if (origin != null) {
+            mc.getToastManager().clear();
+        }
         switch (stage) {
             case AWAIT_TITLE -> awaitTitle(mc);
             case TITLE_RELOAD -> titleReload(mc);
@@ -835,6 +838,10 @@ public final class ScreenshotHarness {
             return;
         }
         origin = spawn;
+        // Scenes hand the player bows and armor, which earn advancements; their chat lines and toasts
+        // would sit over the frames. The toasts are cleared every tick in onClientTick.
+        server.execute(() -> server.getGameRules().set(
+                net.minecraft.world.level.gamerules.GameRules.SHOW_ADVANCEMENT_MESSAGES, false, server));
         LOGGER.info("{}world ready, settling before placing stations at {}", LOG_PREFIX, origin);
         advance(Stage.SETTLE_WORLD);
     }
@@ -1722,9 +1729,11 @@ public final class ScreenshotHarness {
             // Away from the blocks the earlier scenes left standing, so the silhouette reads against
             // flat ground rather than against a Tool Forge.
             BlockPos stand = origin.offset(0, 0, -WEAPON_SCENE_DISTANCE);
-            serverPlayer.teleportTo(stand.getX() + 0.5, stand.getY(), stand.getZ() + 0.5);
-            serverPlayer.setYRot(180.0F);
-            serverPlayer.setXRot(0.0F);
+            // Rotation inside the teleport: the plain teleportTo leaves the client's rotation alone, so
+            // a server-side setXRot/setYRot never reached the camera and each pose inherited
+            // whatever the previous scene looked at (26.1 showed the ground).
+            serverPlayer.teleportTo(serverPlayer.level(), stand.getX() + 0.5, stand.getY(), stand.getZ() + 0.5,
+                    java.util.Set.of(), 180.0F, 0.0F, false);
         });
         advance(Stage.SETTLE_WEAPON_FIRST_PERSON);
     }
@@ -1839,9 +1848,11 @@ public final class ScreenshotHarness {
                 serverPlayer.setItemSlot(piece.get().getEquipmentSlot(), stack);
             }
             BlockPos stand = origin.offset(0, 0, -WEAPON_SCENE_DISTANCE);
-            serverPlayer.teleportTo(stand.getX() + 0.5, stand.getY(), stand.getZ() + 0.5);
-            serverPlayer.setYRot(180.0F);
-            serverPlayer.setXRot(0.0F);
+            // Rotation inside the teleport: the plain teleportTo leaves the client's rotation alone, so
+            // a server-side setXRot/setYRot never reached the camera and each pose inherited
+            // whatever the previous scene looked at (26.1 showed the ground).
+            serverPlayer.teleportTo(serverPlayer.level(), stand.getX() + 0.5, stand.getY(), stand.getZ() + 0.5,
+                    java.util.Set.of(), 180.0F, 0.0F, false);
         });
         mc.options.setCameraType(CameraType.THIRD_PERSON_FRONT);
         advance(Stage.SETTLE_ARMOR);
@@ -2005,9 +2016,11 @@ public final class ScreenshotHarness {
             serverPlayer.setItemInHand(InteractionHand.MAIN_HAND, stack);
             serverPlayer.getInventory().setItem(9, new ItemStack(Items.ARROW, 16));
             BlockPos stand = origin.offset(0, 0, -WEAPON_SCENE_DISTANCE);
-            serverPlayer.teleportTo(stand.getX() + 0.5, stand.getY(), stand.getZ() + 0.5);
-            serverPlayer.setYRot(180.0F);
-            serverPlayer.setXRot(0.0F);
+            // Rotation inside the teleport: the plain teleportTo leaves the client's rotation alone, so
+            // a server-side setXRot/setYRot never reached the camera and each pose inherited
+            // whatever the previous scene looked at (26.1 showed the ground).
+            serverPlayer.teleportTo(serverPlayer.level(), stand.getX() + 0.5, stand.getY(), stand.getZ() + 0.5,
+                    java.util.Set.of(), 180.0F, 0.0F, false);
         });
         advance(Stage.SETTLE_BOW_POSE);
     }
