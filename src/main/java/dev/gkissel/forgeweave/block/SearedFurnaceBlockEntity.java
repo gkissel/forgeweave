@@ -39,7 +39,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.menu.SearedFurnaceMenu;
@@ -511,12 +510,12 @@ public class SearedFurnaceBlockEntity extends BlockEntity implements StationMenu
             fuelQuality = 0;
             return;
         }
-        FluidStack drained = tank.tank().drain(found.amount(), IFluidHandler.FluidAction.SIMULATE);
+        FluidStack drained = tank.tank().drain(found.amount(), true);
         if (drained.getAmount() != found.amount()) {
             fuelQuality = 0;
             return;
         }
-        tank.tank().drain(found.amount(), IFluidHandler.FluidAction.EXECUTE);
+        tank.tank().drain(found.amount(), false);
         currentFuel = drained.copy();
         fuelQuality = found.duration();
         fuel += found.duration();

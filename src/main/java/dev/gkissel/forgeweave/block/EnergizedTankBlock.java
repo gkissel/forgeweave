@@ -2,8 +2,6 @@ package dev.gkissel.forgeweave.block;
 
 import javax.annotation.Nullable;
 
-import com.mojang.serialization.MapCodec;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -18,7 +16,7 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
-import net.neoforged.neoforge.fluids.FluidUtil;
+import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 
 /**
  * The energized tank (docs/SCOPE.md M8, D-M8-11; issue #972). See
@@ -44,8 +42,6 @@ import net.neoforged.neoforge.fluids.FluidUtil;
  * nor its art derives from either clone.
  */
 public class EnergizedTankBlock extends Block implements EntityBlock {
-    public static final MapCodec<EnergizedTankBlock> CODEC = simpleCodec(EnergizedTankBlock::new);
-
     public static final BooleanProperty OVERDRIVE = BooleanProperty.create("overdrive");
 
     public EnergizedTankBlock(Properties properties) {
@@ -58,11 +54,6 @@ public class EnergizedTankBlock extends Block implements EntityBlock {
         builder.add(OVERDRIVE);
     }
 
-    @Override
-    protected MapCodec<? extends EnergizedTankBlock> codec() {
-        return CODEC;
-    }
-
     @Nullable
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
@@ -73,7 +64,7 @@ public class EnergizedTankBlock extends Block implements EntityBlock {
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hit) {
         if (level.getBlockEntity(pos) instanceof EnergizedTankBlockEntity tank
-                && FluidUtil.interactWithFluidHandler(player, hand, tank.sample())) {
+                && FluidUtil.interactWithFluidHandler(player, hand, null, tank.sample(), null)) {
             return InteractionResult.SUCCESS;
         }
         return super.useItemOn(stack, state, level, pos, player, hand, hit);

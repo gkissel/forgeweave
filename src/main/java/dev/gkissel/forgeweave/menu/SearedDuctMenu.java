@@ -7,9 +7,9 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemStackHandler;
-import net.neoforged.neoforge.items.SlotItemHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
 
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 
@@ -45,14 +45,14 @@ public class SearedDuctMenu extends AbstractContainerMenu {
      * same arrangement {@code SmelteryMenu} uses for its melt grid.
      */
     public SearedDuctMenu(int containerId, Inventory playerInventory) {
-        this(containerId, playerInventory, ContainerLevelAccess.NULL, new ItemStackHandler(FILTER_SLOT_COUNT));
+        this(containerId, playerInventory, ContainerLevelAccess.NULL, new ItemStacksResourceHandler(FILTER_SLOT_COUNT));
     }
 
     /** Server-side: built by {@code SearedDuctBlockEntity#createMenu} over the duct's real filter slot. */
-    public SearedDuctMenu(int containerId, Inventory playerInventory, ContainerLevelAccess access, IItemHandler filter) {
+    public SearedDuctMenu(int containerId, Inventory playerInventory, ContainerLevelAccess access, ResourceHandler<ItemResource> filter) {
         super(ForgeweaveMenus.SEARED_DUCT.get(), containerId);
         this.access = access;
-        addSlot(new SlotItemHandler(filter, 0, FILTER_X, FILTER_Y));
+        addSlot(new SideInventorySlots.SideSlot(filter, 0, FILTER_X, FILTER_Y)); // a plain slot over the handler
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
                 addSlot(new Slot(playerInventory, col + row * 9 + 9,

@@ -22,7 +22,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.fluids.SimpleFluidContent;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 
@@ -59,10 +58,6 @@ public class SearedTankBlockEntity extends BlockEntity {
         }
     };
 
-    /** The tank as the 21.9 transfer API sees it; what the fluid capability hands out. */
-    private final ResourceHandler<FluidResource> fluidHandler =
-            TransferBridge.fluids(tank, TransferBridge.tankState(tank, this::tankChanged));
-
     public SearedTankBlockEntity(BlockPos pos, BlockState state) {
         super(ForgeweaveBlockEntities.SEARED_TANK.get(), pos, state);
     }
@@ -71,9 +66,9 @@ public class SearedTankBlockEntity extends BlockEntity {
         return tank;
     }
 
-    /** The fluid capability's handler (21.9 transfer API). */
+    /** The fluid capability's handler (the tank itself, a transfer-API {@link ResourceHandler}). */
     public ResourceHandler<FluidResource> fluidHandler() {
-        return fluidHandler;
+        return tank;
     }
 
     private void tankChanged() {
@@ -159,6 +154,6 @@ public class SearedTankBlockEntity extends BlockEntity {
     /** Wires the fluid-handler capability for all three tank blocks; called from {@code Forgeweave}'s constructor. */
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, ForgeweaveBlockEntities.SEARED_TANK.get(),
-                (blockEntity, side) -> blockEntity.fluidHandler);
+                (blockEntity, side) -> blockEntity.tank);
     }
 }

@@ -17,7 +17,8 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 import dev.gkissel.forgeweave.api.tool.PartDefinition;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -39,7 +40,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
  * StonecutterMenu#clickMenuButton}) the screen's button clicks route through.
  *
  * <p>When a Pattern Chest is adjacent ({@code StencilTableBlockEntity#findSideInventory}, issue
- * #306), its {@link IItemHandler} is exposed as extra slots after the output slot via {@link
+ * #306), its {@link ResourceHandler} is exposed as extra slots after the output slot via {@link
  * SideInventorySlots#create} -- same shape as {@link PartBuilderMenu}/{@link CraftingStationMenu}'s
  * own side panels, except this one sits on the station's <em>right</em> (upstream's {@code
  * ContainerStencilTable} builds its {@code DynamicChestInventory} with {@code rightSide = true},
@@ -135,7 +136,7 @@ public class StencilTableMenu extends StationMenu {
     private final Container container;
     private final ContainerLevelAccess access;
     @Nullable
-    private final IItemHandler sideInventory;
+    private final ResourceHandler<ItemResource> sideInventory;
     private final DataSlot selectedPattern = DataSlot.standalone();
     /**
      * How many of {@link #sideSlots} are actually backed by the neighbor right now (issue #756):
@@ -158,9 +159,9 @@ public class StencilTableMenu extends StationMenu {
 
     /** Server-side: constructed by {@code StencilTableBlockEntity} with the block's real inventory and detected neighbor. */
     public StencilTableMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access,
-            @Nullable IItemHandler sideInventory) {
+            @Nullable ResourceHandler<ItemResource> sideInventory) {
         this(containerId, playerInventory, container, access, sideInventory,
-                sideInventory == null ? 0 : sideInventory.getSlots(), groupAt(access));
+                sideInventory == null ? 0 : sideInventory.size(), groupAt(access));
     }
 
     /**
@@ -171,12 +172,12 @@ public class StencilTableMenu extends StationMenu {
      * every existing GameTest that doesn't care about a growing neighbor.
      */
     public StencilTableMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access,
-            @Nullable IItemHandler sideInventory, int maxSideInventorySlots) {
+            @Nullable ResourceHandler<ItemResource> sideInventory, int maxSideInventorySlots) {
         this(containerId, playerInventory, container, access, sideInventory, maxSideInventorySlots, groupAt(access));
     }
 
     private StencilTableMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access,
-            @Nullable IItemHandler sideInventory, int sideInventorySlotCount, StationGroup stationGroup) {
+            @Nullable ResourceHandler<ItemResource> sideInventory, int sideInventorySlotCount, StationGroup stationGroup) {
         super(ForgeweaveMenus.STENCIL_TABLE.get(), containerId, stationGroup);
         checkContainerSize(container, CONTAINER_SLOTS);
         this.container = container;
@@ -199,7 +200,7 @@ public class StencilTableMenu extends StationMenu {
         addDataSlot(selectedPattern);
         selectedPattern.set(-1);
         addDataSlot(sideInventoryLiveSlots);
-        sideInventoryLiveSlots.set(sideInventory == null ? 0 : sideInventory.getSlots());
+        sideInventoryLiveSlots.set(sideInventory == null ? 0 : sideInventory.size());
 
         layoutPlayerInventorySlots(playerInventory);
     }
@@ -260,7 +261,7 @@ public class StencilTableMenu extends StationMenu {
     public void broadcastChanges() {
         updateResult();
         if (sideInventory != null) {
-            sideInventoryLiveSlots.set(sideInventory.getSlots());
+            sideInventoryLiveSlots.set(sideInventory.size());
         }
         super.broadcastChanges();
     }

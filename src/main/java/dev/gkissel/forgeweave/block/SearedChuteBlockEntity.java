@@ -9,8 +9,6 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.wrapper.InvWrapper;
 
 /**
  * A chute's link back to the smeltery core whose melting inventory it serves (docs/SCOPE.md M3.4
@@ -20,7 +18,7 @@ import net.neoforged.neoforge.items.wrapper.InvWrapper;
  *
  * <p>Upstream's chute is nothing but the item-handler half of the same "re-expose the master's
  * capability" base the drain uses, and this is the same: it hands out {@link
- * SmelteryControllerBlockEntity#meltingContainer()} through NeoForge's {@link InvWrapper}, so
+ * SmelteryControllerBlockEntity#meltingContainer()} through {@link TransferBridge#items}, so
  * insertion goes through the melting inventory's own {@code canPlaceItem} (only what the smeltery can
  * melt, one item per interior block) and extraction takes a not-yet-melted item back out. There is
  * deliberately no pulling of its own: a chute is a port, not a hopper -- something outside has to
@@ -40,12 +38,12 @@ public class SearedChuteBlockEntity extends SmelteryIoBlockEntity {
      * replaces the backing list of; caching one here would hand out a handler over a stale interior.
      */
     @Nullable
-    public IItemHandler itemHandler() {
+    public TransferBridge.ItemStore itemHandler() {
         SmelteryControllerBlockEntity core = formedCore();
-        return core == null ? null : new InvWrapper(core.meltingContainer());
+        return core == null ? null : core.itemCapability();
     }
 
-    /** {@link #itemHandler()} as the 21.9 transfer API sees it; what the capability hands out. */
+    /** {@link #itemHandler()} as the transfer API sees it; what the capability hands out. */
     @Nullable
     public ResourceHandler<ItemResource> itemCapability() {
         SmelteryControllerBlockEntity core = formedCore();

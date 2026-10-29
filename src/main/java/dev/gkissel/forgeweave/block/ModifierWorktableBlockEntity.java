@@ -25,7 +25,8 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
-import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.menu.ModifierWorktableMenu;
@@ -68,7 +69,7 @@ public class ModifierWorktableBlockEntity extends BlockEntity implements Station
 
     /** The adjacent chest's item handler to expose in the GUI's side panel, or {@code null} if none qualifies. */
     @Nullable
-    public IItemHandler findSideInventory() {
+    public ResourceHandler<ItemResource> findSideInventory() {
         return SideInventory.find(this);
     }
 
@@ -104,7 +105,7 @@ public class ModifierWorktableBlockEntity extends BlockEntity implements Station
     @Nullable
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
-        IItemHandler sideInventory = findSideInventory();
+        ResourceHandler<ItemResource> sideInventory = findSideInventory();
         return new ModifierWorktableMenu(containerId, playerInventory, container,
                 ContainerLevelAccess.create(level, worldPosition), sideInventory,
                 SideInventory.maxSlots(this, sideInventory));
@@ -113,7 +114,7 @@ public class ModifierWorktableBlockEntity extends BlockEntity implements Station
     /** Side-inventory slot count first, then the station-group tab row (issue #78/#306/#756). */
     @Override
     public void writeMenuData(RegistryFriendlyByteBuf buf) {
-        IItemHandler sideInventory = findSideInventory();
+        ResourceHandler<ItemResource> sideInventory = findSideInventory();
         buf.writeVarInt(SideInventory.maxSlots(this, sideInventory));
         StationGroup.STREAM_CODEC.encode(buf, StationGroup.tabsFor(level, worldPosition));
     }
