@@ -2673,8 +2673,15 @@ public final class ForgeweaveModifiers {
             return;
         }
         // Upstream ModGlowing#onUpdate's own seven candidates, in its own order.
-        for (BlockPos pos : List.of(standing, standing.above(), standing.north(), standing.east(),
-                standing.south(), standing.west(), standing.below())) {
+        List<BlockPos> candidates = List.of(standing, standing.above(), standing.north(), standing.east(),
+                standing.south(), standing.west(), standing.below());
+        // 26.1 queues light updates, so a light placed a moment ago can still read as dark. A light
+        // block is replaceable, so without this the tool would keep re-placing its own light and pay
+        // a point each time until the light engine catches up.
+        if (candidates.stream().anyMatch(pos -> level.getBlockState(pos).is(Blocks.LIGHT))) {
+            return;
+        }
+        for (BlockPos pos : candidates) {
             BlockState state = level.getBlockState(pos);
             // Upstream BlockGlow#addGlow: replaceable, and never inside a liquid.
             if (!state.canBeReplaced() || !state.getFluidState().isEmpty()) {

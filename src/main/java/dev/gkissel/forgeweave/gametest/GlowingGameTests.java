@@ -117,7 +117,8 @@ public class GlowingGameTests {
     @GameTest(template = "empty", timeoutTicks = 400)
     public static void aHeldGlowingToolLightsOnlyTheDark(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, STATION, "stone", "wood", "wood");
+        // All stone: wood's ecological can heal back the one point the light costs, at random.
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, STATION, "stone", "stone", "stone");
         pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(GLOWING, 1)));
 
         seal(helper, DARK, Blocks.STONE);
@@ -125,7 +126,11 @@ public class GlowingGameTests {
         seal(helper, POCKETED, Blocks.STONE);
 
         helper.startSequence()
-                .thenIdle(10)
+                // 26.1 queues light updates, so wait for the sealed pockets to actually read dark and lit.
+                .thenWaitUntil(() -> {
+                    helper.assertTrue(brightness(helper, DARK) < 8, "the dark pocket is not dark yet");
+                    helper.assertTrue(brightness(helper, LIT) >= 8, "the lit pocket is not lit yet");
+                })
                 .thenExecute(() -> {
                     stand(helper, player, DARK);
                     tick(helper, pickaxe, player, true);
@@ -162,6 +167,10 @@ public class GlowingGameTests {
             helper.setBlock(pocket.relative(face), wall);
         }
         helper.setBlock(pocket, Blocks.AIR);
+    }
+
+    private static int brightness(GameTestHelper helper, BlockPos pocket) {
+        return helper.getLevel().getMaxLocalRawBrightness(helper.absolutePos(pocket));
     }
 
     private static void stand(GameTestHelper helper, Player player, BlockPos pocket) {
