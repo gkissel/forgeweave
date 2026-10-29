@@ -9,8 +9,6 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.util.RandomSource;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 
 /**
  * The little heart a landed secondary hit puts over its target (issue #482, parity audit T51),
@@ -36,7 +34,6 @@ import net.neoforged.api.distmarker.OnlyIn;
  * The five are therefore five registered types over one class -- see
  * {@code dev.gkissel.forgeweave.particle.ForgeweaveParticles}.
  */
-@OnlyIn(Dist.CLIENT)
 public class HeartEffectParticle extends CritParticle {
 
     /** Upstream {@code ParticleEffect}: {@code particleMaxAge = 20}. */
@@ -71,7 +68,6 @@ public class HeartEffectParticle extends CritParticle {
         this.bCol = b * FADE_PER_TICK;
     }
 
-    @OnlyIn(Dist.CLIENT)
     public static class Provider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprites;
 

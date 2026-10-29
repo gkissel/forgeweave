@@ -17,8 +17,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.monster.Slime;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 
 import dev.gkissel.forgeweave.Forgeweave;
 
@@ -38,7 +36,6 @@ import dev.gkissel.forgeweave.Forgeweave;
  * 0.999 inset and the squish scale) because upstream's own renderer extends {@code RenderSlime} and
  * overrides none of it.
  */
-@OnlyIn(Dist.CLIENT)
 public class BlueSlimeRenderer extends MobRenderer<Slime, SlimeRenderState, SlimeModel> {
     /** Upstream {@code RenderTinkerSlime#FACTORY_BlueSlime}'s colour, ARGB. */
     private static final int TINT = 0xff67f0f5;

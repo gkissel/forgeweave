@@ -27,8 +27,6 @@ import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.HumanoidArm;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 
 import org.jspecify.annotations.Nullable;
 
@@ -68,7 +66,6 @@ import dev.gkissel.forgeweave.particle.ForgeweaveParticles;
  * texture mid-frame. 1.21 stitches every phase into the shared particle atlas, so there is nothing
  * left to bind and the blend mode is all that carried over.
  */
-@OnlyIn(Dist.CLIENT)
 public class SlashParticle extends SingleQuadParticle {
 
     /** Upstream {@code ParticleAttack#init}: {@code animPhases = 8}. */
@@ -147,7 +144,6 @@ public class SlashParticle extends SingleQuadParticle {
     }
 
     /** The slashes' own particle group, registered for {@link #GROUP} by {@link ForgeweaveParticleProviders}. */
-    @OnlyIn(Dist.CLIENT)
     public static class Group extends ParticleGroup<SlashParticle> {
         private final StretchedQuads state = new StretchedQuads();
 
@@ -171,7 +167,6 @@ public class SlashParticle extends SingleQuadParticle {
      * quads in insertion order and slashes only use one layer, so a parallel list of heights, read
      * back in the same order, lines up quad for quad.
      */
-    @OnlyIn(Dist.CLIENT)
     static class StretchedQuads extends QuadParticleRenderState {
         private final FloatArrayList heights = new FloatArrayList();
         private int next;
@@ -224,7 +219,6 @@ public class SlashParticle extends SingleQuadParticle {
     }
 
     /** One factory per {@link ForgeweaveParticles.Slash}; see {@link ForgeweaveParticleProviders}. */
-    @OnlyIn(Dist.CLIENT)
     public record Provider(SpriteSet sprites, ForgeweaveParticles.Slash slash)
             implements ParticleProvider<SimpleParticleType> {
 
