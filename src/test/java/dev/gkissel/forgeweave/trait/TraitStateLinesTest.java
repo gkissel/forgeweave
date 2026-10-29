@@ -14,6 +14,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
@@ -97,9 +98,9 @@ class TraitStateLinesTest {
                 .with(CREEPER, 1));
 
         assertEquals(List.of(
-                        warMemoryEntry(EntityType.SPIDER, "3", 20),
-                        warMemoryEntry(EntityType.ZOMBIE, "1.8", 12),
-                        warMemoryEntry(EntityType.SKELETON, "0.75", 5),
+                        warMemoryEntry(EntityTypes.SPIDER, "3", 20),
+                        warMemoryEntry(EntityTypes.ZOMBIE, "1.8", 12),
+                        warMemoryEntry(EntityTypes.SKELETON, "0.75", 5),
                         Component.translatable("tooltip.forgeweave.trait.warmemory.cap", "3", 20)
                                 .withStyle(ChatFormatting.GRAY)),
                 stateLines(ForgeweaveTraits.WARMEMORY, stack));

@@ -10,7 +10,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.monster.spider.Spider;
 import net.minecraft.world.entity.monster.zombie.Zombie;
@@ -67,13 +67,13 @@ public class CombatModifierGameTests {
         // Zombies carry 2 points of base armor, so the +7 bonus (applied before mitigation, ADR-0005)
         // lands as ~7.87 actual health lost rather than a clean 8 -- the threshold below only needs to
         // separate that from an unbonused hit's ~0.94, not match the mitigated number exactly.
-        Zombie zombie = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2));
+        Zombie zombie = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2));
         zombie.hurt(source, 1.0F);
         helper.assertTrue(zombie.getHealth() <= zombie.getMaxHealth() - 5.0F,
                 "1 base damage + smite's +7 at level 1 must take well over 1 health off an undead target, "
                         + "left it at " + zombie.getHealth() + "/" + zombie.getMaxHealth());
 
-        Pig pig = helper.spawn(EntityType.PIG, new BlockPos(3, 2, 2));
+        Pig pig = helper.spawn(EntityTypes.PIG, new BlockPos(3, 2, 2));
         pig.hurt(source, 1.0F);
         helper.assertTrue(pig.getHealth() > pig.getMaxHealth() - 2.0F,
                 "smite must not bonus a non-undead target, left it at " + pig.getHealth() + "/" + pig.getMaxHealth());
@@ -94,13 +94,13 @@ public class CombatModifierGameTests {
         player.setItemInHand(InteractionHand.MAIN_HAND, withModifier(BANE_OF_ARTHROPODS, 24));
         DamageSource source = helper.getLevel().damageSources().playerAttack(player);
 
-        Spider spider = helper.spawn(EntityType.SPIDER, new BlockPos(2, 2, 2));
+        Spider spider = helper.spawn(EntityTypes.SPIDER, new BlockPos(2, 2, 2));
         spider.hurt(source, 1.0F);
         helper.assertTrue(spider.getHealth() <= spider.getMaxHealth() - 8.0F,
                 "1 base damage + bane's +7 at level 1 must take at least 8 health off an arthropod, "
                         + "left it at " + spider.getHealth() + "/" + spider.getMaxHealth());
 
-        Pig pig = helper.spawn(EntityType.PIG, new BlockPos(3, 2, 2));
+        Pig pig = helper.spawn(EntityTypes.PIG, new BlockPos(3, 2, 2));
         pig.hurt(source, 1.0F);
         helper.assertTrue(pig.getHealth() > pig.getMaxHealth() - 2.0F,
                 "bane must not bonus a non-arthropod target, left it at " + pig.getHealth() + "/" + pig.getMaxHealth());
@@ -120,7 +120,7 @@ public class CombatModifierGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setItemInHand(InteractionHand.MAIN_HAND, withModifier(FIERY, 15));
         DamageSource source = helper.getLevel().damageSources().playerAttack(player);
-        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
 
         target.hurt(source, 1.0F);
 
@@ -143,7 +143,7 @@ public class CombatModifierGameTests {
         player.setItemInHand(InteractionHand.MAIN_HAND, withModifier(NECROTIC, 5));
         player.setHealth(10.0F);
         DamageSource source = helper.getLevel().damageSources().playerAttack(player);
-        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
 
         target.hurt(source, 4.0F);
 
@@ -270,7 +270,7 @@ public class CombatModifierGameTests {
     /** Strikes a fresh pig with {@code tool} and returns it, still alive, for the caller to inspect. */
     private static Pig strike(GameTestHelper helper, Player player, BlockPos pos, ItemStack tool) {
         player.setItemInHand(InteractionHand.MAIN_HAND, tool);
-        Pig target = helper.spawn(EntityType.PIG, pos.offset(1, 0, 1));
+        Pig target = helper.spawn(EntityTypes.PIG, pos.offset(1, 0, 1));
         DamageSource source = helper.getLevel().damageSources().playerAttack(player);
         helper.assertTrue(source.getWeaponItem() == tool, "the blow must be attributed to the tool under test");
         target.hurt(source, 1.0F);

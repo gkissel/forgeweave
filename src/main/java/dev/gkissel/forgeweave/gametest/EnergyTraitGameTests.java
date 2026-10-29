@@ -12,7 +12,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -177,7 +177,7 @@ public class EnergyTraitGameTests {
     public static void kineticChargeAddsEnergyProportionalToDamageDealt(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = hatchet(List.of(traitId("energized"), traitId("kinetic_charge")), 1000);
-        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
 
         CombatHit hit = new CombatHit(helper.getLevel(), hatchet, player, target,
                 helper.getLevel().damageSources().playerAttack(player));

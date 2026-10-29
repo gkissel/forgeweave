@@ -7,7 +7,7 @@ import net.minecraft.core.BlockPos;
 import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -91,7 +91,7 @@ public class AttackSlashGameTests {
     @GameTest(template = "empty")
     public static void onlyAFullChargePlayerSwingDrawsTheArc(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        Pig pig = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig pig = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         DamageSource source = helper.getLevel().damageSources().playerAttack(player);
         ItemStack cleaver = new ItemStack(ForgeweaveItems.TOOL_CLEAVER.get());
 

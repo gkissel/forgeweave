@@ -11,7 +11,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.entity.player.Player;
@@ -44,8 +44,8 @@ public class TraitFeedbackGameTests {
 
     @GameTest(template = "empty")
     public static void aProcAnnouncesItselfOncePerCooldownPerEntity(GameTestHelper helper) {
-        Pig first = helper.spawn(EntityType.PIG, new BlockPos(1, 2, 1));
-        Pig second = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig first = helper.spawn(EntityTypes.PIG, new BlockPos(1, 2, 1));
+        Pig second = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         first.setNoAi(true);
         second.setNoAi(true);
         Evasion behaviour = new Evasion(1.0F);
@@ -86,7 +86,7 @@ public class TraitFeedbackGameTests {
         List<Map.Entry<TraitFeedback.Kind, Entity>> fired = new ArrayList<>();
         TraitFeedback.record((kind, at) -> fired.add(Map.entry(kind, at)));
         try {
-            Zombie attacker = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2));
+            Zombie attacker = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2));
             attacker.setNoAi(true);
             DamageSource bite = helper.getLevel().damageSources().mobAttack(attacker);
 

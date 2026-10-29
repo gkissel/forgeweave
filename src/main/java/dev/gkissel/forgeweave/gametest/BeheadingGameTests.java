@@ -11,6 +11,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -66,13 +67,13 @@ public class BeheadingGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setItemInHand(InteractionHand.MAIN_HAND, beheadingTool(CERTAIN));
 
-        assertBeheads(helper, player, EntityType.SKELETON, Items.SKELETON_SKULL);
-        assertBeheads(helper, player, EntityType.WITHER_SKELETON, Items.WITHER_SKELETON_SKULL);
-        assertBeheads(helper, player, EntityType.ZOMBIE, Items.ZOMBIE_HEAD);
-        assertBeheads(helper, player, EntityType.CREEPER, Items.CREEPER_HEAD);
-        assertBeheads(helper, player, EntityType.PIGLIN, Items.PIGLIN_HEAD);
+        assertBeheads(helper, player, EntityTypes.SKELETON, Items.SKELETON_SKULL);
+        assertBeheads(helper, player, EntityTypes.WITHER_SKELETON, Items.WITHER_SKELETON_SKULL);
+        assertBeheads(helper, player, EntityTypes.ZOMBIE, Items.ZOMBIE_HEAD);
+        assertBeheads(helper, player, EntityTypes.CREEPER, Items.CREEPER_HEAD);
+        assertBeheads(helper, player, EntityTypes.PIGLIN, Items.PIGLIN_HEAD);
 
-        helper.assertTrue(Beheading.headDropFor(EntityType.ENDER_DRAGON).is(Items.DRAGON_HEAD),
+        helper.assertTrue(Beheading.headDropFor(EntityTypes.ENDER_DRAGON).is(Items.DRAGON_HEAD),
                 "the ender dragon must map to a dragon head");
 
         helper.succeed();
@@ -84,10 +85,10 @@ public class BeheadingGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         player.setItemInHand(InteractionHand.MAIN_HAND, beheadingTool(CERTAIN));
 
-        helper.assertTrue(Beheading.headDropFor(EntityType.PIG).isEmpty(), "a pig has no head item");
+        helper.assertTrue(Beheading.headDropFor(EntityTypes.PIG).isEmpty(), "a pig has no head item");
         withoutMobLoot(helper, () -> {
             List<ItemEntity> drops = SpawnCapture.spawnedDuring(helper, ItemEntity.class,
-                    () -> kill(helper, player, EntityType.PIG));
+                    () -> kill(helper, player, EntityTypes.PIG));
             helper.assertTrue(drops.isEmpty(),
                     "a beheaded pig must drop nothing at all, got " + drops.size() + " item(s)");
         });
@@ -224,7 +225,7 @@ public class BeheadingGameTests {
                 "ten obsidian must buy ten beheading levels, got " + Beheading.effectiveLevel(beheading));
 
         player.setItemInHand(InteractionHand.MAIN_HAND, beheading);
-        assertBeheads(helper, player, EntityType.ZOMBIE, Items.ZOMBIE_HEAD);
+        assertBeheads(helper, player, EntityTypes.ZOMBIE, Items.ZOMBIE_HEAD);
 
         helper.succeed();
     }

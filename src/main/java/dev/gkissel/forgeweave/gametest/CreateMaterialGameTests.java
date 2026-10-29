@@ -9,7 +9,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.CombatRules;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.inventory.ContainerLevelAccess;
@@ -113,8 +113,8 @@ public final class CreateMaterialGameTests {
                 List.of("iron", "iron", "iron"));
         sword.set(ForgeweaveDataComponents.TRAITS.get(), List.of(
                 Identifier.fromNamespaceAndPath("forgeweave", "focused")));
-        var attacker = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2));
-        var target = helper.spawn(EntityType.ZOMBIE, new BlockPos(3, 2, 2));
+        var attacker = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2));
+        var target = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(3, 2, 2));
         attacker.setNoAi(true);
         target.setNoAi(true);
         attacker.setItemSlot(EquipmentSlot.MAINHAND, sword);

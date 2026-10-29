@@ -9,7 +9,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntitySpawnReason;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
@@ -216,7 +216,7 @@ public class ArrowGameTests {
         ItemStack bow = shortbow(helper, player, pos);
         ItemStack arrow = arrow(helper, player, pos, "wood", "wood", "feather");
 
-        Pig pig = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 5));
+        Pig pig = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 5));
         pig.setNoAi(true);
         pig.setNoGravity(true);
         float before = pig.getHealth();
@@ -351,7 +351,7 @@ public class ArrowGameTests {
         ItemStack bow = shortbow(helper, player, pos);
         ItemStack arrow = arrow(helper, player, pos, "ice", "wood", "feather");
 
-        Pig pig = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 5));
+        Pig pig = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 5));
         pig.setNoAi(true);
         pig.setNoGravity(true);
 

@@ -12,7 +12,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.player.Player;
@@ -72,7 +72,7 @@ public class ToolInnateGameTests {
 
     /** Hits a heavily armored pig with {@code tool} and returns how much health it lost. */
     private static float hitHeavilyArmoredPig(GameTestHelper helper, Player player, ItemStack tool) {
-        Pig pig = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig pig = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         pig.getAttribute(Attributes.ARMOR).setBaseValue(20.0);
         pig.getAttribute(Attributes.ARMOR_TOUGHNESS).setBaseValue(12.0);
         player.setItemInHand(InteractionHand.MAIN_HAND, tool);
@@ -96,7 +96,7 @@ public class ToolInnateGameTests {
                 "stone", "wood", "wood");
         player.setItemInHand(InteractionHand.MAIN_HAND, shovel);
 
-        Pig pig = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig pig = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         helper.assertTrue(!pig.hasEffect(MobEffects.SLOWNESS),
                 "the pig must start without slowness, or this proves nothing");
 

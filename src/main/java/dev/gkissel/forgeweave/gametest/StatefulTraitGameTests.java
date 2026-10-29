@@ -19,13 +19,13 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.monster.Slime;
+import net.minecraft.world.entity.monster.cubemob.Slime;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -161,7 +161,7 @@ public class StatefulTraitGameTests {
     public static void shockingBuildsChargeFromHitsMiningAndMovement(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         Player attacker = helper.makeMockPlayer(GameType.SURVIVAL);
-        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         ItemStack pickaxe = pickaxe(List.of(traitId("shocking")), 1000, 1.0F, 1.0F);
         attacker.setItemInHand(InteractionHand.MAIN_HAND, pickaxe);
 
@@ -207,8 +207,8 @@ public class StatefulTraitGameTests {
     @GameTest(template = "empty")
     public static void shockingChargeOnlyAccruesForPlayerAttackers(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        Pig attacker = helper.spawn(EntityType.PIG, new BlockPos(0, 2, 0));
-        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig attacker = helper.spawn(EntityTypes.PIG, new BlockPos(0, 2, 0));
+        Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         ItemStack pickaxe = pickaxe(List.of(traitId("shocking")), 1000, 1.0F, 1.0F);
 
         ForgeweaveTraits.COMBAT_SEAM.onHit(
@@ -226,7 +226,7 @@ public class StatefulTraitGameTests {
     public static void shockingDischargesAtFullCharge(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         Player attacker = helper.makeMockPlayer(GameType.SURVIVAL);
-        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         ItemStack pickaxe = pickaxe(List.of(traitId("shocking")), 1000, 1.0F, 1.0F);
         pickaxe.set(ForgeweaveDataComponents.SHOCKING_CHARGE.get(), new ShockingCharge(100.0F, 0, 0, 0));
 
@@ -273,7 +273,7 @@ public class StatefulTraitGameTests {
         Player attacker = helper.makeMockPlayer(GameType.SURVIVAL);
         BlockPos attackerPos = helper.absolutePos(new BlockPos(1, 2, 1));
         attacker.setPos(attackerPos.getX() + 0.5, attackerPos.getY(), attackerPos.getZ() + 0.5);
-        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         ItemStack pickaxe = pickaxe(List.of(traitId("shocking")), 1000, 1.0F, 1.0F);
         pickaxe.set(ForgeweaveDataComponents.SHOCKING_CHARGE.get(), new ShockingCharge(85.0F, 0, 0, 0));
 
@@ -328,7 +328,7 @@ public class StatefulTraitGameTests {
     public static void onlyTheFullShockingChargeMakesTheToolGlint(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         Player attacker = helper.makeMockPlayer(GameType.SURVIVAL);
-        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         ItemStack pickaxe = pickaxe(List.of(traitId("shocking")), 1000, 1.0F, 1.0F);
         pickaxe.enchant(level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE), 1);
 
@@ -375,7 +375,7 @@ public class StatefulTraitGameTests {
         // than queried from the entity index, which lags behind synchronous spawns in a freshly
         // force-loaded plot (see SpawnCapture).
         List<Slime> slimes = SpawnCapture.spawnedDuring(helper, Slime.class,
-                () -> ForgeweaveTraits.spawnTraitSlime(EntityType.SLIME, level, player,
+                () -> ForgeweaveTraits.spawnTraitSlime(EntityTypes.SLIME, level, player,
                         where.getX() + 0.5, where.getY(), where.getZ() + 0.5));
         helper.assertTrue(slimes.size() == 1, "expected exactly one spawned slime, got " + slimes.size());
         helper.assertTrue(slimes.get(0).getSize() == 1,

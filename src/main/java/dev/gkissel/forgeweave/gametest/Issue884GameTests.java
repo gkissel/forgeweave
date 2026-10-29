@@ -16,7 +16,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -71,7 +71,7 @@ public class Issue884GameTests {
     @GameTest(template = "empty")
     public static void duskgraspAppliesDarkness(GameTestHelper helper) {
         ServerPlayer player = holding(helper, List.of());
-        Zombie target = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2));
+        Zombie target = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2));
         CombatHit hit = new CombatHit(helper.getLevel(), player.getMainHandItem(), player, target,
                 helper.getLevel().damageSources().generic());
 
@@ -101,7 +101,7 @@ public class Issue884GameTests {
         ServerLevel level = helper.getLevel();
         ServerPlayer player = holding(helper, List.of(traitId("warmemory")));
         ItemStack sword = player.getMainHandItem();
-        Zombie target = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2));
+        Zombie target = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2));
 
         float freshBonus = ForgeweaveTraits.WARMEMORY.bonusDamageAgainst(sword, target, 5.0F);
         helper.assertTrue(freshBonus == 0.0F, "an unfought entity type must carry no bonus yet, got " + freshBonus);
@@ -187,7 +187,7 @@ public class Issue884GameTests {
         ServerLevel level = helper.getLevel();
         ServerPlayer player = holding(helper, List.of());
         BlockPos startPos = new BlockPos(2, 2, 2);
-        Zombie target = helper.spawn(EntityType.ZOMBIE, startPos);
+        Zombie target = helper.spawn(EntityTypes.ZOMBIE, startPos);
         ItemStack weapon = player.getMainHandItem();
         double targetStartX = target.getX();
         double targetStartY = target.getY();
@@ -212,8 +212,8 @@ public class Issue884GameTests {
     public static void dreadgripDebuffsAndUnfocusesTheTarget(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         ServerPlayer player = holding(helper, List.of());
-        Zombie target = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2));
-        Zombie decoy = helper.spawn(EntityType.ZOMBIE, new BlockPos(4, 2, 4));
+        Zombie target = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2));
+        Zombie decoy = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(4, 2, 4));
         target.setTarget(decoy);
         ItemStack weapon = player.getMainHandItem();
 
@@ -236,7 +236,7 @@ public class Issue884GameTests {
         helper.assertTrue(freshBonus == 0.0F, "a fresh tool must carry no kill-tally bonus yet, got " + freshBonus);
 
         for (int i = 0; i < 5; i++) {
-            Zombie victim = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2));
+            Zombie victim = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2));
             victim.setHealth(0.0F);
             ForgeweaveTraits.BLOODTALLY.afterHit(sword, level, player, victim);
         }
@@ -258,7 +258,7 @@ public class Issue884GameTests {
         ServerLevel level = helper.getLevel();
         ServerPlayer player = holding(helper, List.of());
         ItemStack weapon = player.getMainHandItem();
-        Zombie victim = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2));
+        Zombie victim = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2));
         victim.setHealth(0.0F);
         boolean dropped = false;
 

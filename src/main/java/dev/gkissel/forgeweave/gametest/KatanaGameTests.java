@@ -8,7 +8,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -60,7 +60,7 @@ public class KatanaGameTests {
     public static void rampGrowsPerHitAndHoldsAtTheCap(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         armWithKatana(helper, player);
-        LivingEntity target = helper.spawn(EntityType.IRON_GOLEM, TARGET);
+        LivingEntity target = helper.spawn(EntityTypes.IRON_GOLEM, TARGET);
         DamageSource source = helper.getLevel().damageSources().playerAttack(player);
         helper.assertTrue(source.getWeaponItem() != null && source.getWeaponItem().is(ForgeweaveItems.TOOL_KATANA.get()),
                 "the blow must be attributed to the katana being tested");
@@ -99,7 +99,7 @@ public class KatanaGameTests {
     public static void rampLapsesAfterTheIdleWindow(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack katana = armWithKatana(helper, player);
-        LivingEntity target = helper.spawn(EntityType.IRON_GOLEM, TARGET);
+        LivingEntity target = helper.spawn(EntityTypes.IRON_GOLEM, TARGET);
         DamageSource source = helper.getLevel().damageSources().playerAttack(player);
 
         for (int i = 0; i < 3; i++) {
@@ -132,7 +132,7 @@ public class KatanaGameTests {
     public static void rampStateSurvivesASerializationRoundTrip(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack katana = armWithKatana(helper, player);
-        LivingEntity target = helper.spawn(EntityType.IRON_GOLEM, TARGET);
+        LivingEntity target = helper.spawn(EntityTypes.IRON_GOLEM, TARGET);
         DamageSource source = helper.getLevel().damageSources().playerAttack(player);
         strike(helper, target, source);
         strike(helper, target, source);

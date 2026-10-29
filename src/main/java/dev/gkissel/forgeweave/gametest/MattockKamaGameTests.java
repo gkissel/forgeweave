@@ -8,7 +8,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.sheep.Sheep;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
@@ -110,8 +110,8 @@ public class MattockKamaGameTests {
         helper.assertTrue(CombatProviders.seams(mattock).contains(HeftSeam.SEAM),
                 "an assembled mattock must resolve to the real heft seam");
 
-        var attacker = helper.spawn(EntityType.PIG, new BlockPos(1, 1, 1));
-        var target = helper.spawn(EntityType.PIG, new BlockPos(2, 1, 1));
+        var attacker = helper.spawn(EntityTypes.PIG, new BlockPos(1, 1, 1));
+        var target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 1, 1));
         DamageSource source = helper.getLevel().damageSources().mobAttack(attacker);
         dev.gkissel.forgeweave.api.combat.CombatHit hit =
                 new dev.gkissel.forgeweave.api.combat.CombatHit(helper.getLevel(), mattock, attacker, target, source);
@@ -136,7 +136,7 @@ public class MattockKamaGameTests {
         ItemStack kama = ToolAssembly.assemble(helper, player, pos, ToolAssembly.entryFor(ForgeweaveItems.TOOL_KAMA.get()), List.of("wood", "stone", "stone"));
         player.setItemInHand(InteractionHand.MAIN_HAND, kama);
 
-        Sheep sheep = helper.spawn(EntityType.SHEEP, new BlockPos(2, 1, 1));
+        Sheep sheep = helper.spawn(EntityTypes.SHEEP, new BlockPos(2, 1, 1));
         sheep.setSheared(false);
         sheep.setColor(DyeColor.WHITE);
 
@@ -246,7 +246,7 @@ public class MattockKamaGameTests {
         helper.assertTrue(CombatProviders.seams(kama).contains(ReapSeam.SEAM),
                 "an assembled kama must resolve to the real reap seam");
 
-        var target = helper.spawn(EntityType.PIG, new BlockPos(2, 1, 1));
+        var target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 1, 1));
         target.setHealth(target.getMaxHealth() * 0.2F); // below the 25% threshold
         float healthBefore = target.getHealth();
 

@@ -13,7 +13,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.pig.Pig;
@@ -240,7 +240,7 @@ public class MetalTraitGameTests {
     /**
      * Issue #694: the pull must flag the item as impulsed so the server syncs the new motion to
      * clients right away. Items sync position/velocity only every 20 ticks
-     * ({@code EntityType.ITEM}'s {@code updateInterval}) unless {@code Entity#hasImpulse} is set, and
+     * ({@code EntityTypes.ITEM}'s {@code updateInterval}) unless {@code Entity#hasImpulse} is set, and
      * {@code ItemEntity#tick} only self-flags when its own tick changed velocity by more than 0.1
      * blocks/tick -- a 0.07 pull never does. On a dedicated server the client kept simulating its
      * own gravity between syncs, so the pull looked horizontal-only and jumped every 20 ticks.
@@ -365,7 +365,7 @@ public class MetalTraitGameTests {
         ServerLevel level = helper.getLevel();
         Player attacker = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = pickaxe(List.of(traitId("insatiable")), 1000, 1.0F, 3.0F);
-        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
 
         helper.assertTrue(ForgeweaveTraits.bonusDamageAgainst(pickaxe, target, 3.0F) == 0.0F, "no stack yet");
 
@@ -401,7 +401,7 @@ public class MetalTraitGameTests {
         ServerLevel level = helper.getLevel();
         Player attacker = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = pickaxe(List.of(traitId("insatiable")), 1000, 1.0F, 3.0F);
-        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
 
         // Two hits already banked: level 2, whose bonus durability truncates to 0 (2 / 3).
         ForgeweaveTraits.afterHit(pickaxe, level, attacker, target);
@@ -431,8 +431,8 @@ public class MetalTraitGameTests {
     @GameTest(template = "empty")
     public static void coldbloodedBonusesDamageAgainstFullHealthTargets(GameTestHelper helper) {
         ItemStack pickaxe = pickaxe(List.of(traitId("coldblooded")), 100, 1.0F, 1.0F);
-        Pig full = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
-        Pig hurt = helper.spawn(EntityType.PIG, new BlockPos(3, 2, 2));
+        Pig full = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
+        Pig hurt = helper.spawn(EntityTypes.PIG, new BlockPos(3, 2, 2));
         hurt.setHealth(hurt.getMaxHealth() - 1.0F);
 
         float bonusFull = ForgeweaveTraits.bonusDamageAgainst(pickaxe, full, 4.0F);
@@ -450,7 +450,7 @@ public class MetalTraitGameTests {
     @GameTest(template = "empty")
     public static void establishedGrantsBonusKillExperience(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        Pig victim = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig victim = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
 
         ItemStack established = pickaxe(List.of(traitId("established")), 100, 1.0F, 1.0F);
         player.setItemInHand(InteractionHand.MAIN_HAND, established);

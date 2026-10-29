@@ -10,7 +10,7 @@ import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.animal.pig.Pig;
@@ -224,7 +224,7 @@ public class LauncherBranchGameTests {
     public static void fieryOnTheBowRidesTheArrow(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack bow = withModifier(shortbow(helper, player, new BlockPos(1, 1, 1), "wood", "wood"), FIERY, 15);
-        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
 
         target.hurt(arrowFrom(helper, player, bow), 1.0F);
 
@@ -241,7 +241,7 @@ public class LauncherBranchGameTests {
     public static void smiteOnTheBowRidesTheArrow(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack bow = withModifier(shortbow(helper, player, new BlockPos(1, 1, 1), "wood", "wood"), SMITE, 24);
-        Zombie zombie = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2));
+        Zombie zombie = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2));
 
         zombie.hurt(arrowFrom(helper, player, bow), 1.0F);
 
@@ -264,13 +264,13 @@ public class LauncherBranchGameTests {
         List<Identifier> traits = bow.get(ForgeweaveDataComponents.TRAITS.get());
         helper.assertTrue(traits != null && traits.contains(id("squeaky")), "sponge limbs carry squeaky, got " + traits);
 
-        Pig meleeTarget = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig meleeTarget = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         player.setItemInHand(InteractionHand.MAIN_HAND, bow);
         meleeTarget.hurt(helper.getLevel().damageSources().playerAttack(player), 4.0F);
         helper.assertTrue(meleeTarget.getHealth() >= meleeTarget.getMaxHealth() - EPSILON,
                 "a melee blow with a squeaky bow deals nothing, left " + meleeTarget.getHealth());
 
-        Pig arrowTarget = helper.spawn(EntityType.PIG, new BlockPos(3, 2, 2));
+        Pig arrowTarget = helper.spawn(EntityTypes.PIG, new BlockPos(3, 2, 2));
         arrowTarget.hurt(arrowFrom(helper, player, bow), 4.0F);
         helper.assertTrue(arrowTarget.getHealth() <= arrowTarget.getMaxHealth() - 3.0F,
                 "an arrow from the same bow must still hurt, left " + arrowTarget.getHealth());
@@ -289,7 +289,7 @@ public class LauncherBranchGameTests {
     public static void arrowHitsAreAlwaysFullCharge(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack bow = shortbow(helper, player, new BlockPos(1, 1, 1), "wood", "wood");
-        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         player.setItemInHand(InteractionHand.MAIN_HAND, bow);
 
         CAPTURE.arm();
@@ -338,7 +338,7 @@ public class LauncherBranchGameTests {
         helper.assertTrue(traits != null && traits.contains(id("shocking")), "electrum limbs carry shocking, got " + traits);
         player.setItemInHand(InteractionHand.MAIN_HAND, fullyCharged(bow));
 
-        Pig first = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig first = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         first.hurt(arrowFrom(helper, player, bow), 1.0F);
 
         helper.assertTrue(charge(bow) == 0.0F,
@@ -351,7 +351,7 @@ public class LauncherBranchGameTests {
         // A second arrow finds a discharged bow: no Speed, and no charge either -- an arrow hit does
         // not build charge (see the class javadoc's #416 note).
         player.removeEffect(MobEffects.SPEED);
-        Pig second = helper.spawn(EntityType.PIG, new BlockPos(3, 2, 2));
+        Pig second = helper.spawn(EntityTypes.PIG, new BlockPos(3, 2, 2));
         second.hurt(arrowFrom(helper, player, bow), 1.0F);
 
         helper.assertFalse(player.hasEffect(MobEffects.SPEED),
@@ -361,7 +361,7 @@ public class LauncherBranchGameTests {
 
         // The melee path is untouched: a swing with the same bow still discharges it.
         fullyCharged(bow);
-        Pig melee = helper.spawn(EntityType.PIG, new BlockPos(4, 2, 2));
+        Pig melee = helper.spawn(EntityTypes.PIG, new BlockPos(4, 2, 2));
         melee.hurt(helper.getLevel().damageSources().playerAttack(player), 1.0F);
         helper.assertTrue(charge(bow) == 0.0F, "a melee blow still discharges, charge left " + charge(bow));
 
@@ -383,7 +383,7 @@ public class LauncherBranchGameTests {
         ItemStack bow = fullyCharged(shortbow(helper, player, new BlockPos(1, 1, 1), "gametest_electrum", "gametest_electrum"));
         player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
 
-        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         target.hurt(arrowFrom(helper, player, bow), 1.0F);
 
         helper.assertTrue(charge(bow) == ShockingCharge.FULL,
