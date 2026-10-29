@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:murkiron_gear"
+        "recipes": "forgeweave:murkiron_gear"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

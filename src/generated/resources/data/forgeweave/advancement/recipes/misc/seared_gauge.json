@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:seared_gauge"
+        "recipes": "forgeweave:seared_gauge"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

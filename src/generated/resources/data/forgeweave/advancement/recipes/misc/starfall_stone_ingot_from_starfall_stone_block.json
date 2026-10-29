@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:starfall_stone_ingot_from_starfall_stone_block"
+        "recipes": "forgeweave:starfall_stone_ingot_from_starfall_stone_block"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

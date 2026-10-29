@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:hollowstone_dust"
+        "recipes": "forgeweave:hollowstone_dust"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

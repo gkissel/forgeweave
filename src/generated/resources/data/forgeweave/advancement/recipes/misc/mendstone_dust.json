@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:mendstone_dust"
+        "recipes": "forgeweave:mendstone_dust"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

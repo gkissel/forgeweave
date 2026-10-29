@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:hepatizon_rod"
+        "recipes": "forgeweave:hepatizon_rod"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

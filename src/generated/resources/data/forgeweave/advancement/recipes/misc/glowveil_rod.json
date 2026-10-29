@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:glowveil_rod"
+        "recipes": "forgeweave:glowveil_rod"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

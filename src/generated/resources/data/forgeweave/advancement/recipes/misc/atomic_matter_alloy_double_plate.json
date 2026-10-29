@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:atomic_matter_alloy_double_plate"
+        "recipes": "forgeweave:atomic_matter_alloy_double_plate"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

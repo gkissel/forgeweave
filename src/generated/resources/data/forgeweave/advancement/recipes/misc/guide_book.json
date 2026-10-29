@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:guide_book"
+        "recipes": "forgeweave:guide_book"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

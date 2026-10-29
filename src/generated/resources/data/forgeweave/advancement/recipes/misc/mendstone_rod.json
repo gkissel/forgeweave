@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:mendstone_rod"
+        "recipes": "forgeweave:mendstone_rod"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

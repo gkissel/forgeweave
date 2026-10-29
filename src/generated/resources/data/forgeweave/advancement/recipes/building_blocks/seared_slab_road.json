@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:seared_slab_road"
+        "recipes": "forgeweave:seared_slab_road"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

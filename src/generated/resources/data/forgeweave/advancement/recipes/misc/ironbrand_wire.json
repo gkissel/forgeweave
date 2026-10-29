@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:ironbrand_wire"
+        "recipes": "forgeweave:ironbrand_wire"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

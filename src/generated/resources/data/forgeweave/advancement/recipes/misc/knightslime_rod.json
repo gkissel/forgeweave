@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:knightslime_rod"
+        "recipes": "forgeweave:knightslime_rod"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

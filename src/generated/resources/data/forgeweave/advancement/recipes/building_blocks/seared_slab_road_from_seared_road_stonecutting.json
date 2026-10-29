@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:seared_slab_road_from_seared_road_stonecutting"
+        "recipes": "forgeweave:seared_slab_road_from_seared_road_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

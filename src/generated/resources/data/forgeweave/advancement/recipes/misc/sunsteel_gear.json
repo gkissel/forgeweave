@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:sunsteel_gear"
+        "recipes": "forgeweave:sunsteel_gear"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

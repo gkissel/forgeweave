@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:black_stained_clear_glass"
+        "recipes": "forgeweave:black_stained_clear_glass"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:nightshale_rod"
+        "recipes": "forgeweave:nightshale_rod"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

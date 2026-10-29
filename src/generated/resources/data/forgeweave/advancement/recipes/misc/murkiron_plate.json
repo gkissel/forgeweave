@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:murkiron_plate"
+        "recipes": "forgeweave:murkiron_plate"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

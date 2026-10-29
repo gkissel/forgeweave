@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:raw_nightshale_from_raw_nightshale_block"
+        "recipes": "forgeweave:raw_nightshale_from_raw_nightshale_block"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

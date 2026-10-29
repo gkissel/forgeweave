@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:shardline_rod"
+        "recipes": "forgeweave:shardline_rod"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

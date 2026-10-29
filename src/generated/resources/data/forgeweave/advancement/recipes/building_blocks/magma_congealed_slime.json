@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:magma_congealed_slime"
+        "recipes": "forgeweave:magma_congealed_slime"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

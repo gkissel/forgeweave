@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:cobalt_small_dust_from_tiny_dust"
+        "recipes": "forgeweave:cobalt_small_dust_from_tiny_dust"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

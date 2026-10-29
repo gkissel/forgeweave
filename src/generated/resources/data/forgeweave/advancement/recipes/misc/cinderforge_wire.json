@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:cinderforge_wire"
+        "recipes": "forgeweave:cinderforge_wire"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

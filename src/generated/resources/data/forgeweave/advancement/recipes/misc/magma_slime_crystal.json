@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:magma_slime_crystal"
+        "recipes": "forgeweave:magma_slime_crystal"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

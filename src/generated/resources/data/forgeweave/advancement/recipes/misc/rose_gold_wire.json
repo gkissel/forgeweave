@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:rose_gold_wire"
+        "recipes": "forgeweave:rose_gold_wire"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

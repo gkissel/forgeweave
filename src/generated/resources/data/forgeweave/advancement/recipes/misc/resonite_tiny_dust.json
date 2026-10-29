@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:resonite_tiny_dust"
+        "recipes": "forgeweave:resonite_tiny_dust"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

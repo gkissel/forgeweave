@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:seared_drain"
+        "recipes": "forgeweave:seared_drain"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

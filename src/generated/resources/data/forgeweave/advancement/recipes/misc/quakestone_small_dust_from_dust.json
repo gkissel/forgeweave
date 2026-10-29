@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:quakestone_small_dust_from_dust"
+        "recipes": "forgeweave:quakestone_small_dust_from_dust"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

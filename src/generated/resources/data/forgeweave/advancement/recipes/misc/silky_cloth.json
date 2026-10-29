@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:silky_cloth"
+        "recipes": "forgeweave:silky_cloth"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

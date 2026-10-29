@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:daybrass_double_plate"
+        "recipes": "forgeweave:daybrass_double_plate"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

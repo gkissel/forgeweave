@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:wooden_hopper"
+        "recipes": "forgeweave:wooden_hopper"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

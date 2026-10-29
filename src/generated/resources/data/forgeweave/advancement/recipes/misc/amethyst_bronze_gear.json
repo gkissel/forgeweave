@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:amethyst_bronze_gear"
+        "recipes": "forgeweave:amethyst_bronze_gear"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

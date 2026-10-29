@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:skipalloy_gear"
+        "recipes": "forgeweave:skipalloy_gear"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

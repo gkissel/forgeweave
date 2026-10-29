@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:starweld_dust"
+        "recipes": "forgeweave:starweld_dust"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

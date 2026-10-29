@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:alumite_rod"
+        "recipes": "forgeweave:alumite_rod"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

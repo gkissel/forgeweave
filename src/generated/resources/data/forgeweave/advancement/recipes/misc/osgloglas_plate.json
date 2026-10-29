@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:osgloglas_plate"
+        "recipes": "forgeweave:osgloglas_plate"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

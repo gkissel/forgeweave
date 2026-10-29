@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:nightshale_gear"
+        "recipes": "forgeweave:nightshale_gear"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

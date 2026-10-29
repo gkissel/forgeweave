@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:casting_basin"
+        "recipes": "forgeweave:casting_basin"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

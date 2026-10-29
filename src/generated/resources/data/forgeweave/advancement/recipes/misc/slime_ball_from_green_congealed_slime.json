@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:slime_ball_from_green_congealed_slime"
+        "recipes": "forgeweave:slime_ball_from_green_congealed_slime"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

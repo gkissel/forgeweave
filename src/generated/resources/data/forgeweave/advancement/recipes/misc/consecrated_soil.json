@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:consecrated_soil"
+        "recipes": "forgeweave:consecrated_soil"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

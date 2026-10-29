@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:pink_slime_block"
+        "recipes": "forgeweave:pink_slime_block"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

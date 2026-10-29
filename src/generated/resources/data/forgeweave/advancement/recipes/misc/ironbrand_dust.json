@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:ironbrand_dust"
+        "recipes": "forgeweave:ironbrand_dust"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

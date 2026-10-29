@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:osmiridium_rod"
+        "recipes": "forgeweave:osmiridium_rod"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

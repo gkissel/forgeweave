@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:tool_station"
+        "recipes": "forgeweave:tool_station"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

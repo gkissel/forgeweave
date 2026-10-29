@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:steel_wire"
+        "recipes": "forgeweave:steel_wire"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:hollowstone_rod"
+        "recipes": "forgeweave:hollowstone_rod"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

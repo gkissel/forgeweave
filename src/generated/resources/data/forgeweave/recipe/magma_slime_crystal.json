@@ -1,5 +1,6 @@
 {
   "type": "minecraft:smelting",
+  "cookingtime": 200,
   "experience": 0.75,
   "ingredient": "forgeweave:slimy_mud_magma",
   "result": {

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:fulmenite_ingot_from_fulmenite_block"
+        "recipes": "forgeweave:fulmenite_ingot_from_fulmenite_block"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

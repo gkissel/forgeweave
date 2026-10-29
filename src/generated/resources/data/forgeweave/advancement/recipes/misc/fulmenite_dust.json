@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:fulmenite_dust"
+        "recipes": "forgeweave:fulmenite_dust"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

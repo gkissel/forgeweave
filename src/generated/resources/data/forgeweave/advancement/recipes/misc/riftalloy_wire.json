@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:riftalloy_wire"
+        "recipes": "forgeweave:riftalloy_wire"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

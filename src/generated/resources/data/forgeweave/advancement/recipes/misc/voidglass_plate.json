@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:voidglass_plate"
+        "recipes": "forgeweave:voidglass_plate"
       },
       "trigger": "minecraft:recipe_unlocked"
     }
