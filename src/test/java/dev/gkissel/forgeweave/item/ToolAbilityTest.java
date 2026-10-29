@@ -50,8 +50,8 @@ class ToolAbilityTest {
         for (Item pickaxe : new Item[] {ForgeweaveItems.TOOL_PICKAXE.get(), ForgeweaveItems.TOOL_HAMMER.get(),
                 ForgeweaveItems.TOOL_VEIN_HAMMER.get()}) {
             assertTrue(can(pickaxe, PICKAXE_DIG), pickaxe + " must dig as a pickaxe");
-            assertFalse(can(pickaxe, ItemAbilities.AXE_STRIP), pickaxe + " must not strip logs");
-            assertFalse(can(pickaxe, ItemAbilities.SHOVEL_FLATTEN), pickaxe + " must not make paths");
+            assertFalse(can(pickaxe, ToolItem.AXE_STRIP), pickaxe + " must not strip logs");
+            assertFalse(can(pickaxe, ToolItem.SHOVEL_FLATTEN), pickaxe + " must not make paths");
         }
     }
 
@@ -60,7 +60,7 @@ class ToolAbilityTest {
     void shovelFamilyFlattens() {
         for (Item shovel : new Item[] {ForgeweaveItems.TOOL_SHOVEL.get(), ForgeweaveItems.TOOL_EXCAVATOR.get()}) {
             assertTrue(can(shovel, SHOVEL_DIG), shovel + " must dig as a shovel");
-            assertTrue(can(shovel, ItemAbilities.SHOVEL_FLATTEN), shovel + " must make grass paths");
+            assertTrue(can(shovel, ToolItem.SHOVEL_FLATTEN), shovel + " must make grass paths");
             assertFalse(can(shovel, PICKAXE_DIG), shovel + " must not dig as a pickaxe");
         }
     }
@@ -76,10 +76,10 @@ class ToolAbilityTest {
         for (Item axe : new Item[] {ForgeweaveItems.TOOL_HATCHET.get(), ForgeweaveItems.TOOL_LUMBERAXE.get(),
                 ForgeweaveItems.TOOL_BATTLEAXE.get()}) {
             assertTrue(can(axe, AXE_DIG), axe + " must dig as an axe");
-            assertTrue(can(axe, ItemAbilities.AXE_STRIP), axe + " must strip logs");
-            assertTrue(can(axe, ItemAbilities.AXE_SCRAPE), axe + " must scrape weathered copper");
-            assertTrue(can(axe, ItemAbilities.AXE_WAX_OFF), axe + " must wipe wax off");
-            assertFalse(can(axe, ItemAbilities.SHOVEL_FLATTEN), axe + " must not make paths");
+            assertTrue(can(axe, ToolItem.AXE_STRIP), axe + " must strip logs");
+            assertTrue(can(axe, ToolItem.AXE_SCRAPE), axe + " must scrape weathered copper");
+            assertTrue(can(axe, ToolItem.AXE_WAX_OFF), axe + " must wipe wax off");
+            assertFalse(can(axe, ToolItem.SHOVEL_FLATTEN), axe + " must not make paths");
         }
     }
 
@@ -93,11 +93,11 @@ class ToolAbilityTest {
         Item mattock = ForgeweaveItems.TOOL_MATTOCK.get();
         assertTrue(can(mattock, AXE_DIG));
         assertTrue(can(mattock, SHOVEL_DIG));
-        assertTrue(can(mattock, ItemAbilities.HOE_TILL));
-        assertFalse(can(mattock, ItemAbilities.SHOVEL_FLATTEN), "a mattock must not make grass paths");
+        assertTrue(can(mattock, ToolItem.HOE_TILL));
+        assertFalse(can(mattock, ToolItem.SHOVEL_FLATTEN), "a mattock must not make grass paths");
         // Nor does it strip (issue #575): 1.20's mattock definition carries `tilling` and no other
         // interaction trait, so the axe family's stripping stops short of it exactly as pathing does.
-        assertFalse(can(mattock, ItemAbilities.AXE_STRIP), "a mattock must not strip logs");
+        assertFalse(can(mattock, ToolItem.AXE_STRIP), "a mattock must not strip logs");
     }
 
     /** Upstream 1.20's kama is {@code ToolActionsModule.of(HOE_DIG)}; its shearing needs no ability. */
@@ -105,7 +105,7 @@ class ToolAbilityTest {
     void hoeFamilyDigsLikeAHoeOnly() {
         for (Item hoe : new Item[] {ForgeweaveItems.TOOL_KAMA.get(), ForgeweaveItems.TOOL_SCYTHE.get()}) {
             assertTrue(can(hoe, HOE_DIG), hoe + " must dig as a hoe");
-            assertFalse(can(hoe, ItemAbilities.HOE_TILL), hoe + " must not till");
+            assertFalse(can(hoe, ToolItem.HOE_TILL), hoe + " must not till");
             assertFalse(can(hoe, ItemAbilities.SHEARS_CARVE), hoe + " must not carve pumpkins");
         }
     }
@@ -134,7 +134,7 @@ class ToolAbilityTest {
                 ForgeweaveItems.TOOL_WARMACE.get()}) {
             assertFalse(can(bludgeon, SWORD_DIG), bludgeon + " must not dig as a sword");
             assertFalse(can(bludgeon, AXE_DIG), bludgeon + " must not dig as an axe");
-            assertFalse(can(bludgeon, ItemAbilities.SHOVEL_FLATTEN), bludgeon + " must not make paths");
+            assertFalse(can(bludgeon, ToolItem.SHOVEL_FLATTEN), bludgeon + " must not make paths");
         }
     }
 
@@ -142,19 +142,19 @@ class ToolAbilityTest {
     @Test
     void aBrokenToolPerformsNothing() {
         ItemStack shovel = new ItemStack(ForgeweaveItems.TOOL_SHOVEL.get());
-        assertTrue(shovel.canPerformAction(ItemAbilities.SHOVEL_FLATTEN));
+        assertTrue(shovel.canPerformAction(ToolItem.SHOVEL_FLATTEN));
         shovel.set(ForgeweaveDataComponents.BROKEN.get(), true);
-        assertFalse(shovel.canPerformAction(ItemAbilities.SHOVEL_FLATTEN));
+        assertFalse(shovel.canPerformAction(ToolItem.SHOVEL_FLATTEN));
         assertFalse(shovel.canPerformAction(SHOVEL_DIG));
 
         ItemStack mattock = new ItemStack(ForgeweaveItems.TOOL_MATTOCK.get());
         mattock.set(ForgeweaveDataComponents.BROKEN.get(), true);
-        assertFalse(mattock.canPerformAction(ItemAbilities.HOE_TILL));
+        assertFalse(mattock.canPerformAction(ToolItem.HOE_TILL));
 
         ItemStack hatchet = new ItemStack(ForgeweaveItems.TOOL_HATCHET.get());
-        assertTrue(hatchet.canPerformAction(ItemAbilities.AXE_STRIP));
+        assertTrue(hatchet.canPerformAction(ToolItem.AXE_STRIP));
         hatchet.set(ForgeweaveDataComponents.BROKEN.get(), true);
-        assertFalse(hatchet.canPerformAction(ItemAbilities.AXE_STRIP));
-        assertFalse(hatchet.canPerformAction(ItemAbilities.AXE_SCRAPE));
+        assertFalse(hatchet.canPerformAction(ToolItem.AXE_STRIP));
+        assertFalse(hatchet.canPerformAction(ToolItem.AXE_SCRAPE));
     }
 }

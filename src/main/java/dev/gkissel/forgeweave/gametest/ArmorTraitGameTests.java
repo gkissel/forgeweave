@@ -59,7 +59,7 @@ public class ArmorTraitGameTests {
     /** One blow onto a healed, non-invulnerable player; what it cost them. */
     private static float lost(Player player, DamageSource source, float amount) {
         player.setHealth(player.getMaxHealth());
-        player.invulnerableTime = 0;
+        player.damageCooldownTime = 0;
         float before = player.getHealth();
         player.hurt(source, amount);
         return before - player.getHealth();
@@ -281,7 +281,7 @@ public class ArmorTraitGameTests {
         helper.assertTrue(Math.abs(full - (without - 2.0F)) < 0.01F,
                 "at full health expected " + (without - 2.0F) + ", lost " + full);
         player.setHealth(player.getMaxHealth() - 2.0F);
-        player.invulnerableTime = 0;
+        player.damageCooldownTime = 0;
         float before = player.getHealth();
         player.hurt(explosion(helper), BLOW);
         float hurt = before - player.getHealth();
@@ -386,7 +386,7 @@ public class ArmorTraitGameTests {
         Zombie zombie = zombie(helper);
         float zombieBefore = zombie.getHealth();
         for (int i = 0; i < 100; i++) { // P(no proc in 100) = 0.85^100 ~ 1e-7
-            zombie.invulnerableTime = 0;
+            zombie.damageCooldownTime = 0;
             lost(player, helper.getLevel().damageSources().mobAttack(zombie), 1.0F);
         }
         helper.assertTrue(zombie.getHealth() < zombieBefore, "thorns must have hurt the attacker at least once");

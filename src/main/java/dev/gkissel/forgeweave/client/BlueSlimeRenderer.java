@@ -110,7 +110,7 @@ public class BlueSlimeRenderer extends MobRenderer<Slime, SlimeRenderState, Slim
             RenderType renderType = glowingWhileInvisible ? RenderTypes.outline(TEXTURE)
                     : RenderTypes.entityTranslucent(TEXTURE);
             collector.order(1).submitModel(this.model, state, poseStack, renderType, packedLight, overlay, TINT, null,
-                    state.outlineColor, null);
+                    state.outlineColor);
         }
     }
 }

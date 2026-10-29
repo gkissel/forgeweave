@@ -3,22 +3,21 @@ package dev.gkissel.forgeweave.tool;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.BlockTransformers;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.CampfireBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-
-import net.neoforged.neoforge.common.ItemAbilities;
 
 import dev.gkissel.forgeweave.item.ToolItem;
 
@@ -31,8 +30,8 @@ import dev.gkissel.forgeweave.item.ToolItem;
  *
  * <ol>
  *   <li>{@code Items.DIAMOND_SHOVEL.onItemUse(...)} on the block clicked -- i.e. "do whatever
- *       vanilla's own shovel would do here". 1.21 spells that {@code BlockState#getToolModifiedState}
- *       with {@link ItemAbilities#SHOVEL_FLATTEN} (and its sibling {@code SHOVEL_DOUSE}, which 1.12
+ *       vanilla's own shovel would do here". 26.3 spells that vanilla's shovel block transformer
+ *       ({@link BlockTransforms}, once {@code SHOVEL_FLATTEN}) (and its sibling {@code SHOVEL_DOUSE}, which 1.12
  *       had no counterpart for -- campfires did not exist), so {@link #flattenOne} is vanilla's own
  *       {@code ShovelItem#useOn} body with this tool's durability accounting in place of vanilla's.
  *       Going through the ability rather than a Forgeweave-side block table means a modded flattenable
@@ -98,12 +97,16 @@ public final class ShovelPath {
             return InteractionResult.PASS;
         }
         Player player = context.getPlayer();
-        BlockState flattened = state.getToolModifiedState(context, ItemAbilities.SHOVEL_FLATTEN, false);
+        BlockTransforms.Match flattened = BlockTransforms.match(context, BlockTransformers.SHOVEL);
         BlockState result = null;
         if (flattened != null && level.getBlockState(pos.above()).isAir()) {
-            level.playSound(player, pos, SoundEvents.SHOVEL_FLATTEN, SoundSource.BLOCKS, 1.0F, 1.0F);
-            result = flattened;
-        } else if ((result = state.getToolModifiedState(context, ItemAbilities.SHOVEL_DOUSE, false)) != null) {
+            level.playSound(player, pos, flattened.data().sound().value(), SoundSource.BLOCKS, 1.0F, 1.0F);
+            result = flattened.state();
+        } else if (state.getBlock() instanceof CampfireBlock && state.getValue(CampfireBlock.LIT)) {
+            // 26.3 moved dousing into CampfireBlock#useItemOn, which only sees the clicked block; this
+            // is NeoForge 26.2's SHOVEL_DOUSE branch of getToolModifiedState, kept for the area.
+            CampfireBlock.douse(player, level, pos, state);
+            result = state.setValue(CampfireBlock.LIT, false);
             if (!level.isClientSide()) {
                 level.levelEvent(null, 1009, pos, 0);
             }

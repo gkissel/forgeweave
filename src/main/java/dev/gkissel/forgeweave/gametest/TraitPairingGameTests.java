@@ -112,7 +112,7 @@ public class TraitPairingGameTests {
     /** One blow onto a healed, non-invulnerable player; what it cost them. */
     static float lost(Player player, DamageSource source, float amount) {
         player.setHealth(player.getMaxHealth());
-        player.invulnerableTime = 0;
+        player.damageCooldownTime = 0;
         float before = player.getHealth();
         player.hurt(source, amount);
         return before - player.getHealth();

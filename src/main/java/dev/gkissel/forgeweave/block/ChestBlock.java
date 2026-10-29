@@ -2,8 +2,6 @@ package dev.gkissel.forgeweave.block;
 
 import javax.annotation.Nullable;
 
-import com.mojang.serialization.MapCodec;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.Containers;
@@ -49,18 +47,11 @@ public class ChestBlock extends HorizontalDirectionalBlock implements EntityBloc
             Block.box(0.5D, 0.0D, 13.5D, 2.5D, 12.0D, 15.5D)).optimize(); // leg
 
     private final ChestKind kind;
-    private final MapCodec<ChestBlock> codec;
 
     public ChestBlock(Properties properties, ChestKind kind) {
         super(properties);
         this.kind = kind;
-        this.codec = simpleCodec(p -> new ChestBlock(p, kind));
         registerDefaultState(defaultBlockState().setValue(FACING, Direction.NORTH));
-    }
-
-    @Override
-    protected MapCodec<? extends ChestBlock> codec() {
-        return codec;
     }
 
     @Override

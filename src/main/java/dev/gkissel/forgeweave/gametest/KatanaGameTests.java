@@ -175,7 +175,7 @@ public class KatanaGameTests {
      */
     private static float strike(GameTestHelper helper, LivingEntity target, DamageSource source) {
         target.setHealth(target.getMaxHealth());
-        target.invulnerableTime = 0;
+        target.damageCooldownTime = 0;
         float before = target.getHealth();
         target.hurt(source, BASE_DAMAGE);
         return before - target.getHealth();

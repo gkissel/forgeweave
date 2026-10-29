@@ -11,7 +11,6 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
@@ -106,7 +105,7 @@ public class SmelteryFuelGameTests {
         BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
 
         SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS, SearedTankBlockEntity.class);
-        tank.tank().fill(new FluidStack(Fluids.WATER, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+        tank.tank().fill(new FluidStack(Fluids.WATER, SearedTankBlockEntity.CAPACITY), false);
 
         SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
@@ -172,7 +171,7 @@ public class SmelteryFuelGameTests {
 
         SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS, SearedTankBlockEntity.class);
         FluidStack unburnable = new FluidStack(ForgeweaveFluids.IRON.still().get(), 1000);
-        tank.tank().fill(unburnable, IFluidHandler.FluidAction.EXECUTE);
+        tank.tank().fill(unburnable, false);
 
         SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
@@ -209,7 +208,7 @@ public class SmelteryFuelGameTests {
 
         SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS, SearedTankBlockEntity.class);
         tank.tank().fill(new FluidStack(ForgeweaveFluids.BLAZING_BLOOD.still().get(), SearedTankBlockEntity.CAPACITY),
-                IFluidHandler.FluidAction.EXECUTE);
+                false);
 
         SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
@@ -247,7 +246,7 @@ public class SmelteryFuelGameTests {
 
         SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS, SearedTankBlockEntity.class);
         tank.tank().fill(new FluidStack(ForgeweaveFluids.PYREALLOY.still().get(), SearedTankBlockEntity.CAPACITY),
-                IFluidHandler.FluidAction.EXECUTE);
+                false);
 
         SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
@@ -274,7 +273,7 @@ public class SmelteryFuelGameTests {
 
         SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS, SearedTankBlockEntity.class);
         tank.tank().fill(new FluidStack(ForgeweaveFluids.PYREALLOY.still().get(), SearedTankBlockEntity.CAPACITY),
-                IFluidHandler.FluidAction.EXECUTE);
+                false);
 
         SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
@@ -564,8 +563,8 @@ public class SmelteryFuelGameTests {
         helper.setBlock(SmelteryGameTests.CORE_POS, Blocks.AIR);
 
         SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS, SearedTankBlockEntity.class);
-        tank.tank().drain(Integer.MAX_VALUE, IFluidHandler.FluidAction.EXECUTE);
-        tank.tank().fill(new FluidStack(fuel, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+        tank.tank().drain(Integer.MAX_VALUE, false);
+        tank.tank().fill(new FluidStack(fuel, SearedTankBlockEntity.CAPACITY), false);
 
         BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
         SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
@@ -609,8 +608,8 @@ public class SmelteryFuelGameTests {
         helper.setBlock(SmelteryGameTests.CORE_POS, Blocks.AIR);
 
         SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS, SearedTankBlockEntity.class);
-        tank.tank().drain(Integer.MAX_VALUE, IFluidHandler.FluidAction.EXECUTE);
-        tank.tank().fill(new FluidStack(fuel, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+        tank.tank().drain(Integer.MAX_VALUE, false);
+        tank.tank().fill(new FluidStack(fuel, SearedTankBlockEntity.CAPACITY), false);
 
         BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
         SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
@@ -633,7 +632,7 @@ public class SmelteryFuelGameTests {
         BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
 
         SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS, SearedTankBlockEntity.class);
-        tank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+        tank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), false);
 
         SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());

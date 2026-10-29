@@ -30,7 +30,6 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
@@ -269,7 +268,7 @@ public class CompatSmelteryGameTests {
         SmelteryGameTests.buildWalls(helper, 1, 1, 2);
         BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
         SearedTankBlockEntity wallTank = helper.getBlockEntity(SmelteryGameTests.TANK_POS, SearedTankBlockEntity.class);
-        wallTank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+        wallTank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), false);
         SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
 
@@ -296,7 +295,7 @@ public class CompatSmelteryGameTests {
 
         helper.setBlock(TANK, ForgeweaveBlocks.SEARED_TANK.get());
         helper.getBlockEntity(TANK, SearedTankBlockEntity.class).tank()
-                .fill(new FluidStack(bronze, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+                .fill(new FluidStack(bronze, SearedTankBlockEntity.CAPACITY), false);
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_TABLE.get());
         helper.setBlock(FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
                 .setValue(FaucetBlock.FACING, Direction.WEST));
@@ -391,8 +390,8 @@ public class CompatSmelteryGameTests {
         helper.setBlock(SmelteryGameTests.CORE_POS, Blocks.AIR);
 
         SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS, SearedTankBlockEntity.class);
-        tank.tank().drain(Integer.MAX_VALUE, IFluidHandler.FluidAction.EXECUTE);
-        tank.tank().fill(new FluidStack(fuel, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+        tank.tank().drain(Integer.MAX_VALUE, false);
+        tank.tank().fill(new FluidStack(fuel, SearedTankBlockEntity.CAPACITY), false);
 
         BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
         SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);

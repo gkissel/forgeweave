@@ -225,7 +225,7 @@ public class StationWeaponGameTests {
     private static void assertPassesThroughUnreduced(GameTestHelper helper, Player defender, ItemStack battlesign,
             DamageSource source, String label) {
         defender.setHealth(defender.getMaxHealth());
-        defender.invulnerableTime = 0;
+        defender.damageCooldownTime = 0;
         defender.startUsingItem(InteractionHand.MAIN_HAND);
         int durabilityBefore = battlesign.getDamageValue();
         float before = defender.getHealth();
@@ -608,7 +608,7 @@ public class StationWeaponGameTests {
         float fromBehind = before - target.getHealth();
 
         target.setHealth(target.getMaxHealth());
-        target.invulnerableTime = 0;
+        target.damageCooldownTime = 0;
         player.setPos(target.getX(), target.getY(), target.getZ() + 2.0); // now in front of it
         before = target.getHealth();
         target.hurt(source, 2.0F);
@@ -640,7 +640,7 @@ public class StationWeaponGameTests {
         helper.assertTrue(defender.getHealth() < before, "an unparried blow must actually hurt");
 
         defender.setHealth(defender.getMaxHealth());
-        defender.invulnerableTime = 0;
+        defender.damageCooldownTime = 0;
         defender.startUsingItem(InteractionHand.MAIN_HAND);
         helper.assertTrue(defender.isUsingItem(), "right-clicking the broadsword must open the parry window");
 

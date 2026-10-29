@@ -12,7 +12,6 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
@@ -499,7 +498,7 @@ public class SmelteryMeltingGameTests {
         SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
         // Leave only 10 mB free -- less than the nugget's 16 mB result, so the finishing tick cannot fit it.
         core.tank().fill(new FluidStack(ForgeweaveFluids.IRON.still().get(), core.tank().getCapacity() - 10),
-                IFluidHandler.FluidAction.EXECUTE);
+                false);
         helper.assertTrue(core.insertForMelting(new ItemStack(Items.IRON_NUGGET)).isEmpty(),
                 "expected the iron nugget to go into the smeltery");
 
@@ -520,7 +519,7 @@ public class SmelteryMeltingGameTests {
     public static void aStalledMeltClearsOnceTheTankHasRoomAgain(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelledSmeltery(helper);
         core.tank().fill(new FluidStack(ForgeweaveFluids.IRON.still().get(), core.tank().getCapacity() - 10),
-                IFluidHandler.FluidAction.EXECUTE);
+                false);
         helper.assertTrue(core.insertForMelting(new ItemStack(Items.IRON_NUGGET)).isEmpty(),
                 "expected the iron nugget to go into the smeltery");
 
@@ -530,7 +529,7 @@ public class SmelteryMeltingGameTests {
         core.meltTick();
         helper.assertTrue(core.meltStalled(0), "expected the slot to be stalled ahead of the drain");
 
-        core.tank().drain(50, IFluidHandler.FluidAction.EXECUTE);
+        core.tank().drain(50, false);
         core.meltTick();
 
         helper.assertTrue(!core.meltStalled(0), "expected the stall to clear once the melt actually finished");
@@ -601,7 +600,7 @@ public class SmelteryMeltingGameTests {
 
         SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS, SearedTankBlockEntity.class);
         tank.tank().fill(new FluidStack(ForgeweaveFluids.MOLTEN_MAGMA.still().get(), SearedTankBlockEntity.CAPACITY),
-                IFluidHandler.FluidAction.EXECUTE);
+                false);
 
         SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
@@ -615,7 +614,7 @@ public class SmelteryMeltingGameTests {
         BlockPos corePos = SmelteryGameTests.placeCore(helper, coreBlock);
 
         SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS, SearedTankBlockEntity.class);
-        tank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+        tank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), false);
 
         SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
@@ -634,7 +633,7 @@ public class SmelteryMeltingGameTests {
         BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
 
         SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS, SearedTankBlockEntity.class);
-        tank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+        tank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), false);
 
         SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());

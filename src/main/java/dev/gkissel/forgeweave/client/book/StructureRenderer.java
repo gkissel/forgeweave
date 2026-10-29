@@ -69,8 +69,8 @@ public final class StructureRenderer extends PictureInPictureRenderer<StructureR
         minecraft.gameRenderer.lighting().setupFor(Lighting.Entry.ITEMS_3D);
         // The base pose is scale(s, s, -s); flipping y and z gives the 1.21 scale(s, -s, s).
         pose.scale(1f, -1f, -1f);
-        pose.mulPose(Axis.XP.rotationDegrees(state.rotX()));
-        pose.mulPose(Axis.YP.rotationDegrees(state.rotY()));
+        pose.rotateDegrees(Axis.XP, state.rotX());
+        pose.rotateDegrees(Axis.YP, state.rotY());
         pose.translate(state.length() / -2f, state.height() / -2f, state.width() / -2f);
 
         BlockModelRenderState model = new BlockModelRenderState();

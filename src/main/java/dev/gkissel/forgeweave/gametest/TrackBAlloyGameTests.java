@@ -18,7 +18,6 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.material.Fluid;
 
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
@@ -326,14 +325,14 @@ public class TrackBAlloyGameTests {
     }
 
     private static void pour(SmelteryControllerBlockEntity core, Fluid fluid, int amount) {
-        core.tank().fill(new FluidStack(fluid, amount), IFluidHandler.FluidAction.EXECUTE);
+        core.tank().fill(new FluidStack(fluid, amount), false);
     }
 
     /** A tank of {@code fluid}, a faucet on its east side pointing back at it, and a casting table below. */
     private static CastingBlockEntity rig(GameTestHelper helper, Fluid fluid) {
         helper.setBlock(TANK, ForgeweaveBlocks.SEARED_TANK.get());
         helper.getBlockEntity(TANK, SearedTankBlockEntity.class).tank()
-                .fill(new FluidStack(fluid, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+                .fill(new FluidStack(fluid, SearedTankBlockEntity.CAPACITY), false);
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_TABLE.get());
         helper.setBlock(FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
                 .setValue(FaucetBlock.FACING, Direction.WEST));

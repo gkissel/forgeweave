@@ -3,7 +3,7 @@ package dev.gkissel.forgeweave.data;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
@@ -12,10 +12,12 @@ import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementRequirements;
 import net.minecraft.advancements.AdvancementRewards;
 import net.minecraft.advancements.triggers.RecipeUnlockedTrigger;
-import net.minecraft.core.HolderLookup;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderGetter;
+import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.PackOutput;
+import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.RecipeProvider;
@@ -77,25 +79,9 @@ import dev.gkissel.forgeweave.trackb.TrackBOre;
  * only now (see {@code casting_recipe/cast_war_mace_head.json}, cast from a Heavy Core directly).
  */
 public class ForgeweaveRecipeProvider extends RecipeProvider {
-    protected ForgeweaveRecipeProvider(HolderLookup.Provider registries, RecipeOutput output) {
-        super(registries, output);
-    }
-
-    /** The data provider runData registers; 1.21.2+ builds the recipe provider per run from it. */
-    public static final class Runner extends RecipeProvider.Runner {
-        public Runner(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
-            super(output, registries);
-        }
-
-        @Override
-        protected RecipeProvider createRecipeProvider(HolderLookup.Provider registries, RecipeOutput output) {
-            return new ForgeweaveRecipeProvider(registries, output);
-        }
-
-        @Override
-        public String getName() {
-            return "Forgeweave recipes";
-        }
+    /** 26.3: recipes are a datapack registry, bootstrapped through {@code GatherDataRegistryEntriesEvent#recipe}. */
+    public ForgeweaveRecipeProvider(BootstrapContext<Recipe<?>> recipes, BootstrapContext<Advancement> advancements) {
+        super(recipes, advancements);
     }
 
     @Override
@@ -1011,8 +997,14 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
             }
 
             @Override
-            public void includeRootAdvancement() {
-                output.includeRootAdvancement();
+            public <S> HolderGetter<S> lookup(ResourceKey<? extends Registry<? extends S>> key) {
+                return output.lookup(key);
+            }
+
+            @Deprecated
+            @Override
+            public <S> Stream<Holder.Reference<S>> listContextElements(ResourceKey<? extends Registry<? extends S>> key) {
+                return output.listContextElements(key);
             }
 
             @Override
@@ -1035,7 +1027,7 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                 new ItemStackTemplate(ForgeweaveItems.TOOL_FORGE.get()), Optional.of(metal));
 
         AdvancementHolder advancement = recipeOutput.advancement()
-                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(key(id)))
+                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeOutput.lookup(Registries.RECIPE).getOrThrow(key(id))))
                 .addCriterion("has_tool_station", has(ForgeweaveItems.TOOL_STATION.get()))
                 .rewards(AdvancementRewards.Builder.recipe(key(id)))
                 .requirements(AdvancementRequirements.Strategy.OR)
@@ -1088,7 +1080,7 @@ public class ForgeweaveRecipeProvider extends RecipeProvider {
                 new RetexturedShapedRecipe("", CraftingBookCategory.MISC, pattern, new ItemStackTemplate(result.asItem()));
 
         AdvancementHolder advancement = recipeOutput.advancement()
-                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(key(id)))
+                .addCriterion("has_the_recipe", RecipeUnlockedTrigger.unlocked(recipeOutput.lookup(Registries.RECIPE).getOrThrow(key(id))))
                 .addCriterion("has_pattern_blank", has(ForgeweaveItems.PATTERN_BLANK.get()))
                 .rewards(AdvancementRewards.Builder.recipe(key(id)))
                 .requirements(AdvancementRequirements.Strategy.OR)

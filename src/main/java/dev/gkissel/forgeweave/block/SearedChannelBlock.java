@@ -6,8 +6,6 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
-import com.mojang.serialization.MapCodec;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.core.Direction;
@@ -64,8 +62,6 @@ import net.neoforged.neoforge.capabilities.Capabilities;
  * bit in its block entity as {@code wasPowered}.
  */
 public class SearedChannelBlock extends Block implements EntityBlock {
-    public static final MapCodec<SearedChannelBlock> CODEC = simpleCodec(SearedChannelBlock::new);
-
     /** Upstream's {@code DOWN}: whether the channel pours out of its bottom. */
     public static final BooleanProperty DOWN = BlockStateProperties.DOWN;
 
@@ -152,11 +148,6 @@ public class SearedChannelBlock extends Block implements EntityBlock {
                 .setValue(SOUTH, ChannelConnection.NONE)
                 .setValue(WEST, ChannelConnection.NONE)
                 .setValue(EAST, ChannelConnection.NONE));
-    }
-
-    @Override
-    protected MapCodec<? extends SearedChannelBlock> codec() {
-        return CODEC;
     }
 
     @Override
@@ -451,7 +442,7 @@ public class SearedChannelBlock extends Block implements EntityBlock {
 
     /** Dust routed at a channel connects to it, so the gate above can be wired from any side. */
     @Override
-    public boolean canConnectRedstone(BlockState state, BlockGetter level, BlockPos pos, @Nullable Direction direction) {
+    protected boolean shouldRedstoneWireConnectTo(BlockState state, BlockGetter level, BlockPos pos, @Nullable Direction direction) {
         return true;
     }
 

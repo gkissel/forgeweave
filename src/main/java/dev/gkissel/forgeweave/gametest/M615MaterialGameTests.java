@@ -21,7 +21,6 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.material.Fluid;
 
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
@@ -64,9 +63,9 @@ public class M615MaterialGameTests {
     @GameTest(template = "smeltery")
     public static void cobaltGoldAndMagmaCreamAlloyIntoQueensSlime(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = smeltery(helper);
-        core.tank().fill(new FluidStack(ForgeweaveFluids.COBALT.still().get(), 90), IFluidHandler.FluidAction.EXECUTE);
-        core.tank().fill(new FluidStack(ForgeweaveFluids.GOLD.still().get(), 90), IFluidHandler.FluidAction.EXECUTE);
-        core.tank().fill(new FluidStack(ForgeweaveFluids.MAGMA_CREAM.still().get(), 250), IFluidHandler.FluidAction.EXECUTE);
+        core.tank().fill(new FluidStack(ForgeweaveFluids.COBALT.still().get(), 90), false);
+        core.tank().fill(new FluidStack(ForgeweaveFluids.GOLD.still().get(), 90), false);
+        core.tank().fill(new FluidStack(ForgeweaveFluids.MAGMA_CREAM.still().get(), 250), false);
 
         helper.assertValueEqual(core.tank().fluids().size(), 1, "distinct fluids left in the tank");
         helper.assertTrue(core.tank().getFluid().getFluid() == ForgeweaveFluids.QUEENS_SLIME.still().get(),
@@ -79,9 +78,9 @@ public class M615MaterialGameTests {
     @GameTest(template = "smeltery")
     public static void copperCobaltAndQuartzAlloyIntoHepatizon(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = smeltery(helper);
-        core.tank().fill(new FluidStack(ForgeweaveFluids.COPPER.still().get(), 180), IFluidHandler.FluidAction.EXECUTE);
-        core.tank().fill(new FluidStack(ForgeweaveFluids.COBALT.still().get(), 90), IFluidHandler.FluidAction.EXECUTE);
-        core.tank().fill(new FluidStack(ForgeweaveFluids.QUARTZ.still().get(), 100), IFluidHandler.FluidAction.EXECUTE);
+        core.tank().fill(new FluidStack(ForgeweaveFluids.COPPER.still().get(), 180), false);
+        core.tank().fill(new FluidStack(ForgeweaveFluids.COBALT.still().get(), 90), false);
+        core.tank().fill(new FluidStack(ForgeweaveFluids.QUARTZ.still().get(), 100), false);
 
         helper.assertValueEqual(core.tank().fluids().size(), 1, "distinct fluids left in the tank");
         helper.assertTrue(core.tank().getFluid().getFluid() == ForgeweaveFluids.HEPATIZON.still().get(),
@@ -250,14 +249,14 @@ public class M615MaterialGameTests {
         ItemStack piece = worn(player);
         piece.setDamageValue(0);
         player.setHealth(player.getMaxHealth() - 8.0F);
-        player.invulnerableTime = 0;
+        player.damageCooldownTime = 0;
 
         DamageSource explosion = explosion(helper);
         boolean healedOrDamaged = false;
         // P(no proc in 200 hits at 15%) = 0.85^200 ~ 4e-15.
         for (int i = 0; i < 200 && !healedOrDamaged; i++) {
             player.setHealth(player.getMaxHealth() - 8.0F);
-            player.invulnerableTime = 0;
+            player.damageCooldownTime = 0;
             float before = player.getHealth();
             player.hurt(explosion, BLOW);
             healedOrDamaged = player.getHealth() > before - BLOW || piece.getDamageValue() > 0;
@@ -306,7 +305,7 @@ public class M615MaterialGameTests {
     private static CastingBlockEntity rig(GameTestHelper helper, Fluid fluid) {
         helper.setBlock(TANK, ForgeweaveBlocks.SEARED_TANK.get());
         helper.getBlockEntity(TANK, SearedTankBlockEntity.class).tank()
-                .fill(new FluidStack(fluid, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+                .fill(new FluidStack(fluid, SearedTankBlockEntity.CAPACITY), false);
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_TABLE.get());
         helper.setBlock(FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
                 .setValue(FaucetBlock.FACING, Direction.WEST));
@@ -357,7 +356,7 @@ public class M615MaterialGameTests {
 
     private static float lost(Player player, DamageSource source, float amount) {
         player.setHealth(player.getMaxHealth());
-        player.invulnerableTime = 0;
+        player.damageCooldownTime = 0;
         float before = player.getHealth();
         player.hurt(source, amount);
         return before - player.getHealth();

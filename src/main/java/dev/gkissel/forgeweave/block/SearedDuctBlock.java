@@ -2,8 +2,6 @@ package dev.gkissel.forgeweave.block;
 
 import javax.annotation.Nullable;
 
-import com.mojang.serialization.MapCodec;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.Containers;
@@ -30,16 +28,9 @@ import net.minecraft.util.RandomSource;
  * <p>Faces outward like the drain and the core do.
  */
 public class SearedDuctBlock extends HorizontalDirectionalBlock implements EntityBlock {
-    public static final MapCodec<SearedDuctBlock> CODEC = simpleCodec(SearedDuctBlock::new);
-
     public SearedDuctBlock(Properties properties) {
         super(properties);
         registerDefaultState(SearedTier.standard(defaultBlockState().setValue(FACING, Direction.NORTH)));
-    }
-
-    @Override
-    protected MapCodec<? extends SearedDuctBlock> codec() {
-        return CODEC;
     }
 
     @Override

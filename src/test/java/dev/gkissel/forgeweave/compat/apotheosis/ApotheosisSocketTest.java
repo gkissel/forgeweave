@@ -95,7 +95,7 @@ class ApotheosisSocketTest {
         GemSockets decoded = GemSockets.CODEC.parse(ops, encoded).getOrThrow();
 
         assertEquals(sockets, decoded, "the socket component must survive a save/load round trip");
-        List<ItemStack> items = decoded.gems().allItemsCopyStream().toList();
+        List<ItemStack> items = decoded.gems().itemCopies().toList();
         assertEquals(3, items.size(), "a gem in socket three keeps socket three, empties and all");
         assertTrue(items.get(0).is(Items.DIAMOND));
         assertTrue(items.get(1).isEmpty(), "the empty middle socket must stay empty rather than shift");
@@ -131,7 +131,7 @@ class ApotheosisSocketTest {
         Tag reEncoded = GemSockets.CODEC.encodeStart(nbt, decoded).getOrThrow();
 
         assertEquals(Set.of(1), decoded.unreadable().keySet(), "the unknown gem is kept raw, in its own socket");
-        assertTrue(decoded.gems().allItemsCopyStream().toList().get(0).is(Items.DIAMOND),
+        assertTrue(decoded.gems().itemCopies().toList().get(0).is(Items.DIAMOND),
                 "and the readable gem beside it still decodes as a gem");
         assertArrayEquals(bytes(saved), bytes(reEncoded), "re-encoding must give back exactly what was saved");
     }

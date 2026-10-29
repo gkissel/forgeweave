@@ -1,7 +1,6 @@
 package dev.gkissel.forgeweave.data;
 
 import java.util.Optional;
-import java.util.function.Consumer;
 
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementHolder;
@@ -11,7 +10,6 @@ import net.minecraft.advancements.triggers.CriterionTrigger;
 import net.minecraft.advancements.triggers.InventoryChangeTrigger;
 import net.minecraft.advancements.predicates.ItemPredicate;
 import net.minecraft.core.HolderGetter;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -20,6 +18,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 
 import net.minecraft.data.advancements.AdvancementSubProvider;
+import net.minecraft.data.worldgen.BootstrapContext;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -79,20 +78,25 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
  * (see {@code ForgeweaveLanguageProvider} at the same keys), one plain sentence each naming the next
  * thing to do.
  */
-public final class ForgeweaveAdvancementProvider implements AdvancementSubProvider {
+public final class ForgeweaveAdvancementProvider extends AdvancementSubProvider {
     private static final String ROOT_BACKGROUND = "gui/advancements/backgrounds/stone";
 
+    /** 26.3: advancements are a datapack registry; {@code output} is its bootstrap context. */
+    public ForgeweaveAdvancementProvider(BootstrapContext<Advancement> output) {
+        super(output);
+    }
+
     @Override
-    public void generate(HolderLookup.Provider registries, Consumer<AdvancementHolder> saver) {
-        Saver save = new Saver(saver, registries.lookupOrThrow(Registries.ITEM));
+    public void generate() {
+        Saver save = new Saver(output, output.lookup(Registries.ITEM));
 
         AdvancementHolder root = Advancement.Builder.advancement()
-                .display(ForgeweaveItems.GUIDE_BOOK.get(),
+                .rootDisplay(ForgeweaveItems.GUIDE_BOOK.get(),
                         title("guide_book"), description("guide_book"),
                         Identifier.withDefaultNamespace(ROOT_BACKGROUND),
                         AdvancementType.TASK, true, true, false)
                 .addCriterion("guide_book", owns(ForgeweaveItems.GUIDE_BOOK.get()))
-                .save(saver, id("root").toString());
+                .save(output, id("root").toString());
 
         buildToolsBranch(save, root);
         buildSmelteryBranch(save, root);
@@ -267,7 +271,7 @@ public final class ForgeweaveAdvancementProvider implements AdvancementSubProvid
      * "this custom trigger fired". Nodes that need more than one criterion (a full armor set, an
      * either-weight slot) call {@link #advancement} and finish the builder themselves.
      */
-    private record Saver(Consumer<AdvancementHolder> saver, HolderGetter<Item> items) {
+    private record Saver(BootstrapContext<Advancement> saver, HolderGetter<Item> items) {
 
         /** One {@code items} predicate satisfied by any of {@code items} -- an OR inside a single criterion. */
         ItemPredicate.Builder anyOf(ItemLike... members) {
@@ -278,7 +282,7 @@ public final class ForgeweaveAdvancementProvider implements AdvancementSubProvid
         Advancement.Builder advancement(AdvancementHolder parent, String langKey, ItemLike icon, AdvancementType type) {
             return Advancement.Builder.advancement()
                     .parent(parent)
-                    .display(icon, title(langKey), description(langKey), null, type, true, true, false);
+                    .display(icon.asItem(), title(langKey), description(langKey), type, true, true, false);
         }
 
         AdvancementHolder finish(Advancement.Builder builder, String path) {

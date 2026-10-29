@@ -1,10 +1,12 @@
 package dev.gkissel.forgeweave.gametest;
 
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
+import dev.gkissel.forgeweave.block.TransferBridge;
 import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.TextColor;
@@ -21,7 +23,6 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 
-import net.neoforged.neoforge.energy.IEnergyStorage;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
@@ -84,25 +85,25 @@ public class EnergyTraitGameTests {
     @GameTest(template = "empty")
     public static void theCapabilityReportsCapacityAndRespectsSimulateOnInsertAndExtract(GameTestHelper helper) {
         ItemStack pickaxe = pickaxe(List.of(traitId("energized")), 1000);
-        IEnergyStorage capability = EnergyBuffer.capability(pickaxe);
+        EnergyHandler capability = EnergyBuffer.capability(pickaxe);
         helper.assertTrue(capability != null, "a tool with the energized trait must expose the capability");
-        helper.assertTrue(capability.getMaxEnergyStored() == 12000,
-                "expected Energized I's 12,000 FE capacity, got " + capability.getMaxEnergyStored());
+        helper.assertTrue(capability.getCapacityAsInt() == 12000,
+                "expected Energized I's 12,000 FE capacity, got " + capability.getCapacityAsInt());
 
-        int simulated = capability.receiveEnergy(50000, true);
+        int simulated = TransferBridge.insertEnergy(capability, 50000, true);
         helper.assertTrue(simulated == 12000, "a simulated insert must clamp to capacity, got " + simulated);
-        helper.assertTrue(capability.getEnergyStored() == 0, "a simulated insert must not mutate the stack");
+        helper.assertTrue(capability.getAmountAsInt() == 0, "a simulated insert must not mutate the stack");
 
-        int accepted = capability.receiveEnergy(8000, false);
+        int accepted = TransferBridge.insertEnergy(capability, 8000, false);
         helper.assertTrue(accepted == 8000, "expected the full 8,000 FE accepted, got " + accepted);
-        int topUp = capability.receiveEnergy(8000, false);
+        int topUp = TransferBridge.insertEnergy(capability, 8000, false);
         helper.assertTrue(topUp == 4000, "expected only the remaining 4,000 FE accepted, got " + topUp);
-        helper.assertTrue(capability.getEnergyStored() == 12000, "the buffer must now read full");
+        helper.assertTrue(capability.getAmountAsInt() == 12000, "the buffer must now read full");
 
-        int extracted = capability.extractEnergy(5000, false);
+        int extracted = TransferBridge.extractEnergy(capability, 5000, false);
         helper.assertTrue(extracted == 5000, "expected 5,000 FE extracted, got " + extracted);
-        helper.assertTrue(capability.getEnergyStored() == 7000,
-                "expected 7,000 FE left after the extraction, got " + capability.getEnergyStored());
+        helper.assertTrue(capability.getAmountAsInt() == 7000,
+                "expected 7,000 FE left after the extraction, got " + capability.getAmountAsInt());
 
         helper.succeed();
     }
@@ -111,9 +112,9 @@ public class EnergyTraitGameTests {
     @GameTest(template = "empty")
     public static void energyInsertedThroughTheCapabilityIsConsumedByDurabilityDamage(GameTestHelper helper) {
         ItemStack pickaxe = pickaxe(List.of(traitId("energized")), 1000);
-        IEnergyStorage capability = EnergyBuffer.capability(pickaxe);
+        EnergyHandler capability = EnergyBuffer.capability(pickaxe);
         helper.assertTrue(capability != null, "setup: the capability must be present");
-        capability.receiveEnergy(250, false);
+        TransferBridge.insertEnergy(capability, 250, false);
 
         RandomSource random = helper.getLevel().getRandom();
         int covered = ForgeweaveTraits.durabilityDamage(pickaxe, random, 10);

@@ -23,7 +23,6 @@ import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
-import net.neoforged.neoforge.common.ItemAbilities;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
@@ -222,7 +221,7 @@ public class ToolLevelingXpGameTests {
     @GameTest(template = "empty")
     public static void mattockNeverEarnsAPathGrant(GameTestHelper helper) {
         ItemStack mattock = new ItemStack(ForgeweaveItems.TOOL_MATTOCK.get());
-        helper.assertTrue(!mattock.getItem().canPerformAction(mattock, ItemAbilities.SHOVEL_FLATTEN),
+        helper.assertTrue(!mattock.getItem().canPerformAction(mattock, ToolItem.SHOVEL_FLATTEN),
                 "the mattock must never claim SHOVEL_FLATTEN, so it can never earn a path grant");
         helper.succeed();
     }

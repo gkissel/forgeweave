@@ -65,11 +65,11 @@ public class ArrowRenderer extends EntityRenderer<ArrowEntity, ArrowRenderer.Sta
     public void submit(State state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         poseStack.pushPose();
         poseStack.scale(0.5F, 0.5F, 0.5F); // RenderProjectileBase#doRender's glScalef(0.5)
-        poseStack.mulPose(Axis.YP.rotationDegrees(state.yRot));
-        poseStack.mulPose(Axis.XP.rotationDegrees(-state.xRot));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(state.roll));
-        poseStack.mulPose(Axis.YP.rotationDegrees(-90.0F));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(-45.0F));
+        poseStack.rotateDegrees(Axis.YP, state.yRot);
+        poseStack.rotateDegrees(Axis.XP, -state.xRot);
+        poseStack.rotateDegrees(Axis.ZP, state.roll);
+        poseStack.rotateDegrees(Axis.YP, -90.0F);
+        poseStack.rotateDegrees(Axis.ZP, -45.0F);
         state.item.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor);
         poseStack.popPose();
     }

@@ -84,7 +84,7 @@ public class MaterialTraitCorrectionGameTests {
     /** One blow onto a healed, non-invulnerable player; what it cost them. */
     private static float lost(Player player, DamageSource source, float amount) {
         player.setHealth(player.getMaxHealth());
-        player.invulnerableTime = 0;
+        player.damageCooldownTime = 0;
         float before = player.getHealth();
         player.hurt(source, amount);
         return before - player.getHealth();
@@ -215,14 +215,14 @@ public class MaterialTraitCorrectionGameTests {
     public static void alphaYetiResilienceLengthensTheWindowRatherThanShorteningIt(GameTestHelper helper) {
         Player plain = wearing(helper);
         lost(plain, helper.getLevel().damageSources().generic(), BLOW);
-        helper.assertTrue(plain.invulnerableTime == 20, "vanilla's own window is 20, got " + plain.invulnerableTime);
+        helper.assertTrue(plain.damageCooldownTime == 20, "vanilla's own window is 20, got " + plain.damageCooldownTime);
 
         Player player = wearing(helper, "surgeward");
         lost(player, helper.getLevel().damageSources().generic(), BLOW);
-        helper.assertTrue(player.invulnerableTime > 20,
-                "the trait must lengthen the window, not shorten it, got " + player.invulnerableTime);
-        helper.assertTrue(player.invulnerableTime == 40,
-                "and the shipped definition asks for 40 ticks, got " + player.invulnerableTime);
+        helper.assertTrue(player.damageCooldownTime > 20,
+                "the trait must lengthen the window, not shorten it, got " + player.damageCooldownTime);
+        helper.assertTrue(player.damageCooldownTime == 40,
+                "and the shipped definition asks for 40 ticks, got " + player.damageCooldownTime);
         helper.succeed();
     }
 

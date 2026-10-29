@@ -24,7 +24,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.monster.Blaze;
-import net.minecraft.world.entity.monster.EnderMan;
+import net.minecraft.world.entity.monster.Enderman;
 import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -98,7 +98,7 @@ public class CombatTraitGameTests {
         float before = target.getHealth();
         int hits = 15;
         for (int i = 0; i < hits; i++) {
-            target.invulnerableTime = 0;
+            target.damageCooldownTime = 0;
             target.hurt(helper.getLevel().damageSources().playerAttack(player), 0.1F);
         }
         float lost = before - target.getHealth();
@@ -288,7 +288,7 @@ public class CombatTraitGameTests {
         MobEffectInstance weakness = zombie.getEffect(MobEffects.WEAKNESS);
         helper.assertTrue(weakness != null && weakness.getAmplifier() == 0,
                 "a landed holy hit must leave Weakness I on an undead target");
-        pig.invulnerableTime = 0;
+        pig.damageCooldownTime = 0;
         pig.hurt(helper.getLevel().damageSources().playerAttack(player), 1.0F);
         helper.assertTrue(pig.getEffect(MobEffects.WEAKNESS) == null, "no weakness on the living");
 
@@ -510,8 +510,8 @@ public class CombatTraitGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("enderference")), 3.0F);
         player.setItemInHand(InteractionHand.MAIN_HAND, hatchet);
-        EnderMan marked = noAi(helper.spawn(EntityTypes.ENDERMAN, new BlockPos(2, 2, 2)));
-        EnderMan unmarked = noAi(helper.spawn(EntityTypes.ENDERMAN, new BlockPos(4, 2, 4)));
+        Enderman marked = noAi(helper.spawn(EntityTypes.ENDERMAN, new BlockPos(2, 2, 2)));
+        Enderman unmarked = noAi(helper.spawn(EntityTypes.ENDERMAN, new BlockPos(4, 2, 4)));
 
         marked.hurt(helper.getLevel().damageSources().playerAttack(player), 1.0F);
         MobEffectInstance mark = marked.getEffect(ForgeweaveMobEffects.ENDERFERENCE);
@@ -553,7 +553,7 @@ public class CombatTraitGameTests {
         // (issue #212), which is what this test's CI flake ("health still 9.0") was. The hit above
         // still applies the effect through the real trait seam; the cadence and 4-second total are
         // WeaponInnateGameTests#lacerateBleedsOneDamagePerSecondForFourSeconds's to prove.
-        pig.invulnerableTime = 0; // the first tick lands a full second after the blow (LacerateEffect javadoc)
+        pig.damageCooldownTime = 0; // the first tick lands a full second after the blow (LacerateEffect javadoc)
         ((LacerateEffect) ForgeweaveMobEffects.LACERATE.value()).applyEffectTick(helper.getLevel(), pig, 0);
         helper.assertTrue(pig.getHealth() <= afterHit - 1.0F,
                 "the bleed's tick must cost 1 damage, health still " + pig.getHealth());
@@ -995,11 +995,11 @@ public class CombatTraitGameTests {
         Pig pig = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2)));
 
         pig.hurt(helper.getLevel().damageSources().generic(), 1.0F);
-        int before = pig.invulnerableTime;
+        int before = pig.damageCooldownTime;
         helper.assertTrue(before > 0, "a landed blow must have opened an invulnerability window to shorten");
 
         onHit(helper, player, hatchet, pig);
-        int after = pig.invulnerableTime;
+        int after = pig.damageCooldownTime;
         // The proposed magnitude (ShortenInvulnerability's javadoc): 10 ticks, half vanilla's default.
         helper.assertTrue(before - after == 10,
                 "expected harrying to shave exactly 10 ticks (" + before + " -> " + after + ")");
@@ -1037,7 +1037,7 @@ public class CombatTraitGameTests {
         boolean arced = false;
         for (int attempt = 0; attempt < 40 && !arced; attempt++) {
             float before = nearby.getHealth();
-            nearby.invulnerableTime = 0;
+            nearby.damageCooldownTime = 0;
             onHitCharged(helper, player, hatchet, primary, 1.0F);
             arced = nearby.getHealth() < before;
         }
@@ -1063,13 +1063,13 @@ public class CombatTraitGameTests {
         ItemStack arcing = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("arcing")), 3.0F);
         float before = nearby.getHealth();
         for (int swing = 0; swing < 40; swing++) {
-            nearby.invulnerableTime = 0;
+            nearby.damageCooldownTime = 0;
             onHitCharged(helper, player, arcing, primary, 0.5F);
         }
         helper.assertTrue(nearby.getHealth() == before, "Arcing I must never arc on a half-charged swing");
 
         ItemStack arcing2 = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("arcing2")), 3.0F);
-        nearby.invulnerableTime = 0;
+        nearby.damageCooldownTime = 0;
         onHitCharged(helper, player, arcing2, primary, 0.5F);
         helper.assertTrue(nearby.getHealth() < before, "Arcing II must arc on a half-charged swing too");
 
@@ -1275,7 +1275,7 @@ public class CombatTraitGameTests {
     /** One real blow onto a healed, non-invulnerable defender; answers what it cost them. */
     private static float hurtFor(GameTestHelper helper, Player defender, LivingEntity attacker, float damage) {
         defender.setHealth(defender.getMaxHealth());
-        defender.invulnerableTime = 0;
+        defender.damageCooldownTime = 0;
         float before = defender.getHealth();
         defender.hurt(helper.getLevel().damageSources().mobAttack(attacker), damage);
         return before - defender.getHealth();

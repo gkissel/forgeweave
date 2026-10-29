@@ -9,6 +9,7 @@ import javax.annotation.Nullable;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -22,8 +23,8 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.SlotItemHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 
@@ -37,7 +38,7 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
  * CraftingStationBlockEntity} javadoc).
  *
  * <p>When the station has a qualifying neighbor ({@code CraftingStationBlockEntity#findSideInventory},
- * issue #40's chest side panel), its {@link IItemHandler} is exposed as extra {@link SlotItemHandler}
+ * issue #40's chest side panel), its {@link ResourceHandler} is exposed as extra {@link SideInventorySlots.SideSlot}
  * slots after the grid+output via {@link SideInventorySlots#create}, shared with {@link
  * PartBuilderMenu}/{@link ToolStationMenu}'s own side panels (issue #40's follow-up) -- upstream
  * 1.12's {@code ContainerCraftingStation} does the same via a {@code ContainerSideInventory}
@@ -47,7 +48,7 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
  * over the open-menu packet ({@code CraftingStationBlock#useWithoutItem}) so both sides build the
  * same number of {@code Slot}s -- the client's copy is backed by a throwaway placeholder container
  * (same "server pushes contents down" pattern {@link PartBuilderMenu}/{@link ToolStationMenu} use
- * for their own client-side placeholder containers) since the real {@link IItemHandler} only exists
+ * for their own client-side placeholder containers) since the real {@link ResourceHandler} only exists
  * server-side.
  */
 public class CraftingStationMenu extends StationMenu {
@@ -82,13 +83,13 @@ public class CraftingStationMenu extends StationMenu {
 
     /** Server-side: constructed by {@code CraftingStationBlockEntity} with the block's real grid and detected neighbor. */
     public CraftingStationMenu(int containerId, Inventory playerInventory, Container container,
-            ContainerLevelAccess access, @Nullable IItemHandler sideInventory) {
+            ContainerLevelAccess access, @Nullable ResourceHandler<ItemResource> sideInventory) {
         this(containerId, playerInventory, container, access, sideInventory,
-                sideInventory == null ? 0 : sideInventory.getSlots(), groupAt(access));
+                sideInventory == null ? 0 : sideInventory.size(), groupAt(access));
     }
 
     private CraftingStationMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access,
-            @Nullable IItemHandler sideInventory, int sideInventorySlotCount, StationGroup stationGroup) {
+            @Nullable ResourceHandler<ItemResource> sideInventory, int sideInventorySlotCount, StationGroup stationGroup) {
         super(ForgeweaveMenus.CRAFTING_STATION.get(), containerId, stationGroup);
         checkContainerSize(container, CONTAINER_SLOTS);
         this.container = container;
@@ -256,7 +257,7 @@ public class CraftingStationMenu extends StationMenu {
                             } else if (ItemStack.isSameItemSameComponents(current, leftover)) {
                                 current.grow(leftover.getCount());
                             } else {
-                                player.drop(leftover, false);
+                                player.drop(leftover, false, Prediction.PREDICTED);
                             }
                         }
                         gridSlot.setChanged();

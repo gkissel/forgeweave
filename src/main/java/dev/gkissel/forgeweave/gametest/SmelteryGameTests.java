@@ -26,7 +26,6 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
@@ -185,7 +184,7 @@ public class SmelteryGameTests {
         SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core, SmelteryControllerBlockEntity.class);
         SmelteryStructure structure = blockEntity.structure();
         helper.assertTrue(structure != null, "expected the smeltery to form first: " + reason(helper, core));
-        blockEntity.tank().fill(new FluidStack(Fluids.WATER, 500), IFluidHandler.FluidAction.EXECUTE);
+        blockEntity.tank().fill(new FluidStack(Fluids.WATER, 500), false);
 
         HolderLookup.Provider registries = helper.getLevel().registryAccess();
         CompoundTag tag = blockEntity.saveWithFullMetadata(registries);
@@ -219,8 +218,8 @@ public class SmelteryGameTests {
 
         // Iron + manyullyn: two fluids no alloy recipe touches (issue #231 made water + lava alloy
         // into obsidian, upstream's obsidianAlloy, so that pair can no longer sit inert in a tank).
-        blockEntity.tank().fill(new FluidStack(ForgeweaveFluids.IRON.still().get(), 500), IFluidHandler.FluidAction.EXECUTE);
-        blockEntity.tank().fill(new FluidStack(ForgeweaveFluids.MANYULLYN.still().get(), 250), IFluidHandler.FluidAction.EXECUTE);
+        blockEntity.tank().fill(new FluidStack(ForgeweaveFluids.IRON.still().get(), 500), false);
+        blockEntity.tank().fill(new FluidStack(ForgeweaveFluids.MANYULLYN.still().get(), 250), false);
 
         SmelteryMenu menu = openMenu(helper, core);
         List<FluidStack> fluids = menu.fluids(helper.getLevel());
@@ -245,8 +244,8 @@ public class SmelteryGameTests {
         BlockPos core = placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
         SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core, SmelteryControllerBlockEntity.class);
         // Same non-alloying pair as menuExposesTheTankContents (see the note there).
-        blockEntity.tank().fill(new FluidStack(ForgeweaveFluids.IRON.still().get(), 500), IFluidHandler.FluidAction.EXECUTE);
-        blockEntity.tank().fill(new FluidStack(ForgeweaveFluids.MANYULLYN.still().get(), 250), IFluidHandler.FluidAction.EXECUTE);
+        blockEntity.tank().fill(new FluidStack(ForgeweaveFluids.IRON.still().get(), 500), false);
+        blockEntity.tank().fill(new FluidStack(ForgeweaveFluids.MANYULLYN.still().get(), 250), false);
         helper.assertTrue(blockEntity.tank().getFluid().is(ForgeweaveFluids.IRON.still().get()), "expected iron at the bottom to begin with");
 
         SmelteryMenu menu = openMenu(helper, core);
@@ -255,7 +254,7 @@ public class SmelteryGameTests {
 
         helper.assertTrue(blockEntity.tank().getFluid().is(ForgeweaveFluids.MANYULLYN.still().get()), "expected the clicked fluid to move to the bottom");
         helper.assertValueEqual(blockEntity.tank().getFluid().getAmount(), 250, "the moved fluid keeps its amount");
-        FluidStack drained = blockEntity.tank().drain(50, IFluidHandler.FluidAction.EXECUTE);
+        FluidStack drained = blockEntity.tank().drain(50, false);
         helper.assertTrue(drained.is(ForgeweaveFluids.MANYULLYN.still().get()), "expected a drain to pour the selected fluid");
 
         // An index past the end of the melt is a forged click and must change nothing.
@@ -369,7 +368,7 @@ public class SmelteryGameTests {
         buildWalls(helper, 1, 1, 2);
         // Lava in the wall tank is what #96's heat model runs on.
         helper.getBlockEntity(new BlockPos(1, 2, 0), SearedTankBlockEntity.class).tank()
-                .fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+                .fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), false);
         BlockPos core = placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
         SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core, SmelteryControllerBlockEntity.class);
 
@@ -409,7 +408,7 @@ public class SmelteryGameTests {
     public static void anUnmeltableItemInTheGridBurnsNoFuel(GameTestHelper helper) {
         buildWalls(helper, 1, 1, 2);
         SearedTankBlockEntity wallTank = helper.getBlockEntity(TANK_POS, SearedTankBlockEntity.class);
-        wallTank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+        wallTank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), false);
         BlockPos core = placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
         SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core, SmelteryControllerBlockEntity.class);
         helper.assertTrue(blockEntity.isFormed(), "expected the smeltery to form first: " + reason(helper, core));
@@ -458,7 +457,7 @@ public class SmelteryGameTests {
     public static void menuExposesFuelGaugeData(GameTestHelper helper) {
         buildWalls(helper, 1, 1, 2);
         helper.getBlockEntity(TANK_POS, SearedTankBlockEntity.class).tank()
-                .fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+                .fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), false);
         BlockPos core = placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
         SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core, SmelteryControllerBlockEntity.class);
         helper.assertTrue(blockEntity.isFormed(), "expected the smeltery to form first: " + reason(helper, core));

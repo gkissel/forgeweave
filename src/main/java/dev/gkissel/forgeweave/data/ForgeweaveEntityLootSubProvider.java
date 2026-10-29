@@ -5,7 +5,6 @@ import java.util.stream.Stream;
 import net.minecraft.advancements.predicates.entity.EntityPredicate;
 import net.minecraft.advancements.predicates.MinMaxBounds;
 import net.minecraft.advancements.predicates.entity.CubeMobPredicate;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.level.storage.loot.LootContext;
@@ -15,9 +14,11 @@ import net.minecraft.world.level.storage.loot.entries.LootItem;
 import net.minecraft.world.level.storage.loot.functions.EnchantedCountIncreaseFunction;
 import net.minecraft.world.level.storage.loot.functions.SetItemCountFunction;
 import net.minecraft.world.level.storage.loot.predicates.LootItemEntityPropertyCondition;
-import net.minecraft.world.level.storage.loot.providers.number.UniformGenerator;
+import net.minecraft.world.level.storage.loot.providers.number.floats.ContextFloatProviders;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProviders;
 
 import net.minecraft.data.loot.EntityLootSubProvider;
+import net.minecraft.data.loot.LootTableSubProvider;
 
 import dev.gkissel.forgeweave.block.SlimeColour;
 import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
@@ -30,8 +31,8 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
  * otherwise demands a table for every entity in the game.
  */
 public class ForgeweaveEntityLootSubProvider extends EntityLootSubProvider {
-    protected ForgeweaveEntityLootSubProvider(HolderLookup.Provider registries) {
-        super(FeatureFlags.REGISTRY.allFlags(), registries);
+    protected ForgeweaveEntityLootSubProvider(LootTableSubProvider.Context output) {
+        super(FeatureFlags.REGISTRY.allFlags(), output);
     }
 
     /**
@@ -55,9 +56,9 @@ public class ForgeweaveEntityLootSubProvider extends EntityLootSubProvider {
         add(ForgeweaveEntities.BLUE_SLIME.get(), LootTable.lootTable()
                 .withPool(LootPool.lootPool()
                         .add(LootItem.lootTableItem(ForgeweaveItems.slimeBallItem(SlimeColour.BLUE).get())
-                                .apply(SetItemCountFunction.setCount(UniformGenerator.between(0.0F, 2.0F)))
-                                .apply(EnchantedCountIncreaseFunction.lootingMultiplier(this.registries,
-                                        UniformGenerator.between(0.0F, 1.0F))))
+                                .apply(SetItemCountFunction.setCount(ContextIntProviders.between(0, 2)))
+                                .apply(EnchantedCountIncreaseFunction.lootingMultiplier(this.enchantments,
+                                        ContextFloatProviders.between(0.0F, 1.0F))))
                         .when(LootItemEntityPropertyCondition.hasProperties(LootContext.EntityTarget.THIS,
                                 EntityPredicate.Builder.entity()
                                         .cubeMob(CubeMobPredicate.sized(MinMaxBounds.Ints.exactly(1)))))));

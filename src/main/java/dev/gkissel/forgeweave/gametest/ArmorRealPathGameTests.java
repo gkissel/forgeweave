@@ -100,13 +100,13 @@ public class ArmorRealPathGameTests {
             player.tick();
             player.doTick();
         }
-        player.invulnerableTime = 0;
+        player.damageCooldownTime = 0;
         return player;
     }
 
     private static float bitten(GameTestHelper helper, ServerPlayer player, Zombie zombie) {
         player.setHealth(player.getMaxHealth());
-        player.invulnerableTime = 0;
+        player.damageCooldownTime = 0;
         float before = player.getHealth();
         helper.assertTrue(zombie.doHurtTarget(helper.getLevel(), player), "the zombie must land its bite");
         return before - player.getHealth();
@@ -200,7 +200,7 @@ public class ArmorRealPathGameTests {
         float before = zombie.getHealth();
         // The clone's thorns is a per-hit chance; enough bites make one prick certain.
         for (int i = 0; i < 64 && zombie.getHealth() >= before; i++) {
-            zombie.invulnerableTime = 0;
+            zombie.damageCooldownTime = 0;
             bitten(helper, player, zombie);
         }
         helper.assertTrue(zombie.getHealth() < before, "thorns must have hurt the zombie by now");
@@ -216,11 +216,11 @@ public class ArmorRealPathGameTests {
         helper.assertTrue(player.getAttributeValue(Attributes.SAFE_FALL_DISTANCE) > 3.0,
                 "skyfall must raise the safe fall distance, got " + player.getAttributeValue(Attributes.SAFE_FALL_DISTANCE));
         player.setHealth(player.getMaxHealth());
-        player.invulnerableTime = 0;
+        player.damageCooldownTime = 0;
         player.causeFallDamage(4.0F, 1.0F, player.damageSources().fall());
         helper.assertTrue(player.getHealth() == player.getMaxHealth(),
                 "a four-block fall is within skyfall's safe distance, lost " + (player.getMaxHealth() - player.getHealth()));
-        player.invulnerableTime = 0;
+        player.damageCooldownTime = 0;
         player.causeFallDamage(6.0F, 1.0F, player.damageSources().fall());
         helper.assertTrue(player.getHealth() < player.getMaxHealth(), "a six-block fall still hurts");
         helper.succeed();

@@ -15,7 +15,6 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
@@ -219,7 +218,7 @@ public class EntityMeltingGameTests {
         BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
 
         SearedTankBlockEntity wallTank = helper.getBlockEntity(SmelteryGameTests.TANK_POS, SearedTankBlockEntity.class);
-        wallTank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+        wallTank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), false);
 
         SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
@@ -238,7 +237,7 @@ public class EntityMeltingGameTests {
      */
     private static SmelteryControllerBlockEntity primedSmeltery(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelled(helper);
-        core.tank().fill(new FluidStack(ForgeweaveFluids.GOLD.still().get(), PRIMER), IFluidHandler.FluidAction.EXECUTE);
+        core.tank().fill(new FluidStack(ForgeweaveFluids.GOLD.still().get(), PRIMER), false);
         return core;
     }
 

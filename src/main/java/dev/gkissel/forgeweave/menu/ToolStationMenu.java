@@ -18,6 +18,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Prediction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.Container;
@@ -31,7 +32,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.level.block.Block;
 
-import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.registration.NetworkRegistry;
 
@@ -87,7 +89,7 @@ import dev.gkissel.forgeweave.menu.ToolStationTabs.Tab;
  * <h2>Side inventory (issue #40's follow-up)</h2>
  *
  * <p>When the station has a qualifying neighbor ({@code ToolStationBlockEntity#findSideInventory}),
- * its {@link IItemHandler} is exposed as extra slots after the output slot via {@link
+ * its {@link ResourceHandler} is exposed as extra slots after the output slot via {@link
  * SideInventorySlots#create} -- same shape as {@link CraftingStationMenu}'s own side panel; see that
  * class's javadoc for the client/server slot-count handshake.
  */
@@ -251,13 +253,13 @@ public class ToolStationMenu extends StationMenu {
 
     /** Server-side: constructed by {@code ToolStationBlockEntity} with the block's real inventory and detected neighbor. */
     public ToolStationMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access,
-            @Nullable IItemHandler sideInventory, boolean forge) {
+            @Nullable ResourceHandler<ItemResource> sideInventory, boolean forge) {
         this(containerId, playerInventory, container, access, sideInventory,
-                sideInventory == null ? 0 : sideInventory.getSlots(), groupAt(access), forge);
+                sideInventory == null ? 0 : sideInventory.size(), groupAt(access), forge);
     }
 
     private ToolStationMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access,
-            @Nullable IItemHandler sideInventory, int sideInventorySlotCount, StationGroup stationGroup,
+            @Nullable ResourceHandler<ItemResource> sideInventory, int sideInventorySlotCount, StationGroup stationGroup,
             boolean forge) {
         super(ForgeweaveMenus.TOOL_STATION.get(), containerId, stationGroup);
         checkContainerSize(container, CONTAINER_SLOTS);
@@ -635,7 +637,7 @@ public class ToolStationMenu extends StationMenu {
             }
             container.setItem(i, ItemStack.EMPTY);
             if (!player.getInventory().add(stranded)) {
-                player.drop(stranded, false);
+                player.drop(stranded, false, Prediction.SERVER_ONLY);
             }
         }
     }
@@ -806,7 +808,7 @@ public class ToolStationMenu extends StationMenu {
             if (access != ContainerLevelAccess.NULL) {
                 for (ItemStack part : displacedParts) {
                     if (!player.getInventory().add(part)) {
-                        player.drop(part, false);
+                        player.drop(part, false, Prediction.SERVER_ONLY);
                     }
                 }
             }

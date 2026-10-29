@@ -6,7 +6,6 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
@@ -48,7 +47,7 @@ public class NetherCoreHotGameTests {
 
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertBlockProperty(SmelteryGameTests.CORE_POS, SmelteryControllerBlock.HOT, true))
-                .thenExecute(() -> tank.tank().drain(SearedTankBlockEntity.CAPACITY, IFluidHandler.FluidAction.EXECUTE))
+                .thenExecute(() -> tank.tank().drain(SearedTankBlockEntity.CAPACITY, false))
                 .thenWaitUntil(() -> helper.assertBlockProperty(SmelteryGameTests.CORE_POS, SmelteryControllerBlock.HOT, false))
                 .thenSucceed();
     }
@@ -57,7 +56,7 @@ public class NetherCoreHotGameTests {
     private static SearedTankBlockEntity fuelledNetherSmeltery(GameTestHelper helper, Fluid fuel) {
         SmelteryGameTests.buildWalls(helper, 1, 1, 2);
         SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS, SearedTankBlockEntity.class);
-        tank.tank().fill(new FluidStack(fuel, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+        tank.tank().fill(new FluidStack(fuel, SearedTankBlockEntity.CAPACITY), false);
         SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.NETHER_CORE.get());
         return tank;
     }

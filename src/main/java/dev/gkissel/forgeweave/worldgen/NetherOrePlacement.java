@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.worldgen;
 
+import java.util.function.Consumer;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -12,7 +13,6 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.level.levelgen.placement.PlacementContext;
 import net.minecraft.world.level.levelgen.placement.PlacementModifier;
-import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
 
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -49,8 +49,8 @@ import dev.gkissel.forgeweave.config.ForgeweaveConfig;
  * defaults, "approx ores per chunk", and now the two-band split), not copied code; there is no 1.12
  * counterpart to a 1.21 placement modifier.
  */
-public class NetherOrePlacement extends PlacementModifier {
-    public static final DeferredRegister<PlacementModifierType<?>> PLACEMENT_MODIFIERS =
+public class NetherOrePlacement implements PlacementModifier {
+    public static final DeferredRegister<MapCodec<? extends PlacementModifier>> PLACEMENT_MODIFIERS =
             DeferredRegister.create(Registries.PLACEMENT_MODIFIER_TYPE, Forgeweave.MODID);
 
     /** Which pair of {@link ForgeweaveConfig} options a given placed feature reads. */
@@ -82,8 +82,8 @@ public class NetherOrePlacement extends PlacementModifier {
             .group(StringRepresentable.fromEnum(Ore::values).fieldOf("ore").forGetter(NetherOrePlacement::ore))
             .apply(instance, NetherOrePlacement::new));
 
-    public static final DeferredHolder<PlacementModifierType<?>, PlacementModifierType<NetherOrePlacement>> TYPE =
-            PLACEMENT_MODIFIERS.register("nether_ore_rate", () -> () -> CODEC);
+    public static final DeferredHolder<MapCodec<? extends PlacementModifier>, MapCodec<NetherOrePlacement>> TYPE =
+            PLACEMENT_MODIFIERS.register("nether_ore_rate", () -> CODEC);
 
     private final Ore ore;
 
@@ -101,14 +101,19 @@ public class NetherOrePlacement extends PlacementModifier {
      * features per ore (see the class javadoc's T78 note) and each gets one iteration's worth of
      * upstream's split loop.
      */
-    @Override
     public Stream<BlockPos> getPositions(PlacementContext context, RandomSource random, BlockPos pos) {
         int perBand = (ore.veinsPerChunk() + 1) / 2;
         return IntStream.range(0, perBand).mapToObj(i -> pos);
     }
 
+    /** 26.3's push-style {@code PlacementModifier} entry point, fed from {@link #getPositions}. */
     @Override
-    public PlacementModifierType<?> type() {
+    public void modify(PlacementContext context, RandomSource random, BlockPos origin, Consumer<BlockPos> output) {
+        getPositions(context, random, origin).forEach(output);
+    }
+
+    @Override
+    public MapCodec<NetherOrePlacement> codec() {
         return TYPE.get();
     }
 }

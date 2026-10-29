@@ -33,6 +33,7 @@ import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
+import net.minecraft.util.Prediction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -2352,7 +2353,7 @@ public final class ForgeweaveTraits {
                 double y = Mth.clamp(attacker.getY() + (random.nextInt(ENDERCLEARANCE_DIAMETER) - ENDERCLEARANCE_DIAMETER / 2),
                         defense.level().getMinY(), defense.level().getMaxY());
                 double z = attacker.getZ() + (random.nextDouble() - 0.5) * ENDERCLEARANCE_DIAMETER;
-                if (attacker.randomTeleport(x, y, z, true)) {
+                if (attacker.randomTeleport(x, y, z, true, state -> false)) { // 26.3: no avoided blocks, as before
                     return;
                 }
             }
@@ -3127,7 +3128,7 @@ public final class ForgeweaveTraits {
             cage.set(ForgeweaveDataComponents.CAPTURED_MOB.get(), CapturedMob.of(target));
             target.discard();
             if (!player.getInventory().add(cage)) {
-                player.drop(cage, false);
+                player.drop(cage, false, Prediction.SERVER_ONLY);
             }
         }
     };
@@ -3402,7 +3403,7 @@ public final class ForgeweaveTraits {
             double x = entity.getX() + (random.nextDouble() - 0.5) * 2 * RIFTSTEP_RANGE;
             double y = entity.getY() + (random.nextDouble() - 0.5) * 2 * RIFTSTEP_RANGE;
             double z = entity.getZ() + (random.nextDouble() - 0.5) * 2 * RIFTSTEP_RANGE;
-            if (entity.randomTeleport(x, y, z, false)) {
+            if (entity.randomTeleport(x, y, z, false, state -> false)) { // 26.3: no avoided blocks, as before
                 return;
             }
         }

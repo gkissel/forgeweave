@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.gametest;
 
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -17,7 +19,6 @@ import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
@@ -147,14 +148,14 @@ public class SearedReservoirGameTests {
         SearedReservoirBlockEntity reservoir = placeController(helper);
         helper.assertTrue(reservoir.isFormed(), "expected the reservoir to form: " + reservoir.lastResult().getString());
 
-        IFluidHandler drain = TransferBridge.fluidAt(helper.getLevel(), helper.absolutePos(DRAIN_POS), null);
+        ResourceHandler<FluidResource> drain = TransferBridge.fluidAt(helper.getLevel(), helper.absolutePos(DRAIN_POS), null);
         helper.assertTrue(drain != null, "expected a formed reservoir's drain to expose a fluid handler");
 
-        int filled = drain.fill(new FluidStack(Fluids.WATER, 2000), IFluidHandler.FluidAction.EXECUTE);
+        int filled = TransferBridge.fill(drain, new FluidStack(Fluids.WATER, 2000), false);
         helper.assertValueEqual(filled, 2000, "millibuckets accepted through the drain");
         helper.assertValueEqual(reservoir.tank().getFluidAmount(), 2000, "millibuckets in the reservoir");
 
-        FluidStack drained = drain.drain(500, IFluidHandler.FluidAction.EXECUTE);
+        FluidStack drained = TransferBridge.drain(drain, 500, false);
         helper.assertValueEqual(drained.getAmount(), 500, "millibuckets drained back out");
         helper.assertValueEqual(reservoir.tank().getFluidAmount(), 1500, "millibuckets left in the reservoir");
         helper.succeed();
@@ -191,7 +192,7 @@ public class SearedReservoirGameTests {
     public static void stateRoundTripsThroughNbt(GameTestHelper helper) {
         buildReservoir(helper, 1, 1, 1);
         SearedReservoirBlockEntity reservoir = placeController(helper);
-        reservoir.tank().fill(new FluidStack(Fluids.WATER, 12_345), IFluidHandler.FluidAction.EXECUTE);
+        reservoir.tank().fill(new FluidStack(Fluids.WATER, 12_345), false);
         SmelteryStructure structure = reservoir.structure();
 
         HolderLookup.Provider registries = helper.getLevel().registryAccess();

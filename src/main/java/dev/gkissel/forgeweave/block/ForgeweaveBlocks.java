@@ -800,7 +800,7 @@ public final class ForgeweaveBlocks {
                         .noOcclusion()
                         .isValidSpawn((state, level, pos, type) -> false)
                         .isSuffocating((state, level, pos) -> false)
-                        .isViewBlocking((state, level, pos) -> false).setId(blockKey(foliage.id() + "_slime_leaves"))));
+                        .isViewBlocking((state, level, pos, nearPlane) -> false).setId(blockKey(foliage.id() + "_slime_leaves"))));
         DeferredBlock<SlimeTallGrassBlock> tallGrass = slimePlant(foliage, mapColor, "slime_tall_grass");
         DeferredBlock<SlimeTallGrassBlock> fern = slimePlant(foliage, mapColor, "slime_fern");
 
@@ -815,7 +815,7 @@ public final class ForgeweaveBlocks {
                         .randomTicks()
                         .instabreak()
                         .sound(SoundType.GRASS)
-                        .pushReaction(PushReaction.DESTROY).setId(blockKey(foliage.id() + "_slime_sapling")), foliage));
+                        .pushReaction(PushReaction.POPPED).setId(blockKey(foliage.id() + "_slime_sapling")), foliage));
         DeferredBlock<SlimeVineBlock> vineEnd = hasVines ? slimeVine(foliage, mapColor, "_slime_vine_end", null) : null;
         DeferredBlock<SlimeVineBlock> vineMid = hasVines ? slimeVine(foliage, mapColor, "_slime_vine_mid", vineEnd) : null;
         DeferredBlock<SlimeVineBlock> vine = hasVines ? slimeVine(foliage, mapColor, "_slime_vine", vineMid) : null;
@@ -836,7 +836,7 @@ public final class ForgeweaveBlocks {
                         .randomTicks()
                         .sound(SoundType.VINE)
                         .ignitedByLava()
-                        .pushReaction(PushReaction.DESTROY).setId(blockKey(foliage.id() + suffix)), foliage,
+                        .pushReaction(PushReaction.POPPED).setId(blockKey(foliage.id() + suffix)), foliage,
                         nextStage == null ? null : nextStage::get));
     }
 
@@ -849,7 +849,7 @@ public final class ForgeweaveBlocks {
                         .instabreak()
                         .sound(SoundType.GRASS)
                         .offsetType(BlockBehaviour.OffsetType.XYZ)
-                        .pushReaction(PushReaction.DESTROY).setId(blockKey(foliage.id() + "_" + name)), foliage));
+                        .pushReaction(PushReaction.POPPED).setId(blockKey(foliage.id() + "_" + name)), foliage));
     }
 
     private static DeferredBlock<Block> stainedGlassBlock(DyeColor dye, int tint) {

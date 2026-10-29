@@ -305,6 +305,17 @@ public class ToolItem extends Item {
     private static final ItemAbility SHOVEL_DIG = ItemAbility.get("shovel_dig");
     private static final ItemAbility SWORD_DIG = ItemAbility.get("sword_dig");
 
+    // NeoForge 26.3 dropped these too: vanilla turned stripping, pathing and tilling into the
+    // block_transformer registry (see BlockTransforms). The ids stay answerable by name, and the
+    // axe/shovel families still claim them, so the useOn routing and other mods' checks are unchanged.
+    public static final ItemAbility AXE_STRIP = ItemAbility.get("axe_strip");
+    public static final ItemAbility AXE_SCRAPE = ItemAbility.get("axe_scrape");
+    public static final ItemAbility AXE_WAX_OFF = ItemAbility.get("axe_wax_off");
+    public static final ItemAbility SHOVEL_FLATTEN = ItemAbility.get("shovel_flatten");
+    public static final ItemAbility HOE_TILL = ItemAbility.get("till");
+    private static final Set<ItemAbility> AXE_ACTIONS = Set.of(AXE_STRIP, AXE_SCRAPE, AXE_WAX_OFF);
+    private static final Set<ItemAbility> SHOVEL_ACTIONS = Set.of(SHOVEL_FLATTEN, ItemAbilities.SHOVEL_DOUSE);
+
     private static Set<ItemAbility> abilitiesFor(List<TagKey<Block>> mineableBlocks) {
         Set<ItemAbility> abilities = new LinkedHashSet<>();
         for (TagKey<Block> tag : mineableBlocks) {
@@ -312,10 +323,10 @@ public class ToolItem extends Item {
                 abilities.add(PICKAXE_DIG);
             } else if (tag == BlockTags.MINEABLE_WITH_AXE) {
                 abilities.add(AXE_DIG);
-                abilities.addAll(ItemAbilities.DEFAULT_AXE_ACTIONS);
+                abilities.addAll(AXE_ACTIONS);
             } else if (tag == BlockTags.MINEABLE_WITH_SHOVEL) {
                 abilities.add(SHOVEL_DIG);
-                abilities.addAll(ItemAbilities.DEFAULT_SHOVEL_ACTIONS);
+                abilities.addAll(SHOVEL_ACTIONS);
             } else if (tag == BlockTags.MINEABLE_WITH_HOE) {
                 abilities.add(HOE_DIG);
             } else if (tag == BlockTags.SWORD_EFFICIENT) {
@@ -832,7 +843,7 @@ public class ToolItem extends Item {
 
     /** See the class javadoc: the one place that keeps a Forgeweave tool from ever being destroyed. */
     @Override
-    public <T extends LivingEntity> int damageItem(ItemStack stack, int amount, @Nullable T entity, Consumer<Item> onBroken) {
+    public <T extends LivingEntity> int damageItem(ItemStack stack, int amount, @Nullable T entity, Consumer<ItemStack> onBroken) {
         return damageKeepingItem(stack, amount, entity);
     }
 
@@ -1317,10 +1328,10 @@ public class ToolItem extends Item {
      *       tools whose {@link #aoeShape} is {@link AoeHarvest.Shape#CUBE_3X3X3} have one. The kama
      *       harvests the same way over one block instead -- {@code KamaItem}, which overrides this;
      *   <li>the shovel family's grass paths (issue #464), upstream {@code Shovel#onItemUse}: gated on
-     *       the tool's own {@link ItemAbilities#SHOVEL_FLATTEN}, so it follows the tag-derived tool
+     *       the tool's own {@link #SHOVEL_FLATTEN}, so it follows the tag-derived tool
      *       kind rather than a second list ({@link ShovelPath});
      *   <li>the axe family's strip/scrape/wax-off (issue #575), upstream 1.20's {@code stripping}
-     *       trait: gated the same way on {@link ItemAbilities#AXE_STRIP} ({@link AxeStrip}).
+     *       trait: gated the same way on {@link #AXE_STRIP} ({@link AxeStrip}).
      * </ul>
      *
      * <p>Once none of those apply, a fourth, <b>material-driven</b> behavior gets a turn: any trait on
@@ -1343,12 +1354,12 @@ public class ToolItem extends Item {
             if (harvest != InteractionResult.PASS) {
                 return harvest;
             }
-        } else if (abilities.contains(ItemAbilities.SHOVEL_FLATTEN)) {
+        } else if (abilities.contains(SHOVEL_FLATTEN)) {
             InteractionResult path = ShovelPath.flattenAt(context, aoeShape);
             if (path != InteractionResult.PASS) {
                 return path;
             }
-        } else if (abilities.contains(ItemAbilities.AXE_STRIP)) {
+        } else if (abilities.contains(AXE_STRIP)) {
             InteractionResult strip = AxeStrip.transformAt(context, aoeShape);
             if (strip != InteractionResult.PASS) {
                 return strip;

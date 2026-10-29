@@ -98,7 +98,7 @@ public record GemSockets(ItemContainerContents gems, Map<Integer, Tag> unreadabl
     /** Back to vanilla's shape, in socket order, so an untouched list re-encodes byte for byte. */
     private List<Slot> toSlots() {
         List<Slot> slots = new ArrayList<>();
-        List<ItemStack> readable = gems.allItemsCopyStream().toList();
+        List<ItemStack> readable = gems.itemCopies().toList();
         for (int i = 0; i < readable.size(); i++) {
             if (!readable.get(i).isEmpty()) {
                 slots.add(new Slot(i, Either.left(readable.get(i))));

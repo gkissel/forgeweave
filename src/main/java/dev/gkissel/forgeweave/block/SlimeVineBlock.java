@@ -4,8 +4,6 @@ import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 
-import com.mojang.serialization.MapCodec;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -42,9 +40,6 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
  * </ul>
  */
 public class SlimeVineBlock extends VineBlock {
-    public static final MapCodec<VineBlock> CODEC =
-            simpleCodec(properties -> new SlimeVineBlock(properties, FoliageType.BLUE, null));
-
     private final FoliageType foliage;
 
     /** The thinner stage this one grows into, or {@code null} for the end stage, which never extends. */
@@ -70,11 +65,6 @@ public class SlimeVineBlock extends VineBlock {
     @Nullable
     public Block nextStage() {
         return nextStage == null ? null : nextStage.get();
-    }
-
-    @Override
-    public MapCodec<VineBlock> codec() {
-        return CODEC;
     }
 
     @Override

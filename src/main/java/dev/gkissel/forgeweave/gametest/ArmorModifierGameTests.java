@@ -286,7 +286,7 @@ public class ArmorModifierGameTests {
         helper.assertTrue(Math.abs(lost - expected) < 0.01F, "fire III must cut a " + BLOW + " fire blow to " + expected + ", lost " + lost);
 
         player.setHealth(player.getMaxHealth());
-        player.invulnerableTime = 0;
+        player.damageCooldownTime = 0;
         before = player.getHealth();
         player.hurt(helper.getLevel().damageSources().explosion(null, null), BLOW);
         lost = before - player.getHealth();
