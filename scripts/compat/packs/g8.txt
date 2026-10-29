@@ -35,9 +35,9 @@ mod modrinth jade 26.2.10+neoforge 23c4ce0e0aec0d70b38ba5c8a346e5233aaa3923a94f5
 # material forgeweave:starweld forgeweave:voidweld forgeweave:atomic_alloy
 # Mystical Agriculture's supremium, out until it reaches 26.2:
 # material forgeweave:supremium
-recipes 5440
-recipes-off 5425
-materials 106
+recipes 2862
+recipes-off 2862
+materials 84
 
 # 26.1.2:
 # mod modrinth jade 26.1.12+neoforge f4573527b106aa5beedbe6c0945181f01c04a01b8711d815ba6b20c1f136bd22a32bea67169e24be895d380d7360b8ad8a2a9531de11c0150224a31be4f3b173 Jade-mc26.1-NeoForge-26.1.12.jar

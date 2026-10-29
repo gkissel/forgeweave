@@ -104,7 +104,7 @@ Forgeweave brings modular tool building, material traits, modifiers, melting, al
 [[dependencies.${mod_id}]]
     modId="darkmodeeverywhere"
     type="optional"
-    versionRange="[26.1,26.2)"
+    versionRange="[26.2,26.3)"
     ordering="AFTER"
     side="CLIENT"
 
@@ -187,7 +187,7 @@ Forgeweave brings modular tool building, material traits, modifiers, melting, al
 [[dependencies.${mod_id}]]
     modId="occultism"
     type="optional"
-    versionRange="[1.256.1,)"
+    versionRange="[1.256.0,)"
     ordering="AFTER"
     side="BOTH"
 
