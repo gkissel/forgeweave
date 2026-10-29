@@ -3,11 +3,14 @@ package dev.gkissel.forgeweave.ponder;
 import java.util.List;
 
 import net.createmod.catnip.api.math.Pointing;
+import net.createmod.ponder.api.client.element.ElementLink;
+import net.createmod.ponder.api.client.element.EntityElement;
 import net.createmod.ponder.api.client.scene.SceneBuilder;
 import net.createmod.ponder.api.client.scene.SceneBuildingUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.decoration.ArmorStand;
@@ -95,7 +98,11 @@ public final class ForgeweaveArmorScenes {
                 .placeNearTarget();
         scene.idle(80);
 
-        scene.world().createEntity(ForgeweaveArmorScenes::wearingStand);
+        // Dressed by a second instruction: Ponder 1.0.52 strips every component but a few from an
+        // armor stand's gear as the stand is added, minecraft:equippable included, and on 26.1 that
+        // is what draws worn armor. Gear set afterwards keeps its components.
+        ElementLink<EntityElement> stand = scene.world().createEntity(ForgeweaveArmorScenes::bareStand);
+        scene.world().modifyEntity(stand, ForgeweaveArmorScenes::dress);
         scene.idle(10);
         scene.overlay().showText(90)
                 .attachKeyFrame()
@@ -107,17 +114,24 @@ public final class ForgeweaveArmorScenes {
         scene.markAsFinished();
     }
 
-    /** An armor stand at {@link #STAND} wearing an iron/iron chestplate assembled the station's way. */
-    private static ArmorStand wearingStand(Level level) {
+    /** An armor stand at {@link #STAND}, facing the default camera. */
+    private static ArmorStand bareStand(Level level) {
         ArmorStand stand = new ArmorStand(EntityType.ARMOR_STAND, level);
         stand.setPos(STAND.getX() + 0.5, STAND.getY(), STAND.getZ() + 0.5);
         stand.setYRot(180.0F);
         stand.setYBodyRot(180.0F);
         stand.setYHeadRot(180.0F);
-        ToolAssemblyRecipes.entryFor(new ItemStack(ForgeweaveItems.ARMOR_CHESTPLATE.get()))
-                .flatMap(entry -> ToolAssemblyRecipes.assemble(level.registryAccess(), entry, List.of(IRON, IRON)))
-                .ifPresent(piece -> stand.setItemSlot(EquipmentSlot.CHEST, piece));
         return stand;
+    }
+
+    /** Puts an iron/iron chestplate, assembled the station's way, on the stand. */
+    private static void dress(Entity entity) {
+        if (!(entity instanceof ArmorStand stand)) {
+            return;
+        }
+        ToolAssemblyRecipes.entryFor(new ItemStack(ForgeweaveItems.ARMOR_CHESTPLATE.get()))
+                .flatMap(entry -> ToolAssemblyRecipes.assemble(stand.level().registryAccess(), entry, List.of(IRON, IRON)))
+                .ifPresent(piece -> stand.setItemSlot(EquipmentSlot.CHEST, piece));
     }
 
     private ForgeweaveArmorScenes() {}
