@@ -56,6 +56,6 @@ material forgeweave:tyrian_steel forgeweave:deorum forgeweave:silver
 # material forgeweave:empowered_void_crystal forgeweave:empowered_emeradic_crystal forgeweave:empowered_enori_crystal
 # material forgeweave:blutonium forgeweave:cyanite forgeweave:ludicrite
 no-material forgeweave:alumite forgeweave:constantan forgeweave:electrum forgeweave:nickel
-# recipes 5508       # re-pin on 26.1.2 after the first run
-# recipes-off 5508   # re-pin on 26.1.2 after the first run
-# materials 122      # re-pin on 26.1.2 after the first run
+recipes 4147
+recipes-off 4147
+materials 98

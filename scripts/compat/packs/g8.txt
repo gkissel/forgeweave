@@ -32,6 +32,6 @@ fixture partner-gear.cmds
 # material forgeweave:chaotic forgeweave:draconium_core forgeweave:duskweld forgeweave:emberweld
 # material forgeweave:starweld forgeweave:voidweld forgeweave:atomic_alloy
 material forgeweave:supremium
-# recipes 10138      # re-pin on 26.1.2 after the first run
-# recipes-off 9936   # re-pin on 26.1.2 after the first run
-# materials 139      # re-pin on 26.1.2 after the first run
+recipes 5440
+recipes-off 5425
+materials 106

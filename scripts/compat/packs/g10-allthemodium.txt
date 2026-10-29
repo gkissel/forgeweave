@@ -17,5 +17,5 @@ mod modrinth geckolib 5.5.2 d634390ad63372324220b14be3a70b0befca2a753fc8c0561f41
 
 material forgeweave:allthemodium forgeweave:vibranium forgeweave:unobtainium forgeweave:vibranium_allthemodium_alloy
 material forgeweave:unobtainium_allthemodium_alloy forgeweave:unobtainium_vibranium_alloy
-# recipes 2098   # re-pin on 26.1.2 after the first run
-# materials 86   # re-pin on 26.1.2 after the first run
+recipes 2729
+materials 86

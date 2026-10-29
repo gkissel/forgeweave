@@ -5,5 +5,5 @@ mod modrinth jade 26.1.12+neoforge f4573527b106aa5beedbe6c0945181f01c04a01b8711d
 # 1.21.1:
 # mod modrinth jei 19.43.0.393 04ea7c24a00b980851a34b71899c44731df5b830feafe4172641ae5f42432aabd34ba2ea57fa8f0577823bed0212c4214d409a8ea2060038deed0e8e7e237e81 jei-1.21.1-neoforge-19.43.0.393.jar
 # mod modrinth jade 15.9.4+neoforge 8337acc1cfb2168d7ed1bf2b34bc5c14c87d550334c3448902d8f1a629e4af65ba3a9d19551f29de1a836772077d9ae066749c8a662db5238e7a5c1590628e63 Jade-1.21.1-NeoForge-15.9.4.jar
-# recipes 1926   # re-pin on 26.1.2 after the first run
-# materials 80   # re-pin on 26.1.2 after the first run
+recipes 2151
+materials 80
