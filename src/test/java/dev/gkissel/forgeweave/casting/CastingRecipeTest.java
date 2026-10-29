@@ -26,6 +26,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.material.Fluids;
@@ -394,7 +395,7 @@ class CastingRecipeTest {
         assertEquals(150, recipe.cooldownTicks(Fluids.WATER), "upstream's explicit 150-tick wash time, not the derived formula");
         assertTrue(recipe.consumesCast());
         assertEquals(Items.TERRACOTTA, recipe.result().getItem());
-        assertTrue(recipe.cast().get().test(new ItemStack(Items.RED_TERRACOTTA)));
+        assertTrue(recipe.cast().get().test(new ItemStack(Items.DYED_TERRACOTTA.pick(DyeColor.RED))));
         assertFalse(recipe.cast().get().test(new ItemStack(Items.TERRACOTTA)), "plain terracotta is not stained");
     }
 
