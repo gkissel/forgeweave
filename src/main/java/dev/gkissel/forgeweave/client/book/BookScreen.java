@@ -731,8 +731,10 @@ public class BookScreen extends Screen {
             spriteBlit(graphics, ModifyPageContent.TABLE,
                     x + sx + (ModifyPageContent.SLOTS.w() - ModifyPageContent.TABLE.w()) / 2, y + toolDy, 0xFFFFFF);
             spriteBlit(graphics, ModifyPageContent.SLOTS, x + sx, y, ModifyPageContent.SLOT_COLOR);
-            graphics.item(demo, x + toolDx, y + toolDy);
+            // The plate goes down before the tool: 26.1's GUI draws in submission order, so an item
+            // no longer floats above a sprite blitted after it the way 1.21.1's item depth did.
             spriteBlit(graphics, ModifyPageContent.SLOT_1, x + toolDx - 3, y + toolDy - 3, 0xFFFFFF);
+            graphics.item(demo, x + toolDx, y + toolDy);
             for (int i = 0; i < partStacks.size() && i < ModifyPageContent.TOOL_SLOT_X.length; i++) {
                 graphics.item(partStacks.get(i), x + toolDx + ModifyPageContent.TOOL_SLOT_X[i],
                         y + toolDy + ModifyPageContent.TOOL_SLOT_Y[i]);
@@ -768,8 +770,8 @@ public class BookScreen extends Screen {
             spriteBlit(graphics, ModifyPageContent.TABLE, x + sx + (slot.w() - ModifyPageContent.TABLE.w()) / 2,
                     y + 3, 0xFFFFFF);
             spriteBlit(graphics, slot, x + sx, y + slotDy, ModifyPageContent.SLOT_COLOR);
+            spriteBlit(graphics, ModifyPageContent.SLOT_1, x + sx, y, 0xFFFFFF); // under the tool, see toolDiagramBlock
             graphics.item(demo, x + sx + (slot.w() - ITEM_SIZE) / 2, y + 3);
-            spriteBlit(graphics, ModifyPageContent.SLOT_1, x + sx, y, 0xFFFFFF);
             for (int i = 0; i < reagentSlots.size(); i++) {
                 List<ItemStack> stacks = reagentSlots.get(i);
                 if (!stacks.isEmpty()) {
