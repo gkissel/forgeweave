@@ -110,13 +110,14 @@ public class StencilTableBlockEntity extends BlockEntity implements StationMenuH
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
         container.storeAsItemList(output.list(TAG_INVENTORY, ItemStack.CODEC));
+        SavedItemFix.writeVersion(output);
         WoodTexturedBlockEntity.writeTexture(output, texture);
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        container.fromItemList(input.listOrEmpty(TAG_INVENTORY, ItemStack.CODEC));
+        container.fromItemList(input.listOrEmpty(TAG_INVENTORY, SavedItemFix.items(input, ItemStack.CODEC)));
         texture = WoodTexturedBlockEntity.readTexture(input, Blocks.OAK_PLANKS);
     }
 

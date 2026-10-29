@@ -100,6 +100,7 @@ public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
         container.storeAsItemList(output.list(TAG_INVENTORY, ItemStack.CODEC));
+        SavedItemFix.writeVersion(output);
     }
 
     @Override
@@ -118,7 +119,7 @@ public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
         // in-game placement afterwards still goes through ChestKind#maxStackSize() as normal.
         container.loading = true;
         try {
-            container.fromItemList(input.listOrEmpty(TAG_INVENTORY, ItemStack.CODEC));
+            container.fromItemList(input.listOrEmpty(TAG_INVENTORY, SavedItemFix.items(input, ItemStack.CODEC)));
         } finally {
             container.loading = false;
         }

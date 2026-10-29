@@ -272,6 +272,7 @@ public class CastingBlockEntity extends BlockEntity {
         if (!output.isEmpty()) {
             out.store(TAG_OUTPUT, ItemStack.CODEC, output);
         }
+        SavedItemFix.writeVersion(out);
         out.putChild(TAG_TANK, tank);
         // #720: so the Jade/WTHIT overlay's cooling percentage survives a save/reload mid-pour.
         out.putLong(TAG_COOL_START, coolStartGameTime);
@@ -281,8 +282,8 @@ public class CastingBlockEntity extends BlockEntity {
     @Override
     protected void loadAdditional(ValueInput in) {
         super.loadAdditional(in);
-        input = in.read(TAG_INPUT, ItemStack.CODEC).orElse(ItemStack.EMPTY);
-        output = in.read(TAG_OUTPUT, ItemStack.CODEC).orElse(ItemStack.EMPTY);
+        input = in.read(TAG_INPUT, SavedItemFix.items(in, ItemStack.CODEC)).orElse(ItemStack.EMPTY);
+        output = in.read(TAG_OUTPUT, SavedItemFix.items(in, ItemStack.CODEC)).orElse(ItemStack.EMPTY);
         tank.deserialize(in.childOrEmpty(TAG_TANK));
         coolStartGameTime = in.getLongOr(TAG_COOL_START, -1);
         coolDurationTicks = in.getIntOr(TAG_COOL_DURATION, 0);

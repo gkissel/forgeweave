@@ -727,6 +727,7 @@ public class SearedFurnaceBlockEntity extends BlockEntity implements StationMenu
         output.storeNullable(TAG_STRUCTURE, SmelteryStructure.CODEC, structure);
         output.store(TAG_TANKS, BlockPos.CODEC.listOf(), tanks);
         ContainerHelper.saveAllItems(output.child(TAG_ITEMS), items, true);
+        SavedItemFix.writeVersion(output);
         output.putIntArray(TAG_ITEM_TEMPERATURES, itemTemperatures);
         output.putIntArray(TAG_ITEM_TEMP_REQUIRED, itemTempRequired);
         output.putInt(TAG_FUEL, fuel);
@@ -743,7 +744,7 @@ public class SearedFurnaceBlockEntity extends BlockEntity implements StationMenu
         structure = input.read(TAG_STRUCTURE, SmelteryStructure.CODEC).orElse(null);
         tanks = new ArrayList<>(input.read(TAG_TANKS, BlockPos.CODEC.listOf()).orElse(List.of()));
         resizeInventory(structure == null ? 0 : 9 + 3 * structure.interiorVolume());
-        ContainerHelper.loadAllItems(input.childOrEmpty(TAG_ITEMS), items);
+        SavedItemFix.loadAllItems(input, input.childOrEmpty(TAG_ITEMS), items);
         int[] temperatures = input.getIntArray(TAG_ITEM_TEMPERATURES).orElse(new int[0]);
         System.arraycopy(temperatures, 0, itemTemperatures, 0, Math.min(temperatures.length, itemTemperatures.length));
         int[] required = input.getIntArray(TAG_ITEM_TEMP_REQUIRED).orElse(new int[0]);

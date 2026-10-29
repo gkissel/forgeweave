@@ -1086,6 +1086,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         tank.serialize(output.child(TAG_TANK));
         // #96: what is melting and how far along it is (SCOPE.md M2 save-compat fixture list).
         ContainerHelper.saveAllItems(output.child(TAG_MELTING), meltingItems, true);
+        SavedItemFix.writeVersion(output);
         output.putIntArray(TAG_MELT_PROGRESS, meltProgress);
         // #290: the stall flag rides the same tag-based sync as everything else here (getUpdateTag is
         // saveWithoutMetadata), which is the only reason finishMelting's syncToClients() call actually
@@ -1109,7 +1110,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         // #96: resizeTank sizes the melting inventory to the interior it just read, so the saved
         // items and their progress go in afterwards.
         resizeTank();
-        ContainerHelper.loadAllItems(input.childOrEmpty(TAG_MELTING), meltingItems);
+        SavedItemFix.loadAllItems(input, input.childOrEmpty(TAG_MELTING), meltingItems);
         int[] progress = input.getIntArray(TAG_MELT_PROGRESS).orElse(new int[0]);
         System.arraycopy(progress, 0, meltProgress, 0, Math.min(progress.length, meltProgress.length));
         unpackBooleans(input.read(TAG_MELT_STALLED, Codec.BYTE_BUFFER).map(SmelteryControllerBlockEntity::bytes).orElse(new byte[0]), meltStalled);

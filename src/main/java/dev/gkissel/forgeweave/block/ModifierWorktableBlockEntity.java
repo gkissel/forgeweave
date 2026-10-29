@@ -76,12 +76,13 @@ public class ModifierWorktableBlockEntity extends BlockEntity implements Station
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
         container.storeAsItemList(output.list(TAG_INVENTORY, ItemStack.CODEC));
+        SavedItemFix.writeVersion(output);
     }
 
     @Override
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
-        container.fromItemList(input.listOrEmpty(TAG_INVENTORY, ItemStack.CODEC));
+        container.fromItemList(input.listOrEmpty(TAG_INVENTORY, SavedItemFix.items(input, ItemStack.CODEC)));
     }
 
     @Override
