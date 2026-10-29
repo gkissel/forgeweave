@@ -396,6 +396,8 @@ public class Forgeweave {
         RegistryAccess.Frozen registries = event.getServer().registryAccess();
         Registry<Material> materials = registries.lookupOrThrow(Material.REGISTRY);
         LOGGER.info("Loaded {} materials: {}", materials.size(), materials.keySet());
+        // 26.3 stopped logging the recipe total, which pack makers and the compat matrix read.
+        LOGGER.info("Loaded {} recipes", event.getServer().getRecipeManager().getRecipes().size());
         MaterialSyncSize sync = materialSyncSize(registries);
         LOGGER.info("Material registry sync payload: {} of {} materials encode to {} bytes", sync.encoded(),
                 sync.total(), sync.bytes());

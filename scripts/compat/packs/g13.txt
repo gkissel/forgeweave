@@ -63,7 +63,7 @@ material forgeweave:silver
 no-material forgeweave:alumite forgeweave:constantan forgeweave:electrum forgeweave:nickel
 recipes 3478
 recipes-off 3478
-materials 89
+materials 84
 
 # 26.1.2:
 # mod modrinth jei 29.47.0.110 487461d71820e3b31086d8b334b38b6ad6895c49d85e554b4083b60e0c2b185ed09a345b9aa9a96c0dd240be8cb6d890e08724a954ac9e6a69875a928ecbe27c jei-26.1.2-neoforge-29.47.0.110.jar
