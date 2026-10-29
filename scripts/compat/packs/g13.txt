@@ -11,16 +11,16 @@
 # SmartBrainLib, and nothing left needs Patchouli. Twilight Forest has only an alpha for 26.1.2: stage
 # twilightforest-26.1.2-4.9.3817-universal.jar (CurseForge file 9217704) in a FW_COMPAT_JAR_DIRS directory.
 
-mod modrinth jei 29.47.0.110 487461d71820e3b31086d8b334b38b6ad6895c49d85e554b4083b60e0c2b185ed09a345b9aa9a96c0dd240be8cb6d890e08724a954ac9e6a69875a928ecbe27c jei-26.1.2-neoforge-29.47.0.110.jar
-mod modrinth occultism 26.1.2-neoforge-1.256.1 2ce1eb65a3ee4c33a86860cc2429f0d03550ad18bdb2e518bcb23524c06b49baf2091fb3fb3688d4b69f03066599330793287ee6f32ae1d617afb232734624c3 occultism-26.1.2-neoforge-1.256.1.jar
-mod modrinth geckolib 5.5.2 d634390ad63372324220b14be3a70b0befca2a753fc8c0561f4162d31341182b08c102bd44432e59d884cb18d2906c1d0b36344f72c2d6e07c9b109a57c693f3 geckolib-neoforge-26.1.2-5.5.2.jar
-mod modrinth modonomicon 26.1.2-2.17.1 c94fe21fd0fdb934109faf33eea54e6c1a0e087c6252c86e997f52ff0ce05b4855028b39ca1b8c56b09bcbad32ffbce4a53a82f1d844e50b8323b398542d9c2e modonomicon-26.1.2-neoforge-2.17.1.jar
-mod modrinth curios 15.0.0+26.1.2 0b1a79e78e74e1fd45fe70264ac69329432199ea9e21dfae01a3435b5da8b153b4b218276091b2fa82de6cf40a42273af2b2cbc84667b3b5de2f9c932b4551db curios-neoforge-15.0.0+26.1.2.jar
-mod local - twilightforest-26.1.2-*-universal.jar
-mod modrinth silent-gear 4.2.3 42313fc1a8985b3c3ee358566dbe26febc1a201b62cfe79266309f86a6efd4a10dfde413a63d2221a3a83677f285e1b5a1379e79ba3040f6b6cf4330a56e55f3 silent-gear-26.1.2-neoforge-4.2.3.jar
-mod modrinth silent-lib 11.2.0 ebaadc0fbcb4fc9a42a9271910e5b5635f585220eecab2f8a39f2819c5ba39af054e0955b1dd8eabf126e9973348e0a36d1b5206d9929e9a510d7bb80d4b52f6 silent-lib-26.1.2-neoforge-11.2.0.jar
-mod modrinth forbidden-arcanus 2.7.2 d84bd44f596ad4c439e7beae65b3192fe532b9c5ea1f9d211fb38dfb44ed387a26800cd25d7b9a6c79ddb326c57ba4d0022e2a4b5192b4060d9f6dbddaea492d forbidden_arcanus-26.1.2-2.7.2.jar
-mod modrinth valhelsia-core 1.1.6 7ffc31426f7fbff64ff76dcbe1003df7125528e9112796764d206951d4f17b34a22ed05d69ef52905e22fc4b8f4635f5f7936f2a07941ce5e0842ebf1d18a822 valhelsia_core-neoforge-26.1.2-1.1.6.jar
+mod modrinth jei 30.48.0.244 eb9c66808518b5f78e624dfd38c8a541daa19948f0269e42c3d9e6c24f72a8f401124572c1f6be8c711c491301df7a441c7d9db12da1943b8717971e73ede5a9 jei-26.2-neoforge-30.48.0.244.jar
+mod modrinth occultism 26.2-neoforge-1.256.0 cbdef1c2fad887e951de8266ec95e81007533974e13fa7f834b6bc33f37a6ff9649548c292371fa5a2224be1f05138d4e88c5d916ad55f76763c4e9a1494cbc7 occultism-26.2-neoforge-1.256.0.jar
+mod modrinth geckolib 5.5.6 0717d360e0bba26dedd77eb42450a327eae6f3931692c353ebe3ac622c8556b442f3ece22e5eaf699ac9702a6edd6e02d1cfba96d3f1a52aba98cce0bd0bae55 geckolib-neoforge-26.2-5.5.6.jar
+mod modrinth modonomicon 26.2-2.5.0 07eac25a0fdc22187bb7108572ab9af094659cf3bd051d7855f4c351a25f38667331d582d4b66269d54da26bac2c234ca7702e5f5eb3d9b1409fca3c9ed7f56f modonomicon-26.2-neoforge-2.5.0.jar
+mod modrinth curios 16.0.0+26.2 e4dc10aaaa5ba5fb54a9b48af7507055c62fc515819578b1c1b95ade786449e6ceeda72a3cf0375060b07b92f4ded1a7f3b784608a57177ca3f4899c61b871e6 curios-neoforge-16.0.0+26.2.jar
+# no 26.2 NeoForge build (checked 2026-10-29): mod local - twilightforest-26.1.2-*-universal.jar
+mod modrinth silent-gear 4.3.0 40be39824568b5b27e5f298773b440ac8fc2621036dbcb1753c7530a46df8364c308b4e7c31584bf150988571a0da2b0ef3b4a1f455c1a5eb1df75c91718cc14 silent-gear-26.2-neoforge-4.3.0.jar
+mod modrinth silent-lib 12.0.0 16f12b1b4c9cfa485b2939063056255a7efe03829adc10e79afa6b922489da0cf7e1ee41be8ed3b55ef1d720f0fc55125befc7be36f37cbe27bd08ec18cc8d34 silent-lib-26.2-neoforge-12.0.0.jar
+# no 26.2 NeoForge build (checked): mod modrinth forbidden-arcanus 2.7.2 d84bd44f596ad4c439e7beae65b3192fe532b9c5ea1f9d211fb38dfb44ed387a26800cd25d7b9a6c79ddb326c57ba4d0022e2a4b5192b4060d9f6dbddaea492d forbidden_arcanus-26.1.2-2.7.2.jar
+# no 26.2 NeoForge build (checked): mod modrinth valhelsia-core 1.1.6 7ffc31426f7fbff64ff76dcbe1003df7125528e9112796764d206951d4f17b34a22ed05d69ef52905e22fc4b8f4635f5f7936f2a07941ce5e0842ebf1d18a822 valhelsia_core-neoforge-26.1.2-1.1.6.jar
 # 1.21.1:
 # mod modrinth jei 19.43.0.393 04ea7c24a00b980851a34b71899c44731df5b830feafe4172641ae5f42432aabd34ba2ea57fa8f0577823bed0212c4214d409a8ea2060038deed0e8e7e237e81 jei-1.21.1-neoforge-19.43.0.393.jar
 # mod modrinth occultism 1.21.1-neoforge-1.224.4 d58f90b95412892a25e7c7af43ca56d7b4f2baf558bbb14334631e8e74469a2414d3ca25224529c352a03c3b0808ea6fbb8ab93c8efdaf6e88f144c5491f1af2 occultism-1.21.1-neoforge-1.224.4.jar
@@ -43,10 +43,13 @@ mod modrinth valhelsia-core 1.1.6 7ffc31426f7fbff64ff76dcbe1003df7125528e9112796
 # mod modrinth extreme-reactors 1.21.1-2.4.9 4b934d4479751796a8c26327517f6a31a9f8a299023950947768deb7b9d8c77ac106e07024e0b88109f65fbb13d38b28d7d6a9026ae426c0b8f13a7fd0b33dea ExtremeReactors2-1.21.1-2.4.9.jar
 # mod modrinth zerocore 1.21.1-2.4.9 955cbf2729f03e539e069231d0015f5dcc74cecdf1d5de51cc942bc9397e789cae0e5fd941a6a73bc6ce11d046ba7cb66cca02f6fc4fd7f48fa05fe1bd0f5884 ZeroCore2-1.21.1-2.4.9.jar
 
-material forgeweave:alpha_yeti_fur forgeweave:arctic_fur forgeweave:carminite forgeweave:fiery
-material forgeweave:ironwood forgeweave:knightmetal forgeweave:naga_scale forgeweave:steeleaf
+# Twilight Forest, out until it reaches 26.2:
+# material forgeweave:alpha_yeti_fur forgeweave:arctic_fur forgeweave:carminite forgeweave:fiery
+# material forgeweave:ironwood forgeweave:knightmetal forgeweave:naga_scale forgeweave:steeleaf
 material forgeweave:azure_electrum forgeweave:azure_silver forgeweave:blaze_gold forgeweave:crimson_steel
-material forgeweave:tyrian_steel forgeweave:deorum forgeweave:silver
+# Forbidden Arcanus' deorum, out until it reaches 26.2:
+# material forgeweave:deorum
+material forgeweave:tyrian_steel forgeweave:silver
 # The dropped mods' materials, out until those mods reach 26.1.2:
 # material forgeweave:compressed_iron forgeweave:zanite forgeweave:ambrosium forgeweave:gravitite
 # material forgeweave:ignitium forgeweave:cursium
@@ -59,3 +62,14 @@ no-material forgeweave:alumite forgeweave:constantan forgeweave:electrum forgewe
 recipes 4147
 recipes-off 4147
 materials 98
+
+# 26.1.2:
+# mod modrinth jei 29.47.0.110 487461d71820e3b31086d8b334b38b6ad6895c49d85e554b4083b60e0c2b185ed09a345b9aa9a96c0dd240be8cb6d890e08724a954ac9e6a69875a928ecbe27c jei-26.1.2-neoforge-29.47.0.110.jar
+# mod modrinth occultism 26.1.2-neoforge-1.256.1 2ce1eb65a3ee4c33a86860cc2429f0d03550ad18bdb2e518bcb23524c06b49baf2091fb3fb3688d4b69f03066599330793287ee6f32ae1d617afb232734624c3 occultism-26.1.2-neoforge-1.256.1.jar
+# mod modrinth geckolib 5.5.2 d634390ad63372324220b14be3a70b0befca2a753fc8c0561f4162d31341182b08c102bd44432e59d884cb18d2906c1d0b36344f72c2d6e07c9b109a57c693f3 geckolib-neoforge-26.1.2-5.5.2.jar
+# mod modrinth modonomicon 26.1.2-2.17.1 c94fe21fd0fdb934109faf33eea54e6c1a0e087c6252c86e997f52ff0ce05b4855028b39ca1b8c56b09bcbad32ffbce4a53a82f1d844e50b8323b398542d9c2e modonomicon-26.1.2-neoforge-2.17.1.jar
+# mod modrinth curios 15.0.0+26.1.2 0b1a79e78e74e1fd45fe70264ac69329432199ea9e21dfae01a3435b5da8b153b4b218276091b2fa82de6cf40a42273af2b2cbc84667b3b5de2f9c932b4551db curios-neoforge-15.0.0+26.1.2.jar
+# mod modrinth silent-gear 4.2.3 42313fc1a8985b3c3ee358566dbe26febc1a201b62cfe79266309f86a6efd4a10dfde413a63d2221a3a83677f285e1b5a1379e79ba3040f6b6cf4330a56e55f3 silent-gear-26.1.2-neoforge-4.2.3.jar
+# mod modrinth silent-lib 11.2.0 ebaadc0fbcb4fc9a42a9271910e5b5635f585220eecab2f8a39f2819c5ba39af054e0955b1dd8eabf126e9973348e0a36d1b5206d9929e9a510d7bb80d4b52f6 silent-lib-26.1.2-neoforge-11.2.0.jar
+# mod modrinth forbidden-arcanus 2.7.2 d84bd44f596ad4c439e7beae65b3192fe532b9c5ea1f9d211fb38dfb44ed387a26800cd25d7b9a6c79ddb326c57ba4d0022e2a4b5192b4060d9f6dbddaea492d forbidden_arcanus-26.1.2-2.7.2.jar
+# mod modrinth valhelsia-core 1.1.6 7ffc31426f7fbff64ff76dcbe1003df7125528e9112796764d206951d4f17b34a22ed05d69ef52905e22fc4b8f4635f5f7936f2a07941ce5e0842ebf1d18a822 valhelsia_core-neoforge-26.1.2-1.1.6.jar
