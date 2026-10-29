@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "A": "forgeweave:silky_cloth",
     "B": "minecraft:emerald"

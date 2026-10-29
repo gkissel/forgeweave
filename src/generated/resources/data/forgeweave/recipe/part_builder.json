@@ -1,6 +1,5 @@
 {
   "type": "forgeweave:retextured_shaped",
-  "category": "misc",
   "key": {
     "A": "forgeweave:pattern_blank",
     "B": "#minecraft:logs"

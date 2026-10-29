@@ -11,10 +11,10 @@
 # newer, itself a beta.
 
 include base.txt
-mod modrinth jade 26.1.12+neoforge f4573527b106aa5beedbe6c0945181f01c04a01b8711d815ba6b20c1f136bd22a32bea67169e24be895d380d7360b8ad8a2a9531de11c0150224a31be4f3b173 Jade-mc26.1-NeoForge-26.1.12.jar
-mod modrinth kubejs 26.1.2-8.0.7+neoforge 8535d68cbfc31d38d9bcfa4b971c79c270c45c6a9143768d17d0d33d6e203c0825ec86be82a2fa9b16416f00539d189185af7bcdd10488707b0e531340f94d51 kubejs-neoforge-26.1.2-8.0.7.jar
-mod modrinth rhino 2101.2.8-build.91+Rhino-1.21 e3d92f663bc07872a83b0a6474b30a75230e9f92a2844fd98da1842ec9a79712bcb7d8e76574cc11ae3aeceb47f2933c60ddd6cf41f3ad7027bd573623730945 rhino-2101.2.8-build.91.jar
-mod modrinth better-advanced-tooltips 2601.1.0-build.11 db68c54a275f9218b0fcc611c581306dfe1b0eed379fc9db3d787b85225d072939ad28ff9853f822a669a71c0d9c4c6d89c561047d5b49ba2cc42fe25700c251 better-advanced-tooltips-2601.1.0-build.11.jar
+mod modrinth jade 26.2.10+neoforge 23c4ce0e0aec0d70b38ba5c8a346e5233aaa3923a94f54dc1b412e48ef98d394d3a1ac3ceaa9fe674dc1653bbef489a228be167f011d163db7ae6e4a947051b9 Jade-mc26.2-NeoForge-26.2.10.jar
+# no 26.2 NeoForge build (checked): mod modrinth kubejs 26.1.2-8.0.7+neoforge 8535d68cbfc31d38d9bcfa4b971c79c270c45c6a9143768d17d0d33d6e203c0825ec86be82a2fa9b16416f00539d189185af7bcdd10488707b0e531340f94d51 kubejs-neoforge-26.1.2-8.0.7.jar
+# no 26.2 NeoForge build (checked): mod modrinth rhino 2101.2.8-build.91+Rhino-1.21 e3d92f663bc07872a83b0a6474b30a75230e9f92a2844fd98da1842ec9a79712bcb7d8e76574cc11ae3aeceb47f2933c60ddd6cf41f3ad7027bd573623730945 rhino-2101.2.8-build.91.jar
+# no 26.2 NeoForge build (checked): mod modrinth better-advanced-tooltips 2601.1.0-build.11 db68c54a275f9218b0fcc611c581306dfe1b0eed379fc9db3d787b85225d072939ad28ff9853f822a669a71c0d9c4c6d89c561047d5b49ba2cc42fe25700c251 better-advanced-tooltips-2601.1.0-build.11.jar
 # 1.21.1:
 # mod modrinth emi 1.1.24+1.21.1+neoforge f4c45ed686fe617311d6debadcb6ace5963e66f8cfe0cfed398231f081f87407070efc7a73c8b695d158f1d87a97180737b9107a46771e77df2bc9a7dc715ebd emi-1.1.24+1.21.1+neoforge.jar
 # mod modrinth jade 15.9.4+neoforge 8337acc1cfb2168d7ed1bf2b34bc5c14c87d550334c3448902d8f1a629e4af65ba3a9d19551f29de1a836772077d9ae066749c8a662db5238e7a5c1590628e63 Jade-1.21.1-NeoForge-15.9.4.jar
@@ -26,12 +26,21 @@ mod modrinth better-advanced-tooltips 2601.1.0-build.11 db68c54a275f9218b0fcc611
 # mod modrinth rhino 2101.2.7-build.81+Rhino-1.21 83a4f35cce9902b7175700aeccb8519716ff407dff2a936aa0215e162d81421d109c95f82ff88a84ccbe197caee0a4a76ca44d9c8b8ce954162596d7ede18c23 rhino-2101.2.7-build.81.jar
 # mod modrinth better-advanced-tooltips 2101.1.0-build.5 05b5cdad948d1735eab7a67a16aaf32814678c392014ec2ada61b8341c0ed1c1ac181cab1de9da3f2c4632592f4a1a5db254bd0543e6778897c8ccd260894142 better-advanced-tooltips-2101.1.0-build.5.jar
 
-fixture partner-gear.cmds
+# Every item in partner-gear.cmds names an Apotheosis, Mystical Agriculture or Mekanism component, and none
+# of those mods has a 26.2 build, so the setblock would fail whole. Out until one of them reaches 26.2:
+# fixture partner-gear.cmds
 # Draconic Evolution's materials and Mekanism's atomic_alloy, out until those mods reach 26.1.2:
 # material forgeweave:draconium forgeweave:draconium_awakened forgeweave:wyvern forgeweave:awakened
 # material forgeweave:chaotic forgeweave:draconium_core forgeweave:duskweld forgeweave:emberweld
 # material forgeweave:starweld forgeweave:voidweld forgeweave:atomic_alloy
-material forgeweave:supremium
-recipes 5440
-recipes-off 5425
-materials 106
+# Mystical Agriculture's supremium, out until it reaches 26.2:
+# material forgeweave:supremium
+recipes 2862
+recipes-off 2862
+materials 84
+
+# 26.1.2:
+# mod modrinth jade 26.1.12+neoforge f4573527b106aa5beedbe6c0945181f01c04a01b8711d815ba6b20c1f136bd22a32bea67169e24be895d380d7360b8ad8a2a9531de11c0150224a31be4f3b173 Jade-mc26.1-NeoForge-26.1.12.jar
+# mod modrinth kubejs 26.1.2-8.0.7+neoforge 8535d68cbfc31d38d9bcfa4b971c79c270c45c6a9143768d17d0d33d6e203c0825ec86be82a2fa9b16416f00539d189185af7bcdd10488707b0e531340f94d51 kubejs-neoforge-26.1.2-8.0.7.jar
+# mod modrinth rhino 2101.2.8-build.91+Rhino-1.21 e3d92f663bc07872a83b0a6474b30a75230e9f92a2844fd98da1842ec9a79712bcb7d8e76574cc11ae3aeceb47f2933c60ddd6cf41f3ad7027bd573623730945 rhino-2101.2.8-build.91.jar
+# mod modrinth better-advanced-tooltips 2601.1.0-build.11 db68c54a275f9218b0fcc611c581306dfe1b0eed379fc9db3d787b85225d072939ad28ff9853f822a669a71c0d9c4c6d89c561047d5b49ba2cc42fe25700c251 better-advanced-tooltips-2601.1.0-build.11.jar

@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "A": "forgeweave:seared_brick",
     "B": "minecraft:furnace"

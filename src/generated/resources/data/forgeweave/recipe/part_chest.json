@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "key": {
     "A": "forgeweave:pattern_blank",
     "B": "minecraft:stick",
