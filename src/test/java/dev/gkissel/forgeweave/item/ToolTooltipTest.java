@@ -318,7 +318,7 @@ class ToolTooltipTest {
      */
     @Test
     void armorTooltipShowsLevelModifiersAndPartSections() {
-        ResourceLocation elytraFlight = ResourceLocation.fromNamespaceAndPath("forgeweave", "elytra_flight");
+        Identifier elytraFlight = Identifier.fromNamespaceAndPath("forgeweave", "elytra_flight");
         ItemStack piece = new ItemStack(ForgeweaveItems.ARMOR_CHESTPLATE.get());
         piece.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(),
                 new ToolMaterials(STONE_ID, Optional.of(WOOD_ID), Optional.empty(), List.of(STONE_ID, WOOD_ID)));
