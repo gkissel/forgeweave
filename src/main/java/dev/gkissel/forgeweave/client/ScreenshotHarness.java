@@ -581,7 +581,7 @@ public final class ScreenshotHarness {
 
     /** Ceiling on waiting for a Ponder scene's finished frame; the longest scene runs about 900 ticks. */
     private static final int PONDER_SCENE_TIMEOUT_TICKS = 1500;
-    /** Which of {@link PonderHarnessCaptures#CAPTURES} is playing (#700). */
+    /** Which of {@code PonderHarnessCaptures#CAPTURES} is playing (#700). */
     private static int ponderCaptureIndex;
     /** How long the EMI captures (issue #971) wait for EMI's own reload before shooting anyway. */
     private static final int EMI_RELOAD_TIMEOUT_TICKS = 1200;
@@ -2351,44 +2351,17 @@ public final class ScreenshotHarness {
     /**
      * #700: every Ponder scene, opened through Ponder's own UI and captured on its finished frame --
      * the one frame that shows the whole structure, every directional block included, from the
-     * default camera. See {@link PonderHarnessCaptures}.
+     * default camera. See {@code PonderHarnessCaptures}.
      */
     private static void openPonder(Minecraft mc) {
-        if (stageTicks < SCREEN_GAP_TICKS) {
-            return;
-        }
-        if (ponderCaptureIndex >= PonderHarnessCaptures.CAPTURES.size()) {
-            advance(Stage.OPEN_JEI);
-            return;
-        }
-        PonderHarnessCaptures.Capture capture = PonderHarnessCaptures.CAPTURES.get(ponderCaptureIndex);
-        LOGGER.info("{}opening ponder scene {}", LOG_PREFIX, capture.fileName());
-        PonderHarnessCaptures.open(capture);
-        advance(Stage.SETTLE_PONDER);
+        // 26.2: Ponder has no build for this Minecraft (build.gradle's COMPAT_DISABLED), so
+        // PonderHarnessCaptures is out of the compile and this stage captures nothing. Restore the
+        // scene loop from git history (#700) once one ships.
+        advance(Stage.OPEN_JEI);
     }
 
     private static void settlePonder(Minecraft mc) {
-        if (!PonderHarnessCaptures.finished(mc) && stageTicks < PONDER_SCENE_TIMEOUT_TICKS) {
-            return;
-        }
-        PonderHarnessCaptures.Capture capture = PonderHarnessCaptures.CAPTURES.get(ponderCaptureIndex);
-        if (!PonderHarnessCaptures.finished(mc)) {
-            failCheck("{}ponder scene {} never reached its finished frame; capturing it as is", LOG_PREFIX,
-                    capture.fileName());
-        }
-        // Checklist line 4: no empty scene. A schematic that failed to load still "finishes".
-        int blocks = PonderHarnessCaptures.visibleBlockCount(mc);
-        if (blocks == 0) {
-            failCheck("{}ponder scene {} ends with no blocks in it", LOG_PREFIX, capture.fileName());
-        } else {
-            LOGGER.info("{}ponder scene {} ends with {} blocks", LOG_PREFIX, capture.fileName(), blocks);
-        }
-        capture(mc, capture.fileName());
-        if (mc.screen != null) {
-            mc.screen.onClose();
-        }
-        ponderCaptureIndex++;
-        advance(Stage.OPEN_PONDER);
+        advance(Stage.OPEN_JEI);
     }
 
     /**
@@ -2419,7 +2392,7 @@ public final class ScreenshotHarness {
         int count = JeiScreenshotHarness.categoryCount();
         if (jeiCaptureIndex >= count) {
             LOGGER.info("{}all {} screens, {} book scenes, {} ponder scenes and {} {} categories captured, exiting",
-                    LOG_PREFIX, SCREENS.size(), BOOK_SCENES.size(), PonderHarnessCaptures.CAPTURES.size(),
+                    LOG_PREFIX, SCREENS.size(), BOOK_SCENES.size(), 0,
                     count, emi ? "EMI" : "JEI");
             finishHarness(mc);
             advance(Stage.DONE);

@@ -364,7 +364,7 @@ public final class ForgeweaveDraconicCompat {
         // 26.1.2: Draconic Evolution has no build for this Minecraft yet, so the classes this used to
         // register (FusionUpgradeRecipe, DraconicModuleHost, DraconicGuardianCrystals) are left out of
         // the compile -- build.gradle's COMPAT_DISABLED -- and only the warning is left. The 1.21.1
-        // body, to restore once a 26.1.2 build ships:
+        // body, to restore once a 26.2 build ships:
         // DeferredRegister<RecipeSerializer<?>> serializers =
         //         DeferredRegister.create(Registries.RECIPE_SERIALIZER, Forgeweave.MODID);
         // serializers.register(UPGRADE_SERIALIZER_NAME, () -> FusionUpgradeRecipe.Serializer.INSTANCE);

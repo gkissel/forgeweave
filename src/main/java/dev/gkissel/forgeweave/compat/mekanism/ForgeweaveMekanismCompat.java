@@ -92,7 +92,7 @@ public final class ForgeweaveMekanismCompat {
         // module effect classes it installs) is left out of the compile -- build.gradle's
         // COMPAT_DISABLED. Restore `MekanismModuleContainer.register(modEventBus);` once one ships.
         com.mojang.logging.LogUtils.getLogger().warn(
-                "Mekanism is installed, but Forgeweave's Mekanism integration is not available on Minecraft 26.1.2");
+                "Mekanism is installed, but Forgeweave's Mekanism integration is not available on Minecraft 26.2");
     }
 
     private ForgeweaveMekanismCompat() {}
