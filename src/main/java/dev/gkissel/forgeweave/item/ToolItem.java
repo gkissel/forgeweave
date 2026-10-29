@@ -49,6 +49,7 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.CampfireBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -1341,6 +1342,21 @@ public class ToolItem extends Item {
      * upstream's {@code if(isBroken) return FAIL} -- falls through to vanilla's own right-click
      * behavior for the block.
      */
+    /**
+     * 26.3 moved campfire dousing into {@code CampfireBlock#useItemOn}, which runs before {@link #useOn},
+     * so a shovel-family tool dousing a lit campfire never reached {@link ShovelPath} and its tool XP.
+     * Taking that one click first keeps 26.2's path.
+     */
+    @Override
+    public InteractionResult onItemUseFirst(ItemStack stack, UseOnContext context) {
+        BlockState state = context.getLevel().getBlockState(context.getClickedPos());
+        if (aoeShape != AoeHarvest.Shape.CUBE_3X3X3 && abilities.contains(SHOVEL_FLATTEN) && !isBroken(stack)
+                && state.getBlock() instanceof CampfireBlock && state.getValue(CampfireBlock.LIT)) {
+            return ShovelPath.flattenAt(context, aoeShape);
+        }
+        return super.onItemUseFirst(stack, context);
+    }
+
     @Override
     public InteractionResult useOn(UseOnContext context) {
         if (isBroken(context.getItemInHand())) {

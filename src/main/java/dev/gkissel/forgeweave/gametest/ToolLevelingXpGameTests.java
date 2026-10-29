@@ -19,6 +19,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.CampfireBlock;
 import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -289,6 +290,30 @@ public class ToolLevelingXpGameTests {
         helper.assertBlockPresent(Blocks.DIRT_PATH, pathPos);
         int got = ToolLevel.of(player.getMainHandItem()).xp();
         helper.assertTrue(got == 1, "flattening a grass block must grant 1 XP, got " + got);
+        helper.succeed();
+    }
+
+    /**
+     * Same grant for dousing a lit campfire. Driven through the player's real right-click
+     * ({@code ServerPlayerGameMode#useItemOn}), because 26.3's campfire douses on its own before
+     * {@code Item#useOn} runs and {@code ToolItem#onItemUseFirst} has to take the click first.
+     */
+    @GameTest(template = "empty")
+    public static void shovelDousingACampfireGrantsOneXp(GameTestHelper helper) {
+        BlockPos standPos = new BlockPos(1, 2, 1);
+        BlockPos firePos = new BlockPos(1, 1, 2);
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        ItemStack shovel = assembleUniform(helper, player, standPos, ForgeweaveItems.TOOL_SHOVEL.get(), "wood", false);
+        player.setItemInHand(InteractionHand.MAIN_HAND, shovel);
+        helper.setBlock(firePos, Blocks.CAMPFIRE.defaultBlockState().setValue(CampfireBlock.LIT, true));
+
+        BlockPos clicked = helper.absolutePos(firePos);
+        player.gameMode.useItemOn(player, helper.getLevel(), player.getMainHandItem(), InteractionHand.MAIN_HAND,
+                new BlockHitResult(Vec3.atCenterOf(clicked), Direction.UP, clicked, false));
+
+        helper.assertBlockProperty(firePos, CampfireBlock.LIT, false);
+        int got = ToolLevel.of(player.getMainHandItem()).xp();
+        helper.assertTrue(got == 1, "dousing a campfire must grant 1 XP, got " + got);
         helper.succeed();
     }
 
