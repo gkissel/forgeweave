@@ -8,7 +8,7 @@ mod modrinth jei 31.17.0.100 bdedfbdd72840e8fadd67d400aa4d6a91960ded85c0acf7ec4d
 # mod modrinth jei 19.43.0.393 04ea7c24a00b980851a34b71899c44731df5b830feafe4172641ae5f42432aabd34ba2ea57fa8f0577823bed0212c4214d409a8ea2060038deed0e8e7e237e81 jei-1.21.1-neoforge-19.43.0.393.jar
 # mod modrinth wthit neo-12.7.0 1ec15db9de6797f98e132e77bbf9ab2099de3229d1e591351f7c50db9c4838a54e70b45c8c32bdba65c370493aba518e59423f18a069558d8eda1f5b4624ccbb wthit-1.21.1-neo-12.7.0.jar
 # mod modrinth badpackets neo-0.8.2 9f09fbb8fe9d98b3813bee81695f7eb36521deb94bd7804e6e96b130038425c7b2e1ae2072eeb8e8d70bf424a28468b63180dbf4136c0117d7cc607afc9ec421 badpackets-neo-0.8.2.jar
-recipes 2221
+recipes 2678
 materials 80
 
 # 26.1.2:

@@ -35,8 +35,8 @@ mod modrinth better-advanced-tooltips 2603.1.1-build.13 6b4854af1ab5c68c7ae09ad1
 # material forgeweave:starweld forgeweave:voidweld forgeweave:atomic_alloy
 # Mystical Agriculture's supremium, out until it reaches 26.2:
 # material forgeweave:supremium
-recipes 2862
-recipes-off 2862
+recipes 3385
+recipes-off 3385
 materials 84
 
 # 26.1.2:

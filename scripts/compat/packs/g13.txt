@@ -61,8 +61,8 @@ material forgeweave:silver
 # material forgeweave:empowered_void_crystal forgeweave:empowered_emeradic_crystal forgeweave:empowered_enori_crystal
 # material forgeweave:blutonium forgeweave:cyanite forgeweave:ludicrite
 no-material forgeweave:alumite forgeweave:constantan forgeweave:electrum forgeweave:nickel
-recipes 3478
-recipes-off 3478
+recipes 3385
+recipes-off 3385
 materials 84
 
 # 26.1.2:
