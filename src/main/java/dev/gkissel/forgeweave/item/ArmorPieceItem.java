@@ -1,13 +1,13 @@
 package dev.gkissel.forgeweave.item;
 
 import dev.gkissel.forgeweave.api.trait.Trait;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
@@ -36,7 +36,6 @@ import net.minecraft.world.item.equipment.EquipmentAssets;
 import net.minecraft.world.item.equipment.Equippable;
 
 import dev.gkissel.forgeweave.Forgeweave;
-import dev.gkissel.forgeweave.client.StationText;
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisAffixes; // #970
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
 import dev.gkissel.forgeweave.compat.mekanism.modules.MekanismGearModules; // #994
@@ -283,11 +282,15 @@ public class ArmorPieceItem extends Item {
      * since 1.21.2 gliding is the {@code minecraft:glider} component ({@code LivingEntity#canGlideUsing}),
      * so {@link #syncGlider} keeps that component on the stack exactly while this answers true. Never
      * while Broken, the same gate every other worn behavior on this class uses.
+     *
+     * <p>Never once the chestplate also carries creative flight, which replaces the glide. Otherwise
+     * a jump in mid-air meant to start flying opens the wings instead.
      */
     public boolean canElytraFly(ItemStack stack, LivingEntity entity) {
         // #994: a powered Mekanism elytra unit is a second, independent grant of the same glide.
         // Ored, not anded: two grants are no better than one, and neither takes the other away.
         return (ForgeweaveModifiers.grantsElytraFlight(stack) || MekanismGearModules.grantsElytraFlight(stack))
+                && !ForgeweaveModifiers.grantsCreativeFlight(stack)
                 && !ToolItem.isBroken(stack);
     }
 
@@ -358,17 +361,13 @@ public class ArmorPieceItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
-            Consumer<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, display, tooltip, flag);
-        if (stats(stack) == null) {
-            return;
+            Consumer<Component> builder, TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, builder, flag);
+        List<Component> tooltip = new ArrayList<>();
+        ToolTooltip.appendArmor(stack, context.registries(), ToolTooltip.detailed(flag), tooltip);
+        if (stats(stack) != null) {
+            ToolTooltip.appendShiftHint(ToolTooltip.shiftHint(flag), tooltip);
         }
-        if (ToolItem.isBroken(stack)) {
-            tooltip.accept(Component.translatable("tooltip.forgeweave.durability")
-                    .append(": ")
-                    .append(Component.translatable("tooltip.forgeweave.broken")
-                            .withStyle(ChatFormatting.DARK_RED, ChatFormatting.BOLD)));
-        }
-        StationText.armorStats(stack).forEach(tooltip);
+        tooltip.forEach(builder);
     }
 }

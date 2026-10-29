@@ -206,6 +206,33 @@ final class ToolTooltip {
     }
 
     /**
+     * An assembled armor piece's hover text, laid out like a tool's: its stat block ({@link
+     * StationText#armorStats}) where a tool has durability and attack, then the level and XP, the
+     * Modifiers and free slots, and on Shift the same per-part sections. Armor used to show only the
+     * stat block, so a piece never said what was on it.
+     */
+    static void appendArmor(ItemStack stack, HolderLookup.Provider registries, boolean detailed, List<Component> tooltip) {
+        ToolMaterials materials = stack.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
+        if (materials == null || ArmorPieceItem.stats(stack) == null) {
+            return;
+        }
+        if (ToolItem.isBroken(stack)) {
+            tooltip.add(Component.translatable("tooltip.forgeweave.durability")
+                    .append(": ")
+                    .append(Component.translatable("tooltip.forgeweave.broken")
+                            .withStyle(ChatFormatting.DARK_RED, ChatFormatting.BOLD)));
+        }
+        tooltip.addAll(StationText.armorStats(stack));
+        appendLevel(stack, ForgeweaveConfig.enabled(ForgeweaveConfig.TOOL_LEVELING), tooltip);
+        appendModifiers(stack, detailed, tooltip);
+        if (!detailed) {
+            appendCompactTraitStateLines(stack, tooltip);
+            return;
+        }
+        appendPartSections(stack, registries, materials, tooltip);
+    }
+
+    /**
      * Upstream {@code ToolCore#getTooltipComponents} (ToolCore.java:323-364), inline in the Shift
      * tier per issue #380: one section per part slot, in the tool's own slot order
      * ({@code ToolAssemblyRecipes.Entry}, which is where the multi-head tools' positional sections

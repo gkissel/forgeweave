@@ -46,6 +46,7 @@ import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
+import dev.gkissel.forgeweave.tool.ArmorStats;
 import dev.gkissel.forgeweave.tool.LauncherStats;
 import dev.gkissel.forgeweave.tool.ToolLevel;
 import dev.gkissel.forgeweave.tool.ToolLeveling;
@@ -309,6 +310,37 @@ class ToolTooltipTest {
                 pierceLine(),
                 slotsLine(5)), // #921: the two level bonus slots count in freeSlots()
                 tooltip);
+    }
+
+    /**
+     * Armor shows what a tool shows after its own stat block: level and XP, its Modifiers and free
+     * slots, and on Shift one section per part. Before this a piece listed only its armor stats.
+     */
+    @Test
+    void armorTooltipShowsLevelModifiersAndPartSections() {
+        ResourceLocation elytraFlight = ResourceLocation.fromNamespaceAndPath("forgeweave", "elytra_flight");
+        ItemStack piece = new ItemStack(ForgeweaveItems.ARMOR_CHESTPLATE.get());
+        piece.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(),
+                new ToolMaterials(STONE_ID, Optional.of(WOOD_ID), Optional.empty(), List.of(STONE_ID, WOOD_ID)));
+        piece.set(ForgeweaveDataComponents.ARMOR_STATS.get(), new ArmorStats(6, 0, 0, 200));
+        piece.set(DataComponents.MAX_DAMAGE, 200);
+        piece.set(ForgeweaveDataComponents.TOOL_LEVEL.get(), new ToolLevel(2, 30, 2));
+        piece.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(elytraFlight, 1)));
+
+        List<Component> compact = new ArrayList<>();
+        ToolTooltip.appendArmor(piece, registriesWithStoneAndWood(), false, compact);
+        assertTrue(compact.contains(levelNameLine(2)), () -> "no level line in " + compact);
+        assertTrue(compact.stream().anyMatch(line -> line.toString().contains("modifier.forgeweave.elytra_flight")),
+                () -> "no modifier line in " + compact);
+        assertTrue(compact.stream().anyMatch(line -> line.toString().contains("tooltip.forgeweave.modifier_slots")),
+                () -> "no free slot line in " + compact);
+        assertTrue(compact.stream().noneMatch(line -> line.toString().contains("tooltip.forgeweave.part_name")),
+                () -> "part sections are Shift-only, got " + compact);
+
+        List<Component> detailed = new ArrayList<>();
+        ToolTooltip.appendArmor(piece, registriesWithStoneAndWood(), true, detailed);
+        assertEquals(2, detailed.stream().filter(line -> line.toString().contains("tooltip.forgeweave.part_name")).count(),
+                () -> "one section per part (plating, maille), got " + detailed);
     }
 
     /** A tool that never earned or banked any XP shows neither line -- no {@code tool_level} component at all. */
