@@ -621,5 +621,3 @@ idea {
     }
 }
 
-// ponytail: temporary while porting to 26.2, shows every compile error at once
-tasks.withType(JavaCompile).configureEach { options.compilerArgs += ['-Xmaxerrs', '100000'] }
