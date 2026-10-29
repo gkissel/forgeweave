@@ -4,12 +4,12 @@
 # sha512 as the 1.21.1 pin) tagged with 26.1.x, so it is not used. Allthemodium 26.1.2-4.2.0 declares
 # All The Ores 4.0.0 or newer and GeckoLib 5.5 or newer. Stage allthemodium-26.1.2-4.2.0.jar and
 # alltheores-4.0.4.jar (CurseForge files 9120636 and 8023670) in a FW_COMPAT_JAR_DIRS directory.
-# SKIP on 26.2: Allthemodium and AllTheOres have no 26.2 NeoForge build; the newest is 26.1.2-4.2.0 (checked 2026-10-29)
+# SKIP on 26.2 and 26.3: Allthemodium and AllTheOres have no 26.2 NeoForge build; the newest is 26.1.2-4.2.0 (checked 2026-10-29)
 
-mod modrinth jei 30.48.0.244 eb9c66808518b5f78e624dfd38c8a541daa19948f0269e42c3d9e6c24f72a8f401124572c1f6be8c711c491301df7a441c7d9db12da1943b8717971e73ede5a9 jei-26.2-neoforge-30.48.0.244.jar
+mod modrinth jei 31.17.0.100 bdedfbdd72840e8fadd67d400aa4d6a91960ded85c0acf7ec4d482edbb4c5618b0ec08a0d068fb5e38aa9a32769cae479f4c333717b1049408786f325887051c jei-26.3-neoforge-31.17.0.100.jar
 mod local - allthemodium-26.1.2-*.jar
 mod local - alltheores-*.jar
-mod modrinth geckolib 5.5.6 0717d360e0bba26dedd77eb42450a327eae6f3931692c353ebe3ac622c8556b442f3ece22e5eaf699ac9702a6edd6e02d1cfba96d3f1a52aba98cce0bd0bae55 geckolib-neoforge-26.2-5.5.6.jar
+mod modrinth geckolib 5.5.7 24a607529f57841a12d90d653a7823acf9a13284cb4631c9ee4c017bcba062e81cb8a7db8933112d9349dd05765333d54c90c9dde8feae3d2590f417201a3220 geckolib-neoforge-26.3-5.5.7.jar
 # 1.21.1:
 # mod modrinth jei 19.70.0.460 2e2221b3979dbda313bd61b09a625d6edfa6c7644a0e9a7a791d25896a1b60c12fdd69aded150609cb1b78946bb9153011b8e4218fb1d535398503e00f429a33 jei-1.21.1-neoforge-19.70.0.460.jar
 # mod modrinth allthemodium 3.0.1 964fb9e415a6899b5ebf1664f0eaeecf040c21458c5f3a2bfad906bfe95b0c1dac9d8383a2ce1be7a0c44b694d7fcd505ac532789a8af7ca99bcdac3a09831d3 allthemodium-3.0.1_mc_1.21.1.jar
@@ -24,3 +24,7 @@ materials 86
 # 26.1.2:
 # mod modrinth jei 29.47.0.110 487461d71820e3b31086d8b334b38b6ad6895c49d85e554b4083b60e0c2b185ed09a345b9aa9a96c0dd240be8cb6d890e08724a954ac9e6a69875a928ecbe27c jei-26.1.2-neoforge-29.47.0.110.jar
 # mod modrinth geckolib 5.5.2 d634390ad63372324220b14be3a70b0befca2a753fc8c0561f4162d31341182b08c102bd44432e59d884cb18d2906c1d0b36344f72c2d6e07c9b109a57c693f3 geckolib-neoforge-26.1.2-5.5.2.jar
+
+# 26.2:
+# mod modrinth jei 30.48.0.244 eb9c66808518b5f78e624dfd38c8a541daa19948f0269e42c3d9e6c24f72a8f401124572c1f6be8c711c491301df7a441c7d9db12da1943b8717971e73ede5a9 jei-26.2-neoforge-30.48.0.244.jar
+# mod modrinth geckolib 5.5.6 0717d360e0bba26dedd77eb42450a327eae6f3931692c353ebe3ac622c8556b442f3ece22e5eaf699ac9702a6edd6e02d1cfba96d3f1a52aba98cce0bd0bae55 geckolib-neoforge-26.2-5.5.6.jar

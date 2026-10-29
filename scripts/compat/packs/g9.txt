@@ -6,10 +6,10 @@
 # Reduced on 26.1.2 (checked 2026-10-26): Mekanism Generators has no 26.1.2 NeoForge build, and neither
 # do base.txt's Create, Mekanism and Immersive Engineering, so lines 171 and 196 and the alumite, osmium
 # and tin materials are not covered.
-# SKIP on 26.2: Mystical Agriculture, Mystical Agradditions, Neo Vitae and the Apotheosis family (the `without` pass) have no 26.2 NeoForge build (checked 2026-10-29)
+# SKIP on 26.2 and 26.3: Mystical Agriculture, Mystical Agradditions, Neo Vitae and the Apotheosis family (the `without` pass) have no 26.2 NeoForge build (checked 2026-10-29)
 
 include base.txt
-mod modrinth jei 30.48.0.244 eb9c66808518b5f78e624dfd38c8a541daa19948f0269e42c3d9e6c24f72a8f401124572c1f6be8c711c491301df7a441c7d9db12da1943b8717971e73ede5a9 jei-26.2-neoforge-30.48.0.244.jar
+mod modrinth jei 31.17.0.100 bdedfbdd72840e8fadd67d400aa4d6a91960ded85c0acf7ec4d482edbb4c5618b0ec08a0d068fb5e38aa9a32769cae479f4c333717b1049408786f325887051c jei-26.3-neoforge-31.17.0.100.jar
 # no 26.2 NeoForge build (checked): mod modrinth neovitae 26.1.2-1.1.49 38ac5c251af735036df297924ffe8230c6d39d0f61935d4f9751deb1568030aa1f20d5fc3d8cf54a9ba5e822dccdf221727999d79898ffbbdbbfca48313a3355 neovitae-26.1.2-1.1.49.jar
 # no 26.2 NeoForge build (checked): mod modrinth mystical-agradditions 9.0.4 a4f777c41f159758a260da3fb65d626f3c42f1322f5b956950f17185c911aeee2e3718cd375c9a164f8874a85f6f978ea21e6388dc6a71d3a4c5c838a1d3fd8d MysticalAgradditions-26.1.2-9.0.4.jar
 # 1.21.1:
@@ -41,3 +41,6 @@ materials 108
 # mod modrinth jei 29.47.0.110 487461d71820e3b31086d8b334b38b6ad6895c49d85e554b4083b60e0c2b185ed09a345b9aa9a96c0dd240be8cb6d890e08724a954ac9e6a69875a928ecbe27c jei-26.1.2-neoforge-29.47.0.110.jar
 # mod modrinth neovitae 26.1.2-1.1.49 38ac5c251af735036df297924ffe8230c6d39d0f61935d4f9751deb1568030aa1f20d5fc3d8cf54a9ba5e822dccdf221727999d79898ffbbdbbfca48313a3355 neovitae-26.1.2-1.1.49.jar
 # mod modrinth mystical-agradditions 9.0.4 a4f777c41f159758a260da3fb65d626f3c42f1322f5b956950f17185c911aeee2e3718cd375c9a164f8874a85f6f978ea21e6388dc6a71d3a4c5c838a1d3fd8d MysticalAgradditions-26.1.2-9.0.4.jar
+
+# 26.2:
+# mod modrinth jei 30.48.0.244 eb9c66808518b5f78e624dfd38c8a541daa19948f0269e42c3d9e6c24f72a8f401124572c1f6be8c711c491301df7a441c7d9db12da1943b8717971e73ede5a9 jei-26.2-neoforge-30.48.0.244.jar
