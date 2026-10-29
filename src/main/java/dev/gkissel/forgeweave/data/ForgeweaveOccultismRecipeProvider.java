@@ -41,11 +41,12 @@ import dev.gkissel.forgeweave.trackb.TrackBOre;
  * have {@code c:raw_materials/<id>}, and that crystal is what the second row grinds.
  *
  * <p><b>Miner.</b> One {@code occultism:miner} row per Track B ore, all eleven in Occultism's general
- * {@code #occultism:miners/ores} pool -- the one every miner spirit item matches -- weighted by
+ * {@code #occultism:miners/basic} pool -- the one every miner spirit item matches -- weighted by
  * {@link ForgeweaveOccultismCompat#minerWeight}. The tier gate here is the weight rather than the
  * pool: an ore in a narrower pool would be unreachable to a foliot outright, and Track B is meant to
  * be climbed slowly, not locked behind a spirit rank twice over (the crushing rows already do that
- * half).
+ * half). Occultism 26.1 replaced its {@code miners/ores} pool with tiered ones; {@code basic} holds
+ * the same spirits {@code ores} did, plus the debug and ancient eldritch miners.
  *
  * <p><b>Rituals.</b> One {@code occultism:ritual} row per
  * {@link ForgeweaveOccultismCompat#RITUALS} entry, each naming the
@@ -74,7 +75,7 @@ public class ForgeweaveOccultismRecipeProvider implements DataProvider {
      * The miner pool every Track B row joins -- Occultism's general ore tag, which each of its five
      * miner spirit items is a member of.
      */
-    private static final String MINER_POOL = "#" + ForgeweaveOccultismCompat.MODID + ":miners/ores";
+    private static final String MINER_POOL = "#" + ForgeweaveOccultismCompat.MODID + ":miners/basic";
 
     /** Occultism's own default is 200 ticks; an ore block is worth a slower grind than a raw item. */
     private static final int ORE_CRUSHING_TICKS = 400;

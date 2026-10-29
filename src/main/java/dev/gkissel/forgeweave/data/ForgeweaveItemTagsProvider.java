@@ -1,6 +1,14 @@
 package dev.gkissel.forgeweave.data;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
@@ -168,6 +176,7 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
 
         addMaterialFormTags();
         addAlloyDepthTags();
+        addReferencedTags();
 
         // #152 -- the "large tool" classification: what only the Tool Forge can assemble. See
         // ToolAssemblyRecipes#LARGE_TOOLS, which is the whole gate: a tool issue adds its row here and
@@ -549,6 +558,44 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
     /** Ingots of every alloy that takes at least {@value #DEEPEST_ALLOY_DEPTH} alloying steps (issue #1106). */
     public static final TagKey<Item> ALLOYS_DEEPEST =
             TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(Forgeweave.MODID, "alloys/deepest"));
+
+    /**
+     * Tags the gametests fill with a stand-in item ({@code src/gametest/resources/data/c/tags/item}).
+     * Main and gametest resources join into one mod file, so a generated copy at the same path would
+     * hide the stand-in. Every mod that gates bronze (Mekanism, Eternal Ores) defines this tag itself.
+     */
+    private static final Set<Identifier> GAMETEST_STAND_INS = Set.of(Identifier.fromNamespaceAndPath("c", "ingots/bronze"));
+
+    /**
+     * An empty entry for every other mod's item tag that a Forgeweave material, melting, casting or
+     * modifier recipe names. 26.1 refuses to load a datapack entry that names a missing tag, where
+     * 1.21.1 read it as empty, so a partner mod without, say, {@code c:ingots/uraninite} stopped the
+     * server from booting. The files merge, so a mod that does define the tag still fills it.
+     * Vanilla and Forgeweave tags are left out: a missing one of those is a real bug and should fail.
+     * So is a tag another loaded pack already defines, such as NeoForge's {@code c:ingots/copper}.
+     */
+    private void addReferencedTags() {
+        Pattern reference = Pattern.compile("\"#([a-z0-9_.-]+):([a-z0-9_/.-]+)\"");
+        Set<Identifier> named = new TreeSet<>();
+        resources.listResources(Forgeweave.MODID,
+                id -> id.getNamespace().equals(Forgeweave.MODID) && id.getPath().endsWith(".json"))
+                .forEach((id, resource) -> {
+                    try (BufferedReader reader = resource.openAsReader()) {
+                        Matcher match = reference.matcher(reader.lines().collect(Collectors.joining("\n")));
+                        while (match.find()) {
+                            if (!match.group(1).equals("minecraft") && !match.group(1).equals(Forgeweave.MODID)) {
+                                named.add(Identifier.fromNamespaceAndPath(match.group(1), match.group(2)));
+                            }
+                        }
+                    } catch (IOException e) {
+                        throw new UncheckedIOException("could not read " + id, e);
+                    }
+                });
+        named.stream()
+                .filter(tag -> !GAMETEST_STAND_INS.contains(tag))
+                .filter(tag -> resources.getResource(tag.withPath(path -> "tags/item/" + path + ".json")).isEmpty())
+                .forEach(tag -> tag(TagKey.create(Registries.ITEM, tag)));
+    }
 
     private static TagKey<Item> cTag(String path) {
         return TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", path));

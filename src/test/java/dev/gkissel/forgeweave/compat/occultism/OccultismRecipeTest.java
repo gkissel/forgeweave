@@ -109,7 +109,7 @@ class OccultismRecipeTest {
         JsonObject json = generated("miner", ore.id());
 
         assertEquals("occultism:miner", json.get("type").getAsString());
-        assertEquals("#occultism:miners/ores", json.get("ingredient").getAsString(),
+        assertEquals("#occultism:miners/basic", json.get("ingredient").getAsString(),
                 "the ingredient of a miner row is the spirit item the mineshaft holds, not a block");
 
         JsonObject result = json.getAsJsonObject("result");

@@ -179,6 +179,8 @@ def ie_metal_press_recipes() -> int:
     return count
 
 
+# EnderIO has a 26.1.2 build, so its rows use 26.1's ingredient JSON (a bare "#tag" string). Create,
+# Immersive Engineering and Mekanism have none yet, so theirs keep the 1.21.1 shape until they do.
 def enderio_alloy_smelting_recipes() -> int:
     count = 0
     for alloy_id, input1, input2 in BASIC_ALLOYS:
@@ -186,8 +188,8 @@ def enderio_alloy_smelting_recipes() -> int:
             "neoforge:conditions": conditions("enderio", "enderIoRecipes"),
             "type": "enderio:alloy_smelting",
             "inputs": [
-                {"count": 1, "tag": f"c:ingots/{input1}"},
-                {"count": 1, "tag": f"c:ingots/{input2}"},
+                {"count": 1, "ingredient": f"#c:ingots/{input1}"},
+                {"count": 1, "ingredient": f"#c:ingots/{input2}"},
             ],
             "output": {"count": 1, "id": f"forgeweave:{alloy_id}_ingot"},
             "energy": 6400,
@@ -203,7 +205,7 @@ def enderio_sag_milling_recipes() -> int:
         write_json(RECIPE_DIR / "enderio/sag_milling" / f"{ore_id}.json", {
             "neoforge:conditions": conditions("enderio", "enderIoRecipes"),
             "type": "enderio:sag_milling",
-            "input": {"tag": f"c:ores/{ore_id}"},
+            "input": f"#c:ores/{ore_id}",
             "outputs": [{"item": {"id": f"forgeweave:{ore_id}_dust", "count": 2}}],
             "energy": 2400,
             "bonus": "none",

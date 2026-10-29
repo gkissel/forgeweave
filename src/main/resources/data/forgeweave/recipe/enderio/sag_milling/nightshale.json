@@ -10,9 +10,7 @@
     }
   ],
   "type": "enderio:sag_milling",
-  "input": {
-    "tag": "c:ores/nightshale"
-  },
+  "input": "#c:ores/nightshale",
   "outputs": [
     {
       "item": {
