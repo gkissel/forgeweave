@@ -13,11 +13,11 @@
   "inputs": [
     {
       "count": 1,
-      "tag": "c:ingots/duskspar"
+      "ingredient": "#c:ingots/duskspar"
     },
     {
       "count": 1,
-      "tag": "c:ingots/ardite"
+      "ingredient": "#c:ingots/ardite"
     }
   ],
   "output": {

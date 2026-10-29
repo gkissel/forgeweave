@@ -10,9 +10,7 @@
     }
   ],
   "type": "enderio:sag_milling",
-  "input": {
-    "tag": "c:ores/duskspar"
-  },
+  "input": "#c:ores/duskspar",
   "outputs": [
     {
       "item": {

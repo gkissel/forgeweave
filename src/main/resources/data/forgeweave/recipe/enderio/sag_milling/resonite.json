@@ -10,9 +10,7 @@
     }
   ],
   "type": "enderio:sag_milling",
-  "input": {
-    "tag": "c:ores/resonite"
-  },
+  "input": "#c:ores/resonite",
   "outputs": [
     {
       "item": {

@@ -10,9 +10,7 @@
     }
   ],
   "type": "enderio:sag_milling",
-  "input": {
-    "tag": "c:ores/hardcinder"
-  },
+  "input": "#c:ores/hardcinder",
   "outputs": [
     {
       "item": {

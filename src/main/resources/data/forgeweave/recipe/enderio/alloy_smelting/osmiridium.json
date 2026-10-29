@@ -13,11 +13,11 @@
   "inputs": [
     {
       "count": 1,
-      "tag": "c:ingots/osmium"
+      "ingredient": "#c:ingots/osmium"
     },
     {
       "count": 1,
-      "tag": "c:ingots/iridium"
+      "ingredient": "#c:ingots/iridium"
     }
   ],
   "output": {

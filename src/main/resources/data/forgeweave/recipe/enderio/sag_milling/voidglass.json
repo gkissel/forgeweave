@@ -10,9 +10,7 @@
     }
   ],
   "type": "enderio:sag_milling",
-  "input": {
-    "tag": "c:ores/voidglass"
-  },
+  "input": "#c:ores/voidglass",
   "outputs": [
     {
       "item": {

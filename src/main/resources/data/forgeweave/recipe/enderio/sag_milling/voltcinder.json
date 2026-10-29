@@ -10,9 +10,7 @@
     }
   ],
   "type": "enderio:sag_milling",
-  "input": {
-    "tag": "c:ores/voltcinder"
-  },
+  "input": "#c:ores/voltcinder",
   "outputs": [
     {
       "item": {
