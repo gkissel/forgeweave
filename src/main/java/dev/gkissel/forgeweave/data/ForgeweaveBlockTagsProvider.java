@@ -2,6 +2,7 @@ package dev.gkissel.forgeweave.data;
 
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
@@ -12,6 +13,8 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.LeavesBlock;
+import net.minecraft.world.level.block.LiquidBlockContainer;
 import net.minecraft.world.level.block.SoundType;
 
 import net.neoforged.neoforge.common.Tags;
@@ -22,6 +25,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SlimeVineBlock;
 import dev.gkissel.forgeweave.block.SmelteryScan;
+import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.tool.VeinmineKey;
 import dev.gkissel.forgeweave.trackb.TrackBAlloy;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
@@ -343,6 +347,34 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
                 .addTag(SmelteryScan.IO)
                 .add(ForgeweaveBlocks.SEARED_GLASS.get())
                 .addOptionalTag(SmelteryScan.WALL_ADDON);
+
+        addMotionTags();
+    }
+
+    /**
+     * 26.3 removed {@code BlockState#blocksMotion}. Heightmaps, suffocation, fluid flow, random
+     * teleports and the rest now read {@link BlockTags#BLOCKS_MOTION} (= {@code blocks_motion_no_leaves}
+     * plus {@code #leaves}), and a fluid only washes a block away when it is in
+     * {@link BlockTags#WASHED_AWAY_BY_FLUIDS}. An untagged block does neither, so this sweep puts
+     * every Forgeweave block back where 26.2's rules left it: {@code blocksMotion()} was
+     * {@code isSolid()} for any non-vanilla block, and a fluid could replace any block that was not
+     * solid and not a {@link LiquidBlockContainer} (which fluids also count as, the way vanilla
+     * lists water and lava). A tag is per block, so the default state decides; only the seared channel
+     * has states that disagree (MotionTagsTest). Slime leaves already block motion through {@code #leaves}.
+     */
+    private void addMotionTags() {
+        var motion = tag(BlockTags.BLOCKS_MOTION_NO_LEAVES);
+        var washedAway = tag(BlockTags.WASHED_AWAY_BY_FLUIDS);
+        Stream.concat(ForgeweaveBlocks.BLOCKS.getEntries().stream(), ForgeweaveFluids.BLOCKS.getEntries().stream())
+                .map(DeferredHolder::get)
+                .filter(block -> !(block instanceof LeavesBlock))
+                .forEach(block -> {
+                    if (block.defaultBlockState().isSolid()) {
+                        motion.add(block);
+                    } else if (!(block instanceof LiquidBlockContainer)) {
+                        washedAway.add(block);
+                    }
+                });
     }
 
     @Override
