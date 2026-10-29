@@ -4,7 +4,7 @@ import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -17,16 +17,16 @@ import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.CastingBlockEntity;
 import dev.gkissel.forgeweave.block.FaucetBlockEntity;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.TransferBridge;
 import dev.gkissel.forgeweave.block.SearedChannelBlock;
 import dev.gkissel.forgeweave.block.SearedChannelBlock.ChannelConnection;
 import dev.gkissel.forgeweave.block.SearedChannelBlockEntity;
@@ -59,7 +59,7 @@ public class SearedChannelGameTests {
         helper.setBlock(NEXT, connected(Direction.NORTH, ChannelConnection.IN));
 
         fillTop(helper, SOURCE, SOME);
-        SearedChannelBlockEntity downstream = helper.getBlockEntity(NEXT);
+        SearedChannelBlockEntity downstream = helper.getBlockEntity(NEXT, SearedChannelBlockEntity.class);
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(!downstream.fluid().isEmpty(),
                         "expected the second channel to have received water"))
@@ -73,8 +73,8 @@ public class SearedChannelGameTests {
         helper.setBlock(SOURCE.below(), ForgeweaveBlocks.SEARED_TANK.get());
 
         fillTop(helper, SOURCE, SOME);
-        SearedChannelBlockEntity source = helper.getBlockEntity(SOURCE);
-        SearedTankBlockEntity below = helper.getBlockEntity(SOURCE.below());
+        SearedChannelBlockEntity source = helper.getBlockEntity(SOURCE, SearedChannelBlockEntity.class);
+        SearedTankBlockEntity below = helper.getBlockEntity(SOURCE.below(), SearedTankBlockEntity.class);
         helper.startSequence()
                 .thenIdle(40)
                 .thenExecute(() -> {
@@ -101,8 +101,7 @@ public class SearedChannelGameTests {
     public static void anOutputSideAcceptsNoFluid(GameTestHelper helper) {
         helper.setBlock(SOURCE, connected(Direction.SOUTH, ChannelConnection.OUT));
 
-        IFluidHandler out = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK,
-                helper.absolutePos(SOURCE), Direction.SOUTH);
+        IFluidHandler out = TransferBridge.fluidAt(helper.getLevel(), helper.absolutePos(SOURCE), Direction.SOUTH);
         helper.assertTrue(out != null, "expected an output side to still expose a handler");
         helper.assertValueEqual(out.fill(new FluidStack(Fluids.WATER, SOME), IFluidHandler.FluidAction.EXECUTE), 0,
                 "an output side's fill");
@@ -121,10 +120,10 @@ public class SearedChannelGameTests {
                 IFluidHandler.FluidAction.EXECUTE);
         // #715: driven directly rather than waited on. A fill is locked for the tick it landed in, so
         // the first step only unlocks it and the second is the one that pours.
-        SearedChannelBlockEntity channel = helper.getBlockEntity(SOURCE);
+        SearedChannelBlockEntity channel = helper.getBlockEntity(SOURCE, SearedChannelBlockEntity.class);
         channel.flowStep();
         channel.flowStep();
-        CastingBlockEntity basin = helper.getBlockEntity(SOURCE.below());
+        CastingBlockEntity basin = helper.getBlockEntity(SOURCE.below(), CastingBlockEntity.class);
         helper.assertValueEqual(basin.tank().getFluidAmount(), FaucetBlockEntity.LIQUID_TRANSFER,
                 "one flow step's worth of gold poured into the basin");
         helper.succeed();
@@ -240,17 +239,23 @@ public class SearedChannelGameTests {
     /**
      * Upstream's {@code handleBlockUpdate} with {@code didPlace}: putting something that holds fluid
      * beside a channel plumbs it, so a casting table dropped next to a run needs no clicking at all.
+     *
+     * <p>The table goes down a tick after the channel. Since 1.21.2 a neighbour update no longer says
+     * which neighbour changed, so the channel remembers its fluid-holding sides, and it first takes
+     * them when its block entity loads, at the start of the next tick.
      */
     @GameTest(template = "empty")
     public static void placingAFluidHolderBesideAChannelOpensThatSide(GameTestHelper helper) {
         helper.setBlock(SOURCE, ForgeweaveBlocks.SEARED_CHANNEL.get());
         helper.setBlock(NEXT, Blocks.AIR);
 
-        helper.setBlock(NEXT, ForgeweaveBlocks.CASTING_TABLE.get());
+        helper.runAfterDelay(1, () -> {
+            helper.setBlock(NEXT, ForgeweaveBlocks.CASTING_TABLE.get());
 
-        helper.assertValueEqual(helper.getBlockState(SOURCE).getValue(SearedChannelBlock.SOUTH),
-                ChannelConnection.OUT, "the side the casting table appeared on");
-        helper.succeed();
+            helper.assertValueEqual(helper.getBlockState(SOURCE).getValue(SearedChannelBlock.SOUTH),
+                    ChannelConnection.OUT, "the side the casting table appeared on");
+            helper.succeed();
+        });
     }
 
     /** A side whose target stops holding fluid closes, not only one whose target became air. */
@@ -314,7 +319,7 @@ public class SearedChannelGameTests {
 
     @Nullable
     private static IFluidHandler handler(GameTestHelper helper, BlockPos pos, Direction side) {
-        return helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(pos), side);
+        return TransferBridge.fluidAt(helper.getLevel(), helper.absolutePos(pos), side);
     }
 
     private static void fillTop(GameTestHelper helper, BlockPos pos, int amount) {

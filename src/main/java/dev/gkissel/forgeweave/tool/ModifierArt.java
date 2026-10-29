@@ -4,7 +4,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.modifier.Fortification;
@@ -39,10 +39,10 @@ public final class ModifierArt {
      * forgeweave:fortification} value but is never a stored modifier id -- the two are read for
      * unrelated purposes and neither depends on the other's identity.
      */
-    private static final ResourceLocation FORTIFICATION = id("fortification");
+    private static final Identifier FORTIFICATION = id("fortification");
 
     /** The modifiers whose application draws an overlay layer; see the class javadoc. */
-    public static final Set<ResourceLocation> OVERLAY_MODIFIERS = Set.of(
+    public static final Set<Identifier> OVERLAY_MODIFIERS = Set.of(
             id("haste"), id("sharpness"), id("diamond"), id("emerald"), id("reinforced"),
             id("silky"), id("luck"), id("mending_moss"), id("soulbound"), id("smite"),
             id("bane_of_arthropods"), id("fiery"), id("necrotic"), id("knockback"),
@@ -57,10 +57,10 @@ public final class ModifierArt {
      * @param tool the tool item's registry path, e.g. {@code "broadsword"}
      */
     @Nullable
-    public static String overlay(String tool, ResourceLocation modifier) {
+    public static String overlay(String tool, Identifier modifier) {
         // Every forgeweave:fortification.<material> id shares one overlay file per tool; see
         // {@link #FORTIFICATION}.
-        ResourceLocation family = Fortification.isFortification(modifier) ? FORTIFICATION : modifier;
+        Identifier family = Fortification.isFortification(modifier) ? FORTIFICATION : modifier;
         // #679: upstream 1.12 has no armor, so no armor piece has any modifier overlay art to derive
         // (M4's defense modifier family renders through the worn layers, not item overlays). #735's
         // heavy set is the same story -- no upstream counterpart at all.
@@ -124,7 +124,7 @@ public final class ModifierArt {
             "mattock_fortification");
 
     /**
-     * As {@link #overlay(String, ResourceLocation)}, for a bow rendered at pull stage {@code stage}
+     * As {@link #overlay(String, Identifier)}, for a bow rendered at pull stage {@code stage}
      * (M3.5 issue #400); {@code stage} 0 is "not being drawn" and is the plain overlay.
      *
      * <p>Upstream's mechanism: each pull override in {@code <bow>.tcon.json} carries a
@@ -135,7 +135,7 @@ public final class ModifierArt {
      * miss below does.
      */
     @Nullable
-    public static String overlay(String tool, ResourceLocation modifier, int stage) {
+    public static String overlay(String tool, Identifier modifier, int stage) {
         String base = overlay(tool, modifier);
         if (base == null || stage < 1) {
             return base;
@@ -173,8 +173,8 @@ public final class ModifierArt {
             "crossbow_haste_draw1", "crossbow_haste_draw2", "crossbow_haste_draw3",
             "crossbow_sharpness_draw2", "crossbow_sharpness_draw3");
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
     private ModifierArt() {}

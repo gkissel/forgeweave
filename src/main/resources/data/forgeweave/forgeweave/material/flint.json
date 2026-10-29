@@ -20,11 +20,9 @@
     "head": ["forgeweave:crude2"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:flint" }, "value": 144 }
+    { "ingredient": "minecraft:flint", "value": 144 }
   ],
-  "repair_item": {
-    "item": "minecraft:flint"
-  },
+  "repair_item": "minecraft:flint",
   "enchantability": 5,
   "color": "#696969"
 }

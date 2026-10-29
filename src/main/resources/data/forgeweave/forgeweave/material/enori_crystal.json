@@ -27,15 +27,13 @@
     "armor": ["forgeweave:revealward"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "actuallyadditions:enori_crystal" }, "value": 144 },
-    { "ingredient": { "tag": "c:storage_blocks/enori_crystal" }, "value": 1296 }
+    { "ingredient": "actuallyadditions:enori_crystal", "value": 144 },
+    { "ingredient": "#c:storage_blocks/enori_crystal", "value": 1296 }
   ],
-  "repair_item": {
-    "item": "actuallyadditions:enori_crystal"
-  },
+  "repair_item": "actuallyadditions:enori_crystal",
   "enchantability": 16,
   "color": "#EDEDED",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "actuallyadditions:enori_crystal" }
+    { "type": "neoforge:registered", "value": "actuallyadditions:enori_crystal" }
   ]
 }

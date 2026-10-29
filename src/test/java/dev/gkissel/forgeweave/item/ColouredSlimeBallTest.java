@@ -10,7 +10,9 @@ import net.minecraft.core.Holder;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.food.FoodProperties;
+import net.minecraft.world.item.consume_effects.ApplyStatusEffectsConsumeEffect;
 import net.minecraft.world.item.ItemStack;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -47,8 +49,8 @@ class ColouredSlimeBallTest {
     void everySlimeBallCarriesUpstreamsFoodValuesAndEffects() {
         // addFood(1, 1, 1f, "slimeball_blue", SLOWNESS 45s x3, JUMP_BOOST 60s x3)
         assertFood(SlimeColour.BLUE, 1, 1f, List.of(
-                effect(MobEffects.MOVEMENT_SLOWDOWN, 20 * 45, 2),
-                effect(MobEffects.JUMP, 20 * 60, 2)));
+                effect(MobEffects.SLOWNESS, 20 * 45, 2),
+                effect(MobEffects.JUMP_BOOST, 20 * 60, 2)));
         // addFood(2, 1, 2f, "slimeball_purple", UNLUCK 45s, LUCK 60s)
         assertFood(SlimeColour.PURPLE, 1, 2f, List.of(
                 effect(MobEffects.UNLUCK, 20 * 45, 0),
@@ -64,7 +66,7 @@ class ColouredSlimeBallTest {
                 effect(MobEffects.FIRE_RESISTANCE, 20 * 60, 0)));
         // addFood(5, 1, 1f, "slimeball_pink", NAUSEA 10s x3)
         assertFood(SlimeColour.PINK, 1, 1f, List.of(
-                effect(MobEffects.CONFUSION, 20 * 10, 2)));
+                effect(MobEffects.NAUSEA, 20 * 10, 2)));
     }
 
     private record Effect(Holder<MobEffect> effect, int duration, int amplifier) {}
@@ -79,16 +81,22 @@ class ColouredSlimeBallTest {
      * {@code nutrition * modifier * 2} formula, so that is what this expects.
      */
     private static void assertFood(SlimeColour colour, int nutrition, float saturationModifier, List<Effect> expected) {
-        FoodProperties food = new ItemStack(ForgeweaveItems.slimeBall(colour)).getFoodProperties(null);
+        ItemStack stack = new ItemStack(ForgeweaveItems.slimeBall(colour));
+        FoodProperties food = stack.get(DataComponents.FOOD);
         assertEquals(nutrition, food.nutrition(), colour + " nutrition");
         assertEquals(nutrition * saturationModifier * 2F, food.saturation(), 1e-4, colour + " saturation");
         assertTrue(food.canAlwaysEat(), colour + " should be always edible (upstream's addFood does)");
-        assertEquals(expected, food.effects().stream()
-                        .map(possible -> new Effect(possible.effect().getEffect(),
-                                possible.effect().getDuration(), possible.effect().getAmplifier()))
+        // 26.x: since 1.21.2 a food's effects are consume effects on its minecraft:consumable component.
+        List<ApplyStatusEffectsConsumeEffect> applied = stack.get(DataComponents.CONSUMABLE).onConsumeEffects().stream()
+                .filter(ApplyStatusEffectsConsumeEffect.class::isInstance)
+                .map(ApplyStatusEffectsConsumeEffect.class::cast)
+                .toList();
+        assertEquals(expected, applied.stream()
+                        .flatMap(apply -> apply.effects().stream())
+                        .map(instance -> new Effect(instance.getEffect(), instance.getDuration(), instance.getAmplifier()))
                         .toList(),
                 colour + " effects");
-        assertTrue(food.effects().stream().allMatch(possible -> possible.probability() == 1.0F),
+        assertTrue(applied.stream().allMatch(apply -> apply.probability() == 1.0F),
                 colour + " effects are certain upstream (ItemEdible#onFoodEaten applies them unconditionally)");
     }
 }

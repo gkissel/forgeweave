@@ -9,7 +9,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
@@ -110,7 +110,7 @@ public final class StructureInfo {
     @Nullable
     private static BlockState convert(JsonObject span) {
         Block block = BuiltInRegistries.BLOCK.getOptional(
-                ResourceLocation.parse(span.get("block").getAsString())).orElse(null);
+                Identifier.parse(span.get("block").getAsString())).orElse(null);
         if (block == null) {
             return null;
         }

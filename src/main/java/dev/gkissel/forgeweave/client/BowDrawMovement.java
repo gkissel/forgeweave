@@ -4,6 +4,7 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.phys.Vec2;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -33,11 +34,11 @@ import dev.gkissel.forgeweave.item.ToolItem;
  * {@code LocalPlayer#aiStep} immediately before vanilla applies its own multiplier:
  *
  * <pre>
- * this.input.tick(...);
+ * this.input.tick();
  * ClientHooks.onMovementInputUpdate(this, this.input);   // &lt;- here
+ * // ... then applyInput -&gt; modifyInput:
  * if (this.isUsingItem() &amp;&amp; !this.isPassenger()) {
- *     this.input.leftImpulse *= 0.2F;
- *     this.input.forwardImpulse *= 0.2F;
+ *     newInput = newInput.scale(this.itemUseSpeedMultiplier());   // 0.2F by default
  * }
  * </pre>
  *
@@ -59,10 +60,13 @@ import dev.gkissel.forgeweave.item.ToolItem;
  * unit length whenever both axes are engaged, before the multiplier is applied -- a deliberate
  * deviation from vanilla/1.12 (maintainer request, #420), scoped to this bow-drawing path only.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public final class BowDrawMovement {
 
-    /** Undoes vanilla's {@code 0.2F}: {@code speed * 5 * 0.2 == speed}. */
+    /**
+     * Undoes vanilla's {@code 0.2F} (26.1: {@code UseEffects#DEFAULT}'s speed multiplier, applied in
+     * {@code LocalPlayer#modifyInput}): {@code speed * 5 * 0.2 == speed}.
+     */
     private static final float VANILLA_SLOWDOWN_INVERSE = 5.0F;
 
     @SubscribeEvent
@@ -75,9 +79,11 @@ public final class BowDrawMovement {
             return;
         }
         float multiplier = speed * VANILLA_SLOWDOWN_INVERSE;
-        Impulse normalized = Impulse.normalize(event.getInput().forwardImpulse, event.getInput().leftImpulse);
-        event.getInput().forwardImpulse = normalized.forward() * multiplier;
-        event.getInput().leftImpulse = normalized.strafe() * multiplier;
+        // 26.1 keeps the impulses as one move vector, x = strafe (left), y = forward. Needs the
+        // accesstransformer.cfg line making ClientInput#moveVector public.
+        Vec2 move = event.getInput().getMoveVector();
+        Impulse normalized = Impulse.normalize(move.y, move.x);
+        event.getInput().moveVector = new Vec2(normalized.strafe() * multiplier, normalized.forward() * multiplier);
     }
 
     /**

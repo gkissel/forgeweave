@@ -59,7 +59,7 @@ import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.combat.ForgeweaveMobEffects;
 import dev.gkissel.forgeweave.combat.RangedXpSeam;
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
-import dev.gkissel.forgeweave.compat.create.ForgeweaveCreateCompat;
+import dev.gkissel.forgeweave.gametest.ForgeweaveGameTestRegistrar;
 import dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat;
 import dev.gkissel.forgeweave.compat.mekanism.ForgeweaveMekanismCompat;
 import dev.gkissel.forgeweave.compat.occultism.ForgeweaveOccultismCompat;
@@ -89,6 +89,8 @@ import dev.gkissel.forgeweave.modifier.ModifierDefinition; // #973
 import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 import dev.gkissel.forgeweave.modifier.WorktableRecipe; // #1057
 import dev.gkissel.forgeweave.particle.ForgeweaveParticles; // #482
+import dev.gkissel.forgeweave.ponder.CatnipArgumentTypes;
+import dev.gkissel.forgeweave.ponder.PonderClientRepairs;
 import dev.gkissel.forgeweave.ponder.ForgeweavePonderPlugin;
 import dev.gkissel.forgeweave.recipe.AlloyRecipe; // #98
 import dev.gkissel.forgeweave.recipe.CoreTransformRecipe; // #845
@@ -132,8 +134,6 @@ public class Forgeweave {
         ForgeweaveFluids.BLOCKS.register(modEventBus);
         ForgeweaveFluids.BUCKETS.register(modEventBus); // #286
         ForgeweaveItems.ITEMS.register(modEventBus);
-        // #452 -- the slime boots' armour material (parity audit T21). See SlimeBootsItem.
-        SlimeBootsItem.ARMOR_MATERIALS.register(modEventBus);
         // #447 -- the entity every dropped tool spawns as (parity audit T16). See
         // entity.IndestructibleItemEntity for why it is a registered type rather than a flag.
         ForgeweaveEntities.ENTITY_TYPES.register(modEventBus);
@@ -159,6 +159,11 @@ public class Forgeweave {
         // #482 -- upstream's heart-effect particles (parity audit T51): the little coloured heart a
         // landed secondary hit puts over its target. See ForgeweaveParticles.
         ForgeweaveParticles.PARTICLE_TYPES.register(modEventBus);
+        // Catnip (embedded with Ponder) uses three command argument types it never registers, which
+        // kicks every joining player. See CatnipArgumentTypes.
+        if (ModList.get().isLoaded("catnip")) {
+            CatnipArgumentTypes.register(modEventBus);
+        }
         // T22 (#453) -- the Slimesling's launch sound, upstream's own slimesling.ogg.
         ForgeweaveSounds.SOUND_EVENTS.register(modEventBus);
         ForgeweaveRecipeSerializers.RECIPE_SERIALIZERS.register(modEventBus);
@@ -316,6 +321,9 @@ public class Forgeweave {
         // #452 -- parity audit T21: the slime boots' bounce and fall-damage cancel, upstream's
         // ItemSlimeBoots#onFall. See SlimeBootsItem for the side split.
         NeoForge.EVENT_BUS.addListener(SlimeBootsItem::onFall);
+        // 1.21.5 moved enchanting-table eligibility onto a static component; the allowVanillaEnchanting
+        // and Apotheosis gates close the table here instead. See ToolItem#onEnchantmentLevelSet.
+        NeoForge.EVENT_BUS.addListener(ToolItem::onEnchantmentLevelSet);
         // #452/#453 -- parity audit T21 and T22: the boots' rebound and the momentum a Slimesling-flung
         // player keeps through the arc, both upstream's shared SlimeBounceHandler. See that class.
         NeoForge.EVENT_BUS.addListener(SlimeBounceHandler::onPlayerTickPost);
@@ -329,13 +337,19 @@ public class Forgeweave {
         // ForgeweavePonderPlugin's javadoc for why this isn't an @EventBusSubscriber instead.
         if (ModList.get().isLoaded("ponder")) {
             modEventBus.addListener(ForgeweavePonderPlugin::onClientSetup);
+            // Ponder 1.0.52 and Catnip set up their client configs and scene renderer too late on
+            // 26.1, so a scene would crash or open blank. See PonderClientRepairs.
+            modEventBus.addListener(PonderClientRepairs::onLoadComplete);
+            if (FMLEnvironment.getDist() == Dist.CLIENT) {
+                modEventBus.addListener(PonderClientRepairs::registerSceneRenderer);
+            }
         }
         // #335 -- DarkModeEverywhere compat is a soft dependency too, same idiom as ponder just above.
         // Unlike FMLClientSetupEvent (inherently client-only), InterModEnqueueEvent is a mod-bus
-        // lifecycle event that fires on every dist, so this checks FMLEnvironment.dist itself to keep
+        // lifecycle event that fires on every dist, so this checks FMLEnvironment.getDist() itself to keep
         // dist handling consistent with the Dist.CLIENT gating every other client wiring class uses
         // (see ForgeweaveDarkModeCompat's javadoc).
-        if (ModList.get().isLoaded("darkmodeeverywhere") && FMLEnvironment.dist == Dist.CLIENT) {
+        if (ModList.get().isLoaded("darkmodeeverywhere") && FMLEnvironment.getDist() == Dist.CLIENT) {
             modEventBus.addListener(ForgeweaveDarkModeCompat::sendShaderBlacklist);
         }
         // #915 -- Draconic Evolution's fusion crafting (docs/SCOPE.md M8), the same soft-dependency
@@ -349,8 +363,10 @@ public class Forgeweave {
         // #1007 -- Create's goggles as a helmet modifier (docs/SCOPE.md M8), the same soft-dependency
         // idiom again. The guard is load-bearing: ForgeweaveCreateCompat's registration call names a
         // com.simibubi.create type and cannot link without the mod present.
-        if (ModList.get().isLoaded(ForgeweaveCreateCompat.MODID)) {
-            ForgeweaveCreateCompat.register();
+        // 26.1.2: Create has no build for this Minecraft yet, so ForgeweaveCreateCompat is left out of
+        // the compile (build.gradle's COMPAT_DISABLED) and the guard only says so.
+        if (ModList.get().isLoaded("create")) {
+            LOGGER.warn("Create is installed, but Forgeweave's Create integration is not available on Minecraft 26.1.2");
         }
         // #969 -- Apotheosis gem sockets (docs/SCOPE.md M8, D-M8-1). Same load-bearing guard: the
         // bridge behind this call names dev.shadowsoffire types and cannot link without the mod,
@@ -374,12 +390,15 @@ public class Forgeweave {
         if (ModList.get().isLoaded(ForgeweaveMekanismCompat.MODID)) {
             ForgeweaveMekanismCompat.register(modEventBus);
         }
+        // Minecraft 1.21.5 made GameTests registry entries; this turns the suite's annotated methods
+        // into them. A no-op unless GameTests are enabled (dev runs and runGameTestServer only).
+        ForgeweaveGameTestRegistrar.register(modEventBus);
     }
 
     private void onServerStarted(final ServerStartedEvent event) {
         // Datapack authors need to see whether their material JSON was picked up (ADR-0002).
         RegistryAccess.Frozen registries = event.getServer().registryAccess();
-        Registry<Material> materials = registries.registryOrThrow(Material.REGISTRY);
+        Registry<Material> materials = registries.lookupOrThrow(Material.REGISTRY);
         LOGGER.info("Loaded {} materials: {}", materials.size(), materials.keySet());
         MaterialSyncSize sync = materialSyncSize(registries);
         LOGGER.info("Material registry sync payload: {} of {} materials encode to {} bytes", sync.encoded(),
@@ -404,7 +423,7 @@ public class Forgeweave {
      * assert the counts the log line prints.
      */
     public static MaterialSyncSize materialSyncSize(RegistryAccess registries) {
-        Registry<Material> materials = registries.registryOrThrow(Material.REGISTRY);
+        Registry<Material> materials = registries.lookupOrThrow(Material.REGISTRY);
         RegistryOps<Tag> ops = registries.createSerializationContext(NbtOps.INSTANCE);
         FriendlyByteBuf buf = new FriendlyByteBuf(Unpooled.buffer());
         int encoded = 0;

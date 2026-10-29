@@ -1,5 +1,4 @@
 {
-  "loader": "forgeweave:retextured_table",
   "__comment": "Tool Forge (issue #152): the Tool Station's own table geometry with upstream 1.12's toolforge textures -- its own top art on the plate and rim, and iron in the three retextured slots so an un-retextured forge looks like upstream's models/block/toolforge.json (bottom/leg/legBottom = minecraft:blocks/iron_block). parent block/block only for its display transforms -- without a parent this model has ItemTransforms.NO_TRANSFORMS and the block item renders unrotated/unscaled (issue #68 fix 6)",
   "parent": "minecraft:block/block",
   "ambientocclusion": true,

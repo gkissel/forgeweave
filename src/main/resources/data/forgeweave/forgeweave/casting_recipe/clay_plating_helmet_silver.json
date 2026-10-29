@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_plating_helmet"
-  },
+  "cast": "forgeweave:clay_cast_plating_helmet",
   "fluid": "forgeweave:molten_silver",
   "amount": 432,
   "result": {
@@ -17,20 +15,20 @@
       "type": "neoforge:or",
       "values": [
         {
-          "type": "neoforge:item_exists",
-          "item": "immersiveengineering:ingot_silver"
+          "type": "neoforge:registered",
+          "value": "immersiveengineering:ingot_silver"
         },
         {
-          "type": "neoforge:item_exists",
-          "item": "eternalores:silver_ingot"
+          "type": "neoforge:registered",
+          "value": "eternalores:silver_ingot"
         },
         {
-          "type": "neoforge:item_exists",
-          "item": "occultism:silver_ingot"
+          "type": "neoforge:registered",
+          "value": "occultism:silver_ingot"
         },
         {
-          "type": "neoforge:item_exists",
-          "item": "iceandfire:silver_ingot"
+          "type": "neoforge:registered",
+          "value": "iceandfire:silver_ingot"
         }
       ]
     }

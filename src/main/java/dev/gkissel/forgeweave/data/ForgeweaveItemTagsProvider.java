@@ -1,22 +1,29 @@
 package dev.gkissel.forgeweave.data;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
-import net.minecraft.data.tags.ItemTagsProvider;
-import net.minecraft.data.tags.TagsProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.data.tags.TagAppender;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Block;
 
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.common.data.ItemTagsProvider;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ChestKind;
@@ -42,18 +49,23 @@ import net.neoforged.neoforge.registries.DeferredHolder;
  * extended to Forgeweave's own items, exactly as any other mod's ore/ingot would register into it.
  */
 public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
+    private final ResourceManager resources;
+
     public ForgeweaveItemTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider,
-            CompletableFuture<TagsProvider.TagLookup<Block>> blockTags, ExistingFileHelper existingFileHelper) {
-        super(output, lookupProvider, blockTags, Forgeweave.MODID, existingFileHelper);
+            ResourceManager resources) {
+        super(output, lookupProvider, Forgeweave.MODID);
+        this.resources = resources;
     }
 
     @Override
     protected void addTags(HolderLookup.Provider registries) {
         // #635 (parity audit T57): upstream registers every coloured slime ball under the "slimeball"
         // ore-dict entry alongside vanilla's own (TinkerCommons#registerItems), which is what its
-        // vanilla-slime-block replacement recipe matches on. `c:slimeballs` is that entry's modern
+        // vanilla-slime-block replacement recipe matches on. `c:slime_balls` is that entry's modern
         // spelling -- NeoForge already puts vanilla's slime ball in it, so this only adds the five.
-        ForgeweaveItems.slimeBalls().forEach(ball -> tag("slimeballs").add(ball.item().get()));
+        // 1.21.1 wrote the legacy `c:slimeballs`, which NeoForge then folded into `c:slime_balls`;
+        // 26.1 dropped that alias, so the five go straight into the tag the recipes read.
+        ForgeweaveItems.slimeBalls().forEach(ball -> tag("slime_balls").add(ball.item().get()));
 
         tag("ingots/cobalt").add(ForgeweaveItems.INGOT_COBALT.get());
         tag("nuggets/cobalt").add(ForgeweaveItems.NUGGET_COBALT.get());
@@ -164,6 +176,7 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
 
         addMaterialFormTags();
         addAlloyDepthTags();
+        addReferencedTags();
 
         // #152 -- the "large tool" classification: what only the Tool Forge can assemble. See
         // ToolAssemblyRecipes#LARGE_TOOLS, which is the whole gate: a tool issue adds its row here and
@@ -251,9 +264,9 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         //
         // FIRE_ASPECT_ENCHANTABLE, WEAPON_ENCHANTABLE and VANISHING_ENCHANTABLE are not listed for the
         // shapes that reach them through vanilla's own tag-of-tag references (fire_aspect includes
-        // #sword_enchantable, weapon includes #sharp_weapon_enchantable, vanishing includes
+        // #melee_weapon_enchantable, weapon includes #sharp_weapon_enchantable, vanishing includes
         // #durability_enchantable).
-        // The sword shapes -- vanilla's #minecraft:swords, which is what feeds both #sword_enchantable
+        // The sword shapes -- vanilla's #minecraft:swords, which is what feeds both #melee_weapon_enchantable
         // (Looting, Knockback, Sweeping Edge, and Fire Aspect through its tag reference) and the sharp
         // line below.
         List<Item> swords = List.of(ForgeweaveItems.TOOL_BROADSWORD.get(), ForgeweaveItems.TOOL_LONGSWORD.get(),
@@ -283,7 +296,10 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         List<Item> launchers = List.of(ForgeweaveItems.TOOL_SHORTBOW.get(), ForgeweaveItems.TOOL_LONGBOW.get(),
                 ForgeweaveItems.TOOL_CROSSBOW.get());
 
-        addAll(ItemTags.SWORD_ENCHANTABLE, swords);
+        // 1.21.5+ split vanilla's enchantable/sword into melee_weapon (Looting, Knockback, Fire Aspect) and
+        // sweeping (Sweeping Edge); the swords join both, which is what enchantable/sword gave them.
+        addAll(ItemTags.MELEE_WEAPON_ENCHANTABLE, swords);
+        addAll(ItemTags.SWEEPING_ENCHANTABLE, swords);
         addAll(ItemTags.SHARP_WEAPON_ENCHANTABLE, swords, axes);
         addAll(ItemTags.WEAPON_ENCHANTABLE, bluntWeapons);
         addAll(ItemTags.MINING_ENCHANTABLE, miningTools);
@@ -479,7 +495,7 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
 
     /** The tag naming every block a Tool Forge can be crafted from (issue #152). */
     public static final TagKey<Item> TOOL_FORGE_BLOCKS =
-            TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "tool_forge_blocks"));
+            TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(Forgeweave.MODID, "tool_forge_blocks"));
 
     /**
      * Every reusable gold cast (issue #100/#222/#272), excluding the single-use clay casts -- the
@@ -488,7 +504,7 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
      * reinforced-plate recipe keys its center slot off this tag.
      */
     public static final TagKey<Item> CASTS_GOLD =
-            TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "casts/gold"));
+            TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(Forgeweave.MODID, "casts/gold"));
 
     /**
      * #992 -- the {@code c:} side of D-M8-6/D-M8-7's material forms, walked off
@@ -519,9 +535,9 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
      * from the smeltery itself, so a tag naming every shallow alloy would have no reader.
      */
     private void addAlloyDepthTags() {
-        IntrinsicTagAppender<Item> deep = tag(ALLOYS_DEEP);
-        IntrinsicTagAppender<Item> deepest = tag(ALLOYS_DEEPEST);
-        AlloyDepths.byMaterial().forEach((metal, depth) -> {
+        TagAppender<Item, Item> deep = tag(ALLOYS_DEEP);
+        TagAppender<Item, Item> deepest = tag(ALLOYS_DEEPEST);
+        AlloyDepths.byMaterial(resources).forEach((metal, depth) -> {
             if (depth >= DEEP_ALLOY_DEPTH) {
                 deep.addTag(cTag("ingots/" + metal));
             }
@@ -537,22 +553,60 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
 
     /** Ingots of every alloy that takes at least {@value #DEEP_ALLOY_DEPTH} alloying steps (issue #1106). */
     public static final TagKey<Item> ALLOYS_DEEP =
-            TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "alloys/deep"));
+            TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(Forgeweave.MODID, "alloys/deep"));
 
     /** Ingots of every alloy that takes at least {@value #DEEPEST_ALLOY_DEPTH} alloying steps (issue #1106). */
     public static final TagKey<Item> ALLOYS_DEEPEST =
-            TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "alloys/deepest"));
+            TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(Forgeweave.MODID, "alloys/deepest"));
+
+    /**
+     * Tags the gametests fill with a stand-in item ({@code src/gametest/resources/data/c/tags/item}).
+     * Main and gametest resources join into one mod file, so a generated copy at the same path would
+     * hide the stand-in. Every mod that gates bronze (Mekanism, Eternal Ores) defines this tag itself.
+     */
+    private static final Set<Identifier> GAMETEST_STAND_INS = Set.of(Identifier.fromNamespaceAndPath("c", "ingots/bronze"));
+
+    /**
+     * An empty entry for every other mod's item tag that a Forgeweave material, melting, casting or
+     * modifier recipe names. 26.1 refuses to load a datapack entry that names a missing tag, where
+     * 1.21.1 read it as empty, so a partner mod without, say, {@code c:ingots/uraninite} stopped the
+     * server from booting. The files merge, so a mod that does define the tag still fills it.
+     * Vanilla and Forgeweave tags are left out: a missing one of those is a real bug and should fail.
+     * So is a tag another loaded pack already defines, such as NeoForge's {@code c:ingots/copper}.
+     */
+    private void addReferencedTags() {
+        Pattern reference = Pattern.compile("\"#([a-z0-9_.-]+):([a-z0-9_/.-]+)\"");
+        Set<Identifier> named = new TreeSet<>();
+        resources.listResources(Forgeweave.MODID,
+                id -> id.getNamespace().equals(Forgeweave.MODID) && id.getPath().endsWith(".json"))
+                .forEach((id, resource) -> {
+                    try (BufferedReader reader = resource.openAsReader()) {
+                        Matcher match = reference.matcher(reader.lines().collect(Collectors.joining("\n")));
+                        while (match.find()) {
+                            if (!match.group(1).equals("minecraft") && !match.group(1).equals(Forgeweave.MODID)) {
+                                named.add(Identifier.fromNamespaceAndPath(match.group(1), match.group(2)));
+                            }
+                        }
+                    } catch (IOException e) {
+                        throw new UncheckedIOException("could not read " + id, e);
+                    }
+                });
+        named.stream()
+                .filter(tag -> !GAMETEST_STAND_INS.contains(tag))
+                .filter(tag -> resources.getResource(tag.withPath(path -> "tags/item/" + path + ".json")).isEmpty())
+                .forEach(tag -> tag(TagKey.create(Registries.ITEM, tag)));
+    }
 
     private static TagKey<Item> cTag(String path) {
-        return TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", path));
+        return TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", path));
     }
 
     private static TagKey<Item> storageBlock(String metal) {
         return cTag("storage_blocks/" + metal);
     }
 
-    private IntrinsicTagAppender<Item> tag(String path) {
-        return tag(TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath("c", path)));
+    private TagAppender<Item, Item> tag(String path) {
+        return tag(TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", path)));
     }
 
     /**
@@ -561,7 +615,7 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
      */
     @SafeVarargs
     private void addAll(TagKey<Item> tag, List<Item>... families) {
-        IntrinsicTagAppender<Item> appender = tag(tag);
+        TagAppender<Item, Item> appender = tag(tag);
         Stream.of(families).flatMap(List::stream).distinct().forEach(appender::add);
     }
 }

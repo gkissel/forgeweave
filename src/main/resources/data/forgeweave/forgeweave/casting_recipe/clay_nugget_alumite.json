@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_nugget"
-  },
+  "cast": "forgeweave:clay_cast_nugget",
   "fluid": "forgeweave:molten_alumite",
   "amount": 16,
   "result": {
@@ -11,8 +9,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "immersiveengineering:ingot_aluminum"
+      "type": "neoforge:registered",
+      "value": "immersiveengineering:ingot_aluminum"
     }
   ]
 }

@@ -2,9 +2,9 @@ package dev.gkissel.forgeweave.item;
 
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
@@ -41,13 +41,13 @@ public class ShurikenItem extends AmmoToolItem {
 
     /** {@code Shuriken#onItemRightClick}, structure and constants. */
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         if (isBroken(stack)) {
-            return InteractionResultHolder.fail(stack);
+            return InteractionResult.FAIL;
         }
-        player.getCooldowns().addCooldown(this, THROW_COOLDOWN_TICKS);
-        if (!level.isClientSide) {
+        player.getCooldowns().addCooldown(stack, THROW_COOLDOWN_TICKS);
+        if (!level.isClientSide()) {
             boolean usedAmmo = useAmmo(stack, player, hand);
             ShurikenEntity thrown = new ShurikenEntity(ForgeweaveEntities.SHURIKEN.get(), level, player,
                     projectileStack(stack));
@@ -65,6 +65,6 @@ public class ShurikenItem extends AmmoToolItem {
             level.addFreshEntity(thrown);
         }
         player.awardStat(Stats.ITEM_USED.get(this));
-        return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 }

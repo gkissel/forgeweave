@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:dusts/alumite"
-    }
+    "#c:dusts/alumite"
   ],
   "result": {
     "count": 3,

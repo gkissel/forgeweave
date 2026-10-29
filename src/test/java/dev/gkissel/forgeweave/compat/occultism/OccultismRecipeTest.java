@@ -73,7 +73,7 @@ class OccultismRecipeTest {
         JsonObject json = generated("crushing", ore.id() + "_from_ore");
 
         assertEquals("occultism:crushing", json.get("type").getAsString());
-        assertEquals("c:ores/" + ore.id(), json.getAsJsonObject("ingredient").get("tag").getAsString());
+        assertEquals("#c:ores/" + ore.id(), json.get("ingredient").getAsString());
         assertEquals(ForgeweaveOccultismCompat.crusherTier(ore.tier()), json.get("min_tier").getAsInt(),
                 ore.id() + "'s min_tier must be its own tier's crusher rank, not a shared default");
 
@@ -93,8 +93,8 @@ class OccultismRecipeTest {
 
         // #929: fulmenite's ore drops a crystal rather than a raw item, so its second row keys on
         // c:gems/<id>. Every other ore keys on c:raw_materials/<id>.
-        String expected = ore.dropsCrystal() ? "c:gems/" + ore.id() : "c:raw_materials/" + ore.id();
-        assertEquals(expected, json.getAsJsonObject("ingredient").get("tag").getAsString());
+        String expected = ore.dropsCrystal() ? "#c:gems/" + ore.id() : "#c:raw_materials/" + ore.id();
+        assertEquals(expected, json.get("ingredient").getAsString());
         assertEquals(ForgeweaveOccultismCompat.crusherTier(ore.tier()), json.get("min_tier").getAsInt(),
                 "the raw row must gate on the same crusher rank as the ore row; a cheaper raw route"
                         + " would let a foliot reach an ore its own rank cannot crush");
@@ -109,7 +109,7 @@ class OccultismRecipeTest {
         JsonObject json = generated("miner", ore.id());
 
         assertEquals("occultism:miner", json.get("type").getAsString());
-        assertEquals("occultism:miners/ores", json.getAsJsonObject("ingredient").get("tag").getAsString(),
+        assertEquals("#occultism:miners/basic", json.get("ingredient").getAsString(),
                 "the ingredient of a miner row is the spirit item the mineshaft holds, not a block");
 
         JsonObject result = json.getAsJsonObject("result");

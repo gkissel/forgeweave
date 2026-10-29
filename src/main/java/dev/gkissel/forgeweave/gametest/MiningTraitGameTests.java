@@ -6,10 +6,10 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.TagKey;
@@ -18,7 +18,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -33,8 +33,8 @@ import net.minecraft.world.level.block.Blocks;
 
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockDropsEvent;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.combat.CombatHit;
@@ -268,7 +268,7 @@ public class MiningTraitGameTests {
                 "paper", "paper", "paper");
         helper.assertTrue(!pickaxe.isEmpty(), "the station must assemble the all-writable pickaxe");
 
-        List<ResourceLocation> traits = pickaxe.get(ForgeweaveDataComponents.TRAITS.get());
+        List<Identifier> traits = pickaxe.get(ForgeweaveDataComponents.TRAITS.get());
         helper.assertTrue(traits != null && traits.contains(traitId("writable")) && traits.contains(traitId("writable2")),
                 "expected both writable ids on the tool, got " + traits);
         helper.assertTrue(ForgeweaveModifiers.freeSlots(pickaxe) == ForgeweaveModifiers.DEFAULT_SLOTS + 3,
@@ -417,13 +417,13 @@ public class MiningTraitGameTests {
     }
 
     /** Builds a pickaxe {@code ItemStack} with the given traits/stats directly (see class javadoc). */
-    static ItemStack pickaxe(List<ResourceLocation> traits, int durability, float miningSpeed,
+    static ItemStack pickaxe(List<Identifier> traits, int durability, float miningSpeed,
             float attackDamage) {
         return pickaxe(traits, durability, miningSpeed, attackDamage, "incorrect_for_stone_tool");
     }
 
     /** As {@link #pickaxe(List, int, float, float)}, with the head's tier tag chosen (unnatural). */
-    static ItemStack pickaxe(List<ResourceLocation> traits, int durability, float miningSpeed,
+    static ItemStack pickaxe(List<Identifier> traits, int durability, float miningSpeed,
             float attackDamage, String incorrectForTool) {
         ToolItem toolItem = ForgeweaveItems.TOOL_PICKAXE.get();
         ToolStats.Stats stats = new ToolStats.Stats(durability, miningSpeed, attackDamage);
@@ -431,7 +431,7 @@ public class MiningTraitGameTests {
                 new Material.Head(durability, miningSpeed, attackDamage),
                 new Material.Handle(1.0F, 0),
                 0,
-                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace(incorrectForTool)),
+                TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace(incorrectForTool)),
                 new Material.Traits(List.of(), List.of()),
                 List.of(),
                 Ingredient.of(Items.STICK),
@@ -452,7 +452,7 @@ public class MiningTraitGameTests {
                 new ArrayList<>(List.of(drops)), breaker, tool);
     }
 
-    private static ResourceLocation traitId(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier traitId(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 }

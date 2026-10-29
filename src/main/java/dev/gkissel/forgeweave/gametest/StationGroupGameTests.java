@@ -3,7 +3,7 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
@@ -11,8 +11,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ChestBlockEntity;
@@ -131,7 +131,7 @@ public class StationGroupGameTests {
         if (withCraftingStation) {
             place(helper, CENTER.north(), ForgeweaveBlocks.CRAFTING_STATION.get());
         }
-        PartBuilderBlockEntity blockEntity = helper.getBlockEntity(CENTER);
+        PartBuilderBlockEntity blockEntity = helper.getBlockEntity(CENTER, PartBuilderBlockEntity.class);
         return new PartBuilderMenu(0, player.getInventory(), blockEntity.container(),
                 ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(CENTER)),
                 blockEntity.findSideInventory());
@@ -141,7 +141,7 @@ public class StationGroupGameTests {
     public static void patternButtonSwapsTheLoadedPattern(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         PartBuilderMenu menu = openPartCrafter(helper, player, true);
-        ChestBlockEntity chest = helper.getBlockEntity(CENTER.east());
+        ChestBlockEntity chest = helper.getBlockEntity(CENTER.east(), ChestBlockEntity.class);
         chest.container().setItem(0, new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()));
         menu.getSlot(PartBuilderMenu.PATTERN_SLOT).set(new ItemStack(ForgeweaveItems.PATTERN_SHOVEL_HEAD.get()));
 
@@ -165,7 +165,7 @@ public class StationGroupGameTests {
     public static void patternSidebarNeedsTheWholeWorkshop(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         PartBuilderMenu menu = openPartCrafter(helper, player, false);
-        ChestBlockEntity chest = helper.getBlockEntity(CENTER.east());
+        ChestBlockEntity chest = helper.getBlockEntity(CENTER.east(), ChestBlockEntity.class);
         chest.container().setItem(0, new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()));
 
         helper.assertFalse(menu.partCrafter,

@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.minecraft.core.HolderLookup;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.api.modifier.Modifier;
@@ -39,7 +39,7 @@ public final class ModifierApplicationRecipes {
             new ItemStack(ForgeweaveItems.TOOL_SHOVEL.get()),
             new ItemStack(ForgeweaveItems.TOOL_HATCHET.get()));
 
-    static List<ModifierRecipe> build(Map<ResourceLocation, ModifierRecipe> recipes) {
+    static List<ModifierRecipe> build(Map<Identifier, ModifierRecipe> recipes) {
         return new ArrayList<>(recipes.values());
     }
 

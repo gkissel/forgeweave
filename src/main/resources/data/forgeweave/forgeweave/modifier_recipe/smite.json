@@ -1,8 +1,6 @@
 {
   "modifier": "forgeweave:smite",
-  "reagent": {
-    "item": "forgeweave:consecrated_soil"
-  },
+  "reagent": "forgeweave:consecrated_soil",
   "cost": 1,
   "max_level": 120
 }

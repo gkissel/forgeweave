@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/shardline"
-  },
+  "input": "#c:ingots/shardline",
   "fluid": "forgeweave:molten_shardline",
   "amount": 144,
   "temperature": 1400

@@ -1,14 +1,12 @@
 {
-  "input": {
-    "tag": "c:raw_materials/eclipsealloy"
-  },
+  "input": "#c:raw_materials/eclipsealloy",
   "fluid": "forgeweave:molten_eclipsealloy",
   "amount": 144,
   "temperature": 1600,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "justdirethings:eclipsealloy_ingot"
+      "type": "neoforge:registered",
+      "value": "justdirethings:eclipsealloy_ingot"
     }
   ],
   "ore": true

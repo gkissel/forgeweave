@@ -1,5 +1,8 @@
 package dev.gkissel.forgeweave.item;
 
+import java.util.function.Consumer;
+import net.minecraft.world.item.component.TooltipDisplay;
+
 import java.util.List;
 
 import net.minecraft.network.chat.Component;
@@ -29,9 +32,10 @@ public class PatternItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
-        PartBuilderRecipes.patternCost(stack).ifPresent(cost -> tooltip.add(
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
+            Consumer<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, tooltip, flag);
+        PartBuilderRecipes.patternCost(stack).ifPresent(cost -> tooltip.accept(
                 Component.translatable("tooltip.forgeweave.pattern_cost",
                         StationText.formatNumber(cost / (float) PartBuilderRecipes.INGOT_VALUE))));
     }

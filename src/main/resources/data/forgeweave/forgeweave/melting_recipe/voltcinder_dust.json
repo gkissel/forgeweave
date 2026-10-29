@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/voltcinder"
-  },
+  "input": "#c:dusts/voltcinder",
   "fluid": "forgeweave:molten_voltcinder",
   "amount": 144
 }

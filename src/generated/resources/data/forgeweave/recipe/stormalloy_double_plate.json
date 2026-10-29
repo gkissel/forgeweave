@@ -2,16 +2,13 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "#": {
-      "tag": "c:ingots/stormalloy"
-    }
+    "#": "#c:ingots/stormalloy"
   },
   "pattern": [
     "##",
     "##"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:stormalloy_double_plate"
   }
 }

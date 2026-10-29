@@ -13,7 +13,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -77,14 +77,14 @@ import dev.gkissel.forgeweave.api.modifier.Modifier;
  * Station screen explain a rejection without a packet of its own.
  */
 public record ModifierRecipe(
-        ResourceLocation modifier, List<Reagent> reagents, int cost, int maxLevel, List<Integer> costPerLevel,
+        Identifier modifier, List<Reagent> reagents, int cost, int maxLevel, List<Integer> costPerLevel,
         boolean requireAllReagents) {
 
     public static final ResourceKey<Registry<ModifierRecipe>> REGISTRY = ResourceKey.createRegistryKey(
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "modifier_recipe"));
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "modifier_recipe"));
 
     /** Pre-#776 recipes: no {@code require_all_reagents} field, so the legacy OR reading applies. */
-    public ModifierRecipe(ResourceLocation modifier, List<Reagent> reagents, int cost, int maxLevel,
+    public ModifierRecipe(Identifier modifier, List<Reagent> reagents, int cost, int maxLevel,
             List<Integer> costPerLevel) {
         this(modifier, reagents, cost, maxLevel, costPerLevel, false);
     }
@@ -111,7 +111,7 @@ public record ModifierRecipe(
                     Either::right);
 
     public static final Codec<ModifierRecipe> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ResourceLocation.CODEC.fieldOf("modifier").forGetter(ModifierRecipe::modifier),
+            Identifier.CODEC.fieldOf("modifier").forGetter(ModifierRecipe::modifier),
             REAGENTS_CODEC.forGetter(ModifierRecipe::reagents),
             ExtraCodecs.POSITIVE_INT.optionalFieldOf("cost", 1).forGetter(ModifierRecipe::cost),
             ExtraCodecs.POSITIVE_INT.fieldOf("max_level").forGetter(ModifierRecipe::maxLevel),

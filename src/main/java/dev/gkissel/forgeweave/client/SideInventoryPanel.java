@@ -2,9 +2,10 @@ package dev.gkissel.forgeweave.client;
 
 import java.util.List;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -39,8 +40,8 @@ import dev.gkissel.forgeweave.menu.SideInventorySlots.SideSlot;
  */
 final class SideInventoryPanel {
     /** Upstream's {@code GuiGeneric} sheet: 7px border pieces, an 18px slot tile and an 18px "no slot here" tile. */
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/generic.png");
+    private static final Identifier TEXTURE =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/generic.png");
     private static final int SHEET = 64;
     private static final int BORDER = SideInventorySlots.BORDER;
     private static final int SLOT = SideInventorySlots.SLOT_SIZE;
@@ -53,7 +54,7 @@ final class SideInventoryPanel {
      * Upstream {@code GuiGeneric}'s overlap pieces, used on the edge a {@code connected} module
      * shares with its parent: {@code overlap} (21, 45, 7, 14), {@code overlapBottomRight}
      * (14, 47, 7, 7) and -- for a module at {@code yOffset == 0} -- {@code overlapTop}, which is
-     * {@code borderTop}'s first 7px (7, 0, 7, 7). See {@link #renderBorder(GuiGraphics, int, int,
+     * {@code borderTop}'s first 7px (7, 0, 7, 7). See {@link #renderBorder(GuiGraphicsExtractor, int, int,
      * int, int, boolean)}.
      */
     private static final int OVERLAP_U = 21;
@@ -115,7 +116,7 @@ final class SideInventoryPanel {
      *     park the ones beyond {@code liveCount} off-screen, same as it already does for ones merely
      *     scrolled out of the visible window.
      */
-    void render(GuiGraphics graphics, AbstractContainerMenu menu, int leftPos, int topPos, int parentHeight,
+    void render(GuiGraphicsExtractor graphics, AbstractContainerMenu menu, int leftPos, int topPos, int parentHeight,
             List<SideSlot> slots, int liveCount) {
         if (liveCount == 0) {
             bounds = new Rect2i(0, 0, 0, 0);
@@ -175,11 +176,11 @@ final class SideInventoryPanel {
      * the same tiles for upstream's scaling chest ({@code GuiDynInventory}), which is this widget's
      * sibling over a grid sized by the chest rather than by a neighbour's inventory.
      */
-    static void renderSlotTile(GuiGraphics graphics, int x, int y, boolean filled) {
-        graphics.blit(TEXTURE, x, y, filled ? SLOT_U : SLOT_EMPTY_U, SLOT_V, SLOT, SLOT, SHEET, SHEET);
+    static void renderSlotTile(GuiGraphicsExtractor graphics, int x, int y, boolean filled) {
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, filled ? SLOT_U : SLOT_EMPTY_U, SLOT_V, SLOT, SLOT, SHEET, SHEET);
     }
 
-    private void renderSlider(GuiGraphics graphics) {
+    private void renderSlider(GuiGraphicsExtractor graphics) {
         renderSlider(graphics, sliderTrack, scrollRow, maxScrollRow);
     }
 
@@ -189,18 +190,18 @@ final class SideInventoryPanel {
      * this class's own slot layout cannot describe (three 22px cells, not six 18px ones), so it
      * borrows the drawing and keeps its scroll state on its menu.
      */
-    static void renderSlider(GuiGraphics graphics, Rect2i sliderTrack, int scrollRow, int maxScrollRow) {
+    static void renderSlider(GuiGraphicsExtractor graphics, Rect2i sliderTrack, int scrollRow, int maxScrollRow) {
         int x = sliderTrack.getX();
         int y = sliderTrack.getY();
         int trackH = sliderTrack.getHeight();
-        graphics.blit(TEXTURE, x, y, SLIDER_TRACK_U, SLIDER_TOP_V, SLIDER_WIDTH, SLIDER_CAP_H, SHEET, SHEET);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, SLIDER_TRACK_U, SLIDER_TOP_V, SLIDER_WIDTH, SLIDER_CAP_H, SHEET, SHEET);
         for (int drawn = SLIDER_CAP_H; drawn < trackH - SLIDER_CAP_H; drawn += SLIDER_BAR_H) {
-            graphics.blit(TEXTURE, x, y + drawn, SLIDER_TRACK_U, SLIDER_BAR_V, SLIDER_WIDTH,
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y + drawn, SLIDER_TRACK_U, SLIDER_BAR_V, SLIDER_WIDTH,
                     Math.min(SLIDER_BAR_H, trackH - SLIDER_CAP_H - drawn), SHEET, SHEET);
         }
-        graphics.blit(TEXTURE, x, y + trackH - SLIDER_CAP_H, SLIDER_TRACK_U, SLIDER_BOTTOM_V,
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y + trackH - SLIDER_CAP_H, SLIDER_TRACK_U, SLIDER_BOTTOM_V,
                 SLIDER_WIDTH, SLIDER_CAP_H, SHEET, SHEET);
-        graphics.blit(TEXTURE, x + (SLIDER_WIDTH - SLIDER_KNOB_W) / 2,
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x + (SLIDER_WIDTH - SLIDER_KNOB_W) / 2,
                 knobY(y, trackH, scrollRow, maxScrollRow), SLIDER_KNOB_U, SLIDER_KNOB_V,
                 SLIDER_KNOB_W, SLIDER_KNOB_H, SHEET, SHEET);
     }
@@ -310,7 +311,7 @@ final class SideInventoryPanel {
      * {@link SmelteryScreen}'s melt grid (issue #101), which is the same upstream widget
      * ({@code GuiWidgetBorder}) around a different grid.
      */
-    static void renderBorder(GuiGraphics graphics, int x, int y, int width, int height) {
+    static void renderBorder(GuiGraphicsExtractor graphics, int x, int y, int width, int height) {
         renderBorder(graphics, x, y, width, height, false);
     }
 
@@ -324,7 +325,7 @@ final class SideInventoryPanel {
      *     module, and, because the smeltery's {@code yOffset} is 0, its top-right corner is the plain
      *     7px-wide {@code borderTop} ({@code overlapTop}) rather than {@code overlapTopRight}.
      */
-    static void renderBorder(GuiGraphics graphics, int x, int y, int width, int height, boolean connected) {
+    static void renderBorder(GuiGraphicsExtractor graphics, int x, int y, int width, int height, boolean connected) {
         int innerW = width - BORDER * 2;
         int innerH = height - BORDER * 2;
         int right = x + width - BORDER;
@@ -352,8 +353,8 @@ final class SideInventoryPanel {
      * same helper {@link InfoPanel} uses. The border strips are uniform, so stretching them reads
      * identically to upstream's tiling and costs one draw call instead of a loop.
      */
-    private static void blit(GuiGraphics graphics, int x, int y, int width, int height,
+    private static void blit(GuiGraphicsExtractor graphics, int x, int y, int width, int height,
             int u, int v, int uWidth, int vHeight) {
-        graphics.blit(TEXTURE, x, y, width, height, u, v, uWidth, vHeight, SHEET, SHEET);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, u, v, width, height, uWidth, vHeight, SHEET, SHEET);
     }
 }

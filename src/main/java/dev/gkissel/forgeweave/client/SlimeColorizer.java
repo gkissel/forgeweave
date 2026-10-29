@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -63,18 +63,16 @@ public final class SlimeColorizer {
     public static void reload(ResourceManager resourceManager) {
         COLOR_MAPS.clear();
         for (FoliageType foliage : FoliageType.values()) {
-            ResourceLocation location =
-                    ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, foliage.colormapPath());
+            Identifier location =
+                    Identifier.fromNamespaceAndPath(Forgeweave.MODID, foliage.colormapPath());
             resourceManager.getResource(location).ifPresent(resource -> {
                 try (InputStream stream = resource.open(); NativeImage image = NativeImage.read(stream)) {
                     int[] pixels = new int[image.getWidth() * image.getHeight()];
                     for (int y = 0; y < image.getHeight(); y++) {
                         for (int x = 0; x < image.getWidth(); x++) {
-                            // NativeImage stores ABGR; the colour map is read as RGB, same as upstream's
+                            // getPixel hands back ARGB; the colour map is read as RGB, same as upstream's
                             // TextureUtil.readImageData does.
-                            int abgr = image.getPixelRGBA(x, y);
-                            int rgb = (abgr & 0x0000ff) << 16 | (abgr & 0x00ff00) | (abgr & 0xff0000) >> 16;
-                            pixels[y * image.getWidth() + x] = rgb;
+                            pixels[y * image.getWidth() + x] = image.getPixel(x, y) & 0xffffff;
                         }
                     }
                     COLOR_MAPS.put(foliage, pixels);

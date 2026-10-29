@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/raw_tin"
-  },
+  "input": "#c:storage_blocks/raw_tin",
   "fluid": "forgeweave:molten_tin",
   "amount": 1296,
   "ore": true,
@@ -11,12 +9,12 @@
       "type": "neoforge:or",
       "values": [
         {
-          "type": "neoforge:item_exists",
-          "item": "mekanism:ingot_tin"
+          "type": "neoforge:registered",
+          "value": "mekanism:ingot_tin"
         },
         {
-          "type": "neoforge:item_exists",
-          "item": "eternalores:tin_ingot"
+          "type": "neoforge:registered",
+          "value": "eternalores:tin_ingot"
         }
       ]
     }

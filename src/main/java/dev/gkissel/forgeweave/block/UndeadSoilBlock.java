@@ -33,7 +33,7 @@ public class UndeadSoilBlock extends Block {
 
     @Override
     public void stepOn(Level level, BlockPos pos, BlockState state, Entity entity) {
-        if (!(entity instanceof Mob mob) || !mob.getType().is(EntityTypeTags.UNDEAD)) {
+        if (!(entity instanceof Mob mob) || !mob.is(EntityTypeTags.UNDEAD)) {
             super.stepOn(level, pos, state, entity);
             return;
         }

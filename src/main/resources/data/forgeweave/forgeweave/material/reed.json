@@ -8,11 +8,9 @@
     "general": ["forgeweave:breakable"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:sugar_cane" }, "value": 144 }
+    { "ingredient": "minecraft:sugar_cane", "value": 144 }
   ],
-  "repair_item": {
-    "item": "minecraft:sugar_cane"
-  },
+  "repair_item": "minecraft:sugar_cane",
   "enchantability": 15,
   "color": "#AADB74"
 }

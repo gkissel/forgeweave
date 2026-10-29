@@ -1,14 +1,12 @@
 {
-  "input": {
-    "tag": "c:nuggets/dark_steel"
-  },
+  "input": "#c:nuggets/dark_steel",
   "fluid": "forgeweave:molten_dark_steel",
   "amount": 16,
   "temperature": 1600,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "enderio:dark_steel_ingot"
+      "type": "neoforge:registered",
+      "value": "enderio:dark_steel_ingot"
     }
   ]
 }

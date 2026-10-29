@@ -3,20 +3,28 @@ package dev.gkissel.forgeweave.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.IronBarsBlock;
+import net.minecraft.world.phys.Vec3;
 
 import com.mojang.math.Axis;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+
+import org.jspecify.annotations.Nullable;
 
 import dev.gkissel.forgeweave.block.CastingBlockEntity;
 
@@ -41,7 +49,7 @@ import dev.gkissel.forgeweave.block.CastingBlockEntity;
  * client-side cooling clock (its cooldown is a scheduled block tick, see {@link CastingBlockEntity}),
  * so both are skipped rather than invented.
  */
-public class CastingBlockEntityRenderer implements BlockEntityRenderer<CastingBlockEntity> {
+public class CastingBlockEntityRenderer implements BlockEntityRenderer<CastingBlockEntity, CastingBlockEntityRenderer.State> {
     /** A generated item model's own depth, which becomes its height once it is laid flat. */
     private static final float ITEM_MODEL_DEPTH = 1f / 16f;
     /**
@@ -85,9 +93,28 @@ public class CastingBlockEntityRenderer implements BlockEntityRenderer<CastingBl
         this.itemScale = itemScale;
     }
 
+    /** One slot's stack, resolved for {@link #submit}: its item model, orientation and height. */
+    record Item(ItemStackRenderState state, boolean flat, float height) {}
+
+    /** What {@link #submit} needs, captured off the block entity. */
+    public static class State extends BlockEntityRenderState {
+        @Nullable Item input;
+        @Nullable Item output;
+        float inputHeight;
+        @Nullable TextureAtlasSprite fluidSprite;
+        int fluidTint;
+        float fluidTopY;
+    }
+
     @Override
-    public void render(CastingBlockEntity blockEntity, float partialTick, PoseStack poseStack,
-            MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+    public State createRenderState() {
+        return new State();
+    }
+
+    @Override
+    public void extractRenderState(CastingBlockEntity blockEntity, State state, float partialTick,
+            Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
+        BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTick, cameraPosition, breakProgress);
         ItemStack input = blockEntity.input();
         ItemStack output = blockEntity.output();
         FluidTank tank = blockEntity.tank();
@@ -97,17 +124,32 @@ public class CastingBlockEntityRenderer implements BlockEntityRenderer<CastingBl
             return; // The common case: an empty station costs one branch per frame and no buffers.
         }
 
-        // Items first: the fluid is translucent and pours over whatever is already lying there.
-        float inputHeight = itemHeight(input);
-        renderItem(input, 0, inputHeight, poseStack, bufferSource, packedLight, packedOverlay, blockEntity);
-        renderItem(output, 1, inputHeight, poseStack, bufferSource, packedLight, packedOverlay, blockEntity);
+        state.inputHeight = itemHeight(input);
+        state.input = extractItem(input, blockEntity);
+        state.output = extractItem(output, blockEntity);
 
         if (hasFluid) {
             float fraction = Mth.clamp(fluid.getAmount() / (float) tank.getCapacity(), 0f, 1f);
-            TextureAtlasSprite sprite = FluidRenderUtil.stillSprite(fluid);
-            FluidRenderUtil.cuboid(bufferSource.getBuffer(RenderType.translucent()), poseStack.last().pose(),
-                    xzMin, surfaceY, xzMin, xzMax, topY(fraction, !input.isEmpty() || !output.isEmpty()), xzMax,
-                    sprite, FluidRenderUtil.tint(fluid), packedLight, packedOverlay);
+            state.fluidSprite = FluidRenderUtil.stillSprite(fluid);
+            state.fluidTint = FluidRenderUtil.tint(fluid);
+            state.fluidTopY = topY(fraction, !input.isEmpty() || !output.isEmpty());
+        }
+    }
+
+    @Override
+    public void submit(State state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
+        // Items first: the fluid is translucent and pours over whatever is already lying there.
+        submitItem(state.input, 0, state.inputHeight, poseStack, collector, state.lightCoords);
+        submitItem(state.output, 1, state.inputHeight, poseStack, collector, state.lightCoords);
+
+        TextureAtlasSprite sprite = state.fluidSprite;
+        if (sprite != null) {
+            int tint = state.fluidTint;
+            float topY = state.fluidTopY;
+            int light = state.lightCoords;
+            collector.submitCustomGeometry(poseStack, RenderTypes.translucentMovingBlock(), (pose, buffer) ->
+                    FluidRenderUtil.cuboid(buffer, pose.pose(), xzMin, surfaceY, xzMin, xzMax, topY, xzMax,
+                            sprite, tint, light, OverlayTexture.NO_OVERLAY));
         }
     }
 
@@ -165,17 +207,27 @@ public class CastingBlockEntityRenderer implements BlockEntityRenderer<CastingBl
      *                    no cast beneath it, and offsetting by its own 12/16 scale is what popped it
      *                    out over the rim (#407).
      */
-    private void renderItem(ItemStack stack, int layer, float inputHeight, PoseStack poseStack,
-            MultiBufferSource bufferSource, int packedLight, int packedOverlay, CastingBlockEntity blockEntity) {
+    private @Nullable Item extractItem(ItemStack stack, CastingBlockEntity blockEntity) {
         if (stack.isEmpty()) {
+            return null;
+        }
+        ItemStackRenderState itemState = new ItemStackRenderState();
+        // ItemDisplayContext.NONE applies no display transform, so the model arrives centred on the
+        // pose submitItem sets up -- upstream renders the raw baked model for the same reason.
+        Minecraft.getInstance().getItemModelResolver().updateForTopItem(itemState, stack, ItemDisplayContext.NONE,
+                blockEntity.getLevel(), null, (int) blockEntity.getBlockPos().asLong());
+        boolean flat = isFlat(stack);
+        return new Item(itemState, flat, flat ? FLAT_ITEM_THICKNESS : itemScale);
+    }
+
+    private void submitItem(@Nullable Item item, int layer, float inputHeight, PoseStack poseStack,
+            SubmitNodeCollector collector, int packedLight) {
+        if (item == null || item.state().isEmpty()) {
             return;
         }
-        boolean flat = isFlat(stack);
-        float height = flat ? FLAT_ITEM_THICKNESS : itemScale;
-
         poseStack.pushPose();
-        poseStack.translate(0.5f, centerY(height, inputHeight, layer), 0.5f);
-        if (flat) {
+        poseStack.translate(0.5f, centerY(item.height(), inputHeight, layer), 0.5f);
+        if (item.flat()) {
             // After the rotation the model's own depth axis is the block's vertical one, so the
             // third scale is the item's thickness -- squashed to FLAT_ITEM_THICKNESS, see there.
             poseStack.mulPose(Axis.XP.rotationDegrees(-90f));
@@ -183,11 +235,7 @@ public class CastingBlockEntityRenderer implements BlockEntityRenderer<CastingBl
         } else {
             poseStack.scale(itemScale, itemScale, itemScale);
         }
-        // ItemDisplayContext.NONE applies no display transform, so the model arrives centred on the
-        // pose above -- upstream renders the raw baked model for the same reason.
-        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.NONE,
-                packedLight, packedOverlay, poseStack, bufferSource, blockEntity.getLevel(),
-                (int) blockEntity.getBlockPos().asLong());
+        item.state().submit(poseStack, collector, packedLight, OverlayTexture.NO_OVERLAY, 0);
         poseStack.popPose();
     }
 }

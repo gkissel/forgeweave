@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:gems/emerald"
-  },
+  "input": "#c:gems/emerald",
   "fluid": "forgeweave:molten_emerald",
   "amount": 666
 }

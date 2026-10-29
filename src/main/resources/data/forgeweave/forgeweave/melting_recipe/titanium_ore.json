@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ores/titanium"
-  },
+  "input": "#c:ores/titanium",
   "fluid": "forgeweave:molten_titanium",
   "amount": 144,
   "ore": true,
@@ -11,12 +9,12 @@
       "type": "neoforge:or",
       "values": [
         {
-          "type": "neoforge:item_exists",
-          "item": "modern_industrialization:titanium_ingot"
+          "type": "neoforge:registered",
+          "value": "modern_industrialization:titanium_ingot"
         },
         {
-          "type": "neoforge:item_exists",
-          "item": "eternalores:titanium_ingot"
+          "type": "neoforge:registered",
+          "value": "eternalores:titanium_ingot"
         }
       ]
     }

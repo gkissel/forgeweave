@@ -7,9 +7,9 @@ import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -19,8 +19,8 @@ import net.minecraft.world.level.material.Fluid;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.CastingBlockEntity;
@@ -85,7 +85,7 @@ public class ModernMaterialGameTests {
         helper.succeedWhen(() -> {
             helper.assertTrue(table.output().is(ForgeweaveItems.PART_TOOL_HANDLE.get()),
                     "expected a finished tool handle in the output slot, found " + table.output());
-            helper.assertTrue(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "nahuatl")
+            helper.assertTrue(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "nahuatl")
                             .equals(table.output().get(ForgeweaveDataComponents.MATERIAL.get())),
                     "expected the part to come out in nahuatl");
             helper.assertTrue(table.input().isEmpty(), "the wood part is the cast and consumes_cast clears it");
@@ -118,7 +118,7 @@ public class ModernMaterialGameTests {
     @GameTest(template = "empty")
     public static void partBuilderStampsNahuatlPlatingAndMailleFromBoards(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ResourceLocation nahuatl = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "nahuatl");
+        Identifier nahuatl = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "nahuatl");
 
         ItemStack plating = ArmorPartGameTests.craft(helper, player, ForgeweaveItems.PATTERN_PLATING_CHESTPLATE.get(),
                 new ItemStack(ForgeweaveItems.NAHUATL_BOARD.get(), 6));
@@ -148,7 +148,7 @@ public class ModernMaterialGameTests {
 
         helper.runAfterDelay(80, () -> {
             helper.assertTrue(table.input().is(ForgeweaveItems.PART_TOOL_HANDLE.get())
-                            && ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "iron")
+                            && Identifier.fromNamespaceAndPath(Forgeweave.MODID, "iron")
                                     .equals(table.input().get(ForgeweaveDataComponents.MATERIAL.get())),
                     "the iron part must sit untouched in the input slot, found " + table.input());
             helper.assertTrue(table.output().isEmpty(), "and nothing may land in the output slot");
@@ -167,7 +167,7 @@ public class ModernMaterialGameTests {
      */
     @GameTest(template = "empty")
     public static void modernMaterialsExposeTheirTraitWiring(GameTestHelper helper) {
-        Registry<Material> materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
+        Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         // Issue #876 M6 dedupe batch: chorus moved off the shared enderference to its own steelfast
         // id (endstone keeps enderference -- see ProjectileTraitScopeTest/VanillaMaterialGameTests).
         Map<String, String> general = Map.of(
@@ -186,12 +186,12 @@ public class ModernMaterialGameTests {
                 "amethyst_bronze", "crystalstrike", "nahuatl", "venomward");
 
         general.forEach((name, trait) -> {
-            Material material = materials.get(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name));
+            Material material = materials.getValue(Identifier.fromNamespaceAndPath(Forgeweave.MODID, name));
             helper.assertTrue(material != null, name + " should be in the synced material registry");
             for (PartItem.Kind kind : PartItem.Kind.values()) {
                 boolean armorPart = kind == PartItem.Kind.PLATING || kind == PartItem.Kind.MAILLE;
-                List<ResourceLocation> expected = Arrays.stream((armorPart ? armor.getOrDefault(name, trait) : trait).split("\\|"))
-                        .map(id -> ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, id))
+                List<Identifier> expected = Arrays.stream((armorPart ? armor.getOrDefault(name, trait) : trait).split("\\|"))
+                        .map(id -> Identifier.fromNamespaceAndPath(Forgeweave.MODID, id))
                         .toList();
                 helper.assertTrue(expected.equals(material.traits().forPart(kind)),
                         name + " through a " + kind + " part should grant " + expected
@@ -207,7 +207,7 @@ public class ModernMaterialGameTests {
     private static SmelteryControllerBlockEntity smeltery(GameTestHelper helper) {
         SmelteryGameTests.buildWalls(helper, 1, 1, 2);
         BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
-        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
         return core;
     }
@@ -215,16 +215,16 @@ public class ModernMaterialGameTests {
     /** A tank of {@code fluid}, a faucet on its east side pointing back at it, and a casting table below ({@code CastingGameTests#rig}). */
     private static CastingBlockEntity rig(GameTestHelper helper, Fluid fluid) {
         helper.setBlock(TANK, ForgeweaveBlocks.SEARED_TANK.get());
-        helper.<SearedTankBlockEntity>getBlockEntity(TANK).tank()
+        helper.getBlockEntity(TANK, SearedTankBlockEntity.class).tank()
                 .fill(new FluidStack(fluid, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_TABLE.get());
         helper.setBlock(FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
                 .setValue(FaucetBlock.FACING, Direction.WEST));
-        return helper.getBlockEntity(CASTING);
+        return helper.getBlockEntity(CASTING, CastingBlockEntity.class);
     }
 
     private static FaucetBlockEntity faucet(GameTestHelper helper) {
-        return helper.getBlockEntity(FAUCET);
+        return helper.getBlockEntity(FAUCET, FaucetBlockEntity.class);
     }
 
     /** Puts {@code stack} in the casting table the way a player does -- through the real right-click path. */

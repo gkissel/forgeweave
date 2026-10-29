@@ -41,22 +41,18 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:ingots/pink_slime"
-      },
+      "ingredient": "#c:ingots/pink_slime",
       "value": 144
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/pink_slime"
-  },
+  "repair_item": "#c:ingots/pink_slime",
   "cast_only": true,
   "enchantability": 13,
   "color": "#D99BD9",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "industrialforegoing:pink_slime_ingot"
+      "type": "neoforge:registered",
+      "value": "industrialforegoing:pink_slime_ingot"
     }
   ]
 }

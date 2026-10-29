@@ -49,27 +49,19 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "forgeweave:atomic_matter_alloy_ingot"
-      },
+      "ingredient": "forgeweave:atomic_matter_alloy_ingot",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "forgeweave:atomic_matter_alloy_nugget"
-      },
+      "ingredient": "forgeweave:atomic_matter_alloy_nugget",
       "value": 16
     },
     {
-      "ingredient": {
-        "item": "forgeweave:atomic_matter_alloy_block"
-      },
+      "ingredient": "forgeweave:atomic_matter_alloy_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/atomic_matter_alloy"
-  },
+  "repair_item": "#c:ingots/atomic_matter_alloy",
   "cast_only": true,
   "enchantability": 23,
   "color": "#3CA4FC"

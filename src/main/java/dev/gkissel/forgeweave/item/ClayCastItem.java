@@ -1,5 +1,8 @@
 package dev.gkissel.forgeweave.item;
 
+import java.util.function.Consumer;
+import net.minecraft.world.item.component.TooltipDisplay;
+
 import java.util.List;
 
 import net.minecraft.ChatFormatting;
@@ -28,9 +31,10 @@ public class ClayCastItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
-        tooltip.add(Component.translatable("tooltip.forgeweave.clay_cast").withStyle(ChatFormatting.GRAY));
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
+            Consumer<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, tooltip, flag);
+        tooltip.accept(Component.translatable("tooltip.forgeweave.clay_cast").withStyle(ChatFormatting.GRAY));
     }
 
     /** Whether {@code stack} is one of the clay casts (see {@link ForgeweaveItems#CLAY_CASTS}). */

@@ -40,34 +40,26 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:ingots/energetic_alloy"
-      },
+      "ingredient": "#c:ingots/energetic_alloy",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:nuggets/energetic_alloy"
-      },
+      "ingredient": "#c:nuggets/energetic_alloy",
       "value": 16
     },
     {
-      "ingredient": {
-        "tag": "c:storage_blocks/energetic_alloy"
-      },
+      "ingredient": "#c:storage_blocks/energetic_alloy",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/energetic_alloy"
-  },
+  "repair_item": "#c:ingots/energetic_alloy",
   "cast_only": true,
   "enchantability": 14,
   "color": "#E57E34",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "enderio:energetic_alloy_ingot"
+      "type": "neoforge:registered",
+      "value": "enderio:energetic_alloy_ingot"
     }
   ]
 }

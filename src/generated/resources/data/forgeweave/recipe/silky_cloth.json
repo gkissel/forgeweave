@@ -2,12 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "A": {
-      "item": "minecraft:string"
-    },
-    "B": {
-      "item": "minecraft:gold_ingot"
-    }
+    "A": "minecraft:string",
+    "B": "minecraft:gold_ingot"
   },
   "pattern": [
     "AAA",
@@ -15,7 +11,6 @@
     "AAA"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:silky_cloth"
   }
 }

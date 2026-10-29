@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/steel"
-  },
+  "input": "#c:dusts/steel",
   "fluid": "forgeweave:molten_steel",
   "amount": 144
 }

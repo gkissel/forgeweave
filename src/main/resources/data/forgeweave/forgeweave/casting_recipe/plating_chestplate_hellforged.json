@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_plating_chestplate"
-  },
+  "cast": "forgeweave:cast_plating_chestplate",
   "fluid": "forgeweave:molten_hellforged",
   "amount": 864,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "neovitae:ingot_hellforged"
+      "type": "neoforge:registered",
+      "value": "neovitae:ingot_hellforged"
     }
   ]
 }

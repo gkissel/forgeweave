@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:small_dusts/knightslime"
-    }
+    "#c:small_dusts/knightslime"
   ],
   "result": {
     "count": 3,

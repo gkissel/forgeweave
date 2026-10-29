@@ -3,9 +3,9 @@ package dev.gkissel.forgeweave.gametest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
@@ -17,8 +17,8 @@ import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.CastingBlockEntity;
@@ -92,7 +92,7 @@ public class SteelAndTagGatedGameTests {
     @GameTest(template = "smeltery", timeoutTicks = 1600)
     public static void anIronIngotAndACoalMeltAndAlloyIntoOneSteelIngot(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = smeltery(helper);
-        SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS);
+        SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS, SearedTankBlockEntity.class);
         tank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
 
         helper.assertTrue(core.insertForMelting(new ItemStack(Items.IRON_INGOT)).isEmpty(), "expected the iron ingot to go in");
@@ -111,7 +111,7 @@ public class SteelAndTagGatedGameTests {
     public static void steelCastsAnIngotAtTheTable(GameTestHelper helper) {
         CastingBlockEntity table = rig(helper, ForgeweaveFluids.STEEL.still().get());
         insert(helper, table, new ItemStack(ForgeweaveItems.CAST_INGOT.get()));
-        helper.<FaucetBlockEntity>getBlockEntity(FAUCET).activate();
+        helper.getBlockEntity(FAUCET, FaucetBlockEntity.class).activate();
 
         helper.succeedWhen(() -> {
             helper.assertTrue(table.output().is(ForgeweaveItems.INGOT_STEEL.get()),
@@ -144,16 +144,16 @@ public class SteelAndTagGatedGameTests {
     /**
      * Issue #826's negative existence path for the real four: neither {@code mekanism} nor
      * {@code immersiveengineering} is a build dependency (see build.gradle), so every one of
-     * bronze/lead/silver/electrum's {@code neoforge:item_exists}/{@code neoforge:or} conditions
+     * bronze/lead/silver/electrum's {@code neoforge:registered}/{@code neoforge:or} conditions
      * fails here exactly as it would in a Forgeweave-only install -- the material is absent from the
      * registry entirely, not merely present-and-uncraftable the way docs/SCOPE.md M3.2 originally
      * shipped it. An arbitrary item still crafts nothing at the Part Builder either way.
      */
     @GameTest(template = "empty")
     public static void unsuppliedCompatMetalsDoNotExistAtAll(GameTestHelper helper) {
-        Registry<Material> materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
+        Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         for (String name : new String[] {"bronze", "lead", "silver", "electrum"}) {
-            helper.assertTrue(materials.get(materialId(name)) == null,
+            helper.assertTrue(materials.getValue(materialId(name)) == null,
                     "expected the " + name + " material to be absent without its supplying mod, found it registered");
         }
 
@@ -170,15 +170,15 @@ public class SteelAndTagGatedGameTests {
 
     // ------------------------------------------------------------------ helpers
 
-    private static ResourceLocation materialId(String name) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name);
+    private static Identifier materialId(String name) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, name);
     }
 
     /** The 1x1x2 minimum smeltery of {@link SmelteryGameTests} with a Standard Core, formed and empty. */
     private static SmelteryControllerBlockEntity smeltery(GameTestHelper helper) {
         SmelteryGameTests.buildWalls(helper, 1, 1, 2);
         BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
-        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
         return core;
     }
@@ -191,12 +191,12 @@ public class SteelAndTagGatedGameTests {
     /** A tank of {@code fluid}, a faucet on its east side, and a casting table below ({@code M3CastingGameTests#rig}). */
     private static CastingBlockEntity rig(GameTestHelper helper, Fluid fluid) {
         helper.setBlock(TANK, ForgeweaveBlocks.SEARED_TANK.get());
-        helper.<SearedTankBlockEntity>getBlockEntity(TANK).tank()
+        helper.getBlockEntity(TANK, SearedTankBlockEntity.class).tank()
                 .fill(new FluidStack(fluid, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_TABLE.get());
         helper.setBlock(FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
                 .setValue(FaucetBlock.FACING, Direction.WEST));
-        return helper.getBlockEntity(CASTING);
+        return helper.getBlockEntity(CASTING, CastingBlockEntity.class);
     }
 
     /** Puts {@code stack} in the casting table the way a player does -- through the real right-click path. */
@@ -209,7 +209,7 @@ public class SteelAndTagGatedGameTests {
 
     private static PartBuilderMenu openMenu(GameTestHelper helper, BlockPos pos, Player player) {
         helper.setBlock(pos, ForgeweaveBlocks.PART_BUILDER.get());
-        PartBuilderBlockEntity blockEntity = helper.getBlockEntity(pos);
+        PartBuilderBlockEntity blockEntity = helper.getBlockEntity(pos, PartBuilderBlockEntity.class);
         return new PartBuilderMenu(0, player.getInventory(), blockEntity.container(),
                 ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)), blockEntity.findSideInventory());
     }

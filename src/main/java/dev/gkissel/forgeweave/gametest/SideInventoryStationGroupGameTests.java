@@ -3,7 +3,7 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
@@ -12,8 +12,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.CraftingStationBlockEntity;
@@ -46,7 +46,7 @@ public class SideInventoryStationGroupGameTests {
         helper.setBlock(chestPos, ForgeweaveBlocks.PATTERN_CHEST.get());
         helper.setBlock(STATION_POS, ForgeweaveBlocks.CRAFTING_STATION.get());
 
-        CraftingStationBlockEntity blockEntity = helper.getBlockEntity(STATION_POS);
+        CraftingStationBlockEntity blockEntity = helper.getBlockEntity(STATION_POS, CraftingStationBlockEntity.class);
         CraftingStationMenu menu = new CraftingStationMenu(0, player.getInventory(), blockEntity.container(),
                 ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(STATION_POS)), blockEntity.findSideInventory());
 
@@ -64,7 +64,7 @@ public class SideInventoryStationGroupGameTests {
         helper.setBlock(chestPos, ForgeweaveBlocks.PATTERN_CHEST.get());
         helper.setBlock(STATION_POS, ForgeweaveBlocks.TOOL_STATION.get());
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION_POS);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION_POS, ToolStationBlockEntity.class);
         ToolStationMenu menu = new ToolStationMenu(0, player.getInventory(), blockEntity.container(),
                 ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(STATION_POS)),
                 blockEntity.findSideInventory(), blockEntity.isForge());
@@ -82,13 +82,13 @@ public class SideInventoryStationGroupGameTests {
 
         helper.setBlock(chestPos, Blocks.CHEST);
         helper.setBlock(STATION_POS, ForgeweaveBlocks.CRAFTING_STATION.get());
-        if (helper.getBlockEntity(chestPos) instanceof net.minecraft.world.level.block.entity.ChestBlockEntity chest) {
+        if (helper.getBlockEntity(chestPos, net.minecraft.world.level.block.entity.ChestBlockEntity.class) instanceof net.minecraft.world.level.block.entity.ChestBlockEntity chest) {
             chest.setItem(0, new ItemStack(Items.DIAMOND));
         }
 
         ForgeweaveConfig.CRAFTING_STATION_BLACKLIST.set(List.of("minecraft:chest"));
         try {
-            CraftingStationBlockEntity blockEntity = helper.getBlockEntity(STATION_POS);
+            CraftingStationBlockEntity blockEntity = helper.getBlockEntity(STATION_POS, CraftingStationBlockEntity.class);
             CraftingStationMenu menu = new CraftingStationMenu(0, player.getInventory(), blockEntity.container(),
                     ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(STATION_POS)), blockEntity.findSideInventory());
 

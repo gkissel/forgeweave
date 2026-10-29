@@ -1,6 +1,4 @@
 {
   "kind": "sort",
-  "input": {
-    "item": "minecraft:compass"
-  }
+  "input": "minecraft:compass"
 }

@@ -48,22 +48,18 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "mysticalagriculture:tertium_ingot"
-      },
+      "ingredient": "mysticalagriculture:tertium_ingot",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "mysticalagriculture:tertium_ingot"
-  },
+  "repair_item": "mysticalagriculture:tertium_ingot",
   "cast_only": true,
   "enchantability": 14,
   "color": "#D84800",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mysticalagriculture:tertium_ingot"
+      "type": "neoforge:registered",
+      "value": "mysticalagriculture:tertium_ingot"
     }
   ]
 }

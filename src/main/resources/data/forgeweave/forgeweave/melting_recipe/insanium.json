@@ -1,14 +1,12 @@
 {
-  "input": {
-    "item": "mysticalagradditions:insanium_ingot"
-  },
+  "input": "mysticalagradditions:insanium_ingot",
   "fluid": "forgeweave:molten_insanium",
   "amount": 144,
   "temperature": 2000,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mysticalagradditions:insanium_ingot"
+      "type": "neoforge:registered",
+      "value": "mysticalagradditions:insanium_ingot"
     }
   ]
 }

@@ -22,9 +22,10 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.ModifierBehaviors;
 import dev.gkissel.forgeweave.modifier.ModifierDefinition;
@@ -39,15 +40,15 @@ class ModifierRegistryTest {
 
     private static RegistryOps<JsonElement> ops;
 
-    private static final ResourceLocation ADDON = ResourceLocation.fromNamespaceAndPath("testaddon", "sturdy");
-    private static final ResourceLocation ADDON_BEHAVIOR =
-            ResourceLocation.fromNamespaceAndPath("testaddon", "flat_slots");
+    private static final Identifier ADDON = Identifier.fromNamespaceAndPath("testaddon", "sturdy");
+    private static final Identifier ADDON_BEHAVIOR =
+            Identifier.fromNamespaceAndPath("testaddon", "flat_slots");
 
     @BeforeAll
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(JsonOps.INSTANCE);
     }
 
     /**
@@ -93,7 +94,7 @@ class ModifierRegistryTest {
     /** The one collision that does not throw: the built-in behavior keeps the id. */
     @Test
     void aBuiltInIdWins() {
-        ResourceLocation builtIn = ResourceLocation.fromNamespaceAndPath("forgeweave", "reinforced");
+        Identifier builtIn = Identifier.fromNamespaceAndPath("forgeweave", "reinforced");
         Modifier shipped = ForgeweaveModifiers.get(builtIn);
         assertNotNull(shipped, "forgeweave:reinforced should be a built-in modifier");
 

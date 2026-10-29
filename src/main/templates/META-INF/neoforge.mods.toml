@@ -59,7 +59,7 @@ Forgeweave brings modular tool building, material traits, modifiers, melting, al
 [[dependencies.${mod_id}]]
     modId="jei"
     type="optional"
-    versionRange="[19,)"
+    versionRange="[29,)"
     ordering="AFTER"
     side="CLIENT"
 
@@ -94,7 +94,7 @@ Forgeweave brings modular tool building, material traits, modifiers, melting, al
 [[dependencies.${mod_id}]]
     modId="kubejs"
     type="optional"
-    versionRange="[2101.7,)"
+    versionRange="[26.1.2-8.0.0,)"
     ordering="NONE"
     side="BOTH"
 
@@ -104,7 +104,7 @@ Forgeweave brings modular tool building, material traits, modifiers, melting, al
 [[dependencies.${mod_id}]]
     modId="darkmodeeverywhere"
     type="optional"
-    versionRange="[1.21,1.22)"
+    versionRange="[26.1,26.2)"
     ordering="AFTER"
     side="CLIENT"
 
@@ -116,7 +116,7 @@ Forgeweave brings modular tool building, material traits, modifiers, melting, al
 [[dependencies.${mod_id}]]
     modId="jade"
     type="optional"
-    versionRange="[15,)"
+    versionRange="[26,)"
     ordering="AFTER"
     side="CLIENT"
 
@@ -127,7 +127,7 @@ Forgeweave brings modular tool building, material traits, modifiers, melting, al
 [[dependencies.${mod_id}]]
     modId="wthit"
     type="optional"
-    versionRange="[12,)"
+    versionRange="[19,)"
     ordering="AFTER"
     side="CLIENT"
 
@@ -161,7 +161,7 @@ Forgeweave brings modular tool building, material traits, modifiers, melting, al
 [[dependencies.${mod_id}]]
     modId="apotheosis"
     type="optional"
-    versionRange="[8.7.0,)"
+    versionRange="[9.1.0,)"
 # Create compat (issue #1007, docs/SCOPE.md M8) is optional: without it the mod is unchanged and
 # modifier_recipe/goggles.json is dropped by its own `neoforge:conditions` mod_loaded gate. With it, a
 # helmet can take the `goggles` modifier so it counts as wearing Create's own Engineer's Goggles for
@@ -187,7 +187,7 @@ Forgeweave brings modular tool building, material traits, modifiers, melting, al
 [[dependencies.${mod_id}]]
     modId="occultism"
     type="optional"
-    versionRange="[1.205.0,)"
+    versionRange="[1.256.1,)"
     ordering="AFTER"
     side="BOTH"
 
@@ -214,7 +214,7 @@ Forgeweave brings modular tool building, material traits, modifiers, melting, al
     side="BOTH"
 
 # Mystical Agriculture compat (issue #999, docs/SCOPE.md D-M8-20) is optional: without it the mod is
-# unchanged, the material presets are dropped by their own `neoforge:conditions` item_exists gate, and
+# unchanged, the material presets are dropped by their own `neoforge:conditions` registered gate, and
 # nothing registers a crop. With it, the Track B ores and brimspar get resource crops and Forgeweave
 # gear is accepted by Mystical Agriculture's Tinkering Table
 # (dev.gkissel.forgeweave.compat.mysticalagriculture). Cucumber is Mystical Agriculture's own required
@@ -227,6 +227,6 @@ Forgeweave brings modular tool building, material traits, modifiers, melting, al
 [[dependencies.${mod_id}]]
     modId="mysticalagriculture"
     type="optional"
-    versionRange="[8.0.28,)"
+    versionRange="[9.0.11,)"
     ordering="BEFORE"
     side="BOTH"

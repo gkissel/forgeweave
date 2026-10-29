@@ -6,7 +6,7 @@ import java.util.concurrent.CompletableFuture;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
@@ -15,7 +15,6 @@ import net.minecraft.world.level.block.SoundType;
 
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.BlockTagsProvider;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -47,8 +46,8 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
     /** Every vanilla sound type a wooden block uses, so the axe sweep below needs no per-block list. */
     private static final Set<SoundType> WOOD_SOUNDS = Set.of(SoundType.WOOD, SoundType.BAMBOO_WOOD,
             SoundType.CHERRY_WOOD, SoundType.NETHER_WOOD, SoundType.HANGING_SIGN, SoundType.LADDER);
-    public ForgeweaveBlockTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider, ExistingFileHelper existingFileHelper) {
-        super(output, lookupProvider, Forgeweave.MODID, existingFileHelper);
+    public ForgeweaveBlockTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider) {
+        super(output, lookupProvider, Forgeweave.MODID);
     }
 
     @Override
@@ -346,6 +345,6 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
     }
 
     private static TagKey<Block> cTag(String path) {
-        return TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath("c", path));
+        return TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath("c", path));
     }
 }

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/murkiron"
-  },
+  "input": "#c:small_dusts/murkiron",
   "fluid": "forgeweave:molten_murkiron",
   "amount": 48
 }

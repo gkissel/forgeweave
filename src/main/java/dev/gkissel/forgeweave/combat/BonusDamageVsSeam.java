@@ -32,6 +32,6 @@ public final class BonusDamageVsSeam implements CombatSeam {
 
     @Override
     public float preHit(CombatHit hit, float originalDamage, float damage) {
-        return hit.target().getType().is(targetTag) ? damage + bonusDamage : damage;
+        return hit.target().is(targetTag) ? damage + bonusDamage : damage;
     }
 }

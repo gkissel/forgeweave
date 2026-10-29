@@ -49,34 +49,26 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:ingots/end_steel"
-      },
+      "ingredient": "#c:ingots/end_steel",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:nuggets/end_steel"
-      },
+      "ingredient": "#c:nuggets/end_steel",
       "value": 16
     },
     {
-      "ingredient": {
-        "tag": "c:storage_blocks/end_steel"
-      },
+      "ingredient": "#c:storage_blocks/end_steel",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/end_steel"
-  },
+  "repair_item": "#c:ingots/end_steel",
   "cast_only": true,
   "enchantability": 19,
   "color": "#B1B48A",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "enderio:end_steel_ingot"
+      "type": "neoforge:registered",
+      "value": "enderio:end_steel_ingot"
     }
   ]
 }

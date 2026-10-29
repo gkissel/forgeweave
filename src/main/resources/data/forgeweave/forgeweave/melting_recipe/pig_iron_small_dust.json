@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/pig_iron"
-  },
+  "input": "#c:small_dusts/pig_iron",
   "fluid": "forgeweave:molten_pig_iron",
   "amount": 48
 }

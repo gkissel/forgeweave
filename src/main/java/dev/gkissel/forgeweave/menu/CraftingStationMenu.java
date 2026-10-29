@@ -8,6 +8,7 @@ import javax.annotation.Nullable;
 
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -129,12 +130,17 @@ public class CraftingStationMenu extends StationMenu {
             return; // client: the server pushes slot contents down instead of computing locally.
         }
         access.execute((level, pos) -> slots.get(OUTPUT_SLOT).set(resolve(level)
-                .map(recipe -> recipe.value().assemble(craftingInput(), level.registryAccess()))
+                .map(recipe -> recipe.value().assemble(craftingInput()))
                 .orElse(ItemStack.EMPTY)));
     }
 
     private Optional<RecipeHolder<CraftingRecipe>> resolve(Level level) {
-        return level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, craftingInput(), level);
+        return resolve(level, craftingInput());
+    }
+
+    /** Server-only since 26.1: only {@link ServerLevel} still carries the recipe manager. */
+    private static Optional<RecipeHolder<CraftingRecipe>> resolve(Level level, CraftingInput input) {
+        return ((ServerLevel) level).recipeAccess().getRecipeFor(RecipeType.CRAFTING, input, level);
     }
 
     private CraftingInput craftingInput() {
@@ -231,7 +237,9 @@ public class CraftingStationMenu extends StationMenu {
                 CraftingInput input = positioned.input();
                 int left = positioned.left();
                 int top = positioned.top();
-                NonNullList<ItemStack> remaining = level.getRecipeManager().getRemainingItemsFor(RecipeType.CRAFTING, input, level);
+                NonNullList<ItemStack> remaining = resolve(level, input)
+                        .map(recipe -> recipe.value().getRemainingItems(input))
+                        .orElseGet(() -> NonNullList.of(ItemStack.EMPTY, input.items().toArray(ItemStack[]::new)));
 
                 for (int row = 0; row < input.height(); row++) {
                     for (int col = 0; col < input.width(); col++) {

@@ -1,8 +1,6 @@
 {
   "modifier": "forgeweave:blast_protection",
-  "reagent": {
-    "item": "minecraft:crying_obsidian"
-  },
+  "reagent": "minecraft:crying_obsidian",
   "cost": 1,
   "max_level": 40
 }

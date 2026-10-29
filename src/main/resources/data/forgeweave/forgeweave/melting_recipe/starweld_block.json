@@ -1,14 +1,12 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/starweld"
-  },
+  "input": "#c:storage_blocks/starweld",
   "fluid": "forgeweave:molten_starweld",
   "amount": 1296,
   "temperature": 2000,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "draconicevolution:awakened_core"
+      "type": "neoforge:registered",
+      "value": "draconicevolution:awakened_core"
     }
   ]
 }

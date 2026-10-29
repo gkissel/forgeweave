@@ -3,6 +3,7 @@ package dev.gkissel.forgeweave.block;
 import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Explosion;
@@ -99,7 +100,7 @@ public class UnstableOreBlock extends Block {
     }
 
     @Override
-    public void wasExploded(Level level, BlockPos pos, Explosion explosion) {
+    public void wasExploded(ServerLevel level, BlockPos pos, Explosion explosion) {
         if (!level.isClientSide() && rolls(level).nextFloat() < chainBlastChance) {
             detonate(level, pos);
         }

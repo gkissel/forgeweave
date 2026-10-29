@@ -21,7 +21,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.RandomSource;
@@ -29,6 +29,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.Tool;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -49,7 +50,7 @@ class ModifierBatch1Test {
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(JsonOps.INSTANCE);
     }
 
     // ------------------------------------------------------------------ sharpness (quartz)
@@ -113,8 +114,8 @@ class ModifierBatch1Test {
         ItemStack tool = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
         tool.set(ForgeweaveDataComponents.TOOL_STATS.get(), base);
         tool.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "diamond"), 1),
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "sharpness"), 1)));
+                new ModifierEntry(Identifier.fromNamespaceAndPath("forgeweave", "diamond"), 1),
+                new ModifierEntry(Identifier.fromNamespaceAndPath("forgeweave", "sharpness"), 1)));
 
         ToolStats.Stats effective = ForgeweaveModifiers.effectiveStats(tool);
 
@@ -230,7 +231,7 @@ class ModifierBatch1Test {
 
     // ------------------------------------------------------------------ luck's growth-on-use (issue #296)
 
-    private static final ResourceLocation LUCK_ID = ResourceLocation.fromNamespaceAndPath("forgeweave", "luck");
+    private static final Identifier LUCK_ID = Identifier.fromNamespaceAndPath("forgeweave", "luck");
 
     /**
      * The seed for a roll that must land -- found by brute-force search rather than hand-computed, so
@@ -395,8 +396,8 @@ class ModifierBatch1Test {
      */
     @Test
     void foldTierIndexAgreesRegardlessOfWhichOrderTheEntriesListHasDiamondAndEmeraldIn() {
-        ResourceLocation diamondId = ResourceLocation.fromNamespaceAndPath("forgeweave", "diamond");
-        ResourceLocation emeraldId = ResourceLocation.fromNamespaceAndPath("forgeweave", "emerald");
+        Identifier diamondId = Identifier.fromNamespaceAndPath("forgeweave", "diamond");
+        Identifier emeraldId = Identifier.fromNamespaceAndPath("forgeweave", "emerald");
         List<ModifierEntry> diamondThenEmerald =
                 List.of(new ModifierEntry(diamondId, 1), new ModifierEntry(emeraldId, 1));
         List<ModifierEntry> emeraldThenDiamond =
@@ -431,9 +432,9 @@ class ModifierBatch1Test {
         stack.set(DataComponents.MAX_DAMAGE, PICKAXE_STATS.durability());
         stack.set(DataComponents.DAMAGE, 0);
         stack.set(DataComponents.TOOL, new Tool(
-                List.of(Tool.Rule.deniesDrops(BlockTags.INCORRECT_FOR_WOODEN_TOOL),
-                        Tool.Rule.minesAndDrops(BlockTags.MINEABLE_WITH_PICKAXE, PICKAXE_STATS.miningSpeed())),
-                1.0F, 1));
+                List.of(Tool.Rule.deniesDrops(BuiltInRegistries.BLOCK.getOrThrow(BlockTags.INCORRECT_FOR_WOODEN_TOOL)),
+                        Tool.Rule.minesAndDrops(BuiltInRegistries.BLOCK.getOrThrow(BlockTags.MINEABLE_WITH_PICKAXE), PICKAXE_STATS.miningSpeed())),
+                1.0F, 1, true));
         return stack;
     }
 

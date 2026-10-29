@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_tough_binding"
-  },
+  "cast": "forgeweave:cast_tough_binding",
   "fluid": "forgeweave:molten_starweld",
   "amount": 432,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "draconicevolution:awakened_core"
+      "type": "neoforge:registered",
+      "value": "draconicevolution:awakened_core"
     }
   ]
 }

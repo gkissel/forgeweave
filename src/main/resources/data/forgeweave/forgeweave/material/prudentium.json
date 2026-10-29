@@ -48,22 +48,18 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "mysticalagriculture:prudentium_ingot"
-      },
+      "ingredient": "mysticalagriculture:prudentium_ingot",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "mysticalagriculture:prudentium_ingot"
-  },
+  "repair_item": "mysticalagriculture:prudentium_ingot",
   "cast_only": true,
   "enchantability": 12,
   "color": "#00AD1A",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mysticalagriculture:prudentium_ingot"
+      "type": "neoforge:registered",
+      "value": "mysticalagriculture:prudentium_ingot"
     }
   ]
 }

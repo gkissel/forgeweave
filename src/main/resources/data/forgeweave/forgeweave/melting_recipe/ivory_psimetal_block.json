@@ -1,14 +1,12 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/ivory_psimetal"
-  },
+  "input": "#c:storage_blocks/ivory_psimetal",
   "fluid": "forgeweave:molten_ivory_psimetal",
   "amount": 1296,
   "temperature": 1400,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "psi:ivory_psimetal"
+      "type": "neoforge:registered",
+      "value": "psi:ivory_psimetal"
     }
   ]
 }

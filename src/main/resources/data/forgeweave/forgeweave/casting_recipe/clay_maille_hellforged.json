@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_maille"
-  },
+  "cast": "forgeweave:clay_cast_maille",
   "fluid": "forgeweave:molten_hellforged",
   "amount": 288,
   "result": {
@@ -14,8 +12,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "neovitae:ingot_hellforged"
+      "type": "neoforge:registered",
+      "value": "neovitae:ingot_hellforged"
     }
   ]
 }

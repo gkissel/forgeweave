@@ -4,14 +4,14 @@ import java.util.List;
 import java.util.Optional;
 
 import net.minecraft.core.Registry;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.compat.occultism.ForgeweaveOccultismCompat;
@@ -49,16 +49,16 @@ public class OccultismGameTests {
     private static Optional<ItemStack> bind(GameTestHelper helper, ForgeweaveOccultismCompat.Ritual ritual,
             ItemStack tool) {
         return ForgeweaveOccultismCompat.bind(helper.getLevel().registryAccess(), tool,
-                ResourceLocation.parse(ritual.modifier()), ritual.level());
+                Identifier.parse(ritual.modifier()), ritual.level());
     }
 
     // ------------------------------------------------------------ absent without Occultism
 
     @GameTest(template = "empty")
     public static void theSpiritAttunedGemPresetDoesNotExistAtAll(GameTestHelper helper) {
-        Registry<Material> materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
+        Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         helper.assertTrue(
-                materials.get(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "spirit_attuned_gem")) == null,
+                materials.getValue(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "spirit_attuned_gem")) == null,
                 "expected the spirit_attuned_gem material to be absent without Occultism, found it registered");
         helper.succeed();
     }
@@ -71,11 +71,11 @@ public class OccultismGameTests {
      */
     @GameTest(template = "empty")
     public static void noOccultismTypedRecipeLoadedOnAServerWithoutIt(GameTestHelper helper) {
-        for (ResourceLocation id : List.of(
-                ResourceLocation.fromNamespaceAndPath(ForgeweaveOccultismCompat.MODID, "crushing"),
-                ResourceLocation.fromNamespaceAndPath(ForgeweaveOccultismCompat.MODID, "miner"),
-                ResourceLocation.fromNamespaceAndPath(ForgeweaveOccultismCompat.MODID, "ritual"))) {
-            helper.assertTrue(net.minecraft.core.registries.BuiltInRegistries.RECIPE_TYPE.get(id) == null,
+        for (Identifier id : List.of(
+                Identifier.fromNamespaceAndPath(ForgeweaveOccultismCompat.MODID, "crushing"),
+                Identifier.fromNamespaceAndPath(ForgeweaveOccultismCompat.MODID, "miner"),
+                Identifier.fromNamespaceAndPath(ForgeweaveOccultismCompat.MODID, "ritual"))) {
+            helper.assertTrue(net.minecraft.core.registries.BuiltInRegistries.RECIPE_TYPE.getValue(id) == null,
                     "Occultism is absent, so " + id + " must not be a registered recipe type -- if it is,"
                             + " this test is no longer proving anything");
         }
@@ -86,8 +86,8 @@ public class OccultismGameTests {
     @GameTest(template = "empty")
     public static void noRitualFactoryIsRegisteredWithoutOccultism(GameTestHelper helper) {
         helper.assertTrue(helper.getLevel().registryAccess()
-                        .registry(net.minecraft.resources.ResourceKey.createRegistryKey(
-                                ResourceLocation.fromNamespaceAndPath(
+                        .lookup(net.minecraft.resources.ResourceKey.createRegistryKey(
+                                Identifier.fromNamespaceAndPath(
                                         ForgeweaveOccultismCompat.MODID, "ritual_factories")))
                         .isEmpty(),
                 "occultism:ritual_factories must not exist without Occultism; ForgeweaveOccultismCompat"
@@ -105,7 +105,7 @@ public class OccultismGameTests {
     @GameTest(template = "empty")
     public static void everyRitualBindsItsModifierAndSpendsItsSlots(GameTestHelper helper) {
         for (ForgeweaveOccultismCompat.Ritual ritual : ForgeweaveOccultismCompat.RITUALS) {
-            ResourceLocation modifier = ResourceLocation.parse(ritual.modifier());
+            Identifier modifier = Identifier.parse(ritual.modifier());
             ItemStack tool = pickaxe();
             int before = ForgeweaveModifiers.freeSlots(tool);
 
@@ -175,7 +175,7 @@ public class OccultismGameTests {
     @GameTest(template = "empty")
     public static void occultismRitualsOffRefusesNewBindingsAndLeavesOldOnesWorking(GameTestHelper helper) {
         ForgeweaveOccultismCompat.Ritual ritual = ForgeweaveOccultismCompat.RITUALS.getFirst();
-        ResourceLocation modifier = ResourceLocation.parse(ritual.modifier());
+        Identifier modifier = Identifier.parse(ritual.modifier());
         ItemStack bound = bind(helper, ritual, pickaxe()).orElseThrow();
         int slotsWhileOn = ForgeweaveModifiers.freeSlots(bound);
 

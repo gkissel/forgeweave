@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_broad_axe_head"
-  },
+  "cast": "forgeweave:cast_broad_axe_head",
   "fluid": "forgeweave:molten_uraninite",
   "amount": 1152,
   "result": {
@@ -16,12 +14,12 @@
       "type": "neoforge:or",
       "values": [
         {
-          "type": "neoforge:item_exists",
-          "item": "powah:uraninite_raw"
+          "type": "neoforge:registered",
+          "value": "powah:uraninite_raw"
         },
         {
-          "type": "neoforge:item_exists",
-          "item": "eternalores:uraninite_ingot"
+          "type": "neoforge:registered",
+          "value": "eternalores:uraninite_ingot"
         }
       ]
     }

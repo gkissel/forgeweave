@@ -2,16 +2,13 @@
   "type": "minecraft:crafting_shaped",
   "category": "building",
   "key": {
-    "A": {
-      "item": "forgeweave:seared_brick"
-    }
+    "A": "forgeweave:seared_brick"
   },
   "pattern": [
     "AA",
     "AA"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:seared_bricks"
   }
 }

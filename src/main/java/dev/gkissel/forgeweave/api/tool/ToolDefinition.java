@@ -3,7 +3,7 @@ package dev.gkissel.forgeweave.api.tool;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 
@@ -50,7 +50,7 @@ import net.minecraft.world.level.block.Block;
  * @param miningSpeedModifier multiplier on the head material's mining speed
  */
 public record ToolDefinition(
-        ResourceLocation id,
+        Identifier id,
         ToolFamily family,
         List<PartSlot> parts,
         List<TagKey<Block>> mineableBlocks,
@@ -69,8 +69,8 @@ public record ToolDefinition(
      * @param weight how far this slot counts in the head average; only a tool with more than one
      *     head-reading slot has any use for a value other than {@code 1}
      */
-    public record PartSlot(PartRole role, ResourceLocation partId, float weight) {
-        public PartSlot(PartRole role, ResourceLocation partId) {
+    public record PartSlot(PartRole role, Identifier partId, float weight) {
+        public PartSlot(PartRole role, Identifier partId) {
             this(role, partId, 1.0f);
         }
     }
@@ -83,13 +83,13 @@ public record ToolDefinition(
         }
     }
 
-    public static Builder builder(ResourceLocation id, ToolFamily family) {
+    public static Builder builder(Identifier id, ToolFamily family) {
         return new Builder(id, family);
     }
 
     /** Collects a {@link ToolDefinition}; every number starts at the value that changes nothing. */
     public static final class Builder {
-        private final ResourceLocation id;
+        private final Identifier id;
         private final ToolFamily family;
         private final List<PartSlot> parts = new ArrayList<>();
         private final List<TagKey<Block>> mineableBlocks = new ArrayList<>();
@@ -100,16 +100,16 @@ public record ToolDefinition(
         private float durabilityMultiplier = 1.0f;
         private float miningSpeedModifier = 1.0f;
 
-        private Builder(ResourceLocation id, ToolFamily family) {
+        private Builder(Identifier id, ToolFamily family) {
             this.id = id;
             this.family = family;
         }
 
-        public Builder part(PartRole role, ResourceLocation partId) {
+        public Builder part(PartRole role, Identifier partId) {
             return part(role, partId, 1.0f);
         }
 
-        public Builder part(PartRole role, ResourceLocation partId, float weight) {
+        public Builder part(PartRole role, Identifier partId, float weight) {
             parts.add(new PartSlot(role, partId, weight));
             return this;
         }

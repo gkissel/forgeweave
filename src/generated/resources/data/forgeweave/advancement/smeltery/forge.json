@@ -17,7 +17,6 @@
       "translate": "advancements.forgeweave.forge.description"
     },
     "icon": {
-      "count": 1,
       "id": "forgeweave:tool_forge"
     },
     "title": {

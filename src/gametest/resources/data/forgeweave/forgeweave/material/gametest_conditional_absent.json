@@ -14,11 +14,9 @@
     "general": ["forgeweave:ecological"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:diamond" }, "value": 144 }
+    { "ingredient": "minecraft:diamond", "value": 144 }
   ],
-  "repair_item": {
-    "item": "minecraft:diamond"
-  },
+  "repair_item": "minecraft:diamond",
   "color": "#8E661B",
   "neoforge:conditions": [
     { "type": "neoforge:mod_loaded", "modid": "forgeweave_gametest_nonexistent_mod" }

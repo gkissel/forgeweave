@@ -10,11 +10,9 @@
     ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:feather" }, "value": 144 }
+    { "ingredient": "minecraft:feather", "value": 144 }
   ],
-  "repair_item": {
-    "item": "minecraft:feather"
-  },
+  "repair_item": "minecraft:feather",
   "enchantability": 15,
   "color": "#EEEEEE"
 }

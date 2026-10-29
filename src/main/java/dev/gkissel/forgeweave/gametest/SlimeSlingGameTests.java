@@ -1,7 +1,7 @@
 package dev.gkissel.forgeweave.gametest;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -11,8 +11,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -55,7 +55,7 @@ public class SlimeSlingGameTests {
     private static ItemStack fling(GameTestHelper helper, Player player, double standY, float xRot,
             boolean onGround, int ticks) {
         Vec3 stand = helper.absoluteVec(new Vec3(0.5, standY, 0.5));
-        player.moveTo(stand.x, stand.y, stand.z, 0.0F, xRot);
+        player.snapTo(stand.x, stand.y, stand.z, 0.0F, xRot);
         player.setOnGround(onGround);
         player.setDeltaMovement(Vec3.ZERO);
         player.hurtMarked = false;

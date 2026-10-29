@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/glowveil"
-  },
+  "input": "#c:ingots/glowveil",
   "fluid": "forgeweave:molten_glowveil",
   "amount": 144,
   "temperature": 1400

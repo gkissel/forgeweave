@@ -5,10 +5,10 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
@@ -16,18 +16,19 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.animal.Pig;
-import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.animal.pig.Pig;
+import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -121,10 +122,10 @@ public class SignatureTraitGameTests {
     /** Checklist lines 77 and 79: hollowstone tools carry veinseeker; faultsteel armor carries backlash. */
     @GameTest(template = "empty")
     public static void hollowstoneCarriesVeinseekerAndFaultsteelBacklash(GameTestHelper helper) {
-        var materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
-        Material hollowstone = materials.getOrThrow(net.minecraft.resources.ResourceKey.create(Material.REGISTRY,
+        var materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
+        Material hollowstone = materials.getValueOrThrow(net.minecraft.resources.ResourceKey.create(Material.REGISTRY,
                 id("hollowstone")));
-        Material faultsteel = materials.getOrThrow(net.minecraft.resources.ResourceKey.create(Material.REGISTRY,
+        Material faultsteel = materials.getValueOrThrow(net.minecraft.resources.ResourceKey.create(Material.REGISTRY,
                 id("faultsteel")));
         helper.assertTrue(hollowstone.traits().general().contains(id("veinseeker")),
                 "hollowstone must carry veinseeker, got " + hollowstone.traits().general());
@@ -366,13 +367,13 @@ public class SignatureTraitGameTests {
         player.setItemInHand(InteractionHand.MAIN_HAND, pickaxe(List.of(id("sunforged"))));
         helper.assertTrue(!level.isRaining(), "test assumes a clear sky");
 
-        level.setDayTime(NOON);
+        GameTestCompat.setDayTime(level, NOON);
         level.updateSkyBrightness();
         helper.assertTrue(level.canSeeSky(player.blockPosition()), "test assumes open sky above the player");
         float sunlit = speed(helper, player, pos);
         helper.assertTrue(Math.abs(sunlit - 2.8F) < 0.001F, "expected 2 + 40% = 2.8 in the sun, got " + sunlit);
 
-        level.setDayTime(MIDNIGHT);
+        GameTestCompat.setDayTime(level, MIDNIGHT);
         level.updateSkyBrightness();
         float dark = speed(helper, player, pos);
         helper.assertTrue(Math.abs(dark - 1.8F) < 0.001F, "expected 2 - 10% = 1.8 out of the sun, got " + dark);
@@ -390,7 +391,7 @@ public class SignatureTraitGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack bow = ToolAssembly.assemble(helper, player, STATION,
                 ToolAssembly.entryFor(ForgeweaveItems.TOOL_SHORTBOW.get()), List.of("wood", "wood", "string"));
-        List<ResourceLocation> traits = bow.get(ForgeweaveDataComponents.TRAITS.get());
+        List<Identifier> traits = bow.get(ForgeweaveDataComponents.TRAITS.get());
         helper.assertTrue(traits != null && traits.contains(id("truestring")),
                 "a string bowstring must put truestring on the bow, got " + traits);
 
@@ -470,9 +471,16 @@ public class SignatureTraitGameTests {
         player.hurt(source, amount);
     }
 
-    /** A survival mock player wearing an iron chestplate whose trait list is exactly {@code traits}. */
+    /**
+     * A survival mock player wearing an iron chestplate whose trait list is exactly {@code traits}.
+     * Stood inside the test: the mock player starts at the world origin, which 26.1 runs its tests
+     * nowhere near, so the zombies {@link #bystander} places beside it would sit in unloaded chunks
+     * no entity search reaches.
+     */
     private static Player wearing(GameTestHelper helper, String... traits) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        Vec3 stand = helper.absoluteVec(new Vec3(2.5, 2.0, 2.5));
+        player.setPos(stand.x, stand.y, stand.z);
         ItemStack piece = ToolAssembly.assembleAt(helper, player, STATION, ForgeweaveBlocks.TOOL_STATION.get(),
                 ToolAssembly.entryOf(ToolConstants.CHESTPLATE), List.of("iron", "iron"));
         piece.set(ForgeweaveDataComponents.TRAITS.get(),
@@ -492,14 +500,14 @@ public class SignatureTraitGameTests {
     }
 
     /** A pickaxe carrying exactly {@code traits}, diamond-tier so iron ore is a legal target. */
-    private static ItemStack pickaxe(List<ResourceLocation> traits) {
+    private static ItemStack pickaxe(List<Identifier> traits) {
         ToolItem toolItem = ForgeweaveItems.TOOL_PICKAXE.get();
         ToolStats.Stats stats = new ToolStats.Stats(1000, 2.0F, 1.0F);
         Material head = new Material(
                 new Material.Head(1000, 2.0F, 1.0F),
                 new Material.Handle(1.0F, 0),
                 0,
-                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_netherite_tool")),
+                TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace("incorrect_for_netherite_tool")),
                 new Material.Traits(List.of(), List.of()),
                 List.of(),
                 Ingredient.of(Items.STICK),
@@ -514,8 +522,8 @@ public class SignatureTraitGameTests {
         return stack;
     }
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
     private SignatureTraitGameTests() {}

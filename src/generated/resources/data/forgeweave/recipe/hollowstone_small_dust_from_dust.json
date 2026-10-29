@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:dusts/hollowstone"
-    }
+    "#c:dusts/hollowstone"
   ],
   "result": {
     "count": 3,

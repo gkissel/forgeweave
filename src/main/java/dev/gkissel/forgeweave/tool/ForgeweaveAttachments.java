@@ -21,7 +21,7 @@ public final class ForgeweaveAttachments {
      */
     public static final Supplier<AttachmentType<DamageXpLedger>> DAMAGE_XP =
             ATTACHMENT_TYPES.register("damage_xp", () -> AttachmentType.builder(DamageXpLedger::new)
-                    .serialize(DamageXpLedger.CODEC, ledger -> !ledger.isEmpty())
+                    .serialize(DamageXpLedger.MAP_CODEC, ledger -> !ledger.isEmpty())
                     .build());
 
     private ForgeweaveAttachments() {}

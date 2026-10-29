@@ -1,12 +1,12 @@
 package dev.gkissel.forgeweave.gametest;
 
 import net.minecraft.core.Registry;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.material.Material;
@@ -29,7 +29,7 @@ import dev.gkissel.forgeweave.material.Material;
  * codec-level proof.
  *
  * <p>None of {@code projecte}, {@code avaritia}, {@code refinedstorage} or {@code powah} is a
- * build/test dependency (see build.gradle), so every material's {@code neoforge:item_exists}
+ * build/test dependency (see build.gradle), so every material's {@code neoforge:registered}
  * condition fails in this GameTest server exactly as it would in a Forgeweave-only install, the same
  * negative-existence proof every earlier Track A batch's own GameTest class gives. The positive
  * existence path is generic infrastructure already covered by {@code ConditionalMaterialGameTests}.
@@ -60,16 +60,16 @@ public class RecoveryBatchGameTests {
 
     @GameTest(template = "empty")
     public static void unsuppliedRecoveryBatchMaterialsDoNotExistAtAll(GameTestHelper helper) {
-        Registry<Material> materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
+        Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         for (String name : RECOVERY_BATCH_MATERIALS) {
-            helper.assertTrue(materials.get(materialId(name)) == null,
+            helper.assertTrue(materials.getValue(materialId(name)) == null,
                     "expected the " + name + " material to be absent without its supplying mod, found it registered");
         }
         helper.succeed();
     }
 
-    private static ResourceLocation materialId(String name) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name);
+    private static Identifier materialId(String name) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, name);
     }
 
     private RecoveryBatchGameTests() {}

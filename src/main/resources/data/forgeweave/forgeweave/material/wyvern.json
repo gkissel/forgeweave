@@ -50,21 +50,17 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "draconicevolution:wyvern_core"
-      },
+      "ingredient": "draconicevolution:wyvern_core",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "draconicevolution:wyvern_core"
-  },
+  "repair_item": "draconicevolution:wyvern_core",
   "enchantability": 16,
   "color": "#75428D",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "draconicevolution:wyvern_core"
+      "type": "neoforge:registered",
+      "value": "draconicevolution:wyvern_core"
     }
   ]
 }

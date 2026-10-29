@@ -1,11 +1,9 @@
 {
-  "input": {
-    "item": "minecraft:shulker_shell"
-  },
+  "input": "minecraft:shulker_shell",
   "fluid": "forgeweave:molten_draconium_awakened",
   "amount": 144,
   "temperature": 1800,
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "minecraft:diamond" }
+    { "type": "neoforge:registered", "value": "minecraft:diamond" }
   ]
 }

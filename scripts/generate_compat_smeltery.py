@@ -9,7 +9,7 @@ and, for compat metals only, a concrete-item-id fix on the ingot casting row (se
 Casting scope note (disclosed, not silent): a compat metal's tool-part casting rows (68 of the 73
 template files -- pickaxe head, sword blade, plating, etc.) all cast into Forgeweave's own generic part
 items, so they clone unchanged. Only the ingot row casts into the *provider's* own item, and only that
-one concrete id is independently verified (it is the same id the material's own `neoforge:item_exists`
+one concrete id is independently verified (it is the same id the material's own `neoforge:registered`
 condition already names). Nugget and block casting are cut from this pass: Forgeweave cannot safely
 name a concrete nugget/block item for ~13 different provider mods without the per-mod verification
 PR #874 did for its ten materials, and shipping a guessed id risks a hard decode failure the moment
@@ -53,14 +53,14 @@ OR_MATERIALS = {
 # to dev.gkissel.forgeweave.trackb.TrackBAlloy.ALL), so their full 73-file casting template needs no
 # result-id surgery -- only the condition injection every compat recipe gets.
 ALLOYS = {
-    "alumite": [{"type": "neoforge:item_exists", "item": "immersiveengineering:ingot_aluminum"}],
+    "alumite": [{"type": "neoforge:registered", "value": "immersiveengineering:ingot_aluminum"}],
     "osgloglas": [
-        {"type": "neoforge:item_exists", "item": "mekanism:ingot_osmium"},
-        {"type": "neoforge:item_exists", "item": "mekanism:ingot_refined_obsidian"},
+        {"type": "neoforge:registered", "value": "mekanism:ingot_osmium"},
+        {"type": "neoforge:registered", "value": "mekanism:ingot_refined_obsidian"},
     ],
     "osmiridium": [
-        {"type": "neoforge:item_exists", "item": "mekanism:ingot_osmium"},
-        {"type": "neoforge:item_exists", "item": "modern_industrialization:iridium_ingot"},
+        {"type": "neoforge:registered", "value": "mekanism:ingot_osmium"},
+        {"type": "neoforge:registered", "value": "modern_industrialization:iridium_ingot"},
     ],
     # Issue #946: the three Draconic Evolution fusion metals. Same treatment as the three alloys
     # above -- Forgeweave-owned ingot/nugget/block items, so the 73-file casting template clones
@@ -70,16 +70,16 @@ ALLOYS = {
     # it is the only loop the smeltery closes.
     # #965 -- duskweld, the inert-tier weld metal, gated on the Draconic Evolution core its own
     # fusion recipe consumes exactly as the three below it are.
-    "duskweld": [{"type": "neoforge:item_exists", "item": "draconicevolution:draconium_core"}],
-    "emberweld": [{"type": "neoforge:item_exists", "item": "draconicevolution:wyvern_core"}],
-    "starweld": [{"type": "neoforge:item_exists", "item": "draconicevolution:awakened_core"}],
-    "voidweld": [{"type": "neoforge:item_exists", "item": "draconicevolution:chaotic_core"}],
+    "duskweld": [{"type": "neoforge:registered", "value": "draconicevolution:draconium_core"}],
+    "emberweld": [{"type": "neoforge:registered", "value": "draconicevolution:wyvern_core"}],
+    "starweld": [{"type": "neoforge:registered", "value": "draconicevolution:awakened_core"}],
+    "voidweld": [{"type": "neoforge:registered", "value": "draconicevolution:chaotic_core"}],
     # Issue #993: atomic matter alloy, the same treatment one mod over. It gets no alloy_recipe row
     # either -- a nucleosynthesis run on Mekanism's own Antiprotonic Nucleosynthesizer is the only
     # thing that makes the ingot, and melting it back down and recasting it is the only loop the
     # smeltery closes. Its material JSON deliberately carries no condition (see TrackBAlloy), but
     # these recipes do: a melting or casting row keyed on an absent mod's item is a broken recipe.
-    "atomic_matter_alloy": [{"type": "neoforge:item_exists", "item": "mekanism:alloy_atomic"}],
+    "atomic_matter_alloy": [{"type": "neoforge:registered", "value": "mekanism:alloy_atomic"}],
 }
 
 VALUE_NUGGET = 16
@@ -91,15 +91,13 @@ def write_json(path: Path, data: dict) -> None:
     path.write_text(json.dumps(data, indent=2) + "\n")
 
 
-def form_suffix(ingredient: dict | list[dict]) -> str:
-    """Melting-recipe filename suffix for a crafting_items ingredient, or "" for a material's one
-    and only form (a plain concrete item, or a tag with no ingots/nuggets/storage_blocks/raw_materials
-    family segment -- e.g. silicon's bare c:silicon)."""
-    if isinstance(ingredient, list):
-        return form_suffix(ingredient[0])
-    tag = ingredient.get("tag")
-    if tag is None:
+def form_suffix(ingredient: str) -> str:
+    """Melting-recipe filename suffix for a crafting_items ingredient ("#tag" or an item id), or ""
+    for a material's one and only form (a plain concrete item, or a tag with no ingots/nuggets/
+    storage_blocks/raw_materials family segment -- e.g. silicon's bare #c:silicon)."""
+    if not ingredient.startswith("#"):
         return ""
+    tag = ingredient[1:]
     if "ingots/" in tag:
         return "_ingot"
     if "nuggets/" in tag:
@@ -147,13 +145,13 @@ def melting_recipes() -> None:
         for entry in info["crafting_items"]:
             suffix = form_suffix(entry["ingredient"])
             name = f"{material_id}{suffix}.json"
-            if isinstance(entry["ingredient"], dict) and entry["ingredient"].get("tag") == "c:ingots/hop_graphite":
+            if entry["ingredient"] == "#c:ingots/hop_graphite":
                 name = f"{material_id}{suffix}_immersiveengineering.json"
             # A concrete item input only decodes when that item exists, so it gates on that item
             # alone; the material's wider neoforge:or would load the row with the item missing
             # (quartz_enriched_iron's RefinedStorage item under Eternal Ores alone).
-            item = entry["ingredient"].get("item") if isinstance(entry["ingredient"], dict) else None
-            condition = [{"type": "neoforge:item_exists", "item": item}] if item else info["condition"]
+            item = None if entry["ingredient"].startswith("#") else entry["ingredient"]
+            condition = [{"type": "neoforge:registered", "value": item}] if item else info["condition"]
             write_json(MELTING_DIR / name, {
                 "input": entry["ingredient"],
                 "fluid": fluid,
@@ -176,7 +174,7 @@ def alloy_melting_recipes() -> None:
         temperature = melt_temperature(alloy_id)  # Issue #954, same one-per-material pin as above.
         for form, value in (("ingot", VALUE_INGOT), ("nugget", VALUE_NUGGET), ("block", VALUE_BLOCK)):
             write_json(MELTING_DIR / f"{alloy_id}_{form}.json", {
-                "input": {"tag": f"c:{ALLOY_FORM_TAGS[form]}/{alloy_id}"},
+                "input": f"#c:{ALLOY_FORM_TAGS[form]}/{alloy_id}",
                 "fluid": fluid,
                 "amount": value,
                 "temperature": temperature,
@@ -213,7 +211,7 @@ def casting_recipes() -> None:
                         variant_name = out_name.replace(f"_{material_id}.json", f"_{material_id}_{provider_mod}.json")
                         variant = dict(data)
                         variant["result"] = {"id": provider_item}
-                        variant["neoforge:conditions"] = [{"type": "neoforge:item_exists", "item": provider_item}]
+                        variant["neoforge:conditions"] = [{"type": "neoforge:registered", "value": provider_item}]
                         if rank == 0:
                             (CASTING_DIR / variant_name).unlink(missing_ok=True)  # Its pre-priority name.
                             variant_name = out_name
@@ -225,7 +223,7 @@ def casting_recipes() -> None:
                 if material_id in INGOT_RESULT_OVERRIDES:
                     ingot = INGOT_RESULT_OVERRIDES[material_id]
                     data["result"] = {"id": ingot}
-                    data["neoforge:conditions"] = condition + [{"type": "neoforge:item_exists", "item": ingot}]
+                    data["neoforge:conditions"] = condition + [{"type": "neoforge:registered", "value": ingot}]
                 else:
                     data["result"] = {"id": provider_items[0]}
                     data["neoforge:conditions"] = condition

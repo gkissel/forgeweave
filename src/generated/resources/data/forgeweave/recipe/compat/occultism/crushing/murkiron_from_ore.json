@@ -8,9 +8,7 @@
   "type": "occultism:crushing",
   "crushing_time": 400,
   "ignore_crushing_multiplier": false,
-  "ingredient": {
-    "tag": "c:ores/murkiron"
-  },
+  "ingredient": "#c:ores/murkiron",
   "min_tier": 3,
   "result": {
     "type": "occultism:tag",

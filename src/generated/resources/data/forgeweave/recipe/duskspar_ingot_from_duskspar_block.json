@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "item": "forgeweave:duskspar_block"
-    }
+    "forgeweave:duskspar_block"
   ],
   "result": {
     "count": 9,

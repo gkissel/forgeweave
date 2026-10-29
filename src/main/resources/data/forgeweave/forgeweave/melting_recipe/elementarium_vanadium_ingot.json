@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/vanadium"
-  },
+  "input": "#c:ingots/vanadium",
   "fluid": "forgeweave:molten_elementarium_vanadium",
   "amount": 144,
   "temperature": 1200,

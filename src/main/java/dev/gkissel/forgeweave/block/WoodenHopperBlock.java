@@ -50,7 +50,7 @@ public class WoodenHopperBlock extends HopperBlock {
     @Nullable
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> blockEntityType) {
-        return level.isClientSide ? null
+        return level.isClientSide() ? null
                 : createTickerHelper(blockEntityType, ForgeweaveBlockEntities.WOODEN_HOPPER.get(), HopperBlockEntity::pushItemsTick);
     }
 }

@@ -7,7 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 
@@ -78,7 +78,7 @@ public final class MysticalItems {
     }
 
     /** An armour piece, tinkerable. Mirrors {@code ArmorPieceItem}'s constructor. */
-    public static ArmorPieceItem armor(ArmorItem.Type type, boolean heavy, Item.Properties properties) {
+    public static ArmorPieceItem armor(ArmorType type, boolean heavy, Item.Properties properties) {
         return new TinkerableArmorPieceItem(type, heavy, properties);
     }
 
@@ -125,7 +125,7 @@ public final class MysticalItems {
     }
 
     /** The armour types a piece claims: {@code ARMOR} plus its own slot. */
-    private static EnumSet<AugmentType> armorTypes(ArmorItem.Type type) {
+    private static EnumSet<AugmentType> armorTypes(ArmorType type) {
         return EnumSet.of(AugmentType.ARMOR, switch (type) {
             case HELMET -> AugmentType.HELMET;
             case CHESTPLATE -> AugmentType.CHESTPLATE;
@@ -198,7 +198,7 @@ public final class MysticalItems {
 
         private final EnumSet<AugmentType> augmentTypes;
 
-        private TinkerableArmorPieceItem(ArmorItem.Type type, boolean heavy, Item.Properties properties) {
+        private TinkerableArmorPieceItem(ArmorType type, boolean heavy, Item.Properties properties) {
             super(type, heavy, properties);
             this.augmentTypes = armorTypes(type);
         }

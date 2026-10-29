@@ -1,14 +1,12 @@
 {
-  "input": {
-    "item": "mysticalagriculture:soulium_ingot"
-  },
+  "input": "mysticalagriculture:soulium_ingot",
   "fluid": "forgeweave:molten_soulium",
   "amount": 144,
   "temperature": 1400,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mysticalagriculture:soulium_ingot"
+      "type": "neoforge:registered",
+      "value": "mysticalagriculture:soulium_ingot"
     }
   ]
 }

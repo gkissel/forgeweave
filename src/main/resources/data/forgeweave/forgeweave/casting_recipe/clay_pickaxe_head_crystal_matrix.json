@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_pickaxe_head"
-  },
+  "cast": "forgeweave:clay_cast_pickaxe_head",
   "fluid": "forgeweave:molten_crystal_matrix",
   "amount": 288,
   "result": {
@@ -14,8 +12,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "avaritia:crystal_matrix_ingot"
+      "type": "neoforge:registered",
+      "value": "avaritia:crystal_matrix_ingot"
     }
   ]
 }

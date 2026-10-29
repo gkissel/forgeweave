@@ -3,13 +3,13 @@ package dev.gkissel.forgeweave.gametest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
@@ -24,8 +24,8 @@ import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -291,13 +291,13 @@ public class SearedFurnaceGameTests {
     static SearedFurnaceBlockEntity placeController(GameTestHelper helper) {
         helper.setBlock(CORE_POS, ForgeweaveBlocks.SEARED_FURNACE_CONTROLLER.get().defaultBlockState()
                 .setValue(HorizontalDirectionalBlock.FACING, Direction.WEST));
-        return helper.getBlockEntity(CORE_POS);
+        return helper.getBlockEntity(CORE_POS, SearedFurnaceBlockEntity.class);
     }
 
     private static SearedFurnaceBlockEntity lavaFuelledFurnace(GameTestHelper helper) {
         buildFurnace(helper, 1, 1, 1);
         SearedFurnaceBlockEntity furnace = placeController(helper);
-        SearedTankBlockEntity tank = helper.getBlockEntity(TANK_POS);
+        SearedTankBlockEntity tank = helper.getBlockEntity(TANK_POS, SearedTankBlockEntity.class);
         tank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
         helper.assertTrue(furnace.isFormed(), "expected the test furnace to form: " + furnace.lastResult().getString());
         return furnace;

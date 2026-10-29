@@ -1,14 +1,12 @@
 {
-  "input": {
-    "tag": "c:nuggets/refined_glowstone"
-  },
+  "input": "#c:nuggets/refined_glowstone",
   "fluid": "forgeweave:molten_refined_glowstone",
   "amount": 16,
   "temperature": 1400,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:ingot_refined_glowstone"
+      "type": "neoforge:registered",
+      "value": "mekanism:ingot_refined_glowstone"
     }
   ]
 }

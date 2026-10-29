@@ -1,8 +1,6 @@
 {
   "modifier": "forgeweave:elytra_flight",
-  "reagent": {
-    "item": "minecraft:elytra"
-  },
+  "reagent": "minecraft:elytra",
   "cost": 1,
   "max_level": 1
 }

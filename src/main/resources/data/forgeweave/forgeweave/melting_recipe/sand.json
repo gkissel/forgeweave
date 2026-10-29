@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:sands"
-  },
+  "input": "#c:sands",
   "fluid": "forgeweave:molten_glass",
   "amount": 1000
 }

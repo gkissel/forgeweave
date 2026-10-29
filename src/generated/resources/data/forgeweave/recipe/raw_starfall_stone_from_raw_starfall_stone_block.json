@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "item": "forgeweave:raw_starfall_stone_block"
-    }
+    "forgeweave:raw_starfall_stone_block"
   ],
   "result": {
     "count": 9,

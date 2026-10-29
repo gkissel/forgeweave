@@ -7,6 +7,7 @@ import javax.annotation.Nullable;
 import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -20,7 +21,7 @@ import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -38,7 +39,7 @@ public class FaucetBlock extends Block implements EntityBlock {
     public static final MapCodec<FaucetBlock> CODEC = simpleCodec(FaucetBlock::new);
 
     /** Upstream's {@code BlockFaucet.FACING}: the side the fluid comes from, never {@code DOWN}. */
-    public static final DirectionProperty FACING = DirectionProperty.create("facing",
+    public static final EnumProperty<Direction> FACING = EnumProperty.create("facing", Direction.class,
             direction -> direction != Direction.DOWN);
 
     // Upstream's BOUNDS map, in sixteenths.
@@ -86,16 +87,16 @@ public class FaucetBlock extends Block implements EntityBlock {
     }
 
     @Override
-    protected boolean propagatesSkylightDown(BlockState state, BlockGetter level, BlockPos pos) {
+    protected boolean propagatesSkylightDown(BlockState state) {
         return true;
     }
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof FaucetBlockEntity faucet) {
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof FaucetBlockEntity faucet) {
             faucet.activate();
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.SUCCESS;
     }
 
     /**
@@ -104,9 +105,9 @@ public class FaucetBlock extends Block implements EntityBlock {
      * transaction lands.
      */
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, block, fromPos, movedByPiston);
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof FaucetBlockEntity faucet) {
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @Nullable Orientation orientation, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof FaucetBlockEntity faucet) {
             faucet.handleRedstone(level.hasNeighborSignal(pos));
         }
     }

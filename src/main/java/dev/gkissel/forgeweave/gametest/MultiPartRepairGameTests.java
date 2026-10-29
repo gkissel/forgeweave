@@ -3,15 +3,15 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
@@ -85,7 +85,7 @@ public class MultiPartRepairGameTests {
     /** Loads the station with a tool and up to five free-slot inputs and returns the menu it opens. */
     private static ToolStationMenu load(GameTestHelper helper, Player player, BlockPos pos, ItemStack tool,
             ItemStack... inputs) {
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, tool);
         for (int i = 1; i < ToolStationMenu.INPUT_SLOTS; i++) {
             blockEntity.container().setItem(i, i - 1 < inputs.length ? inputs[i - 1] : ItemStack.EMPTY);

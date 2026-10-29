@@ -7,9 +7,9 @@ import java.util.List;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -18,8 +18,8 @@ import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -89,9 +89,9 @@ public class AdvancementGameTests {
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         SmelteryGameTests.buildWalls(helper, 1, 1, 2);
         BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
-        SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS);
+        SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS, SearedTankBlockEntity.class);
         tank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
-        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
 
         ItemStack remaining = core.insertForMelting(new ItemStack(Items.IRON_ORE), player);
@@ -108,7 +108,7 @@ public class AdvancementGameTests {
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, pickaxe);
         blockEntity.container().setItem(1, new ItemStack(Items.REDSTONE, 1));
         blockEntity.container().setItem(2, ItemStack.EMPTY);
@@ -237,11 +237,11 @@ public class AdvancementGameTests {
         helper.assertTrue(tree.size() >= EXPECTED_TREE_SIZE,
                 "expected at least " + EXPECTED_TREE_SIZE + " advancements in the tree, got " + tree.size());
 
-        List<ResourceLocation> roots = tree.stream()
+        List<Identifier> roots = tree.stream()
                 .filter(holder -> holder.value().parent().isEmpty())
                 .map(AdvancementHolder::id)
                 .toList();
-        helper.assertTrue(roots.equals(List.of(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "root"))),
+        helper.assertTrue(roots.equals(List.of(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "root"))),
                 "expected the guide book to be the tree's only root, got " + roots);
 
         for (AdvancementHolder holder : tree) {
@@ -252,7 +252,7 @@ public class AdvancementGameTests {
 
         for (String id : M2_M3_IDS) {
             helper.assertTrue(helper.getLevel().getServer().getAdvancements()
-                            .get(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, id)) != null,
+                            .get(Identifier.fromNamespaceAndPath(Forgeweave.MODID, id)) != null,
                     "the M2/M3 id " + id + " must survive the re-rooting so earned progress is kept");
         }
         helper.succeed();
@@ -505,16 +505,16 @@ public class AdvancementGameTests {
                 .orElseThrow(() -> new AssertionError("no item forgeweave:" + path));
     }
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
     /** Every advancement above {@code path} in the tree, nearest first. */
-    private static List<ResourceLocation> ancestors(GameTestHelper helper, String path) {
-        List<ResourceLocation> chain = new ArrayList<>();
+    private static List<Identifier> ancestors(GameTestHelper helper, String path) {
+        List<Identifier> chain = new ArrayList<>();
         AdvancementHolder holder = helper.getLevel().getServer().getAdvancements().get(id(path));
         while (holder != null && holder.value().parent().isPresent()) {
-            ResourceLocation parent = holder.value().parent().get();
+            Identifier parent = holder.value().parent().get();
             chain.add(parent);
             holder = helper.getLevel().getServer().getAdvancements().get(parent);
         }
@@ -524,7 +524,7 @@ public class AdvancementGameTests {
     /** Loads the station with a tool and its free-slot inputs and takes whatever it resolves. */
     private static ItemStack take(GameTestHelper helper, ServerPlayer player, BlockPos pos, ItemStack tool,
             ItemStack... inputs) {
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().clearContent();
         blockEntity.container().setItem(ToolStationMenu.HEAD_SLOT, tool);
         for (int i = 0; i < inputs.length; i++) {
@@ -571,7 +571,7 @@ public class AdvancementGameTests {
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().clearContent();
         blockEntity.container().setItem(ToolStationMenu.HEAD_SLOT, pickaxe);
         blockEntity.container().setItem(ToolStationMenu.BINDING_SLOT,
@@ -604,7 +604,7 @@ public class AdvancementGameTests {
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, pickaxe);
         blockEntity.container().setItem(1, new ItemStack(Items.PISTON, 1));
         blockEntity.container().setItem(2, ItemStack.EMPTY);
@@ -649,29 +649,29 @@ public class AdvancementGameTests {
 
     private static boolean isGranted(GameTestHelper helper, ServerPlayer player, String path) {
         AdvancementHolder holder = helper.getLevel().getServer().getAdvancements()
-                .get(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path));
+                .get(Identifier.fromNamespaceAndPath(Forgeweave.MODID, path));
         return holder != null && player.getAdvancements().getOrStartProgress(holder).isDone();
     }
 
     /** As {@link #isGranted}, for a vanilla advancement (T49's {@code story/upgrade_tools}/{@code story/iron_tools}). */
     private static boolean isVanillaGranted(GameTestHelper helper, ServerPlayer player, String path) {
         AdvancementHolder holder = helper.getLevel().getServer().getAdvancements()
-                .get(ResourceLocation.withDefaultNamespace(path));
+                .get(Identifier.withDefaultNamespace(path));
         return holder != null && player.getAdvancements().getOrStartProgress(holder).isDone();
     }
 
     /** Asserts {@code path} exists and its declared parent is exactly {@code expectedParentPath}. */
     private static void assertParent(GameTestHelper helper, String path, String expectedParentPath) {
         AdvancementHolder holder = helper.getLevel().getServer().getAdvancements()
-                .get(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path));
+                .get(Identifier.fromNamespaceAndPath(Forgeweave.MODID, path));
         helper.assertTrue(holder != null, "expected advancement " + path + " to exist");
-        ResourceLocation expectedParent = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, expectedParentPath);
+        Identifier expectedParent = Identifier.fromNamespaceAndPath(Forgeweave.MODID, expectedParentPath);
         helper.assertTrue(holder.value().parent().map(expectedParent::equals).orElse(false),
                 "expected " + path + "'s parent to be " + expectedParentPath + ", got " + holder.value().parent());
     }
 
     private static boolean hintShown(ServerPlayer player) {
-        return player.getPersistentData().getCompound("PlayerPersisted").getBoolean("forgeweave_ponder_hint_shown");
+        return player.getPersistentData().getCompoundOrEmpty("PlayerPersisted").getBooleanOr("forgeweave_ponder_hint_shown", false);
     }
 
     private AdvancementGameTests() {}

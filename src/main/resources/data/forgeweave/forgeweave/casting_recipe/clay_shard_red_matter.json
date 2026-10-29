@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_shard"
-  },
+  "cast": "forgeweave:clay_cast_shard",
   "fluid": "forgeweave:molten_red_matter",
   "amount": 72,
   "result": {
@@ -14,8 +12,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "projecte:red_matter"
+      "type": "neoforge:registered",
+      "value": "projecte:red_matter"
     }
   ]
 }

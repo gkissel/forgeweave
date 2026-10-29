@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "forgeweave:green_slime_crystal"
-  },
+  "input": "forgeweave:green_slime_crystal",
   "fluid": "forgeweave:molten_slime",
   "amount": 144
 }

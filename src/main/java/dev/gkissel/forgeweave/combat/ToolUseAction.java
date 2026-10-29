@@ -4,11 +4,11 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.level.Level;
 
 import dev.gkissel.forgeweave.api.combat.CombatSeam;
@@ -33,7 +33,7 @@ import dev.gkissel.forgeweave.item.BowItem;
 public interface ToolUseAction {
 
     /** The animation vanilla plays while the tool is held down; also what {@code isBlocking} keys off. */
-    UseAnim animation();
+    ItemUseAnimation animation();
 
     /** How long the use can be held, in ticks -- vanilla's {@code Item#getUseDuration}. */
     int durationTicks();
@@ -47,7 +47,7 @@ public interface ToolUseAction {
      * {@code pass} leaves the click for the offhand.
      */
     @Nullable
-    default InteractionResultHolder<ItemStack> onUse(ItemStack stack, Level level, Player player,
+    default InteractionResult onUse(ItemStack stack, Level level, Player player,
             InteractionHand hand) {
         return null;
     }

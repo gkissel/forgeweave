@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:axe_head"
-  },
+  "cast": "forgeweave:axe_head",
   "fluid": "forgeweave:molten_gold",
   "amount": 288,
   "result": {

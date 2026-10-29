@@ -27,15 +27,13 @@
     "armor": ["forgeweave:melee_protection"]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:gems/certus_quartz" }, "value": 144 },
-    { "ingredient": { "tag": "c:storage_blocks/certus_quartz" }, "value": 1296 }
+    { "ingredient": "#c:gems/certus_quartz", "value": 144 },
+    { "ingredient": "#c:storage_blocks/certus_quartz", "value": 1296 }
   ],
-  "repair_item": {
-    "tag": "c:gems/certus_quartz"
-  },
+  "repair_item": "#c:gems/certus_quartz",
   "enchantability": 18,
   "color": "#D9E8F5",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "ae2:certus_quartz_crystal" }
+    { "type": "neoforge:registered", "value": "ae2:certus_quartz_crystal" }
   ]
 }

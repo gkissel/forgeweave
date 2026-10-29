@@ -5,9 +5,9 @@ import java.util.Collections;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -18,8 +18,8 @@ import net.minecraft.world.level.block.Blocks;
 
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockDropsEvent;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
@@ -43,8 +43,8 @@ import dev.gkissel.forgeweave.modifier.ModifierEntry;
 @PrefixGameTestTemplate(false)
 public class BlastingGameTests {
 
-    private static final ResourceLocation BLASTING =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "blasting");
+    private static final Identifier BLASTING =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "blasting");
 
     private static final BlockPos STATION = new BlockPos(1, 1, 1);
 
@@ -225,7 +225,7 @@ public class BlastingGameTests {
 
     /** The station loaded with {@code tool} and one reagent stack, output untaken. */
     private static ToolStationMenu load(GameTestHelper helper, Player player, ItemStack tool, ItemStack reagent) {
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION, ToolStationBlockEntity.class);
         for (int i = 0; i < ToolStationMenu.INPUT_SLOTS; i++) {
             blockEntity.container().setItem(i, ItemStack.EMPTY);
         }

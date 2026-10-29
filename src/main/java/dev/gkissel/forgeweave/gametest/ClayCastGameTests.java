@@ -3,7 +3,7 @@ package dev.gkissel.forgeweave.gametest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -14,8 +14,8 @@ import net.minecraft.world.level.material.Fluid;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.CastingBlockEntity;
@@ -94,7 +94,7 @@ public class ClayCastGameTests {
      */
     @GameTest(template = "empty")
     public static void clayCastRecipesResolveOnlyWhileTheOptionIsOn(GameTestHelper helper) {
-        Registry<CastingRecipe> recipes = helper.getLevel().registryAccess().registryOrThrow(CastingRecipe.REGISTRY);
+        Registry<CastingRecipe> recipes = helper.getLevel().registryAccess().lookupOrThrow(CastingRecipe.REGISTRY);
         Fluid clay = ForgeweaveFluids.MOLTEN_CLAY.still().get();
         Fluid iron = ForgeweaveFluids.IRON.still().get();
         ItemStack part = part();
@@ -172,16 +172,16 @@ public class ClayCastGameTests {
     /** A tank of {@code fluid}, a faucet on its east side pointing back at it, and a casting table below. */
     private static CastingBlockEntity rig(GameTestHelper helper, Fluid fluid) {
         helper.setBlock(TANK, ForgeweaveBlocks.SEARED_TANK.get());
-        helper.<SearedTankBlockEntity>getBlockEntity(TANK).tank()
+        helper.getBlockEntity(TANK, SearedTankBlockEntity.class).tank()
                 .fill(new FluidStack(fluid, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_TABLE.get());
         helper.setBlock(FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
                 .setValue(FaucetBlock.FACING, Direction.WEST));
-        return helper.getBlockEntity(CASTING);
+        return helper.getBlockEntity(CASTING, CastingBlockEntity.class);
     }
 
     private static FaucetBlockEntity faucet(GameTestHelper helper) {
-        return helper.getBlockEntity(FAUCET);
+        return helper.getBlockEntity(FAUCET, FaucetBlockEntity.class);
     }
 
     /** Puts {@code stack} in the casting table the way a player does -- through the real right-click path. */

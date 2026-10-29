@@ -1,8 +1,8 @@
 {
   "modifier": "forgeweave:surgebound",
-  "reagent": { "item": "powah:crystal_blazing" },
+  "reagent": "powah:crystal_blazing",
   "max_level": 2,
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "powah:crystal_blazing" }
+    { "type": "neoforge:registered", "value": "powah:crystal_blazing" }
   ]
 }

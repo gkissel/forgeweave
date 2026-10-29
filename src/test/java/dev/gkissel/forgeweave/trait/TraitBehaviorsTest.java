@@ -22,7 +22,7 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.level.block.Blocks;
@@ -30,6 +30,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.common.conditions.ConditionalOps;
 import net.neoforged.neoforge.common.conditions.ICondition;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.combat.ConditionalSeam;
 import dev.gkissel.forgeweave.combat.EffectOnHit;
 import dev.gkissel.forgeweave.combat.FlatBonusDamage;
@@ -49,7 +50,7 @@ class TraitBehaviorsTest {
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(JsonOps.INSTANCE);
     }
 
     /**
@@ -199,14 +200,14 @@ class TraitBehaviorsTest {
         String body = "\"behavior\":\"forgeweave:effect_on_hit\",\"effect\":\"minecraft:poison\",\"duration\":100}";
 
         Optional<TraitDefinition> failing = ConditionalOps.createConditionalCodec(TraitDefinition.CODEC)
-                .parse(conditional, JsonParser.parseString("{\"neoforge:conditions\":[{\"type\":\"neoforge:false\"}]," + body))
+                .parse(conditional, JsonParser.parseString("{\"neoforge:conditions\":[{\"type\":\"neoforge:never\"}]," + body))
                 .getOrThrow();
         assertTrue(failing.isEmpty(), "a failing condition must drop the definition");
 
         Optional<TraitDefinition> passing = ConditionalOps.createConditionalCodec(TraitDefinition.CODEC)
-                .parse(conditional, JsonParser.parseString("{\"neoforge:conditions\":[{\"type\":\"neoforge:true\"}]," + body))
+                .parse(conditional, JsonParser.parseString("{\"neoforge:conditions\":[{\"type\":\"neoforge:always\"}]," + body))
                 .getOrThrow();
-        assertEquals(Optional.of(ResourceLocation.fromNamespaceAndPath("forgeweave", "effect_on_hit")),
+        assertEquals(Optional.of(Identifier.fromNamespaceAndPath("forgeweave", "effect_on_hit")),
                 passing.map(TraitDefinition::behavior));
     }
 

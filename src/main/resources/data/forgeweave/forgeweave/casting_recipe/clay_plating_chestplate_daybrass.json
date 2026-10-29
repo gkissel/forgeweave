@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_plating_chestplate"
-  },
+  "cast": "forgeweave:clay_cast_plating_chestplate",
   "fluid": "forgeweave:molten_daybrass",
   "amount": 864,
   "result": {

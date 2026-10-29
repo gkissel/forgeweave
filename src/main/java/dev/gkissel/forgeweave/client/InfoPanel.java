@@ -6,11 +6,12 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -37,8 +38,8 @@ import dev.gkissel.forgeweave.Forgeweave;
  * explains that the entries are hoverable ({@code GuiInfoPanel:257-262}, {@code gui.general.hover}).
  */
 public final class InfoPanel {
-    public static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/info_panel.png");
+    public static final Identifier TEXTURE =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/info_panel.png");
 
     /** Upstream's content area; a panel is this plus {@link #BORDER} on each side. */
     public static final int CONTENT_WIDTH = 118;
@@ -128,7 +129,7 @@ public final class InfoPanel {
     private static final int HELP_COLOR = 0xFF5F5F5F;
     private static final int HELP_INSET = 7;
     private static final net.minecraft.network.chat.Style HELP_STYLE =
-            net.minecraft.network.chat.Style.EMPTY.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+            net.minecraft.network.chat.Style.EMPTY.withHoverEvent(new HoverEvent.ShowText(
                     Component.translatable("gui.forgeweave.general.hover")));
 
     /**
@@ -138,7 +139,7 @@ public final class InfoPanel {
      * @param caption the underlined, centred heading, or {@code null} for a panel with only body text
      * @return how many wrapped lines had to be skipped to fit, i.e. the maximum useful {@code scroll}
      */
-    public static int render(GuiGraphics graphics, Font font, int x, int y, int width, int height,
+    public static int render(GuiGraphicsExtractor graphics, Font font, int x, int y, int width, int height,
             Style style, @Nullable Component caption, List<Component> lines, int scroll) {
         renderFrame(graphics, x, y, width, height, style);
 
@@ -147,18 +148,18 @@ public final class InfoPanel {
 
         if (caption != null) {
             Component underlined = caption.copy().withStyle(ChatFormatting.UNDERLINE);
-            graphics.drawString(font, underlined,
+            graphics.text(font, underlined,
                     x + width / 2 - font.width(underlined) / 2, (int) textTop, TEXT_COLOR, true);
             textTop += font.lineHeight + CAPTION_GAP;
         }
         if (hasHover(lines)) {
-            graphics.drawString(font, HELP_GLYPH, helpX(font, x, width), y + TEXT_INSET, HELP_COLOR, false);
+            graphics.text(font, HELP_GLYPH, helpX(font, x, width), y + TEXT_INSET, HELP_COLOR, false);
         }
 
         Layout layout = layout(font, width, height, caption != null, lines);
         int start = Math.clamp(scroll, 0, layout.maxScroll());
         for (int i = start; i < Math.min(layout.lines().size(), start + layout.visible()); i++) {
-            graphics.drawString(font, layout.lines().get(i), textLeft,
+            graphics.text(font, layout.lines().get(i), textLeft,
                     Math.round(textTop + (i - start) * lineStep(font)), TEXT_COLOR, true);
         }
         if (layout.slider()) {
@@ -176,20 +177,20 @@ public final class InfoPanel {
      * ({@code sliderHover}); on a 3x5 knob that is not worth threading the cursor through
      * {@link #render}. Add it if a playtest asks.
      */
-    private static void renderSlider(GuiGraphics graphics, Style style, int x, int y, int width, int height,
+    private static void renderSlider(GuiGraphicsExtractor graphics, Style style, int x, int y, int width, int height,
             int scroll, int maxScroll) {
         int sliderX = x + width - SLIDER_X_INSET;
         int trackY = y + SLIDER_Y_INSET;
         int trackH = height - SLIDER_HEIGHT_INSET;
         int u = style.sliderU;
-        graphics.blit(TEXTURE, sliderX, trackY, u + SLIDER_CAP_U, SLIDER_BAR_V, SLIDER_W, SLIDER_CAP_H, SHEET, SHEET);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, sliderX, trackY, u + SLIDER_CAP_U, SLIDER_BAR_V, SLIDER_W, SLIDER_CAP_H, SHEET, SHEET);
         for (int drawn = SLIDER_CAP_H; drawn < trackH - SLIDER_CAP_H; drawn += SLIDER_BAR_H) {
-            graphics.blit(TEXTURE, sliderX, trackY + drawn, u, SLIDER_BAR_V, SLIDER_W,
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, sliderX, trackY + drawn, u, SLIDER_BAR_V, SLIDER_W,
                     Math.min(SLIDER_BAR_H, trackH - SLIDER_CAP_H - drawn), SHEET, SHEET);
         }
-        graphics.blit(TEXTURE, sliderX, trackY + trackH - SLIDER_CAP_H, u + SLIDER_CAP_U, SLIDER_BOT_V,
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, sliderX, trackY + trackH - SLIDER_CAP_H, u + SLIDER_CAP_U, SLIDER_BOT_V,
                 SLIDER_W, SLIDER_CAP_H, SHEET, SHEET);
-        graphics.blit(TEXTURE, sliderX, knobY(trackY, trackH, scroll, maxScroll), u, SLIDER_KNOB_V,
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, sliderX, knobY(trackY, trackH, scroll, maxScroll), u, SLIDER_KNOB_V,
                 SLIDER_W, SLIDER_KNOB_H, SHEET, SHEET);
     }
 
@@ -218,10 +219,29 @@ public final class InfoPanel {
         for (int i = start; i < Math.min(layout.lines().size(), start + layout.visible()); i++) {
             int lineY = Math.round(textTop + (i - start) * lineStep(font));
             if (mouseY >= lineY && mouseY < lineY + font.lineHeight) {
-                return font.getSplitter().componentStyleAtWidth(layout.lines().get(i), (int) mouseX - textLeft);
+                return styleAtWidth(font, layout.lines().get(i), (int) mouseX - textLeft);
             }
         }
         return null;
+    }
+
+    /**
+     * The style of the character {@code width} pixels into {@code text}, or {@code null} past its end:
+     * 1.21.1's {@code StringSplitter#componentStyleAtWidth}, which 1.21.11 removed.
+     */
+    @Nullable
+    private static net.minecraft.network.chat.Style styleAtWidth(Font font, FormattedCharSequence text, int width) {
+        float[] left = {width};
+        net.minecraft.network.chat.Style[] found = {null};
+        text.accept((pos, style, codepoint) -> {
+            left[0] -= font.getSplitter().stringWidth(FormattedCharSequence.codepoint(codepoint, style));
+            if (left[0] < 0) {
+                found[0] = style;
+                return false;
+            }
+            return true;
+        });
+        return found[0];
     }
 
     /** How far {@code lines} can scroll in a panel of this size, without drawing anything. */
@@ -316,7 +336,7 @@ public final class InfoPanel {
     /**
      * Upstream's line advance is {@code fontRenderer.FONT_HEIGHT * textScale + 0.5f} -- 9.5px at
      * our scale, not the flat 9 this used to step by (issue #79). Over a full panel the half-pixels
-     * accumulate into a whole extra line of drift. {@code GuiGraphics} only draws text at integer
+     * accumulate into a whole extra line of drift. {@code GuiGraphicsExtractor} only draws text at integer
      * coordinates, so each line rounds to the nearest pixel rather than sitting at upstream's exact
      * subpixel y; the line <em>positions</em> match, the glyph antialiasing at 1x GUI scale doesn't.
      */
@@ -351,7 +371,7 @@ public final class InfoPanel {
         return wrapped;
     }
 
-    private static void renderFrame(GuiGraphics graphics, int x, int y, int width, int height, Style style) {
+    private static void renderFrame(GuiGraphicsExtractor graphics, int x, int y, int width, int height, Style style) {
         int u = style.u;
         int v = style.v;
         int innerW = width - BORDER * 2;
@@ -381,16 +401,16 @@ public final class InfoPanel {
      * pixels. The corners are 1:1 anyway; the top/bottom strips and the centre fill stay stretched,
      * because no panel is ever wider than the natural 126 and the centre fill is one flat colour.
      */
-    private static void tileY(GuiGraphics graphics, int x, int y, int height, int u, int v) {
+    private static void tileY(GuiGraphicsExtractor graphics, int x, int y, int height, int u, int v) {
         for (int drawn = 0; drawn < height; drawn += CONTENT_HEIGHT) {
-            graphics.blit(TEXTURE, x, y + drawn, u, v, BORDER, Math.min(CONTENT_HEIGHT, height - drawn), SHEET, SHEET);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y + drawn, u, v, BORDER, Math.min(CONTENT_HEIGHT, height - drawn), SHEET, SHEET);
         }
     }
 
     /** Stretching blit: {@code (uWidth, vHeight)} of the sheet drawn into {@code (width, height)}. */
-    private static void blit(GuiGraphics graphics, int x, int y, int width, int height,
+    private static void blit(GuiGraphicsExtractor graphics, int x, int y, int width, int height,
             int u, int v, int uWidth, int vHeight) {
-        graphics.blit(TEXTURE, x, y, width, height, u, v, uWidth, vHeight, SHEET, SHEET);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, u, v, width, height, uWidth, vHeight, SHEET, SHEET);
     }
 
     private InfoPanel() {}

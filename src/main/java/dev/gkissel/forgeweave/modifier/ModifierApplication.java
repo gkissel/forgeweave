@@ -17,14 +17,19 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Unit;
-import net.minecraft.world.item.ArmorItem;
+import net.minecraft.resources.Identifier;
+import net.minecraft.core.HolderSet;
+import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.DamageResistant;
 import net.minecraft.world.item.component.Tool;
+import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
+
+import net.neoforged.neoforge.common.CommonHooks;
 
 import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
@@ -343,7 +348,7 @@ public final class ModifierApplication {
 
     /** {@link Modifier#chestplateOnly}'s gate: a chestplate slot specifically, heavy or light alike (issue #1005). */
     private static boolean isChestplate(ItemStack tool) {
-        return tool.getItem() instanceof ArmorPieceItem armor && armor.getType() == ArmorItem.Type.CHESTPLATE;
+        return tool.getItem() instanceof ArmorPieceItem armor && armor.getType() == ArmorType.CHESTPLATE;
     }
 
     /**
@@ -352,7 +357,7 @@ public final class ModifierApplication {
      * #1005.
      */
     private static boolean isHelmet(ItemStack tool) {
-        return tool.getItem() instanceof ArmorPieceItem armor && armor.getType() == ArmorItem.Type.HELMET;
+        return tool.getItem() instanceof ArmorPieceItem armor && armor.getType() == ArmorType.HELMET;
     }
 
     /**
@@ -641,7 +646,7 @@ public final class ModifierApplication {
      * <p>The shape gate ({@link #acceptsToolShape}) is the caller's too, since it needs registries
      * this method is not given.
      */
-    public static Outcome applyLevel(ItemStack tool, ResourceLocation modifier, int level) {
+    public static Outcome applyLevel(ItemStack tool, Identifier modifier, int level) {
         Optional<Component> incompatible = ModifierCompatibility.refusal(tool, modifier, name(modifier));
         if (incompatible.isPresent()) {
             return Outcome.rejected(incompatible.get());
@@ -681,7 +686,7 @@ public final class ModifierApplication {
      * backwards. The shape gate ({@link #acceptsToolShape}) stays the caller's, since it needs
      * registries this method is not given.
      */
-    public static Outcome applyLevelSpendingSlots(ItemStack tool, ResourceLocation modifier, int level) {
+    public static Outcome applyLevelSpendingSlots(ItemStack tool, Identifier modifier, int level) {
         Optional<Component> incompatible = ModifierCompatibility.refusal(tool, modifier, name(modifier));
         if (incompatible.isPresent()) {
             return Outcome.rejected(incompatible.get());
@@ -707,7 +712,7 @@ public final class ModifierApplication {
      * plus the new modifier list, so vanilla's own block-breaking sees the modified mining speed and
      * so re-applying can never compound ({@link ForgeweaveModifiers#effectiveStats}).
      */
-    private static ItemStack modified(ItemStack tool, ResourceLocation id, int level) {
+    private static ItemStack modified(ItemStack tool, Identifier id, int level) {
         List<ModifierEntry> entries = new ArrayList<>(ForgeweaveModifiers.of(tool));
         int index = -1;
         for (int i = 0; i < entries.size(); i++) {
@@ -782,7 +787,7 @@ public final class ModifierApplication {
                 List<Tool.Rule> rules = new ArrayList<>(
                         component.rules().stream().filter(rule -> rule.speed().isEmpty()).toList());
                 rules.addAll(tool.miningRules(effective));
-                stack.set(DataComponents.TOOL, new Tool(rules, component.defaultMiningSpeed(), component.damagePerBlock()));
+                stack.set(DataComponents.TOOL, new Tool(rules, component.defaultMiningSpeed(), component.damagePerBlock(), component.canDestroyBlocksInCreative()));
             }
         } else {
             // #721: an armor piece's base is ARMOR_STATS (D14); the modifier pass over its durability
@@ -799,9 +804,20 @@ public final class ModifierApplication {
         // back to the materials-plus-modifiers number and wipe the growth.
         stack.set(DataComponents.MAX_DAMAGE, durability + ForgeweaveTraits.maxDurabilityBonus(stack));
         // #736: netherite's dropped-item fire immunity is vanilla's own component, baked like max_damage.
+        // 26.1 folded 1.21.1's FIRE_RESISTANT into DAMAGE_RESISTANT over #is_fire, as vanilla's own
+        // netherite now does.
         if (ForgeweaveModifiers.fireResistant(stack)) {
-            stack.set(DataComponents.FIRE_RESISTANT, Unit.INSTANCE);
+            stack.set(DataComponents.DAMAGE_RESISTANT, new DamageResistant(fireDamageTypes()));
         }
+    }
+
+    /**
+     * {@code #minecraft:is_fire}, from whichever side's registries are live. Without any world loaded
+     * (unit tests only) it is an empty set: the component is still there, it just resists nothing.
+     */
+    private static HolderSet<DamageType> fireDamageTypes() {
+        HolderLookup.RegistryLookup<DamageType> damageTypes = CommonHooks.resolveLookup(Registries.DAMAGE_TYPE);
+        return damageTypes == null ? HolderSet.direct() : damageTypes.getOrThrow(DamageTypeTags.IS_FIRE);
     }
 
     /**
@@ -858,8 +874,8 @@ public final class ModifierApplication {
             int newIndex = modifier.toolTierIndex(level, currentIndex);
             if (newIndex != currentIndex) {
                 List<Tool.Rule> updated = new ArrayList<>(rules);
-                updated.set(i, Tool.Rule.deniesDrops(ForgeweaveModifiers.tierTag(newIndex)));
-                stack.set(DataComponents.TOOL, new Tool(updated, component.defaultMiningSpeed(), component.damagePerBlock()));
+                updated.set(i, Tool.Rule.deniesDrops(ForgeweaveModifiers.tierSet(newIndex)));
+                stack.set(DataComponents.TOOL, new Tool(updated, component.defaultMiningSpeed(), component.damagePerBlock(), component.canDestroyBlocksInCreative()));
             }
             return;
         }
@@ -891,8 +907,8 @@ public final class ModifierApplication {
             }
             if (ForgeweaveModifiers.tierIndexOf(rule.blocks()) != newIndex) {
                 List<Tool.Rule> updated = new ArrayList<>(rules);
-                updated.set(i, Tool.Rule.deniesDrops(ForgeweaveModifiers.tierTag(newIndex)));
-                stack.set(DataComponents.TOOL, new Tool(updated, component.defaultMiningSpeed(), component.damagePerBlock()));
+                updated.set(i, Tool.Rule.deniesDrops(ForgeweaveModifiers.tierSet(newIndex)));
+                stack.set(DataComponents.TOOL, new Tool(updated, component.defaultMiningSpeed(), component.damagePerBlock(), component.canDestroyBlocksInCreative()));
             }
             return;
         }
@@ -908,8 +924,8 @@ public final class ModifierApplication {
      * + material.getLocalizedName() + ")"}). Both keys derive from ids alone, which is what keeps
      * this method registry-free for the tooltips that call it without one.
      */
-    public static Component name(ResourceLocation id) {
-        ResourceLocation material = Embossing.materialOf(id);
+    public static Component name(Identifier id) {
+        Identifier material = Embossing.materialOf(id);
         if (material != null) {
             return Component.translatable("modifier.forgeweave.embossment.name", materialName(material));
         }
@@ -917,7 +933,7 @@ public final class ModifierApplication {
         // way ({@code ModFortify#getLocalizedName}: "Fortified (Cobalt)"). The bare
         // `forgeweave:fortification` recipe marker is not one of these and falls through to the plain
         // key below, which is the family name JEI shows.
-        ResourceLocation fortifiedWith = Fortification.materialOf(id);
+        Identifier fortifiedWith = Fortification.materialOf(id);
         if (fortifiedWith != null) {
             return Component.translatable("modifier.forgeweave.fortification.material",
                     materialName(fortifiedWith));
@@ -939,7 +955,7 @@ public final class ModifierApplication {
      * is reproduced off the chance itself rather than off a hardcoded max level, so a datapack that
      * retunes the cap keeps the name honest.
      */
-    public static MutableComponent displayName(ResourceLocation id, int displayLevel) {
+    public static MutableComponent displayName(Identifier id, int displayLevel) {
         if (ForgeweaveModifiers.REINFORCED == ForgeweaveModifiers.get(id)
                 && ForgeweaveModifiers.REINFORCED.durabilityNegationChance(displayLevel) >= 1.0F) {
             return Component.translatable(ForgeweaveModifiers.UNBREAKABLE_KEY);
@@ -958,7 +974,7 @@ public final class ModifierApplication {
     }
 
     /** A material's own display key, the placeholder both generated-id families interpolate. */
-    private static Component materialName(ResourceLocation material) {
+    private static Component materialName(Identifier material) {
         return Component.translatable("material." + material.getNamespace() + "." + material.getPath());
     }
 
@@ -968,12 +984,12 @@ public final class ModifierApplication {
      * (issue #258). Embossing gets the same per-material treatment as {@link #name}, for the same
      * reason: its generated ids have no lang key of their own.
      */
-    public static Component description(ResourceLocation id) {
-        ResourceLocation material = Embossing.materialOf(id);
+    public static Component description(Identifier id) {
+        Identifier material = Embossing.materialOf(id);
         if (material != null) {
             return Component.translatable("modifier.forgeweave.embossment.description", materialName(material));
         }
-        ResourceLocation fortifiedWith = Fortification.materialOf(id);
+        Identifier fortifiedWith = Fortification.materialOf(id);
         if (fortifiedWith != null) {
             return Component.translatable("modifier.forgeweave.fortification.material_description",
                     materialName(fortifiedWith));

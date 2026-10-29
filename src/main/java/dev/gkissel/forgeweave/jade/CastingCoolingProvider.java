@@ -2,7 +2,7 @@ package dev.gkissel.forgeweave.jade;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IBlockComponentProvider;
@@ -24,13 +24,13 @@ import dev.gkissel.forgeweave.config.ForgeweaveConfig; // #968
 public final class CastingCoolingProvider implements IBlockComponentProvider, IServerDataProvider<BlockAccessor> {
     public static final CastingCoolingProvider INSTANCE = new CastingCoolingProvider();
 
-    private static final ResourceLocation UID = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "casting_cooling");
+    private static final Identifier UID = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "casting_cooling");
     private static final String TAG_PERCENT = "percent";
 
     private CastingCoolingProvider() {}
 
     @Override
-    public ResourceLocation getUid() {
+    public Identifier getUid() {
         return UID;
     }
 
@@ -53,7 +53,7 @@ public final class CastingCoolingProvider implements IBlockComponentProvider, IS
         if (!ForgeweaveConfig.enabled(ForgeweaveConfig.OVERLAYS)) {
             return;
         }
-        int percent = accessor.getServerData().getInt(TAG_PERCENT);
+        int percent = accessor.getServerData().getIntOr(TAG_PERCENT, 0);
         if (percent > 0) {
             tooltip.add(Component.translatable("waila.forgeweave.casting.cooling", percent + "%"));
         }

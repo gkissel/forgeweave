@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:dusts/resonite"
-    }
+    "#c:dusts/resonite"
   ],
   "result": {
     "count": 3,

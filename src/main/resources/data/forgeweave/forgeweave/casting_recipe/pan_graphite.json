@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_pan"
-  },
+  "cast": "forgeweave:cast_pan",
   "fluid": "forgeweave:molten_graphite",
   "amount": 432,
   "result": {
@@ -16,16 +14,16 @@
       "type": "neoforge:or",
       "values": [
         {
-          "type": "neoforge:item_exists",
-          "item": "bigreactors:graphite_ingot"
+          "type": "neoforge:registered",
+          "value": "bigreactors:graphite_ingot"
         },
         {
-          "type": "neoforge:item_exists",
-          "item": "eternalores:graphite_ingot"
+          "type": "neoforge:registered",
+          "value": "eternalores:graphite_ingot"
         },
         {
-          "type": "neoforge:item_exists",
-          "item": "immersiveengineering:ingot_hop_graphite"
+          "type": "neoforge:registered",
+          "value": "immersiveengineering:ingot_hop_graphite"
         }
       ]
     }

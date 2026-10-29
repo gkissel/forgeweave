@@ -2,12 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "category": "building",
   "key": {
-    "A": {
-      "item": "forgeweave:clear_glass"
-    },
-    "B": {
-      "item": "minecraft:green_dye"
-    }
+    "A": "forgeweave:clear_glass",
+    "B": "minecraft:green_dye"
   },
   "pattern": [
     "AAA",

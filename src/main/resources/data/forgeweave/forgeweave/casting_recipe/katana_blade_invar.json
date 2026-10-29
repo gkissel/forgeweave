@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_katana_blade"
-  },
+  "cast": "forgeweave:cast_katana_blade",
   "fluid": "forgeweave:molten_invar",
   "amount": 432,
   "result": {
@@ -16,12 +14,12 @@
       "type": "neoforge:or",
       "values": [
         {
-          "type": "neoforge:item_exists",
-          "item": "modern_industrialization:invar_ingot"
+          "type": "neoforge:registered",
+          "value": "modern_industrialization:invar_ingot"
         },
         {
-          "type": "neoforge:item_exists",
-          "item": "eternalores:invar_ingot"
+          "type": "neoforge:registered",
+          "value": "eternalores:invar_ingot"
         }
       ]
     }

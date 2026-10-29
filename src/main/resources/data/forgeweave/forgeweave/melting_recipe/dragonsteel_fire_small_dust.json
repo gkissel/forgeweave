@@ -1,14 +1,12 @@
 {
-  "input": {
-    "tag": "c:small_dusts/dragonsteel_fire"
-  },
+  "input": "#c:small_dusts/dragonsteel_fire",
   "fluid": "forgeweave:molten_dragonsteel_fire",
   "amount": 36,
   "temperature": 1600,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "iceandfire:dragonsteel_fire_ingot"
+      "type": "neoforge:registered",
+      "value": "iceandfire:dragonsteel_fire_ingot"
     }
   ]
 }

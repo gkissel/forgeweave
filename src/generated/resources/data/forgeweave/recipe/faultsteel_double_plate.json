@@ -2,16 +2,13 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "#": {
-      "tag": "c:ingots/faultsteel"
-    }
+    "#": "#c:ingots/faultsteel"
   },
   "pattern": [
     "##",
     "##"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:faultsteel_double_plate"
   }
 }

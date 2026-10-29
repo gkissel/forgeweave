@@ -1,14 +1,12 @@
 {
-  "input": {
-    "tag": "c:dusts/emberweld"
-  },
+  "input": "#c:dusts/emberweld",
   "fluid": "forgeweave:molten_emberweld",
   "amount": 144,
   "temperature": 1800,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "draconicevolution:wyvern_core"
+      "type": "neoforge:registered",
+      "value": "draconicevolution:wyvern_core"
     }
   ]
 }

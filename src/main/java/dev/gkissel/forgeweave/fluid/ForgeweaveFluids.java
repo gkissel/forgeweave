@@ -8,7 +8,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
@@ -78,21 +78,21 @@ public final class ForgeweaveFluids {
         return ALL_VIEW;
     }
 
-    private static final ResourceLocation STILL_TEXTURE = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/molten_metal");
-    private static final ResourceLocation FLOWING_TEXTURE = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/molten_metal_flow");
+    private static final Identifier STILL_TEXTURE = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/molten_metal");
+    private static final Identifier FLOWING_TEXTURE = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/molten_metal_flow");
 
     // #233 -- the two non-metal smeltery fluids' own texture pairs, ported the same way the shared
     // molten metal pair was: upstream's FluidColored.ICON_LiquidStill/Flowing (blood) and
     // ICON_StoneStill/Flowing (molten clay), each greyscale-ish base tinted per fluid (NOTICE.md).
-    private static final ResourceLocation LIQUID_STILL = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/liquid");
-    private static final ResourceLocation LIQUID_FLOWING = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/liquid_flow");
-    private static final ResourceLocation STONE_STILL = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/liquid_stone");
-    private static final ResourceLocation STONE_FLOWING = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/liquid_stone_flow");
+    private static final Identifier LIQUID_STILL = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/liquid");
+    private static final Identifier LIQUID_FLOWING = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/liquid_flow");
+    private static final Identifier STONE_STILL = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/liquid_stone");
+    private static final Identifier STONE_FLOWING = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/liquid_stone_flow");
 
     /** A registered smeltery fluid: its registry name, its client tint and textures, its {@link BucketItem} (#286), and the smeltery-fuel-gating temperature that governs it (upstream's {@code FluidType#getTemperature}). */
     public record MoltenMetal(String name, DeferredHolder<FluidType, FluidType> fluidType, DeferredHolder<Fluid, FlowingFluid> still,
             DeferredHolder<Fluid, FlowingFluid> flowing, DeferredBlock<LiquidBlock> block, DeferredItem<BucketItem> bucket,
-            int color, int temperature, ResourceLocation stillTexture, ResourceLocation flowingTexture) {}
+            int color, int temperature, Identifier stillTexture, Identifier flowingTexture) {}
 
     // Ported 1:1 from TinkerFluids#setupFluids (temperature) and TinkerMaterials (materialTextColor).
     public static final MoltenMetal IRON = register("iron", 0xA81212, 769);
@@ -551,7 +551,7 @@ public final class ForgeweaveFluids {
     }
 
     private static MoltenMetal register(String name, int color, int temperature,
-            Supplier<FluidType> typeFactory, ResourceLocation stillTexture, ResourceLocation flowingTexture) {
+            Supplier<FluidType> typeFactory, Identifier stillTexture, Identifier flowingTexture) {
         DeferredHolder<FluidType, FluidType> type = FLUID_TYPES.register(name, typeFactory);
 
         // Source, Flowing and the LiquidBlock each need a supplier pointing at one of the other two,
@@ -574,7 +574,7 @@ public final class ForgeweaveFluids {
                 props -> new BucketItem(stillRef[0].get(), props),
                 // Vanilla's own bucket properties (see Items#LAVA_BUCKET): one per slot, and the
                 // empty bucket comes back when the filled one is used up in a recipe.
-                new Item.Properties().craftRemainder(Items.BUCKET).stacksTo(1));
+                () -> new Item.Properties().craftRemainder(Items.BUCKET).stacksTo(1));
 
         Supplier<BaseFlowingFluid.Properties> properties = () -> new BaseFlowingFluid.Properties(
                 type, () -> stillRef[0].get(), () -> flowingRef[0].get())
@@ -595,15 +595,15 @@ public final class ForgeweaveFluids {
 
         stillRef[0] = FLUIDS.register(name, () -> new BaseFlowingFluid.Source(properties.get()));
         flowingRef[0] = FLUIDS.register("flowing_" + name, () -> new BaseFlowingFluid.Flowing(properties.get()));
-        blockRef[0] = BLOCKS.register(name, () -> new LiquidBlock(stillRef[0].get(), BlockBehaviour.Properties.of()
+        blockRef[0] = BLOCKS.registerBlock(name, props -> new LiquidBlock(stillRef[0].get(), props), () -> BlockBehaviour.Properties.of()
                 .mapColor(MapColor.METAL)
                 .replaceable()
-                .noCollission()
+                .noCollision()
                 .strength(100f)
                 .noLootTable()
                 .liquid()
                 .pushReaction(PushReaction.DESTROY)
-                .lightLevel(state -> lightLevel)));
+                .lightLevel(state -> lightLevel));
 
         MoltenMetal fluid = new MoltenMetal(name, type, stillRef[0], flowingRef[0], blockRef[0], bucket,
                 color, temperature, stillTexture, flowingTexture);

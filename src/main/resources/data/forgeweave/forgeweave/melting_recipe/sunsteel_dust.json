@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/sunsteel"
-  },
+  "input": "#c:dusts/sunsteel",
   "fluid": "forgeweave:molten_sunsteel",
   "amount": 144,
   "temperature": 1600

@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_excavator_head"
-  },
+  "cast": "forgeweave:clay_cast_excavator_head",
   "fluid": "forgeweave:molten_redstone_alloy",
   "amount": 1152,
   "result": {
@@ -14,8 +12,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "enderio:redstone_alloy_ingot"
+      "type": "neoforge:registered",
+      "value": "enderio:redstone_alloy_ingot"
     }
   ]
 }

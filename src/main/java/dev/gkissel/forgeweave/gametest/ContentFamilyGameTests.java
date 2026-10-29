@@ -3,12 +3,12 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -16,9 +16,10 @@ import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.dimension.DimensionType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -103,7 +104,7 @@ public class ContentFamilyGameTests {
     public static void harvestToolsOffRefusesAssemblyAtTheForge(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.setBlock(POS, ForgeweaveBlocks.TOOL_FORGE.get());
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS, ToolStationBlockEntity.class);
         ToolAssemblyRecipes.Entry hammer = ToolAssembly.entryFor(ForgeweaveItems.TOOL_HAMMER.get());
         for (int i = 0; i < hammer.slotCount(); i++) {
             blockEntity.container().setItem(i, ToolAssembly.part(hammer.part(i), "iron"));
@@ -207,7 +208,7 @@ public class ContentFamilyGameTests {
     public static void familyExclusivePartsCannotBeStamped(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.setBlock(POS, ForgeweaveBlocks.PART_BUILDER.get());
-        PartBuilderBlockEntity blockEntity = helper.getBlockEntity(POS);
+        PartBuilderBlockEntity blockEntity = helper.getBlockEntity(POS, PartBuilderBlockEntity.class);
         PartBuilderMenu menu = new PartBuilderMenu(0, player.getInventory(), blockEntity.container(),
                 net.minecraft.world.inventory.ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(POS)),
                 blockEntity.findSideInventory());
@@ -351,7 +352,7 @@ public class ContentFamilyGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, POS, "stone", "wood", "wood");
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS, ToolStationBlockEntity.class);
         blockEntity.container().clearContent();
         blockEntity.container().setItem(ToolStationMenu.HEAD_SLOT, pickaxe);
         blockEntity.container().setItem(ToolStationMenu.BINDING_SLOT,
@@ -398,7 +399,7 @@ public class ContentFamilyGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, POS, "wood", "wood", "wood");
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS, ToolStationBlockEntity.class);
         blockEntity.container().clearContent();
         blockEntity.container().setItem(ToolStationMenu.HEAD_SLOT, pickaxe);
         blockEntity.container().setItem(ToolStationMenu.BINDING_SLOT,
@@ -506,8 +507,8 @@ public class ContentFamilyGameTests {
 
     /** What a crafting table makes of {@code input}, or empty when no recipe matches. */
     private static ItemStack crafts(GameTestHelper helper, CraftingInput input) {
-        return helper.getLevel().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel())
-                .map(holder -> holder.value().assemble(input, helper.getLevel().registryAccess()))
+        return helper.getLevel().recipeAccess().getRecipeFor(RecipeType.CRAFTING, input, helper.getLevel())
+                .map(holder -> holder.value().assemble(input))
                 .orElse(ItemStack.EMPTY);
     }
 
@@ -522,7 +523,7 @@ public class ContentFamilyGameTests {
     public static void armorOffRefusesAssemblyAndOnRestoresIt(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.setBlock(POS, ForgeweaveBlocks.TOOL_STATION.get());
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS, ToolStationBlockEntity.class);
         ToolAssemblyRecipes.Entry helmet = ToolAssembly.entryOf(ToolConstants.HELMET);
         for (int i = 0; i < helmet.slotCount(); i++) {
             blockEntity.container().setItem(i, ToolAssembly.part(helmet.part(i), "iron"));
@@ -562,7 +563,7 @@ public class ContentFamilyGameTests {
         ServerLevel overworld = helper.getLevel();
         ServerLevel nether = overworld.getServer().getLevel(Level.NETHER);
         helper.assertTrue(nether != null, "the GameTest server must load the Nether for this test");
-        helper.assertFalse(nether.dimensionType().natural(), "the Nether must be a non-surface dimension");
+        helper.assertFalse(nether.dimensionType().skybox() == DimensionType.Skybox.OVERWORLD, "the Nether must be a non-surface dimension");
 
         boolean original = ForgeweaveConfig.read(ForgeweaveConfig.SLIME_ISLANDS_ONLY_IN_SURFACE_WORLDS);
         List<? extends String> blacklist = ForgeweaveConfig.read(ForgeweaveConfig.SLIME_ISLAND_BLACKLIST);
@@ -591,7 +592,7 @@ public class ContentFamilyGameTests {
     /** A Tool Station at {@link #POS} with an iron broadsword's three parts in its input slots. */
     private static ToolStationMenu loadBroadswordParts(GameTestHelper helper, Player player) {
         helper.setBlock(POS, ForgeweaveBlocks.TOOL_STATION.get());
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS, ToolStationBlockEntity.class);
         ToolAssemblyRecipes.Entry entry = ToolAssembly.entryFor(ForgeweaveItems.TOOL_BROADSWORD.get());
         for (int i = 0; i < entry.slotCount(); i++) {
             blockEntity.container().setItem(i, ToolAssembly.part(entry.part(i), "iron"));
@@ -601,7 +602,7 @@ public class ContentFamilyGameTests {
 
     /** Whether molten iron poured over {@code held} at a casting table shapes anything. */
     private static boolean castingResolves(GameTestHelper helper, ItemStack held) {
-        return CastingRecipe.find(helper.getLevel().registryAccess().registryOrThrow(CastingRecipe.REGISTRY),
+        return CastingRecipe.find(helper.getLevel().registryAccess().lookupOrThrow(CastingRecipe.REGISTRY),
                 CastingRecipe.Station.TABLE, held, ForgeweaveFluids.IRON.still().get()) != null;
     }
 }

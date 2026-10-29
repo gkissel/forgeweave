@@ -6,8 +6,9 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.core.Holder;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.Ingredient;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -42,7 +43,7 @@ import dev.gkissel.forgeweave.material.MaterialStage;
 public final class BookMaterialOrder {
 
     /** A stage and the materials that landed in it, already in listing order. */
-    public record Stage(MaterialStage stage, List<Map.Entry<ResourceLocation, Material>> materials) {
+    public record Stage(MaterialStage stage, List<Map.Entry<Identifier, Material>> materials) {
 
         public Stage {
             materials = List.copyOf(materials);
@@ -56,17 +57,17 @@ public final class BookMaterialOrder {
      * Every stage that has at least one material, in ladder order, each holding its own materials
      * in listing order. A stage nobody has a material for gets no page rather than an empty one.
      */
-    public static List<Stage> byStage(List<Map.Entry<ResourceLocation, Material>> materials,
+    public static List<Stage> byStage(List<Map.Entry<Identifier, Material>> materials,
             MaterialStage.Lookup lookup) {
-        Map<MaterialStage, List<Map.Entry<ResourceLocation, Material>>> buckets =
+        Map<MaterialStage, List<Map.Entry<Identifier, Material>>> buckets =
                 new EnumMap<>(MaterialStage.class);
-        for (Map.Entry<ResourceLocation, Material> entry : materials) {
+        for (Map.Entry<Identifier, Material> entry : materials) {
             buckets.computeIfAbsent(lookup.of(entry.getKey(), entry.getValue()), stage -> new ArrayList<>())
                     .add(entry);
         }
         List<Stage> stages = new ArrayList<>();
         for (MaterialStage stage : MaterialStage.values()) {
-            List<Map.Entry<ResourceLocation, Material>> bucket = buckets.get(stage);
+            List<Map.Entry<Identifier, Material>> bucket = buckets.get(stage);
             if (bucket == null) {
                 continue;
             }
@@ -76,9 +77,9 @@ public final class BookMaterialOrder {
         return List.copyOf(stages);
     }
 
-    private static Comparator<Map.Entry<ResourceLocation, Material>> insideStage(MaterialStage.Lookup lookup) {
+    private static Comparator<Map.Entry<Identifier, Material>> insideStage(MaterialStage.Lookup lookup) {
         return Comparator
-                .comparingInt((Map.Entry<ResourceLocation, Material> entry) ->
+                .comparingInt((Map.Entry<Identifier, Material> entry) ->
                         rangedOnly(entry.getValue()) ? 1 : 0)
                 .thenComparingInt(entry -> movedByTag(lookup, entry.getKey()) ? 1 : 0)
                 .thenComparing(entry -> sourceMod(entry.getValue()))
@@ -93,7 +94,7 @@ public final class BookMaterialOrder {
      * Forgeweave's own item, so {@link #sourceMod} cannot tell it apart, and "atomic" sorted it ahead
      * of truesteel by id.
      */
-    public static boolean movedByTag(MaterialStage.Lookup lookup, ResourceLocation id) {
+    public static boolean movedByTag(MaterialStage.Lookup lookup, Identifier id) {
         return lookup.overrides().containsKey(id);
     }
 
@@ -124,9 +125,9 @@ public final class BookMaterialOrder {
     }
 
     private static String namespaceOf(Ingredient ingredient) {
-        for (ItemStack stack : ingredient.getItems()) {
-            String namespace = stack.getItemHolder().unwrapKey()
-                    .map(key -> key.location().getNamespace()).orElse("minecraft");
+        for (Holder<Item> item : (Iterable<Holder<Item>>) ingredient.items()::iterator) {
+            String namespace = item.unwrapKey()
+                    .map(key -> key.identifier().getNamespace()).orElse("minecraft");
             if (!namespace.equals("minecraft") && !namespace.equals(Forgeweave.MODID)) {
                 return namespace;
             }

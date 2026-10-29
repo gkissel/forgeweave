@@ -20,7 +20,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -32,7 +32,7 @@ import net.minecraft.world.level.block.Block;
  *
  * <p>Registered as a NeoForge datapack registry with a network codec, so the server loads it on
  * {@code /reload} and syncs it to connecting clients for free. Look entries up through
- * {@code registryAccess().registryOrThrow(Material.REGISTRY)} on either side.
+ * {@code registryAccess().lookupOrThrow(Material.REGISTRY)} on either side.
  *
  * <h2>Existence-gating a cross-mod material (issue #826, M6)</h2>
  *
@@ -51,11 +51,11 @@ import net.minecraft.world.level.block.Block;
  * <p><b>Which condition primitive.</b> Registry-element conditions evaluate with {@code
  * ICondition.IContext.TAGS_INVALID}: tags are not loaded yet at this point in startup, so any
  * tag-based condition (e.g. {@code neoforge:tag_empty}) <em>throws</em>, not just fails. The usable
- * vocabulary is {@code neoforge:mod_loaded} (a modid), {@code neoforge:item_exists} (a concrete
+ * vocabulary is {@code neoforge:mod_loaded} (a modid), {@code neoforge:registered} (a concrete
  * item id -- the item registry is frozen by now) and the {@code and}/{@code or}/{@code not}/{@code
- * true}/{@code false} combinators. One provider mod: a single {@code item_exists} (or {@code
+ * true}/{@code false} combinators. One provider mod: a single {@code registered} (or {@code
  * mod_loaded}) condition. Several providers of the same metal: an {@code or} of one {@code
- * item_exists} per provider's concrete ingot id -- never a tag, and never one preset per modid
+ * registered} per provider's concrete ingot id -- never a tag, and never one preset per modid
  * (JC2, docs/research/m6-material-expansion-references.md).
  *
  * <p><b>Keep the obtainability gate too.</b> {@link #craftingItems}/{@link #repairItem} stay
@@ -98,7 +98,7 @@ public record Material(
         boolean maille) {
 
     public static final ResourceKey<Registry<Material>> REGISTRY =
-            ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "material"));
+            ResourceKey.createRegistryKey(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "material"));
 
     /**
      * What a material with no {@code enchantability} of its own is worth (issue #593): vanilla
@@ -283,21 +283,15 @@ public record Material(
                 .apply(instance, Plating::new));
     }
 
-    /**
-     * The single {@code {"item": "<id>"}} shape {@link Ingredient.ItemValue} accepts, minus the
-     * registry lookup -- see {@link #LENIENT_INGREDIENT_CODEC}.
-     */
-    private record UnresolvedItem(ResourceLocation id) {
-        static final Codec<UnresolvedItem> CODEC = RecordCodecBuilder.create(instance -> instance
-                .group(ResourceLocation.CODEC.fieldOf("item").forGetter(UnresolvedItem::id))
-                .apply(instance, UnresolvedItem::new));
-    }
+    /** The empty item tag an unregistered item id decodes to; see {@link #LENIENT_INGREDIENT_CODEC}. */
+    public static final TagKey<net.minecraft.world.item.Item> UNRESOLVED = TagKey.create(Registries.ITEM,
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "unresolved"));
 
     /**
      * Same JSON shapes {@link Ingredient#CODEC} accepts, except a concrete (non-vanilla) item id
-     * that is not currently registered decodes to {@link Ingredient#EMPTY} instead of failing the
+     * that is not currently registered decodes to the empty {@link #UNRESOLVED} tag instead of failing the
      * whole material's parse (issue #872, following the constraint #826 hit in #860 and again in
-     * #865/#866). Vanilla's own codec resolves a {@code {"item": "..."}} entry through {@code
+     * #865/#866). Vanilla's own codec resolves a single-item entry through {@code
      * BuiltInRegistries.ITEM.holderByNameCodec()}, which errors on an unknown id -- correct for a
      * hand-typed recipe, wrong for a Track A compat material whose crafting item only exists once
      * its provider mod is loaded.
@@ -308,20 +302,28 @@ public record Material(
      * actually decodes. The only place an unknown id reaches this codec is a mod-less parse of the
      * raw JSON -- this repo's own test suite -- and the fallback gives it exactly the behavior an
      * empty {@code c:} tag already has: it parses fine and simply never matches a real item stack
-     * ({@link Ingredient#EMPTY}'s {@code test} always answers {@code false} for a non-empty stack).
+     * (1.21.1's {@code Ingredient.EMPTY}; 26.1 refuses an empty item list, so it is the tag).
      *
-     * <p>Tries the unresolved-item shape first and only accepts it when the id is genuinely
-     * unregistered ({@link UnresolvedItem#CODEC}'s {@code validate} step) -- a known item, a tag, or
-     * the array syntax all fall through to the real {@link Ingredient#CODEC} unchanged, so nothing
-     * about a normal material's parse or its registry-sync payload shape changes.
+     * <p>Only a bare id that is genuinely unregistered is rewritten -- a known item, a tag, or the
+     * array syntax all go to the real {@link Ingredient#CODEC} unchanged, so nothing about a normal
+     * material's parse or its registry-sync payload shape changes. The tag is resolved through the
+     * decoding ops like any {@code "#..."} entry, so its holder set is the registry's own, bound
+     * (empty, {@code data/forgeweave/tags/item/unresolved.json}) and safe to list.
      */
-    private static final Codec<Ingredient> LENIENT_INGREDIENT_CODEC = Codec.either(
-            UnresolvedItem.CODEC.validate(unresolved -> BuiltInRegistries.ITEM.containsKey(unresolved.id())
-                    ? DataResult.error(() -> "known item id, defer to the real ingredient codec")
-                    : DataResult.success(unresolved)),
-            Ingredient.CODEC)
-            .xmap(either -> either.map(unresolved -> Ingredient.EMPTY, ingredient -> ingredient),
-                    ingredient -> Either.right(ingredient));
+    private static final Codec<Ingredient> LENIENT_INGREDIENT_CODEC = new Codec<>() {
+        @Override
+        public <T> DataResult<com.mojang.datafixers.util.Pair<Ingredient, T>> decode(
+                com.mojang.serialization.DynamicOps<T> ops, T input) {
+            boolean unresolved = Identifier.CODEC.parse(ops, input).result()
+                    .filter(id -> !BuiltInRegistries.ITEM.containsKey(id)).isPresent();
+            return Ingredient.CODEC.decode(ops, unresolved ? ops.createString("#" + UNRESOLVED.location()) : input);
+        }
+
+        @Override
+        public <T> DataResult<T> encode(Ingredient ingredient, com.mojang.serialization.DynamicOps<T> ops, T prefix) {
+            return Ingredient.CODEC.encode(ingredient, ops, prefix);
+        }
+    };
 
     /**
      * A raw item usable as Part Builder crafting input, and how much of a part's cost one of it
@@ -361,16 +363,16 @@ public record Material(
      * through the arrow head's two-scope {@code PartMaterialType(HEAD, PROJECTILE)} -- endstone's
      * head list ({@code alien}) would otherwise occlude {@code enderference} on arrow heads.
      */
-    public record Traits(List<ResourceLocation> general, List<ResourceLocation> head,
-            List<ResourceLocation> shaft, List<ResourceLocation> projectile, List<ResourceLocation> armor) {
+    public record Traits(List<Identifier> general, List<Identifier> head,
+            List<Identifier> shaft, List<Identifier> projectile, List<Identifier> armor) {
 
         public static final Codec<Traits> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                ResourceLocation.CODEC.listOf().optionalFieldOf("general", List.of()).forGetter(Traits::general),
-                ResourceLocation.CODEC.listOf().optionalFieldOf("head", List.of()).forGetter(Traits::head),
-                ResourceLocation.CODEC.listOf().optionalFieldOf("shaft", List.of()).forGetter(Traits::shaft),
-                ResourceLocation.CODEC.listOf().optionalFieldOf("projectile", List.of())
+                Identifier.CODEC.listOf().optionalFieldOf("general", List.of()).forGetter(Traits::general),
+                Identifier.CODEC.listOf().optionalFieldOf("head", List.of()).forGetter(Traits::head),
+                Identifier.CODEC.listOf().optionalFieldOf("shaft", List.of()).forGetter(Traits::shaft),
+                Identifier.CODEC.listOf().optionalFieldOf("projectile", List.of())
                         .forGetter(Traits::projectile),
-                ResourceLocation.CODEC.listOf().optionalFieldOf("armor", List.of()).forGetter(Traits::armor))
+                Identifier.CODEC.listOf().optionalFieldOf("armor", List.of()).forGetter(Traits::armor))
                 .apply(instance, Traits::new));
 
         /**
@@ -378,29 +380,29 @@ public record Material(
          * 1.20 clone's {@code tconstruct:armor} per-stat scope, read by both PLATING and MAILLE parts
          * -- one list, not one per kind, because upstream keys it by the shared ARMOR stat type.
          */
-        public Traits(List<ResourceLocation> general, List<ResourceLocation> head,
-                List<ResourceLocation> shaft, List<ResourceLocation> projectile) {
+        public Traits(List<Identifier> general, List<Identifier> head,
+                List<Identifier> shaft, List<Identifier> projectile) {
             this(general, head, shaft, projectile, List.of());
         }
 
         /** The pre-#653 shape: no projectile-scoped list, which is every material but endstone. */
-        public Traits(List<ResourceLocation> general, List<ResourceLocation> head,
-                List<ResourceLocation> shaft) {
+        public Traits(List<Identifier> general, List<Identifier> head,
+                List<Identifier> shaft) {
             this(general, head, shaft, List.of());
         }
 
         /** The pre-#626 shape: no shaft-scoped list, which is every material but bone. */
-        public Traits(List<ResourceLocation> general, List<ResourceLocation> head) {
+        public Traits(List<Identifier> general, List<Identifier> head) {
             this(general, head, List.of());
         }
 
         /** The common case: traits every part of the material grants. */
-        public static Traits general(ResourceLocation... ids) {
+        public static Traits general(Identifier... ids) {
             return new Traits(List.of(ids), List.of());
         }
 
         /** The trait ids a part of this {@code kind} grants (see the class javadoc on scoping). */
-        public List<ResourceLocation> forPart(PartItem.Kind kind) {
+        public List<Identifier> forPart(PartItem.Kind kind) {
             if (kind == PartItem.Kind.HEAD && !head.isEmpty()) {
                 return head;
             }
@@ -417,7 +419,7 @@ public record Material(
         }
 
         /** Every trait id this material can grant through any part, de-duplicated. */
-        public List<ResourceLocation> all() {
+        public List<Identifier> all() {
             return Stream.of(general, head, shaft, projectile, armor).flatMap(List::stream).distinct().toList();
         }
     }
@@ -433,7 +435,7 @@ public record Material(
      * one list it actually has (docs/SCOPE.md's material sync-packet budget).
      */
     private static final MapCodec<Traits> TRAITS_CODEC = Codec.mapEither(
-            ResourceLocation.CODEC.fieldOf("trait"),
+            Identifier.CODEC.fieldOf("trait"),
             Traits.CODEC.fieldOf("traits"))
             .xmap(either -> either.map(Traits::general, Function.identity()), Either::right);
 

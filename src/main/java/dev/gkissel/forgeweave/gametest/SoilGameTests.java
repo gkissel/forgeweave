@@ -3,16 +3,16 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.animal.Pig;
-import net.minecraft.world.entity.monster.Skeleton;
-import net.minecraft.world.entity.monster.WitherSkeleton;
-import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.animal.pig.Pig;
+import net.minecraft.world.entity.monster.skeleton.Skeleton;
+import net.minecraft.world.entity.monster.skeleton.WitherSkeleton;
+import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -25,8 +25,8 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -72,9 +72,9 @@ public class SoilGameTests {
         CraftingInput input = CraftingInput.of(3, 1, List.of(
                 new ItemStack(Items.DIRT), new ItemStack(Items.ROTTEN_FLESH), new ItemStack(Items.BONE_MEAL)));
 
-        ItemStack crafted = level.getRecipeManager()
+        ItemStack crafted = level.recipeAccess()
                 .getRecipeFor(RecipeType.CRAFTING, input, level)
-                .map(match -> match.value().assemble(input, level.registryAccess()))
+                .map(match -> match.value().assemble(input))
                 .orElse(ItemStack.EMPTY);
 
         helper.assertTrue(crafted.is(ForgeweaveItems.GRAVEYARD_SOIL.get()) && crafted.getCount() == 1,
@@ -89,9 +89,9 @@ public class SoilGameTests {
         ServerLevel level = helper.getLevel();
         SingleRecipeInput input = new SingleRecipeInput(new ItemStack(ForgeweaveItems.GRAVEYARD_SOIL.get()));
 
-        ItemStack smelted = level.getRecipeManager()
+        ItemStack smelted = level.recipeAccess()
                 .getRecipeFor(RecipeType.SMELTING, input, level)
-                .map(match -> match.value().assemble(input, level.registryAccess()))
+                .map(match -> match.value().assemble(input))
                 .orElse(ItemStack.EMPTY);
 
         helper.assertTrue(smelted.is(ForgeweaveItems.CONSECRATED_SOIL.get()),
@@ -161,8 +161,8 @@ public class SoilGameTests {
         WitherSkeleton skeleton = helper.spawn(EntityType.WITHER_SKELETON, new BlockPos(1, 2, 1));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
-        int killedByPlayer = rollLoot(level, EntityType.WITHER_SKELETON.getDefaultLootTable(), skeleton, player);
-        int noKiller = rollLoot(level, EntityType.WITHER_SKELETON.getDefaultLootTable(), skeleton, null);
+        int killedByPlayer = rollLoot(level, EntityType.WITHER_SKELETON.getDefaultLootTable().orElseThrow(), skeleton, player);
+        int noKiller = rollLoot(level, EntityType.WITHER_SKELETON.getDefaultLootTable().orElseThrow(), skeleton, null);
 
         helper.assertTrue(killedByPlayer > 0,
                 "expected a player-killed wither skeleton to drop necrotic bones over " + DROP_ROLLS + " rolls");
@@ -180,7 +180,7 @@ public class SoilGameTests {
         Skeleton skeleton = helper.spawn(EntityType.SKELETON, new BlockPos(1, 2, 1));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
-        int bones = rollLoot(level, EntityType.SKELETON.getDefaultLootTable(), skeleton, player);
+        int bones = rollLoot(level, EntityType.SKELETON.getDefaultLootTable().orElseThrow(), skeleton, player);
 
         helper.assertTrue(bones == 0, "expected the injection to be keyed on wither skeletons only, got " + bones);
 

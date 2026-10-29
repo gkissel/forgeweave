@@ -22,11 +22,9 @@
     "armor": ["forgeweave:fire_protection"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:seared_brick" }, "value": 144 }
+    { "ingredient": "forgeweave:seared_brick", "value": 144 }
   ],
-  "repair_item": {
-    "item": "forgeweave:seared_brick"
-  },
+  "repair_item": "forgeweave:seared_brick",
   "enchantability": 14,
   "color": "#4F4A47"
 }

@@ -14,11 +14,9 @@
     "general": ["forgeweave:overgrowth", "forgeweave:overslime"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:green_slime_crystal" }, "value": 144 }
+    { "ingredient": "forgeweave:green_slime_crystal", "value": 144 }
   ],
-  "repair_item": {
-    "item": "forgeweave:green_slime_crystal"
-  },
+  "repair_item": "forgeweave:green_slime_crystal",
   "cast_only": true,
   "enchantability": 16,
   "color": "#82C873"

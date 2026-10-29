@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shaped",
   "category": "building",
   "key": {
-    "#": {
-      "item": "forgeweave:resonite_ingot"
-    }
+    "#": "forgeweave:resonite_ingot"
   },
   "pattern": [
     "###",
@@ -12,7 +10,6 @@
     "###"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:resonite_block"
   }
 }

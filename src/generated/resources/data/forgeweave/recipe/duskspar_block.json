@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shaped",
   "category": "building",
   "key": {
-    "#": {
-      "item": "forgeweave:duskspar_ingot"
-    }
+    "#": "forgeweave:duskspar_ingot"
   },
   "pattern": [
     "###",
@@ -12,7 +10,6 @@
     "###"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:duskspar_block"
   }
 }

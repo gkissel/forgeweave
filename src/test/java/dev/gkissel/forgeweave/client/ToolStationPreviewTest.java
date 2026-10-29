@@ -8,7 +8,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.SharedConstants;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 
@@ -21,7 +21,7 @@ import dev.gkissel.forgeweave.tool.ToolArt;
 
 /** Issue #733: the big preview's tints come from the placed parts, missing ones grey. */
 class ToolStationPreviewTest {
-    private static final ResourceLocation IRON = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "iron");
+    private static final Identifier IRON = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "iron");
     private static final int IRON_COLOR = 0xD8D8D8;
 
     @BeforeAll
@@ -34,7 +34,7 @@ class ToolStationPreviewTest {
         return ToolStationTabs.get(ToolStationTabs.indexOfTool(ForgeweaveItems.TOOL_PICKAXE.get()));
     }
 
-    private static int color(ResourceLocation id) {
+    private static int color(Identifier id) {
         return id.equals(IRON) ? IRON_COLOR : -1;
     }
 
@@ -70,7 +70,7 @@ class ToolStationPreviewTest {
         handleInHeadSlot.set(ForgeweaveDataComponents.MATERIAL.get(), IRON);
         ItemStack unknown = new ItemStack(tab.part(1));
         unknown.set(ForgeweaveDataComponents.MATERIAL.get(),
-                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "nothing"));
+                Identifier.fromNamespaceAndPath(Forgeweave.MODID, "nothing"));
         List<Integer> colors = ToolStationPreview.layerColors(tab.entry(),
                 i -> i == 0 ? handleInHeadSlot : i == 1 ? unknown : ItemStack.EMPTY, ToolStationPreviewTest::color);
         assertEquals(List.of(ToolStationPreview.MISSING, ToolStationPreview.MISSING, ToolStationPreview.MISSING), colors);

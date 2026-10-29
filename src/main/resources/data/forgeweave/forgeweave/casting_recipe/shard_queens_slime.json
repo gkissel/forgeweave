@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_shard"
-  },
+  "cast": "forgeweave:cast_shard",
   "fluid": "forgeweave:molten_queens_slime",
   "amount": 72,
   "result": {

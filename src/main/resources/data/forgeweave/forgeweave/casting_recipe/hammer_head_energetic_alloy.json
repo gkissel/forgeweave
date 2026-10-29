@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_hammer_head"
-  },
+  "cast": "forgeweave:cast_hammer_head",
   "fluid": "forgeweave:molten_energetic_alloy",
   "amount": 1152,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "enderio:energetic_alloy_ingot"
+      "type": "neoforge:registered",
+      "value": "enderio:energetic_alloy_ingot"
     }
   ]
 }

@@ -1,14 +1,12 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/compressed_iron"
-  },
+  "input": "#c:storage_blocks/compressed_iron",
   "fluid": "forgeweave:molten_compressed_iron",
   "amount": 1296,
   "temperature": 1200,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "pneumaticcraft:ingot_iron_compressed"
+      "type": "neoforge:registered",
+      "value": "pneumaticcraft:ingot_iron_compressed"
     }
   ]
 }

@@ -1,38 +1,41 @@
 package dev.gkissel.forgeweave.item;
 
 import dev.gkissel.forgeweave.api.trait.Trait;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.Unit;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.item.ArmorItem;
-import net.minecraft.world.item.ArmorMaterial;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
-import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.equipment.ArmorType;
+import net.minecraft.world.item.equipment.EquipmentAsset;
+import net.minecraft.world.item.equipment.EquipmentAssets;
+import net.minecraft.world.item.equipment.Equippable;
 
 import dev.gkissel.forgeweave.Forgeweave;
-import dev.gkissel.forgeweave.client.StationText;
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisAffixes; // #970
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
 import dev.gkissel.forgeweave.compat.mekanism.modules.MekanismGearModules; // #994
@@ -51,21 +54,22 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
  * carrying the same {@code TOOL_MATERIALS}/{@code TRAITS}/{@code MODIFIERS}/{@code ENCHANTABILITY}
  * components -- plus {@link ForgeweaveDataComponents#ARMOR_STATS} in place of {@code TOOL_STATS}.
  *
- * <p>A vanilla {@link ArmorItem} rather than a {@link ToolItem}: the slot, the right-click equip and
- * the armor-damage path ({@code LivingEntity#doHurtEquipment} only hurts {@code ArmorItem}s) are
+ * <p>An {@code equippable} item rather than a {@link ToolItem} (1.21.2 retired {@code ArmorItem}; the
+ * component is what armour is now): the slot, the right-click equip and the armor-damage path
+ * ({@code LivingEntity#doHurtEquipment} hurts any {@code equippable} with {@code damage_on_hurt}) are
  * vanilla's, and so is Elytra's exclusion -- the chestplate occupies {@code CHEST}, which is all
  * vanilla ever does about it (D7). What is Forgeweave's is ported from the 1.20 clone's
  * {@code ModifiableArmorItem}: attributes come from the stack's stats and vanish while Broken
  * ({@code #getAttributeModifiers}), durability damage clamps at Broken instead of destroying the
- * piece ({@code #damageItem}), and the anvil never repairs it ({@code #isValidRepairItem}).
+ * piece ({@code #damageItem}), and the anvil never repairs it (no {@code repairable} component).
  *
  * <h2>Worn render (issue #679, D18; runtime tint #726)</h2>
  *
  * <p>The 1.20 clone's {@code ArmorModelProvider} plate model is two texture layers -- {@code
  * plating_} over {@code maille_}, each palette-baked per material by {@code
  * MaterialArmorTextureSupplier} -- drawn by its own {@code MultilayerArmorModel}. Vanilla's
- * {@code HumanoidArmorLayer} already draws one pass per {@link ArmorMaterial.Layer}, so
- * {@link #plateMaterial} declares exactly those two (maille first, plating on top: with the depth
+ * {@code HumanoidArmorLayer} already draws one pass per equipment-asset layer, so {@link #PLATE_ASSET}'s
+ * client file ({@code equipment/plate.json}) declares exactly {@link #PLATE_LAYERS} (maille first, plating on top: with the depth
  * test at {@code LEQUAL} the later pass wins where they overlap), each pass reading the clone's gray
  * base straight off the layer id. The colour is applied at render time: {@code
  * ForgeweaveItemClientExtensions} answers {@code getArmorLayerTintColor} with the {@link
@@ -74,33 +78,42 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
  * manager, no generated per-material files. The material's stats are dead weight: defense,
  * toughness, enchantability and repair are all overridden below.
  */
-public class ArmorPieceItem extends ArmorItem {
+public class ArmorPieceItem extends Item {
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
-    /** {@code textures/models/armor/derived/maille_layer_{1,2}.png}, the clone's {@code maille_{armor,leggings}.png}. */
-    private static final ArmorMaterial.Layer MAILLE_LAYER = new ArmorMaterial.Layer(id("derived/maille"));
-    /** {@code textures/models/armor/derived/plating_layer_{1,2}.png}, the clone's {@code plating_{armor,leggings}.png}. */
-    private static final ArmorMaterial.Layer PLATING_LAYER = new ArmorMaterial.Layer(id("derived/plating"));
+    /** {@code textures/entity/equipment/humanoid{,_leggings}/derived/maille.png}, the clone's {@code maille_{armor,leggings}.png}. */
+    public static final Identifier MAILLE_LAYER = id("derived/maille");
+    /** {@code textures/entity/equipment/humanoid{,_leggings}/derived/plating.png}, the clone's {@code plating_{armor,leggings}.png}. */
+    public static final Identifier PLATING_LAYER = id("derived/plating");
+    /** The worn passes in draw order: maille first, plating on top (see the class javadoc). */
+    public static final List<Identifier> PLATE_LAYERS = List.of(MAILLE_LAYER, PLATING_LAYER);
+    /** Every piece's worn-texture asset, {@code assets/forgeweave/equipment/plate.json}. */
+    public static final ResourceKey<EquipmentAsset> PLATE_ASSET = ResourceKey.create(EquipmentAssets.ROOT_ID, id("plate"));
 
-    /**
-     * {@link ForgeweaveItems#PLATE_ARMOR_MATERIAL}'s value -- registered from there rather than here
-     * because the armor-material registry event fires before the item one that first loads this
-     * class, and a {@code DeferredRegister} entry added after its event is an error.
-     */
-    public static ArmorMaterial plateMaterial() {
-        return new ArmorMaterial(Map.of(), 0, SoundEvents.ARMOR_EQUIP_IRON, () -> Ingredient.EMPTY,
-                List.of(MAILLE_LAYER, PLATING_LAYER), 0.0F, 0.0F);
-    }
+    private final ArmorType type;
 
     /** #735: a heavy piece (plating + maille + large plate) -- each one worn takes {@link ToolConstants#HEAVY_ARMOR_SPEED} off movement speed. */
     private final boolean heavy;
 
-    public ArmorPieceItem(Type type, boolean heavy, Properties properties) {
-        super(ForgeweaveItems.PLATE_ARMOR_MATERIAL, type, properties);
+    public ArmorPieceItem(ArmorType type, boolean heavy, Properties properties) {
+        // `enchantable` is what lets the 26.1 table take the piece at all (see ToolItem's constructor).
+        super(properties.enchantable(Material.DEFAULT_ENCHANTABILITY).component(DataComponents.EQUIPPABLE, Equippable.builder(type.getSlot())
+                .setEquipSound(SoundEvents.ARMOR_EQUIP_IRON).setAsset(PLATE_ASSET).build()));
+        this.type = type;
         this.heavy = heavy;
+    }
+
+    /** What {@code ArmorItem#getType} answered: which of the four pieces this is. */
+    public ArmorType getType() {
+        return type;
+    }
+
+    /** What {@code ArmorItem#getEquipmentSlot} answered: the slot this piece is worn in. */
+    public EquipmentSlot getEquipmentSlot() {
+        return type.getSlot();
     }
 
     public boolean isHeavy() {
@@ -113,12 +126,22 @@ public class ArmorPieceItem extends ArmorItem {
      * stack without materials (creative-tab dummy, corrupted save), which keeps the gray base.
      */
     @Nullable
-    public static ResourceLocation layerMaterial(ItemStack stack, int layerIdx) {
+    public static Identifier layerMaterial(ItemStack stack, int layerIdx) {
         ToolMaterials materials = stack.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
         if (materials == null || materials.parts().size() < 2) {
             return null;
         }
         return materials.parts().get(layerIdx == 0 ? 1 : 0);
+    }
+
+    /**
+     * The material a worn pass tints with, by the pass's texture id rather than its index -- what a
+     * 26.1 equipment layer knows about itself. {@code null} for any other texture.
+     */
+    @Nullable
+    public static Identifier layerMaterial(ItemStack stack, Identifier layerTexture) {
+        int idx = PLATE_LAYERS.indexOf(layerTexture);
+        return idx < 0 ? null : layerMaterial(stack, idx);
     }
 
     /** The plating material prefixes the name, as a tool's head does ({@link ToolItem#getName}). */
@@ -146,7 +169,7 @@ public class ArmorPieceItem extends ArmorItem {
         }
         ItemAttributeModifiers.Builder builder = ItemAttributeModifiers.builder();
         EquipmentSlotGroup slot = EquipmentSlotGroup.bySlot(type.getSlot());
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "armor." + type.getName());
+        Identifier id = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "armor." + type.getName());
         // #969: an Apotheosis gem's armour, toughness or knockback-resistance attribute rides the
         // same three lines the plating and the modifiers already share, rather than adding attribute
         // modifiers of its own. 0 without Apotheosis or without sockets.
@@ -181,18 +204,23 @@ public class ArmorPieceItem extends ArmorItem {
 
     /** Same seam as {@link ToolItem#inventoryTick}: the piece's traits tick while it is carried or worn (#680). */
     @Override
-    public void inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean isSelected) {
-        if (level instanceof ServerLevel serverLevel && entity instanceof LivingEntity holder && !ToolItem.isBroken(stack)) {
+    public void inventoryTick(ItemStack stack, ServerLevel serverLevel, Entity entity, @Nullable EquipmentSlot slot) {
+        // 26.1.2: a tool or armor piece assembled on 1.21.1 has no minecraft:enchantable of its own;
+        // give it the one its material set calls for (see Enchantability).
+        Enchantability.backfill(stack);
+        if (entity instanceof LivingEntity holder && !ToolItem.isBroken(stack)) {
             ForgeweaveTraits.inventoryTick(stack, serverLevel, holder);
         }
+        syncGlider(stack);
         // #994: the same seam ToolItem#inventoryTick gives a Mekanism module, for the worn half --
         // the free ICustomModule tick hooks (the gravitational modulating unit's own is one), and the
         // jetpack, which needs both sides. Does nothing without Mekanism, without an
         // atomic_matter_alloy part, or with the toggle off.
         if (entity instanceof Player player && !ToolItem.isBroken(stack)) {
-            MekanismGearModules.tickModules(stack, player, !level.isClientSide);
+            // 26.1 ticks items on the server only, so the client half of the pair no longer runs.
+            MekanismGearModules.tickModules(stack, player, true);
             if (stack == player.getItemBySlot(EquipmentSlot.CHEST)) {
-                MekanismGearModules.jetpackTick(stack, player, !level.isClientSide);
+                MekanismGearModules.jetpackTick(stack, player, true);
             }
         }
     }
@@ -215,7 +243,11 @@ public class ArmorPieceItem extends ArmorItem {
     /** Sums durability protection from worn, unbroken Forgeweave armor. */
     public static float durabilityNegationChance(LivingEntity entity) {
         float chance = 0.0F;
-        for (ItemStack piece : entity.getArmorSlots()) {
+        for (EquipmentSlot slot : EquipmentSlotGroup.ARMOR) {
+            if (slot.getType() != EquipmentSlot.Type.HUMANOID_ARMOR) {
+                continue;
+            }
+            ItemStack piece = entity.getItemBySlot(slot);
             if (piece.getItem() instanceof ArmorPieceItem && !ToolItem.isBroken(piece)) {
                 for (Trait trait : ForgeweaveTraits.of(piece)) {
                     chance += trait.armorDurabilityNegationChance();
@@ -246,30 +278,48 @@ public class ArmorPieceItem extends ArmorItem {
     }
 
     /**
-     * Issue #737's elytra flight modifier: NeoForge's item hook, checked by {@code Player#
-     * tryToStartFallFlying} on whatever sits in the chest slot -- vanilla itself only ever asks a
-     * real {@code ElytraItem} this, but the hook is on {@code Item}, so a heavy chestplate carrying
-     * the modifier answers the same way a real elytra would. Never while Broken, the same gate every
-     * other worn behavior on this class uses.
+     * Issue #737's elytra flight modifier. 1.21.1 asked NeoForge's {@code canElytraFly} item hook;
+     * since 1.21.2 gliding is the {@code minecraft:glider} component ({@code LivingEntity#canGlideUsing}),
+     * so {@link #syncGlider} keeps that component on the stack exactly while this answers true. Never
+     * while Broken, the same gate every other worn behavior on this class uses.
+     *
+     * <p>Never once the chestplate also carries creative flight, which replaces the glide. Otherwise
+     * a jump in mid-air meant to start flying opens the wings instead.
      */
-    @Override
     public boolean canElytraFly(ItemStack stack, LivingEntity entity) {
         // #994: a powered Mekanism elytra unit is a second, independent grant of the same glide.
         // Ored, not anded: two grants are no better than one, and neither takes the other away.
         return (ForgeweaveModifiers.grantsElytraFlight(stack) || MekanismGearModules.grantsElytraFlight(stack))
+                && !ForgeweaveModifiers.grantsCreativeFlight(stack)
                 && !ToolItem.isBroken(stack);
     }
 
     /**
-     * Vanilla {@code ElytraItem#elytraFlightTick}'s own cadence, mirrored exactly rather than
-     * reinvented: a game event every 10 ticks, one point of durability every 20th. The durability hit
-     * goes through {@link #damageItem} like any other loss on this class (reinforced, durability
-     * traits, the Broken clamp) since {@link ItemStack#hurtAndBreak} always calls back into it, so a
-     * piece never breaks outright mid-glide the way a real elytra could.
+     * Puts {@code minecraft:glider} on the stack while {@link #canElytraFly} holds and takes it off
+     * otherwise. Run from {@link #inventoryTick}, which 26.1 calls for worn equipment every server
+     * tick; the component then syncs to the client like any other stack change.
      */
-    @Override
+    private void syncGlider(ItemStack stack) {
+        boolean glides = canElytraFly(stack, null);
+        if (glides != stack.has(DataComponents.GLIDER)) {
+            if (glides) {
+                stack.set(DataComponents.GLIDER, Unit.INSTANCE);
+            } else {
+                stack.remove(DataComponents.GLIDER);
+            }
+        }
+    }
+
+    /**
+     * Vanilla {@code ElytraItem#elytraFlightTick}'s own cadence, mirrored exactly rather than
+     * reinvented: a game event every 10 ticks, one point of durability every 20th. Since 1.21.2
+     * vanilla's own {@code LivingEntity#updateFallFlying} runs exactly this cadence for any glider, so
+     * nothing calls this in play any more; it stays as the same arithmetic for the tests that pin it.
+     * The durability hit goes through {@link #damageItem} like any other loss on this class
+     * (reinforced, durability traits, the Broken clamp), so a piece never breaks outright mid-glide.
+     */
     public boolean elytraFlightTick(ItemStack stack, LivingEntity entity, int flightTicks) {
-        if (!entity.level().isClientSide) {
+        if (!entity.level().isClientSide()) {
             int nextFlightTick = flightTicks + 1;
             if (nextFlightTick % 10 == 0) {
                 if (nextFlightTick % 20 == 0) {
@@ -281,31 +331,22 @@ public class ArmorPieceItem extends ArmorItem {
         return true;
     }
 
-    /** Repair is the station's, off the plating material's {@code repair_item} (D19) -- never the anvil's iron ingot. */
-    @Override
-    public boolean isValidRepairItem(ItemStack toRepair, ItemStack repair) {
-        return false;
-    }
+    // Repair is the station's, off the plating material's repair_item (D19) -- never the anvil's iron
+    // ingot. 1.21.1 refused it in isValidRepairItem; since 1.21.2 the anvil only repairs with a
+    // repairable component, which these pieces never carry.
 
     // Vanilla enchanting (D20): the same allowVanillaEnchanting gate as ToolItem, enchantability off
     // the plating material's component. #970 adds the Apotheosis toggle at the same two doors and for
     // the same reasons -- see ToolItem#isEnchantable and #isBookEnchantable.
 
-    @Override
     public boolean isEnchantable(ItemStack stack) {
-        return ForgeweaveConfig.read(ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING)
-                && ApotheosisAffixes.enchantingEnabled()
-                && super.isEnchantable(stack);
+        return ToolItem.vanillaEnchantingAllowed() && stack.isEnchantable();
     }
 
-    @Override
     public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
-        return ForgeweaveConfig.read(ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING)
-                && ApotheosisAffixes.enchantingEnabled()
-                && super.isBookEnchantable(stack, book);
+        return ToolItem.vanillaEnchantingAllowed();
     }
 
-    @Override
     public int getEnchantmentValue(ItemStack stack) {
         if (!ForgeweaveConfig.read(ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING)) {
             return 0;
@@ -319,17 +360,14 @@ public class ArmorPieceItem extends ArmorItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
-        if (stats(stack) == null) {
-            return;
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
+            Consumer<Component> builder, TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, builder, flag);
+        List<Component> tooltip = new ArrayList<>();
+        ToolTooltip.appendArmor(stack, context.registries(), ToolTooltip.detailed(flag), tooltip);
+        if (stats(stack) != null) {
+            ToolTooltip.appendShiftHint(ToolTooltip.shiftHint(flag), tooltip);
         }
-        if (ToolItem.isBroken(stack)) {
-            tooltip.add(Component.translatable("tooltip.forgeweave.durability")
-                    .append(": ")
-                    .append(Component.translatable("tooltip.forgeweave.broken")
-                            .withStyle(ChatFormatting.DARK_RED, ChatFormatting.BOLD)));
-        }
-        tooltip.addAll(StationText.armorStats(stack));
+        tooltip.forEach(builder);
     }
 }

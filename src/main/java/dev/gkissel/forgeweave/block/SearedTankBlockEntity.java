@@ -1,5 +1,10 @@
 package dev.gkissel.forgeweave.block;
 
+import net.minecraft.core.component.DataComponentGetter;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
@@ -50,22 +55,13 @@ public class SearedTankBlockEntity extends BlockEntity {
     private final FluidTank tank = new FluidTank(CAPACITY) {
         @Override
         protected void onContentsChanged() {
-            setChanged();
-            if (level != null && !level.isClientSide) {
-                level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
-                level.updateNeighbourForOutputSignal(worldPosition, getBlockState().getBlock());
-                // #97: a fill (not a drain -- the smeltery's own fuel consumption must not re-arm
-                // itself) is what needs to wake a core that stopped ticking for want of fuel. Nothing
-                // else notices a wall tank far from the core changing; see
-                // SmelteryControllerBlockEntity#armMeltTick.
-                if (corePos != null && getFluidAmount() > lastFluidAmount
-                        && level.getBlockEntity(corePos) instanceof TankOwner core) {
-                    core.armMeltTick();
-                }
-                lastFluidAmount = getFluidAmount();
-            }
+            tankChanged();
         }
     };
+
+    /** The tank as the 21.9 transfer API sees it; what the fluid capability hands out. */
+    private final ResourceHandler<FluidResource> fluidHandler =
+            TransferBridge.fluids(tank, TransferBridge.tankState(tank, this::tankChanged));
 
     public SearedTankBlockEntity(BlockPos pos, BlockState state) {
         super(ForgeweaveBlockEntities.SEARED_TANK.get(), pos, state);
@@ -73,6 +69,28 @@ public class SearedTankBlockEntity extends BlockEntity {
 
     public FluidTank tank() {
         return tank;
+    }
+
+    /** The fluid capability's handler (21.9 transfer API). */
+    public ResourceHandler<FluidResource> fluidHandler() {
+        return fluidHandler;
+    }
+
+    private void tankChanged() {
+        setChanged();
+        if (level != null && !level.isClientSide()) {
+            level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+            level.updateNeighbourForOutputSignal(worldPosition, getBlockState().getBlock());
+            // #97: a fill (not a drain -- the smeltery's own fuel consumption must not re-arm
+            // itself) is what needs to wake a core that stopped ticking for want of fuel. Nothing
+            // else notices a wall tank far from the core changing; see
+            // SmelteryControllerBlockEntity#armMeltTick.
+            if (corePos != null && tank.getFluidAmount() > lastFluidAmount
+                    && level.getBlockEntity(corePos) instanceof TankOwner core) {
+                core.armMeltTick();
+            }
+            lastFluidAmount = tank.getFluidAmount();
+        }
     }
 
     /**
@@ -98,20 +116,18 @@ public class SearedTankBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        tag.put(TAG_TANK, tank.writeToNBT(registries, new CompoundTag()));
-        if (corePos != null) {
-            tag.put(TAG_CORE, NbtUtils.writeBlockPos(corePos));
-        }
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.putChild(TAG_TANK, tank);
+        output.storeNullable(TAG_CORE, BlockPos.CODEC, corePos);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        tank.readFromNBT(registries, tag.getCompound(TAG_TANK));
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        tank.deserialize(input.childOrEmpty(TAG_TANK));
         lastFluidAmount = tank.getFluidAmount();
-        corePos = tag.contains(TAG_CORE) ? NbtUtils.readBlockPos(tag, TAG_CORE).orElse(null) : null;
+        corePos = input.read(TAG_CORE, BlockPos.CODEC).orElse(null);
     }
 
     @Override
@@ -121,7 +137,7 @@ public class SearedTankBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void applyImplicitComponents(BlockEntity.DataComponentInput componentInput) {
+    protected void applyImplicitComponents(DataComponentGetter componentInput) {
         super.applyImplicitComponents(componentInput);
         SimpleFluidContent stored = componentInput.get(ForgeweaveDataComponents.FLUID_CONTENT.get());
         if (stored != null) {
@@ -142,7 +158,7 @@ public class SearedTankBlockEntity extends BlockEntity {
 
     /** Wires the fluid-handler capability for all three tank blocks; called from {@code Forgeweave}'s constructor. */
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ForgeweaveBlockEntities.SEARED_TANK.get(),
-                (blockEntity, side) -> blockEntity.tank);
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, ForgeweaveBlockEntities.SEARED_TANK.get(),
+                (blockEntity, side) -> blockEntity.fluidHandler);
     }
 }

@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_plating_boots"
-  },
+  "cast": "forgeweave:cast_plating_boots",
   "fluid": "forgeweave:molten_dragon_bone",
   "amount": 288,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "iceandfire:dragonbone"
+      "type": "neoforge:registered",
+      "value": "iceandfire:dragonbone"
     }
   ]
 }

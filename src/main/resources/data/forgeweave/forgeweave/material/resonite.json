@@ -27,13 +27,11 @@
     "armor": ["forgeweave:vigorward"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:resonite_ingot" }, "value": 144 },
-    { "ingredient": { "item": "forgeweave:resonite_nugget" }, "value": 16 },
-    { "ingredient": { "item": "forgeweave:resonite_block" }, "value": 1296 }
+    { "ingredient": "forgeweave:resonite_ingot", "value": 144 },
+    { "ingredient": "forgeweave:resonite_nugget", "value": 16 },
+    { "ingredient": "forgeweave:resonite_block", "value": 1296 }
   ],
-  "repair_item": {
-    "tag": "c:ingots/resonite"
-  },
+  "repair_item": "#c:ingots/resonite",
   "cast_only": true,
   "enchantability": 10,
   "color": "#00B5B0"

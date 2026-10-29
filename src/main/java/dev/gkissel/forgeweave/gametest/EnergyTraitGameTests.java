@@ -5,15 +5,15 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -22,8 +22,8 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 
 import net.neoforged.neoforge.energy.IEnergyStorage;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.combat.CombatHit;
@@ -146,24 +146,24 @@ public class EnergyTraitGameTests {
         player.setPos(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
         ItemStack pickaxe = pickaxe(List.of(traitId("energized"), traitId("solar_recharge")), 1000);
 
-        level.setDayTime(6000); // noon
+        GameTestCompat.setDayTime(level, 6000); // noon
         helper.runAfterDelay(5, () -> {
-            pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+            pickaxe.getItem().inventoryTick(pickaxe, level, player, null);
             int afterDaylight = EnergyBuffer.stored(pickaxe);
             helper.assertTrue(afterDaylight == 2,
                     "expected 2 FE gained on one daylight tick under open sky, got " + afterDaylight);
 
             helper.setBlock(new BlockPos(2, 6, 2), Blocks.STONE);
             helper.runAfterDelay(5, () -> {
-                pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+                pickaxe.getItem().inventoryTick(pickaxe, level, player, null);
                 int underRoof = EnergyBuffer.stored(pickaxe);
                 helper.assertTrue(underRoof == afterDaylight,
                         "must not recharge without open sky even at noon, got " + underRoof);
 
                 helper.setBlock(new BlockPos(2, 6, 2), Blocks.AIR);
-                level.setDayTime(18000); // midnight
+                GameTestCompat.setDayTime(level, 18000); // midnight
                 helper.runAfterDelay(5, () -> {
-                    pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+                    pickaxe.getItem().inventoryTick(pickaxe, level, player, null);
                     int atNight = EnergyBuffer.stored(pickaxe);
                     helper.assertTrue(atNight == afterDaylight, "must not recharge at night, got " + atNight);
                     helper.succeed();
@@ -194,23 +194,23 @@ public class EnergyTraitGameTests {
 
     // ------------------------------------------------------------------ plumbing
 
-    private static ItemStack pickaxe(List<ResourceLocation> traits, int durability) {
+    private static ItemStack pickaxe(List<Identifier> traits, int durability) {
         return tool(ForgeweaveItems.TOOL_PICKAXE.get(), traits, durability, 1.0F, 1.0F);
     }
 
-    private static ItemStack hatchet(List<ResourceLocation> traits, int durability) {
+    private static ItemStack hatchet(List<Identifier> traits, int durability) {
         return tool(ForgeweaveItems.TOOL_HATCHET.get(), traits, durability, 1.0F, 3.0F);
     }
 
     /** Builds a tool {@code ItemStack} with the given traits/stats directly (see class javadoc). */
-    private static ItemStack tool(ToolItem toolItem, List<ResourceLocation> traits, int durability,
+    private static ItemStack tool(ToolItem toolItem, List<Identifier> traits, int durability,
             float miningSpeed, float attackDamage) {
         ToolStats.Stats stats = new ToolStats.Stats(durability, miningSpeed, attackDamage);
         Material head = new Material(
                 new Material.Head(durability, miningSpeed, attackDamage),
                 new Material.Handle(1.0F, 0),
                 0,
-                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool")),
+                TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace("incorrect_for_stone_tool")),
                 new Material.Traits(List.of(), List.of()),
                 List.of(),
                 Ingredient.of(Items.STICK),
@@ -225,7 +225,7 @@ public class EnergyTraitGameTests {
         return stack;
     }
 
-    private static ResourceLocation traitId(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier traitId(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 }

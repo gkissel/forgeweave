@@ -4,7 +4,7 @@ import com.mojang.serialization.Codec;
 
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.modifier.Modifier;
@@ -42,10 +42,10 @@ import dev.gkissel.forgeweave.api.modifier.Modifier;
  * @param behavior which {@link ModifierBehaviors} entry built {@link #modifier}
  * @param modifier the runtime behavior, wired into every seam like a Java-registered modifier
  */
-public record ModifierDefinition(ResourceLocation behavior, Modifier modifier) {
+public record ModifierDefinition(Identifier behavior, Modifier modifier) {
 
     public static final ResourceKey<Registry<ModifierDefinition>> REGISTRY = ResourceKey.createRegistryKey(
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "modifier_definition"));
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "modifier_definition"));
 
     /** Dispatches on {@code behavior}; an unknown behavior id is a parse error, never a silent no-op modifier. */
     public static final Codec<ModifierDefinition> CODEC = ModifierBehaviors.CODEC;

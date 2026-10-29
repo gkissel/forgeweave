@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_plating_chestplate"
-  },
+  "cast": "forgeweave:clay_cast_plating_chestplate",
   "fluid": "forgeweave:molten_silicon",
   "amount": 864,
   "result": {
@@ -17,12 +15,12 @@
       "type": "neoforge:or",
       "values": [
         {
-          "type": "neoforge:item_exists",
-          "item": "refinedstorage:silicon"
+          "type": "neoforge:registered",
+          "value": "refinedstorage:silicon"
         },
         {
-          "type": "neoforge:item_exists",
-          "item": "eternalores:silicon_ingot"
+          "type": "neoforge:registered",
+          "value": "eternalores:silicon_ingot"
         }
       ]
     }

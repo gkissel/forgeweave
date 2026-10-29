@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_sharpening_kit"
-  },
+  "cast": "forgeweave:cast_sharpening_kit",
   "fluid": "forgeweave:molten_blaze_gold",
   "amount": 288,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "silentgear:blaze_gold_ingot"
+      "type": "neoforge:registered",
+      "value": "silentgear:blaze_gold_ingot"
     }
   ]
 }

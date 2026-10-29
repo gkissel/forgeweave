@@ -1,8 +1,8 @@
 {
-  "input": { "tag": "c:ingots/bronze" },
+  "input": "#c:ingots/bronze",
   "fluid": "forgeweave:molten_bronze",
   "amount": 144,
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "minecraft:diamond" }
+    { "type": "neoforge:registered", "value": "minecraft:diamond" }
   ]
 }

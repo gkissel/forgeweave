@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/dreadalloy"
-  },
+  "input": "#c:small_dusts/dreadalloy",
   "fluid": "forgeweave:molten_dreadalloy",
   "amount": 48
 }

@@ -1,15 +1,16 @@
 package dev.gkissel.forgeweave.recipe;
 
-import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.item.crafting.ShapedRecipePattern;
@@ -34,29 +35,33 @@ import dev.gkissel.forgeweave.config.ForgeweaveConfig;
  */
 public class EnergizedTankRecipe extends ShapedRecipe {
     public static final MapCodec<EnergizedTankRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
-            Codec.STRING.optionalFieldOf("group", "").forGetter(EnergizedTankRecipe::getGroup),
-            CraftingBookCategory.CODEC.fieldOf("category").orElse(CraftingBookCategory.MISC)
-                    .forGetter(EnergizedTankRecipe::category),
+            Recipe.CommonInfo.MAP_CODEC.forGetter(recipe -> recipe.commonInfo),
+            CraftingRecipe.CraftingBookInfo.MAP_CODEC.forGetter(recipe -> recipe.bookInfo),
             ShapedRecipePattern.MAP_CODEC.forGetter(recipe -> recipe.pattern),
-            ItemStack.STRICT_CODEC.fieldOf("result").forGetter(EnergizedTankRecipe::result))
+            ItemStackTemplate.CODEC.fieldOf("result").forGetter(EnergizedTankRecipe::result))
             .apply(instance, EnergizedTankRecipe::new));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, EnergizedTankRecipe> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.STRING_UTF8, EnergizedTankRecipe::getGroup,
-            CraftingBookCategory.STREAM_CODEC, EnergizedTankRecipe::category,
+            Recipe.CommonInfo.STREAM_CODEC, recipe -> recipe.commonInfo,
+            CraftingRecipe.CraftingBookInfo.STREAM_CODEC, recipe -> recipe.bookInfo,
             ShapedRecipePattern.STREAM_CODEC, recipe -> recipe.pattern,
-            ItemStack.STREAM_CODEC, EnergizedTankRecipe::result,
+            ItemStackTemplate.STREAM_CODEC, EnergizedTankRecipe::result,
             EnergizedTankRecipe::new);
 
-    private final ItemStack result;
+    private final ItemStackTemplate result;
 
     public EnergizedTankRecipe(String group, CraftingBookCategory category, ShapedRecipePattern pattern,
-            ItemStack result) {
-        super(group, category, pattern, result);
+            ItemStackTemplate result) {
+        this(new Recipe.CommonInfo(true), new CraftingRecipe.CraftingBookInfo(category, group), pattern, result);
+    }
+
+    public EnergizedTankRecipe(Recipe.CommonInfo commonInfo, CraftingRecipe.CraftingBookInfo bookInfo,
+            ShapedRecipePattern pattern, ItemStackTemplate result) {
+        super(commonInfo, bookInfo, pattern, result);
         this.result = result;
     }
 
-    private ItemStack result() {
+    private ItemStackTemplate result() {
         return result;
     }
 
@@ -65,23 +70,17 @@ public class EnergizedTankRecipe extends ShapedRecipe {
         return ForgeweaveConfig.enabled(ForgeweaveConfig.ENERGIZED_TANK) && super.matches(input, level);
     }
 
+    /** The vanilla parent pins its own serializer type; ours encodes this subclass, which is all dispatch needs. */
     @Override
-    public RecipeSerializer<? extends EnergizedTankRecipe> getSerializer() {
-        return ForgeweaveRecipeSerializers.ENERGIZED_TANK.get();
+    @SuppressWarnings("unchecked")
+    public RecipeSerializer<ShapedRecipe> getSerializer() {
+        return (RecipeSerializer<ShapedRecipe>) (RecipeSerializer<?>) ForgeweaveRecipeSerializers.ENERGIZED_TANK.get();
     }
 
     /** Serializer for {@link EnergizedTankRecipe}; carries no data of its own beyond the recipe. */
-    public static class Serializer implements RecipeSerializer<EnergizedTankRecipe> {
-        public static final Serializer INSTANCE = new Serializer();
+    public static final class Serializer {
+        public static final RecipeSerializer<EnergizedTankRecipe> INSTANCE = new RecipeSerializer<>(CODEC, STREAM_CODEC);
 
-        @Override
-        public MapCodec<EnergizedTankRecipe> codec() {
-            return CODEC;
-        }
-
-        @Override
-        public StreamCodec<RegistryFriendlyByteBuf, EnergizedTankRecipe> streamCodec() {
-            return STREAM_CODEC;
-        }
+        private Serializer() {}
     }
 }

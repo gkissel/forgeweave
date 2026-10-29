@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ores/ardite"
-  },
+  "input": "#c:ores/ardite",
   "fluid": "forgeweave:molten_ardite",
   "amount": 144,
   "ore": true

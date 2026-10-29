@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 
@@ -31,9 +31,9 @@ import dev.gkissel.forgeweave.tool.ToolMaterials;
  */
 class MaterialPrefixedNameTest {
 
-    private static final ResourceLocation STONE = ResourceLocation.fromNamespaceAndPath("forgeweave", "stone");
-    private static final ResourceLocation WOOD = ResourceLocation.fromNamespaceAndPath("forgeweave", "wood");
-    private static final ResourceLocation IRON = ResourceLocation.fromNamespaceAndPath("forgeweave", "iron");
+    private static final Identifier STONE = Identifier.fromNamespaceAndPath("forgeweave", "stone");
+    private static final Identifier WOOD = Identifier.fromNamespaceAndPath("forgeweave", "wood");
+    private static final Identifier IRON = Identifier.fromNamespaceAndPath("forgeweave", "iron");
 
     @BeforeAll
     static void bootstrapMinecraft() {

@@ -9,10 +9,11 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ExtraCodecs;
 
 import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.FluidStackTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 
@@ -53,33 +54,54 @@ import dev.gkissel.forgeweave.Forgeweave;
  * manager lists them), so the ordering has to be explicit in the recipe rather than implicit in
  * load order -- see {@code SmelteryControllerBlockEntity#alloyOnce}, the only reader that cares.
  */
-public record AlloyRecipe(List<FluidStack> inputs, FluidStack result, int priority) {
+public record AlloyRecipe(List<FluidStackTemplate> inputTemplates, FluidStackTemplate resultTemplate, int priority) {
+
+    /**
+     * 26.1 loads datapack registries before it binds fluid components, and a {@link FluidStack}
+     * reads its fluid's default components the moment it is built, so decoding stacks here crashed
+     * world load. The recipe holds templates and hands out fresh stacks, the way
+     * {@code CastingRecipe} holds its result.
+     */
+    public AlloyRecipe(List<FluidStack> inputs, FluidStack result, int priority) {
+        this(inputs.stream().map(FluidStackTemplate::fromNonEmptyStack).toList(),
+                FluidStackTemplate.fromNonEmptyStack(result), priority);
+    }
+
+    /** Fresh copies of the inputs, in recipe order. */
+    public List<FluidStack> inputs() {
+        return inputTemplates.stream().map(FluidStackTemplate::create).toList();
+    }
+
+    /** A fresh copy of the result. */
+    public FluidStack result() {
+        return resultTemplate.create();
+    }
 
     public static final ResourceKey<Registry<AlloyRecipe>> REGISTRY = ResourceKey.createRegistryKey(
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "alloy_recipe"));
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "alloy_recipe"));
 
     /**
      * One {@code {"fluid": ..., "amount": ...}} entry, the same two keys {@link MeltingRecipe} and
      * {@code CastingRecipe} spell their fluid with rather than NeoForge's own {@code id}/{@code
      * amount} {@link FluidStack} codec.
      */
-    private static final Codec<FluidStack> FLUID_AMOUNT_CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            BuiltInRegistries.FLUID.byNameCodec().fieldOf("fluid").forGetter(FluidStack::getFluid),
-            ExtraCodecs.POSITIVE_INT.fieldOf("amount").forGetter(FluidStack::getAmount))
-            .apply(instance, FluidStack::new));
+    private static final Codec<FluidStackTemplate> FLUID_AMOUNT_CODEC = RecordCodecBuilder.create(instance -> instance.group(
+            BuiltInRegistries.FLUID.byNameCodec().fieldOf("fluid").forGetter(template -> template.fluid().value()),
+            ExtraCodecs.POSITIVE_INT.fieldOf("amount").forGetter(FluidStackTemplate::amount))
+            .apply(instance, FluidStackTemplate::new));
 
     public static final Codec<AlloyRecipe> CODEC = RecordCodecBuilder.<AlloyRecipe>create(instance -> instance.group(
-            FLUID_AMOUNT_CODEC.listOf().fieldOf("inputs").forGetter(AlloyRecipe::inputs),
-            FLUID_AMOUNT_CODEC.fieldOf("result").forGetter(AlloyRecipe::result),
+            FLUID_AMOUNT_CODEC.listOf().fieldOf("inputs").forGetter(AlloyRecipe::inputTemplates),
+            FLUID_AMOUNT_CODEC.fieldOf("result").forGetter(AlloyRecipe::resultTemplate),
             Codec.INT.optionalFieldOf("priority", 0).forGetter(AlloyRecipe::priority))
             .apply(instance, AlloyRecipe::new))
             .validate(AlloyRecipe::validate);
 
     private static DataResult<AlloyRecipe> validate(AlloyRecipe recipe) {
-        if (recipe.inputs.size() < 2) {
+        if (recipe.inputTemplates.size() < 2) {
             return DataResult.error(() -> "an alloy recipe needs at least two inputs");
         }
-        if (recipe.inputs.stream().anyMatch(input -> input.getFluid() == recipe.result.getFluid())) {
+        if (recipe.inputTemplates.stream().anyMatch(input -> input.fluid().value() == recipe.resultTemplate.fluid().value())) {
             return DataResult.error(() -> "an alloy recipe's result may not also be one of its inputs");
         }
         return DataResult.success(recipe);
@@ -95,7 +117,7 @@ public record AlloyRecipe(List<FluidStack> inputs, FluidStack result, int priori
      */
     public int matches(List<FluidStack> tankFluids) {
         int times = Integer.MAX_VALUE;
-        for (FluidStack needed : inputs) {
+        for (FluidStack needed : inputs()) {
             int available = 0;
             for (FluidStack held : tankFluids) {
                 // Components, not just the fluid: the alloying pass drains by FluidStack, and
@@ -118,8 +140,8 @@ public record AlloyRecipe(List<FluidStack> inputs, FluidStack result, int priori
     /** Total input volume of one application, i.e. how much fluid {@code times = 1} consumes. */
     public int inputVolume() {
         int total = 0;
-        for (FluidStack input : inputs) {
-            total += input.getAmount();
+        for (FluidStackTemplate input : inputTemplates) {
+            total += input.amount();
         }
         return total;
     }

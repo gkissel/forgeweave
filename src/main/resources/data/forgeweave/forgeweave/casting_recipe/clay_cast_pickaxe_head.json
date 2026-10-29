@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:pickaxe_head"
-  },
+  "cast": "forgeweave:pickaxe_head",
   "fluid": "forgeweave:molten_clay",
   "amount": 288,
   "result": {

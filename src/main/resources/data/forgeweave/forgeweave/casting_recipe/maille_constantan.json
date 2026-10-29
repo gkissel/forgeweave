@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_maille"
-  },
+  "cast": "forgeweave:cast_maille",
   "fluid": "forgeweave:molten_constantan",
   "amount": 288,
   "result": {
@@ -16,12 +14,12 @@
       "type": "neoforge:or",
       "values": [
         {
-          "type": "neoforge:item_exists",
-          "item": "immersiveengineering:ingot_constantan"
+          "type": "neoforge:registered",
+          "value": "immersiveengineering:ingot_constantan"
         },
         {
-          "type": "neoforge:item_exists",
-          "item": "eternalores:constantan_ingot"
+          "type": "neoforge:registered",
+          "value": "eternalores:constantan_ingot"
         }
       ]
     }

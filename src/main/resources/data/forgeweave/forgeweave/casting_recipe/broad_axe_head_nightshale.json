@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_broad_axe_head"
-  },
+  "cast": "forgeweave:cast_broad_axe_head",
   "fluid": "forgeweave:molten_nightshale",
   "amount": 1152,
   "result": {

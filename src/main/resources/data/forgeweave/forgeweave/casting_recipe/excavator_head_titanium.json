@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_excavator_head"
-  },
+  "cast": "forgeweave:cast_excavator_head",
   "fluid": "forgeweave:molten_titanium",
   "amount": 1152,
   "result": {
@@ -16,12 +14,12 @@
       "type": "neoforge:or",
       "values": [
         {
-          "type": "neoforge:item_exists",
-          "item": "modern_industrialization:titanium_ingot"
+          "type": "neoforge:registered",
+          "value": "modern_industrialization:titanium_ingot"
         },
         {
-          "type": "neoforge:item_exists",
-          "item": "eternalores:titanium_ingot"
+          "type": "neoforge:registered",
+          "value": "eternalores:titanium_ingot"
         }
       ]
     }

@@ -2,14 +2,10 @@
   "modifier": "forgeweave:netherite",
   "reagents": [
     {
-      "ingredient": {
-        "item": "minecraft:netherite_upgrade_smithing_template"
-      }
+      "ingredient": "minecraft:netherite_upgrade_smithing_template"
     },
     {
-      "ingredient": {
-        "item": "minecraft:netherite_ingot"
-      }
+      "ingredient": "minecraft:netherite_ingot"
     }
   ],
   "require_all_reagents": true,

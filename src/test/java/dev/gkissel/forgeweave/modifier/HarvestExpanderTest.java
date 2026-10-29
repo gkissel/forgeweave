@@ -22,10 +22,11 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -50,7 +51,7 @@ class HarvestExpanderTest {
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(JsonOps.INSTANCE);
     }
 
     private static ModifierRecipe shippedRecipe(String path) {
@@ -64,15 +65,15 @@ class HarvestExpanderTest {
         return ModifierRecipe.CODEC.parse(ops, json).getOrThrow();
     }
 
-    private static ItemStack withExpanders(ToolItem tool, ResourceLocation... modifiers) {
+    private static ItemStack withExpanders(ToolItem tool, Identifier... modifiers) {
         ItemStack stack = new ItemStack(tool);
         stack.set(ForgeweaveDataComponents.MODIFIERS.get(),
                 List.of(modifiers).stream().map(id -> new ModifierEntry(id, 1)).toList());
         return stack;
     }
 
-    private static final ResourceLocation WIDTH = ResourceLocation.fromNamespaceAndPath("forgeweave", "harvest_width");
-    private static final ResourceLocation HEIGHT = ResourceLocation.fromNamespaceAndPath("forgeweave", "harvest_height");
+    private static final Identifier WIDTH = Identifier.fromNamespaceAndPath("forgeweave", "harvest_width");
+    private static final Identifier HEIGHT = Identifier.fromNamespaceAndPath("forgeweave", "harvest_height");
 
     @Test
     void bothExpandersAreOneShotAndTakeTheirOwnReagent() {

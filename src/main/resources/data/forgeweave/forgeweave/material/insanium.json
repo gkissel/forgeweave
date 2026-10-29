@@ -52,22 +52,18 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "mysticalagradditions:insanium_ingot"
-      },
+      "ingredient": "mysticalagradditions:insanium_ingot",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "mysticalagradditions:insanium_ingot"
-  },
+  "repair_item": "mysticalagradditions:insanium_ingot",
   "cast_only": true,
   "enchantability": 26,
   "color": "#7100B2",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mysticalagradditions:insanium_ingot"
+      "type": "neoforge:registered",
+      "value": "mysticalagradditions:insanium_ingot"
     }
   ]
 }

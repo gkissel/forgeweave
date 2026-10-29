@@ -26,13 +26,13 @@ public final class ForgeweavePonderHint {
             return;
         }
         CompoundTag root = player.getPersistentData();
-        CompoundTag persisted = root.getCompound(PLAYER_PERSISTED_TAG);
-        if (persisted.getBoolean(SHOWN_KEY)) {
+        CompoundTag persisted = root.getCompoundOrEmpty(PLAYER_PERSISTED_TAG);
+        if (persisted.getBooleanOr(SHOWN_KEY, false)) {
             return;
         }
         persisted.putBoolean(SHOWN_KEY, true);
         root.put(PLAYER_PERSISTED_TAG, persisted);
-        player.displayClientMessage(Component.translatable("chat.forgeweave.ponder_hint"), false);
+        player.sendSystemMessage(Component.translatable("chat.forgeweave.ponder_hint"));
     }
 
     private ForgeweavePonderHint() {}

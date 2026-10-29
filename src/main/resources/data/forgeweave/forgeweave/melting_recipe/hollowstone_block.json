@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/hollowstone"
-  },
+  "input": "#c:storage_blocks/hollowstone",
   "fluid": "forgeweave:molten_hollowstone",
   "amount": 1296
 }

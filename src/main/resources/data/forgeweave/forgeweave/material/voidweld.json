@@ -50,34 +50,26 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "forgeweave:voidweld_ingot"
-      },
+      "ingredient": "forgeweave:voidweld_ingot",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "forgeweave:voidweld_nugget"
-      },
+      "ingredient": "forgeweave:voidweld_nugget",
       "value": 16
     },
     {
-      "ingredient": {
-        "item": "forgeweave:voidweld_block"
-      },
+      "ingredient": "forgeweave:voidweld_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/voidweld"
-  },
+  "repair_item": "#c:ingots/voidweld",
   "cast_only": true,
   "enchantability": 22,
   "color": "#8A2BE2",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "draconicevolution:chaotic_core"
+      "type": "neoforge:registered",
+      "value": "draconicevolution:chaotic_core"
     }
   ]
 }

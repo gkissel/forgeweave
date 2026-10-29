@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:shards/copper"
-  },
+  "input": "#c:shards/copper",
   "fluid": "forgeweave:molten_copper",
   "amount": 144
 }

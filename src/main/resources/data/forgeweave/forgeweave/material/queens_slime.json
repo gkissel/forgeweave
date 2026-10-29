@@ -21,13 +21,11 @@
     "general": ["forgeweave:overlord", "forgeweave:overslime"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:queens_slime_ingot" }, "value": 144 },
-    { "ingredient": { "item": "forgeweave:queens_slime_nugget" }, "value": 16 },
-    { "ingredient": { "item": "forgeweave:queens_slime_block" }, "value": 1296 }
+    { "ingredient": "forgeweave:queens_slime_ingot", "value": 144 },
+    { "ingredient": "forgeweave:queens_slime_nugget", "value": 16 },
+    { "ingredient": "forgeweave:queens_slime_block", "value": 1296 }
   ],
-  "repair_item": {
-    "tag": "c:ingots/queens_slime"
-  },
+  "repair_item": "#c:ingots/queens_slime",
   "cast_only": true,
   "enchantability": 9,
   "color": "#68C593"

@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_shovel_head"
-  },
+  "cast": "forgeweave:clay_cast_shovel_head",
   "fluid": "forgeweave:molten_dreadalloy",
   "amount": 288,
   "result": {

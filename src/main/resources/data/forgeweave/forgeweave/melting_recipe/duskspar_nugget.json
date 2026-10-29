@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/duskspar"
-  },
+  "input": "#c:nuggets/duskspar",
   "fluid": "forgeweave:molten_duskspar",
   "amount": 16
 }

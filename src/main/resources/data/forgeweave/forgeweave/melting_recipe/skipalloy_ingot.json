@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/skipalloy"
-  },
+  "input": "#c:ingots/skipalloy",
   "fluid": "forgeweave:molten_skipalloy",
   "amount": 144,
   "temperature": 1400

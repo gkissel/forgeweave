@@ -13,7 +13,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -821,7 +821,7 @@ public class ToolStationMenu extends StationMenu {
          * would double the cue for whoever took the tool. See {@link #CRAFT_SOUND}.
          */
         private void playCraftSound(Player player) {
-            if (player.level().isClientSide) {
+            if (player.level().isClientSide()) {
                 return;
             }
             RandomSource random = player.level().getRandom();
@@ -949,8 +949,8 @@ public class ToolStationMenu extends StationMenu {
 
         /** Upstream {@code AchievementEvents#grantAdvancement}: every remaining criterion, once. */
         private static void grantVanillaAdvancement(ServerPlayer player, String path) {
-            AdvancementHolder holder = player.getServer().getAdvancements()
-                    .get(ResourceLocation.withDefaultNamespace(path));
+            AdvancementHolder holder = player.level().getServer().getAdvancements()
+                    .get(Identifier.withDefaultNamespace(path));
             if (holder == null) {
                 return;
             }

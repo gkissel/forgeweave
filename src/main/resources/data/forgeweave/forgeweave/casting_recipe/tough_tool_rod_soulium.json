@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_tough_tool_rod"
-  },
+  "cast": "forgeweave:cast_tough_tool_rod",
   "fluid": "forgeweave:molten_soulium",
   "amount": 432,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mysticalagriculture:soulium_ingot"
+      "type": "neoforge:registered",
+      "value": "mysticalagriculture:soulium_ingot"
     }
   ]
 }

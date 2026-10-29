@@ -1,0 +1,16 @@
+{
+  "model": {
+    "type": "minecraft:condition",
+    "on_false": {
+      "type": "forgeweave:tool",
+      "model": "forgeweave:item/heavy_helmet",
+      "tool": "heavy_helmet"
+    },
+    "on_true": {
+      "type": "forgeweave:tool",
+      "model": "forgeweave:item/heavy_helmet_broken",
+      "tool": "heavy_helmet"
+    },
+    "property": "forgeweave:broken"
+  }
+}

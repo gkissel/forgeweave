@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:raw_materials/gold"
-  },
+  "input": "#c:raw_materials/gold",
   "fluid": "forgeweave:molten_gold",
   "amount": 144,
   "ore": true

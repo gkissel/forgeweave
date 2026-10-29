@@ -52,28 +52,22 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "cataclysm:cursium_ingot"
-      },
+      "ingredient": "cataclysm:cursium_ingot",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "cataclysm:cursium_block"
-      },
+      "ingredient": "cataclysm:cursium_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "item": "cataclysm:cursium_ingot"
-  },
+  "repair_item": "cataclysm:cursium_ingot",
   "cast_only": true,
   "enchantability": 15,
   "color": "#35BFA2",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "cataclysm:cursium_ingot"
+      "type": "neoforge:registered",
+      "value": "cataclysm:cursium_ingot"
     }
   ]
 }

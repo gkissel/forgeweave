@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_maille"
-  },
+  "cast": "forgeweave:clay_cast_maille",
   "fluid": "forgeweave:molten_elementarium_hafnium",
   "amount": 288,
   "result": {

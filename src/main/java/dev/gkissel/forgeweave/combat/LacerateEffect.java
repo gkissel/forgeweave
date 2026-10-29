@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.combat;
 
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.entity.LivingEntity;
@@ -68,8 +69,8 @@ public class LacerateEffect extends MobEffect {
     }
 
     @Override
-    public boolean applyEffectTick(LivingEntity entity, int amplifier) {
-        entity.hurt(entity.damageSources().magic(), DAMAGE_PER_STACK * stacks(amplifier));
+    public boolean applyEffectTick(ServerLevel level, LivingEntity entity, int amplifier) {
+        entity.hurtServer(level, entity.damageSources().magic(), DAMAGE_PER_STACK * stacks(amplifier));
         return true;
     }
 

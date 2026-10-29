@@ -28,12 +28,13 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.client.StationText;
 import dev.gkissel.forgeweave.item.PartItem;
 
@@ -52,7 +53,7 @@ class ArrowMaterialTest {
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(JsonOps.INSTANCE);
     }
 
     private static Material shipped(String name) {
@@ -66,8 +67,8 @@ class ArrowMaterialTest {
         }
     }
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath("forgeweave", path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath("forgeweave", path);
     }
 
     private static Material arrowMaterial(Optional<Material.Shaft> shaft, Optional<Material.Fletching> fletching) {
@@ -75,7 +76,7 @@ class ArrowMaterialTest {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.empty(),
-                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool")),
+                TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace("incorrect_for_stone_tool")),
                 new Material.Traits(List.of(id("hovering")), List.of()),
                 List.of(new Material.CraftingItem(Ingredient.of(Items.BLAZE_ROD), 144)),
                 Ingredient.of(Items.BLAZE_ROD),

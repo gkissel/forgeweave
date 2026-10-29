@@ -26,15 +26,13 @@
     "general": ["forgeweave:emberdrink"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "allthemodium:unobtainium_allthemodium_alloy_ingot" }, "value": 144 }
+    { "ingredient": "allthemodium:unobtainium_allthemodium_alloy_ingot", "value": 144 }
   ],
-  "repair_item": {
-    "item": "allthemodium:unobtainium_allthemodium_alloy_ingot"
-  },
+  "repair_item": "allthemodium:unobtainium_allthemodium_alloy_ingot",
   "cast_only": true,
   "enchantability": 10,
   "color": "#B75A75",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "allthemodium:unobtainium_allthemodium_alloy_ingot" }
+    { "type": "neoforge:registered", "value": "allthemodium:unobtainium_allthemodium_alloy_ingot" }
   ]
 }

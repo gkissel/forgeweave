@@ -20,11 +20,9 @@
     "head": ["forgeweave:writable2"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:paper" }, "value": 36 }
+    { "ingredient": "minecraft:paper", "value": 36 }
   ],
-  "repair_item": {
-    "item": "minecraft:paper"
-  },
+  "repair_item": "minecraft:paper",
   "enchantability": 22,
   "color": "#FFFFFF"
 }

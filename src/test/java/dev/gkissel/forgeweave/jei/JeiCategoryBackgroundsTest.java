@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.jei.JeiCategoryGeometry.Panel;
@@ -26,8 +26,8 @@ import dev.gkissel.forgeweave.jei.JeiCategoryGeometry.Panel;
  * at. Origins are pinned here so that cannot silently come back.
  */
 class JeiCategoryBackgroundsTest {
-    private static ResourceLocation derived(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/jei/" + path);
+    private static Identifier derived(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/jei/" + path);
     }
 
     private static void assertPanel(Panel panel, String texture, int u, int v, int width, int height) {

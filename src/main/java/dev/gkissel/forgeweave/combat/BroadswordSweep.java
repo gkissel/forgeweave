@@ -2,6 +2,7 @@ package dev.gkissel.forgeweave.combat;
 
 import java.util.List;
 
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffects;
@@ -91,7 +92,12 @@ public final class BroadswordSweep implements CombatSeam {
         hit.level().playSound(null, attacker.getX(), attacker.getY(), attacker.getZ(),
                 SoundEvents.PLAYER_ATTACK_SWEEP, attacker.getSoundSource(), 1.0F, 1.0F);
         if (attacker instanceof Player player) {
-            player.sweepAttack(); // upstream's own EntityPlayer-only spawnSweepParticles() carve-out
+            // upstream's own EntityPlayer-only spawnSweepParticles() carve-out; 1.21.1's
+            // Player#sweepAttack, which 26.1 folded into a private method, inlined.
+            double dx = -Mth.sin(player.getYRot() * Mth.DEG_TO_RAD);
+            double dz = Mth.cos(player.getYRot() * Mth.DEG_TO_RAD);
+            hit.level().sendParticles(ParticleTypes.SWEEP_ATTACK, player.getX() + dx, player.getY(0.5),
+                    player.getZ() + dz, 0, dx, 0.0, dz, 0.0);
         }
     }
 
@@ -99,7 +105,8 @@ public final class BroadswordSweep implements CombatSeam {
     private static boolean isSweepCondition(CombatHit hit, LivingEntity attacker) {
         boolean recentlyAirborne = attacker.fallDistance > 0.0F && !attacker.onGround() && !attacker.onClimbable()
                 && !attacker.isInWater() && !attacker.hasEffect(MobEffects.BLINDNESS) && !attacker.isPassenger();
-        double walked = attacker.walkDist - attacker.walkDistO;
+        // 1.21.1's walkDist - walkDistO, which 26.1 removed: this tick's horizontal step times 0.6.
+        double walked = attacker.getKnownMovement().horizontalDistance() * 0.6;
         return hit.isFullCharge() && !attacker.isSprinting() && !recentlyAirborne && attacker.onGround()
                 && walked < attacker.getSpeed();
     }

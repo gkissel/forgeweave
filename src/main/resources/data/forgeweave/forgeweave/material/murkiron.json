@@ -29,13 +29,11 @@
     "armor": ["forgeweave:blightward"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:murkiron_ingot" }, "value": 144 },
-    { "ingredient": { "item": "forgeweave:murkiron_nugget" }, "value": 16 },
-    { "ingredient": { "item": "forgeweave:murkiron_block" }, "value": 1296 }
+    { "ingredient": "forgeweave:murkiron_ingot", "value": 144 },
+    { "ingredient": "forgeweave:murkiron_nugget", "value": 16 },
+    { "ingredient": "forgeweave:murkiron_block", "value": 1296 }
   ],
-  "repair_item": {
-    "tag": "c:ingots/murkiron"
-  },
+  "repair_item": "#c:ingots/murkiron",
   "cast_only": true,
   "enchantability": 10,
   "color": "#206553"

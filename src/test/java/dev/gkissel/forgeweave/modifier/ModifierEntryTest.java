@@ -21,7 +21,7 @@ import net.minecraft.SharedConstants;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 
@@ -40,9 +40,9 @@ class ModifierEntryTest {
     private static final StreamCodec<io.netty.buffer.ByteBuf, List<ModifierEntry>> STREAM_CODEC =
             ModifierEntry.STREAM_CODEC.apply(ByteBufCodecs.list());
 
-    private static final ResourceLocation HASTE = ResourceLocation.fromNamespaceAndPath("forgeweave", "haste");
-    private static final ResourceLocation FROM_THE_FUTURE =
-            ResourceLocation.fromNamespaceAndPath("forgeweave", "not_implemented_here");
+    private static final Identifier HASTE = Identifier.fromNamespaceAndPath("forgeweave", "haste");
+    private static final Identifier FROM_THE_FUTURE =
+            Identifier.fromNamespaceAndPath("forgeweave", "not_implemented_here");
 
     @BeforeAll
     static void bootstrapMinecraft() {

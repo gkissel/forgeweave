@@ -2,25 +2,25 @@ package dev.gkissel.forgeweave.client;
 
 import javax.annotation.Nullable;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.RemotePlayer;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.player.PlayerModelPart;
-import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.equipment.Equippable;
 import net.minecraft.world.level.Level;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -64,15 +64,19 @@ public final class StandPreview {
 
     /** Vanilla {@code SmithingScreen}'s own armor-stand pose, which upstream 1.20 borrows verbatim. */
     private static final Quaternionf POSE = new Quaternionf().rotationXYZ(0.43633232F, 0.0F, (float) Math.PI);
-    private static final Vector3f NO_TRANSLATION = new Vector3f();
+    /**
+     * Since 26.1 an entity is drawn into its own box whose centre is the pose origin, so the feet sit
+     * one block below it -- vanilla {@code SmithingScreen}'s own {@code (0, 1, 0)} translation.
+     */
+    private static final Vector3f FEET_BELOW_CENTRE = new Vector3f(0.0F, 1.0F, 0.0F);
     private static final float Y_BODY_ROT = 210.0F;
     private static final float X_ROT = 25.0F;
     /** Vanilla {@code InventoryScreen}'s own player preview faces the screen at 180 degrees. */
     private static final float PLAYER_Y_ROT = 180.0F;
 
     /** The drag-to-rotate ring, upstream 1.20's {@code icons.png} sprite at (0, 184) (NOTICE.md). */
-    private static final ResourceLocation ROTATE_RING =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/stand_rotate.png");
+    private static final Identifier ROTATE_RING =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/stand_rotate.png");
     private static final int RING_SIZE = 32;
 
     /**
@@ -189,20 +193,25 @@ public final class StandPreview {
         }
         // The stand holds a tool in its off hand, as upstream's does; a player holds it in the main hand.
         EquipmentSlot hand = stand instanceof Player ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND;
-        stand.setItemSlot(stack.getItem() instanceof ArmorItem armor ? armor.getEquipmentSlot() : hand, stack.copy());
+        Equippable equippable = stack.get(DataComponents.EQUIPPABLE);
+        EquipmentSlot worn = equippable != null && equippable.slot().isArmor() ? equippable.slot() : hand;
+        stand.setItemSlot(worn, stack.copy());
     }
 
-    public void render(GuiGraphics graphics) {
+    public void render(GuiGraphicsExtractor graphics) {
         if (stand == null) {
             return;
         }
-        InventoryScreen.renderEntityInInventory(graphics, x, y, scale, NO_TRANSLATION,
-                POSE.rotateY(angle, new Quaternionf()), null, stand);
-        // Issue #84's hazard, one scope smaller: entity rendering ends with blending off, and both
-        // the ring below and the selected station tab drawn after this one are translucent.
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        graphics.blit(ROTATE_RING, x - RING_SIZE / 2, y - RING_SIZE / 2, 0, 0, RING_SIZE, RING_SIZE,
+        EntityRenderState state = Minecraft.getInstance().getEntityRenderDispatcher().getRenderer(stand)
+                .createRenderState(stand, 1.0F);
+        state.shadowPieces.clear();
+        state.outlineColor = 0;
+        // The box is centred one block above the feet and reaches 1.5 blocks every way, so the
+        // stand's two blocks of height and a held tool at any yaw fit inside it.
+        int half = scale * 3 / 2;
+        graphics.entity(state, scale, FEET_BELOW_CENTRE, POSE.rotateY(angle, new Quaternionf()), null,
+                x - half, y - scale - half, x + half, y - scale + half);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, ROTATE_RING, x - RING_SIZE / 2, y - RING_SIZE / 2, 0, 0, RING_SIZE, RING_SIZE,
                 RING_SIZE, RING_SIZE);
     }
 

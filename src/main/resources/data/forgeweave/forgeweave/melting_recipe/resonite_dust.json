@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/resonite"
-  },
+  "input": "#c:dusts/resonite",
   "fluid": "forgeweave:molten_resonite",
   "amount": 144
 }

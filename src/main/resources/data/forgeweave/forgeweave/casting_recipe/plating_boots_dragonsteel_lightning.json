@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_plating_boots"
-  },
+  "cast": "forgeweave:cast_plating_boots",
   "fluid": "forgeweave:molten_dragonsteel_lightning",
   "amount": 288,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "iceandfire:dragonsteel_lightning_ingot"
+      "type": "neoforge:registered",
+      "value": "iceandfire:dragonsteel_lightning_ingot"
     }
   ]
 }

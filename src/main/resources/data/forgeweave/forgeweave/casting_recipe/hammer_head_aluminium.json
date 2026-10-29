@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_hammer_head"
-  },
+  "cast": "forgeweave:cast_hammer_head",
   "fluid": "forgeweave:molten_aluminium",
   "amount": 1152,
   "result": {
@@ -16,12 +14,12 @@
       "type": "neoforge:or",
       "values": [
         {
-          "type": "neoforge:item_exists",
-          "item": "immersiveengineering:ingot_aluminum"
+          "type": "neoforge:registered",
+          "value": "immersiveengineering:ingot_aluminum"
         },
         {
-          "type": "neoforge:item_exists",
-          "item": "eternalores:aluminum_ingot"
+          "type": "neoforge:registered",
+          "value": "eternalores:aluminum_ingot"
         }
       ]
     }

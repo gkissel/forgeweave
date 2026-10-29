@@ -23,6 +23,8 @@ import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.level.material.Fluids;
 
+import dev.gkissel.forgeweave.TestRegistries;
+
 /**
  * Pins upstream 1.12's {@code TinkerSmeltery.registerSmelteryFuel(new FluidStack(LAVA, 50), 100)}
  * (NOTICE.md) and the JSON shape docs/SCOPE.md M2 promises datapack authors. The shipped {@code
@@ -37,7 +39,7 @@ class SmelteryFuelTest {
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(JsonOps.INSTANCE);
     }
 
     private static SmelteryFuel parse(String json) {

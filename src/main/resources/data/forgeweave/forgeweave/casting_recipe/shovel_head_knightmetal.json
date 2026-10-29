@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_shovel_head"
-  },
+  "cast": "forgeweave:cast_shovel_head",
   "fluid": "forgeweave:molten_knightmetal",
   "amount": 288,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "twilightforest:knightmetal_ingot"
+      "type": "neoforge:registered",
+      "value": "twilightforest:knightmetal_ingot"
     }
   ]
 }

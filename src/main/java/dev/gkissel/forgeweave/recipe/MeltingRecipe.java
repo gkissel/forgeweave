@@ -1,6 +1,5 @@
 package dev.gkissel.forgeweave.recipe;
 
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
@@ -12,7 +11,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -125,14 +124,14 @@ public record MeltingRecipe(Ingredient input, Fluid fluid, int amount, int tempe
     private static final double LOG9_2 = 0.31546487678;
 
     public static final ResourceKey<Registry<MeltingRecipe>> REGISTRY = ResourceKey.createRegistryKey(
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "melting_recipe"));
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "melting_recipe"));
 
     /**
      * The one material {@link #meltBackOfStonePart} special-cases, matching upstream's own
      * {@code TinkerMaterials.stone} hardcode (issue #440). Same hardcoded-id convention as the
      * material comparisons in {@code ToolStationGameTests}/{@code VanillaMaterialGameTests}.
      */
-    public static final ResourceLocation STONE_MATERIAL_ID = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "stone");
+    public static final Identifier STONE_MATERIAL_ID = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "stone");
 
     public static final Codec<MeltingRecipe> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Ingredient.CODEC.fieldOf("input").forGetter(MeltingRecipe::input),
@@ -212,7 +211,7 @@ public record MeltingRecipe(Ingredient input, Fluid fluid, int amount, int tempe
      */
     public boolean isTagInput() {
         return !input.isCustom()
-                && Arrays.stream(input.getValues()).anyMatch(value -> value instanceof Ingredient.TagValue);
+                && input.getValues().unwrapKey().isPresent();
     }
 
     /**
@@ -235,13 +234,13 @@ public record MeltingRecipe(Ingredient input, Fluid fluid, int amount, int tempe
             // fluids already in the tank all survive the flip untouched.
             return Optional.empty();
         }
-        Registry<MeltingRecipe> recipes = registries.registryOrThrow(REGISTRY);
+        Registry<MeltingRecipe> recipes = registries.lookupOrThrow(REGISTRY);
         return recipes.entrySet().stream()
                 .filter(entry -> entry.getValue().input.test(stack))
                 // false sorts before true, so item inputs come first.
                 .min(Comparator.<Map.Entry<ResourceKey<MeltingRecipe>, MeltingRecipe>, Boolean>comparing(
                                 entry -> entry.getValue().isTagInput())
-                        .thenComparing(entry -> entry.getKey().location()))
+                        .thenComparing(entry -> entry.getKey().identifier()))
                 .map(Map.Entry::getValue)
                 .or(() -> meltBackOfACastPart(registries, stack))
                 .or(() -> meltBackOfStonePart(stack));
@@ -267,11 +266,11 @@ public record MeltingRecipe(Ingredient input, Fluid fluid, int amount, int tempe
      * per-slot cache) as {@link #find}'s own scan.
      */
     private static Optional<MeltingRecipe> meltBackOfACastPart(RegistryAccess registries, ItemStack stack) {
-        ResourceLocation material = stack.get(ForgeweaveDataComponents.MATERIAL.get());
+        Identifier material = stack.get(ForgeweaveDataComponents.MATERIAL.get());
         if (material == null || !(stack.getItem() instanceof PartItem)) {
             return Optional.empty();
         }
-        for (CastingRecipe casting : registries.registryOrThrow(CastingRecipe.REGISTRY)) {
+        for (CastingRecipe casting : registries.lookupOrThrow(CastingRecipe.REGISTRY)) {
             ItemStack result = casting.result();
             // A fluid-agnostic recipe (the bucket, #604) has no one metal to melt back into, and
             // never casts a tool part anyway.
@@ -331,13 +330,13 @@ public record MeltingRecipe(Ingredient input, Fluid fluid, int amount, int tempe
      * rule that could drift from it.
      */
     // #109
-    public static Optional<MeltingRecipe> resolve(Map<ResourceLocation, MeltingRecipe> recipes, ItemStack stack) {
+    public static Optional<MeltingRecipe> resolve(Map<Identifier, MeltingRecipe> recipes, ItemStack stack) {
         if (stack.isEmpty()) {
             return Optional.empty();
         }
         return recipes.entrySet().stream()
                 .filter(entry -> entry.getValue().input.test(stack))
-                .min(Comparator.<Map.Entry<ResourceLocation, MeltingRecipe>, Boolean>comparing(
+                .min(Comparator.<Map.Entry<Identifier, MeltingRecipe>, Boolean>comparing(
                                 entry -> entry.getValue().isTagInput())
                         .thenComparing(Map.Entry::getKey))
                 .map(Map.Entry::getValue);

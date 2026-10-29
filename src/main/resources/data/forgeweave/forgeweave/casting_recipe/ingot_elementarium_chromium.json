@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_ingot"
-  },
+  "cast": "forgeweave:cast_ingot",
   "fluid": "forgeweave:molten_elementarium_chromium",
   "amount": 144,
   "result": {
@@ -18,8 +16,8 @@
       "toggle": "elementariumMaterials"
     },
     {
-      "type": "neoforge:item_exists",
-      "item": "elementarium:chromium_ingot"
+      "type": "neoforge:registered",
+      "value": "elementarium:chromium_ingot"
     }
   ]
 }

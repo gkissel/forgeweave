@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:dusts/mendalloy"
-    }
+    "#c:dusts/mendalloy"
   ],
   "result": {
     "count": 3,

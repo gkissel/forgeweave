@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shaped",
   "category": "building",
   "key": {
-    "#": {
-      "item": "forgeweave:amethyst_bronze_ingot"
-    }
+    "#": "forgeweave:amethyst_bronze_ingot"
   },
   "pattern": [
     "###",
@@ -12,7 +10,6 @@
     "###"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:amethyst_bronze_block"
   }
 }

@@ -12,7 +12,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
@@ -206,6 +206,33 @@ final class ToolTooltip {
     }
 
     /**
+     * An assembled armor piece's hover text, laid out like a tool's: its stat block ({@link
+     * StationText#armorStats}) where a tool has durability and attack, then the level and XP, the
+     * Modifiers and free slots, and on Shift the same per-part sections. Armor used to show only the
+     * stat block, so a piece never said what was on it.
+     */
+    static void appendArmor(ItemStack stack, HolderLookup.Provider registries, boolean detailed, List<Component> tooltip) {
+        ToolMaterials materials = stack.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
+        if (materials == null || ArmorPieceItem.stats(stack) == null) {
+            return;
+        }
+        if (ToolItem.isBroken(stack)) {
+            tooltip.add(Component.translatable("tooltip.forgeweave.durability")
+                    .append(": ")
+                    .append(Component.translatable("tooltip.forgeweave.broken")
+                            .withStyle(ChatFormatting.DARK_RED, ChatFormatting.BOLD)));
+        }
+        tooltip.addAll(StationText.armorStats(stack));
+        appendLevel(stack, ForgeweaveConfig.enabled(ForgeweaveConfig.TOOL_LEVELING), tooltip);
+        appendModifiers(stack, detailed, tooltip);
+        if (!detailed) {
+            appendCompactTraitStateLines(stack, tooltip);
+            return;
+        }
+        appendPartSections(stack, registries, materials, tooltip);
+    }
+
+    /**
      * Upstream {@code ToolCore#getTooltipComponents} (ToolCore.java:323-364), inline in the Shift
      * tier per issue #380: one section per part slot, in the tool's own slot order
      * ({@code ToolAssemblyRecipes.Entry}, which is where the multi-head tools' positional sections
@@ -222,13 +249,13 @@ final class ToolTooltip {
             return;
         }
         ToolAssemblyRecipes.Entry entry = found.get();
-        List<ResourceLocation> materialIds = materials.all();
+        List<Identifier> materialIds = materials.all();
         if (materialIds.size() < entry.slotCount()) {
             return;
         }
 
         for (int slot = 0; slot < entry.slotCount(); slot++) {
-            ResourceLocation materialId = materialIds.get(slot);
+            Identifier materialId = materialIds.get(slot);
             PartItem part = entry.part(slot);
             Optional<Material> material = MaterialDisplay.lookup(registries, materialId);
             TextColor color = material.map(Material::color).orElse(null);
@@ -238,7 +265,7 @@ final class ToolTooltip {
             material.ifPresent(resolved -> {
                 tooltip.addAll(part.stats(resolved));
                 // Upstream's usedTraits set: a trait its material grants twice is named once.
-                for (ResourceLocation traitId : resolved.traits().forPart(part.kind()).stream().distinct().toList()) {
+                for (Identifier traitId : resolved.traits().forPart(part.kind()).stream().distinct().toList()) {
                     tooltip.add(traitLine(traitId, color));
                     appendTraitStateLines(traitId, stack, tooltip);
                 }
@@ -253,7 +280,7 @@ final class ToolTooltip {
      * translatable pieces joined by {@code tooltip.forgeweave.part_name}, so a language that orders
      * them the other way round can say so.
      */
-    private static Component partNameLine(HolderLookup.Provider registries, ResourceLocation materialId,
+    private static Component partNameLine(HolderLookup.Provider registries, Identifier materialId,
             PartItem part, TextColor color) {
         Style style = Style.EMPTY.withUnderlined(true);
         return Component.translatable("tooltip.forgeweave.part_name",
@@ -309,7 +336,7 @@ final class ToolTooltip {
     }
 
     /** {@code Pierce: Deals ...}, same name-colon-description shape as {@link #traitLine} without a material color. */
-    private static Component innateLine(ResourceLocation id) {
+    private static Component innateLine(Identifier id) {
         String base = "tooltip.forgeweave.innate." + id.getPath();
         return Component.translatable(base + ".name").withStyle(ChatFormatting.GOLD)
                 .append(Component.literal(": ").withStyle(ChatFormatting.GRAY))
@@ -415,7 +442,7 @@ final class ToolTooltip {
      */
     private static void appendMattockTierLines(HolderLookup.Provider registries, ToolMaterials materials,
             List<Component> tooltip) {
-        List<ResourceLocation> parts = materials.parts();
+        List<Identifier> parts = materials.parts();
         if (parts.size() < 3) {
             return;
         }
@@ -465,7 +492,7 @@ final class ToolTooltip {
      * in the section's own slot rather than the first of the tool's materials to grant the id, so a
      * trait two materials share is attributed to the part actually being described.
      */
-    private static Component traitLine(ResourceLocation traitId, TextColor color) {
+    private static Component traitLine(Identifier traitId, TextColor color) {
         // #1103: one name key and one description key per leveled family, the numeral appended and
         // the rung's own numbers interpolated; see TraitFamilies.
         traitId = ForgeweaveTraits.canonical(traitId);
@@ -482,7 +509,7 @@ final class ToolTooltip {
      * kill count and bonus, warmemory's per-type breakdown, evolved's Draconic-upgrade count. A no-op
      * for every trait that overrides nothing, which is most of them.
      */
-    private static void appendTraitStateLines(ResourceLocation traitId, ItemStack stack, List<Component> tooltip) {
+    private static void appendTraitStateLines(Identifier traitId, ItemStack stack, List<Component> tooltip) {
         Trait trait = ForgeweaveTraits.lookup(traitId);
         if (trait != null) {
             trait.stateLines(stack, tooltip::add);
@@ -496,7 +523,7 @@ final class ToolTooltip {
      * one line -- bloodtally and evolved, never warmemory's multi-line breakdown.
      */
     private static void appendCompactTraitStateLines(ItemStack stack, List<Component> tooltip) {
-        for (ResourceLocation traitId : stack.getOrDefault(ForgeweaveDataComponents.TRAITS.get(), List.<ResourceLocation>of())) {
+        for (Identifier traitId : stack.getOrDefault(ForgeweaveDataComponents.TRAITS.get(), List.<Identifier>of())) {
             Trait trait = ForgeweaveTraits.lookup(traitId);
             if (trait == null) {
                 continue;

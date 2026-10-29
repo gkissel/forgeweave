@@ -45,34 +45,26 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:ingots/ironwood"
-      },
+      "ingredient": "#c:ingots/ironwood",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:raw_materials/ironwood"
-      },
+      "ingredient": "#c:raw_materials/ironwood",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:storage_blocks/ironwood"
-      },
+      "ingredient": "#c:storage_blocks/ironwood",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/ironwood"
-  },
+  "repair_item": "#c:ingots/ironwood",
   "cast_only": true,
   "enchantability": 14,
   "color": "#8A9B5E",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "twilightforest:ironwood_ingot"
+      "type": "neoforge:registered",
+      "value": "twilightforest:ironwood_ingot"
     }
   ]
 }

@@ -1,14 +1,12 @@
 {
-  "input": {
-    "tag": "c:nuggets/conductive_alloy"
-  },
+  "input": "#c:nuggets/conductive_alloy",
   "fluid": "forgeweave:molten_conductive_alloy",
   "amount": 16,
   "temperature": 1200,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "enderio:conductive_alloy_ingot"
+      "type": "neoforge:registered",
+      "value": "enderio:conductive_alloy_ingot"
     }
   ]
 }

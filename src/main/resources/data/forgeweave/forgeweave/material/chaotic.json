@@ -50,21 +50,17 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "draconicevolution:chaotic_core"
-      },
+      "ingredient": "draconicevolution:chaotic_core",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "draconicevolution:chaotic_core"
-  },
+  "repair_item": "draconicevolution:chaotic_core",
   "enchantability": 17,
   "color": "#999999",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "draconicevolution:chaotic_core"
+      "type": "neoforge:registered",
+      "value": "draconicevolution:chaotic_core"
     }
   ]
 }

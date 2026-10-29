@@ -2,12 +2,15 @@ package dev.gkissel.forgeweave.ponder;
 
 import java.util.List;
 
-import net.createmod.catnip.math.Pointing;
-import net.createmod.ponder.api.scene.SceneBuilder;
-import net.createmod.ponder.api.scene.SceneBuildingUtil;
+import net.createmod.catnip.api.math.Pointing;
+import net.createmod.ponder.api.client.element.ElementLink;
+import net.createmod.ponder.api.client.element.EntityElement;
+import net.createmod.ponder.api.client.scene.SceneBuilder;
+import net.createmod.ponder.api.client.scene.SceneBuildingUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.decoration.ArmorStand;
@@ -15,7 +18,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 import dev.gkissel.forgeweave.Forgeweave;
-import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.tool.ToolConstants;
@@ -46,7 +48,7 @@ public final class ForgeweaveArmorScenes {
     /** Where the armor stand appears: west of the station, facing the default camera. */
     private static final BlockPos STAND = new BlockPos(0, 1, 2);
 
-    private static final ResourceLocation IRON = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "iron");
+    private static final Identifier IRON = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "iron");
 
     public static void assembly(SceneBuilder scene, SceneBuildingUtil util) {
         scene.title("armor", "Assembling Armor");
@@ -63,8 +65,7 @@ public final class ForgeweaveArmorScenes {
                 .placeNearTarget();
         scene.idle(80);
 
-        ItemStack plating = new ItemStack(ForgeweaveItems.PART_PLATING_CHESTPLATE.get());
-        plating.set(ForgeweaveDataComponents.MATERIAL.get(), IRON);
+        ItemStack plating = PonderStacks.of(ForgeweaveItems.PART_PLATING_CHESTPLATE.get(), IRON);
         scene.overlay().showControls(util.vector().blockSurface(STATION, Direction.SOUTH), Pointing.RIGHT, 50)
                 .withItem(plating);
         scene.idle(10);
@@ -75,8 +76,7 @@ public final class ForgeweaveArmorScenes {
                 .placeNearTarget();
         scene.idle(80);
 
-        ItemStack maille = new ItemStack(ForgeweaveItems.PART_MAILLE.get());
-        maille.set(ForgeweaveDataComponents.MATERIAL.get(), IRON);
+        ItemStack maille = PonderStacks.of(ForgeweaveItems.PART_MAILLE.get(), IRON);
         scene.overlay().showControls(util.vector().blockSurface(STATION, Direction.SOUTH), Pointing.RIGHT, 50)
                 .withItem(maille);
         scene.idle(10);
@@ -88,7 +88,7 @@ public final class ForgeweaveArmorScenes {
         scene.idle(80);
 
         scene.overlay().showControls(util.vector().topOf(STATION), Pointing.DOWN, 50)
-                .withItem(new ItemStack(ForgeweaveItems.ARMOR_CHESTPLATE.get()));
+                .withItem(PonderStacks.of(ForgeweaveItems.ARMOR_CHESTPLATE.get()));
         scene.effects().indicateSuccess(STATION);
         scene.idle(10);
         scene.overlay().showText(70)
@@ -98,7 +98,11 @@ public final class ForgeweaveArmorScenes {
                 .placeNearTarget();
         scene.idle(80);
 
-        scene.world().createEntity(ForgeweaveArmorScenes::wearingStand);
+        // Dressed by a second instruction: Ponder 1.0.52 strips every component but a few from an
+        // armor stand's gear as the stand is added, minecraft:equippable included, and on 26.1 that
+        // is what draws worn armor. Gear set afterwards keeps its components.
+        ElementLink<EntityElement> stand = scene.world().createEntity(ForgeweaveArmorScenes::bareStand);
+        scene.world().modifyEntity(stand, ForgeweaveArmorScenes::dress);
         scene.idle(10);
         scene.overlay().showText(90)
                 .attachKeyFrame()
@@ -110,17 +114,24 @@ public final class ForgeweaveArmorScenes {
         scene.markAsFinished();
     }
 
-    /** An armor stand at {@link #STAND} wearing an iron/iron chestplate assembled the station's way. */
-    private static ArmorStand wearingStand(Level level) {
+    /** An armor stand at {@link #STAND}, facing the default camera. */
+    private static ArmorStand bareStand(Level level) {
         ArmorStand stand = new ArmorStand(EntityType.ARMOR_STAND, level);
         stand.setPos(STAND.getX() + 0.5, STAND.getY(), STAND.getZ() + 0.5);
         stand.setYRot(180.0F);
         stand.setYBodyRot(180.0F);
         stand.setYHeadRot(180.0F);
-        ToolAssemblyRecipes.entryFor(new ItemStack(ForgeweaveItems.ARMOR_CHESTPLATE.get()))
-                .flatMap(entry -> ToolAssemblyRecipes.assemble(level.registryAccess(), entry, List.of(IRON, IRON)))
-                .ifPresent(piece -> stand.setItemSlot(EquipmentSlot.CHEST, piece));
         return stand;
+    }
+
+    /** Puts an iron/iron chestplate, assembled the station's way, on the stand. */
+    private static void dress(Entity entity) {
+        if (!(entity instanceof ArmorStand stand)) {
+            return;
+        }
+        ToolAssemblyRecipes.entryFor(new ItemStack(ForgeweaveItems.ARMOR_CHESTPLATE.get()))
+                .flatMap(entry -> ToolAssemblyRecipes.assemble(stand.level().registryAccess(), entry, List.of(IRON, IRON)))
+                .ifPresent(piece -> stand.setItemSlot(EquipmentSlot.CHEST, piece));
     }
 
     private ForgeweaveArmorScenes() {}

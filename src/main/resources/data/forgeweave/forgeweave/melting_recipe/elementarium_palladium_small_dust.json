@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/elementarium_palladium"
-  },
+  "input": "#c:small_dusts/elementarium_palladium",
   "fluid": "forgeweave:molten_elementarium_palladium",
   "amount": 36,
   "temperature": 1200,

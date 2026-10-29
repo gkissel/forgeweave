@@ -5,7 +5,7 @@ import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.BushBlock;
+import net.minecraft.world.level.block.VegetationBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -24,7 +24,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * of which except the placement rule are block properties in modern Minecraft, so they live in
  * {@code ForgeweaveBlocks} rather than here.
  */
-public class SlimeTallGrassBlock extends BushBlock {
+public class SlimeTallGrassBlock extends VegetationBlock {
     // Block codecs only ever re-create a block from its properties (registry dumps); nothing decodes
     // one back into a registered instance, so the foliage the reconstructed block would carry is
     // immaterial. Same shortcut vanilla's own simpleCodec blocks take with their extra constructor
@@ -48,13 +48,13 @@ public class SlimeTallGrassBlock extends BushBlock {
     }
 
     @Override
-    protected MapCodec<? extends BushBlock> codec() {
+    protected MapCodec<? extends VegetationBlock> codec() {
         return CODEC;
     }
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        Vec3 offset = state.getOffset(level, pos);
+        Vec3 offset = state.getOffset(pos);
         return SHAPE.move(offset.x, offset.y, offset.z);
     }
 

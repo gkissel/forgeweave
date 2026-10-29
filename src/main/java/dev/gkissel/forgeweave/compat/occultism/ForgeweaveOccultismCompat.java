@@ -8,7 +8,7 @@ import javax.annotation.Nullable;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -64,7 +64,7 @@ public final class ForgeweaveOccultismCompat {
      * {@code jei.ModifierApplicationCategory}'s issue #764 bug was made of.
      */
     public static final TagKey<Item> RITUAL_BINDABLE = TagKey.create(Registries.ITEM,
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "ritual_bindable"));
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "ritual_bindable"));
 
     /** The Occultism item every binding ritual consumes one of: the spirit itself, in gem form. */
     public static final String SPIRIT_GEM = MODID + ":spirit_attuned_gem";
@@ -87,7 +87,7 @@ public final class ForgeweaveOccultismCompat {
 
         /** The modifier's own path -- the recipe file's name and the last segment of the factory id. */
         public String name() {
-            return ResourceLocation.parse(modifier).getPath();
+            return Identifier.parse(modifier).getPath();
         }
 
         /** This ritual's {@code occultism:ritual_factories} entry, i.e. the JSON's {@code ritual_type}. */
@@ -189,7 +189,7 @@ public final class ForgeweaveOccultismCompat {
      * {@link ModifierApplication#applyLevelSpendingSlots} for why the two differ.
      */
     public static Optional<ItemStack> bind(@Nullable HolderLookup.Provider registries,
-            ItemStack tool, ResourceLocation modifier, int level) {
+            ItemStack tool, Identifier modifier, int level) {
         if (!acceptsRitualTool(tool)) {
             return Optional.empty();
         }

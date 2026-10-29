@@ -4,17 +4,17 @@ import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.modifier.Modifier;
@@ -46,8 +46,8 @@ public class ModifierWorktableGameTests {
     private static final BlockPos WORKTABLE = new BlockPos(1, 1, 1);
     private static final BlockPos STATION = new BlockPos(2, 1, 1);
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
     private static HolderLookup.Provider registries(GameTestHelper helper) {
@@ -58,7 +58,7 @@ public class ModifierWorktableGameTests {
     private static ModifierWorktableMenu load(GameTestHelper helper, Player player, ItemStack tool,
             ItemStack first, ItemStack second) {
         helper.setBlock(WORKTABLE, ForgeweaveBlocks.MODIFIER_WORKTABLE.get());
-        ModifierWorktableBlockEntity blockEntity = helper.getBlockEntity(WORKTABLE);
+        ModifierWorktableBlockEntity blockEntity = helper.getBlockEntity(WORKTABLE, ModifierWorktableBlockEntity.class);
         blockEntity.container().setItem(Worktable.TOOL_SLOT, tool);
         blockEntity.container().setItem(Worktable.INPUT_START, first);
         blockEntity.container().setItem(Worktable.INPUT_START + 1, second);
@@ -80,7 +80,7 @@ public class ModifierWorktableGameTests {
         return new ModifierEntry(id(path), level);
     }
 
-    private static List<ResourceLocation> ids(ItemStack tool) {
+    private static List<Identifier> ids(ItemStack tool) {
         return ForgeweaveModifiers.of(tool).stream().map(ModifierEntry::id).toList();
     }
 

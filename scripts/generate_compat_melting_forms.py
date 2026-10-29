@@ -51,7 +51,7 @@ def main():
             if target.exists():
                 continue
             tag_name = f"raw_{name}" if suffix == "raw_block" else name
-            recipe = {"input": {"tag": f"c:{tag}/{tag_name}"}, "fluid": base["fluid"], "amount": amount}
+            recipe = {"input": f"#c:{tag}/{tag_name}", "fluid": base["fluid"], "amount": amount}
             key = (base["fluid"], json.dumps(recipe["input"], sort_keys=True))
             if key in existing:
                 continue

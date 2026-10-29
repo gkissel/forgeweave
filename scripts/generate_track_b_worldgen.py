@@ -171,14 +171,13 @@ def main() -> None:
         "step": "underground_ores",
     })
     # #998 (D-M8-19) -- the fourth output tree: Allthemodium's own mining dimension, mod_loaded
-    # gated (unlike the three above, which are all-vanilla and need no gate). The exact biome tag,
-    # #allthemodium:mining_features/mining_biomes, and the neoforge:add_features shape are verified
-    # against the mod's own shipped worldgen data (commit 59e41c60619d) -- it is the same tree
-    # Allthemodium uses for every other mod's ore it welcomes into that dimension
-    # (data/allthemodium/neoforge/biome_modifier/allthemodium/dim_ores/*.json).
+    # gated (unlike the three above, which are all-vanilla and need no gate). Allthemodium 4.2.0 for
+    # 26.1.2 dropped its #allthemodium:mining_features/mining_biomes tag, and naming a missing tag
+    # stops the server booting. Its Mining dimension is one flat biome, allthemodium:mining, which
+    # is what its own ores there name (data/allthemodium/neoforge/biome_modifier/mining/*.json).
     write_json(BIOME_MODIFIERS / "allthemodium_mining_ores.json", {
         "type": "neoforge:add_features",
-        "biomes": "#allthemodium:mining_features/mining_biomes",
+        "biomes": "allthemodium:mining",
         "features": features["mining"],
         "step": "underground_ores",
         "neoforge:conditions": [

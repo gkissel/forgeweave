@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_cross_guard"
-  },
+  "cast": "forgeweave:clay_cast_cross_guard",
   "fluid": "forgeweave:molten_refined_glowstone",
   "amount": 144,
   "result": {
@@ -14,8 +12,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:ingot_refined_glowstone"
+      "type": "neoforge:registered",
+      "value": "mekanism:ingot_refined_glowstone"
     }
   ]
 }

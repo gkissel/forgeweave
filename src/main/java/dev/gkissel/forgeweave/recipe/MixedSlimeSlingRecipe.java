@@ -1,6 +1,5 @@
 package dev.gkissel.forgeweave.recipe;
 
-import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -33,8 +32,15 @@ import dev.gkissel.forgeweave.menu.ContentFamilies;
  */
 public class MixedSlimeSlingRecipe extends CustomRecipe {
 
+    private final CraftingBookCategory category;
+
     public MixedSlimeSlingRecipe(CraftingBookCategory category) {
-        super(category);
+        this.category = category;
+    }
+
+    @Override
+    public CraftingBookCategory category() {
+        return category;
     }
 
     @Override
@@ -56,7 +62,7 @@ public class MixedSlimeSlingRecipe extends CustomRecipe {
         boolean pure = congealed != SlimeColour.PINK;
         for (int slot : new int[] { 3, 5, 7 }) {
             ItemStack ball = input.getItem(slot);
-            if (!ball.is(Tags.Items.SLIMEBALLS)) {
+            if (!ball.is(Tags.Items.SLIME_BALLS)) {
                 return false;
             }
             // A modded slime ball of no Forgeweave colour never makes a pure grid, exactly as a
@@ -67,22 +73,12 @@ public class MixedSlimeSlingRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
-        return getResultItem(registries);
-    }
-
-    @Override
-    public ItemStack getResultItem(HolderLookup.Provider registries) {
+    public ItemStack assemble(CraftingInput input) {
         return new ItemStack(ForgeweaveItems.slimeSling(SlimeColour.PINK).get());
     }
 
     @Override
-    public boolean canCraftInDimensions(int width, int height) {
-        return width >= 3 && height >= 3;
-    }
-
-    @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<MixedSlimeSlingRecipe> getSerializer() {
         return ForgeweaveRecipeSerializers.MIXED_SLIME_SLING.get();
     }
 

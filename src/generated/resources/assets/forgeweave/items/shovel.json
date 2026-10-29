@@ -1,0 +1,16 @@
+{
+  "model": {
+    "type": "minecraft:condition",
+    "on_false": {
+      "type": "forgeweave:tool",
+      "model": "forgeweave:item/shovel",
+      "tool": "shovel"
+    },
+    "on_true": {
+      "type": "forgeweave:tool",
+      "model": "forgeweave:item/shovel_broken",
+      "tool": "shovel"
+    },
+    "property": "forgeweave:broken"
+  }
+}

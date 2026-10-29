@@ -27,13 +27,11 @@
     "armor": ["forgeweave:swiftward"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:rose_gold_ingot" }, "value": 144 },
-    { "ingredient": { "item": "forgeweave:rose_gold_nugget" }, "value": 16 },
-    { "ingredient": { "item": "forgeweave:rose_gold_block" }, "value": 1296 }
+    { "ingredient": "forgeweave:rose_gold_ingot", "value": 144 },
+    { "ingredient": "forgeweave:rose_gold_nugget", "value": 16 },
+    { "ingredient": "forgeweave:rose_gold_block", "value": 1296 }
   ],
-  "repair_item": {
-    "tag": "c:ingots/rose_gold"
-  },
+  "repair_item": "#c:ingots/rose_gold",
   "cast_only": true,
   "enchantability": 22,
   "color": "#B76E79"

@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "tag": "minecraft:planks"
-  },
+  "cast": "#minecraft:planks",
   "fluid": "forgeweave:molten_obsidian",
   "amount": 250,
   "result": {

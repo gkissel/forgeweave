@@ -6,7 +6,7 @@ import java.util.function.Predicate;
 import javax.annotation.Nullable;
 
 import net.minecraft.core.HolderLookup;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -89,17 +89,17 @@ public final class ModifyPageContent {
      * GUI-only materials; Forgeweave has no GUI-only materials, so the diagram assembles from these
      * four real ones -- the exact set upstream's own modifier page demo uses.
      */
-    private static final List<ResourceLocation> DEMO_MATERIALS =
+    private static final List<Identifier> DEMO_MATERIALS =
             List.of(id("wood"), id("cobalt"), id("ardite"), id("manyullyn"));
 
     /** {@code BowCore#getMaterialForPartForGuiRendering}: a bowstring slot always renders string. */
-    private static final ResourceLocation DEMO_BOWSTRING = id("string");
+    private static final Identifier DEMO_BOWSTRING = id("string");
 
     private ModifyPageContent() {
     }
 
     /** The material the diagram paints part slot {@code index} of a demo tool with. */
-    public static ResourceLocation demoMaterial(PartItem.Kind kind, int index) {
+    public static Identifier demoMaterial(PartItem.Kind kind, int index) {
         if (kind == PartItem.Kind.BOWSTRING) {
             return DEMO_BOWSTRING;
         }
@@ -175,11 +175,11 @@ public final class ModifyPageContent {
     }
 
     /** {@code modifier.<ns>.<path>.effect.<n>} -- one "Effects:" bullet, collected while it exists. */
-    public static String modifierEffectKey(ResourceLocation modifier, int index) {
+    public static String modifierEffectKey(Identifier modifier, int index) {
         return "modifier." + modifier.getNamespace() + "." + modifier.getPath() + ".effect." + index;
     }
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 }

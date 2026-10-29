@@ -41,34 +41,26 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:ingots/redstone_alloy"
-      },
+      "ingredient": "#c:ingots/redstone_alloy",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:nuggets/redstone_alloy"
-      },
+      "ingredient": "#c:nuggets/redstone_alloy",
       "value": 16
     },
     {
-      "ingredient": {
-        "tag": "c:storage_blocks/redstone_alloy"
-      },
+      "ingredient": "#c:storage_blocks/redstone_alloy",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/redstone_alloy"
-  },
+  "repair_item": "#c:ingots/redstone_alloy",
   "cast_only": true,
   "enchantability": 8,
   "color": "#C8352B",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "enderio:redstone_alloy_ingot"
+      "type": "neoforge:registered",
+      "value": "enderio:redstone_alloy_ingot"
     }
   ]
 }

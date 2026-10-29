@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_nugget"
-  },
+  "cast": "forgeweave:clay_cast_nugget",
   "fluid": "forgeweave:molten_voidweld",
   "amount": 16,
   "result": {
@@ -11,8 +9,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "draconicevolution:chaotic_core"
+      "type": "neoforge:registered",
+      "value": "draconicevolution:chaotic_core"
     }
   ]
 }

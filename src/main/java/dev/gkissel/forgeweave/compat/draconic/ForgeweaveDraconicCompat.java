@@ -2,22 +2,19 @@ package dev.gkissel.forgeweave.compat.draconic;
 
 import java.util.List;
 
+import com.mojang.logging.LogUtils;
+import org.slf4j.Logger;
+
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.RecipeSerializer;
 
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.common.crafting.IngredientType;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.registries.DeferredRegister;
-import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.modifier.Modifier;
-import dev.gkissel.forgeweave.compat.draconic.modules.DraconicModuleHost;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig; // #968
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
@@ -57,7 +54,7 @@ public final class ForgeweaveDraconicCompat {
      * would be the drift {@code jei.ModifierApplicationCategory}'s issue #764 bug was made of.
      */
     public static final TagKey<Item> FUSION_UPGRADABLE = TagKey.create(Registries.ITEM,
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "fusion_upgradable"));
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "fusion_upgradable"));
 
     /** The registered name of {@link FusionUpgradeRecipe.Serializer}, i.e. the recipes' {@code type}. */
     public static final String UPGRADE_SERIALIZER_NAME = "draconic_fusion_upgrade";
@@ -272,18 +269,18 @@ public final class ForgeweaveDraconicCompat {
      * therefore ask for the {@code evolved} ladder as well, which only a weld or a core grants -- and
      * the awakened rung moved to {@code shieldbreaker}, which is still that material's alone.
      */
-    public static final List<ResourceLocation> WELD_MARKERS = List.of(
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "soulrend"),
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "soulrend2"),
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "soulrend3"),
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "soulrend4"));
+    public static final List<Identifier> WELD_MARKERS = List.of(
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "soulrend"),
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "soulrend2"),
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "soulrend3"),
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "soulrend4"));
 
     /** The same for the four Draconic core materials: draconium core, wyvern, awakened, chaotic. */
-    public static final List<ResourceLocation> CORE_MARKERS = List.of(
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "ecological3"),
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "stonewake"),
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "shieldbreaker"),
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "chaosmark"));
+    public static final List<Identifier> CORE_MARKERS = List.of(
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "ecological3"),
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "stonewake"),
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "shieldbreaker"),
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "chaosmark"));
 
     /** Whether any part of {@code tool} is a fusion metal (a weld) -- the tools that host Draconic modules. */
     public static boolean isWeldTool(ItemStack tool) {
@@ -295,12 +292,12 @@ public final class ForgeweaveDraconicCompat {
         return evolvedLevel(tool) > 0 && carriesAny(tool, CORE_MARKERS);
     }
 
-    private static boolean carriesAny(ItemStack tool, List<ResourceLocation> markers) {
-        List<ResourceLocation> traits = tool.get(ForgeweaveDataComponents.TRAITS.get());
+    private static boolean carriesAny(ItemStack tool, List<Identifier> markers) {
+        List<Identifier> traits = tool.get(ForgeweaveDataComponents.TRAITS.get());
         if (traits == null) {
             return false;
         }
-        List<ResourceLocation> canonical = ForgeweaveTraits.canonical(traits);
+        List<Identifier> canonical = ForgeweaveTraits.canonical(traits);
         return markers.stream().anyMatch(canonical::contains);
     }
 
@@ -315,7 +312,7 @@ public final class ForgeweaveDraconicCompat {
      * metals does.
      */
     public static int evolvedLevel(ItemStack tool) {
-        List<ResourceLocation> traits = tool.get(ForgeweaveDataComponents.TRAITS.get());
+        List<Identifier> traits = tool.get(ForgeweaveDataComponents.TRAITS.get());
         if (traits == null) {
             return 0;
         }
@@ -337,11 +334,11 @@ public final class ForgeweaveDraconicCompat {
      * still wyvern, {@code evolved2} still draconic, {@code evolved3} still chaotic. That is why the
      * ids read one rung behind the level they now stand on.
      */
-    private static final List<ResourceLocation> EVOLVED_IDS = List.of(
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "evolving"),
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "evolved"),
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "evolved2"),
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "evolved3"));
+    private static final List<Identifier> EVOLVED_IDS = List.of(
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "evolving"),
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "evolved"),
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "evolved2"),
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "evolved3"));
 
     /**
      * The Draconic Evolution item each tier's craft consumes two of, on top of the line's own reagent.
@@ -364,26 +361,34 @@ public final class ForgeweaveDraconicCompat {
      * every {@code com.brandon3055} type it names -- off a Forgeweave-only install's classloader.
      */
     public static void register(IEventBus modEventBus) {
-        DeferredRegister<RecipeSerializer<?>> serializers =
-                DeferredRegister.create(Registries.RECIPE_SERIALIZER, Forgeweave.MODID);
-        serializers.register(UPGRADE_SERIALIZER_NAME, () -> FusionUpgradeRecipe.Serializer.INSTANCE);
-        serializers.register(modEventBus);
-        // #956: evolved gear is also a Draconic Evolution module host. Same guard, same reason -- the
-        // class behind this call names com.brandon3055 types and cannot link without the mod.
-        DraconicModuleHost.register(modEventBus);
-        // 2026-09-06: a chaotic-tier tool hurts the Chaos Guardian's crystals.
-        NeoForge.EVENT_BUS.addListener(DraconicGuardianCrystals::onAttack);
-
-        // #952: the catalyst an upgrade row hands JEI is a custom ingredient (it matches the tag but
-        // draws assembled tools), and NeoForge requires every custom ingredient's type to be
-        // registered. Nothing serializes this one -- the recipe's own codec writes the raw tag it
-        // wraps -- but an unregistered type would be a crash waiting for the first thing that tried.
-        DeferredRegister<IngredientType<?>> ingredientTypes =
-                DeferredRegister.create(NeoForgeRegistries.Keys.INGREDIENT_TYPES, Forgeweave.MODID);
-        ingredientTypes.register(CATALYST_INGREDIENT_NAME, () -> FusionUpgradeRecipe.CatalystDisplay.TYPE);
-        ingredientTypes.register(modEventBus);
+        // 26.1.2: Draconic Evolution has no build for this Minecraft yet, so the classes this used to
+        // register (FusionUpgradeRecipe, DraconicModuleHost, DraconicGuardianCrystals) are left out of
+        // the compile -- build.gradle's COMPAT_DISABLED -- and only the warning is left. The 1.21.1
+        // body, to restore once a 26.1.2 build ships:
+        // DeferredRegister<RecipeSerializer<?>> serializers =
+        //         DeferredRegister.create(Registries.RECIPE_SERIALIZER, Forgeweave.MODID);
+        // serializers.register(UPGRADE_SERIALIZER_NAME, () -> FusionUpgradeRecipe.Serializer.INSTANCE);
+        // serializers.register(modEventBus);
+        // // #956: evolved gear is also a Draconic Evolution module host. Same guard, same reason -- the
+        // // class behind this call names com.brandon3055 types and cannot link without the mod.
+        // DraconicModuleHost.register(modEventBus);
+        // // 2026-09-06: a chaotic-tier tool hurts the Chaos Guardian's crystals.
+        // NeoForge.EVENT_BUS.addListener(DraconicGuardianCrystals::onAttack);
+        //
+        // // #952: the catalyst an upgrade row hands JEI is a custom ingredient (it matches the tag but
+        // // draws assembled tools), and NeoForge requires every custom ingredient's type to be
+        // // registered. Nothing serializes this one -- the recipe's own codec writes the raw tag it
+        // // wraps -- but an unregistered type would be a crash waiting for the first thing that tried.
+        // DeferredRegister<IngredientType<?>> ingredientTypes =
+        //         DeferredRegister.create(NeoForgeRegistries.Keys.INGREDIENT_TYPES, Forgeweave.MODID);
+        // ingredientTypes.register(CATALYST_INGREDIENT_NAME, () -> FusionUpgradeRecipe.CatalystDisplay.TYPE);
+        // ingredientTypes.register(modEventBus);
+        LOGGER.warn("Draconic Evolution is installed, but Forgeweave's Draconic Evolution integration is not"
+                + " available on Minecraft 26.1.2");
     }
 
+
+    private static final Logger LOGGER = LogUtils.getLogger();
 
     private ForgeweaveDraconicCompat() {}
 }

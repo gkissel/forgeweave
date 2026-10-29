@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:tiny_dusts/riftalloy"
-  },
+  "input": "#c:tiny_dusts/riftalloy",
   "fluid": "forgeweave:molten_riftalloy",
   "amount": 16
 }

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
@@ -28,7 +28,7 @@ import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
  * itself once a slot is given a {@code List} of ingredients, so no timer code is ported.
  */
 final class AssemblyRecipes {
-    static List<AssemblyRecipe> build(Map<ResourceLocation, Material> materials) {
+    static List<AssemblyRecipe> build(Map<Identifier, Material> materials) {
         List<AssemblyRecipe> recipes = new ArrayList<>();
         for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
             List<List<ItemStack>> parts = new ArrayList<>(entry.slotCount());
@@ -48,10 +48,10 @@ final class AssemblyRecipes {
         return recipes;
     }
 
-    private static List<ItemStack> partStacks(PartItem part, Map<ResourceLocation, Material> materials) {
+    private static List<ItemStack> partStacks(PartItem part, Map<Identifier, Material> materials) {
         List<ItemStack> stacks = new ArrayList<>();
-        for (Map.Entry<ResourceLocation, Material> material : materials.entrySet()) {
-            ResourceLocation materialId = material.getKey();
+        for (Map.Entry<Identifier, Material> material : materials.entrySet()) {
+            Identifier materialId = material.getKey();
             // M3.5 #394: the first assembly whose slots read different stat blocks. A material with
             // no block for this slot is a part the Part Builder refuses to make (PartBuilderRecipes),
             // so it is not offered here either -- string never cycles through a limb slot.

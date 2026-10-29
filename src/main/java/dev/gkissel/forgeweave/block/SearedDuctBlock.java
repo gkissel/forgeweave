@@ -67,18 +67,11 @@ public class SearedDuctBlock extends HorizontalDirectionalBlock implements Entit
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
             BlockHitResult hit) {
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof SearedDuctBlockEntity duct) {
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof SearedDuctBlockEntity duct) {
             player.openMenu(duct);
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.SUCCESS;
     }
 
     /** The filter container is a real item a player put in; breaking the duct gives it back. */
-    @Override
-    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        if (!state.is(newState.getBlock()) && level.getBlockEntity(pos) instanceof SearedDuctBlockEntity duct) {
-            Containers.dropContents(level, pos, new SimpleContainer(duct.filterSlot().getStackInSlot(0)));
-        }
-        super.onRemove(state, level, pos, newState, movedByPiston);
-    }
 }

@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_broad_axe_head"
-  },
+  "cast": "forgeweave:cast_broad_axe_head",
   "fluid": "forgeweave:molten_dark_matter",
   "amount": 1152,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "projecte:dark_matter"
+      "type": "neoforge:registered",
+      "value": "projecte:dark_matter"
     }
   ]
 }

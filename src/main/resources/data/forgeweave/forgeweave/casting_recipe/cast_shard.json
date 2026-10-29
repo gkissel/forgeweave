@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:shard"
-  },
+  "cast": "forgeweave:shard",
   "fluid": "forgeweave:molten_gold",
   "amount": 288,
   "result": {

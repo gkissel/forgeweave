@@ -5,12 +5,12 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
@@ -20,8 +20,8 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.EntityJoinLevelEvent;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.item.BowItem;
@@ -52,7 +52,7 @@ public class BowReleaseGameTests {
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         player.setGameMode(mode);
         Vec3 stand = helper.absoluteVec(new Vec3(2.5, 2.0, 2.5));
-        player.moveTo(stand.x, stand.y, stand.z, 0.0F, 0.0F);
+        player.snapTo(stand.x, stand.y, stand.z, 0.0F, 0.0F);
         helper.onEachTick(() -> {
             if (!player.isRemoved()) {
                 player.doTick();
@@ -93,6 +93,11 @@ public class BowReleaseGameTests {
         helper.assertTrue(player.isUsingItem(), "the server must be drawing after the click");
     }
 
+    /**
+     * Checked on the release tick itself, before the arrow's first tick: 26.1 walls every test in
+     * barriers ({@code TestInstanceBlockEntity#encaseStructure}), and a full-draw arrow reaches them
+     * within two ticks and stops dead.
+     */
     private static void assertFired(GameTestHelper helper, ServerPlayer player, List<AbstractArrow> arrows, String bow) {
         helper.assertTrue(!player.isUsingItem(), bow + ": the release must end the draw");
         helper.assertTrue(arrows.size() == 1, bow + ": one arrow per release, got " + arrows.size());
@@ -116,7 +121,7 @@ public class BowReleaseGameTests {
         click(helper, player, bow);
         helper.runAfterDelay(DRAW_TICKS, () -> {
             player.releaseUsingItem();
-            helper.runAfterDelay(2, () -> assertFired(helper, player, arrows, "shortbow"));
+            assertFired(helper, player, arrows, "shortbow");
         });
     }
 
@@ -131,7 +136,7 @@ public class BowReleaseGameTests {
         click(helper, player, bow);
         helper.runAfterDelay(DRAW_TICKS, () -> {
             player.releaseUsingItem();
-            helper.runAfterDelay(2, () -> assertFired(helper, player, arrows, "longbow"));
+            assertFired(helper, player, arrows, "longbow");
         });
     }
 
@@ -152,7 +157,7 @@ public class BowReleaseGameTests {
             helper.assertTrue(arrows.isEmpty(), "loading fires nothing, got " + arrows);
             InteractionResult fire = player.gameMode.useItem(player, helper.getLevel(), held, InteractionHand.MAIN_HAND);
             helper.assertTrue(fire.consumesAction(), "a loaded crossbow fires on the click, got " + fire);
-            helper.runAfterDelay(2, () -> assertFired(helper, player, arrows, "crossbow"));
+            assertFired(helper, player, arrows, "crossbow");
         });
     }
 
@@ -180,19 +185,17 @@ public class BowReleaseGameTests {
             ItemStack held = player.getMainHandItem();
             helper.assertTrue(CrossbowItem.isLoaded(held), "the crossbow must be loaded before the aimed shot");
             // The state handleUseItem leaves: aim updated from the packet, head not yet re-synced.
-            player.absRotateTo(90.0F, 0.0F);
+            player.absSnapRotationTo(90.0F, 0.0F);
             player.setYHeadRot(0.0F);
             player.gameMode.useItem(player, helper.getLevel(), held, InteractionHand.MAIN_HAND);
-            helper.runAfterDelay(2, () -> {
-                helper.assertTrue(arrows.size() == 1, "one bolt, got " + arrows.size());
-                Vec3 flight = arrows.get(0).getDeltaMovement().normalize();
-                Vec3 aim = Vec3.directionFromRotation(0.0F, 90.0F);
-                helper.assertTrue(flight.dot(aim) > 0.95,
-                        "the bolt must follow the aim " + aim + ", got " + flight + " (the stale head points +Z)");
-                arrows.forEach(AbstractArrow::discard);
-                player.discard();
-                helper.succeed();
-            });
+            helper.assertTrue(arrows.size() == 1, "one bolt, got " + arrows.size());
+            Vec3 flight = arrows.get(0).getDeltaMovement().normalize();
+            Vec3 aim = Vec3.directionFromRotation(0.0F, 90.0F);
+            helper.assertTrue(flight.dot(aim) > 0.95,
+                    "the bolt must follow the aim " + aim + ", got " + flight + " (the stale head points +Z)");
+            arrows.forEach(AbstractArrow::discard);
+            player.discard();
+            helper.succeed();
         });
     }
 

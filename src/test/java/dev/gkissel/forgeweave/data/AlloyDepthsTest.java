@@ -8,6 +8,8 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 
+import dev.gkissel.forgeweave.TestRegistries;
+
 /**
  * Issue #1106: what {@link AlloyDepths} reads off the shipped {@code alloy_recipe} JSON is what the
  * {@code forgeweave:alloys/deep} and {@code alloys/deepest} item tags are built from, and those two
@@ -17,7 +19,7 @@ import org.junit.jupiter.api.Test;
  */
 class AlloyDepthsTest {
 
-    private static final Map<String, Integer> DEPTHS = AlloyDepths.byMaterial();
+    private static final Map<String, Integer> DEPTHS = AlloyDepths.byMaterial(TestRegistries.serverData());
 
     @Test
     void everyShippedAlloyIsReadAndSitsAtLeastOneStepDeep() {

@@ -44,27 +44,21 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "actuallyadditions:palis_crystal"
-      },
+      "ingredient": "actuallyadditions:palis_crystal",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:storage_blocks/palis_crystal"
-      },
+      "ingredient": "#c:storage_blocks/palis_crystal",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "item": "actuallyadditions:palis_crystal"
-  },
+  "repair_item": "actuallyadditions:palis_crystal",
   "enchantability": 16,
   "color": "#3B6FC2",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "actuallyadditions:palis_crystal"
+      "type": "neoforge:registered",
+      "value": "actuallyadditions:palis_crystal"
     }
   ]
 }

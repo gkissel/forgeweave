@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:hand_guard"
-  },
+  "cast": "forgeweave:hand_guard",
   "fluid": "forgeweave:molten_clay",
   "amount": 288,
   "result": {

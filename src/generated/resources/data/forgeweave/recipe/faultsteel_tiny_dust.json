@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:small_dusts/faultsteel"
-    }
+    "#c:small_dusts/faultsteel"
   ],
   "result": {
     "count": 3,

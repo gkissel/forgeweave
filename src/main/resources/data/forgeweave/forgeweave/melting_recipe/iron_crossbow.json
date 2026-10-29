@@ -1,5 +1,5 @@
 {
-  "input": { "item": "minecraft:crossbow" },
+  "input": "minecraft:crossbow",
   "fluid": "forgeweave:molten_iron",
   "amount": 208
 }

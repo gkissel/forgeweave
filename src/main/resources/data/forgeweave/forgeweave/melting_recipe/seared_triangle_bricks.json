@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "forgeweave:seared_triangle_bricks"
-  },
+  "input": "forgeweave:seared_triangle_bricks",
   "fluid": "forgeweave:molten_seared_stone",
   "amount": 288
 }

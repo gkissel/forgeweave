@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:plating_chestplate"
-  },
+  "cast": "forgeweave:plating_chestplate",
   "fluid": "forgeweave:molten_gold",
   "amount": 288,
   "result": {

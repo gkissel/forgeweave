@@ -3,19 +3,14 @@
   "category": "misc",
   "group": "pattern_chest",
   "key": {
-    "A": {
-      "item": "forgeweave:pattern_blank"
-    },
-    "B": {
-      "item": "minecraft:chest"
-    }
+    "A": "forgeweave:pattern_blank",
+    "B": "minecraft:chest"
   },
   "pattern": [
     "A",
     "B"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:pattern_chest"
   }
 }

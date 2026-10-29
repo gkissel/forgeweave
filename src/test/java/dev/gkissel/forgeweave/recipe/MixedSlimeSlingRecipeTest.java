@@ -23,6 +23,7 @@ import net.neoforged.neoforge.common.Tags;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import dev.gkissel.forgeweave.TestTags;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SlimeColour;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -43,7 +44,7 @@ class MixedSlimeSlingRecipeTest {
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        // `c:slimeballs` is a datapack tag; bind it by hand as MixedSlimeBlockRecipeTest does.
+        // `c:slime_balls` is a datapack tag; bind it by hand as MixedSlimeBlockRecipeTest does.
         List<Holder<Item>> slimeballs = new ArrayList<>();
         slimeballs.add(BuiltInRegistries.ITEM.wrapAsHolder(Items.SLIME_BALL));
         for (SlimeColour colour : SlimeColour.values()) {
@@ -51,7 +52,7 @@ class MixedSlimeSlingRecipeTest {
                 slimeballs.add(BuiltInRegistries.ITEM.wrapAsHolder(ball(colour).asItem()));
             }
         }
-        BuiltInRegistries.ITEM.bindTags(Map.of(Tags.Items.SLIMEBALLS, slimeballs));
+        TestTags.bindItemTags(Map.of(Tags.Items.SLIME_BALLS, slimeballs));
     }
 
     private final MixedSlimeSlingRecipe recipe = new MixedSlimeSlingRecipe(CraftingBookCategory.EQUIPMENT);
@@ -61,7 +62,7 @@ class MixedSlimeSlingRecipeTest {
         CraftingInput mixed = sling(congealed(SlimeColour.GREEN),
                 ball(SlimeColour.BLUE), Items.SLIME_BALL, ball(SlimeColour.MAGMA));
         assertTrue(recipe.matches(mixed, null));
-        assertTrue(recipe.assemble(mixed, null)
+        assertTrue(recipe.assemble(mixed)
                 .is(ForgeweaveItems.slimeSling(SlimeColour.PINK).get()), "the fallback's output is the pink sling");
     }
 

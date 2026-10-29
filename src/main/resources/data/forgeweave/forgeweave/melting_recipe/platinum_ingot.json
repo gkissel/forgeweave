@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/platinum"
-  },
+  "input": "#c:ingots/platinum",
   "fluid": "forgeweave:molten_platinum",
   "amount": 144,
   "temperature": 1400,
@@ -10,12 +8,12 @@
       "type": "neoforge:or",
       "values": [
         {
-          "type": "neoforge:item_exists",
-          "item": "modern_industrialization:platinum_ingot"
+          "type": "neoforge:registered",
+          "value": "modern_industrialization:platinum_ingot"
         },
         {
-          "type": "neoforge:item_exists",
-          "item": "eternalores:platinum_ingot"
+          "type": "neoforge:registered",
+          "value": "eternalores:platinum_ingot"
         }
       ]
     }

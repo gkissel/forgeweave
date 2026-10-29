@@ -23,12 +23,13 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantments;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.tool.ModifierArt;
 
@@ -47,14 +48,14 @@ class BlastingTest {
 
     private static RegistryOps<JsonElement> ops;
 
-    private static final ResourceLocation BLASTING =
-            ResourceLocation.fromNamespaceAndPath("forgeweave", "blasting");
+    private static final Identifier BLASTING =
+            Identifier.fromNamespaceAndPath("forgeweave", "blasting");
 
     @BeforeAll
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(JsonOps.INSTANCE);
     }
 
     private static ModifierRecipe shippedRecipe() {
@@ -100,7 +101,7 @@ class BlastingTest {
     @Test
     void blastingAndVeinmineAreTheOnlyHarvestOnlyModifiers() {
         assertTrue(ForgeweaveModifiers.BLASTING.harvestOnly());
-        for (ResourceLocation id : ForgeweaveModifiers.ids()) {
+        for (Identifier id : ForgeweaveModifiers.ids()) {
             if (!id.equals(BLASTING) && !id.getPath().equals("veinmine")) { // #719
                 assertFalse(ForgeweaveModifiers.get(id).harvestOnly(), id + " unexpectedly harvest-only");
             }
@@ -205,8 +206,8 @@ class BlastingTest {
 
     // ------------------------------------------------------------------ helpers
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath("forgeweave", path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath("forgeweave", path);
     }
 
     private static ItemStack withModifier(String modifier) {

@@ -4,7 +4,7 @@ import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -13,8 +13,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -101,7 +101,7 @@ public class HeavyArmorGameTests {
     public static void withoutItsLargePlateTheRowBuildsThePlainPiece(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.setBlock(STATION, ForgeweaveBlocks.TOOL_FORGE.get());
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION, ToolStationBlockEntity.class);
         ToolStationMenu menu = ToolAssembly.menu(helper, player, STATION, blockEntity);
         blockEntity.container().setItem(0, ToolAssembly.part(ForgeweaveItems.PART_PLATING_CHESTPLATE.get(), "iron"));
         blockEntity.container().setItem(1, ToolAssembly.part(ForgeweaveItems.PART_MAILLE.get(), "iron"));

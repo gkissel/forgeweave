@@ -4,7 +4,7 @@ import java.util.function.Consumer;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
@@ -353,7 +353,7 @@ public interface Trait {
      *
      * @param id a modifier id unique to this trait and slot, for the trait to reuse on each modifier
      */
-    default void armorAttributes(ResourceLocation id, EquipmentSlot slot, ItemAttributeModifiers.Builder out) {}
+    default void armorAttributes(Identifier id, EquipmentSlot slot, ItemAttributeModifiers.Builder out) {}
 
     // #829 -- the M6 utility/economy trait behavior library.
 

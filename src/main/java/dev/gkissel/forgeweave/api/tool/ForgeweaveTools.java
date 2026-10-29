@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 
 /**
@@ -79,7 +79,7 @@ public final class ForgeweaveTools {
 
     private static final List<RegisteredTool> TOOLS = new ArrayList<>();
     private static final List<PartDefinition> PARTS = new ArrayList<>();
-    private static final Set<ResourceLocation> IDS = new HashSet<>();
+    private static final Set<Identifier> IDS = new HashSet<>();
     private static ItemFactory itemFactory;
     private static boolean frozen;
 
@@ -121,7 +121,7 @@ public final class ForgeweaveTools {
         PARTS.add(definition);
     }
 
-    private static void claim(ResourceLocation id, String what) {
+    private static void claim(Identifier id, String what) {
         if (frozen) {
             throw new IllegalStateException("Forgeweave's tool registration window has closed and '" + id
                     + "' arrived too late; register during mod construction (your mod's constructor or an "

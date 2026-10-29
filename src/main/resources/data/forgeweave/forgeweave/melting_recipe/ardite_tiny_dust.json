@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:tiny_dusts/ardite"
-  },
+  "input": "#c:tiny_dusts/ardite",
   "fluid": "forgeweave:molten_ardite",
   "amount": 16
 }

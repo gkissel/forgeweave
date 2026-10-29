@@ -18,16 +18,19 @@ import org.junit.jupiter.api.Test;
  * Guards against the issue #75 regression (maintainer acceptance playthrough: no item tooltips in
  * the Crafting Station or Stencil Table).
  *
- * <p>{@code AbstractContainerScreen#render} does not call {@code renderTooltip} -- every vanilla
- * container screen overrides {@code render} to add it. A mod screen that doesn't ships with no item
- * tooltips whatsoever, and nothing catches it: it compiles, it runs, it just silently never shows
- * hover text. Issue #43 hit this once and #57 fixed it by pasting the two-line override into two
- * screens; the next three screens added ({@code CraftingStationScreen}, {@code StencilTableScreen},
+ * <p>On 1.21.1 {@code AbstractContainerScreen#render} did not call {@code renderTooltip} -- every
+ * vanilla container screen overrode {@code render} to add it. A mod screen that didn't shipped with
+ * no item tooltips whatsoever, and nothing caught it: it compiled, it ran, it just silently never
+ * showed hover text. Issue #43 hit this once and #57 fixed it by pasting the two-line override into
+ * two screens; the next three screens added ({@code CraftingStationScreen}, {@code StencilTableScreen},
  * {@code ChestScreen}) each shipped without it again.
  *
- * <p>So {@link StationScreen} now owns that override and this test is the ratchet: every container
- * screen in the {@code client} package must either extend it or override {@code render} itself.
- * Adding a screen that does neither fails the build.
+ * <p>26.x moved the seam: {@code AbstractContainerScreen#extractRenderState} now calls
+ * {@code extractTooltip} itself, so a screen gets item tooltips by default and loses them in two
+ * ways only -- overriding {@code extractRenderState} without calling {@code super}, or overriding
+ * {@code extractTooltip} (to add its own hover text, as most stations do) without calling
+ * {@code super}. This test is the ratchet on both, for every container screen in the
+ * {@code client} package. {@link StationScreen} still owns the shared tab-row tooltip.
  *
  * <p>A plain source scan rather than reflection, matching {@code data.TextureReferenceAuditTest} and
  * {@code LocalizationAuditTest}: the unit-test classpath has no Minecraft client, so {@code
@@ -37,8 +40,10 @@ class StationScreenTooltipTest {
 
     private static final Pattern CONTAINER_SCREEN = Pattern.compile(
             "class\\s+(\\w+)\\s+extends\\s+(AbstractContainerScreen|StationScreen)\\s*<");
-    private static final Pattern RENDER_OVERRIDE = Pattern.compile(
-            "public\\s+void\\s+render\\s*\\(\\s*GuiGraphics");
+    private static final Pattern RENDER_STATE_OVERRIDE = Pattern.compile(
+            "void\\s+extractRenderState\\s*\\(\\s*GuiGraphicsExtractor");
+    private static final Pattern TOOLTIP_OVERRIDE = Pattern.compile(
+            "void\\s+extractTooltip\\s*\\(\\s*GuiGraphicsExtractor");
 
     private static Path projectRoot() {
         Path dir = Path.of("").toAbsolutePath();
@@ -50,7 +55,34 @@ class StationScreenTooltipTest {
         throw new AssertionError("could not locate project root (no settings.gradle found above " + dir + ")");
     }
 
-    private record Screen(String name, String superClass, boolean overridesRender) {}
+    /**
+     * {@code dropsTooltips}: the file overrides {@code extractRenderState} or {@code extractTooltip}
+     * and that method's body never calls the same method on {@code super}.
+     */
+    private record Screen(String name, String superClass, boolean dropsTooltips) {}
+
+    /** Whether some override matched by {@code override} has a body that never calls {@code super.<method>(}. */
+    private static boolean overrideSkipsSuper(String source, Pattern override, String method) {
+        Matcher matcher = override.matcher(source);
+        while (matcher.find()) {
+            int open = source.indexOf('{', matcher.end());
+            int depth = 0;
+            int close = open;
+            for (; close < source.length(); close++) {
+                char c = source.charAt(close);
+                if (c == '{') {
+                    depth++;
+                } else if (c == '}' && --depth == 0) {
+                    break;
+                }
+            }
+            String body = source.substring(open, close).replaceAll("(?s)/\\*.*?\\*/", "").replaceAll("(?m)//.*$", "");
+            if (!body.contains("super." + method + "(")) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     private static List<Screen> containerScreens() throws IOException {
         Path clientDir = projectRoot().resolve("src/main/java/dev/gkissel/forgeweave/client");
@@ -64,7 +96,8 @@ class StationScreenTooltipTest {
                         continue; // the base class itself is what everything else must extend
                     }
                     screens.add(new Screen(matcher.group(1), matcher.group(2),
-                            RENDER_OVERRIDE.matcher(source).find()));
+                            overrideSkipsSuper(source, RENDER_STATE_OVERRIDE, "extractRenderState")
+                                    || overrideSkipsSuper(source, TOOLTIP_OVERRIDE, "extractTooltip")));
                 }
             }
         }
@@ -75,10 +108,10 @@ class StationScreenTooltipTest {
     void everyContainerScreenRendersTooltips() throws IOException {
         List<String> offenders = new ArrayList<>();
         for (Screen screen : containerScreens()) {
-            if (!screen.superClass().equals("StationScreen") && !screen.overridesRender()) {
+            if (screen.dropsTooltips()) {
                 offenders.add(screen.name() + " extends " + screen.superClass()
-                        + " and does not override render(GuiGraphics, ...), so it never calls "
-                        + "renderTooltip and shows no item tooltips -- extend StationScreen instead");
+                        + " and overrides extractRenderState or extractTooltip without calling super, so "
+                        + "vanilla's item tooltip pass never runs and it shows no item tooltips");
             }
         }
         assertTrue(offenders.isEmpty(), String.join("\n", offenders));

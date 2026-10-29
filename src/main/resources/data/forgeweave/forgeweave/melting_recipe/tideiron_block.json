@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/tideiron"
-  },
+  "input": "#c:storage_blocks/tideiron",
   "fluid": "forgeweave:molten_tideiron",
   "amount": 1296,
   "temperature": 1400

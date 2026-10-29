@@ -1,16 +1,16 @@
 package dev.gkissel.forgeweave.gametest;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
@@ -59,7 +59,7 @@ public class CraftingItemRepairGameTests {
     /** Loads the station with a tool plus one free-slot input and returns the menu it opens. */
     private static ToolStationMenu load(GameTestHelper helper, Player player, BlockPos pos, ItemStack tool,
             ItemStack input) {
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, tool);
         blockEntity.container().setItem(1, input);
         for (int i = 2; i < ToolStationMenu.INPUT_SLOTS; i++) {
@@ -160,7 +160,7 @@ public class CraftingItemRepairGameTests {
 
         ItemStack shard = new ItemStack(ForgeweaveItems.SHARD.get(), 1);
         shard.set(ForgeweaveDataComponents.MATERIAL.get(),
-                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "wood"));
+                Identifier.fromNamespaceAndPath(Forgeweave.MODID, "wood"));
         ToolStationMenu menu = load(helper, player, pos, pickaxe, shard);
 
         assertRepairedTo(helper, pickaxe, menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem(),
@@ -181,7 +181,7 @@ public class CraftingItemRepairGameTests {
 
         ItemStack shard = new ItemStack(ForgeweaveItems.SHARD.get(), 1);
         shard.set(ForgeweaveDataComponents.MATERIAL.get(),
-                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "flint"));
+                Identifier.fromNamespaceAndPath(Forgeweave.MODID, "flint"));
         ToolStationMenu menu = load(helper, player, pos, pickaxe, shard);
 
         helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),

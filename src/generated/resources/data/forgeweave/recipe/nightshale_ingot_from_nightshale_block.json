@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "item": "forgeweave:nightshale_block"
-    }
+    "forgeweave:nightshale_block"
   ],
   "result": {
     "count": 9,

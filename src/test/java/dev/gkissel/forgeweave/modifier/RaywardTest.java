@@ -14,7 +14,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import net.minecraft.SharedConstants;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 
 import dev.gkissel.forgeweave.api.modifier.Modifier;
@@ -77,7 +77,7 @@ class RaywardTest {
 
     @Test
     void everyOtherModifierShieldsNothing() {
-        for (ResourceLocation id : ForgeweaveModifiers.ids()) {
+        for (Identifier id : ForgeweaveModifiers.ids()) {
             if (ForgeweaveModifiers.RAYWARD_ID.equals(id)) {
                 continue;
             }
@@ -111,7 +111,7 @@ class RaywardTest {
         String recipe = Files.readString(projectRoot().resolve(
                 "src/main/resources/data/forgeweave/forgeweave/modifier_recipe/rayward_lead.json"));
         assertTrue(recipe.contains("\"forgeweave:rayward\""), "names the modifier");
-        assertTrue(recipe.contains("\"c:ingots/lead\""), "spends c:ingots/lead, not one mod's own ingot");
+        assertTrue(recipe.contains("\"#c:ingots/lead\""), "spends c:ingots/lead, not one mod's own ingot");
         assertTrue(recipe.contains("\"max_level\": " + ForgeweaveModifiers.RAYWARD_MAX_LEVEL),
                 "caps at the level the shielding curve reaches 100% on");
     }

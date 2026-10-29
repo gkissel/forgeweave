@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_plating_boots"
-  },
+  "cast": "forgeweave:clay_cast_plating_boots",
   "fluid": "forgeweave:molten_zinc",
   "amount": 288,
   "result": {
@@ -14,8 +12,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "create:zinc_ingot"
+      "type": "neoforge:registered",
+      "value": "create:zinc_ingot"
     }
   ]
 }

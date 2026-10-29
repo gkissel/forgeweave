@@ -1,14 +1,12 @@
 {
-  "input": {
-    "tag": "c:dusts/ignitium"
-  },
+  "input": "#c:dusts/ignitium",
   "fluid": "forgeweave:molten_ignitium",
   "amount": 144,
   "temperature": 1600,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "cataclysm:ignitium_ingot"
+      "type": "neoforge:registered",
+      "value": "cataclysm:ignitium_ingot"
     }
   ]
 }

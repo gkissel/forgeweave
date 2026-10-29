@@ -27,13 +27,11 @@
     "head": ["forgeweave:baconlicious", "forgeweave:tasty"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:pig_iron_ingot" }, "value": 144 },
-    { "ingredient": { "item": "forgeweave:pig_iron_nugget" }, "value": 16 },
-    { "ingredient": { "item": "forgeweave:pig_iron_block" }, "value": 1296 }
+    { "ingredient": "forgeweave:pig_iron_ingot", "value": 144 },
+    { "ingredient": "forgeweave:pig_iron_nugget", "value": 16 },
+    { "ingredient": "forgeweave:pig_iron_block", "value": 1296 }
   ],
-  "repair_item": {
-    "tag": "c:ingots/pig_iron"
-  },
+  "repair_item": "#c:ingots/pig_iron",
   "cast_only": true,
   "enchantability": 14,
   "color": "#EF9E9B"

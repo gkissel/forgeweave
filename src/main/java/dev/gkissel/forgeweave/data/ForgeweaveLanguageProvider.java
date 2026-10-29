@@ -7,7 +7,7 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 
-import net.createmod.ponder.foundation.PonderIndex;
+import net.createmod.ponder.api.client.PonderIndex;
 
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
@@ -50,6 +50,103 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // #507 -- upstream 1.12's four populated tabs (en_us.lang:919-924, "Tinkers' General
         // Items"/"Tinkers' Tools"/"Tinkers' Toolparts"/"Tinkers' Smeltery").
         // Issue #723: NeoForge's ConfigurationScreen labels the client config's held-bow-pose entry.
+        // NeoForge's config screen labels each entry forgeweave.configuration.<key> and each file
+        // forgeweave.configuration.section.<file>; without these it showed raw keys and four
+        // identical "Server Settings" buttons. ConfigLangCoverageTest keeps every key named.
+        add("forgeweave.configuration.section.forgeweave.general.server.toml", "General");
+        add("forgeweave.configuration.section.forgeweave.general.server.toml.title", "Forgeweave General Settings");
+        add("forgeweave.configuration.section.forgeweave.content.server.toml", "Content");
+        add("forgeweave.configuration.section.forgeweave.content.server.toml.title", "Forgeweave Content Settings");
+        add("forgeweave.configuration.section.forgeweave.compat.server.toml", "Mod Compatibility");
+        add("forgeweave.configuration.section.forgeweave.compat.server.toml.title", "Forgeweave Mod Compatibility Settings");
+        add("forgeweave.configuration.section.forgeweave.worldgen.server.toml", "World Generation");
+        add("forgeweave.configuration.section.forgeweave.worldgen.server.toml.title", "Forgeweave World Generation Settings");
+        add("forgeweave.configuration.section.forgeweave.client.toml", "Client");
+        add("forgeweave.configuration.section.forgeweave.client.toml.title", "Forgeweave Client Settings");
+        add("forgeweave.configuration.extraTooltips", "Detailed Tooltips on Shift");
+        add("forgeweave.configuration.listAllPartMaterials", "List Parts in Every Material");
+        add("forgeweave.configuration.listAllTables", "List Every Table Variant");
+        add("forgeweave.configuration.renderTableItems", "Show Items on Tables");
+        add("forgeweave.configuration.traitFeedback", "Trait Feedback");
+        add("forgeweave.configuration.general", "General");
+        add("forgeweave.configuration.content", "Content");
+        add("forgeweave.configuration.compat", "Mod Compatibility");
+        add("forgeweave.configuration.worldgen", "World Generation");
+        add("forgeweave.configuration.harvestTools", "Harvest Tools");
+        add("forgeweave.configuration.meleeWeapons", "Melee Weapons");
+        add("forgeweave.configuration.rangedWeapons", "Ranged Weapons");
+        add("forgeweave.configuration.armor", "Armor");
+        add("forgeweave.configuration.gadgets", "Gadgets");
+        add("forgeweave.configuration.smeltery", "Smeltery");
+        add("forgeweave.configuration.modifiers", "Modifiers");
+        add("forgeweave.configuration.allowVanillaEnchanting", "Allow Vanilla Enchanting");
+        add("forgeweave.configuration.reuseStencils", "Reuse Stencils");
+        add("forgeweave.configuration.chestsKeepInventory", "Chests Keep Their Contents");
+        add("forgeweave.configuration.spawnWithBook", "Spawn with the Guide Book");
+        add("forgeweave.configuration.oreToIngotRatio", "Ingots per Ore");
+        add("forgeweave.configuration.obsidianAlloy", "Obsidian Alloy");
+        add("forgeweave.configuration.addFlintRecipe", "Gravel to Flint Recipe");
+        add("forgeweave.configuration.matchVanillaSlimeblock", "Match the Vanilla Slime Block");
+        add("forgeweave.configuration.enableClayCasts", "Clay Casts");
+        add("forgeweave.configuration.craftCastableMaterials", "Craft Castable Materials");
+        add("forgeweave.configuration.craftingStationBlacklist", "Crafting Station Blacklist");
+        add("forgeweave.configuration.meltSpeedMultiplier", "Melt Speed Multiplier");
+        add("forgeweave.configuration.returnExchangedParts", "Return Exchanged Parts");
+        add("forgeweave.configuration.toolLeveling", "Tool Leveling");
+        add("forgeweave.configuration.defaultBaseXP", "Base XP per Level");
+        add("forgeweave.configuration.levelMultiplier", "XP Multiplier per Level");
+        add("forgeweave.configuration.maximumLevels", "Maximum Levels");
+        add("forgeweave.configuration.draconicFusion", "Draconic Evolution Fusion Upgrades");
+        add("forgeweave.configuration.draconicModules", "Draconic Evolution Modules");
+        add("forgeweave.configuration.overlays", "Jade and WTHIT Overlays");
+        add("forgeweave.configuration.emiPlugin", "EMI Plugin");
+        add("forgeweave.configuration.kubejsTraits", "KubeJS Traits");
+        add("forgeweave.configuration.createGoggles", "Create Goggle Overlays");
+        add("forgeweave.configuration.apotheosisSockets", "Apotheosis Sockets");
+        add("forgeweave.configuration.energizedTank", "Energized Tank");
+        add("forgeweave.configuration.energizedTankBuffer", "Energized Tank Buffer");
+        add("forgeweave.configuration.energizedTankRfPerMeltTickBase", "Energized Tank FE per Melt Tick");
+        add("forgeweave.configuration.energizedTankTemperatureDivisor", "Energized Tank Temperature Divisor");
+        add("forgeweave.configuration.energizedTankOverdriveCost", "Overdrive Energy Multiplier");
+        add("forgeweave.configuration.energizedTankOverdriveProgress", "Overdrive Melt Speed Multiplier");
+        add("forgeweave.configuration.powahModifiers", "Powah Modifiers");
+        add("forgeweave.configuration.surgeboundCapacityPerLevel", "Surgebound Capacity per Level");
+        add("forgeweave.configuration.surgeboundMiningSpeedPerLevel", "Surgebound Mining Speed per Level");
+        add("forgeweave.configuration.surgeboundNitroCapacityMultiplier", "Surgebound Nitro Capacity Multiplier");
+        add("forgeweave.configuration.surgeboundNitroMiningSpeedMultiplier", "Surgebound Nitro Mining Speed Multiplier");
+        add("forgeweave.configuration.occultismRituals", "Occultism Rituals");
+        add("forgeweave.configuration.apotheosisAffixes", "Apotheosis Affixes");
+        add("forgeweave.configuration.apotheosisEnchanting", "Apotheosis Enchanting");
+        add("forgeweave.configuration.createRecipes", "Create Recipes");
+        add("forgeweave.configuration.immersiveEngineeringRecipes", "Immersive Engineering Recipes");
+        add("forgeweave.configuration.enderIoRecipes", "EnderIO Recipes");
+        add("forgeweave.configuration.powahHeatSources", "Powah Heat Sources");
+        add("forgeweave.configuration.modifierDefinitions", "Datapack Modifiers");
+        add("forgeweave.configuration.allthemodiumTiers", "Allthemodium Ores");
+        add("forgeweave.configuration.elementariumMaterials", "Elementarium Materials");
+        add("forgeweave.configuration.mekanismModules", "Mekanism Modules");
+        add("forgeweave.configuration.mekanismEnergyPerBlock", "Mekanism FE per Block");
+        add("forgeweave.configuration.mekanismEnergyPerAbsorbedPoint", "Mekanism FE per Absorbed Damage");
+        add("forgeweave.configuration.mekanismVeinMiningMaxBlocks", "Mekanism Vein Mining Limit");
+        add("forgeweave.configuration.mekanismNucleosynthesizingAlloyCount", "Nucleosynthesizer Alloy Count");
+        add("forgeweave.configuration.mekanismNucleosynthesizingAntimatter", "Nucleosynthesizer Antimatter (mB)");
+        add("forgeweave.configuration.mekanismNucleosynthesizingDuration", "Nucleosynthesizer Duration (ticks)");
+        add("forgeweave.configuration.mekanismEnergyPerTeleport", "Mekanism FE per Teleport");
+        add("forgeweave.configuration.mekanismEnergyPerFlightTick", "Mekanism FE per Flight Tick");
+        add("forgeweave.configuration.mekanismTeleportMaxDistance", "Mekanism Teleport Range");
+        add("forgeweave.configuration.radiationShieldingPerLevel", "Radiation Shielding per Level");
+        add("forgeweave.configuration.mysticalAgricultureAugments", "Mystical Agriculture Augments");
+        add("forgeweave.configuration.genCobalt", "Generate Cobalt");
+        add("forgeweave.configuration.cobaltRate", "Cobalt Rate");
+        add("forgeweave.configuration.genArdite", "Generate Ardite");
+        add("forgeweave.configuration.arditeRate", "Ardite Rate");
+        add("forgeweave.configuration.genTrackBOres", "Generate Track B Ores");
+        add("forgeweave.configuration.generateSlimeIslands", "Generate Slime Islands");
+        add("forgeweave.configuration.generateIslandsInSuperflat", "Slime Islands in Superflat");
+        add("forgeweave.configuration.slimeIslandRate", "Slime Island Rate");
+        add("forgeweave.configuration.magmaIslandRate", "Magma Island Rate");
+        add("forgeweave.configuration.slimeIslandBlacklist", "Slime Island Dimension Blacklist");
+        add("forgeweave.configuration.slimeIslandsOnlyGenerateInSurfaceWorlds", "Slime Islands Only in Surface Worlds");
         add("forgeweave.configuration.heldBowPose", "Held Bow Pose");
         add("forgeweave.configuration.heldBowPose.tooltip",
                 "How the shortbow, longbow and crossbow are held. Classic is the original 1.12-era pose;"
@@ -60,7 +157,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + " an armor stand, or your own character in your skin.");
         add("itemGroup.forgeweave.general", "Forgeweave General Items");
         // #719 -- the veinmine hold-key in vanilla's Controls menu (client/VeinmineKeyMapping).
-        add("key.categories.forgeweave", "Forgeweave");
+        add("key.category.forgeweave.forgeweave", "Forgeweave");
         add("key.forgeweave.veinmine", "Vein Mine (hold)");
         add("itemGroup.forgeweave.tools", "Forgeweave Tools");
         add("itemGroup.forgeweave.parts", "Forgeweave Tool Parts");
@@ -1063,7 +1160,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
 
         // #835 -- M6 Track A batch 3: Ender IO's eight surviving 1.21.1 alloy ingots (the roster
         // renamed pulsating_iron/conductive_iron to pulsating_alloy/conductive_alloy and dropped
-        // electrical_steel entirely -- see EnderIoAlloyGameTests). Single-provider item_exists
+        // electrical_steel entirely -- see EnderIoAlloyGameTests). Single-provider registered
         // conditions like the batch 1 metals above; no Forgeweave item/fluid of their own.
         add("material.forgeweave.redstone_alloy", "Redstone Alloy");
         add("material.forgeweave.energetic_alloy", "Energetic Alloy");

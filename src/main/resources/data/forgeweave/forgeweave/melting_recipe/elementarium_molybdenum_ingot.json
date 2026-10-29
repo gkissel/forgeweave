@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/molybdenum"
-  },
+  "input": "#c:ingots/molybdenum",
   "fluid": "forgeweave:molten_elementarium_molybdenum",
   "amount": 144,
   "temperature": 1200,

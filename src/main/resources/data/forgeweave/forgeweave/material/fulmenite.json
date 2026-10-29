@@ -32,13 +32,11 @@
     ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:fulmenite_ingot" }, "value": 144 },
-    { "ingredient": { "item": "forgeweave:fulmenite_nugget" }, "value": 16 },
-    { "ingredient": { "item": "forgeweave:fulmenite_block" }, "value": 1296 }
+    { "ingredient": "forgeweave:fulmenite_ingot", "value": 144 },
+    { "ingredient": "forgeweave:fulmenite_nugget", "value": 16 },
+    { "ingredient": "forgeweave:fulmenite_block", "value": 1296 }
   ],
-  "repair_item": {
-    "tag": "c:ingots/fulmenite"
-  },
+  "repair_item": "#c:ingots/fulmenite",
   "cast_only": true,
   "enchantability": 12,
   "color": "#C7FA4F"

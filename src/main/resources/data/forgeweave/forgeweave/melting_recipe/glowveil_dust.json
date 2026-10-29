@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/glowveil"
-  },
+  "input": "#c:dusts/glowveil",
   "fluid": "forgeweave:molten_glowveil",
   "amount": 144,
   "temperature": 1400

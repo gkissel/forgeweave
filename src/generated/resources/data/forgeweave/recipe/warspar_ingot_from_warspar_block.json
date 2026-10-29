@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "item": "forgeweave:warspar_block"
-    }
+    "forgeweave:warspar_block"
   ],
   "result": {
     "count": 9,

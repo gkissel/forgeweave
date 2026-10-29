@@ -2,18 +2,11 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:tiny_dusts/ironbrand"
-    },
-    {
-      "tag": "c:tiny_dusts/ironbrand"
-    },
-    {
-      "tag": "c:tiny_dusts/ironbrand"
-    }
+    "#c:tiny_dusts/ironbrand",
+    "#c:tiny_dusts/ironbrand",
+    "#c:tiny_dusts/ironbrand"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:ironbrand_small_dust"
   }
 }

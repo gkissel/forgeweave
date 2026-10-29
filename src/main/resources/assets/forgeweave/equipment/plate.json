@@ -1,0 +1,12 @@
+{
+  "layers": {
+    "humanoid": [
+      { "texture": "forgeweave:derived/maille" },
+      { "texture": "forgeweave:derived/plating" }
+    ],
+    "humanoid_leggings": [
+      { "texture": "forgeweave:derived/maille" },
+      { "texture": "forgeweave:derived/plating" }
+    ]
+  }
+}

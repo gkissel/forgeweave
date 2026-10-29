@@ -41,21 +41,17 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "twilightforest:naga_scale"
-      },
+      "ingredient": "twilightforest:naga_scale",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "twilightforest:naga_scale"
-  },
+  "repair_item": "twilightforest:naga_scale",
   "enchantability": 13,
   "color": "#5C7A3D",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "twilightforest:naga_scale"
+      "type": "neoforge:registered",
+      "value": "twilightforest:naga_scale"
     }
   ]
 }

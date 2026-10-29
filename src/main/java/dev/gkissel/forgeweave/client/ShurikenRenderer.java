@@ -3,13 +3,14 @@ package dev.gkissel.forgeweave.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.EntityRenderer;
-import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.texture.TextureAtlas;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemDisplayContext;
 
 import dev.gkissel.forgeweave.entity.ShurikenEntity;
@@ -22,37 +23,53 @@ import dev.gkissel.forgeweave.entity.ShurikenEntity;
  * while in flight, frozen once stuck ({@code if(!entity.inGround) entity.spin += 20 * partialTicks}).
  *
  * <p>Upstream renders the tool's baked model directly ({@code toolCoreRenderer}); here vanilla's
- * {@link ItemRenderer} draws the carried stack's model, which is the same four tinted blade layers
+ * {@link ItemModelResolver} draws the carried stack's model, which is the same four tinted blade layers
  * the inventory shows.
  */
-public class ShurikenRenderer extends EntityRenderer<ShurikenEntity> {
+public class ShurikenRenderer extends EntityRenderer<ShurikenEntity, ShurikenRenderer.State> {
 
-    private final ItemRenderer itemRenderer;
+    private final ItemModelResolver itemModelResolver;
 
     public ShurikenRenderer(EntityRendererProvider.Context context) {
         super(context);
-        this.itemRenderer = context.getItemRenderer();
+        this.itemModelResolver = context.getItemModelResolver();
+    }
+
+    /** The item model and the angles {@link #submit} turns it by, captured off the entity. */
+    public static class State extends EntityRenderState {
+        final ItemStackRenderState item = new ItemStackRenderState();
+        float yRot;
+        float xRot;
+        float roll;
+        float spin;
     }
 
     @Override
-    public void render(ShurikenEntity entity, float entityYaw, float partialTicks, PoseStack poseStack,
-            MultiBufferSource buffer, int packedLight) {
+    public State createRenderState() {
+        return new State();
+    }
+
+    @Override
+    public void extractRenderState(ShurikenEntity entity, State state, float partialTicks) {
+        super.extractRenderState(entity, state, partialTicks);
+        itemModelResolver.updateForNonLiving(state.item, entity.getPickupItemStackOrigin(), ItemDisplayContext.GROUND,
+                entity);
+        state.yRot = entity.yRotO + (entity.getYRot() - entity.yRotO) * partialTicks;
+        state.xRot = entity.xRotO + (entity.getXRot() - entity.xRotO) * partialTicks;
+        state.roll = entity.rollAngle();
+        state.spin = entity.spin(partialTicks);
+    }
+
+    @Override
+    public void submit(State state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         poseStack.pushPose();
         poseStack.scale(0.6F, 0.6F, 0.6F);
-        poseStack.mulPose(Axis.YP.rotationDegrees(
-                entity.yRotO + (entity.getYRot() - entity.yRotO) * partialTicks));
-        poseStack.mulPose(Axis.XP.rotationDegrees(
-                -(entity.xRotO + (entity.getXRot() - entity.xRotO) * partialTicks)));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(entity.rollAngle()));
+        poseStack.mulPose(Axis.YP.rotationDegrees(state.yRot));
+        poseStack.mulPose(Axis.XP.rotationDegrees(-state.xRot));
+        poseStack.mulPose(Axis.ZP.rotationDegrees(state.roll));
         poseStack.mulPose(Axis.XP.rotationDegrees(90.0F));
-        poseStack.mulPose(Axis.ZP.rotationDegrees(entity.spin(partialTicks)));
-        itemRenderer.renderStatic(entity.getPickupItemStackOrigin(), ItemDisplayContext.GROUND,
-                packedLight, OverlayTexture.NO_OVERLAY, poseStack, buffer, entity.level(), entity.getId());
+        poseStack.mulPose(Axis.ZP.rotationDegrees(state.spin));
+        state.item.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor);
         poseStack.popPose();
-    }
-
-    @Override
-    public ResourceLocation getTextureLocation(ShurikenEntity entity) {
-        return TextureAtlas.LOCATION_BLOCKS; // the item model's own atlas; this renderer never binds it directly
     }
 }

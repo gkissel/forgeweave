@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/skipalloy"
-  },
+  "input": "#c:dusts/skipalloy",
   "fluid": "forgeweave:molten_skipalloy",
   "amount": 144,
   "temperature": 1400

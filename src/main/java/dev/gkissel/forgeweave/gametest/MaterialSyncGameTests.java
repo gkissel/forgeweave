@@ -1,10 +1,10 @@
 package dev.gkissel.forgeweave.gametest;
 
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.material.Material;
@@ -27,7 +27,7 @@ public class MaterialSyncGameTests {
     @GameTest(template = "empty")
     public static void everyLoadedMaterialEncodesIntoTheSyncPayload(GameTestHelper helper) {
         Forgeweave.MaterialSyncSize sync = Forgeweave.materialSyncSize(helper.getLevel().registryAccess());
-        int registered = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY).size();
+        int registered = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY).size();
 
         helper.assertTrue(registered > 50, "expected the shipped roster on the server, got " + registered);
         helper.assertValueEqual(sync.total(), registered, "materials the log line counts");

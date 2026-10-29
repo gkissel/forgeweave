@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "tag": "c:gears"
-  },
+  "cast": "#c:gears",
   "fluid": "forgeweave:molten_clay",
   "amount": 288,
   "result": {

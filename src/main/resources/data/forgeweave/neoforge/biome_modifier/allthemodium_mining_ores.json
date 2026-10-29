@@ -1,6 +1,6 @@
 {
   "type": "neoforge:add_features",
-  "biomes": "#allthemodium:mining_features/mining_biomes",
+  "biomes": "allthemodium:mining",
   "features": [
     "forgeweave:fulmenite_ore",
     "forgeweave:murkiron_ore",

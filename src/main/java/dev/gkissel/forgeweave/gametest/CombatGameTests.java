@@ -3,7 +3,7 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.InteractionHand;
@@ -12,7 +12,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -22,8 +22,8 @@ import net.minecraft.world.level.GameType;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
 import net.neoforged.neoforge.event.entity.player.CriticalHitEvent;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.combat.CombatProviders;
@@ -261,7 +261,7 @@ public class CombatGameTests {
             COUNTER.assertCounts(helper, 1, 1, 0, "the blow that leaves the bleed");
             helper.assertTrue(pig.getLastHurtByMob() == player, "the tick below must be crediting the wielder to prove anything");
             float before = pig.getHealth();
-            ((BleedEffect) ForgeweaveMobEffects.BLEED.value()).applyEffectTick(pig, 0);
+            ((BleedEffect) ForgeweaveMobEffects.BLEED.value()).applyEffectTick(helper.getLevel(), pig, 0);
             helper.assertTrue(pig.getHealth() < before, "the bleed tick must still land");
             COUNTER.assertCounts(helper, 1, 1, 0, "a bleed tick");
         } finally {
@@ -316,13 +316,13 @@ public class CombatGameTests {
             if (entry.attribute().is(attribute)
                     && entry.modifier().operation() == AttributeModifier.Operation.ADD_VALUE) {
                 if (found != null) {
-                    throw new AssertionError("the " + name + " carries more than one " + attribute.location() + " modifier");
+                    throw new AssertionError("the " + name + " carries more than one " + attribute.identifier() + " modifier");
                 }
                 found = entry.modifier().amount();
             }
         }
         if (found == null) {
-            throw new AssertionError("no " + attribute.location() + " modifier on the " + name);
+            throw new AssertionError("no " + attribute.identifier() + " modifier on the " + name);
         }
         return found;
     }

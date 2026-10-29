@@ -24,12 +24,13 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.material.Fluids;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -46,7 +47,7 @@ class CastingRecipeTest {
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(JsonOps.INSTANCE);
     }
 
     // ------------------------------------------------------------------ the codec
@@ -72,7 +73,7 @@ class CastingRecipeTest {
     @Test
     void theOptionalFieldsDefaultTheWayAPlainCastingRecipeNeeds() {
         CastingRecipe plain = parse("""
-                {"station": "table", "cast": {"item": "forgeweave:cast_ingot"},
+                {"station": "table", "cast": "forgeweave:cast_ingot",
                  "fluid": "minecraft:lava", "amount": 144, "result": {"id": "minecraft:iron_ingot"}}
                 """);
 
@@ -90,15 +91,15 @@ class CastingRecipeTest {
     @Test
     void theHighestPriorityMatchWinsAndTiesKeepRegistryOrder() {
         CastingRecipe fallback = parse("""
-                {"station": "table", "cast": {"item": "forgeweave:cast_ingot"}, "fluid": "minecraft:lava",
+                {"station": "table", "cast": "forgeweave:cast_ingot", "fluid": "minecraft:lava",
                  "amount": 144, "result": {"id": "minecraft:gold_ingot"}, "priority": -1}
                 """);
         CastingRecipe preferred = parse("""
-                {"station": "table", "cast": {"item": "forgeweave:cast_ingot"}, "fluid": "minecraft:lava",
+                {"station": "table", "cast": "forgeweave:cast_ingot", "fluid": "minecraft:lava",
                  "amount": 144, "result": {"id": "minecraft:iron_ingot"}}
                 """);
         CastingRecipe tie = parse("""
-                {"station": "table", "cast": {"item": "forgeweave:cast_ingot"}, "fluid": "minecraft:lava",
+                {"station": "table", "cast": "forgeweave:cast_ingot", "fluid": "minecraft:lava",
                  "amount": 144, "result": {"id": "minecraft:copper_ingot"}}
                 """);
         ItemStack cast = new ItemStack(ForgeweaveItems.CAST_INGOT.get());
@@ -138,7 +139,7 @@ class CastingRecipeTest {
             assertEquals(ForgeweaveFluids.GOLD.still().get(), recipe.fluid().orElseThrow(), "casts are gold-only (pure parity)");
             assertTrue(recipe.consumesCast(), part + " is consumed by the pour that moulds its cast");
             assertTrue(recipe.resultInInput(), "and the cast lands in the input slot, ready for metal");
-            assertEquals(ResourceLocation.fromNamespaceAndPath("forgeweave", "cast_" + part),
+            assertEquals(Identifier.fromNamespaceAndPath("forgeweave", "cast_" + part),
                     BuiltInRegistries.ITEM.getKey(recipe.result().getItem()));
         }
     }
@@ -157,7 +158,7 @@ class CastingRecipeTest {
             assertEquals(ForgeweaveFluids.MOLTEN_CLAY.still().get(), recipe.fluid().orElseThrow(), "moulded from molten clay");
             assertTrue(recipe.consumesCast(), part + " is consumed by the pour that moulds its clay cast");
             assertTrue(recipe.resultInInput(), "and the cast lands in the input slot, ready for metal");
-            assertEquals(ResourceLocation.fromNamespaceAndPath("forgeweave", "clay_cast_" + part),
+            assertEquals(Identifier.fromNamespaceAndPath("forgeweave", "clay_cast_" + part),
                     BuiltInRegistries.ITEM.getKey(recipe.result().getItem()));
         }
     }
@@ -192,7 +193,7 @@ class CastingRecipeTest {
 
         CastingRecipe recipe = shipped("pickaxe_head_manyullyn");
         assertEquals(ForgeweaveItems.PART_PICKAXE_HEAD.get(), recipe.result().getItem());
-        assertEquals(ResourceLocation.fromNamespaceAndPath("forgeweave", "manyullyn"),
+        assertEquals(Identifier.fromNamespaceAndPath("forgeweave", "manyullyn"),
                 recipe.result().get(ForgeweaveDataComponents.MATERIAL.get()));
         assertFalse(recipe.consumesCast(), "casts are reusable (pure parity)");
     }
@@ -481,7 +482,7 @@ class CastingRecipeTest {
         assertEquals(ForgeweaveItems.SEARED_GLASS.get(), recipe.result().getItem());
         assertTrue(recipe.consumesCast(), "the glass is consumed by the pour");
         assertTrue(recipe.cast().isPresent(), "cast is the c:glass_blocks tag");
-        assertEquals("c:glass_blocks", rawShipped("seared_glass").getAsJsonObject("cast").get("tag").getAsString(),
+        assertEquals("#c:glass_blocks", rawShipped("seared_glass").get("cast").getAsString(),
                 "the full tag, not just c:glass_blocks/colorless -- #594");
     }
 

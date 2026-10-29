@@ -27,6 +27,8 @@ import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 
+import dev.gkissel.forgeweave.TestRegistries;
+
 /**
  * Issue #98's codec and the ratio math behind {@link AlloyRecipe#matches}, plus the three shipped
  * ratios as JSON. The molten metals are {@code DeferredHolder}-backed and so unavailable without a
@@ -41,7 +43,7 @@ class AlloyRecipeTest {
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(JsonOps.INSTANCE);
     }
 
     private static AlloyRecipe parse(String json) {
@@ -253,20 +255,20 @@ class AlloyRecipeTest {
         List<String> bronzeProviders = List.of("mekanism:ingot_bronze", "eternalores:bronze_ingot");
 
         JsonObject nuggetMelt = shippedIn("melting_recipe", "bronze_nugget");
-        assertEquals("c:nuggets/bronze", nuggetMelt.getAsJsonObject("input").get("tag").getAsString());
+        assertEquals("#c:nuggets/bronze", nuggetMelt.get("input").getAsString());
         assertEquals("forgeweave:molten_bronze", nuggetMelt.get("fluid").getAsString());
         assertEquals(MeltingRecipe.VALUE_NUGGET, nuggetMelt.get("amount").getAsInt());
         assertEquals(bronzeProviders, onlyCondition(nuggetMelt));
 
         JsonObject blockMelt = shippedIn("melting_recipe", "bronze_block");
-        assertEquals("c:storage_blocks/bronze", blockMelt.getAsJsonObject("input").get("tag").getAsString());
+        assertEquals("#c:storage_blocks/bronze", blockMelt.get("input").getAsString());
         assertEquals("forgeweave:molten_bronze", blockMelt.get("fluid").getAsString());
         assertEquals(MeltingRecipe.VALUE_BLOCK, blockMelt.get("amount").getAsInt());
         assertEquals(bronzeProviders, onlyCondition(blockMelt));
 
         JsonObject nuggetCast = shippedIn("casting_recipe", "nugget_bronze_mekanism");
         assertEquals("table", nuggetCast.get("station").getAsString());
-        assertEquals("forgeweave:cast_nugget", nuggetCast.getAsJsonObject("cast").get("item").getAsString());
+        assertEquals("forgeweave:cast_nugget", nuggetCast.get("cast").getAsString());
         assertEquals("forgeweave:molten_bronze", nuggetCast.get("fluid").getAsString());
         assertEquals(MeltingRecipe.VALUE_NUGGET, nuggetCast.get("amount").getAsInt());
         assertEquals("mekanism:nugget_bronze", nuggetCast.getAsJsonObject("result").get("id").getAsString());
@@ -280,7 +282,7 @@ class AlloyRecipeTest {
         assertEquals(List.of("mekanism:block_bronze"), onlyCondition(blockCast));
     }
 
-    /** The item ids of a recipe's single condition, a plain {@code item_exists} or an {@code or} of them. */
+    /** The item ids of a recipe's single condition, a plain {@code registered} or an {@code or} of them. */
     private static List<String> onlyCondition(JsonObject recipe) {
         assertEquals(1, recipe.getAsJsonArray("neoforge:conditions").size(), "expected one condition");
         return conditionItems(recipe.getAsJsonArray("neoforge:conditions").get(0).getAsJsonObject());
@@ -292,8 +294,8 @@ class AlloyRecipeTest {
                     .flatMap(value -> conditionItems(value.getAsJsonObject()).stream())
                     .toList();
         }
-        assertEquals("neoforge:item_exists", condition.get("type").getAsString());
-        return List.of(condition.get("item").getAsString());
+        assertEquals("neoforge:registered", condition.get("type").getAsString());
+        return List.of(condition.get("value").getAsString());
     }
 
     private static JsonObject input(JsonObject recipe, int index) {

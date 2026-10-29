@@ -2,15 +2,12 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "#": {
-      "tag": "c:nuggets/hollowsteel"
-    }
+    "#": "#c:nuggets/hollowsteel"
   },
   "pattern": [
     "###"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:hollowsteel_wire"
   }
 }

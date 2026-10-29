@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/molybdenum"
-  },
+  "input": "#c:storage_blocks/molybdenum",
   "fluid": "forgeweave:molten_elementarium_molybdenum",
   "amount": 1296,
   "temperature": 1200,

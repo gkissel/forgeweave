@@ -3,9 +3,9 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -18,8 +18,8 @@ import net.minecraft.world.level.material.Fluid;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -123,7 +123,7 @@ public class SlimeContentGameTests {
         CraftingInput input = CraftingInput.of(2, 1, List.of(
                 new ItemStack(ForgeweaveItems.GREEN_SLIME_CRYSTAL.get()), new ItemStack(Items.LAPIS_LAZULI)));
 
-        helper.assertTrue(level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, level).isEmpty(),
+        helper.assertTrue(level.recipeAccess().getRecipeFor(RecipeType.CRAFTING, input, level).isEmpty(),
                 "green slime crystal + lapis should no longer craft anything (issue #635)");
         helper.succeed();
     }
@@ -264,16 +264,16 @@ public class SlimeContentGameTests {
 
     private static void assertSmeltsInto(GameTestHelper helper, ItemStack input, net.minecraft.world.item.Item expected) {
         ServerLevel level = helper.getLevel();
-        ItemStack smelted = level.getRecipeManager()
+        ItemStack smelted = level.recipeAccess()
                 .getRecipeFor(RecipeType.SMELTING, new SingleRecipeInput(input), level)
-                .map(match -> match.value().assemble(new SingleRecipeInput(input), level.registryAccess()))
+                .map(match -> match.value().assemble(new SingleRecipeInput(input)))
                 .orElse(ItemStack.EMPTY);
         helper.assertTrue(smelted.is(expected),
                 "expected furnace-smelting " + input + " to give " + expected + ", got " + smelted);
     }
 
     private static void assertSmeltsIntoNothing(GameTestHelper helper, ItemStack input) {
-        helper.assertTrue(helper.getLevel().getRecipeManager()
+        helper.assertTrue(helper.getLevel().recipeAccess()
                         .getRecipeFor(RecipeType.SMELTING, new SingleRecipeInput(input), helper.getLevel()).isEmpty(),
                 "expected no furnace recipe for " + input + " -- the #232 shortcut should be gone");
     }
@@ -297,9 +297,9 @@ public class SlimeContentGameTests {
         };
         ServerLevel level = helper.getLevel();
         CraftingInput input = CraftingInput.of(width, ingredients.size() / width, ingredients);
-        ItemStack crafted = level.getRecipeManager()
+        ItemStack crafted = level.recipeAccess()
                 .getRecipeFor(RecipeType.CRAFTING, input, level)
-                .map(match -> match.value().assemble(input, level.registryAccess()))
+                .map(match -> match.value().assemble(input))
                 .orElse(ItemStack.EMPTY);
 
         helper.assertTrue(crafted.is(expected) && crafted.getCount() == count,
@@ -310,7 +310,7 @@ public class SlimeContentGameTests {
     private static SmelteryControllerBlockEntity smeltery(GameTestHelper helper) {
         SmelteryGameTests.buildWalls(helper, 1, 1, 2);
         BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
-        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
         return core;
     }
@@ -320,12 +320,12 @@ public class SlimeContentGameTests {
         core.tank().fill(new FluidStack(fluid, amount), IFluidHandler.FluidAction.EXECUTE);
     }
 
-    private static List<ResourceLocation> traits(ItemStack stack) {
+    private static List<Identifier> traits(ItemStack stack) {
         return stack.getOrDefault(ForgeweaveDataComponents.TRAITS.get(), List.of());
     }
 
-    private static ResourceLocation trait(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier trait(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
     private SlimeContentGameTests() {}

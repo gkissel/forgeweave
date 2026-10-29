@@ -5,15 +5,15 @@ import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.animal.Pig;
-import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.animal.pig.Pig;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -24,8 +24,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.neoforge.common.ItemAbilities;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.combat.CombatProviders;
@@ -156,7 +156,7 @@ public class ToolLevelingXpGameTests {
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         ItemStack bow = assembleUniform(helper, player, new BlockPos(1, 1, 1), ForgeweaveItems.TOOL_SHORTBOW.get(), "wood", false);
         player.setItemInHand(InteractionHand.MAIN_HAND, bow);
-        player.moveTo(helper.absoluteVec(new Vec3(1.5, 1.0, 1.5)));
+        player.snapTo(helper.absoluteVec(new Vec3(1.5, 1.0, 1.5)));
         helper.setBlock(wallPos, Blocks.STONE);
 
         AbstractArrow arrow = ((ArrowItem) Items.ARROW).createArrow(helper.getLevel(), new ItemStack(Items.ARROW),

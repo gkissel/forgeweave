@@ -45,21 +45,17 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "iceandfire:troll_leather_mountain"
-      },
+      "ingredient": "iceandfire:troll_leather_mountain",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "iceandfire:troll_leather_mountain"
-  },
+  "repair_item": "iceandfire:troll_leather_mountain",
   "enchantability": 14,
   "color": "#7A6B5C",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "iceandfire:troll_leather_mountain"
+      "type": "neoforge:registered",
+      "value": "iceandfire:troll_leather_mountain"
     }
   ]
 }

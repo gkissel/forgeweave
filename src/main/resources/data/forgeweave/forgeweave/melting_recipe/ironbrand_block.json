@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/ironbrand"
-  },
+  "input": "#c:storage_blocks/ironbrand",
   "fluid": "forgeweave:molten_ironbrand",
   "amount": 1296
 }

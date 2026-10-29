@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/hepatizon"
-  },
+  "input": "#c:small_dusts/hepatizon",
   "fluid": "forgeweave:molten_hepatizon",
   "amount": 48
 }

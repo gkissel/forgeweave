@@ -6,12 +6,13 @@ import java.util.concurrent.CompletableFuture;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.ItemLike;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -92,7 +93,7 @@ public class ForgeweaveDraconicRecipeProvider implements DataProvider {
 
         // Layer 2.
         for (ForgeweaveDraconicCompat.Line line : ForgeweaveDraconicCompat.UPGRADE_LINES) {
-            ResourceLocation modifier = ResourceLocation.parse(line.modifier());
+            Identifier modifier = Identifier.parse(line.modifier());
             if (ForgeweaveModifiers.get(modifier) == null) {
                 throw new IllegalStateException("no modifier registered as " + modifier
                         + " -- ForgeweaveDraconicCompat.UPGRADE_LINES names one that does not exist");
@@ -165,11 +166,12 @@ public class ForgeweaveDraconicRecipeProvider implements DataProvider {
         return json;
     }
 
-    /** {@code "#namespace:path"} reads as a tag ingredient, anything else as an item ingredient. */
-    private static JsonObject ingredient(String id) {
-        JsonObject json = new JsonObject();
-        json.addProperty(id.startsWith("#") ? "tag" : "item", id.startsWith("#") ? id.substring(1) : id);
-        return json;
+    /**
+     * {@code "#namespace:path"} is a tag ingredient, anything else an item one. Since 1.21.2 an
+     * ingredient is that bare string, not a {@code {"item"|"tag": ...}} object.
+     */
+    private static JsonPrimitive ingredient(String id) {
+        return new JsonPrimitive(id);
     }
 
     /** Draconic Evolution's injector list: one entry per injector, each consumed by the craft. */
@@ -199,6 +201,6 @@ public class ForgeweaveDraconicRecipeProvider implements DataProvider {
 
     private CompletableFuture<?> save(CachedOutput output, String name, JsonObject json) {
         return DataProvider.saveStable(output, json,
-                recipes.json(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "compat/draconic/" + name)));
+                recipes.json(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "compat/draconic/" + name)));
     }
 }

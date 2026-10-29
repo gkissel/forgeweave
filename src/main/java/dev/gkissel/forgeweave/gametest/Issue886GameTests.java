@@ -6,16 +6,16 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
-import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
@@ -26,8 +26,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.item.CapturedMob;
@@ -61,7 +61,7 @@ public class Issue886GameTests {
         helper.assertTrue(target.isRemoved(), "the snared zombie must be taken out of the world");
         CapturedMob captured = cageIn(player);
         helper.assertTrue(captured != null, "the wielder must be holding a filled Dusk Cage");
-        helper.assertTrue(captured.entityType().equals(ResourceLocation.withDefaultNamespace("zombie")),
+        helper.assertTrue(captured.entityType().equals(Identifier.withDefaultNamespace("zombie")),
                 "the cage must name the captured type, got " + captured.entityType());
         helper.succeed();
     }
@@ -162,14 +162,14 @@ public class Issue886GameTests {
     }
 
     /** Builds a pickaxe {@code ItemStack} with the given traits directly. */
-    private static ItemStack pickaxe(List<ResourceLocation> traits) {
+    private static ItemStack pickaxe(List<Identifier> traits) {
         ToolItem toolItem = ForgeweaveItems.TOOL_PICKAXE.get();
         ToolStats.Stats stats = new ToolStats.Stats(1000, 6.0F, 5.0F);
         Material head = new Material(
                 new Material.Head(1000, 6.0F, 5.0F),
                 new Material.Handle(1.0F, 0),
                 0,
-                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool")),
+                TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace("incorrect_for_stone_tool")),
                 new Material.Traits(List.of(), List.of()),
                 List.of(),
                 Ingredient.of(Items.STICK),
@@ -184,7 +184,7 @@ public class Issue886GameTests {
         return stack;
     }
 
-    private static ResourceLocation traitId(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier traitId(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 }

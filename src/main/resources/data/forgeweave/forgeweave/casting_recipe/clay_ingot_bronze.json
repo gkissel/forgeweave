@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_ingot"
-  },
+  "cast": "forgeweave:clay_cast_ingot",
   "fluid": "forgeweave:molten_bronze",
   "amount": 144,
   "result": {
@@ -11,8 +9,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:ingot_bronze"
+      "type": "neoforge:registered",
+      "value": "mekanism:ingot_bronze"
     }
   ]
 }

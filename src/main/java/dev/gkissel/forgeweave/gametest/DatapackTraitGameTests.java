@@ -4,20 +4,20 @@ import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
@@ -38,12 +38,12 @@ import dev.gkissel.forgeweave.trait.TraitDefinition;
 @PrefixGameTestTemplate(false)
 public class DatapackTraitGameTests {
 
-    private static final ResourceLocation PACK_POISON = id("gametest_pack_poison");
-    private static final ResourceLocation PACK_ABSENT = id("gametest_pack_absent");
+    private static final Identifier PACK_POISON = id("gametest_pack_poison");
+    private static final Identifier PACK_ABSENT = id("gametest_pack_absent");
     private static final String PACK_MATERIAL = "gametest_pack_material";
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
     @GameTest(template = "empty")
@@ -53,7 +53,7 @@ public class DatapackTraitGameTests {
                 PACK_MATERIAL, PACK_MATERIAL, PACK_MATERIAL);
         helper.assertFalse(pickaxe.isEmpty(), "expected the Tool Station to assemble a pickaxe from " + PACK_MATERIAL);
 
-        List<ResourceLocation> ids = pickaxe.get(ForgeweaveDataComponents.TRAITS.get());
+        List<Identifier> ids = pickaxe.get(ForgeweaveDataComponents.TRAITS.get());
         helper.assertTrue(ids != null && ids.contains(PACK_POISON),
                 "expected the assembled tool's trait list to carry the pack-defined id, got " + ids);
         helper.assertTrue(ForgeweaveTraits.lookup(PACK_POISON) != null,
@@ -77,10 +77,10 @@ public class DatapackTraitGameTests {
     /** The negative half: a definition whose {@code neoforge:conditions} fail is not registered anywhere. */
     @GameTest(template = "empty")
     public static void aDefinitionFailingItsConditionsNeverRegisters(GameTestHelper helper) {
-        Registry<TraitDefinition> definitions = helper.getLevel().registryAccess().registryOrThrow(TraitDefinition.REGISTRY);
-        helper.assertTrue(definitions.get(PACK_ABSENT) == null,
+        Registry<TraitDefinition> definitions = helper.getLevel().registryAccess().lookupOrThrow(TraitDefinition.REGISTRY);
+        helper.assertTrue(definitions.getValue(PACK_ABSENT) == null,
                 "expected the mod_loaded-gated definition to be absent from the registry");
-        helper.assertTrue(definitions.get(PACK_POISON) != null,
+        helper.assertTrue(definitions.getValue(PACK_POISON) != null,
                 "expected the unconditioned definition to be present in the registry");
         helper.assertTrue(ForgeweaveTraits.lookup(PACK_ABSENT) == null,
                 "expected no behaviour behind the mod_loaded-gated definition's id");

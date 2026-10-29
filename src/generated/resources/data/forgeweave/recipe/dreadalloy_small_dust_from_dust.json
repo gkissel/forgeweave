@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:dusts/dreadalloy"
-    }
+    "#c:dusts/dreadalloy"
   ],
   "result": {
     "count": 3,

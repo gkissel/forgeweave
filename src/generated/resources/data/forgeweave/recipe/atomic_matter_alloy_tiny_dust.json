@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:small_dusts/atomic_matter_alloy"
-    }
+    "#c:small_dusts/atomic_matter_alloy"
   ],
   "result": {
     "count": 3,

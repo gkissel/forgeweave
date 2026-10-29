@@ -26,14 +26,12 @@
     "general": ["forgeweave:starforged"]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:dusts/sky_stone" }, "value": 36 }
+    { "ingredient": "#c:dusts/sky_stone", "value": 36 }
   ],
-  "repair_item": {
-    "tag": "c:dusts/sky_stone"
-  },
+  "repair_item": "#c:dusts/sky_stone",
   "enchantability": 12,
   "color": "#4A4A52",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "ae2:sky_stone_block" }
+    { "type": "neoforge:registered", "value": "ae2:sky_stone_block" }
   ]
 }

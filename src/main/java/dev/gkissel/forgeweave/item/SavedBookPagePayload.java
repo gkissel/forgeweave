@@ -4,7 +4,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -36,7 +36,7 @@ public record SavedBookPagePayload(boolean mainHand, String page) implements Cus
     private static final int MAX_ENCODED_LENGTH = 120;
 
     public static final CustomPacketPayload.Type<SavedBookPagePayload> TYPE =
-            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "saved_book_page"));
+            new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "saved_book_page"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, SavedBookPagePayload> STREAM_CODEC =
             StreamCodec.composite(

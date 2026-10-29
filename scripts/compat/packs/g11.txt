@@ -1,10 +1,12 @@
+# SKIP on 26.1.2: Eternal Ores has no 26.1.2 NeoForge build (checked 2026-10-26)
 # Group 11 (lines 224-227): JEI, Just Dire Things (CurseForge only, a local jar) and Eternal Ores, with
 # none of the original providers. Line 224: the four JDT materials; line 227: the 19 dedupe materials.
 
 # Eternal Ores here is Catalyst-Studios/Eternal-Ores 2.1 (docs/SCOPE.md D-M8-21), a CurseForge jar. The
 # Modrinth project "eternal-ores" 1.0.32 in partner-mods/ shares its mod id but is a different mod, with
-# none of the metals Forgeweave dedupes, so it is not used. A SKIP until the real jar is staged.
-mod local - *ernal*res*2.1*.jar
+# none of the metals Forgeweave dedupes, so it is not used. Its newest CurseForge file is 2.1-hotfix,
+# 1.21.1 only.
+# mod local - *ernal*res*2.1*.jar
 
 include g11-justdirethings.txt
 material forgeweave:graphite forgeweave:aluminium forgeweave:constantan forgeweave:electrum forgeweave:nickel

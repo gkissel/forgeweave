@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/knightslime"
-  },
+  "input": "#c:small_dusts/knightslime",
   "fluid": "forgeweave:molten_knightslime",
   "amount": 48
 }

@@ -9,15 +9,13 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.BonemealableBlock;
-import net.minecraft.world.level.block.BushBlock;
+import net.minecraft.world.level.block.VegetationBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -25,6 +23,11 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
+
+import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.worldgen.SlimeIslandShape;
 
 /**
@@ -40,7 +43,8 @@ import dev.gkissel.forgeweave.worldgen.SlimeIslandShape;
  * corners rather than the island generator's hanging vines. {@link SlimeIslandShape} already holds
  * that generator, ported for the island feature, so the growth here is one call into it.
  */
-public class SlimeSaplingBlock extends BushBlock implements BonemealableBlock {
+@EventBusSubscriber(modid = Forgeweave.MODID)
+public class SlimeSaplingBlock extends VegetationBlock implements BonemealableBlock {
     public static final MapCodec<SlimeSaplingBlock> CODEC =
             simpleCodec(properties -> new SlimeSaplingBlock(properties, FoliageType.BLUE));
 
@@ -66,7 +70,7 @@ public class SlimeSaplingBlock extends BushBlock implements BonemealableBlock {
     }
 
     @Override
-    protected MapCodec<? extends BushBlock> codec() {
+    protected MapCodec<? extends VegetationBlock> codec() {
         return CODEC;
     }
 
@@ -102,9 +106,16 @@ public class SlimeSaplingBlock extends BushBlock implements BonemealableBlock {
         SlimeIslandShape.growSaplingTree(level, random, pos, foliage);
     }
 
-    @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        tooltip.add(Component.translatable(TOOLTIP_KEY).withStyle(ChatFormatting.GRAY));
+    /**
+     * The placement-rule tooltip. 1.21.5 dropped {@code Block#appendHoverText}, so the line is added
+     * from the tooltip event instead, right under the name where the block hook used to put it.
+     */
+    @SubscribeEvent
+    public static void onItemTooltip(ItemTooltipEvent event) {
+        if (event.getItemStack().getItem() instanceof BlockItem item && item.getBlock() instanceof SlimeSaplingBlock) {
+            List<Component> tooltip = event.getToolTip();
+            tooltip.add(Math.min(1, tooltip.size()), Component.translatable(TOOLTIP_KEY).withStyle(ChatFormatting.GRAY));
+        }
     }
 
     @Override
@@ -114,7 +125,7 @@ public class SlimeSaplingBlock extends BushBlock implements BonemealableBlock {
 
     @Override
     public boolean isBonemealSuccess(Level level, RandomSource random, BlockPos pos, BlockState state) {
-        return level.random.nextFloat() < 0.45D;
+        return level.getRandom().nextFloat() < 0.45D;
     }
 
     @Override

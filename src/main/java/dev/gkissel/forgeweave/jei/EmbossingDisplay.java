@@ -2,7 +2,7 @@ package dev.gkissel.forgeweave.jei;
 
 import java.util.List;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 
@@ -18,4 +18,4 @@ import net.minecraft.world.item.crafting.Ingredient;
  *     since embossing spans the Tool Station's five free slots and the donor always claims one
  * @param material the donor material every stack in {@code donorParts} carries
  */
-public record EmbossingDisplay(List<ItemStack> donorParts, List<Ingredient> reagents, ResourceLocation material) {}
+public record EmbossingDisplay(List<ItemStack> donorParts, List<Ingredient> reagents, Identifier material) {}

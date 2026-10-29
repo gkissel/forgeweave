@@ -1,6 +1,6 @@
 package dev.gkissel.forgeweave.jei;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
@@ -95,7 +95,7 @@ final class PartCraftingCategory implements IRecipeCategory<PartCraftingRecipe> 
     }
 
     @Override
-    public void draw(PartCraftingRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
+    public void draw(PartCraftingRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
         // The arrow and all four slot frames are baked into upstream's own panel; nothing to overlay.
         background.draw(guiGraphics, 0, 0);
     }

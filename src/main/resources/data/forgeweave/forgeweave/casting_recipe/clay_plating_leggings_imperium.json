@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_plating_leggings"
-  },
+  "cast": "forgeweave:clay_cast_plating_leggings",
   "fluid": "forgeweave:molten_imperium",
   "amount": 720,
   "result": {
@@ -14,8 +12,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mysticalagriculture:imperium_ingot"
+      "type": "neoforge:registered",
+      "value": "mysticalagriculture:imperium_ingot"
     }
   ]
 }

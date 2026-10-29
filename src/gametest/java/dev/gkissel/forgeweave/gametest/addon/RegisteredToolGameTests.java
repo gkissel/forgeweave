@@ -3,19 +3,20 @@ package dev.gkissel.forgeweave.gametest.addon;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -43,8 +44,8 @@ public class RegisteredToolGameTests {
 
     private static final BlockPos POS = new BlockPos(1, 1, 1);
 
-    private static final ResourceLocation IRON = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "iron");
-    private static final ResourceLocation WOOD = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "wood");
+    private static final Identifier IRON = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "iron");
+    private static final Identifier WOOD = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "wood");
 
     /** The addon's tool as the station's table holds it. */
     private static ToolAssemblyRecipes.Entry entry() {
@@ -56,7 +57,7 @@ public class RegisteredToolGameTests {
                                 + " rows"));
     }
 
-    private static ItemStack part(ResourceLocation material, Item item) {
+    private static ItemStack part(Identifier material, Item item) {
         ItemStack stack = new ItemStack(item);
         stack.set(ForgeweaveDataComponents.MATERIAL.get(), material);
         return stack;
@@ -67,7 +68,7 @@ public class RegisteredToolGameTests {
     public static void aRegisteredPatternStampsAtTheStencilTable(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.setBlock(POS, ForgeweaveBlocks.STENCIL_TABLE.get());
-        StencilTableBlockEntity blockEntity = helper.getBlockEntity(POS);
+        StencilTableBlockEntity blockEntity = helper.getBlockEntity(POS, StencilTableBlockEntity.class);
         StencilTableMenu menu = new StencilTableMenu(0, player.getInventory(), blockEntity.container(),
                 ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(POS)),
                 blockEntity.findSideInventory());
@@ -92,7 +93,7 @@ public class RegisteredToolGameTests {
     public static void aRegisteredPartStampsAtThePartBuilder(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.setBlock(POS, ForgeweaveBlocks.PART_BUILDER.get());
-        PartBuilderBlockEntity blockEntity = helper.getBlockEntity(POS);
+        PartBuilderBlockEntity blockEntity = helper.getBlockEntity(POS, PartBuilderBlockEntity.class);
         PartBuilderMenu menu = new PartBuilderMenu(0, player.getInventory(), blockEntity.container(),
                 ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(POS)),
                 blockEntity.findSideInventory());
@@ -131,8 +132,8 @@ public class RegisteredToolGameTests {
                 "the registered tool takes two parts, the table says " + entry.slotCount());
 
         helper.setBlock(POS, ForgeweaveBlocks.TOOL_STATION.get());
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS);
-        List<ResourceLocation> materials = List.of(IRON, WOOD);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS, ToolStationBlockEntity.class);
+        List<Identifier> materials = List.of(IRON, WOOD);
         for (int slot = 0; slot < ToolStationMenu.INPUT_SLOTS; slot++) {
             blockEntity.container().setItem(slot, slot < entry.slotCount()
                     ? part(materials.get(slot), entry.part(slot))
@@ -151,8 +152,9 @@ public class RegisteredToolGameTests {
         helper.assertTrue(tool.getMaxDamage() > 0,
                 "an assembled tool has durability from its parts, got " + tool.getMaxDamage());
 
-        Tag saved = tool.save(helper.getLevel().registryAccess());
-        ItemStack reloaded = ItemStack.parse(helper.getLevel().registryAccess(), (CompoundTag) saved)
+        var ops = helper.getLevel().registryAccess().createSerializationContext(NbtOps.INSTANCE);
+        Tag saved = ItemStack.CODEC.encodeStart(ops, tool).getOrThrow();
+        ItemStack reloaded = ItemStack.CODEC.parse(ops, (CompoundTag) saved).result()
                 .orElse(ItemStack.EMPTY);
         helper.assertTrue(reloaded.is(GameTestAddon.TOOL.get()),
                 "the registered tool must read back as itself, got " + reloaded);

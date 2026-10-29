@@ -26,8 +26,8 @@ public interface SelfRepairCondition {
      * self-repair trait could reuse as-is.
      */
     SelfRepairCondition SUNLIT =
-            (level, holder) -> level.isDay() && !level.isRaining() && level.canSeeSky(holder.blockPosition());
+            (level, holder) -> level.isBrightOutside() && !level.isRaining() && level.canSeeSky(holder.blockPosition());
 
     /** Night -- {@code duskmend}'s gate, the mirror of {@link #SUNLIT}. */
-    SelfRepairCondition NIGHT = (level, holder) -> level.isNight();
+    SelfRepairCondition NIGHT = (level, holder) -> level.isDarkOutside();
 }

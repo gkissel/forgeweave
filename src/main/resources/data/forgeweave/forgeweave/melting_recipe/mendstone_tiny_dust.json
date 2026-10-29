@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:tiny_dusts/mendstone"
-  },
+  "input": "#c:tiny_dusts/mendstone",
   "fluid": "forgeweave:molten_mendstone",
   "amount": 16
 }

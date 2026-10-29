@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_war_mace_head"
-  },
+  "cast": "forgeweave:clay_cast_war_mace_head",
   "fluid": "forgeweave:molten_end_steel",
   "amount": 1152,
   "result": {
@@ -14,8 +12,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "enderio:end_steel_ingot"
+      "type": "neoforge:registered",
+      "value": "enderio:end_steel_ingot"
     }
   ]
 }

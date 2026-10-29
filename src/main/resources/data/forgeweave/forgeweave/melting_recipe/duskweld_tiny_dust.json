@@ -1,14 +1,12 @@
 {
-  "input": {
-    "tag": "c:tiny_dusts/duskweld"
-  },
+  "input": "#c:tiny_dusts/duskweld",
   "fluid": "forgeweave:molten_duskweld",
   "amount": 16,
   "temperature": 1600,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "draconicevolution:draconium_core"
+      "type": "neoforge:registered",
+      "value": "draconicevolution:draconium_core"
     }
   ]
 }

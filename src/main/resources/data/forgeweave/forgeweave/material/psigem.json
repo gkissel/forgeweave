@@ -26,15 +26,13 @@
     "general": ["forgeweave:solar_recharge"]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:gems/psigem" }, "value": 144 },
-    { "ingredient": { "tag": "c:storage_blocks/psigem" }, "value": 1296 }
+    { "ingredient": "#c:gems/psigem", "value": 144 },
+    { "ingredient": "#c:storage_blocks/psigem", "value": 1296 }
   ],
-  "repair_item": {
-    "tag": "c:gems/psigem"
-  },
+  "repair_item": "#c:gems/psigem",
   "enchantability": 16,
   "color": "#9574D5",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "psi:psigem" }
+    { "type": "neoforge:registered", "value": "psi:psigem" }
   ]
 }

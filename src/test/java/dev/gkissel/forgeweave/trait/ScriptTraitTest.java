@@ -11,7 +11,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.SharedConstants;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 
@@ -51,7 +51,7 @@ class ScriptTraitTest {
 
     @Test
     void scriptedIdsResolveThroughLookupButNeverShadowABuiltIn() {
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath("somepack", "frosty");
+        Identifier id = Identifier.fromNamespaceAndPath("somepack", "frosty");
         assertNull(ForgeweaveTraits.lookup(id));
 
         ScriptTrait trait = new ScriptTrait();
@@ -62,7 +62,7 @@ class ScriptTraitTest {
         ForgeweaveTraits.registerScripted(id, replacement);
         assertSame(replacement, ForgeweaveTraits.lookup(id), "a script reload re-registers the same id");
 
-        ResourceLocation builtIn = ResourceLocation.fromNamespaceAndPath("forgeweave", "poisonous");
+        Identifier builtIn = Identifier.fromNamespaceAndPath("forgeweave", "poisonous");
         assertThrows(IllegalArgumentException.class, () -> ForgeweaveTraits.registerScripted(builtIn, new ScriptTrait()));
         assertSame(ForgeweaveTraits.POISONOUS, ForgeweaveTraits.lookup(builtIn));
     }

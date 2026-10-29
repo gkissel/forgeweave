@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/hepatizon"
-  },
+  "input": "#c:ingots/hepatizon",
   "fluid": "forgeweave:molten_hepatizon",
   "amount": 144
 }

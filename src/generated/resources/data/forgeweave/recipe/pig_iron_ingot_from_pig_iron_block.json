@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "item": "forgeweave:pig_iron_block"
-    }
+    "forgeweave:pig_iron_block"
   ],
   "result": {
     "count": 9,

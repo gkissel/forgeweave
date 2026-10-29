@@ -49,38 +49,30 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "forgeweave:osmiridium_ingot"
-      },
+      "ingredient": "forgeweave:osmiridium_ingot",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "forgeweave:osmiridium_nugget"
-      },
+      "ingredient": "forgeweave:osmiridium_nugget",
       "value": 16
     },
     {
-      "ingredient": {
-        "item": "forgeweave:osmiridium_block"
-      },
+      "ingredient": "forgeweave:osmiridium_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/osmiridium"
-  },
+  "repair_item": "#c:ingots/osmiridium",
   "cast_only": true,
   "enchantability": 16,
   "color": "#C0A4D5",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:ingot_osmium"
+      "type": "neoforge:registered",
+      "value": "mekanism:ingot_osmium"
     },
     {
-      "type": "neoforge:item_exists",
-      "item": "modern_industrialization:iridium_ingot"
+      "type": "neoforge:registered",
+      "value": "modern_industrialization:iridium_ingot"
     }
   ]
 }

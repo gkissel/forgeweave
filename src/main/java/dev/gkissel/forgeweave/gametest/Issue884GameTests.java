@@ -6,10 +6,10 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
@@ -17,7 +17,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -25,8 +25,8 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.combat.CombatHit;
@@ -114,7 +114,7 @@ public class Issue884GameTests {
         helper.assertTrue(grownBonus > freshBonus,
                 "warmemory's bonus after 10 fights (" + grownBonus + ") must exceed the fresh bonus (" + freshBonus + ")");
         WarMemory memory = sword.get(ForgeweaveDataComponents.WAR_MEMORY.get());
-        helper.assertTrue(memory != null && memory.count(ResourceLocation.parse("minecraft:zombie")) == 10,
+        helper.assertTrue(memory != null && memory.count(Identifier.parse("minecraft:zombie")) == 10,
                 "expected 10 recorded zombie fights, got " + memory);
         helper.succeed();
     }
@@ -156,7 +156,7 @@ public class Issue884GameTests {
         pickaxe.set(ForgeweaveDataComponents.ALIEN_PROGRESS2.get(), new AlienProgress(pool, AlienProgress.Portion.ZERO));
 
         player.tickCount = 72; // durability step, tripled: +3 instead of alien's +1.
-        pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+        pickaxe.getItem().inventoryTick(pickaxe, level, player, null);
 
         helper.assertTrue(pickaxe.getMaxDamage() == 103,
                 "expected alien2's tripled 72-tick step to grow max damage to 103, got " + pickaxe.getMaxDamage());
@@ -219,7 +219,7 @@ public class Issue884GameTests {
 
         ForgeweaveTraits.DREADGRIP.afterHit(weapon, level, player, target);
 
-        helper.assertTrue(target.hasEffect(MobEffects.MOVEMENT_SLOWDOWN), "dreadgrip must apply Slowness");
+        helper.assertTrue(target.hasEffect(MobEffects.SLOWNESS), "dreadgrip must apply Slowness");
         helper.assertTrue(target.hasEffect(MobEffects.WEAKNESS), "dreadgrip must apply Weakness");
         helper.assertTrue(target.getTarget() == null, "dreadgrip must drop the target's current AI focus");
         helper.succeed();
@@ -273,7 +273,7 @@ public class Issue884GameTests {
     }
 
     /** A survival {@link ServerPlayer} holding a hand-built sword carrying {@code traits}. */
-    private static ServerPlayer holding(GameTestHelper helper, List<ResourceLocation> traits) {
+    private static ServerPlayer holding(GameTestHelper helper, List<Identifier> traits) {
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         player.setGameMode(GameType.SURVIVAL);
         ItemStack pickaxe = pickaxe(traits, 1000, 6.0F, 5.0F);
@@ -282,14 +282,14 @@ public class Issue884GameTests {
     }
 
     /** Builds a pickaxe {@code ItemStack} with the given traits/stats directly. */
-    private static ItemStack pickaxe(List<ResourceLocation> traits, int durability, float miningSpeed, float attackDamage) {
+    private static ItemStack pickaxe(List<Identifier> traits, int durability, float miningSpeed, float attackDamage) {
         ToolItem toolItem = ForgeweaveItems.TOOL_PICKAXE.get();
         ToolStats.Stats stats = new ToolStats.Stats(durability, miningSpeed, attackDamage);
         Material head = new Material(
                 new Material.Head(durability, miningSpeed, attackDamage),
                 new Material.Handle(1.0F, 0),
                 0,
-                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool")),
+                TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace("incorrect_for_stone_tool")),
                 new Material.Traits(List.of(), List.of()),
                 List.of(),
                 Ingredient.of(Items.STICK),
@@ -304,7 +304,7 @@ public class Issue884GameTests {
         return stack;
     }
 
-    private static ResourceLocation traitId(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier traitId(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 }

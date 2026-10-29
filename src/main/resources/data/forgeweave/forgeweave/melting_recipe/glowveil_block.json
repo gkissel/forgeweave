@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/glowveil"
-  },
+  "input": "#c:storage_blocks/glowveil",
   "fluid": "forgeweave:molten_glowveil",
   "amount": 1296,
   "temperature": 1400

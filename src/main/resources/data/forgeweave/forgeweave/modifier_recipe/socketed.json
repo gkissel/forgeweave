@@ -2,9 +2,7 @@
   "modifier": "forgeweave:socketed",
   "reagents": [
     {
-      "ingredient": {
-        "item": "apotheosis:sigil_of_socketing"
-      }
+      "ingredient": "apotheosis:sigil_of_socketing"
     }
   ],
   "cost": 1,

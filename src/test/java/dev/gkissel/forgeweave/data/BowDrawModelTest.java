@@ -26,7 +26,8 @@ import dev.gkissel.forgeweave.tool.ToolArt;
  * way upstream 1.12's {@code models/item/tools/<bow>.tcon.json} does -- three
  * {@code {"pulling": 1, "pull": <threshold>}} overrides in ascending order plus, for the crossbow, a
  * fourth on {@code {"loaded": 1}} -- and each branch's model must be the bow's own layer stack with
- * only the staged textures swapped.
+ * only the staged textures swapped. On 26.x those branches are condition and range_dispatch nodes
+ * in the bow's client item, read through {@link ClientItemTree}.
  *
  * <p>Shaped after {@code BrokenToolModelTest}, whose regression this is the sibling of: both are
  * "the model does not actually branch, so the state renders as the default one", and both turn on
@@ -35,8 +36,10 @@ import dev.gkissel.forgeweave.tool.ToolArt;
  */
 class BowDrawModelTest {
 
-    private static final String PULLING_PREDICATE = "minecraft:pulling";
-    private static final String PULL_PREDICATE = "minecraft:pull";
+    // 26.x: the draw is read by Forgeweave's own client item properties (ForgeweaveItemProperties),
+    // tested by condition / range_dispatch nodes in the client item rather than override predicates.
+    private static final String PULLING_PREDICATE = "forgeweave:pulling";
+    private static final String PULL_PREDICATE = "forgeweave:pull";
     private static final String LOADED_PREDICATE = "forgeweave:loaded";
     private static final String BROKEN_PREDICATE = "forgeweave:broken";
     private static final String MODERN_POSE_PREDICATE = "forgeweave:modern_pose";
@@ -53,6 +56,13 @@ class BowDrawModelTest {
 
     private static Path models() {
         return projectRoot().resolve("src/generated/resources/assets/forgeweave/models/item");
+    }
+
+    /** The client item's reachable models in one pose set (issue #723: classic or modern_pose). */
+    private static List<ClientItemTree.Leaf> poseSet(String tool, boolean modern) throws IOException {
+        return ClientItemTree.leaves(projectRoot(), tool).stream()
+                .filter(leaf -> Boolean.TRUE.equals(leaf.is(MODERN_POSE_PREDICATE)) == modern)
+                .toList();
     }
 
     private static JsonObject readJson(Path path) throws IOException {
@@ -98,24 +108,25 @@ class BowDrawModelTest {
         for (ToolAssemblyRecipes.Entry entry : bows()) {
             String tool = entry.constants().id();
             float[] thresholds = ToolArt.drawThresholds(tool);
-            JsonArray overrides = readJson(models().resolve(tool + ".json")).getAsJsonArray("overrides");
-            assertNotNull(overrides, tool + " has no overrides block, so a drawn bow still renders undrawn");
+            List<ClientItemTree.Leaf> classic = poseSet(tool, false);
 
             for (int stage = 1; stage <= ToolArt.DRAW_STAGES; stage++) {
-                JsonObject predicate = predicateOf(overrides, "forgeweave:item/" + tool + "_pulling_" + stage);
-                assertNotNull(predicate, tool + " has no override pointing at its stage-" + stage + " model");
-                assertEquals(1.0f, predicate.get(PULLING_PREDICATE).getAsFloat(), 0.0f,
+                ClientItemTree.Leaf leaf = ClientItemTree.leafFor(classic, "forgeweave:item/" + tool + "_pulling_" + stage);
+                assertNotNull(leaf, tool + " has no branch drawing its stage-" + stage + " model, so a drawn bow still renders undrawn");
+                assertEquals(Boolean.TRUE, leaf.is(PULLING_PREDICATE),
                         tool + " stage " + stage + " must only apply while the bow is being drawn");
-                assertEquals(thresholds[stage - 1], predicate.get(PULL_PREDICATE).getAsFloat(), 0.0f,
+                assertNotNull(leaf.range(), tool + " stage " + stage + " must be picked by " + PULL_PREDICATE);
+                assertEquals(thresholds[stage - 1], leaf.range(), 0.0f,
                         tool + " stage " + stage + " must test upstream's own pull threshold");
             }
         }
     }
 
     /**
-     * Ascending thresholds, and Broken last -- vanilla resolves overrides by "last one that matches".
-     * Checked per pose set (issue #723): the classic entries and the {@code modern_pose} entries are
-     * two independent ladders in the one {@code overrides} array.
+     * Ascending thresholds, and Broken winning over every draw state. On 1.21.1 that was override
+     * order ("last one that matches"); on 26.x a condition nearer the root decides first, so Broken
+     * has to be tested on every path, every draw and loaded state has to sit on its false branch,
+     * and only the _broken model on its true one. Checked per pose set (issue #723).
      */
     @Test
     void theBrokenOverrideComesAfterEveryDrawStage() throws IOException {
@@ -127,30 +138,24 @@ class BowDrawModelTest {
     }
 
     private static void assertPoseSetOrdered(String tool, boolean modern) throws IOException {
-        JsonArray overrides = readJson(models().resolve(tool + ".json")).getAsJsonArray("overrides");
-        {
-            int lastDraw = -1;
-            int broken = -1;
-            float previousPull = -1.0f;
-            for (int i = 0; i < overrides.size(); i++) {
-                JsonObject predicate = overrides.get(i).getAsJsonObject().getAsJsonObject("predicate");
-                if (predicate.has(MODERN_POSE_PREDICATE) != modern) {
-                    continue;
-                }
-                if (predicate.has(PULL_PREDICATE)) {
-                    float pull = predicate.get(PULL_PREDICATE).getAsFloat();
-                    assertTrue(pull > previousPull,
-                            tool + "'s pull overrides must ascend; " + pull + " follows " + previousPull);
-                    previousPull = pull;
-                    lastDraw = i;
-                } else if (predicate.has(LOADED_PREDICATE)) {
-                    lastDraw = i;
-                } else if (predicate.has(BROKEN_PREDICATE)) {
-                    broken = i;
-                }
-            }
-            assertTrue(broken > lastDraw, tool + (modern ? " modern" : "")
-                    + "'s forgeweave:broken override must come last, or a Broken bow can render intact");
+        String suffix = modern ? "_modern" : "";
+        String set = tool + (modern ? " modern" : "");
+        float previousPull = -1.0f;
+        for (int stage = 1; stage <= ToolArt.DRAW_STAGES; stage++) {
+            ClientItemTree.Leaf leaf = ClientItemTree.leafFor(poseSet(tool, modern),
+                    "forgeweave:item/" + tool + "_pulling_" + stage + suffix);
+            assertNotNull(leaf, set + " has no stage-" + stage + " branch");
+            assertNotNull(leaf.range(), set + " stage " + stage + " is not picked by a pull threshold");
+            assertTrue(leaf.range() > previousPull,
+                    set + "'s pull thresholds must ascend; " + leaf.range() + " follows " + previousPull);
+            previousPull = leaf.range();
+        }
+        String brokenModel = "forgeweave:item/" + tool + "_broken" + suffix;
+        for (ClientItemTree.Leaf leaf : poseSet(tool, modern)) {
+            assertNotNull(leaf.is(BROKEN_PREDICATE), set + " can reach " + leaf.model() + " without asking "
+                    + BROKEN_PREDICATE + ", so a Broken bow can render intact");
+            assertEquals(leaf.model().equals(brokenModel), leaf.is(BROKEN_PREDICATE),
+                    set + ": only " + brokenModel + " may sit on " + BROKEN_PREDICATE + "'s true branch, got " + leaf);
         }
     }
 
@@ -166,7 +171,7 @@ class BowDrawModelTest {
         for (ToolAssemblyRecipes.Entry entry : bows()) {
             String tool = entry.constants().id();
             float[] thresholds = ToolArt.drawThresholds(tool);
-            JsonArray overrides = readJson(models().resolve(tool + ".json")).getAsJsonArray("overrides");
+            List<ClientItemTree.Leaf> modernSet = poseSet(tool, true);
 
             List<String> states = new ArrayList<>(List.of(""));
             for (int stage = 1; stage <= ToolArt.DRAW_STAGES; stage++) {
@@ -178,17 +183,18 @@ class BowDrawModelTest {
             states.add("_broken");
 
             for (String state : states) {
-                JsonObject predicate = predicateOf(overrides, "forgeweave:item/" + tool + state + "_modern");
-                assertNotNull(predicate, tool + state + " has no modern_pose override");
-                assertEquals(1.0f, predicate.get(MODERN_POSE_PREDICATE).getAsFloat(), 0.0f);
+                ClientItemTree.Leaf leaf = ClientItemTree.leafFor(modernSet, "forgeweave:item/" + tool + state + "_modern");
+                assertNotNull(leaf, tool + state + " has no modern_pose branch");
+                assertEquals(Boolean.TRUE, leaf.is(MODERN_POSE_PREDICATE));
                 if (state.startsWith("_pulling_")) {
                     int stage = Integer.parseInt(state.substring("_pulling_".length()));
-                    assertEquals(1.0f, predicate.get(PULLING_PREDICATE).getAsFloat(), 0.0f);
-                    assertEquals(thresholds[stage - 1], predicate.get(PULL_PREDICATE).getAsFloat(), 0.0f);
+                    assertEquals(Boolean.TRUE, leaf.is(PULLING_PREDICATE));
+                    assertNotNull(leaf.range(), tool + state + "_modern is not picked by a pull threshold");
+                    assertEquals(thresholds[stage - 1], leaf.range(), 0.0f);
                 } else if (state.equals("_loaded")) {
-                    assertEquals(1.0f, predicate.get(LOADED_PREDICATE).getAsFloat(), 0.0f);
+                    assertEquals(Boolean.TRUE, leaf.is(LOADED_PREDICATE));
                 } else if (state.equals("_broken")) {
-                    assertEquals(1.0f, predicate.get(BROKEN_PREDICATE).getAsFloat(), 0.0f);
+                    assertEquals(Boolean.TRUE, leaf.is(BROKEN_PREDICATE));
                 }
 
                 JsonObject classic = readJson(models().resolve(tool + state + ".json"));
@@ -222,14 +228,16 @@ class BowDrawModelTest {
     void onlyTheCrossbowBranchesOnLoaded() throws IOException {
         for (ToolAssemblyRecipes.Entry entry : bows()) {
             String tool = entry.constants().id();
-            JsonArray overrides = readJson(models().resolve(tool + ".json")).getAsJsonArray("overrides");
-            JsonObject predicate = predicateOf(overrides, "forgeweave:item/" + tool + "_loaded");
+            List<ClientItemTree.Leaf> leaves = ClientItemTree.leaves(projectRoot(), tool);
+            ClientItemTree.Leaf leaf = ClientItemTree.leafFor(leaves, "forgeweave:item/" + tool + "_loaded");
             if (!ToolArt.hasLoadedState(tool)) {
-                assertEquals(null, predicate, tool + " has no loaded state and must not branch on one");
+                assertEquals(null, leaf, tool + " has no loaded state and must not branch on one");
+                assertTrue(leaves.stream().allMatch(other -> other.is(LOADED_PREDICATE) == null),
+                        tool + " has no loaded state and must not test " + LOADED_PREDICATE);
                 continue;
             }
-            assertNotNull(predicate, tool + " must branch on forgeweave:loaded");
-            assertEquals(1.0f, predicate.get(LOADED_PREDICATE).getAsFloat(), 0.0f);
+            assertNotNull(leaf, tool + " must branch on forgeweave:loaded");
+            assertEquals(Boolean.TRUE, leaf.is(LOADED_PREDICATE));
 
             JsonObject loaded = readJson(models().resolve(tool + "_loaded.json"));
             JsonObject fullDraw = readJson(models().resolve(tool + "_pulling_" + ToolArt.DRAW_STAGES + ".json"));
@@ -355,16 +363,5 @@ class BowDrawModelTest {
             values.add(element.getAsFloat());
         }
         return values;
-    }
-
-    /** @return the {@code predicate} of the override pointing at {@code model}, or null if there is none. */
-    private static JsonObject predicateOf(JsonArray overrides, String model) {
-        for (JsonElement element : overrides) {
-            JsonObject override = element.getAsJsonObject();
-            if (model.equals(override.get("model").getAsString())) {
-                return override.getAsJsonObject("predicate");
-            }
-        }
-        return null;
     }
 }

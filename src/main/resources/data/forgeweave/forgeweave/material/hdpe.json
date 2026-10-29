@@ -44,21 +44,17 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:rods/plastic"
-      },
+      "ingredient": "#c:rods/plastic",
       "value": 144
     }
   ],
-  "repair_item": {
-    "tag": "c:rods/plastic"
-  },
+  "repair_item": "#c:rods/plastic",
   "enchantability": 10,
   "color": "#EDE7D9",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:hdpe_stick"
+      "type": "neoforge:registered",
+      "value": "mekanism:hdpe_stick"
     }
   ]
 }

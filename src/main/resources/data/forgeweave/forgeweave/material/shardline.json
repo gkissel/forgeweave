@@ -44,27 +44,19 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "forgeweave:shardline_ingot"
-      },
+      "ingredient": "forgeweave:shardline_ingot",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "forgeweave:shardline_nugget"
-      },
+      "ingredient": "forgeweave:shardline_nugget",
       "value": 16
     },
     {
-      "ingredient": {
-        "item": "forgeweave:shardline_block"
-      },
+      "ingredient": "forgeweave:shardline_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/shardline"
-  },
+  "repair_item": "#c:ingots/shardline",
   "cast_only": true,
   "enchantability": 12,
   "color": "#ADE5FF"

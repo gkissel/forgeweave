@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_vein_hammer_head"
-  },
+  "cast": "forgeweave:cast_vein_hammer_head",
   "fluid": "forgeweave:molten_ludicrite",
   "amount": 1152,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "bigreactors:ludicrite_ingot"
+      "type": "neoforge:registered",
+      "value": "bigreactors:ludicrite_ingot"
     }
   ]
 }

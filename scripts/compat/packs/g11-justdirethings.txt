@@ -1,7 +1,11 @@
 # Group 11's Just Dire Things half (lines 224-226), runnable while the Eternal Ores jar is missing:
 # JEI and Just Dire Things (CurseForge only, a local jar). g11.txt includes this file.
+# On 26.1.2 stage justdirethings-1.6.11.jar (CurseForge file 8251776) in a FW_COMPAT_JAR_DIRS directory.
 
-mod modrinth jei 19.43.0.393 04ea7c24a00b980851a34b71899c44731df5b830feafe4172641ae5f42432aabd34ba2ea57fa8f0577823bed0212c4214d409a8ea2060038deed0e8e7e237e81 jei-1.21.1-neoforge-19.43.0.393.jar
-mod local 43dad52dc8e54bbe27dff31e7a38ccc5c2dc5868c10cd3b8753b7f8dffddf4afdd21d955f95b8d52ad544a9c7f2722bec86eaf0ea4081246caf6d2acb6802f01 justdirethings-1.5.7.jar
+mod modrinth jei 29.47.0.110 487461d71820e3b31086d8b334b38b6ad6895c49d85e554b4083b60e0c2b185ed09a345b9aa9a96c0dd240be8cb6d890e08724a954ac9e6a69875a928ecbe27c jei-26.1.2-neoforge-29.47.0.110.jar
+mod local - justdirethings-1.6.*.jar
+# 1.21.1:
+# mod modrinth jei 19.43.0.393 04ea7c24a00b980851a34b71899c44731df5b830feafe4172641ae5f42432aabd34ba2ea57fa8f0577823bed0212c4214d409a8ea2060038deed0e8e7e237e81 jei-1.21.1-neoforge-19.43.0.393.jar
+# mod local 43dad52dc8e54bbe27dff31e7a38ccc5c2dc5868c10cd3b8753b7f8dffddf4afdd21d955f95b8d52ad544a9c7f2722bec86eaf0ea4081246caf6d2acb6802f01 justdirethings-1.5.7.jar
 
 material forgeweave:ferricore forgeweave:blazegold forgeweave:eclipsealloy forgeweave:celestigem

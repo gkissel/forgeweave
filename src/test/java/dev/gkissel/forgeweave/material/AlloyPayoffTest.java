@@ -28,12 +28,13 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.level.material.Fluid;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.recipe.AlloyRecipe;
 
 /**
@@ -101,8 +102,7 @@ class AlloyPayoffTest {
     static void loadShippedData() throws Exception {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(JsonOps.INSTANCE,
-                RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(JsonOps.INSTANCE);
         materials = new HashMap<>();
         raw = new HashMap<>();
         for (Path file : shippedFiles("material")) {
@@ -141,7 +141,7 @@ class AlloyPayoffTest {
 
     /** The material a molten fluid belongs to, i.e. {@link MaterialStage#moltenFluidId} run backwards. */
     private static String materialOf(Fluid fluid) {
-        ResourceLocation id = BuiltInRegistries.FLUID.getKey(fluid);
+        Identifier id = BuiltInRegistries.FLUID.getKey(fluid);
         String path = id.getPath();
         return path.startsWith("molten_") ? path.substring("molten_".length()) : path;
     }
@@ -348,10 +348,11 @@ class AlloyPayoffTest {
     private static Stream<String> ingredientNamespaces(JsonObject json) {
         List<String> found = new ArrayList<>();
         for (JsonElement entry : json.getAsJsonArray("crafting_items")) {
-            JsonObject ingredient = entry.getAsJsonObject().getAsJsonObject("ingredient");
-            for (String key : List.of("item", "tag")) {
-                if (ingredient.has(key)) {
-                    found.add(ingredient.get(key).getAsString().split(":")[0]);
+            JsonElement ingredient = entry.getAsJsonObject().get("ingredient");
+            // 26.1 ingredients: "ns:item", "#ns:tag", or a list of those.
+            for (JsonElement id : ingredient.isJsonArray() ? ingredient.getAsJsonArray().asList() : List.of(ingredient)) {
+                if (id.isJsonPrimitive()) {
+                    found.add(id.getAsString().replaceFirst("^#", "").split(":")[0]);
                 }
             }
         }

@@ -12,9 +12,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.SharedConstants;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -35,7 +36,7 @@ class RetexturedShapedRecipeTest {
 
     private static RetexturedShapedRecipe tableOver(Ingredient base) {
         ShapedRecipePattern pattern = ShapedRecipePattern.of(Map.of('A', Ingredient.of(Items.PAPER), 'B', base), "A", "B");
-        return new RetexturedShapedRecipe("", CraftingBookCategory.MISC, pattern, new ItemStack(Items.CRAFTING_TABLE));
+        return new RetexturedShapedRecipe("", CraftingBookCategory.MISC, pattern, new ItemStackTemplate(Items.CRAFTING_TABLE));
     }
 
     @Test
@@ -44,7 +45,7 @@ class RetexturedShapedRecipeTest {
 
         assertEquals(List.of("minecraft:oak_planks", "minecraft:birch_planks"), results.stream()
                 .map(stack -> stack.get(ForgeweaveDataComponents.TEXTURE.get()))
-                .map(ResourceLocation::toString)
+                .map(Identifier::toString)
                 .toList());
     }
 
@@ -54,7 +55,7 @@ class RetexturedShapedRecipeTest {
         ShapedRecipePattern pattern = ShapedRecipePattern.of(
                 Map.of('M', Ingredient.of(Items.IRON_BLOCK, Items.GOLD_BLOCK)), "M");
         RetexturedShapedRecipe recipe = new RetexturedShapedRecipe(
-                "", CraftingBookCategory.MISC, pattern, bare);
+                "", CraftingBookCategory.MISC, pattern, ItemStackTemplate.fromNonEmptyStack(bare));
 
         assertTrue(recipe.displayResults().stream().anyMatch(stack ->
                 Objects.equals(SubtypeKeys.texture(stack), SubtypeKeys.texture(bare))),

@@ -20,11 +20,9 @@
     "head": ["forgeweave:aridiculous", "forgeweave:hellish"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:netherrack" }, "value": 144 }
+    { "ingredient": "minecraft:netherrack", "value": 144 }
   ],
-  "repair_item": {
-    "item": "minecraft:netherrack"
-  },
+  "repair_item": "minecraft:netherrack",
   "enchantability": 5,
   "color": "#B84F4F"
 }

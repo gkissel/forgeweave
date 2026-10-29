@@ -1,5 +1,10 @@
 package dev.gkissel.forgeweave.block;
 
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
@@ -45,7 +50,7 @@ import dev.gkissel.forgeweave.recipe.SmelteryFuel;
  *       outright rather than accepted and ignored, so a player who tries to pour water in finds out
  *       at the moment they try.
  *   <li><b>A Forge Energy buffer</b>, which is what actually burns. Mekanism, Powah or anything
- *       else exposing {@link Capabilities.EnergyStorage#BLOCK} drives it identically; there is no
+ *       else exposing {@link Capabilities.Energy#BLOCK} drives it identically; there is no
  *       per-mod code anywhere in this class.
  * </ul>
  *
@@ -85,6 +90,15 @@ public class EnergizedTankBlockEntity extends BlockEntity implements StationMenu
 
     private final IEnergyStorage buffer = new Buffer();
 
+    /** The sample tank and the buffer as the 21.9 transfer API sees them; what the capabilities hand out. */
+    private final ResourceHandler<FluidResource> sampleHandler =
+            TransferBridge.fluids(sample, TransferBridge.tankState(sample, this::changed));
+    private final EnergyHandler energyHandler = TransferBridge.energy(buffer, TransferBridge.State.of(
+            () -> energy, stored -> {
+                energy = stored;
+                changed();
+            }));
+
     public EnergizedTankBlockEntity(BlockPos pos, BlockState state) {
         super(ForgeweaveBlockEntities.ENERGIZED_TANK.get(), pos, state);
     }
@@ -94,9 +108,19 @@ public class EnergizedTankBlockEntity extends BlockEntity implements StationMenu
         return sample;
     }
 
-    /** The Forge Energy buffer, which is also what {@link Capabilities.EnergyStorage#BLOCK} hands out. */
+    /** The Forge Energy buffer, which {@link Capabilities.Energy#BLOCK} hands out through {@link #energyHandler}. */
     public IEnergyStorage buffer() {
         return buffer;
+    }
+
+    /** The energy capability (21.9 transfer API). */
+    public EnergyHandler energyHandler() {
+        return energyHandler;
+    }
+
+    /** The fluid capability (21.9 transfer API). */
+    public ResourceHandler<FluidResource> sampleHandler() {
+        return sampleHandler;
     }
 
     /** Whether the overdrive button is pressed. Saved with this block entity, so it survives a reload. */
@@ -166,7 +190,7 @@ public class EnergizedTankBlockEntity extends BlockEntity implements StationMenu
     public boolean toggleOverdrive() {
         overdrive = !overdrive;
         changed();
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             BlockState state = getBlockState();
             if (state.hasProperty(EnergizedTankBlock.OVERDRIVE)) {
                 level.setBlock(worldPosition, state.setValue(EnergizedTankBlock.OVERDRIVE, overdrive),
@@ -192,7 +216,7 @@ public class EnergizedTankBlockEntity extends BlockEntity implements StationMenu
      */
     private void changed() {
         setChanged();
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return;
         }
         level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
@@ -227,23 +251,21 @@ public class EnergizedTankBlockEntity extends BlockEntity implements StationMenu
     // ------------------------------------------------------------------ persistence + sync
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        tag.put(TAG_SAMPLE, sample.writeToNBT(registries, new CompoundTag()));
-        tag.putInt(TAG_ENERGY, energy);
-        tag.putBoolean(TAG_OVERDRIVE, overdrive);
-        if (corePos != null) {
-            tag.put(TAG_CORE, NbtUtils.writeBlockPos(corePos));
-        }
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.putChild(TAG_SAMPLE, sample);
+        output.putInt(TAG_ENERGY, energy);
+        output.putBoolean(TAG_OVERDRIVE, overdrive);
+        output.storeNullable(TAG_CORE, BlockPos.CODEC, corePos);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        sample.readFromNBT(registries, tag.getCompound(TAG_SAMPLE));
-        energy = tag.getInt(TAG_ENERGY);
-        overdrive = tag.getBoolean(TAG_OVERDRIVE);
-        corePos = tag.contains(TAG_CORE) ? NbtUtils.readBlockPos(tag, TAG_CORE).orElse(null) : null;
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        sample.deserialize(input.childOrEmpty(TAG_SAMPLE));
+        energy = input.getIntOr(TAG_ENERGY, 0);
+        overdrive = input.getBooleanOr(TAG_OVERDRIVE, false);
+        corePos = input.read(TAG_CORE, BlockPos.CODEC).orElse(null);
     }
 
     @Override
@@ -259,10 +281,10 @@ public class EnergizedTankBlockEntity extends BlockEntity implements StationMenu
 
     /** Wires the energy and fluid capabilities; called from {@code Forgeweave}'s constructor. */
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ForgeweaveBlockEntities.ENERGIZED_TANK.get(),
-                (blockEntity, side) -> blockEntity.buffer);
-        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ForgeweaveBlockEntities.ENERGIZED_TANK.get(),
-                (blockEntity, side) -> blockEntity.sample);
+        event.registerBlockEntity(Capabilities.Energy.BLOCK, ForgeweaveBlockEntities.ENERGIZED_TANK.get(),
+                (blockEntity, side) -> blockEntity.energyHandler);
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, ForgeweaveBlockEntities.ENERGIZED_TANK.get(),
+                (blockEntity, side) -> blockEntity.sampleHandler);
     }
 
     /**

@@ -12,27 +12,19 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "forgeweave:blue_slime_vine"
-      },
+      "ingredient": "forgeweave:blue_slime_vine",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "forgeweave:blue_slime_vine_mid"
-      },
+      "ingredient": "forgeweave:blue_slime_vine_mid",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "forgeweave:blue_slime_vine_end"
-      },
+      "ingredient": "forgeweave:blue_slime_vine_end",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "forgeweave:blue_slime_vine"
-  },
+  "repair_item": "forgeweave:blue_slime_vine",
   "enchantability": 15,
   "color": "#74C8C7",
   "bowstring": {

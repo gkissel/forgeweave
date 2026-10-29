@@ -1,6 +1,8 @@
 package dev.gkissel.forgeweave.client;
 
-import net.minecraft.util.FastColor;
+import java.util.List;
+
+import net.minecraft.util.ARGB;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -19,25 +21,20 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
  * for the rest (NOTICE.md). {@code ForgeweaveBlocks#clearStainedGlassColors} is walked here rather
  * than a hand list, the same anti-drift shape {@code ForgeweaveFluidClientExtensions} uses for the
  * molten metals.
+ *
+ * <p>26.1 moved the item half into the client item: {@code ForgeweaveBlockStateProvider} gives each
+ * color's block item a {@code minecraft:constant} tint off the same roster.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public final class ForgeweaveGlassColors {
 
     @SubscribeEvent
-    static void registerBlockColors(RegisterColorHandlersEvent.Block event) {
+    static void registerBlockColors(RegisterColorHandlersEvent.BlockTintSources event) {
         for (ForgeweaveBlocks.StainedGlassColor color : ForgeweaveBlocks.clearStainedGlassColors()) {
-            // FastColor.ARGB32.opaque: a bare 0xRRGGBB tint renders fully transparent otherwise, same
-            // fixup ForgeweaveItemColors#opaqueColor and ForgeweaveFluidClientExtensions apply.
-            int tint = FastColor.ARGB32.opaque(color.tint());
-            event.register((state, level, pos, tintIndex) -> tint, color.block().get());
-        }
-    }
-
-    @SubscribeEvent
-    static void registerItemColors(RegisterColorHandlersEvent.Item event) {
-        for (ForgeweaveBlocks.StainedGlassColor color : ForgeweaveBlocks.clearStainedGlassColors()) {
-            int tint = FastColor.ARGB32.opaque(color.tint());
-            event.register((stack, tintIndex) -> tint, color.block().get());
+            // ARGB.opaque: a bare 0xRRGGBB tint renders fully transparent otherwise, same fixup
+            // ForgeweaveItemColors#opaqueColor and ForgeweaveFluidClientExtensions apply.
+            int tint = ARGB.opaque(color.tint());
+            event.register(List.of(state -> tint), color.block().get());
         }
     }
 

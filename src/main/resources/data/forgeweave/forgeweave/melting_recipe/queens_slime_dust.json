@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/queens_slime"
-  },
+  "input": "#c:dusts/queens_slime",
   "fluid": "forgeweave:molten_queens_slime",
   "amount": 144
 }

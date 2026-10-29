@@ -14,10 +14,8 @@
     "general": ["forgeweave:gametest_pack_poison", "forgeweave:gametest_pack_absent"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:dead_bush" }, "value": 144 }
+    { "ingredient": "minecraft:dead_bush", "value": 144 }
   ],
-  "repair_item": {
-    "item": "minecraft:dead_bush"
-  },
+  "repair_item": "minecraft:dead_bush",
   "color": "#7FBF3F"
 }

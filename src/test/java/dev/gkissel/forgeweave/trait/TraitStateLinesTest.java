@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import net.minecraft.ChatFormatting;
 import net.minecraft.SharedConstants;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
@@ -30,10 +30,10 @@ import dev.gkissel.forgeweave.modifier.ModifierEntry;
  */
 class TraitStateLinesTest {
 
-    private static final ResourceLocation ZOMBIE = ResourceLocation.withDefaultNamespace("zombie");
-    private static final ResourceLocation SKELETON = ResourceLocation.withDefaultNamespace("skeleton");
-    private static final ResourceLocation SPIDER = ResourceLocation.withDefaultNamespace("spider");
-    private static final ResourceLocation CREEPER = ResourceLocation.withDefaultNamespace("creeper");
+    private static final Identifier ZOMBIE = Identifier.withDefaultNamespace("zombie");
+    private static final Identifier SKELETON = Identifier.withDefaultNamespace("skeleton");
+    private static final Identifier SPIDER = Identifier.withDefaultNamespace("spider");
+    private static final Identifier CREEPER = Identifier.withDefaultNamespace("creeper");
 
     @BeforeAll
     static void bootstrapMinecraft() {
@@ -254,7 +254,7 @@ class TraitStateLinesTest {
         assertEquals(List.of(), stateLines(ForgeweaveTraits.LASTBREATH, stack), "a spent cooldown shows nothing");
     }
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath("forgeweave", path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath("forgeweave", path);
     }
 }

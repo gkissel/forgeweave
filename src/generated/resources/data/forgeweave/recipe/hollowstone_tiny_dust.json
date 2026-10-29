@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:small_dusts/hollowstone"
-    }
+    "#c:small_dusts/hollowstone"
   ],
   "result": {
     "count": 3,

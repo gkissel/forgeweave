@@ -49,28 +49,22 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:ingots/fiery"
-      },
+      "ingredient": "#c:ingots/fiery",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:storage_blocks/fiery"
-      },
+      "ingredient": "#c:storage_blocks/fiery",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/fiery"
-  },
+  "repair_item": "#c:ingots/fiery",
   "cast_only": true,
   "enchantability": 16,
   "color": "#861540",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "twilightforest:fiery_ingot"
+      "type": "neoforge:registered",
+      "value": "twilightforest:fiery_ingot"
     }
   ]
 }

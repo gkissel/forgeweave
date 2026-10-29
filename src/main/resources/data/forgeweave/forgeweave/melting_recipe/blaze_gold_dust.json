@@ -1,14 +1,12 @@
 {
-  "input": {
-    "tag": "c:dusts/blaze_gold"
-  },
+  "input": "#c:dusts/blaze_gold",
   "fluid": "forgeweave:molten_blaze_gold",
   "amount": 144,
   "temperature": 1200,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "silentgear:blaze_gold_ingot"
+      "type": "neoforge:registered",
+      "value": "silentgear:blaze_gold_ingot"
     }
   ]
 }

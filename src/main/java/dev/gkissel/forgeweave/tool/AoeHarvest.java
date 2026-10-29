@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
-import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 
 import net.minecraft.core.BlockPos;
@@ -38,7 +38,7 @@ import dev.gkissel.forgeweave.api.modifier.Modifier;
  * <h2>Where it attaches</h2>
  *
  * <p>Upstream hooks {@code IForgeItem#onBlockStartBreak}, which NeoForge 1.21 no longer has. The
- * equivalent single choke point is {@link BlockEvent.BreakEvent}: fired from
+ * equivalent single choke point is {@link BreakBlockEvent}: fired from
  * {@code ServerPlayerGameMode#destroyBlock} before the block is removed, for every player break,
  * server side. Each extra block is then broken through {@code ServerPlayerGameMode#destroyBlock}
  * itself rather than through a re-implementation of it, so drops, XP, block entities, advancement
@@ -176,7 +176,7 @@ public final class AoeHarvest {
     private static final float MAX_HARDNESS_RATIO = 10.0F;
 
     /**
-     * Breaking an extra block fires {@link BlockEvent.BreakEvent} again, which would sweep from
+     * Breaking an extra block fires {@link BreakBlockEvent} again, which would sweep from
      * that block in turn. A plain field is enough: every path that sets it runs on the server thread.
      */
     private static boolean breaking;
@@ -189,7 +189,7 @@ public final class AoeHarvest {
     private static final List<TreeChopTask> activeChops = new ArrayList<>();
 
     /** Registered on the game event bus in {@code Forgeweave}; see the class javadoc. */
-    public static void onBlockBreak(BlockEvent.BreakEvent event) {
+    public static void onBlockBreak(BreakBlockEvent event) {
         if (breaking || event.isCanceled() || !(event.getPlayer() instanceof ServerPlayer player)) {
             return;
         }
@@ -526,7 +526,7 @@ public final class AoeHarvest {
         if (trace instanceof BlockHitResult block && block.getBlockPos().equals(origin)) {
             return new Aim(block.getDirection(), block.getLocation());
         }
-        return new Aim(Direction.getNearest(player.getLookAngle()).getOpposite(), Vec3.atCenterOf(origin));
+        return new Aim(Direction.getApproximateNearest(player.getLookAngle()).getOpposite(), Vec3.atCenterOf(origin));
     }
 
     /**

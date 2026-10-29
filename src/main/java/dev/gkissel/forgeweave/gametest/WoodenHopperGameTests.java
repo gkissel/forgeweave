@@ -1,7 +1,7 @@
 package dev.gkissel.forgeweave.gametest;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -9,8 +9,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -44,11 +44,11 @@ public class WoodenHopperGameTests {
 
         helper.setBlock(vanillaChestPos, Blocks.CHEST);
         helper.setBlock(vanillaHopperPos, Blocks.HOPPER);
-        helper.<HopperBlockEntity>getBlockEntity(vanillaHopperPos).setItem(0, new ItemStack(Items.REDSTONE, 64));
+        helper.getBlockEntity(vanillaHopperPos, HopperBlockEntity.class).setItem(0, new ItemStack(Items.REDSTONE, 64));
 
         helper.setBlock(woodenChestPos, Blocks.CHEST);
         helper.setBlock(woodenHopperPos, ForgeweaveBlocks.WOODEN_HOPPER.get());
-        helper.<HopperBlockEntity>getBlockEntity(woodenHopperPos).setItem(0, new ItemStack(Items.REDSTONE, 64));
+        helper.getBlockEntity(woodenHopperPos, HopperBlockEntity.class).setItem(0, new ItemStack(Items.REDSTONE, 64));
 
         helper.startSequence()
                 .thenIdle(TICK_BUDGET)
@@ -68,7 +68,7 @@ public class WoodenHopperGameTests {
     }
 
     private static int countItems(GameTestHelper helper, BlockPos chestPos) {
-        ChestBlockEntity chest = helper.getBlockEntity(chestPos);
+        ChestBlockEntity chest = helper.getBlockEntity(chestPos, ChestBlockEntity.class);
         int total = 0;
         for (int i = 0; i < chest.getContainerSize(); i++) {
             total += chest.getItem(i).getCount();

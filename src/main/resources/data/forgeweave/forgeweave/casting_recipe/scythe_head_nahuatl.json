@@ -1,7 +1,7 @@
 {
   "station": "table",
   "cast": {
-    "type": "neoforge:components",
+    "neoforge:ingredient_type": "neoforge:components",
     "items": "forgeweave:scythe_head",
     "components": {
       "forgeweave:material": "forgeweave:wood"

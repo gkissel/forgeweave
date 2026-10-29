@@ -2,19 +2,14 @@
   "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "A": {
-      "item": "minecraft:slime_ball"
-    },
-    "B": {
-      "item": "forgeweave:green_congealed_slime"
-    }
+    "A": "minecraft:slime_ball",
+    "B": "forgeweave:green_congealed_slime"
   },
   "pattern": [
     "A A",
     "B B"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:slime_boots"
   }
 }

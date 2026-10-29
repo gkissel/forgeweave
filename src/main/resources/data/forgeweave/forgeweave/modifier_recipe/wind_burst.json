@@ -1,8 +1,6 @@
 {
   "modifier": "forgeweave:wind_burst",
-  "reagent": {
-    "item": "minecraft:breeze_rod"
-  },
+  "reagent": "minecraft:breeze_rod",
   "cost": 1,
   "max_level": 3
 }

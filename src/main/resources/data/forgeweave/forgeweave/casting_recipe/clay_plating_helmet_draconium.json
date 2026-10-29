@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_plating_helmet"
-  },
+  "cast": "forgeweave:clay_cast_plating_helmet",
   "fluid": "forgeweave:molten_draconium",
   "amount": 432,
   "result": {
@@ -14,8 +12,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "draconicevolution:draconium_ingot"
+      "type": "neoforge:registered",
+      "value": "draconicevolution:draconium_ingot"
     }
   ]
 }

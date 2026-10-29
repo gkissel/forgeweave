@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_hammer_head"
-  },
+  "cast": "forgeweave:cast_hammer_head",
   "fluid": "forgeweave:molten_elementarium_vanadium",
   "amount": 1152,
   "result": {

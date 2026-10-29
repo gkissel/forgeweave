@@ -105,12 +105,10 @@ public class WarmaceItem extends MeleeWeaponItem {
      * the attack outright while Broken), and only a blow that gets past it reaches vanilla's mace.
      */
     @Override
-    public boolean hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
-        if (!super.hurtEnemy(stack, target, attacker)) {
-            return false;
+    public void hurtEnemy(ItemStack stack, LivingEntity target, LivingEntity attacker) {
+        if (hitCounts(stack)) {
+            Items.MACE.hurtEnemy(stack, target, attacker);
         }
-        Items.MACE.hurtEnemy(stack, target, attacker);
-        return true;
     }
 
     /**

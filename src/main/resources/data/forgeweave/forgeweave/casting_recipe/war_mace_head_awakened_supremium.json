@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_war_mace_head"
-  },
+  "cast": "forgeweave:cast_war_mace_head",
   "fluid": "forgeweave:molten_awakened_supremium",
   "amount": 1152,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mysticalagriculture:awakened_supremium_ingot"
+      "type": "neoforge:registered",
+      "value": "mysticalagriculture:awakened_supremium_ingot"
     }
   ]
 }

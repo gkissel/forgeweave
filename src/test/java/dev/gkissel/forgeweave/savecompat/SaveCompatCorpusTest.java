@@ -22,25 +22,39 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.NumericTag;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.resources.RegistryDataLoader;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.ServerPacksSource;
 import net.minecraft.server.packs.resources.MultiPackResourceManager;
 import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.tags.TagLoader;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.util.datafix.DataFixers;
+import net.minecraft.util.datafix.fixes.References;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
 
+import com.mojang.serialization.Dynamic;
+
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.trait.TraitFamilies;
 
@@ -123,7 +137,7 @@ import dev.gkissel.forgeweave.trait.TraitFamilies;
  * test addon is loaded and the stack comes out of a real Tool Station.
  *
  * <p>Nothing was added here for that issue because nothing it changed is serialized. It widened
- * {@code ToolConstants.PartSlot#partId} from a path to a full {@code ResourceLocation}, and that
+ * {@code ToolConstants.PartSlot#partId} from a path to a full {@code Identifier}, and that
  * field lives in a static table, not in a component: what a tool stores is still the material per
  * slot, positionally. The whole corpus passing unchanged is the evidence for that, which is the
  * other reason no fixture belongs here -- a new one would only restate it.
@@ -133,32 +147,33 @@ class SaveCompatCorpusTest {
     private static final String CORPUS = "/fixtures/save_compat";
     private static final String CORRUPT = "/fixtures/corrupt/tool_modifier_level_zero.snbt";
 
-    private static RegistryAccess.Frozen registries;
+    /**
+     * The data version a 1.21.1 world stamps on everything it saves. The corpus was written by
+     * 1.21.1 builds, so on 26.x the game runs every vanilla part of these bytes through the data
+     * fixer from this version before decoding them, which is exactly what loading a 1.21.1 world does.
+     */
+    private static final int DATA_VERSION_1_21_1 = 3955;
+
+    /** The built-in registries plus the vanilla data-driven ones loaded below. */
+    private static HolderLookup.Provider registries;
 
     @BeforeAll
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        // T80: the built-ins alone (Item, Block, ...) used to be enough, but a tool can now carry a
-        // real vanilla enchantment (allowVanillaEnchanting) whose Holder<Enchantment> codec needs the
-        // ENCHANTMENT registry populated. That registry is data-driven (data/minecraft/enchantment/
-        // *.json), so it is loaded from the vanilla resource pack the same way a real server loads it
-        // -- NOT via RegistrySetBuilder/VanillaRegistries (the datagen-only helper), whose registries
-        // bind every Holder to a shared "UniversalOwner" that is never the owner RegistryOps derives
-        // from the same Provider's own lookup(), so a real Holder built that way fails its own
-        // canSerializeIn check the moment anything tries to re-encode it. RegistryDataLoader has no
-        // such indirection: every registry it loads owns its own holders, exactly like a running
-        // server's.
-        RegistryAccess.Frozen builtins = RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
-        ResourceManager vanillaData = new MultiPackResourceManager(PackType.SERVER_DATA,
-                List.of(ServerPacksSource.createVanillaPackSource()));
-        registries = RegistryDataLoader.load(vanillaData, builtins, RegistryDataLoader.WORLDGEN_REGISTRIES);
+        // T80: a tool can carry a real vanilla enchantment, whose Holder<Enchantment> codec needs the
+        // data-driven ENCHANTMENT registry. TestRegistries.vanilla() loads it from the vanilla data
+        // pack the way a server does -- not through RegistrySetBuilder/VanillaRegistries, whose holders
+        // belong to a shared "UniversalOwner" and so fail canSerializeIn when re-encoded.
+        registries = TestRegistries.vanilla();
     }
 
     static Stream<Path> corpus() throws Exception {
-        URL dir = SaveCompatCorpusTest.class.getResource(CORPUS);
-        assertNotNull(dir, "the corpus directory is missing from the test resources");
-        try (Stream<Path> files = Files.list(Path.of(dir.toURI()))) {
+        // 26.x: the game layer's class loader resolves files only, never a directory, so the corpus
+        // directory is found as the parent of one fixture it is known to hold.
+        URL anchor = SaveCompatCorpusTest.class.getResource(CORPUS + "/m2_tool_pickaxe_modifiers.snbt");
+        assertNotNull(anchor, "the corpus directory is missing from the test resources");
+        try (Stream<Path> files = Files.list(Path.of(anchor.toURI()).getParent())) {
             List<Path> snbt = files.filter(path -> path.toString().endsWith(".snbt")).sorted().toList();
             assertTrue(snbt.size() >= 72,
                     "the M2 four, #101's tank, #154's embossment, #160's ramp, #167's audit five, "
@@ -187,7 +202,8 @@ class SaveCompatCorpusTest {
 
         CompoundTag reEncoded = decodeAndReEncode(fixture);
 
-        assertContains(fixture.getCompound("expect"), reEncoded, file.getFileName().toString());
+        assertContains((CompoundTag) withoutUnitCounts(expected(fixture)), (CompoundTag) withoutUnitCounts(reEncoded),
+                file.getFileName().toString());
     }
 
     /**
@@ -199,12 +215,12 @@ class SaveCompatCorpusTest {
     void savedModifiersAreNothingButIdAndLevel() throws Exception {
         CompoundTag tool = read(Path.of(
                 SaveCompatCorpusTest.class.getResource(CORPUS + "/m2_tool_pickaxe_modifiers.snbt").toURI()));
-        ListTag modifiers = tool.getCompound("nbt").getCompound("components")
-                .getList("forgeweave:modifiers", Tag.TAG_COMPOUND);
+        ListTag modifiers = tool.getCompoundOrEmpty("nbt").getCompoundOrEmpty("components")
+                .getListOrEmpty("forgeweave:modifiers");
 
         assertEquals(3, modifiers.size(), "the fixture is meant to carry a multi-entry modifier list");
         for (int i = 0; i < modifiers.size(); i++) {
-            assertEquals(Set.of("id", "level"), modifiers.getCompound(i).getAllKeys(),
+            assertEquals(Set.of("id", "level"), modifiers.getCompoundOrEmpty(i).keySet(),
                     "ADR-0004: a serialized modifier is id + level, never a class reference or a cached stat");
         }
     }
@@ -220,19 +236,19 @@ class SaveCompatCorpusTest {
     void aGeneratedEmbossmentIdIsStillNothingButIdAndLevel() throws Exception {
         CompoundTag tool = read(Path.of(
                 SaveCompatCorpusTest.class.getResource(CORPUS + "/m3_tool_pickaxe_embossment.snbt").toURI()));
-        ListTag modifiers = tool.getCompound("nbt").getCompound("components")
-                .getList("forgeweave:modifiers", Tag.TAG_COMPOUND);
+        ListTag modifiers = tool.getCompoundOrEmpty("nbt").getCompoundOrEmpty("components")
+                .getListOrEmpty("forgeweave:modifiers");
 
         CompoundTag embossment = null;
         for (int i = 0; i < modifiers.size(); i++) {
-            if (modifiers.getCompound(i).getString("id").contains("embossment.")) {
-                embossment = modifiers.getCompound(i);
+            if (modifiers.getCompoundOrEmpty(i).getStringOr("id", "").contains("embossment.")) {
+                embossment = modifiers.getCompoundOrEmpty(i);
             }
         }
         assertNotNull(embossment, "the fixture is meant to carry an embossment entry");
-        assertEquals(Set.of("id", "level"), embossment.getAllKeys(),
+        assertEquals(Set.of("id", "level"), embossment.keySet(),
                 "ADR-0004 applies to generated ids too: an embossment is id + level, nothing more");
-        assertEquals(1, embossment.getInt("level"), "an embossment is always level 1 (upstream's SingleAspect)");
+        assertEquals(1, embossment.getIntOr("level", 0), "an embossment is always level 1 (upstream's SingleAspect)");
     }
 
     /**
@@ -272,14 +288,14 @@ class SaveCompatCorpusTest {
     void theBeta3FixturesCarryRetiredTraitIdsThatAllResolve() throws Exception {
         for (String name : List.of("m1103_beta3_pickaxe.snbt", "m1103_beta3_chestplate.snbt")) {
             CompoundTag fixture = read(Path.of(SaveCompatCorpusTest.class.getResource(CORPUS + "/" + name).toURI()));
-            ListTag traits = fixture.getCompound("nbt").getCompound("components")
-                    .getList("forgeweave:traits", Tag.TAG_STRING);
-            List<ResourceLocation> retired = traits.stream()
-                    .map(tag -> ResourceLocation.parse(tag.getAsString()))
+            ListTag traits = fixture.getCompoundOrEmpty("nbt").getCompoundOrEmpty("components")
+                    .getListOrEmpty("forgeweave:traits");
+            List<Identifier> retired = traits.stream()
+                    .map(tag -> Identifier.parse(tag.asString().orElseThrow()))
                     .filter(TraitFamilies.aliases()::containsKey)
                     .toList();
             assertTrue(!retired.isEmpty(), name + " must carry at least one retired trait id, carries " + traits);
-            for (ResourceLocation id : retired) {
+            for (Identifier id : retired) {
                 assertTrue(!TraitFamilies.aliases().containsKey(TraitFamilies.canonical(id)),
                         name + ": " + id + " must resolve straight to a live id");
             }
@@ -290,29 +306,29 @@ class SaveCompatCorpusTest {
 
     /** Decodes a fixture's committed snapshot with the real save path, then writes it back out. */
     private static CompoundTag decodeAndReEncode(CompoundTag fixture) {
-        CompoundTag nbt = fixture.getCompound("nbt");
-        String decoder = fixture.getString("decoder");
-        RegistryOps<Tag> ops = RegistryOps.create(NbtOps.INSTANCE, registries);
+        CompoundTag nbt = fixture.getCompoundOrEmpty("nbt");
+        String decoder = fixture.getStringOr("decoder", "");
+        // Lenient on missing tags (TestRegistries): no datapack binds c:ingots/iron here.
+        RegistryOps<Tag> ops = TestRegistries.ops(NbtOps.INSTANCE, registries);
         return switch (decoder) {
             case "item_stack" -> {
+                // 26.x: what a 1.21.1 world's stack goes through on load before ItemStack.CODEC sees it.
+                nbt = upgradeItemStack(nbt);
                 // getOrThrow rather than ItemStack#parse: a corrupt stack must blow up, not become EMPTY.
                 ItemStack stack = ItemStack.CODEC.parse(ops, nbt).getOrThrow(IllegalStateException::new);
                 yield (CompoundTag) ItemStack.CODEC.encodeStart(ops, stack).getOrThrow(IllegalStateException::new);
             }
             case "block_entity" -> {
-                Block block = BuiltInRegistries.BLOCK.get(
-                        ResourceLocation.parse(fixture.getString("block")));
-                BlockEntity be = BlockEntity.loadStatic(BlockPos.ZERO, block.defaultBlockState(), nbt, registries);
-                if (be == null) {
-                    throw new IllegalStateException("block entity did not load: " + fixture.getString("what"));
-                }
-                yield be.saveWithId(registries);
+                Block block = BuiltInRegistries.BLOCK.getValue(
+                        Identifier.parse(fixture.getStringOr("block", "")));
+                yield loadAndSaveBlockEntity(block, nbt, fixture.getStringOr("what", ""));
             }
             // Issue #392: a datapack material is a serialized format like any other -- the same codec
             // is the registry-sync codec, so a shape change strands a connecting client the way a
             // component change strands a world. Snapshotted in NBT (what the sync packet carries)
             // rather than JSON, which is what the rest of the corpus is in.
             case "material" -> {
+                nbt = upgradeMaterialIngredients(nbt);
                 Material material = Material.CODEC.parse(ops, nbt).getOrThrow(IllegalStateException::new);
                 yield (CompoundTag) Material.CODEC.encodeStart(ops, material).getOrThrow(IllegalStateException::new);
             }
@@ -320,17 +336,143 @@ class SaveCompatCorpusTest {
         };
     }
 
+    /**
+     * 26.x: a block entity's load and save go through ValueInput/ValueOutput, which report a field
+     * that fails to decode to a ProblemReporter and carry on instead of throwing. The real chunk load
+     * ({@link BlockEntity#loadStatic}) only logs those, so this does the same steps with a collector
+     * and turns any reported problem into a failure: a field the game would drop is lost data, which
+     * is what the corpus exists to catch.
+     */
+    private static CompoundTag loadAndSaveBlockEntity(Block block, CompoundTag nbt, String what) {
+        BlockEntityType<?> type = BuiltInRegistries.BLOCK_ENTITY_TYPE.getValue(
+                Identifier.tryParse(nbt.getStringOr("id", "")));
+        if (type == null) {
+            throw new IllegalStateException("block entity has no known type: " + what);
+        }
+        BlockEntity be = type.create(BlockPos.ZERO, block.defaultBlockState());
+        if (be == null) {
+            throw new IllegalStateException("block entity did not load: " + what);
+        }
+        ProblemReporter.Collector loadProblems = new ProblemReporter.Collector();
+        be.loadWithComponents(TagValueInput.create(loadProblems, registries, nbt));
+        if (!loadProblems.isEmpty()) {
+            throw new IllegalStateException("block entity dropped data on load (" + what + "): " + loadProblems.getReport());
+        }
+        ProblemReporter.Collector saveProblems = new ProblemReporter.Collector();
+        TagValueOutput out = TagValueOutput.createWithContext(saveProblems, registries);
+        be.saveWithId(out);
+        if (!saveProblems.isEmpty()) {
+            throw new IllegalStateException("block entity failed to save (" + what + "): " + saveProblems.getReport());
+        }
+        return out.buildResult();
+    }
+
+    /**
+     * 26.x (1.21.2) changed vanilla's ingredient format: {@code {item: "x"}} is now {@code "x"},
+     * {@code {tag: "x"}} is {@code "#x"}, a list stays a list of those. A material snapshot is the
+     * registry-sync and datapack shape, not world data, and has no data fixer; the shipped material
+     * JSON got exactly this rewrite. So the snapshot's two ingredient fields get it too, and only
+     * those two and only those shapes: anything else in the bytes is decoded as written, so a
+     * Forgeweave-owned field that stopped decoding still fails here.
+     */
+    private static CompoundTag upgradeMaterialIngredients(CompoundTag material) {
+        CompoundTag upgraded = material.copy();
+        Tag repair = upgraded.get("repair_item");
+        if (repair != null) {
+            upgraded.put("repair_item", upgradeIngredient(repair));
+        }
+        for (Tag entry : upgraded.getListOrEmpty("crafting_items")) {
+            if (entry instanceof CompoundTag craftingItem && craftingItem.get("ingredient") != null) {
+                craftingItem.put("ingredient", upgradeIngredient(craftingItem.get("ingredient")));
+            }
+        }
+        return upgraded;
+    }
+
+    private static Tag upgradeIngredient(Tag ingredient) {
+        if (ingredient instanceof ListTag list) {
+            ListTag upgraded = new ListTag();
+            list.forEach(element -> upgraded.add(upgradeIngredient(element)));
+            return upgraded;
+        }
+        if (ingredient instanceof CompoundTag value && value.size() == 1) {
+            if (value.get("item") instanceof StringTag(String item)) {
+                return StringTag.valueOf(item);
+            }
+            if (value.get("tag") instanceof StringTag(String tag)) {
+                return StringTag.valueOf("#" + tag);
+            }
+        }
+        return ingredient;
+    }
+
+    /** Runs a 1.21.1 item stack tag through the vanilla data fixer, as loading a 1.21.1 world does. */
+    private static CompoundTag upgradeItemStack(CompoundTag stack) {
+        return (CompoundTag) DataFixers.getDataFixer().update(References.ITEM_STACK,
+                new Dynamic<>(NbtOps.INSTANCE, stack), DATA_VERSION_1_21_1,
+                SharedConstants.getCurrentVersion().dataVersion().version()).getValue();
+    }
+
+    /**
+     * A fixture's hand-written {@code expect}. It was written against what 1.21.1 re-encoded, so for
+     * an item stack it gets the same data-fixer pass as the bytes: a vanilla component whose shape
+     * 26.x changed (1.21.5 unwrapped {@code minecraft:enchantments}' {@code levels}) is compared in
+     * its new shape, while every Forgeweave component, which the fixer never touches, is compared
+     * as written. The stack's id and count are copied in so the fixer sees a whole stack; both are
+     * re-encoded unchanged, so they add nothing the decode could fail on by accident.
+     */
+    private static CompoundTag expected(CompoundTag fixture) {
+        CompoundTag expect = fixture.getCompoundOrEmpty("expect");
+        if (!fixture.getStringOr("decoder", "").equals("item_stack")) {
+            return expect;
+        }
+        CompoundTag nbt = fixture.getCompoundOrEmpty("nbt");
+        CompoundTag whole = expect.copy();
+        for (String key : List.of("id", "count")) {
+            if (!whole.contains(key) && nbt.contains(key)) {
+                whole.put(key, nbt.get(key).copy());
+            }
+        }
+        return upgradeItemStack(whole);
+    }
+
     private static CompoundTag read(Path file) throws IOException {
         try {
-            return TagParser.parseTag(Files.readString(file, StandardCharsets.UTF_8));
+            return TagParser.parseCompoundFully(Files.readString(file, StandardCharsets.UTF_8));
         } catch (Exception e) {
             throw new AssertionError("fixture is not valid SNBT: " + file, e);
         }
     }
 
+    /**
+     * {@code tag} with every item stack's {@code count: 1} dropped. 1.21.1 wrote the count of every
+     * stack; 26.x leaves it out when it is 1, the codec's default, so a stack nested in a container
+     * re-encodes without it. Both read back as the same stack.
+     */
+    private static Tag withoutUnitCounts(Tag tag) {
+        if (tag instanceof CompoundTag compound) {
+            CompoundTag copy = new CompoundTag();
+            for (String key : compound.keySet()) {
+                Tag value = compound.get(key);
+                boolean unitCount = key.equals("count") && compound.contains("id")
+                        && value instanceof NumericTag number && number.intValue() == 1;
+                if (!unitCount) {
+                    copy.put(key, withoutUnitCounts(value));
+                }
+            }
+            return copy;
+        }
+        if (tag instanceof ListTag list) {
+            ListTag copy = new ListTag();
+            list.forEach(element -> copy.add(withoutUnitCounts(element)));
+            return copy;
+        }
+        return tag;
+    }
+
     /** Asserts every key in {@code expected} is present in {@code actual} with the same value, recursively. */
     private static void assertContains(CompoundTag expected, CompoundTag actual, String where) {
-        for (String key : expected.getAllKeys()) {
+        for (String key : expected.keySet()) {
             Tag want = expected.get(key);
             Tag got = actual.get(key);
             if (got == null) {

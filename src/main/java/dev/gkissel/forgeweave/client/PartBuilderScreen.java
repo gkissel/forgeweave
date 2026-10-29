@@ -7,14 +7,16 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
@@ -68,12 +70,12 @@ import dev.gkissel.forgeweave.menu.StencilTableMenu;
  * {@link ToolStationScreen}'s own side panels; {@link dev.gkissel.forgeweave.menu.PartBuilderMenu}
  * owns the coordinates.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements StationExtraAreas {
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/part_builder.png");
-    private static final ResourceLocation ICONS =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/station_icons.png");
+    private static final Identifier TEXTURE =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/part_builder.png");
+    private static final Identifier ICONS =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/station_icons.png");
     private static final int SHEET = 256;
 
     private static final int BASE_WIDTH = 176;
@@ -115,9 +117,7 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
             new SideInventoryPanel(PartBuilderMenu.SIDE_PANEL_X, PartBuilderMenu.SIDE_PANEL_Y);
 
     public PartBuilderScreen(PartBuilderMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
-        imageWidth = BASE_WIDTH;
-        imageHeight = BASE_HEIGHT;
+        super(menu, playerInventory, title, BASE_WIDTH, BASE_HEIGHT);
     }
 
     @Override
@@ -186,7 +186,7 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
         return PartBuilderRecipes.combinedMaterialValue(registries, material1, material2);
     }
 
-    private Optional<ResourceLocation> materialId() {
+    private Optional<Identifier> materialId() {
         return matchMaterial().map(PartBuilderRecipes.CombinedMaterialMatch::id);
     }
 
@@ -200,8 +200,8 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
     }
 
     @Override
-    protected void renderPanel(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
-        graphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, BASE_WIDTH, BASE_HEIGHT);
+    protected void renderPanel(GuiGraphicsExtractor graphics, float partialTick, int mouseX, int mouseY) {
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, BASE_WIDTH, BASE_HEIGHT);
         renderSlotIcons(graphics);
         renderMaterialValue(graphics);
         InfoPanel.render(graphics, font, panelX(), panelY(),
@@ -227,15 +227,15 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
      * draws them. The button's id is its index into the fixed pattern list, so a click identifies a
      * pattern rather than a screen position.
      */
-    private void renderPatternButtons(GuiGraphics graphics, int mouseX, int mouseY) {
+    private void renderPatternButtons(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         List<Integer> buttons = menu.patternButtons();
         for (int i = 0; i < buttons.size(); i++) {
             int x = leftPos + buttonX(i);
             int y = topPos + buttonY(i);
             int u = isHovering(buttonX(i), buttonY(i), BUTTON_SIZE, BUTTON_SIZE, mouseX, mouseY)
                     ? BUTTON_HOVER_U : BUTTON_IDLE_U;
-            graphics.blit(ICONS, x, y, u, BUTTON_V, BUTTON_SIZE, BUTTON_SIZE, SHEET, SHEET);
-            graphics.renderItem(patternStack(buttons.get(i)), x + 1, y + 1);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, ICONS, x, y, u, BUTTON_V, BUTTON_SIZE, BUTTON_SIZE, SHEET, SHEET);
+            graphics.item(patternStack(buttons.get(i)), x + 1, y + 1);
         }
     }
 
@@ -266,7 +266,10 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         List<Integer> buttons = menu.patternButtons();
         for (int i = 0; i < buttons.size(); i++) {
             if (isHovering(buttonX(i), buttonY(i), BUTTON_SIZE, BUTTON_SIZE, mouseX, mouseY) && minecraft != null) {
@@ -277,16 +280,16 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
                 return true;
             }
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override
-    protected void renderTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
-        super.renderTooltip(graphics, mouseX, mouseY);
+    protected void extractTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        super.extractTooltip(graphics, mouseX, mouseY);
         List<Integer> buttons = menu.patternButtons();
         for (int i = 0; i < buttons.size(); i++) {
             if (isHovering(buttonX(i), buttonY(i), BUTTON_SIZE, BUTTON_SIZE, mouseX, mouseY)) {
-                graphics.renderTooltip(font, patternStack(buttons.get(i)), mouseX, mouseY);
+                graphics.setTooltipForNextFrame(font, patternStack(buttons.get(i)), mouseX, mouseY);
                 return;
             }
         }
@@ -299,7 +302,7 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
         Style hovered = InfoPanel.hoveredStyle(font, panelX(), panelY(), InfoPanel.WIDTH, PANEL_HEIGHT,
                 caption != null, lines, scroll, mouseX, mouseY);
         if (hovered != null) {
-            graphics.renderComponentHoverEffect(font, hovered, mouseX, mouseY);
+            graphics.componentHoverEffect(font, hovered, mouseX, mouseY);
         }
     }
 
@@ -343,12 +346,12 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
     }
 
     /** Upstream's {@code drawIconEmpty}: a hint glyph in each empty slot, never over a real item. */
-    private void renderSlotIcons(GuiGraphics graphics) {
+    private void renderSlotIcons(GuiGraphicsExtractor graphics) {
         for (int i = 0; i < SLOT_ICON_U.length; i++) {
             if (SLOT_ICON_U[i] < 0 || menu.getSlot(i).hasItem()) {
                 continue;
             }
-            graphics.blit(ICONS, leftPos + menu.getSlot(i).x - 1, topPos + menu.getSlot(i).y - 1,
+            graphics.blit(RenderPipelines.GUI_TEXTURED, ICONS, leftPos + menu.getSlot(i).x - 1, topPos + menu.getSlot(i).y - 1,
                     SLOT_ICON_U[i], SLOT_ICON_V[i], ICON_SIZE, ICON_SIZE, SHEET, SHEET);
         }
     }
@@ -359,7 +362,7 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
      * {@link StationText#materialValue}'s; this only decides whether there is enough and where the
      * line goes (upstream's own centred {@code cornerY + 63} at {@code 0x777777}).
      */
-    private void renderMaterialValue(GuiGraphics graphics) {
+    private void renderMaterialValue(GuiGraphicsExtractor graphics) {
         Optional<PartBuilderRecipes.CombinedMaterialMatch> matched = matchMaterial();
         if (matched.isEmpty()) {
             return;
@@ -370,8 +373,8 @@ public class PartBuilderScreen extends StationScreen<PartBuilderMenu> implements
                 .orElse(true);
         Component line = StationText.materialValue(
                 available / (float) PartBuilderRecipes.INGOT_VALUE, enough, matched.get().id());
-        graphics.drawString(font, line, leftPos + BASE_WIDTH / 2 - font.width(line) / 2,
-                topPos + MATERIAL_VALUE_Y, 0x777777, false);
+        graphics.text(font, line, leftPos + BASE_WIDTH / 2 - font.width(line) / 2,
+                topPos + MATERIAL_VALUE_Y, 0xFF777777, false);
     }
 
     @Override

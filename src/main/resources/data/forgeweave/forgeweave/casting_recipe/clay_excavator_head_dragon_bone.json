@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_excavator_head"
-  },
+  "cast": "forgeweave:clay_cast_excavator_head",
   "fluid": "forgeweave:molten_dragon_bone",
   "amount": 1152,
   "result": {
@@ -14,8 +12,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "iceandfire:dragonbone"
+      "type": "neoforge:registered",
+      "value": "iceandfire:dragonbone"
     }
   ]
 }

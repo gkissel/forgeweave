@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_cross_guard"
-  },
+  "cast": "forgeweave:cast_cross_guard",
   "fluid": "forgeweave:molten_insanium",
   "amount": 144,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mysticalagradditions:insanium_ingot"
+      "type": "neoforge:registered",
+      "value": "mysticalagradditions:insanium_ingot"
     }
   ]
 }

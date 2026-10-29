@@ -2,15 +2,10 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "item": "minecraft:book"
-    },
-    {
-      "item": "forgeweave:pattern_blank"
-    }
+    "minecraft:book",
+    "forgeweave:pattern_blank"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:guide_book"
   }
 }

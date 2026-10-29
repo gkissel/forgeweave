@@ -52,22 +52,18 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "mysticalagriculture:supremium_ingot"
-      },
+      "ingredient": "mysticalagriculture:supremium_ingot",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "mysticalagriculture:supremium_ingot"
-  },
+  "repair_item": "mysticalagriculture:supremium_ingot",
   "cast_only": true,
   "enchantability": 18,
   "color": "#D30000",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mysticalagriculture:supremium_ingot"
+      "type": "neoforge:registered",
+      "value": "mysticalagriculture:supremium_ingot"
     }
   ]
 }

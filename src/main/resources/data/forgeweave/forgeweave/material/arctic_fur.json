@@ -45,21 +45,17 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "twilightforest:arctic_fur"
-      },
+      "ingredient": "twilightforest:arctic_fur",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "twilightforest:arctic_fur"
-  },
+  "repair_item": "twilightforest:arctic_fur",
   "enchantability": 17,
   "color": "#DCEEF5",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "twilightforest:arctic_fur"
+      "type": "neoforge:registered",
+      "value": "twilightforest:arctic_fur"
     }
   ]
 }

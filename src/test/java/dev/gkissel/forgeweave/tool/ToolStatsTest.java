@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Items;
@@ -144,10 +144,10 @@ class ToolStatsTest {
                 new Material.Head(headDurability, 4.0f, 3.0f),
                 new Material.Handle(handleDurabilityModifier, handleDurability),
                 extraDurability,
-                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool")),
+                TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace("incorrect_for_stone_tool")),
                 new Material.Traits(
-                        List.of(ResourceLocation.fromNamespaceAndPath("forgeweave", "cheap")),
-                        List.of(ResourceLocation.fromNamespaceAndPath("forgeweave", "cheapskate"))),
+                        List.of(Identifier.fromNamespaceAndPath("forgeweave", "cheap")),
+                        List.of(Identifier.fromNamespaceAndPath("forgeweave", "cheapskate"))),
                 List.of(new Material.CraftingItem(Ingredient.of(Items.STICK), 1)),
                 Ingredient.of(Items.STICK),
                 TextColor.fromRgb(0xFFFFFF));
@@ -159,8 +159,8 @@ class ToolStatsTest {
                 new Material.Head(headDurability, miningSpeed, attackDamage),
                 new Material.Handle(handleDurabilityModifier, handleDurability),
                 extraDurability,
-                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool")),
-                Material.Traits.general(ResourceLocation.fromNamespaceAndPath("forgeweave", trait)),
+                TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace("incorrect_for_stone_tool")),
+                Material.Traits.general(Identifier.fromNamespaceAndPath("forgeweave", trait)),
                 List.of(new Material.CraftingItem(Ingredient.of(Items.STICK), 1)),
                 Ingredient.of(Items.STICK),
                 TextColor.fromRgb(0xFFFFFF));

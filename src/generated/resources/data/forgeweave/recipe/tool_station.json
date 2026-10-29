@@ -2,19 +2,14 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "A": {
-      "item": "forgeweave:pattern_blank"
-    },
-    "B": {
-      "item": "minecraft:crafting_table"
-    }
+    "A": "forgeweave:pattern_blank",
+    "B": "minecraft:crafting_table"
   },
   "pattern": [
     "A",
     "B"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:tool_station"
   }
 }

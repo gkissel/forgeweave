@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Items;
@@ -102,7 +102,7 @@ class ShurikenStatsTest {
                 Optional.of(new Material.Handle(1.0f, 0)),
                 Optional.of(extra),
                 TagKey.create(Registries.BLOCK,
-                        ResourceLocation.withDefaultNamespace("incorrect_for_wooden_tool")),
+                        Identifier.withDefaultNamespace("incorrect_for_wooden_tool")),
                 new Material.Traits(List.of(), List.of()),
                 List.of(new Material.CraftingItem(Ingredient.of(Items.STICK), 144)),
                 Ingredient.of(Items.STICK),

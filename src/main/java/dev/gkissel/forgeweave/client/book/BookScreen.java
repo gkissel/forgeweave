@@ -13,23 +13,24 @@ import java.util.function.Supplier;
 
 import javax.annotation.Nullable;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 import org.lwjgl.glfw.GLFW;
 
@@ -84,12 +85,12 @@ import dev.gkissel.forgeweave.modifier.ModifierRecipe;
  */
 public class BookScreen extends Screen {
 
-    private static final ResourceLocation TEX_BOOK = ResourceLocation.fromNamespaceAndPath(
+    private static final Identifier TEX_BOOK = Identifier.fromNamespaceAndPath(
             Forgeweave.MODID, "textures/derived/gui/book/book.png");
-    private static final ResourceLocation TEX_COVER = ResourceLocation.fromNamespaceAndPath(
+    private static final Identifier TEX_COVER = Identifier.fromNamespaceAndPath(
             Forgeweave.MODID, "textures/derived/gui/book/bookfront.png");
     /** {@code ClientProxy.BOOK_MODIFY}: the tool/modifier pages' station-diagram sheet (issue #651). */
-    private static final ResourceLocation TEX_MODIFY = ResourceLocation.fromNamespaceAndPath(
+    private static final Identifier TEX_MODIFY = Identifier.fromNamespaceAndPath(
             Forgeweave.MODID, "textures/derived/gui/book/modify.png");
 
     private static final int PAGE_TEXT_W = BookLayout.PAGE_TEXT_W;
@@ -131,7 +132,7 @@ public class BookScreen extends Screen {
     /** Draws one already-measured piece of a page at the origin it was laid out at. */
     @FunctionalInterface
     private interface Drawer {
-        void draw(GuiGraphics graphics, int x, int y);
+        void draw(GuiGraphicsExtractor graphics, int x, int y);
     }
 
     /**
@@ -184,7 +185,7 @@ public class BookScreen extends Screen {
      * may sit in a later section -- the listing pages get the same arithmetic from
      * {@code sectionStartPage}, but only for links inside their own section.
      */
-    private final Map<ResourceLocation, Integer> materialPages = new HashMap<>();
+    private final Map<Identifier, Integer> materialPages = new HashMap<>();
     private final Map<String, Integer> traitFamilyPages = new HashMap<>();
 
     /**
@@ -314,7 +315,7 @@ public class BookScreen extends Screen {
                 && this.minecraft.player.getItemInHand(this.hand).getItem() instanceof GuideBookItem) {
             String bookmark = bookmark();
             SavedBookPagePayload.apply(this.minecraft.player, this.hand, bookmark);
-            PacketDistributor.sendToServer(new SavedBookPagePayload(this.hand, bookmark));
+            ClientPacketDistributor.sendToServer(new SavedBookPagePayload(this.hand, bookmark));
         }
         super.removed();
     }
@@ -352,8 +353,8 @@ public class BookScreen extends Screen {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        super.render(graphics, mouseX, mouseY, partialTick);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
         this.frame++;
         this.hovered = regionAt(mouseX, mouseY);
         // Upstream applies the structure drag at the top of ElementStructure.draw, every frame the
@@ -368,7 +369,7 @@ public class BookScreen extends Screen {
         }
         renderArrows(graphics, mouseX, mouseY);
         if (this.hovered != null && this.hovered.tooltip() != null) {
-            graphics.renderTooltip(this.font, this.hovered.tooltip().get(), mouseX, mouseY);
+            graphics.setTooltipForNextFrame(this.font, this.hovered.tooltip().get(), mouseX, mouseY);
         }
     }
 
@@ -417,65 +418,61 @@ public class BookScreen extends Screen {
      * (smaller when it would run off the cover, see {@link BookLayout#COVER_SUBTITLE_W}), both gold
      * with a shadow, at {@code GuiBook.drawScreen}'s exact offsets.
      */
-    private void renderCover(GuiGraphics graphics) {
+    private void renderCover(GuiGraphicsExtractor graphics) {
         int x = this.width / 2 - BookGeometry.PAGE_WIDTH_UNSCALED / 2;
         int y = BookGeometry.spreadTop(this.height);
 
-        setColor(graphics, this.appearance.coverColor());
         chromeBlit(graphics, TEX_COVER, x, y, 0, 0,
-                BookGeometry.PAGE_WIDTH_UNSCALED, BookGeometry.PAGE_HEIGHT_UNSCALED);
-        graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+                BookGeometry.PAGE_WIDTH_UNSCALED, BookGeometry.PAGE_HEIGHT_UNSCALED, this.appearance.coverColor());
         chromeBlit(graphics, TEX_COVER, x, y, 0, BookGeometry.PAGE_HEIGHT_UNSCALED,
-                BookGeometry.PAGE_WIDTH_UNSCALED, BookGeometry.PAGE_HEIGHT_UNSCALED);
+                BookGeometry.PAGE_WIDTH_UNSCALED, BookGeometry.PAGE_HEIGHT_UNSCALED, WHITE);
 
         Component title = Component.translatable(this.appearance.title());
         float scale = this.font.width(title) <= 67 ? 2.5F : 2F;
-        graphics.pose().pushPose();
-        graphics.pose().scale(scale, scale, 1F);
-        graphics.drawString(this.font, title,
+        graphics.pose().pushMatrix();
+        graphics.pose().scale(scale, scale);
+        graphics.text(this.font, title,
                 (int) ((this.width / 2) / scale + 3 - this.font.width(title) / 2),
                 (int) ((this.height / 2 - this.font.lineHeight / 2) / scale - 4),
-                BookGeometry.COVER_TEXT_COLOR, true);
-        graphics.pose().popPose();
+                opaque(BookGeometry.COVER_TEXT_COLOR), true);
+        graphics.pose().popMatrix();
 
         Component subtitle = Component.translatable(this.appearance.subtitle());
         float subtitleScale = BookLayout.fitScale(this.font.width(subtitle), BookLayout.COVER_SUBTITLE_W,
                 BookLayout.COVER_SUBTITLE_SCALE);
-        graphics.pose().pushPose();
-        graphics.pose().scale(subtitleScale, subtitleScale, 1F);
-        graphics.drawString(this.font, subtitle,
+        graphics.pose().pushMatrix();
+        graphics.pose().scale(subtitleScale, subtitleScale);
+        graphics.text(this.font, subtitle,
                 (int) ((this.width / 2) / subtitleScale + 7 - this.font.width(subtitle) / 2),
                 (int) ((this.height / 2 + 100 - this.font.lineHeight * 2) / subtitleScale),
-                BookGeometry.COVER_TEXT_COLOR, true);
-        graphics.pose().popPose();
+                opaque(BookGeometry.COVER_TEXT_COLOR), true);
+        graphics.pose().popMatrix();
     }
 
     /** Upstream's spread: the cover-tinted 412x200 back, then one untinted parchment leaf per visible slot. */
-    private void renderSpread(GuiGraphics graphics) {
+    private void renderSpread(GuiGraphicsExtractor graphics) {
         int left = BookGeometry.spreadLeft(this.width);
         int top = BookGeometry.spreadTop(this.height);
 
-        setColor(graphics, this.appearance.coverColor());
         chromeBlit(graphics, TEX_BOOK, left, top, 0, 0,
-                BookGeometry.PAGE_WIDTH_UNSCALED * 2, BookGeometry.PAGE_HEIGHT_UNSCALED);
-        graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+                BookGeometry.PAGE_WIDTH_UNSCALED * 2, BookGeometry.PAGE_HEIGHT_UNSCALED, this.appearance.coverColor());
 
         int leftSlot = BookGeometry.leftSlot(this.spread);
         if (leftSlot >= 0) {
             chromeBlit(graphics, TEX_BOOK, left, top, 0, BookGeometry.PAGE_HEIGHT_UNSCALED,
-                    BookGeometry.PAGE_WIDTH_UNSCALED, BookGeometry.PAGE_HEIGHT_UNSCALED);
+                    BookGeometry.PAGE_WIDTH_UNSCALED, BookGeometry.PAGE_HEIGHT_UNSCALED, WHITE);
             renderSlot(graphics, leftSlot, BookGeometry.leftPageX(this.width), BookGeometry.pageY(this.height));
         }
         int rightSlot = BookGeometry.rightSlot(this.spread);
         if (rightSlot < this.slots.size()) {
             chromeBlit(graphics, TEX_BOOK, this.width / 2, top, BookGeometry.PAGE_WIDTH_UNSCALED,
                     BookGeometry.PAGE_HEIGHT_UNSCALED, BookGeometry.PAGE_WIDTH_UNSCALED,
-                    BookGeometry.PAGE_HEIGHT_UNSCALED);
+                    BookGeometry.PAGE_HEIGHT_UNSCALED, WHITE);
             renderSlot(graphics, rightSlot, BookGeometry.rightPageX(this.width), BookGeometry.pageY(this.height));
         }
     }
 
-    private void renderSlot(GuiGraphics graphics, int slotIndex, int x, int y) {
+    private void renderSlot(GuiGraphicsExtractor graphics, int slotIndex, int x, int y) {
         graphics.enableScissor(x, y, x + PAGE_TEXT_W, y + PAGE_TEXT_H);
         int cursor = y;
         for (Block block : this.slots.get(slotIndex)) {
@@ -485,12 +482,12 @@ public class BookScreen extends Screen {
         graphics.disableScissor();
         // Upstream: pNum centred at PAGE_WIDTH/2, PAGE_HEIGHT - 10, 0xFFAAAAAA, no shadow.
         String number = String.valueOf(BookGeometry.pageNumber(slotIndex));
-        graphics.drawString(this.font, number,
+        graphics.text(this.font, number,
                 x + BookGeometry.PAGE_WIDTH / 2 - this.font.width(number) / 2,
                 y + BookGeometry.PAGE_HEIGHT - 10, BookGeometry.PAGE_NUMBER_COLOR, false);
     }
 
-    private void renderArrows(GuiGraphics graphics, int mouseX, int mouseY) {
+    private void renderArrows(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         boolean cover = this.spread < 0;
         if (hasNext()) {
             drawArrow(graphics, BookGeometry.nextArrowX(this.width, cover), BookGeometry.arrowY(this.height),
@@ -518,30 +515,30 @@ public class BookScreen extends Screen {
     }
 
     /** {@code GuiArrow.drawButton}: the sprite from book.png, tinted with the arrow (or hover) color. */
-    private void drawArrow(GuiGraphics graphics, int x, int y, int u, int v, int w, int h,
+    private void drawArrow(GuiGraphicsExtractor graphics, int x, int y, int u, int v, int w, int h,
             int mouseX, int mouseY) {
         boolean hovered = mouseX >= x && mouseY >= y && mouseX < x + w && mouseY < y + h;
-        setColor(graphics, hovered ? BookGeometry.ARROW_HOVER_COLOR : BookGeometry.ARROW_COLOR);
-        chromeBlit(graphics, TEX_BOOK, x, y, u, v, w, h);
-        graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+        chromeBlit(graphics, TEX_BOOK, x, y, u, v, w, h,
+                hovered ? BookGeometry.ARROW_HOVER_COLOR : BookGeometry.ARROW_COLOR);
     }
 
     /**
-     * A chrome-sheet blit with blending guaranteed on -- {@code GuiBook.drawScreen} leads with
-     * {@code enableAlpha()/enableBlend()} and re-establishes GL state before each page. The sheets'
-     * anti-aliased edge pixels need real alpha blending, and the GL blend state at blit time is
-     * whatever the last draw (text rendering included) left behind.
+     * A chrome-sheet blit tinted with {@code rgb} -- {@code GuiBook.drawScreen}'s {@code color(...)}
+     * then {@code drawTexturedModalRect}. The GUI_TEXTURED pipeline always blends, which is what
+     * upstream's {@code enableAlpha()/enableBlend()} guaranteed for the sheets' anti-aliased edges.
      */
-    private static void chromeBlit(GuiGraphics graphics, ResourceLocation tex, int x, int y,
-            int u, int v, int w, int h) {
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        graphics.blit(tex, x, y, u, v, w, h, BookGeometry.TEX_SIZE, BookGeometry.TEX_SIZE);
+    private static void chromeBlit(GuiGraphicsExtractor graphics, Identifier tex, int x, int y,
+            int u, int v, int w, int h, int rgb) {
+        graphics.blit(RenderPipelines.GUI_TEXTURED, tex, x, y, u, v, w, h,
+                BookGeometry.TEX_SIZE, BookGeometry.TEX_SIZE, opaque(rgb));
     }
 
-    private static void setColor(GuiGraphics graphics, int rgb) {
-        graphics.setColor(((rgb >> 16) & 0xff) / 255.0F, ((rgb >> 8) & 0xff) / 255.0F,
-                (rgb & 0xff) / 255.0F, 1.0F);
+    /** An untinted blit: the tint the old {@code setColor(1, 1, 1, 1)} reset meant. */
+    private static final int WHITE = 0xFFFFFF;
+
+    /** A plain RGB colour as the fully opaque ARGB value 26.1's blit and text calls need. */
+    private static int opaque(int rgb) {
+        return 0xFF000000 | rgb;
     }
 
     /**
@@ -567,7 +564,7 @@ public class BookScreen extends Screen {
     }
 
     /** The page a trait id's reference entry sits on, or {@link #NO_TARGET} if it has none. */
-    private int traitTarget(ResourceLocation trait) {
+    private int traitTarget(Identifier trait) {
         return this.traitFamilyPages.getOrDefault(BookTraits.familyOf(trait), NO_TARGET);
     }
 
@@ -587,11 +584,11 @@ public class BookScreen extends Screen {
             iconGridBlocks(blocks, grid.titleKey(), grid.links(), sectionStartPage);
         } else if (page instanceof TextPage text) {
             titleBlock(blocks, Component.translatable(text.titleKey()));
-            ResourceLocation image = text.image();
+            Identifier image = text.image();
             if (image != null) {
                 int imageH = PAGE_TEXT_W * 9 / 16;
                 blocks.add(new Block(imageH + 4, (graphics, x, y) ->
-                        graphics.blit(image, x, y, PAGE_TEXT_W, imageH, 0, 0, 854, 480, 854, 480)));
+                        graphics.blit(RenderPipelines.GUI_TEXTURED, image, x, y, 0, 0, PAGE_TEXT_W, imageH, 854, 480, 854, 480)));
             }
             bodyBlocks(blocks, Component.translatable(text.textKey()));
         } else if (page instanceof StructurePage structure) {
@@ -637,11 +634,9 @@ public class BookScreen extends Screen {
                 int tint = element.animating() ? BookGeometry.STRUCTURE_BUTTON_TOGGLED_COLOR
                         : this.hovered == toggleRegion ? BookGeometry.STRUCTURE_BUTTON_HOVER_COLOR
                                 : BookGeometry.STRUCTURE_BUTTON_COLOR;
-                setColor(graphics, tint);
                 chromeBlit(graphics, TEX_BOOK, x + toggleRegion.dx(), y + toggleRegion.dy(),
                         BookGeometry.REFRESH_U, BookGeometry.REFRESH_V,
-                        BookGeometry.REFRESH_SIZE, BookGeometry.REFRESH_SIZE);
-                graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+                        BookGeometry.REFRESH_SIZE, BookGeometry.REFRESH_SIZE, tint);
             }
         }, regions));
     }
@@ -664,7 +659,7 @@ public class BookScreen extends Screen {
      * leaves; only the description/properties tail ever spills onto a continuation leaf.
      */
     private void toolBlocks(List<Block> blocks, Item tool) {
-        titleBlock(blocks, tool.getDescription());
+        titleBlock(blocks, Component.translatable(tool.getDescriptionId()));
         ToolAssemblyRecipes.ENTRIES.stream()
                 .filter(entry -> entry.tool().get() == tool)
                 .findFirst()
@@ -684,7 +679,7 @@ public class BookScreen extends Screen {
      * the one-slot plate, the recipe's reagent items cycling in the slot and naming themselves on
      * hover ({@code ElementItem}'s default tooltip).
      */
-    private void modifierBlocks(List<Block> blocks, ResourceLocation id) {
+    private void modifierBlocks(List<Block> blocks, Identifier id) {
         String base = "modifier." + id.getNamespace() + "." + id.getPath();
         titleBlock(blocks, Component.translatable(base + ".name")
                 .withStyle(Style.EMPTY.withColor(ForgeweaveModifiers.color(id))));
@@ -706,7 +701,7 @@ public class BookScreen extends Screen {
         }
         Component head = Component.translatable(titleKey).withStyle(ChatFormatting.UNDERLINE);
         blocks.add(new Block(this.font.lineHeight + 4, (graphics, x, y) ->
-                graphics.drawString(this.font, head, x, y + 2, TITLE_COLOR, false)));
+                graphics.text(this.font, head, x, y + 2, TITLE_COLOR, false)));
         for (int i = 0; I18n.exists(keyOf.apply(i)); i++) {
             bodyBlocks(blocks, Component.literal("● ").append(Component.translatable(keyOf.apply(i))));
         }
@@ -736,10 +731,12 @@ public class BookScreen extends Screen {
             spriteBlit(graphics, ModifyPageContent.TABLE,
                     x + sx + (ModifyPageContent.SLOTS.w() - ModifyPageContent.TABLE.w()) / 2, y + toolDy, 0xFFFFFF);
             spriteBlit(graphics, ModifyPageContent.SLOTS, x + sx, y, ModifyPageContent.SLOT_COLOR);
-            graphics.renderItem(demo, x + toolDx, y + toolDy);
+            // The plate goes down before the tool: 26.1's GUI draws in submission order, so an item
+            // no longer floats above a sprite blitted after it the way 1.21.1's item depth did.
             spriteBlit(graphics, ModifyPageContent.SLOT_1, x + toolDx - 3, y + toolDy - 3, 0xFFFFFF);
+            graphics.item(demo, x + toolDx, y + toolDy);
             for (int i = 0; i < partStacks.size() && i < ModifyPageContent.TOOL_SLOT_X.length; i++) {
-                graphics.renderItem(partStacks.get(i), x + toolDx + ModifyPageContent.TOOL_SLOT_X[i],
+                graphics.item(partStacks.get(i), x + toolDx + ModifyPageContent.TOOL_SLOT_X[i],
                         y + toolDy + ModifyPageContent.TOOL_SLOT_Y[i]);
             }
         }));
@@ -755,7 +752,7 @@ public class BookScreen extends Screen {
      * naming itself on hover; the legacy OR reading still draws a single slot whose accepted items
      * cycle together, exactly as before {@link ModifierRecipe#reagentSlotCount} existed.
      */
-    private void modifierDiagramBlock(List<Block> blocks, ResourceLocation id) {
+    private void modifierDiagramBlock(List<Block> blocks, Identifier id) {
         List<List<ItemStack>> reagentSlots = modifierReagentSlots(id);
         Sprite slot = ModifyPageContent.modifierSlotSprite(reagentSlots.size());
         int sx = (PAGE_TEXT_W - slot.w()) / 2;
@@ -773,12 +770,12 @@ public class BookScreen extends Screen {
             spriteBlit(graphics, ModifyPageContent.TABLE, x + sx + (slot.w() - ModifyPageContent.TABLE.w()) / 2,
                     y + 3, 0xFFFFFF);
             spriteBlit(graphics, slot, x + sx, y + slotDy, ModifyPageContent.SLOT_COLOR);
-            graphics.renderItem(demo, x + sx + (slot.w() - ITEM_SIZE) / 2, y + 3);
-            spriteBlit(graphics, ModifyPageContent.SLOT_1, x + sx, y, 0xFFFFFF);
+            spriteBlit(graphics, ModifyPageContent.SLOT_1, x + sx, y, 0xFFFFFF); // under the tool, see toolDiagramBlock
+            graphics.item(demo, x + sx + (slot.w() - ITEM_SIZE) / 2, y + 3);
             for (int i = 0; i < reagentSlots.size(); i++) {
                 List<ItemStack> stacks = reagentSlots.get(i);
                 if (!stacks.isEmpty()) {
-                    graphics.renderItem(cycled(stacks), x + sx + ModifyPageContent.MODIFIER_SLOT_X[i],
+                    graphics.item(cycled(stacks), x + sx + ModifyPageContent.MODIFIER_SLOT_X[i],
                             y + slotDy + ModifyPageContent.MODIFIER_SLOT_Y[i]);
                 }
             }
@@ -798,7 +795,7 @@ public class BookScreen extends Screen {
     private ItemStack demoTool(ToolAssemblyRecipes.Entry entry) {
         HolderLookup.Provider registries = registries();
         if (registries != null) {
-            List<ResourceLocation> materials = new ArrayList<>();
+            List<Identifier> materials = new ArrayList<>();
             for (int i = 0; i < entry.slotCount(); i++) {
                 materials.add(ModifyPageContent.demoMaterial(entry.part(i).kind(), i));
             }
@@ -820,7 +817,7 @@ public class BookScreen extends Screen {
      * dev.gkissel.forgeweave.modifier.ModifierApplication#acceptsToolShape} -- the Tool Station's own
      * gate -- so the picked entry is compatible by construction.
      */
-    private ItemStack modifierDemoTool(ResourceLocation id) {
+    private ItemStack modifierDemoTool(Identifier id) {
         Modifier modifier = ForgeweaveModifiers.get(id);
         ToolAssemblyRecipes.Entry entry =
                 ModifyPageContent.representativeEntry(registries(), modifier != null ? modifier : new Modifier() {});
@@ -834,11 +831,11 @@ public class BookScreen extends Screen {
      * {@code IModifierDisplay#getItems}. Empty outside a loaded world, which leaves every slot empty
      * exactly as upstream leaves a modifier with no display items.
      */
-    private List<List<ItemStack>> modifierReagentSlots(ResourceLocation id) {
+    private List<List<ItemStack>> modifierReagentSlots(Identifier id) {
         if (this.minecraft == null || this.minecraft.level == null) {
             return List.of();
         }
-        return this.minecraft.level.registryAccess().registryOrThrow(ModifierRecipe.REGISTRY).stream()
+        return this.minecraft.level.registryAccess().lookupOrThrow(ModifierRecipe.REGISTRY).stream()
                 .filter(recipe -> recipe.modifier().equals(id))
                 .findFirst()
                 .map(BookScreen::reagentSlotsOf)
@@ -856,25 +853,21 @@ public class BookScreen extends Screen {
         if (recipe.requireAllReagents()) {
             List<List<ItemStack>> slots = new ArrayList<>();
             for (ModifierRecipe.Reagent reagent : recipe.reagents()) {
-                slots.add(List.of(reagent.ingredient().getItems()));
+                slots.add(reagent.ingredient().items().map(ItemStack::new).toList());
             }
             return slots;
         }
         List<ItemStack> cycling = new ArrayList<>();
         for (ModifierRecipe.Reagent reagent : recipe.reagents()) {
-            Collections.addAll(cycling, reagent.ingredient().getItems());
+            reagent.ingredient().items().map(ItemStack::new).forEach(cycling::add);
         }
         return List.of(cycling);
     }
 
     /** A tinted region blit from the modify sheet -- {@code ElementImage} with a colour. */
-    private static void spriteBlit(GuiGraphics graphics, Sprite sprite, int x, int y, int tint) {
-        setColor(graphics, tint);
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        graphics.blit(TEX_MODIFY, x, y, sprite.u(), sprite.v(), sprite.w(), sprite.h(),
-                ModifyPageContent.TEX_SIZE, ModifyPageContent.TEX_SIZE);
-        graphics.setColor(1.0F, 1.0F, 1.0F, 1.0F);
+    private static void spriteBlit(GuiGraphicsExtractor graphics, Sprite sprite, int x, int y, int tint) {
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEX_MODIFY, x, y, sprite.u(), sprite.v(), sprite.w(), sprite.h(),
+                ModifyPageContent.TEX_SIZE, ModifyPageContent.TEX_SIZE, opaque(tint));
     }
 
     /**
@@ -886,8 +879,8 @@ public class BookScreen extends Screen {
      * the section's first page; hovering names the section ({@code ElementSection#drawOverlay}).
      * One indivisible block: the whole grid always fits one leaf.
      *
-     * <p>Deviation: upstream dims an unhovered icon to 50% alpha; {@code GuiGraphics#renderItem}
-     * takes no colour multiplier in 1.21, so only the hover wash and text colours survive -- the
+     * <p>Deviation: upstream dims an unhovered icon to 50% alpha; {@code GuiGraphicsExtractor#item}
+     * takes no colour multiplier in 26.1, so only the hover wash and text colours survive -- the
      * same recorded limitation as the material grid's icons.
      */
     private void sectionListBlock(List<Block> blocks, List<BookLink> links, int sectionStartPage) {
@@ -919,23 +912,23 @@ public class BookScreen extends Screen {
                     graphics.fill(iconX, iconY, iconX + icon, iconY + icon, HOVER_COLOR);
                 }
                 ItemStack stack = link.icon() == null ? ItemStack.EMPTY : link.icon().get();
-                graphics.pose().pushPose();
-                graphics.pose().translate(iconX, iconY, 0.0F);
-                graphics.pose().scale(2.0F, 2.0F, 1.0F);
-                graphics.renderItem(stack, 0, 0);
-                graphics.pose().popPose();
+                graphics.pose().pushMatrix();
+                graphics.pose().translate(iconX, iconY);
+                graphics.pose().scale(2.0F, 2.0F);
+                graphics.item(stack, 0, 0);
+                graphics.pose().popMatrix();
                 if (this.appearance.drawSectionListText()) {
                     // Playtest 1.0.0 line 98: "Introduction" is 62px and ran into "Smeltery", so a
                     // label wider than its column shrinks to fit it, around the same centre.
                     Component label = Component.translatable(link.labelKey());
                     int labelWidth = this.font.width(label);
                     float labelScale = BookLayout.fitScale(labelWidth, pitch, 1.0F);
-                    graphics.pose().pushPose();
-                    graphics.pose().translate(cellX + cell / 2.0F, cellY + cell - this.font.lineHeight / 2.0F, 0.0F);
-                    graphics.pose().scale(labelScale, labelScale, 1.0F);
-                    graphics.drawString(this.font, label, -labelWidth / 2, 0,
+                    graphics.pose().pushMatrix();
+                    graphics.pose().translate(cellX + cell / 2.0F, cellY + cell - this.font.lineHeight / 2.0F);
+                    graphics.pose().scale(labelScale, labelScale);
+                    graphics.text(this.font, label, -labelWidth / 2, 0,
                             over ? 0xFF000000 : 0x7F000000, false);
-                    graphics.pose().popPose();
+                    graphics.pose().popMatrix();
                 }
             }
         }, cells));
@@ -960,8 +953,8 @@ public class BookScreen extends Screen {
             blocks.add(new Block(this.font.lineHeight + 1, (graphics, x, y) -> {
                 boolean over = this.hovered == region;
                 String bullet = over ? " > " : "- ";
-                graphics.drawString(this.font, bullet, x, y, LINK_COLOR, false);
-                graphics.drawString(this.font, label, x + this.font.width(bullet), y,
+                graphics.text(this.font, bullet, x, y, LINK_COLOR, false);
+                graphics.text(this.font, label, x + this.font.width(bullet), y,
                         over ? LINK_COLOR : TEXT_COLOR, false);
             }, List.of(region)));
             // Issue #1104: a row may carry a sentence under it -- the materials chapter's stage
@@ -983,8 +976,8 @@ public class BookScreen extends Screen {
      * rather than onto upstream's hand-counted {@code getPagesNeededForItemCount} overview pages,
      * and the cells stay at scale 1 -- which is what upstream's own scale search settles on the
      * moment a grid needs more than one page, as Forgeweave's material roster does. Upstream also
-     * dims an unhovered icon to 50% alpha; {@code GuiGraphics#renderItem} takes no colour
-     * multiplier in 1.21, so only the hover wash survives.
+     * dims an unhovered icon to 50% alpha; {@code GuiGraphicsExtractor#item} takes no colour
+     * multiplier in 26.1, so only the hover wash survives.
      */
     private void iconGridBlocks(List<Block> blocks, String titleKey, List<BookLink> links, int sectionStartPage) {
         titleBlock(blocks, Component.translatable(titleKey));
@@ -1007,7 +1000,7 @@ public class BookScreen extends Screen {
                     if (this.hovered == row.get(i)) {
                         graphics.fill(cellX, y, cellX + GRID_CELL, y + GRID_CELL, HOVER_COLOR);
                     }
-                    graphics.renderItem(stacks.get(i), cellX + 2, y + 2);
+                    graphics.item(stacks.get(i), cellX + 2, y + 2);
                 }
             }, row));
         }
@@ -1057,7 +1050,7 @@ public class BookScreen extends Screen {
         MaterialPageContent.madeFrom(registries, page.id(), page.material()).ifPresent(made -> {
             Component header = Component.translatable(made.headerKey()).withStyle(ChatFormatting.UNDERLINE);
             blocks.add(new Block(this.font.lineHeight + 4, (graphics, x, y) ->
-                    graphics.drawString(this.font, header, x, y + 2, TITLE_COLOR, false)));
+                    graphics.text(this.font, header, x, y + 2, TITLE_COLOR, false)));
             for (MaterialPageContent.Source source : made.sources()) {
                 blocks.add(sourceRowBlock(source));
             }
@@ -1071,12 +1064,12 @@ public class BookScreen extends Screen {
         Region region = Region.of(0, 0, 10 + this.font.width(source.label()), this.font.lineHeight,
                 target, null);
         return new Block(this.font.lineHeight + 2, (graphics, x, y) -> {
-            graphics.pose().pushPose();
-            graphics.pose().translate(x, y, 0.0F);
-            graphics.pose().scale(0.5F, 0.5F, 1.0F);
-            graphics.renderItem(source.icon(), 0, 0);
-            graphics.pose().popPose();
-            graphics.drawString(this.font, source.label(), x + 10, y,
+            graphics.pose().pushMatrix();
+            graphics.pose().translate(x, y);
+            graphics.pose().scale(0.5F, 0.5F);
+            graphics.item(source.icon(), 0, 0);
+            graphics.pose().popMatrix();
+            graphics.text(this.font, source.label(), x + 10, y,
                     target == NO_TARGET ? TEXT_COLOR : this.hovered == region ? LINK_COLOR : TEXT_COLOR, false);
         }, List.of(region));
     }
@@ -1096,15 +1089,15 @@ public class BookScreen extends Screen {
             Component header = Component.translatable(MaterialPageContent.TRAIT_GRANTED_BY)
                     .withStyle(ChatFormatting.UNDERLINE);
             blocks.add(new Block(this.font.lineHeight + 4, (graphics, x, y) ->
-                    graphics.drawString(this.font, header, x, y + 2, TITLE_COLOR, false)));
-            for (ResourceLocation material : rung.materials()) {
+                    graphics.text(this.font, header, x, y + 2, TITLE_COLOR, false)));
+            for (Identifier material : rung.materials()) {
                 blocks.add(materialRowBlock(material));
             }
         }
     }
 
     /** One material row of a trait entry: a listing row that jumps to that material's page. */
-    private Block materialRowBlock(ResourceLocation material) {
+    private Block materialRowBlock(Identifier material) {
         Component label = Component.translatable(
                 "material." + material.getNamespace() + "." + material.getPath());
         int target = this.materialPages.getOrDefault(material, NO_TARGET);
@@ -1112,8 +1105,8 @@ public class BookScreen extends Screen {
         return new Block(this.font.lineHeight + 1, (graphics, x, y) -> {
             boolean over = this.hovered == region;
             String bullet = over ? " > " : "- ";
-            graphics.drawString(this.font, bullet, x, y, LINK_COLOR, false);
-            graphics.drawString(this.font, label, x + this.font.width(bullet), y,
+            graphics.text(this.font, bullet, x, y, LINK_COLOR, false);
+            graphics.text(this.font, label, x + this.font.width(bullet), y,
                     over ? LINK_COLOR : TEXT_COLOR, false);
         }, List.of(region));
     }
@@ -1146,7 +1139,7 @@ public class BookScreen extends Screen {
         }
         blocks.add(new Block(ITEM_SIZE + 4, (graphics, x, y) -> {
             for (int i = 0; i < bar.size(); i++) {
-                graphics.renderItem(bar.get(i).stack(), x + i * ITEM_SIZE, y);
+                graphics.item(bar.get(i).stack(), x + i * ITEM_SIZE, y);
             }
         }, List.copyOf(regions)));
     }
@@ -1162,13 +1155,13 @@ public class BookScreen extends Screen {
         blocks.add(new Block(this.font.lineHeight + 4, (graphics, x, y) -> {
             if (!parts.isEmpty()) {
                 ItemStack part = parts.get((this.frame / MaterialPageContent.ITEM_SWITCH_TICKS) % parts.size());
-                graphics.pose().pushPose();
-                graphics.pose().translate(x, y + 1.0F, 0.0F);
-                graphics.pose().scale(0.5F, 0.5F, 1.0F);
-                graphics.renderItem(part, 0, 0);
-                graphics.pose().popPose();
+                graphics.pose().pushMatrix();
+                graphics.pose().translate(x, y + 1.0F);
+                graphics.pose().scale(0.5F, 0.5F);
+                graphics.item(part, 0, 0);
+                graphics.pose().popMatrix();
             }
-            graphics.drawString(this.font, name, x + 10, y + 1, TITLE_COLOR, false);
+            graphics.text(this.font, name, x + 10, y + 1, TITLE_COLOR, false);
         }));
         for (Component stat : group.stats()) {
             blocks.add(hoverLineBlock(stat, TEXT_COLOR));
@@ -1186,7 +1179,7 @@ public class BookScreen extends Screen {
      * marks, and nothing at all when the language file defines no such string -- which upstream's own
      * book does for every material but wood and stone.
      */
-    private void flavourBlocks(List<Block> blocks, ResourceLocation id) {
+    private void flavourBlocks(List<Block> blocks, Identifier id) {
         String key = MaterialPageContent.flavourKey(id);
         if (!I18n.exists(key)) {
             return;
@@ -1208,7 +1201,7 @@ public class BookScreen extends Screen {
         blocks.add(new Block(lines.size() * this.font.lineHeight + 5, (graphics, x, y) -> {
             int cursor = y;
             for (FormattedCharSequence line : lines) {
-                graphics.drawString(this.font, line, x + (PAGE_TEXT_W - this.font.width(line)) / 2, cursor,
+                graphics.text(this.font, line, x + (PAGE_TEXT_W - this.font.width(line)) / 2, cursor,
                         TITLE_COLOR, false);
                 cursor += this.font.lineHeight;
             }
@@ -1219,13 +1212,13 @@ public class BookScreen extends Screen {
     private void bodyBlocks(List<Block> blocks, Component text) {
         for (FormattedCharSequence line : this.font.split(text, PAGE_TEXT_W)) {
             blocks.add(new Block(this.font.lineHeight + 1,
-                    (graphics, x, y) -> graphics.drawString(this.font, line, x, y, TEXT_COLOR, false)));
+                    (graphics, x, y) -> graphics.text(this.font, line, x, y, TEXT_COLOR, false)));
         }
     }
 
     private Block lineBlock(Component line, int color) {
         return new Block(this.font.lineHeight + 1,
-                (graphics, x, y) -> graphics.drawString(this.font, line, x, y, color, false));
+                (graphics, x, y) -> graphics.text(this.font, line, x, y, color, false));
     }
 
     /**
@@ -1239,8 +1232,8 @@ public class BookScreen extends Screen {
 
     /** As above, and a jump to {@code targetPage} when the line is also a cross-reference (#1104). */
     private Block hoverLineBlock(Component line, int color, int targetPage) {
-        Component tooltip = line.getStyle().getHoverEvent() == null ? null
-                : line.getStyle().getHoverEvent().getValue(HoverEvent.Action.SHOW_TEXT);
+        Component tooltip = line.getStyle().getHoverEvent() instanceof HoverEvent.ShowText(Component text)
+                ? text : null;
         Block block = lineBlock(line, color);
         return tooltip == null && targetPage == NO_TARGET ? block
                 : new Block(block.height(), block.drawer(), List.of(Region.of(
@@ -1274,8 +1267,10 @@ public class BookScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        if (event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
             boolean cover = this.spread < 0;
             if (hasNext() && over(mouseX, mouseY, BookGeometry.nextArrowX(this.width, cover),
                     BookGeometry.arrowY(this.height), BookGeometry.ARROW_W, BookGeometry.ARROW_H)) {
@@ -1323,17 +1318,17 @@ public class BookScreen extends Screen {
                 }
             }
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     /** Upstream {@code ElementStructure#mouseReleased}: letting go of the button ends the drag. */
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+    public boolean mouseReleased(MouseButtonEvent event) {
         if (this.draggedStructure != null) {
             this.draggedStructure.endDrag();
             this.draggedStructure = null;
         }
-        return super.mouseReleased(mouseX, mouseY, button);
+        return super.mouseReleased(event);
     }
 
     /**
@@ -1347,7 +1342,8 @@ public class BookScreen extends Screen {
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyEvent event) {
+        int keyCode = event.key();
         // Upstream binds A/D alongside the arrow keys (GuiBook.keyTyped).
         if ((keyCode == GLFW.GLFW_KEY_RIGHT || keyCode == GLFW.GLFW_KEY_D) && hasNext()) {
             turnTo(this.spread + 1);
@@ -1357,7 +1353,7 @@ public class BookScreen extends Screen {
             turnTo(this.spread - 1);
             return true;
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(event);
     }
 
     /** Upstream turns pages on the wheel: scroll down is next, scroll up is previous. */

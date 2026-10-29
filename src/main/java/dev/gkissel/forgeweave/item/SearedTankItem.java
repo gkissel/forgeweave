@@ -1,5 +1,8 @@
 package dev.gkissel.forgeweave.item;
 
+import java.util.function.Consumer;
+import net.minecraft.world.item.component.TooltipDisplay;
+
 import java.util.List;
 
 import net.minecraft.ChatFormatting;
@@ -27,14 +30,15 @@ public class SearedTankItem extends BlockItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
+            Consumer<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, tooltip, flag);
         SimpleFluidContent content = stack.get(ForgeweaveDataComponents.FLUID_CONTENT.get());
         if (content == null || content.isEmpty()) {
             return;
         }
-        tooltip.add(content.copy().getHoverName().copy().withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.forgeweave.tank.amount", content.getAmount())
+        tooltip.accept(content.copy().getHoverName().copy().withStyle(ChatFormatting.GRAY));
+        tooltip.accept(Component.translatable("tooltip.forgeweave.tank.amount", content.getAmount())
                 .withStyle(ChatFormatting.GRAY));
     }
 }

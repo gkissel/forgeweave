@@ -29,7 +29,7 @@ final class ToolLevelFeedback {
     static void onLevelUp(ItemStack stack, int level, ServerPlayer player) {
         player.level().playSound(null, player.blockPosition(), ForgeweaveSounds.TOOL_LEVEL_UP.get(),
                 SoundSource.PLAYERS, 1.0F, 1.0F);
-        player.displayClientMessage(message(stack, level), false);
+        player.sendSystemMessage(message(stack, level));
     }
 
     /**

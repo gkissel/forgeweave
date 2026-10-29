@@ -4,7 +4,7 @@ import java.util.function.Consumer;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
@@ -79,7 +79,7 @@ public final class CreateMaterialTraits {
 
     public static final Trait CRYSTAL_WARD = new Trait() {
         private final Protection protection = Protection.against(TagKey.create(Registries.DAMAGE_TYPE,
-                ResourceLocation.fromNamespaceAndPath("forgeweave", "magic_protection")), 1.0F);
+                Identifier.fromNamespaceAndPath("forgeweave", "magic_protection")), 1.0F);
 
         @Override
         public void onDefend(CombatDefense defense, DefendedBlow blow) {
@@ -91,7 +91,7 @@ public final class CreateMaterialTraits {
             double amount, AttributeModifier.Operation operation) {
         return new Trait() {
             @Override
-            public void armorAttributes(ResourceLocation id, EquipmentSlot slot, ItemAttributeModifiers.Builder out) {
+            public void armorAttributes(Identifier id, EquipmentSlot slot, ItemAttributeModifiers.Builder out) {
                 out.add(attribute, new AttributeModifier(id, amount, operation), EquipmentSlotGroup.bySlot(slot));
             }
         };

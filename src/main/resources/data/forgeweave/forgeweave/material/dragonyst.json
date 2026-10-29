@@ -52,21 +52,17 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:dusts/dragonyst"
-      },
+      "ingredient": "#c:dusts/dragonyst",
       "value": 36
     }
   ],
-  "repair_item": {
-    "tag": "c:dusts/dragonyst"
-  },
+  "repair_item": "#c:dusts/dragonyst",
   "enchantability": 14,
   "color": "#7A2E8C",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "occultism:dragonyst_dust"
+      "type": "neoforge:registered",
+      "value": "occultism:dragonyst_dust"
     }
   ]
 }

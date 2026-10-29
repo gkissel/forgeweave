@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_scythe_head"
-  },
+  "cast": "forgeweave:clay_cast_scythe_head",
   "fluid": "forgeweave:molten_allthemodium",
   "amount": 1152,
   "result": {
@@ -14,8 +12,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "allthemodium:allthemodium_ingot"
+      "type": "neoforge:registered",
+      "value": "allthemodium:allthemodium_ingot"
     }
   ]
 }

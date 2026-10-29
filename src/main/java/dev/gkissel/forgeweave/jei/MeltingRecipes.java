@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
@@ -23,7 +23,7 @@ import dev.gkissel.forgeweave.recipe.SmelteryFuel;
  * more specific overrides contributes no display recipe at all.
  */
 final class MeltingRecipes {
-    static List<MeltingDisplay> build(Map<ResourceLocation, MeltingRecipe> recipes, Map<ResourceLocation, SmelteryFuel> fuels) {
+    static List<MeltingDisplay> build(Map<Identifier, MeltingRecipe> recipes, Map<Identifier, SmelteryFuel> fuels) {
         List<MeltingDisplay> displays = new ArrayList<>();
         for (MeltingRecipe recipe : recipes.values()) {
             List<ItemStack> inputs = wonInputs(recipes, recipe);
@@ -37,7 +37,7 @@ final class MeltingRecipes {
     }
 
     /** Issue #893: upstream's own fuel filter -- every registered fuel hot enough to reach this recipe. */
-    private static List<SmelteryFuel> acceptedFuels(Map<ResourceLocation, SmelteryFuel> fuels, int temperature) {
+    private static List<SmelteryFuel> acceptedFuels(Map<Identifier, SmelteryFuel> fuels, int temperature) {
         List<SmelteryFuel> accepted = new ArrayList<>();
         for (SmelteryFuel fuel : fuels.values()) {
             if (fuel.temperature() >= temperature) {
@@ -47,9 +47,9 @@ final class MeltingRecipes {
         return accepted;
     }
 
-    private static List<ItemStack> wonInputs(Map<ResourceLocation, MeltingRecipe> recipes, MeltingRecipe recipe) {
+    private static List<ItemStack> wonInputs(Map<Identifier, MeltingRecipe> recipes, MeltingRecipe recipe) {
         List<ItemStack> inputs = new ArrayList<>();
-        for (ItemStack candidate : recipe.input().getItems()) {
+        for (ItemStack candidate : IngredientStacks.of(recipe.input())) {
             if (MeltingRecipe.resolve(recipes, candidate).orElse(null) == recipe) {
                 inputs.add(candidate);
             }

@@ -50,34 +50,26 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "forgeweave:starweld_ingot"
-      },
+      "ingredient": "forgeweave:starweld_ingot",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "forgeweave:starweld_nugget"
-      },
+      "ingredient": "forgeweave:starweld_nugget",
       "value": 16
     },
     {
-      "ingredient": {
-        "item": "forgeweave:starweld_block"
-      },
+      "ingredient": "forgeweave:starweld_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/starweld"
-  },
+  "repair_item": "#c:ingots/starweld",
   "cast_only": true,
   "enchantability": 20,
   "color": "#2832D2",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "draconicevolution:awakened_core"
+      "type": "neoforge:registered",
+      "value": "draconicevolution:awakened_core"
     }
   ]
 }

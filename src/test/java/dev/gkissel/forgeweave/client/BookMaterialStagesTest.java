@@ -28,13 +28,14 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.material.Fluids;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.client.book.BookContent;
 import dev.gkissel.forgeweave.client.book.BookLink;
 import dev.gkissel.forgeweave.client.book.BookMaterialOrder;
@@ -69,8 +70,7 @@ class BookMaterialStagesTest {
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(JsonOps.INSTANCE,
-                RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(JsonOps.INSTANCE);
     }
 
     private static Path projectRoot() {
@@ -95,14 +95,14 @@ class BookMaterialStagesTest {
         return List.copyOf(parsed);
     }
 
-    private static List<Map.Entry<ResourceLocation, Material>> shippedMaterials() throws Exception {
+    private static List<Map.Entry<Identifier, Material>> shippedMaterials() throws Exception {
         Path dir = projectRoot().resolve("src/main/resources/data/forgeweave/forgeweave/material");
-        List<Map.Entry<ResourceLocation, Material>> materials = new ArrayList<>();
+        List<Map.Entry<Identifier, Material>> materials = new ArrayList<>();
         try (Stream<Path> files = Files.list(dir)) {
             for (Path file : files.filter(p -> p.toString().endsWith(".json")).sorted().toList()) {
                 String name = file.getFileName().toString().replace(".json", "");
                 JsonElement json = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8));
-                materials.add(Map.entry(ResourceLocation.fromNamespaceAndPath("forgeweave", name),
+                materials.add(Map.entry(Identifier.fromNamespaceAndPath("forgeweave", name),
                         Material.CODEC.parse(ops, json).getOrThrow()));
             }
         }
@@ -132,13 +132,13 @@ class BookMaterialStagesTest {
 
     @Test
     void everyShippedMaterialLandsInExactlyOneStage() throws Exception {
-        List<Map.Entry<ResourceLocation, Material>> materials = shippedMaterials();
+        List<Map.Entry<Identifier, Material>> materials = shippedMaterials();
         assertTrue(materials.size() >= 200, "non-vacuity: expected the real roster, saw " + materials.size());
 
         BookSection chapter = section(shippedBook(), "materials");
         ListingPage ladder = assertInstanceOf(ListingPage.class, chapter.pages().get(0));
 
-        Set<ResourceLocation> seen = new HashSet<>();
+        Set<Identifier> seen = new HashSet<>();
         for (BookLink row : stageRows(chapter, ladder)) {
             for (BookLink icon : ((IconGridPage) chapter.pages().get(row.targetPage())).links()) {
                 MaterialPage page = (MaterialPage) chapter.pages().get(icon.targetPage());
@@ -157,7 +157,7 @@ class BookMaterialStagesTest {
     @Test
     void theStageRuleReadsTheRungAndTheAlloyDepth() throws Exception {
         MaterialStage.Lookup lookup = shippedLookup();
-        Map<ResourceLocation, Material> materials = new java.util.HashMap<>();
+        Map<Identifier, Material> materials = new java.util.HashMap<>();
         shippedMaterials().forEach(entry -> materials.put(entry.getKey(), entry.getValue()));
 
         assertEquals(MaterialStage.FIRST_DAY, stageOf(lookup, materials, "wood"),
@@ -169,17 +169,17 @@ class BookMaterialStagesTest {
 
         // The netherite rung held 64 materials, a third of the roster, which is the split the alloy
         // bump exists for: cobalt is mined and poured, manyullyn is a second load on top of it.
-        assertEquals(0, lookup.depthOf(ResourceLocation.fromNamespaceAndPath("forgeweave", "cobalt")),
+        assertEquals(0, lookup.depthOf(Identifier.fromNamespaceAndPath("forgeweave", "cobalt")),
                 "cobalt is an ore, not an alloy");
         assertFalse(stageOf(lookup, materials, "cobalt") == stageOf(lookup, materials, "manyullyn"),
                 "a mined netherite-rung ore and an alloy made out of it must not share a stage");
-        assertTrue(lookup.depthOf(ResourceLocation.fromNamespaceAndPath("forgeweave", "glowveil")) >= 2,
+        assertTrue(lookup.depthOf(Identifier.fromNamespaceAndPath("forgeweave", "glowveil")) >= 2,
                 "glowveil is an alloy of alloys (dreadalloy + sparkalloy + brimspar)");
     }
 
-    private static MaterialStage stageOf(MaterialStage.Lookup lookup, Map<ResourceLocation, Material> materials,
+    private static MaterialStage stageOf(MaterialStage.Lookup lookup, Map<Identifier, Material> materials,
             String name) {
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath("forgeweave", name);
+        Identifier id = Identifier.fromNamespaceAndPath("forgeweave", name);
         Material material = materials.get(id);
         assertNotNull(material, "missing shipped material " + name);
         return lookup.of(id, material);
@@ -195,11 +195,11 @@ class BookMaterialStagesTest {
      */
     @Test
     void theShippedStageTagPutsAtomicMatterAlloyLast() throws Exception {
-        Map<ResourceLocation, MaterialStage> overrides = shippedStageTags();
+        Map<Identifier, MaterialStage> overrides = shippedStageTags();
         assertFalse(overrides.isEmpty(), "no shipped stage tag found under data/forgeweave/tags/forgeweave/material");
 
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath("forgeweave", "atomic_matter_alloy");
-        Map<ResourceLocation, Material> materials = new java.util.HashMap<>();
+        Identifier id = Identifier.fromNamespaceAndPath("forgeweave", "atomic_matter_alloy");
+        Map<Identifier, Material> materials = new java.util.HashMap<>();
         shippedMaterials().forEach(entry -> materials.put(entry.getKey(), entry.getValue()));
         MaterialStage.Lookup derived = shippedLookup();
 
@@ -212,7 +212,7 @@ class BookMaterialStagesTest {
         // Playtest 1.0.0 line 102: in the right stage but listed first in it, ahead of truesteel,
         // because its ingot is Forgeweave's own item and "atomic" sorts early by id.
         MaterialStage.Lookup shipped = new MaterialStage.Lookup(overrides, shippedLookup().alloyDepth());
-        List<Map.Entry<ResourceLocation, Material>> endgame = BookMaterialOrder.byStage(shippedMaterials(), shipped)
+        List<Map.Entry<Identifier, Material>> endgame = BookMaterialOrder.byStage(shippedMaterials(), shipped)
                 .stream().filter(stage -> stage.stage() == MaterialStage.ENDGAME).findFirst().orElseThrow()
                 .materials();
         assertTrue(endgame.size() > 1, "non-vacuity: the endgame stage holds more than atomic matter alloy");
@@ -221,9 +221,9 @@ class BookMaterialStagesTest {
     }
 
     /** Every {@code forgeweave:stage/<id>} material tag the mod's own datapack ships. */
-    private static Map<ResourceLocation, MaterialStage> shippedStageTags() throws Exception {
+    private static Map<Identifier, MaterialStage> shippedStageTags() throws Exception {
         Path dir = projectRoot().resolve("src/main/resources/data/forgeweave/tags/forgeweave/material/stage");
-        Map<ResourceLocation, MaterialStage> overrides = new java.util.HashMap<>();
+        Map<Identifier, MaterialStage> overrides = new java.util.HashMap<>();
         if (!Files.isDirectory(dir)) {
             return overrides;
         }
@@ -234,14 +234,14 @@ class BookMaterialStagesTest {
             }
             JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8))
                     .getAsJsonObject().getAsJsonArray("values")
-                    .forEach(value -> overrides.put(ResourceLocation.parse(value.getAsString()), stage));
+                    .forEach(value -> overrides.put(Identifier.parse(value.getAsString()), stage));
         }
         return overrides;
     }
 
     @Test
     void aStageTagOverridesTheDerivedStage() throws Exception {
-        Map.Entry<ResourceLocation, Material> wood = shippedMaterials().stream()
+        Map.Entry<Identifier, Material> wood = shippedMaterials().stream()
                 .filter(entry -> entry.getKey().getPath().equals("wood")).findFirst().orElseThrow();
         MaterialStage.Lookup overridden =
                 new MaterialStage.Lookup(Map.of(wood.getKey(), MaterialStage.ENDGAME), Map.of());
@@ -252,11 +252,11 @@ class BookMaterialStagesTest {
 
     @Test
     void theChapterOrderIsDeterministicAndGroupsCompatMaterialsLast() throws Exception {
-        List<ResourceLocation> once = chapterOrder();
+        List<Identifier> once = chapterOrder();
         assertEquals(once, chapterOrder(), "the same data must produce the same chapter twice");
 
         MaterialStage.Lookup lookup = shippedLookup();
-        Map<ResourceLocation, Material> byId = new java.util.HashMap<>();
+        Map<Identifier, Material> byId = new java.util.HashMap<>();
         shippedMaterials().forEach(entry -> byId.put(entry.getKey(), entry.getValue()));
 
         // The documented key order: stage, then ranged-only last, then moved there by a stage tag,
@@ -270,7 +270,7 @@ class BookMaterialStagesTest {
         }
     }
 
-    private static List<ResourceLocation> chapterOrder() throws Exception {
+    private static List<Identifier> chapterOrder() throws Exception {
         return section(shippedBook(), "materials").pages().stream()
                 .filter(MaterialPage.class::isInstance)
                 .map(page -> ((MaterialPage) page).id())
@@ -278,7 +278,7 @@ class BookMaterialStagesTest {
     }
 
     private static List<Comparable<?>> sortKey(MaterialStage.Lookup lookup,
-            Map<ResourceLocation, Material> byId, ResourceLocation id) {
+            Map<Identifier, Material> byId, Identifier id) {
         Material material = byId.get(id);
         return List.of(lookup.of(id, material).ordinal(),
                 BookMaterialOrder.rangedOnly(material) ? 1 : 0,
@@ -322,17 +322,17 @@ class BookMaterialStagesTest {
 
     @Test
     void everyTraitAMaterialNamesGetsExactlyOneReferenceEntry() throws Exception {
-        List<Map.Entry<ResourceLocation, Material>> materials = shippedMaterials();
-        Set<ResourceLocation> named = new HashSet<>();
+        List<Map.Entry<Identifier, Material>> materials = shippedMaterials();
+        Set<Identifier> named = new HashSet<>();
         materials.forEach(entry -> named.addAll(entry.getValue().traits().all()));
         assertTrue(named.size() >= 100, "non-vacuity: expected the real trait roster, saw " + named.size());
 
-        Set<ResourceLocation> covered = new HashSet<>();
+        Set<Identifier> covered = new HashSet<>();
         for (BookTraits.Family family : BookTraits.families(materials)) {
             for (BookTraits.Rung rung : family.rungs()) {
                 assertTrue(covered.add(rung.id()), rung.id() + " appears in more than one family");
                 assertFalse(rung.materials().isEmpty(), rung.id() + " is listed with no material");
-                for (ResourceLocation material : rung.materials()) {
+                for (Identifier material : rung.materials()) {
                     assertTrue(materials.stream().anyMatch(entry -> entry.getKey().equals(material)
                                     && entry.getValue().traits().all().contains(rung.id())),
                             material + " is listed under " + rung.id() + " but does not grant it");
@@ -386,13 +386,13 @@ class BookMaterialStagesTest {
                 .filter(TraitPage.class::isInstance)
                 .map(page -> ((TraitPage) page).family().path())
                 .collect(java.util.stream.Collectors.toSet());
-        Set<ResourceLocation> pages = chapter.pages().stream()
+        Set<Identifier> pages = chapter.pages().stream()
                 .filter(MaterialPage.class::isInstance)
                 .map(page -> ((MaterialPage) page).id())
                 .collect(java.util.stream.Collectors.toSet());
         for (BookPage page : chapter.pages()) {
             if (page instanceof MaterialPage material) {
-                for (ResourceLocation trait : material.material().traits().all()) {
+                for (Identifier trait : material.material().traits().all()) {
                     assertTrue(families.contains(BookTraits.familyOf(trait)),
                             trait + " on " + material.id() + "'s page has no reference entry to link to");
                 }

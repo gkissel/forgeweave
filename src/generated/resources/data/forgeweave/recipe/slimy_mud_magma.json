@@ -2,27 +2,14 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "item": "forgeweave:magma_slime_ball"
-    },
-    {
-      "item": "forgeweave:magma_slime_ball"
-    },
-    {
-      "item": "minecraft:magma_cream"
-    },
-    {
-      "item": "minecraft:magma_cream"
-    },
-    {
-      "item": "minecraft:soul_sand"
-    },
-    {
-      "item": "minecraft:netherrack"
-    }
+    "forgeweave:magma_slime_ball",
+    "forgeweave:magma_slime_ball",
+    "minecraft:magma_cream",
+    "minecraft:magma_cream",
+    "minecraft:soul_sand",
+    "minecraft:netherrack"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:slimy_mud_magma"
   }
 }

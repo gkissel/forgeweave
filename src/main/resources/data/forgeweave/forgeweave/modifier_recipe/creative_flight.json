@@ -1,8 +1,8 @@
 {
   "modifier": "forgeweave:creative_flight",
   "reagents": [
-    {"ingredient": {"item": "minecraft:end_crystal"}},
-    {"ingredient": {"item": "minecraft:nether_star"}}
+    {"ingredient": "minecraft:end_crystal"},
+    {"ingredient": "minecraft:nether_star"}
   ],
   "require_all_reagents": true,
   "cost": 1,

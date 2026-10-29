@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "minecraft:ghast_tear"
-  },
+  "input": "minecraft:ghast_tear",
   "fluid": "forgeweave:molten_iron",
   "amount": 144,
   "temperature": 1600

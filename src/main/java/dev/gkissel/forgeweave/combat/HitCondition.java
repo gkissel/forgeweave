@@ -90,14 +90,14 @@ public enum HitCondition {
             case ARMORED -> hit.target().getArmorValue() > 0;
             case NOT_FIRE_IMMUNE -> !hit.target().fireImmune();
             case BURNING -> hit.target().isOnFire();
-            case UNDEAD -> hit.target().getType().is(EntityTypeTags.UNDEAD);
+            case UNDEAD -> hit.target().is(EntityTypeTags.UNDEAD);
             case BELOW_WIELDER_HEALTH -> hit.attacker() != null && hit.target().getHealth() < hit.attacker().getHealth();
             case HARMFUL_EFFECT -> hit.target().getActiveEffects().stream()
                     .anyMatch(effect -> effect.getEffect().value().getCategory() == MobEffectCategory.HARMFUL);
             case FULL_CHARGE -> hit.isFullCharge();
             case WIELDER_FULL_HEALTH -> hit.attacker() != null && hit.attacker().getHealth() >= hit.attacker().getMaxHealth();
-            case NIGHT -> hit.level().isNight();
-            case DAY -> hit.level().isDay();
+            case NIGHT -> hit.level().isDarkOutside();
+            case DAY -> hit.level().isBrightOutside();
             case WIELDER_SNEAKING -> hit.attacker() != null && hit.attacker().isShiftKeyDown();
         };
     }

@@ -1,17 +1,21 @@
 {
   "variants": {
     "facing=east": {
+      "type": "forgeweave:retextured_table",
       "model": "forgeweave:block/stencil_table",
       "y": 90
     },
     "facing=north": {
+      "type": "forgeweave:retextured_table",
       "model": "forgeweave:block/stencil_table"
     },
     "facing=south": {
+      "type": "forgeweave:retextured_table",
       "model": "forgeweave:block/stencil_table",
       "y": 180
     },
     "facing=west": {
+      "type": "forgeweave:retextured_table",
       "model": "forgeweave:block/stencil_table",
       "y": 270
     }

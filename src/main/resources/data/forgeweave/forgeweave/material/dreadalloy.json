@@ -27,13 +27,11 @@
     "armor": ["forgeweave:blightward"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:dreadalloy_ingot" }, "value": 144 },
-    { "ingredient": { "item": "forgeweave:dreadalloy_nugget" }, "value": 16 },
-    { "ingredient": { "item": "forgeweave:dreadalloy_block" }, "value": 1296 }
+    { "ingredient": "forgeweave:dreadalloy_ingot", "value": 144 },
+    { "ingredient": "forgeweave:dreadalloy_nugget", "value": 16 },
+    { "ingredient": "forgeweave:dreadalloy_block", "value": 1296 }
   ],
-  "repair_item": {
-    "tag": "c:ingots/dreadalloy"
-  },
+  "repair_item": "#c:ingots/dreadalloy",
   "cast_only": true,
   "enchantability": 10,
   "color": "#1E3E23"

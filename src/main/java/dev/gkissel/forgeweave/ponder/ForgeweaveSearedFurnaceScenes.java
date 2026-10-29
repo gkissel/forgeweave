@@ -1,9 +1,9 @@
 package dev.gkissel.forgeweave.ponder;
 
-import net.createmod.catnip.math.Pointing;
-import net.createmod.ponder.api.scene.SceneBuilder;
-import net.createmod.ponder.api.scene.SceneBuildingUtil;
-import net.createmod.ponder.api.scene.Selection;
+import net.createmod.catnip.api.math.Pointing;
+import net.createmod.ponder.api.client.scene.SceneBuilder;
+import net.createmod.ponder.api.client.scene.SceneBuildingUtil;
+import net.createmod.ponder.api.client.scene.Selection;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
@@ -83,7 +83,7 @@ public final class ForgeweaveSearedFurnaceScenes {
 
         scene.world().showSection(util.select().position(CONTROLLER), Direction.SOUTH);
         scene.overlay().showControls(util.vector().blockSurface(CONTROLLER, Direction.NORTH), Pointing.LEFT, 40)
-                .withItem(new ItemStack(ForgeweaveItems.SEARED_FURNACE_CONTROLLER.get()));
+                .withItem(PonderStacks.of(ForgeweaveItems.SEARED_FURNACE_CONTROLLER.get()));
         scene.idle(10);
         scene.overlay().showText(80)
                 .attachKeyFrame()

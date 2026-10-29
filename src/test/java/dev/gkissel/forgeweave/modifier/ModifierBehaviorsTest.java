@@ -25,13 +25,14 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.neoforge.common.conditions.ConditionalOps;
 import net.neoforged.neoforge.common.conditions.ICondition;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.combat.Protection;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
@@ -52,7 +53,7 @@ class ModifierBehaviorsTest {
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(JsonOps.INSTANCE);
     }
 
     /**
@@ -229,16 +230,16 @@ class ModifierBehaviorsTest {
         String body = "\"behavior\":\"forgeweave:stat_bonus\",\"stat\":\"durability\",\"flat\":500.0}";
 
         Optional<ModifierDefinition> failing = ConditionalOps.createConditionalCodec(ModifierDefinition.CODEC)
-                .parse(conditional, JsonParser.parseString("{\"neoforge:conditions\":[{\"type\":\"neoforge:false\"}],"
+                .parse(conditional, JsonParser.parseString("{\"neoforge:conditions\":[{\"type\":\"neoforge:never\"}],"
                         + body))
                 .getOrThrow();
         assertTrue(failing.isEmpty(), "a failing condition must drop the definition");
 
         Optional<ModifierDefinition> passing = ConditionalOps.createConditionalCodec(ModifierDefinition.CODEC)
-                .parse(conditional, JsonParser.parseString("{\"neoforge:conditions\":[{\"type\":\"neoforge:true\"}],"
+                .parse(conditional, JsonParser.parseString("{\"neoforge:conditions\":[{\"type\":\"neoforge:always\"}],"
                         + body))
                 .getOrThrow();
-        assertEquals(Optional.of(ResourceLocation.fromNamespaceAndPath("forgeweave", "stat_bonus")),
+        assertEquals(Optional.of(Identifier.fromNamespaceAndPath("forgeweave", "stat_bonus")),
                 passing.map(ModifierDefinition::behavior));
     }
 
@@ -250,7 +251,7 @@ class ModifierBehaviorsTest {
      */
     @Test
     void aPackDefinedModifierSavesAsIdAndLevelAndDecodesWithoutItsDefinition() {
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath("mypack", "frosty");
+        Identifier id = Identifier.fromNamespaceAndPath("mypack", "frosty");
 
         JsonElement encoded = ModifierEntry.CODEC.encodeStart(JsonOps.INSTANCE, new ModifierEntry(id, 2)).getOrThrow();
         assertEquals(JsonParser.parseString("{\"id\":\"mypack:frosty\",\"level\":2}"), encoded,

@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_sword_blade"
-  },
+  "cast": "forgeweave:cast_sword_blade",
   "fluid": "forgeweave:molten_emberweld",
   "amount": 288,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "draconicevolution:wyvern_core"
+      "type": "neoforge:registered",
+      "value": "draconicevolution:wyvern_core"
     }
   ]
 }

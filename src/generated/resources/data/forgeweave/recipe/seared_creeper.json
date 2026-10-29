@@ -2,12 +2,9 @@
   "type": "minecraft:crafting_shapeless",
   "category": "building",
   "ingredients": [
-    {
-      "item": "forgeweave:seared_triangle_bricks"
-    }
+    "forgeweave:seared_triangle_bricks"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:seared_creeper"
   }
 }

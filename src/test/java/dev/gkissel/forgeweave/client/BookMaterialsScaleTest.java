@@ -24,9 +24,10 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.client.book.BookContent;
 import dev.gkissel.forgeweave.client.book.BookLayout;
 import dev.gkissel.forgeweave.client.book.BookLayout.Slot;
@@ -66,17 +67,16 @@ class BookMaterialsScaleTest {
         Bootstrap.bootStrap();
     }
 
-    private static List<Map.Entry<ResourceLocation, Material>> shippedMaterials() throws Exception {
-        RegistryOps<JsonElement> ops = RegistryOps.create(JsonOps.INSTANCE,
-                RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+    private static List<Map.Entry<Identifier, Material>> shippedMaterials() throws Exception {
+        RegistryOps<JsonElement> ops = TestRegistries.ops(JsonOps.INSTANCE);
         Path materialDir = projectRoot().resolve("src/main/resources/data/forgeweave/forgeweave/material");
-        List<Map.Entry<ResourceLocation, Material>> materials = new ArrayList<>();
+        List<Map.Entry<Identifier, Material>> materials = new ArrayList<>();
         try (Stream<Path> files = Files.list(materialDir)) {
             for (Path file : files.filter(p -> p.toString().endsWith(".json")).sorted().toList()) {
                 String name = file.getFileName().toString().replace(".json", "");
                 JsonElement json = JsonParser.parseString(Files.readString(file, StandardCharsets.UTF_8));
                 Material material = Material.CODEC.parse(ops, json).getOrThrow();
-                materials.add(Map.entry(ResourceLocation.fromNamespaceAndPath("forgeweave", name), material));
+                materials.add(Map.entry(Identifier.fromNamespaceAndPath("forgeweave", name), material));
             }
         }
         // BookContent#sections(RegistryAccess) sorts by path; the book-listing/pagination guarantees
@@ -116,7 +116,7 @@ class BookMaterialsScaleTest {
 
     @Test
     void theStageGridsHoldEveryShippedMaterialAtRealRosterScale() throws Exception {
-        List<Map.Entry<ResourceLocation, Material>> shipped = shippedMaterials();
+        List<Map.Entry<Identifier, Material>> shipped = shippedMaterials();
         assertTrue(shipped.size() >= 100, "non-vacuity: expected the real M6 roster, saw only " + shipped.size());
 
         BookSection materials = materialsSection(BookContent.sections(shipped));

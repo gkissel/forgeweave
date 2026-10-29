@@ -3,17 +3,17 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.List;
 
 import net.minecraft.core.Registry;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
@@ -56,9 +56,9 @@ public class PowahGameTests {
 
     @GameTest(template = "empty")
     public static void unsuppliedCrystalMaterialsDoNotExistAtAll(GameTestHelper helper) {
-        Registry<Material> materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
+        Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         for (String name : CRYSTAL_MATERIALS) {
-            helper.assertTrue(materials.get(id(name)) == null,
+            helper.assertTrue(materials.getValue(id(name)) == null,
                     "expected the " + name + " material to be absent without Powah, found it registered");
         }
         helper.succeed();
@@ -66,9 +66,9 @@ public class PowahGameTests {
 
     @GameTest(template = "empty")
     public static void unsuppliedSurgeboundRecipesDoNotExistAtAll(GameTestHelper helper) {
-        Registry<ModifierRecipe> recipes = helper.getLevel().registryAccess().registryOrThrow(ModifierRecipe.REGISTRY);
+        Registry<ModifierRecipe> recipes = helper.getLevel().registryAccess().lookupOrThrow(ModifierRecipe.REGISTRY);
         for (String name : SURGEBOUND_RECIPES) {
-            helper.assertTrue(recipes.get(id(name)) == null,
+            helper.assertTrue(recipes.getValue(id(name)) == null,
                     "expected the " + name + " modifier recipe to be absent without Powah, found it registered");
         }
         helper.succeed();
@@ -150,7 +150,7 @@ public class PowahGameTests {
     private static ItemStack energizedTool() {
         ItemStack stack = pickaxe();
         stack.set(ForgeweaveDataComponents.TRAITS.get(),
-                List.of(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "energized")));
+                List.of(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "energized")));
         return stack;
     }
 
@@ -162,8 +162,8 @@ public class PowahGameTests {
         return stack;
     }
 
-    private static ResourceLocation id(String name) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name);
+    private static Identifier id(String name) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, name);
     }
 
     private PowahGameTests() {}

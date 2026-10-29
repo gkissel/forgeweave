@@ -1,0 +1,12 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "forgeweave:item/purple_slime_vine_end",
+    "tints": [
+      {
+        "type": "minecraft:constant",
+        "value": -5689857
+      }
+    ]
+  }
+}

@@ -23,15 +23,11 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "forgeweave:blue_slime_crystal"
-      },
+      "ingredient": "forgeweave:blue_slime_crystal",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "forgeweave:blue_slime_crystal"
-  },
+  "repair_item": "forgeweave:blue_slime_crystal",
   "enchantability": 15,
   "color": "#74c8c7"
 }

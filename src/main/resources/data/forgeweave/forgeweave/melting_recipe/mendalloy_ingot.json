@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/mendalloy"
-  },
+  "input": "#c:ingots/mendalloy",
   "fluid": "forgeweave:molten_mendalloy",
   "amount": 144
 }

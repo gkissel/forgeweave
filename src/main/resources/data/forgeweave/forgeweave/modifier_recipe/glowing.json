@@ -2,19 +2,13 @@
   "modifier": "forgeweave:glowing",
   "reagents": [
     {
-      "ingredient": {
-        "item": "minecraft:glowstone_dust"
-      }
+      "ingredient": "minecraft:glowstone_dust"
     },
     {
-      "ingredient": {
-        "item": "minecraft:ender_eye"
-      }
+      "ingredient": "minecraft:ender_eye"
     },
     {
-      "ingredient": {
-        "item": "minecraft:glowstone_dust"
-      }
+      "ingredient": "minecraft:glowstone_dust"
     }
   ],
   "require_all_reagents": true,

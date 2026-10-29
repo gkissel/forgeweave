@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_large_sword_blade"
-  },
+  "cast": "forgeweave:cast_large_sword_blade",
   "fluid": "forgeweave:molten_imperium",
   "amount": 1152,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mysticalagriculture:imperium_ingot"
+      "type": "neoforge:registered",
+      "value": "mysticalagriculture:imperium_ingot"
     }
   ]
 }

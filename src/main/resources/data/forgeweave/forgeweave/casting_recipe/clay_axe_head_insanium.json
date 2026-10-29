@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_axe_head"
-  },
+  "cast": "forgeweave:clay_cast_axe_head",
   "fluid": "forgeweave:molten_insanium",
   "amount": 288,
   "result": {
@@ -14,8 +12,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mysticalagradditions:insanium_ingot"
+      "type": "neoforge:registered",
+      "value": "mysticalagradditions:insanium_ingot"
     }
   ]
 }

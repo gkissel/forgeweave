@@ -3,7 +3,7 @@ package dev.gkissel.forgeweave.combat;
 import java.util.function.Consumer;
 
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -65,8 +65,8 @@ import dev.gkissel.forgeweave.modifier.ModifierEntry;
 public final class Beheading implements CombatSeam {
 
     /** The modifier id, and the reagent/cap live in {@code modifier_recipe/beheading.json}. */
-    public static final ResourceLocation MODIFIER_ID =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "beheading");
+    public static final Identifier MODIFIER_ID =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "beheading");
 
     /** Upstream {@code ModBeheading#shouldDropHead}'s {@code random.nextInt(10)}. */
     public static final int CHANCE_DENOMINATOR = 10;
@@ -129,7 +129,7 @@ public final class Beheading implements CombatSeam {
     public static ItemStack headDrop(LivingEntity target) {
         if (target instanceof Player player) {
             ItemStack head = new ItemStack(Items.PLAYER_HEAD);
-            head.set(DataComponents.PROFILE, new ResolvableProfile(player.getGameProfile()));
+            head.set(DataComponents.PROFILE, ResolvableProfile.createResolved(player.getGameProfile()));
             return head;
         }
         return headDropFor(target.getType());
@@ -182,7 +182,7 @@ public final class Beheading implements CombatSeam {
         }
         ItemStack head = headDrop(hit.target());
         if (!head.isEmpty()) {
-            hit.target().spawnAtLocation(head);
+            hit.target().spawnAtLocation(hit.level(), head);
         }
     }
 }

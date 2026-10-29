@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "tag": "c:gems/emerald"
-  },
+  "cast": "#c:gems/emerald",
   "fluid": "forgeweave:molten_gold",
   "amount": 288,
   "result": {

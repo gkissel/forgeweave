@@ -1,7 +1,7 @@
 {
   "input": [
-    { "item": "minecraft:rail" },
-    { "item": "minecraft:iron_bars" }
+    "minecraft:rail",
+    "minecraft:iron_bars"
   ],
   "fluid": "forgeweave:molten_iron",
   "amount": 54

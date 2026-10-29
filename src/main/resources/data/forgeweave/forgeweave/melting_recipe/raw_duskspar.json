@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:raw_materials/duskspar"
-  },
+  "input": "#c:raw_materials/duskspar",
   "fluid": "forgeweave:molten_duskspar",
   "amount": 144,
   "ore": true

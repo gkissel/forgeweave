@@ -1,5 +1,5 @@
 {
-  "input": { "item": "minecraft:lightning_rod" },
+  "input": "minecraft:lightning_rod",
   "fluid": "forgeweave:molten_copper",
   "amount": 432
 }

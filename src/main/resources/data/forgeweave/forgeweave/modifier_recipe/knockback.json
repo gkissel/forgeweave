@@ -2,14 +2,10 @@
   "modifier": "forgeweave:knockback",
   "reagents": [
     {
-      "ingredient": {
-        "item": "minecraft:piston"
-      }
+      "ingredient": "minecraft:piston"
     },
     {
-      "ingredient": {
-        "item": "minecraft:sticky_piston"
-      }
+      "ingredient": "minecraft:sticky_piston"
     }
   ],
   "cost": 1,

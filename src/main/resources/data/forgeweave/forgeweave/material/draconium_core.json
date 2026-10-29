@@ -50,21 +50,17 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "draconicevolution:draconium_core"
-      },
+      "ingredient": "draconicevolution:draconium_core",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "draconicevolution:draconium_core"
-  },
+  "repair_item": "draconicevolution:draconium_core",
   "enchantability": 15,
   "color": "#315AAB",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "draconicevolution:draconium_core"
+      "type": "neoforge:registered",
+      "value": "draconicevolution:draconium_core"
     }
   ]
 }

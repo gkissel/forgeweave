@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_katana_blade"
-  },
+  "cast": "forgeweave:cast_katana_blade",
   "fluid": "forgeweave:molten_pulsating_alloy",
   "amount": 432,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "enderio:pulsating_alloy_ingot"
+      "type": "neoforge:registered",
+      "value": "enderio:pulsating_alloy_ingot"
     }
   ]
 }

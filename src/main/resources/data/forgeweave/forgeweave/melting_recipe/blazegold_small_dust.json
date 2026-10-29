@@ -1,14 +1,12 @@
 {
-  "input": {
-    "tag": "c:small_dusts/blazegold"
-  },
+  "input": "#c:small_dusts/blazegold",
   "fluid": "forgeweave:molten_blazegold",
   "amount": 36,
   "temperature": 1400,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "justdirethings:blazegold_ingot"
+      "type": "neoforge:registered",
+      "value": "justdirethings:blazegold_ingot"
     }
   ]
 }

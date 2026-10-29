@@ -1,8 +1,6 @@
 {
   "modifier": "forgeweave:fiery",
-  "reagent": {
-    "item": "minecraft:blaze_powder"
-  },
+  "reagent": "minecraft:blaze_powder",
   "cost": 1,
   "max_level": 125
 }

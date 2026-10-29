@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/hollowsteel"
-  },
+  "input": "#c:ingots/hollowsteel",
   "fluid": "forgeweave:molten_hollowsteel",
   "amount": 144,
   "temperature": 1600

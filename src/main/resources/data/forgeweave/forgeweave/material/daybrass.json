@@ -29,13 +29,11 @@
     ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:daybrass_ingot" }, "value": 144 },
-    { "ingredient": { "item": "forgeweave:daybrass_nugget" }, "value": 16 },
-    { "ingredient": { "item": "forgeweave:daybrass_block" }, "value": 1296 }
+    { "ingredient": "forgeweave:daybrass_ingot", "value": 144 },
+    { "ingredient": "forgeweave:daybrass_nugget", "value": 16 },
+    { "ingredient": "forgeweave:daybrass_block", "value": 1296 }
   ],
-  "repair_item": {
-    "tag": "c:ingots/daybrass"
-  },
+  "repair_item": "#c:ingots/daybrass",
   "cast_only": true,
   "enchantability": 10,
   "color": "#B6A643"

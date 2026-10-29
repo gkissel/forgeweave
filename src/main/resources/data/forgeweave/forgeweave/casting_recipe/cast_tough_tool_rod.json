@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:tough_tool_rod"
-  },
+  "cast": "forgeweave:tough_tool_rod",
   "fluid": "forgeweave:molten_gold",
   "amount": 288,
   "result": {

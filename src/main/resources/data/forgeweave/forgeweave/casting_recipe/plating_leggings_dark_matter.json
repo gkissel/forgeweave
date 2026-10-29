@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_plating_leggings"
-  },
+  "cast": "forgeweave:cast_plating_leggings",
   "fluid": "forgeweave:molten_dark_matter",
   "amount": 720,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "projecte:dark_matter"
+      "type": "neoforge:registered",
+      "value": "projecte:dark_matter"
     }
   ]
 }

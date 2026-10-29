@@ -6,6 +6,7 @@ import net.minecraft.core.particles.SimpleParticleType;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.RegisterParticleGroupsEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
@@ -19,10 +20,16 @@ import dev.gkissel.forgeweave.particle.ForgeweaveParticles;
  * {@link ForgeweaveParticles#HEARTS} and {@link ForgeweaveParticles#SLASHES} rather than naming the
  * twelve by hand -- {@code ForgeweaveParticlesTest} asserts the coverage from the other side.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public final class ForgeweaveParticleProviders {
 
     private ForgeweaveParticleProviders() {}
+
+    /** {@link SlashParticle}'s own group, for the vertical stretch vanilla's square quads cannot draw. */
+    @SubscribeEvent
+    static void registerGroups(RegisterParticleGroupsEvent event) {
+        event.register(SlashParticle.GROUP, SlashParticle.Group::new);
+    }
 
     @SubscribeEvent
     static void registerProviders(RegisterParticleProvidersEvent event) {

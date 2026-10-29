@@ -9,16 +9,15 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Function;
 
-import net.createmod.ponder.api.registration.MultiSceneBuilder;
-import net.createmod.ponder.api.registration.PonderSceneRegistrationHelper;
-import net.createmod.ponder.api.registration.StoryBoardEntry;
-import net.createmod.ponder.api.scene.PonderStoryBoard;
+import net.createmod.ponder.api.client.registration.MultiSceneBuilder;
+import net.createmod.ponder.api.client.registration.PonderSceneRegistrationHelper;
+import net.createmod.ponder.api.client.registration.StoryBoardEntry;
+import net.createmod.ponder.api.client.scene.PonderStoryBoard;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
-import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import org.junit.jupiter.api.Test;
 
@@ -38,43 +37,43 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class PonderSceneWiringTest {
 
-    private record RegisteredScene(ResourceLocation component, ResourceLocation schematic, PonderStoryBoard board) {}
+    private record RegisteredScene(Identifier component, Identifier schematic, PonderStoryBoard board) {}
 
     /** Ponder's real helper drags in client classes; the interface itself is client-free. */
-    private static final class RecordingHelper implements PonderSceneRegistrationHelper<ResourceLocation> {
+    private static final class RecordingHelper implements PonderSceneRegistrationHelper<Identifier> {
         private final List<RegisteredScene> scenes = new ArrayList<>();
 
         @Override
-        public <S> PonderSceneRegistrationHelper<S> withKeyFunction(Function<S, ResourceLocation> keyGen) {
+        public <S> PonderSceneRegistrationHelper<S> withKeyFunction(Function<S, Identifier> keyGen) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public StoryBoardEntry addStoryBoard(ResourceLocation component, ResourceLocation schematicLocation,
-                PonderStoryBoard storyBoard, ResourceLocation... tags) {
+        public StoryBoardEntry addStoryBoard(Identifier component, Identifier schematicLocation,
+                PonderStoryBoard storyBoard, Identifier... tags) {
             scenes.add(new RegisteredScene(component, schematicLocation, storyBoard));
             return null; // the plugin never chains on the returned entry
         }
 
         @Override
-        public StoryBoardEntry addStoryBoard(ResourceLocation component, String schematicPath,
-                PonderStoryBoard storyBoard, ResourceLocation... tags) {
-            return addStoryBoard(component, asLocation(schematicPath), storyBoard, tags);
+        public StoryBoardEntry addStoryBoard(Identifier component, String schematicPath,
+                PonderStoryBoard storyBoard, Identifier... tags) {
+            return addStoryBoard(component, asIdentifier(schematicPath), storyBoard, tags);
         }
 
         @Override
-        public MultiSceneBuilder forComponents(ResourceLocation... components) {
+        public MultiSceneBuilder forComponents(Identifier... components) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public MultiSceneBuilder forComponents(Iterable<? extends ResourceLocation> components) {
+        public MultiSceneBuilder forComponents(Iterable<? extends Identifier> components) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public ResourceLocation asLocation(String path) {
-            return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+        public Identifier asIdentifier(String path) {
+            return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
         }
     }
 
@@ -92,9 +91,9 @@ class PonderSceneWiringTest {
                 "#664's smeltery scene, #700's sizes and casting scenes (casting on faucet and channel), #682's armor scene, "
                         + "#891's furnace and reservoir scenes and the core tiers scene on all four cores");
         RegisteredScene scene = helper.scenes.get(0);
-        assertEquals(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "standard_core"), scene.component(),
+        assertEquals(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "standard_core"), scene.component(),
                 "the scene is registered on the smeltery controller item");
-        assertEquals(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "smeltery"), scene.schematic());
+        assertEquals(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "smeltery"), scene.schematic());
         assertNotNull(scene.board());
     }
 
@@ -111,8 +110,8 @@ class PonderSceneWiringTest {
 
         RegisteredScene scene = helper.scenes.stream()
                 .filter(s -> s.schematic().getPath().equals("armor_assembly")).findFirst().orElseThrow();
-        assertEquals(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "tool_station"), scene.component());
-        assertEquals(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "armor_assembly"), scene.schematic());
+        assertEquals(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "tool_station"), scene.component());
+        assertEquals(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "armor_assembly"), scene.schematic());
         assertNotNull(scene.board());
     }
 
@@ -125,10 +124,10 @@ class PonderSceneWiringTest {
             root = NbtIo.readCompressed(in, NbtAccounter.unlimitedHeap());
         }
 
-        ListTag palette = root.getList("palette", Tag.TAG_COMPOUND);
+        ListTag palette = root.getListOrEmpty("palette");
         List<String> names = new ArrayList<>();
         for (int i = 0; i < palette.size(); i++) {
-            names.add(palette.getCompound(i).getString("Name"));
+            names.add(palette.getCompoundOrEmpty(i).getStringOr("Name", ""));
         }
         assertTrue(names.contains("forgeweave:tool_station"), "the station is part of the structure: " + names);
     }
@@ -147,15 +146,15 @@ class PonderSceneWiringTest {
             root = NbtIo.readCompressed(in, NbtAccounter.unlimitedHeap());
         }
 
-        ListTag size = root.getList("size", Tag.TAG_INT);
-        assertEquals(5, size.getInt(0));
-        assertEquals(4, size.getInt(1));
-        assertEquals(5, size.getInt(2));
+        ListTag size = root.getListOrEmpty("size");
+        assertEquals(5, size.getIntOr(0, -1));
+        assertEquals(4, size.getIntOr(1, -1));
+        assertEquals(5, size.getIntOr(2, -1));
 
-        ListTag palette = root.getList("palette", Tag.TAG_COMPOUND);
+        ListTag palette = root.getListOrEmpty("palette");
         List<String> names = new ArrayList<>();
         for (int i = 0; i < palette.size(); i++) {
-            names.add(palette.getCompound(i).getString("Name"));
+            names.add(palette.getCompoundOrEmpty(i).getStringOr("Name", ""));
         }
         assertTrue(names.contains("forgeweave:seared_bricks"), "walls and floor are seared bricks: " + names);
         assertTrue(names.contains("forgeweave:seared_tank"), "the fuel tank is part of the walls: " + names);
@@ -164,10 +163,10 @@ class PonderSceneWiringTest {
 
         int coreIndex = names.indexOf("forgeweave:standard_core");
         assertTrue(coreIndex >= 0, "the controller is part of the structure: " + names);
-        CompoundTag coreProperties = palette.getCompound(coreIndex).getCompound("Properties");
-        assertEquals("north", coreProperties.getString("facing"),
+        CompoundTag coreProperties = palette.getCompoundOrEmpty(coreIndex).getCompoundOrEmpty("Properties");
+        assertEquals("north", coreProperties.getStringOr("facing", ""),
                 "the core faces out of the north wall, toward the default camera (#700)");
-        assertEquals("false", coreProperties.getString("active"),
+        assertEquals("false", coreProperties.getStringOr("active", ""),
                 "the schematic stores the unformed state; the scene flips ACTIVE as its completion cue");
     }
 
@@ -209,15 +208,15 @@ class PonderSceneWiringTest {
     /** The casting scene's channel run: faucet -> fork -> west to the table's downspout, north to the basin's. */
     @Test
     void castingChannelsChainFromTheFaucetToTheTableAndBasin() throws IOException {
-        ListTag palette = readSchematic("casting").getList("palette", Tag.TAG_COMPOUND);
+        ListTag palette = readSchematic("casting").getListOrEmpty("palette");
         List<Map<String, String>> channels = new ArrayList<>();
         for (int i = 0; i < palette.size(); i++) {
-            CompoundTag entry = palette.getCompound(i);
-            if (entry.getString("Name").equals("forgeweave:seared_channel")) {
-                CompoundTag props = entry.getCompound("Properties");
+            CompoundTag entry = palette.getCompoundOrEmpty(i);
+            if (entry.getStringOr("Name", "").equals("forgeweave:seared_channel")) {
+                CompoundTag props = entry.getCompoundOrEmpty("Properties");
                 Map<String, String> map = new TreeMap<>();
-                for (String key : props.getAllKeys()) {
-                    map.put(key, props.getString(key));
+                for (String key : props.keySet()) {
+                    map.put(key, props.getStringOr(key, ""));
                 }
                 channels.add(map);
             }
@@ -257,12 +256,12 @@ class PonderSceneWiringTest {
     }
 
     private static void assertFacings(String schematic, Map<String, String> expected) throws IOException {
-        ListTag palette = readSchematic(schematic).getList("palette", Tag.TAG_COMPOUND);
+        ListTag palette = readSchematic(schematic).getListOrEmpty("palette");
         Map<String, String> actual = new HashMap<>();
         for (int i = 0; i < palette.size(); i++) {
-            CompoundTag entry = palette.getCompound(i);
-            if (entry.getCompound("Properties").contains("facing")) {
-                actual.put(entry.getString("Name"), entry.getCompound("Properties").getString("facing"));
+            CompoundTag entry = palette.getCompoundOrEmpty(i);
+            if (entry.getCompoundOrEmpty("Properties").contains("facing")) {
+                actual.put(entry.getStringOr("Name", ""), entry.getCompoundOrEmpty("Properties").getStringOr("facing", ""));
             }
         }
         assertEquals(expected, actual, "directional blocks in " + schematic + ".nbt");

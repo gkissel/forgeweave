@@ -4,17 +4,17 @@ import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
@@ -68,9 +68,9 @@ public class CompatToggleGameTests {
     private static final BlockPos POS = new BlockPos(1, 1, 1);
 
     /** {@code chaosmark} plus {@code evolved3}: a chaotic-tier Draconic core tool. */
-    private static final List<ResourceLocation> CHAOTIC_CORE = List.of(
+    private static final List<Identifier> CHAOTIC_CORE = List.of(
             ForgeweaveDraconicCompat.CORE_MARKERS.get(3),
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "evolved3"));
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "evolved3"));
 
     /**
      * Fusion off: no tool is a fusion catalyst at any tech level, and the tool's own trait component
@@ -80,7 +80,7 @@ public class CompatToggleGameTests {
     @GameTest(template = "empty")
     public static void draconicFusionOffAcceptsNoCatalystAndKeepsTheToolIntact(GameTestHelper helper) {
         ItemStack tool = coreTool(helper);
-        List<ResourceLocation> before = tool.get(ForgeweaveDataComponents.TRAITS.get());
+        List<Identifier> before = tool.get(ForgeweaveDataComponents.TRAITS.get());
 
         helper.assertTrue(ForgeweaveDraconicCompat.acceptsFusionCatalyst("chaotic", tool),
                 "a chaotic-tier core tool is a fusion catalyst while draconicFusion is on, or this "
@@ -112,7 +112,7 @@ public class CompatToggleGameTests {
     @GameTest(template = "empty")
     public static void draconicModulesOffAnswersNothingAndKeepsTheStackIntact(GameTestHelper helper) {
         ItemStack tool = coreTool(helper);
-        List<ResourceLocation> before = tool.get(ForgeweaveDataComponents.TRAITS.get());
+        List<Identifier> before = tool.get(ForgeweaveDataComponents.TRAITS.get());
 
         DraconicModules.install(new DraconicModules.Bridge() {
             @Override
@@ -218,7 +218,7 @@ public class CompatToggleGameTests {
      */
     @GameTest(template = "empty")
     public static void kubejsTraitsOffResolveNoScriptedTrait(GameTestHelper helper) {
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath("forgeweave_gametest", "scripted_probe");
+        Identifier id = Identifier.fromNamespaceAndPath("forgeweave_gametest", "scripted_probe");
         ForgeweaveTraits.registerScripted(id, new Trait() { });
 
         helper.assertTrue(ForgeweaveTraits.lookup(id) != null,
@@ -229,7 +229,7 @@ public class CompatToggleGameTests {
             helper.assertTrue(ForgeweaveTraits.lookup(id) == null,
                     "no scripted trait may resolve while kubejsTraits is off");
             helper.assertTrue(ForgeweaveTraits.lookup(
-                            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "established")) != null,
+                            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "established")) != null,
                     "a built-in trait is not a script trait and must be unaffected");
         } finally {
             ForgeweaveConfig.KUBEJS_TRAITS.set(true);
@@ -337,7 +337,7 @@ public class CompatToggleGameTests {
             helper.assertTrue(ForgeweaveModifiers.freeSlots(tool) == ForgeweaveModifiers.DEFAULT_SLOTS - 1,
                     "and keep the slot the player spent, got " + ForgeweaveModifiers.freeSlots(tool));
             helper.assertTrue(ForgeweaveModifiers.get(
-                            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "haste")) != null,
+                            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "haste")) != null,
                     "a built-in modifier is not a datapack modifier and must be unaffected");
         } finally {
             ForgeweaveConfig.MODIFIER_DEFINITIONS.set(true);

@@ -48,22 +48,18 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "avaritia:crystal_matrix_ingot"
-      },
+      "ingredient": "avaritia:crystal_matrix_ingot",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "avaritia:crystal_matrix_ingot"
-  },
+  "repair_item": "avaritia:crystal_matrix_ingot",
   "cast_only": true,
   "enchantability": 12,
   "color": "#7FD9F5",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "avaritia:crystal_matrix_ingot"
+      "type": "neoforge:registered",
+      "value": "avaritia:crystal_matrix_ingot"
     }
   ]
 }

@@ -2,15 +2,12 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "#": {
-      "tag": "c:ingots/duskspar"
-    }
+    "#": "#c:ingots/duskspar"
   },
   "pattern": [
     "##"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:duskspar_plate"
   }
 }

@@ -39,10 +39,10 @@ public record ThornsCounterSeam(float chance, float constant, float random) impl
                 || !source.isDirect() || source.is(DamageTypeTags.AVOIDS_GUARDIAN_THORNS)) {
             return;
         }
-        if (chance <= 0.0F || (chance < 1.0F && defense.level().random.nextFloat() >= chance)) {
+        if (chance <= 0.0F || (chance < 1.0F && defense.level().getRandom().nextFloat() >= chance)) {
             return;
         }
-        float value = constant + (random > 0.0F ? random * defense.level().random.nextFloat() : 0.0F);
+        float value = constant + (random > 0.0F ? random * defense.level().getRandom().nextFloat() : 0.0F);
         if (value <= 0.0F) {
             return;
         }
