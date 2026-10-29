@@ -34,7 +34,8 @@ class AllthemodiumMiningWorldgenTest {
 
         assertEquals("neoforge:add_features", modifier.get("type").getAsString());
         assertEquals("underground_ores", modifier.get("step").getAsString());
-        assertEquals("#allthemodium:mining_features/mining_biomes", modifier.get("biomes").getAsString());
+        // Allthemodium 26.1 dropped its mining_biomes tag; its own Mining ores name the one biome too.
+        assertEquals("allthemodium:mining", modifier.get("biomes").getAsString());
 
         Set<String> features = new LinkedHashSet<>();
         for (var element : modifier.getAsJsonArray("features")) {
