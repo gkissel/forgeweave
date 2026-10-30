@@ -97,7 +97,7 @@ jobs:
           test -s build/release/changelog.md
 
       - name: Publish everywhere
-        uses: Kira-NT/mc-publish@52307b03863581dec6b652b83e597aec02ebb075 # v3
+        uses: Kira-NT/mc-publish@c23376546a97f5ba7984e94445da359459b14419 # v3
         with:
           files: build/libs/!(*-@(dev|sources|javadoc)).jar
 
