@@ -1,10 +1,6 @@
 package dev.gkissel.forgeweave.tool;
 
-import java.util.List;
-
 import net.minecraft.core.BlockPos;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -12,16 +8,13 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.BlockTransformers;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.LevelEvent;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-
-import net.neoforged.neoforge.common.ItemAbilities;
-import net.neoforged.neoforge.common.ItemAbility;
 
 import dev.gkissel.forgeweave.item.ToolItem;
 
@@ -43,7 +36,7 @@ import dev.gkissel.forgeweave.item.ToolItem;
  *
  * <p>The transform itself is vanilla 1.21's own {@code AxeItem#useOn}/{@code evaluateNewBlockState}
  * verbatim but for the tool it damages -- the same relationship {@code ShovelPath#flattenOne} has to
- * {@code ShovelItem#useOn}. Going through {@link BlockState#getToolModifiedState}
+ * {@code ShovelItem#useOn}. Going through vanilla's axe block transformer ({@link BlockTransforms})
  * rather than a Forgeweave-side block table means a modded strippable block works with a Forgeweave
  * hatchet exactly as it does with a vanilla axe. Vanilla's shield check comes along with it: an axe in
  * the main hand and a shield in the off hand, not sneaking, means the player wants to raise the
@@ -60,16 +53,6 @@ import dev.gkissel.forgeweave.item.ToolItem;
  * own broad-axe behavior, and what makes this whole issue worth doing.
  */
 public final class AxeStrip {
-
-    /** Upstream 1.20's three {@code stripping} modules, in vanilla {@code AxeItem}'s own order. */
-    private record Transform(ItemAbility ability, SoundEvent sound, int particles) {}
-
-    private static final int NO_PARTICLES = -1;
-
-    private static final List<Transform> TRANSFORMS = List.of(
-            new Transform(ItemAbilities.AXE_STRIP, SoundEvents.AXE_STRIP, NO_PARTICLES),
-            new Transform(ItemAbilities.AXE_SCRAPE, SoundEvents.AXE_SCRAPE, LevelEvent.PARTICLES_SCRAPE),
-            new Transform(ItemAbilities.AXE_WAX_OFF, SoundEvents.AXE_WAX_OFF, LevelEvent.PARTICLES_WAX_OFF));
 
     /**
      * Transforms the block clicked and, following {@code aoeShape}, everything else the tool's AoE
@@ -110,26 +93,23 @@ public final class AxeStrip {
         Level level = context.getLevel();
         BlockPos pos = context.getClickedPos();
         Player player = context.getPlayer();
-        BlockState state = level.getBlockState(pos);
-        for (Transform transform : TRANSFORMS) {
-            BlockState transformed = state.getToolModifiedState(context, transform.ability(), false);
-            if (transformed == null) {
-                continue;
-            }
-            level.playSound(player, pos, transform.sound(), SoundSource.BLOCKS, 1.0F, 1.0F);
-            if (transform.particles() != NO_PARTICLES) {
-                level.levelEvent(player, transform.particles(), pos, 0);
-            }
-            if (!level.isClientSide()) {
-                level.setBlock(pos, transformed, 11);
-                level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, transformed));
-                if (player != null) {
-                    context.getItemInHand().hurtAndBreak(1, player, context.getHand().asEquipmentSlot());
-                }
-            }
-            return InteractionResult.SUCCESS;
+        // 26.3: vanilla's axe transformer lists strip, scrape and wax-off in AxeItem's old order,
+        // each with the sound and particles 1.20's stripping modules named.
+        BlockTransforms.Match match = BlockTransforms.match(context, BlockTransformers.AXE);
+        if (match == null) {
+            return InteractionResult.PASS;
         }
-        return InteractionResult.PASS;
+        BlockState transformed = match.state();
+        level.playSound(player, pos, match.data().sound().value(), SoundSource.BLOCKS, 1.0F, 1.0F);
+        match.data().particle().send(level, player, pos);
+        if (!level.isClientSide()) {
+            level.setBlock(pos, transformed, 11);
+            level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, transformed));
+            if (player != null) {
+                context.getItemInHand().hurtAndBreak(1, player, context.getHand().asEquipmentSlot());
+            }
+        }
+        return InteractionResult.SUCCESS;
     }
 
     /** Vanilla {@code AxeItem#playerHasShieldUseIntent}, with the null player a GameTest can hand us. */

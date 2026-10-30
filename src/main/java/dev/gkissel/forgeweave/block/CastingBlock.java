@@ -2,8 +2,6 @@ package dev.gkissel.forgeweave.block;
 
 import javax.annotation.Nullable;
 
-import com.mojang.serialization.MapCodec;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.Containers;
@@ -61,17 +59,10 @@ public class CastingBlock extends Block implements EntityBlock {
             Block.box(0, 0, 11, 5, 4, 16));
 
     private final CastingRecipe.Station station;
-    private final MapCodec<CastingBlock> codec;
 
     public CastingBlock(Properties properties, CastingRecipe.Station station) {
         super(properties);
         this.station = station;
-        this.codec = simpleCodec(p -> new CastingBlock(p, station));
-    }
-
-    @Override
-    protected MapCodec<? extends CastingBlock> codec() {
-        return codec;
     }
 
     @Nullable

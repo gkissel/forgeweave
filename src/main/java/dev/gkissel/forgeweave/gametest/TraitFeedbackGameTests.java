@@ -120,7 +120,7 @@ public class TraitFeedbackGameTests {
 
             Player saved = TraitPairingGameTests.wearing(helper, "lastbreath");
             saved.setHealth(2.0F);
-            saved.invulnerableTime = 0;
+            saved.damageCooldownTime = 0;
             saved.hurt(helper.getLevel().damageSources().generic(), 40.0F);
             assertFired(helper, fired, TraitFeedback.Kind.SAVE, saved, "a death save, on the wearer");
             attacker.discard();

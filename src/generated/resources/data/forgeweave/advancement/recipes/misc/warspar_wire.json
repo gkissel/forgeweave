@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:warspar_wire"
+        "recipes": "forgeweave:warspar_wire"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

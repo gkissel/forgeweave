@@ -188,8 +188,8 @@ public class BlueSlimeGameTests {
                 "that one entry must be the blue slime, got " + entry.type());
         helper.assertTrue(spawns.get(0).weight() == 15,
                 "upstream weights the blue slime 15, got " + spawns.get(0).weight());
-        helper.assertTrue(entry.minCount() == 2 && entry.maxCount() == 4,
-                "upstream spawns 2-4 at a time, got " + entry.minCount() + "-" + entry.maxCount());
+        helper.assertTrue(entry.count().minInclusive() == 2 && entry.count().maxInclusive() == 4,
+                "upstream spawns 2-4 at a time, got " + entry.count().minInclusive() + "-" + entry.count().maxInclusive());
         helper.succeed();
     }
 

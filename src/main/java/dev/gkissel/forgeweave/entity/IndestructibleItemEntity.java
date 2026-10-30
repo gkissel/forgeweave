@@ -53,7 +53,7 @@ public class IndestructibleItemEntity extends ItemEntity {
         this.lifespan = NEVER;
         // 26.1 made ItemEntity#hurtServer final; the vanilla invulnerable flag is the same refusal
         // (Entity#isInvulnerableToBase lets only bypasses_invulnerability through).
-        this.setInvulnerable(true);
+        this.setPermanentlyInvulnerable(true);
     }
 
     /** The drop constructor: {@code ToolItem#createEntity} replacing a vanilla item entity. */

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:seared_stairs_creeper_from_seared_creeper_stonecutting"
+        "recipes": "forgeweave:seared_stairs_creeper_from_seared_creeper_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

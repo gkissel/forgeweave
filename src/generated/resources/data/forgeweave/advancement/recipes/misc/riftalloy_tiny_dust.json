@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:riftalloy_tiny_dust"
+        "recipes": "forgeweave:riftalloy_tiny_dust"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

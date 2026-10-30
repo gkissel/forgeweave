@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:duskspar_ingot_from_duskspar_block"
+        "recipes": "forgeweave:duskspar_ingot_from_duskspar_block"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

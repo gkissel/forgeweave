@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:duskweld_wire"
+        "recipes": "forgeweave:duskweld_wire"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

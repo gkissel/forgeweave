@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:stencil_table"
+        "recipes": "forgeweave:stencil_table"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

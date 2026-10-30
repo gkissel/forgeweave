@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:seared_slab_small_bricks_from_seared_small_bricks_stonecutting"
+        "recipes": "forgeweave:seared_slab_small_bricks_from_seared_small_bricks_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:ardite_rod"
+        "recipes": "forgeweave:ardite_rod"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

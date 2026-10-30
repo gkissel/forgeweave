@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:manyullyn_wire"
+        "recipes": "forgeweave:manyullyn_wire"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

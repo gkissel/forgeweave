@@ -21,11 +21,11 @@ sourceSets.main.resources {
     srcDir('src/generated/resources')
 }
 
-// COMPAT_DISABLED: partner mods with no Minecraft 26.2 NeoForge build anywhere (Modrinth,
+// COMPAT_DISABLED: partner mods with no Minecraft 26.3 NeoForge build anywhere (Modrinth,
 // CurseForge or their own maven, checked 2026-10-29), so their API jars are not on the classpath
 // and the files that name their types cannot compile. The files stay in the tree for when a build
 // ships; each integration's entry point is still reached only inside its ModList guard, which on
-// 26.2 logs that the integration is unavailable instead of registering anything. Datagen keeps
+// 26.3 logs that the integration is unavailable instead of registering anything. Datagen keeps
 // emitting their recipe JSON, all of it behind `neoforge:conditions` on the partner's modid.
 //   EMI (emi) -- the native plugin; JEI still covers recipe viewing.
 //   Draconic Evolution (draconicevolution) -- fusion upgrades, module host, guardian crystals.
@@ -33,11 +33,14 @@ sourceSets.main.resources {
 //   Mekanism (mekanism) -- MekaTool/MekaSuit module container.
 //   Ponder, Catnip, Flywheel (ponder) -- no longer embedded; the in-game build tutorial scenes go
 //     dark and the smeltery controller's one-time "install Ponder" chat hint shows instead.
-//   KubeJS, Rhino, Better Advanced Tooltips (kubejs) -- script-defined traits; datapack traits still load.
+//   KubeJS, Rhino (kubejs) -- script-defined traits; datapack traits still load. Better Advanced
+//     Tooltips, disabled with them on 26.2, has a 26.3 build and is back on the test classpath.
 //   Apotheosis, Placebo, Apothic Attributes (apotheosis) -- gems seated in sockets grant nothing;
 //     the socket bookkeeping and the affix/enchanting gates stay, as on an install without it.
 //   Mystical Agriculture, Cucumber (mysticalagriculture) -- the essence crops and tinkerable
 //     (augment-slot) tools and armor.
+//   WTHIT (wthit) -- the second block overlay; Jade still covers it. WTHIT loads the plugin from
+//     wthit_plugins.json itself, so without WTHIT nothing ever reaches the excluded classes.
 def compatDisabledMain = [
         'dev/gkissel/forgeweave/emi/**',
         'dev/gkissel/forgeweave/compat/draconic/FusionUpgradeRecipe.java',
@@ -62,6 +65,7 @@ def compatDisabledMain = [
         'dev/gkissel/forgeweave/compat/apotheosis/ApotheosisGemBonuses.java',
         'dev/gkissel/forgeweave/compat/mysticalagriculture/MysticalAgricultureCompat.java',
         'dev/gkissel/forgeweave/compat/mysticalagriculture/MysticalItems.java',
+        'dev/gkissel/forgeweave/wthit/**',
 ]
 def compatDisabledTest = [
         'dev/gkissel/forgeweave/emi/**',
@@ -347,7 +351,7 @@ dependencies {
         // -PemiClient: the dev runs get EMI instead of JEI (see EMI's own comment just below).
         // localRuntime, not a <run>AdditionalRuntimeClasspath: that one lands on FML's legacy
         // classpath, where a jar is a plain library and is never discovered as a mod.
-        // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): localRuntime "dev.emi:emi-neoforge:${emi_version}"
+        // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): localRuntime "dev.emi:emi-neoforge:${emi_version}"
     } else if (!project.hasProperty('harnessNoJei')) {
         // -PharnessNoJei drops JEI again, for the screenshot harness's "client boots without JEI" run.
         localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
@@ -362,9 +366,9 @@ dependencies {
     // own. Building with -PemiClient swaps JEI out for EMI on every dev run, which is how the
     // EMI-without-JEI case gets looked at in a dev client (runClient, runScreenshotHarness). Don't
     // pass it to runGameTestServer, for the emi:ping reason above.
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): compileOnly("dev.emi:emi-neoforge:${emi_version}:api") { transitive = false }
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): testCompileOnly("dev.emi:emi-neoforge:${emi_version}:api") { transitive = false }
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly("dev.emi:emi-neoforge:${emi_version}") { transitive = false }
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): compileOnly("dev.emi:emi-neoforge:${emi_version}:api") { transitive = false }
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): testCompileOnly("dev.emi:emi-neoforge:${emi_version}:api") { transitive = false }
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly("dev.emi:emi-neoforge:${emi_version}") { transitive = false }
     // JeiRecipesScaleTest's category-list pin builds every category against a recording fake
     // registration. Tests compile against the API jar but run on the full mod jar, which bundles the
     // same API classes: the API jar has no mods.toml, so FML leaves it on the app class loader, where
@@ -401,7 +405,7 @@ dependencies {
     // gametest-safe scoping if it were ever added at runtime anyway. ForgeweaveWthitPlugin's
     // own code path is exercised by installing WTHIT in a real client instead (same pattern as
     // Ponder's ModList-guarded compat, see the Ponder dependency's comment below).
-    compileOnly "mcp.mobius.waila:wthit-api:neo-${wthit_version}"
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): compileOnly "mcp.mobius.waila:wthit-api:neo-${wthit_version}"
 
     // Ponder (docs/SCOPE.md M2 issue #110): compileOnly only, deliberately no localRuntime pair like
     // JEI's above. The mod compiles against Ponder's scene-registration API without hard-requiring it
@@ -418,12 +422,12 @@ dependencies {
     // server); `jarJar` embeds it in the shipped jar. Flywheel is Ponder's own required client
     // dependency (see its neoforge.mods.toml) and arrives transitively for the runtime classpath via
     // Ponder's pom, but JarJar embeds only what is declared, so it gets its own jarJar line.
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): implementation "net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}"
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): jarJar "net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}"
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): jarJar "dev.engine-room.flywheel:flywheel-neoforge:${flywheel_version}"
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): implementation "net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}"
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): jarJar "net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}"
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): jarJar "dev.engine-room.flywheel:flywheel-neoforge:${flywheel_version}"
     // On 26.1 Ponder split its Catnip utility library into a mod of its own, a compile-scope
     // dependency in Ponder's pom, so it is embedded alongside Ponder too.
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): jarJar "net.createmod.catnip:catnip-neoforge:${ponder_version}+mc${minecraft_version}"
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): jarJar "net.createmod.catnip:catnip-neoforge:${ponder_version}+mc${minecraft_version}"
 
     // KubeJS (issue #832, ADR-0004 item 3): compileOnly like JEI above -- the mod compiles against
     // KubeJS's plugin/event API without hard-requiring it (an "optional" entry in
@@ -437,15 +441,15 @@ dependencies {
     // compile-scope dependency; its pom excludes everything else and the remaining runtime pieces
     // are jar-in-jar embedded in the KubeJS jar, hence transitive = false rather than chasing them
     // through a third maven.
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): compileOnly "dev.latvian.mods:kubejs-neoforge:${kubejs_version}"
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): compileOnly "dev.latvian.mods:rhino:${rhino_version}"
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): testCompileOnly "dev.latvian.mods:kubejs-neoforge:${kubejs_version}"
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): testCompileOnly "dev.latvian.mods:rhino:${rhino_version}"
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly("dev.latvian.mods:kubejs-neoforge:${kubejs_version}") { transitive = false }
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly "dev.latvian.mods:rhino:${rhino_version}"
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): compileOnly "dev.latvian.mods:kubejs-neoforge:${kubejs_version}"
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): compileOnly "dev.latvian.mods:rhino:${rhino_version}"
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): testCompileOnly "dev.latvian.mods:kubejs-neoforge:${kubejs_version}"
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): testCompileOnly "dev.latvian.mods:rhino:${rhino_version}"
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly("dev.latvian.mods:kubejs-neoforge:${kubejs_version}") { transitive = false }
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly "dev.latvian.mods:rhino:${rhino_version}"
     // KubeJS 26.1 lists Better Advanced Tooltips as optional but loads its BATIcons class while
     // registering, so the unit-test run needs the jar too.
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly("dev.latvian.mods:better-advanced-tooltips:${bat_version}") { transitive = false }
+    testRuntimeOnly("dev.latvian.mods:better-advanced-tooltips:${bat_version}") { transitive = false }
 
     // Issue #915 (M8 deep compat): Draconic Evolution's fusion crafting. compileOnly plus the test
     // classpath, and deliberately no localRuntime -- the same call Jade and KubeJS made above, for
@@ -461,13 +465,13 @@ dependencies {
     // in BrandonsCore rather than in DE. CodeChicken Lib is DE's third runtime dependency, but
     // nothing on the fusion API's compile surface reaches it (only DE's own datagen recipe builder
     // does, and this repo emits that JSON directly), so it is not listed.
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): compileOnly "com.brandon3055.draconicevolution:Draconic-Evolution:${draconic_evolution_version}"
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): compileOnly "com.brandon3055.brandonscore:BrandonsCore:${brandons_core_version}"
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): testCompileOnly "com.brandon3055.draconicevolution:Draconic-Evolution:${draconic_evolution_version}"
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): testCompileOnly "com.brandon3055.brandonscore:BrandonsCore:${brandons_core_version}"
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly("com.brandon3055.draconicevolution:Draconic-Evolution:${draconic_evolution_version}") { transitive = false }
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly("com.brandon3055.brandonscore:BrandonsCore:${brandons_core_version}") { transitive = false }
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly("io.codechicken:CodeChickenLib:${codechicken_lib_version}") { transitive = false }
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): compileOnly "com.brandon3055.draconicevolution:Draconic-Evolution:${draconic_evolution_version}"
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): compileOnly "com.brandon3055.brandonscore:BrandonsCore:${brandons_core_version}"
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): testCompileOnly "com.brandon3055.draconicevolution:Draconic-Evolution:${draconic_evolution_version}"
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): testCompileOnly "com.brandon3055.brandonscore:BrandonsCore:${brandons_core_version}"
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly("com.brandon3055.draconicevolution:Draconic-Evolution:${draconic_evolution_version}") { transitive = false }
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly("com.brandon3055.brandonscore:BrandonsCore:${brandons_core_version}") { transitive = false }
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly("io.codechicken:CodeChickenLib:${codechicken_lib_version}") { transitive = false }
 
     // Issue #969 (M8 deep compat): Apotheosis' gem sockets. Same compileOnly-plus-test-classpath
     // split as Draconic Evolution above, and deliberately no localRuntime for the same reason --
@@ -483,15 +487,15 @@ dependencies {
     // StackAttributeModifiersEvent (the only way to read what a gem's attribute bonus actually
     // grants -- AttributeBonus keeps its own attribute field protected). transitive = false on the
     // runtime rows, the Draconic pattern: nothing else is needed to put the classes on a classpath.
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): compileOnly "dev.shadowsoffire:Apotheosis:${apotheosis_version}"
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): compileOnly "dev.shadowsoffire:Placebo:${placebo_version}"
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): compileOnly "dev.shadowsoffire:ApothicAttributes:${apothic_attributes_version}"
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): testCompileOnly "dev.shadowsoffire:Apotheosis:${apotheosis_version}"
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): testCompileOnly "dev.shadowsoffire:Placebo:${placebo_version}"
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): testCompileOnly "dev.shadowsoffire:ApothicAttributes:${apothic_attributes_version}"
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly("dev.shadowsoffire:Apotheosis:${apotheosis_version}") { transitive = false }
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly("dev.shadowsoffire:Placebo:${placebo_version}") { transitive = false }
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly("dev.shadowsoffire:ApothicAttributes:${apothic_attributes_version}") { transitive = false }
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): compileOnly "dev.shadowsoffire:Apotheosis:${apotheosis_version}"
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): compileOnly "dev.shadowsoffire:Placebo:${placebo_version}"
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): compileOnly "dev.shadowsoffire:ApothicAttributes:${apothic_attributes_version}"
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): testCompileOnly "dev.shadowsoffire:Apotheosis:${apotheosis_version}"
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): testCompileOnly "dev.shadowsoffire:Placebo:${placebo_version}"
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): testCompileOnly "dev.shadowsoffire:ApothicAttributes:${apothic_attributes_version}"
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly("dev.shadowsoffire:Apotheosis:${apotheosis_version}") { transitive = false }
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly("dev.shadowsoffire:Placebo:${placebo_version}") { transitive = false }
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly("dev.shadowsoffire:ApothicAttributes:${apothic_attributes_version}") { transitive = false }
     // Issue #1007 (M8 deep compat): Create's own Engineer's Goggles, read through
     // GogglesItem.addIsWearingPredicate. compileOnly only, no test-classpath pair and no localRuntime --
     // ForgeweaveCreateCompat's own unit coverage stays off Create entirely by testing the ItemStack-only
@@ -502,7 +506,7 @@ dependencies {
     // classloads a com.simibubi.create type at all. The "slim" classifier is Create's own compile-only
     // API jar; its POM lists every dependency at Maven `runtime` scope, so none of it lands on this
     // compileOnly classpath.
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): compileOnly "com.simibubi.create:create-1.21.1:${create_version}:slim"
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): compileOnly "com.simibubi.create:create-1.21.1:${create_version}:slim"
 
     // Issue #997 (M8 deep compat, D-M8-18): Occultism's spirit binding ritual. Same
     // compileOnly-plus-test-classpath split as Draconic Evolution and Apotheosis above, and
@@ -538,9 +542,9 @@ dependencies {
     // The plain jar rather than the `api` classifier -- see gradle.properties' comment for the three
     // mekanism.common entry points #993 names. transitive = false on the test-runtime row because
     // Mekanism's pom lists its own library set, none of which the bridge touches.
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): compileOnly "mekanism:Mekanism:${mekanism_version}"
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): testCompileOnly "mekanism:Mekanism:${mekanism_version}"
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly("mekanism:Mekanism:${mekanism_version}") { transitive = false }
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): compileOnly "mekanism:Mekanism:${mekanism_version}"
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): testCompileOnly "mekanism:Mekanism:${mekanism_version}"
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly("mekanism:Mekanism:${mekanism_version}") { transitive = false }
     // Issue #999 (D-M8-20): Mystical Agriculture's crop registry and its tinkering API. The same
     // compileOnly-plus-test-classpath split Draconic Evolution and Apotheosis use above, and
     // deliberately no localRuntime for the same reason -- a full third-party content mod in the
@@ -558,12 +562,12 @@ dependencies {
     // (cucumber [8.0.16,) in its own neoforge.mods.toml), so a classpath holding one without the
     // other is not a configuration any player will ever have. transitive = false on the runtime rows,
     // the Draconic pattern: nothing else is needed to put the classes on a classpath.
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): compileOnly "com.blakebr0.mysticalagriculture:MysticalAgriculture:${mystical_agriculture_version}"
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): compileOnly "com.blakebr0.cucumber:Cucumber:${cucumber_version}"
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): testCompileOnly "com.blakebr0.mysticalagriculture:MysticalAgriculture:${mystical_agriculture_version}"
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): testCompileOnly "com.blakebr0.cucumber:Cucumber:${cucumber_version}"
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly("com.blakebr0.mysticalagriculture:MysticalAgriculture:${mystical_agriculture_version}") { transitive = false }
-    // disabled on 26.2 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly("com.blakebr0.cucumber:Cucumber:${cucumber_version}") { transitive = false }
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): compileOnly "com.blakebr0.mysticalagriculture:MysticalAgriculture:${mystical_agriculture_version}"
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): compileOnly "com.blakebr0.cucumber:Cucumber:${cucumber_version}"
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): testCompileOnly "com.blakebr0.mysticalagriculture:MysticalAgriculture:${mystical_agriculture_version}"
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): testCompileOnly "com.blakebr0.cucumber:Cucumber:${cucumber_version}"
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly("com.blakebr0.mysticalagriculture:MysticalAgriculture:${mystical_agriculture_version}") { transitive = false }
+    // disabled on 26.3 (no partner build, see COMPAT_DISABLED below): testRuntimeOnly("com.blakebr0.cucumber:Cucumber:${cucumber_version}") { transitive = false }
 
     testImplementation platform('org.junit:junit-bom:6.1.3')
     testImplementation 'org.junit.jupiter:junit-jupiter'

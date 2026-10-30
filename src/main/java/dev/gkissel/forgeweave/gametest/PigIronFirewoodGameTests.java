@@ -17,7 +17,6 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
@@ -165,13 +164,13 @@ public class PigIronFirewoodGameTests {
     private static SmelteryControllerBlockEntity lavaFuelledSmeltery(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = smeltery(helper);
         SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS, SearedTankBlockEntity.class);
-        tank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+        tank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), false);
         return core;
     }
 
     /** Puts fluid straight into the smeltery's tank, the way a faucet pouring through a drain would. */
     private static void pour(SmelteryControllerBlockEntity core, Fluid fluid, int amount) {
-        core.tank().fill(new FluidStack(fluid, amount), IFluidHandler.FluidAction.EXECUTE);
+        core.tank().fill(new FluidStack(fluid, amount), false);
     }
 
     private static void insert(GameTestHelper helper, SmelteryControllerBlockEntity core, net.minecraft.world.item.Item item) {

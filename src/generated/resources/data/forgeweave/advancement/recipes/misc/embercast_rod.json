@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:embercast_rod"
+        "recipes": "forgeweave:embercast_rod"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

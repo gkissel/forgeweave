@@ -55,13 +55,13 @@ public class SlimeSlingItem extends Item {
      * (its retune, if anything, raised the vertical ceiling from {@code MAX_FORCE / 3 = 2.0} to
      * {@code MAX_FORCE * 1.6 / 3 = 3.2}). The more concrete candidate this class's own
      * {@link #releaseUsing} Javadoc already documents: {@code releaseUsing} relies on vanilla's
-     * {@code hurtMarked} / {@code ClientboundSetEntityMotionPacket} path to push the server's velocity
+     * {@code syncVelocity} / {@code ClientboundSetEntityMotionPacket} path to push the server's velocity
      * to the client, and that packet clamps every axis to +-3.9 blocks/tick (Mojang's short-encoded
      * velocity format). Upstream never had that ceiling because {@code EntityMovementChangePacket}
      * (NOTICE.md) sent raw, unclamped doubles instead -- which is exactly why it existed. At the
      * now-restored 1:1 scale a full-charge horizontal launch (6.0) still exceeds 3.9; a second, separate
      * commit on this same PR removes the packet ceiling itself by no longer setting
-     * {@code entity.hurtMarked} in {@link #releaseUsing} -- see that method's Javadoc.
+     * {@code entity.syncVelocity} in {@link #releaseUsing} -- see that method's Javadoc.
      */
     public static final float HORIZONTAL_SCALE = 1.0F;
     public static final float VERTICAL_SCALE = 1.0F / 3.0F;
@@ -105,14 +105,14 @@ public class SlimeSlingItem extends Item {
      * client (releasing the use key locally predicts the fling for the local player) and independently
      * on the server (the {@code RELEASE_USE_ITEM} action packet), so {@code player.push} already runs once
      * per side against that side's own {@code Player} instance. Issue #902 ("vertical launch hits a
-     * strange cap") found that this class used to also set {@code entity.hurtMarked = true}, which made
+     * strange cap") found that this class used to also set {@code entity.syncVelocity = true}, which made
      * vanilla additionally broadcast a {@code ClientboundSetEntityMotionPacket} -- and that packet
      * clamps every axis to a hard +-3.9 blocks/tick (Mojang's short-encoded velocity wire format) before
      * overwriting the client's own already-correct, already-applied velocity with the clamped copy.
      * Upstream 1.12 never had that ceiling: its {@code EntityMovementChangePacket} (NOTICE.md) sent raw
      * doubles with no clamp, and only to the launching {@code EntityPlayerMP}, not broadcast to every
      * observer. We don't need a custom packet to match that -- the client-side push above is already
-     * the source of truth for the local player, so simply not setting {@code hurtMarked} means nothing
+     * the source of truth for the local player, so simply not setting {@code syncVelocity} means nothing
      * ever ships a clamped correction to overwrite it. {@link SlimeBounceHandler#addBounceHandler} still
      * registers per side exactly as before, unaffected by this.
      */

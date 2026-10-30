@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:blue_congealed_slime"
+        "recipes": "forgeweave:blue_congealed_slime"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

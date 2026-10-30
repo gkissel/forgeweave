@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:faultsteel_plate"
+        "recipes": "forgeweave:faultsteel_plate"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -5,10 +5,10 @@ import java.util.Optional;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import net.minecraft.advancements.predicates.ContextAwarePredicate;
-import net.minecraft.advancements.predicates.entity.EntityPredicate;
 import net.minecraft.advancements.triggers.SimpleCriterionTrigger;
+import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 
 /**
  * A criterion trigger with no payload beyond "this happened to this player" (docs/SCOPE.md M2 issue
@@ -29,9 +29,9 @@ public class SimpleForgeweaveTrigger extends SimpleCriterionTrigger<SimpleForgew
         trigger(player, instance -> true);
     }
 
-    public record TriggerInstance(Optional<ContextAwarePredicate> player) implements SimpleCriterionTrigger.SimpleInstance {
+    public record TriggerInstance(Optional<Holder<LootItemCondition>> player) implements SimpleCriterionTrigger.SimpleInstance {
         public static final Codec<TriggerInstance> CODEC = RecordCodecBuilder.create(builder -> builder
-                .group(EntityPredicate.ADVANCEMENT_CODEC.optionalFieldOf("player").forGetter(TriggerInstance::player))
+                .group(LootItemCondition.CODEC.optionalFieldOf("player").forGetter(TriggerInstance::player))
                 .apply(builder, TriggerInstance::new));
     }
 }

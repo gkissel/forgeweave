@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:seared_stairs_tile"
+        "recipes": "forgeweave:seared_stairs_tile"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:dreadalloy_gear"
+        "recipes": "forgeweave:dreadalloy_gear"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

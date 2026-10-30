@@ -467,7 +467,7 @@ public class SignatureTraitGameTests {
     /** One blow onto a healed, non-invulnerable player ({@link ArmorTraitLibraryGameTests}' own helper). */
     private static void hit(Player player, DamageSource source, float amount) {
         player.setHealth(player.getMaxHealth());
-        player.invulnerableTime = 0;
+        player.damageCooldownTime = 0;
         player.hurt(source, amount);
     }
 

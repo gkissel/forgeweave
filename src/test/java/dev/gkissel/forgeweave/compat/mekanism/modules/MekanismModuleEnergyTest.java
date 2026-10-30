@@ -11,7 +11,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 
-import net.neoforged.neoforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -93,15 +93,15 @@ class MekanismModuleEnergyTest {
         MekanismGearModules.install(capacityBridge(20_000));
         ItemStack stack = plainStack();
 
-        IEnergyStorage buffer = EnergyBuffer.capability(stack);
-        assertEquals(20_000, buffer.getMaxEnergyStored());
-        assertEquals(0, buffer.getEnergyStored());
+        EnergyHandler buffer = EnergyBuffer.capability(stack);
+        assertEquals(20_000, buffer.getCapacityAsInt());
+        assertEquals(0, buffer.getAmountAsInt());
         assertEquals(0, EnergyBuffer.stored(stack));
 
         EnergyBuffer.receive(stack, 20_000, 7_500, false);
         assertEquals(7_500, EnergyBuffer.stored(stack));
-        assertEquals(7_500, EnergyBuffer.capability(stack).getEnergyStored());
-        assertEquals(20_000, EnergyBuffer.capability(stack).getMaxEnergyStored());
+        assertEquals(7_500, EnergyBuffer.capability(stack).getAmountAsInt());
+        assertEquals(20_000, EnergyBuffer.capability(stack).getCapacityAsInt());
     }
 
     @Test

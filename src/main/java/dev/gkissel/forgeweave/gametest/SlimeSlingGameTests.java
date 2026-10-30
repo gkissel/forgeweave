@@ -58,7 +58,7 @@ public class SlimeSlingGameTests {
         player.snapTo(stand.x, stand.y, stand.z, 0.0F, xRot);
         player.setOnGround(onGround);
         player.setDeltaMovement(Vec3.ZERO);
-        player.hurtMarked = false;
+        player.syncVelocity = false;
 
         ItemStack sling = new ItemStack(ForgeweaveItems.SLIME_SLING.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, sling);
@@ -84,8 +84,8 @@ public class SlimeSlingGameTests {
                 "looking down, a full charge throws the player up at VERTICAL_SCALE of the force, got " + motion);
         helper.assertTrue(Math.abs(motion.x) < EPSILON && Math.abs(motion.z) < EPSILON,
                 "straight down means no horizontal push, got " + motion);
-        helper.assertFalse(player.hurtMarked,
-                "issue #902: no hurtMarked, so vanilla never sends the clamped +-3.9 blocks/tick "
+        helper.assertFalse(player.syncVelocity,
+                "issue #902: no syncVelocity, so vanilla never sends the clamped +-3.9 blocks/tick "
                         + "ClientboundSetEntityMotionPacket that would overwrite the client's own push");
         helper.assertTrue(SlimeBounceHandler.isBouncing(player), "the flung player's momentum must be carried");
         helper.succeed();
@@ -133,7 +133,7 @@ public class SlimeSlingGameTests {
 
         helper.assertTrue(player.getDeltaMovement().equals(Vec3.ZERO),
                 "a sling released in midair must not move the player, got " + player.getDeltaMovement());
-        helper.assertFalse(player.hurtMarked, "nothing happened, so nothing to resync");
+        helper.assertFalse(player.syncVelocity, "nothing happened, so nothing to resync");
         helper.assertFalse(SlimeBounceHandler.isBouncing(player), "nothing happened, so no momentum to carry");
         helper.succeed();
     }

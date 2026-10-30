@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:part_chest"
+        "recipes": "forgeweave:part_chest"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

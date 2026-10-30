@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:hardcinder_plate"
+        "recipes": "forgeweave:hardcinder_plate"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

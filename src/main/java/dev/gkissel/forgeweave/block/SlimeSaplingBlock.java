@@ -2,8 +2,6 @@ package dev.gkissel.forgeweave.block;
 
 import java.util.List;
 
-import com.mojang.serialization.MapCodec;
-
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -14,6 +12,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.BonemealSource;
 import net.minecraft.world.level.block.BonemealableBlock;
 import net.minecraft.world.level.block.VegetationBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -45,9 +44,6 @@ import dev.gkissel.forgeweave.worldgen.SlimeIslandShape;
  */
 @EventBusSubscriber(modid = Forgeweave.MODID)
 public class SlimeSaplingBlock extends VegetationBlock implements BonemealableBlock {
-    public static final MapCodec<SlimeSaplingBlock> CODEC =
-            simpleCodec(properties -> new SlimeSaplingBlock(properties, FoliageType.BLUE));
-
     /** Vanilla's {@code SaplingBlock.STAGE}, which upstream's {@code BlockSapling} carries too. */
     public static final IntegerProperty STAGE = BlockStateProperties.STAGE;
 
@@ -67,11 +63,6 @@ public class SlimeSaplingBlock extends VegetationBlock implements BonemealableBl
     /** The colour of the leaves this sapling grows. */
     public FoliageType foliage() {
         return foliage;
-    }
-
-    @Override
-    protected MapCodec<? extends VegetationBlock> codec() {
-        return CODEC;
     }
 
     @Override
@@ -119,17 +110,17 @@ public class SlimeSaplingBlock extends VegetationBlock implements BonemealableBl
     }
 
     @Override
-    public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state) {
+    public boolean isValidBonemealTarget(LevelReader level, BlockPos pos, BlockState state, BonemealSource source) {
         return true;
     }
 
     @Override
-    public boolean isBonemealSuccess(Level level, RandomSource random, BlockPos pos, BlockState state) {
+    public boolean isBonemealSuccess(Level level, RandomSource random, BlockPos pos, BlockState state, BonemealSource source) {
         return level.getRandom().nextFloat() < 0.45D;
     }
 
     @Override
-    public void performBonemeal(ServerLevel level, RandomSource random, BlockPos pos, BlockState state) {
+    public void performBonemeal(ServerLevel level, RandomSource random, BlockPos pos, BlockState state, BonemealSource source) {
         advanceTree(level, pos, state, random);
     }
 }

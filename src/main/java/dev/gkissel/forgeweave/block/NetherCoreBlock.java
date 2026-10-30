@@ -1,7 +1,5 @@
 package dev.gkissel.forgeweave.block;
 
-import com.mojang.serialization.MapCodec;
-
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -14,16 +12,9 @@ import net.minecraft.world.level.block.state.StateDefinition;
  * inside {@code Block}'s constructor, before the core field exists.
  */
 public class NetherCoreBlock extends SmelteryControllerBlock {
-    private static final MapCodec<NetherCoreBlock> CODEC = simpleCodec(NetherCoreBlock::new);
-
     public NetherCoreBlock(Properties properties) {
         super(properties, SmelteryCore.NETHER);
         registerDefaultState(defaultBlockState().setValue(FACING, Direction.NORTH).setValue(ACTIVE, false).setValue(HOT, false));
-    }
-
-    @Override
-    protected MapCodec<? extends SmelteryControllerBlock> codec() {
-        return CODEC;
     }
 
     @Override

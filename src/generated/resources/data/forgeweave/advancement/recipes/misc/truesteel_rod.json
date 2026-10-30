@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:truesteel_rod"
+        "recipes": "forgeweave:truesteel_rod"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

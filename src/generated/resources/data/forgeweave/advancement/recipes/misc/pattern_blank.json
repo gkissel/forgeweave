@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:pattern_blank"
+        "recipes": "forgeweave:pattern_blank"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

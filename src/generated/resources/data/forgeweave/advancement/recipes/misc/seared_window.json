@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:seared_window"
+        "recipes": "forgeweave:seared_window"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

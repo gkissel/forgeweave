@@ -30,10 +30,6 @@ import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 import dev.gkissel.forgeweave.advancement.ForgeweaveCriteriaTriggers;
 import dev.gkissel.forgeweave.casting.CastingRecipe;
@@ -75,12 +71,10 @@ public class CastingBlockEntity extends BlockEntity {
     private final CastingRecipe.Station station;
     /** Capacity is whatever the in-progress recipe needs; 0 (and empty) means "nothing being poured". */
     private final FluidTank tank = new FluidTank(0);
-    private final IFluidHandler fluidHandler = new CastingFluidHandler();
-    private final IItemHandler itemHandler = new CastingItemHandler();
-    /** The two handlers above as the 21.9 transfer API sees them; what the capabilities hand out. */
+    /** One journal for both handlers below, which are what the capabilities hand out. */
     private final TransferBridge.State<Snapshot> transferState = castingState();
-    private final ResourceHandler<FluidResource> fluidCapability = TransferBridge.fluids(fluidHandler, transferState);
-    private final ResourceHandler<ItemResource> itemCapability = TransferBridge.items(itemHandler, transferState);
+    private final CastingFluidHandler fluidCapability = new CastingFluidHandler();
+    private final CastingItemHandler itemCapability = new CastingItemHandler();
 
     private ItemStack input = ItemStack.EMPTY;
     private ItemStack output = ItemStack.EMPTY;
@@ -172,7 +166,7 @@ public class CastingBlockEntity extends BlockEntity {
             input = held.split(1);
         } else {
             boolean fromOutput = !output.isEmpty();
-            ItemHandlerHelper.giveItemToPlayer(player, fromOutput ? output : input);
+            TransferBridge.giveItemToPlayer(player, fromOutput ? output : input);
             if (fromOutput) {
                 output = ItemStack.EMPTY;
                 // #110 -- "first cast" advancement (docs/SCOPE.md M2 issue #110): fires whenever a
@@ -333,7 +327,12 @@ public class CastingBlockEntity extends BlockEntity {
      * for whatever is sitting in it, and only that recipe's exact amount; a block already holding a
      * result accepts nothing.
      */
-    private class CastingFluidHandler implements IFluidHandler {
+    private class CastingFluidHandler extends TransferBridge.FluidStore {
+        @Override
+        protected TransferBridge.State<?> state() {
+            return transferState;
+        }
+
         @Override
         public int getTanks() {
             return 1;
@@ -355,7 +354,7 @@ public class CastingBlockEntity extends BlockEntity {
         }
 
         @Override
-        public int fill(FluidStack resource, FluidAction action) {
+        public int fill(FluidStack resource, boolean simulate) {
             if (resource.isEmpty() || !output.isEmpty()) {
                 return 0;
             }
@@ -377,11 +376,11 @@ public class CastingBlockEntity extends BlockEntity {
             if (room <= 0) {
                 return 0;
             }
-            if (action.simulate()) {
+            if (simulate) {
                 return Math.min(resource.getAmount(), room);
             }
             tank.setCapacity(recipe.amount());
-            int filled = tank.fill(resource, action);
+            int filled = tank.fill(resource, false);
             if (filled > 0) {
                 contentsChanged();
                 if (tank.getFluidAmount() >= recipe.amount() && level != null && !level.isClientSide()) {
@@ -396,16 +395,16 @@ public class CastingBlockEntity extends BlockEntity {
         }
 
         @Override
-        public FluidStack drain(FluidStack resource, FluidAction action) {
+        public FluidStack drain(FluidStack resource, boolean simulate) {
             return resource.isEmpty() || !FluidStack.isSameFluidSameComponents(resource, tank.getFluid())
                     ? FluidStack.EMPTY
-                    : drain(resource.getAmount(), action);
+                    : drain(resource.getAmount(), simulate);
         }
 
         @Override
-        public FluidStack drain(int maxDrain, FluidAction action) {
-            FluidStack drained = tank.drain(maxDrain, action);
-            if (!drained.isEmpty() && action.execute()) {
+        public FluidStack drain(int maxDrain, boolean simulate) {
+            FluidStack drained = tank.drain(maxDrain, simulate);
+            if (!drained.isEmpty() && !simulate) {
                 if (tank.isEmpty()) {
                     tank.setCapacity(0);
                     coolStartGameTime = -1; // #720: a mid-pour drain cancels the cooldown, not just the fluid.
@@ -425,7 +424,12 @@ public class CastingBlockEntity extends BlockEntity {
      * upstream's own {@code tank.isEmpty()} guard (1.20's {@code canTakeItemThroughFace}) and the
      * same rule {@link #interact} applies to a player's hands.
      */
-    private class CastingItemHandler implements IItemHandler {
+    private class CastingItemHandler extends TransferBridge.ItemStore {
+        @Override
+        protected TransferBridge.State<?> state() {
+            return transferState;
+        }
+
         @Override
         public int getSlots() {
             return 2;
@@ -492,12 +496,12 @@ public class CastingBlockEntity extends BlockEntity {
                 });
     }
 
-    /** The fluid capability (21.9 transfer API). */
+    /** The fluid capability (transfer API). */
     public ResourceHandler<FluidResource> fluidCapability() {
         return fluidCapability;
     }
 
-    /** The item capability (21.9 transfer API). */
+    /** The item capability (transfer API). */
     public ResourceHandler<ItemResource> itemCapability() {
         return itemCapability;
     }

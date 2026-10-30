@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:cobalt_wire"
+        "recipes": "forgeweave:cobalt_wire"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

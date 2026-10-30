@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:osgloglas_small_dust_from_dust"
+        "recipes": "forgeweave:osgloglas_small_dust_from_dust"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

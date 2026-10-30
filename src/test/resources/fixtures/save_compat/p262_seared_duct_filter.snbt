@@ -1,0 +1,33 @@
+{
+    block: "forgeweave:seared_duct",
+    decoder: "block_entity",
+    expect: {
+        core: [I; 42, -59, 1],
+        filter: {
+            Items: [
+                {
+                    Slot: 0b,
+                    count: 1,
+                    id: "forgeweave:molten_dirt_bucket"
+                }
+            ],
+            Size: 1
+        },
+        id: "forgeweave:seared_duct"
+    },
+    nbt: {
+        core: [I; 42, -59, 1],
+        filter: {
+            Items: [
+                {
+                    Slot: 0b,
+                    count: 1,
+                    id: "forgeweave:molten_dirt_bucket"
+                }
+            ],
+            Size: 1
+        },
+        id: "forgeweave:seared_duct"
+    },
+    what: "26.3 port: a seared duct in the wall of a formed smeltery, as a 26.2 server saved it, with a molten dirt bucket in its filter slot. On 26.2 the filter was a NeoForge ItemStackHandler, which 26.3 removed. Its replacement must read the handler's `Items`/`Size` shape, or the duct comes back with no filter and passes no fluid. `core` is the link to the smeltery core that the drain and chute share."
+}

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:seared_stairs_paver_from_seared_paver_stonecutting"
+        "recipes": "forgeweave:seared_stairs_paver_from_seared_paver_stonecutting"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

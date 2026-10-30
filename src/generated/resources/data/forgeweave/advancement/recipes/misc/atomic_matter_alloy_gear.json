@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:atomic_matter_alloy_gear"
+        "recipes": "forgeweave:atomic_matter_alloy_gear"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

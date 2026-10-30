@@ -22,8 +22,9 @@ import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-import net.neoforged.neoforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 
+import dev.gkissel.forgeweave.block.TransferBridge;
 import dev.gkissel.forgeweave.api.upgrade.UpgradeHosts;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -218,14 +219,14 @@ class DraconicModuleHostTest {
         });
 
         assertEquals(32_000, ForgeweaveTraits.energyCapacity(pickaxe));
-        IEnergyStorage buffer = EnergyBuffer.capability(pickaxe);
+        EnergyHandler buffer = EnergyBuffer.capability(pickaxe);
         assertNotNull(buffer, "an installed energy module alone makes the tool chargeable");
-        assertEquals(32_000, buffer.getMaxEnergyStored());
-        assertEquals(5_000, buffer.receiveEnergy(5_000, false));
-        assertEquals(5_000, buffer.getEnergyStored());
+        assertEquals(32_000, buffer.getCapacityAsInt());
+        assertEquals(5_000, TransferBridge.insertEnergy(buffer, 5_000, false));
+        assertEquals(5_000, buffer.getAmountAsInt());
         assertEquals(5_000, EnergyBuffer.stored(pickaxe),
                 "the module's charge is the same component a Forgeweave charger fills");
-        assertEquals(27_000, buffer.receiveEnergy(30_000, false), "capacity still caps the buffer");
+        assertEquals(27_000, TransferBridge.insertEnergy(buffer, 30_000, false), "capacity still caps the buffer");
     }
 
     /**

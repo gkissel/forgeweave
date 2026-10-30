@@ -22,7 +22,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
@@ -149,7 +148,7 @@ public class FluidBucketGameTests {
         BlockPos tankPos = new BlockPos(1, 1, 1);
         helper.setBlock(tankPos, ForgeweaveBlocks.SEARED_TANK.get());
         SearedTankBlockEntity tank = helper.getBlockEntity(tankPos, SearedTankBlockEntity.class);
-        tank.tank().fill(new FluidStack(Fluids.WATER, 1000), IFluidHandler.FluidAction.EXECUTE);
+        tank.tank().fill(new FluidStack(Fluids.WATER, 1000), false);
 
         Player player = rightClick(helper, tankPos, new ItemStack(Items.BUCKET));
         helper.assertTrue(player.getMainHandItem().is(Items.WATER_BUCKET),
@@ -205,7 +204,7 @@ public class FluidBucketGameTests {
     private static CastingBlockEntity castingRig(GameTestHelper helper, net.minecraft.world.level.material.Fluid fluid) {
         helper.setBlock(TANK, ForgeweaveBlocks.SEARED_TANK.get());
         helper.getBlockEntity(TANK, SearedTankBlockEntity.class).tank()
-                .fill(new FluidStack(fluid, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+                .fill(new FluidStack(fluid, SearedTankBlockEntity.CAPACITY), false);
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_TABLE.get());
         helper.setBlock(FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
                 .setValue(FaucetBlock.FACING, Direction.WEST));

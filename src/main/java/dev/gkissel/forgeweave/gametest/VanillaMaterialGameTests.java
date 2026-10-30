@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.gametest;
 
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import java.util.List;
 import java.util.Map;
 
@@ -17,7 +19,6 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
@@ -114,8 +115,8 @@ public class VanillaMaterialGameTests {
         SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
 
-        core.tank().fill(new FluidStack(Fluids.WATER, 125), IFluidHandler.FluidAction.EXECUTE);
-        core.tank().fill(new FluidStack(Fluids.LAVA, 125), IFluidHandler.FluidAction.EXECUTE);
+        core.tank().fill(new FluidStack(Fluids.WATER, 125), false);
+        core.tank().fill(new FluidStack(Fluids.LAVA, 125), false);
 
         helper.assertValueEqual(core.tank().fluids().size(), 1, "distinct fluids left in the tank");
         helper.assertTrue(core.tank().getFluid().getFluid() == ForgeweaveFluids.OBSIDIAN.still().get(),
@@ -134,7 +135,7 @@ public class VanillaMaterialGameTests {
         helper.setBlock(TANK, ForgeweaveBlocks.SEARED_TANK.get());
         helper.getBlockEntity(TANK, SearedTankBlockEntity.class).tank()
                 .fill(new FluidStack(ForgeweaveFluids.OBSIDIAN.still().get(), SearedTankBlockEntity.CAPACITY),
-                        IFluidHandler.FluidAction.EXECUTE);
+                        false);
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_TABLE.get());
         helper.setBlock(FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
                 .setValue(FaucetBlock.FACING, Direction.WEST));
@@ -168,10 +169,10 @@ public class VanillaMaterialGameTests {
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_BASIN.get());
         CastingBlockEntity basin = helper.getBlockEntity(CASTING, CastingBlockEntity.class);
 
-        IFluidHandler handler = TransferBridge.fluidAt(helper.getLevel(), helper.absolutePos(CASTING), Direction.UP);
+        ResourceHandler<FluidResource> handler = TransferBridge.fluidAt(helper.getLevel(), helper.absolutePos(CASTING), Direction.UP);
         helper.assertTrue(handler != null, "expected the basin to expose a fluid handler");
-        int filled = handler.fill(new FluidStack(ForgeweaveFluids.OBSIDIAN.still().get(), 4000),
-                IFluidHandler.FluidAction.EXECUTE);
+        int filled = TransferBridge.fill(handler, new FluidStack(ForgeweaveFluids.OBSIDIAN.still().get(), 4000),
+                false);
         helper.assertValueEqual(filled, 288, "an obsidian block's worth of fluid, and no more");
 
         helper.succeedWhen(() -> helper.assertTrue(basin.output().is(Items.OBSIDIAN),

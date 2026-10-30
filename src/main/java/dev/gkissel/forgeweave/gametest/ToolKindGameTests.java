@@ -21,7 +21,6 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 
-import net.neoforged.neoforge.common.ItemAbilities;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
@@ -141,7 +140,7 @@ public class ToolKindGameTests {
         player.setItemInHand(InteractionHand.MAIN_HAND, shovel);
         helper.setBlock(grass, Blocks.GRASS_BLOCK);
 
-        helper.assertFalse(shovel.canPerformAction(ItemAbilities.SHOVEL_FLATTEN),
+        helper.assertFalse(shovel.canPerformAction(ToolItem.SHOVEL_FLATTEN),
                 "a Broken shovel must not claim the flatten ability");
         helper.useBlock(grass, player);
 
@@ -201,7 +200,7 @@ public class ToolKindGameTests {
         player.setItemInHand(InteractionHand.MAIN_HAND, mattock);
         helper.setBlock(grass, Blocks.GRASS_BLOCK);
 
-        helper.assertFalse(mattock.canPerformAction(ItemAbilities.SHOVEL_FLATTEN),
+        helper.assertFalse(mattock.canPerformAction(ToolItem.SHOVEL_FLATTEN),
                 "a mattock must not claim the flatten ability");
         helper.useBlock(grass, player);
 
@@ -265,7 +264,7 @@ public class ToolKindGameTests {
         player.setItemInHand(InteractionHand.MAIN_HAND, hatchet);
         helper.setBlock(log, Blocks.OAK_LOG);
 
-        helper.assertFalse(hatchet.canPerformAction(ItemAbilities.AXE_STRIP),
+        helper.assertFalse(hatchet.canPerformAction(ToolItem.AXE_STRIP),
                 "a Broken hatchet must not claim the strip ability");
         helper.useBlock(log, player);
 
@@ -286,7 +285,7 @@ public class ToolKindGameTests {
         player.setItemInHand(InteractionHand.MAIN_HAND, mattock);
         helper.setBlock(log, Blocks.OAK_LOG);
 
-        helper.assertFalse(mattock.canPerformAction(ItemAbilities.AXE_STRIP),
+        helper.assertFalse(mattock.canPerformAction(ToolItem.AXE_STRIP),
                 "a mattock must not claim the strip ability");
         helper.useBlock(log, player);
 

@@ -8,6 +8,7 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -50,5 +51,17 @@ final class GameTestCompat {
         TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, arrow.registryAccess());
         arrow.saveWithoutId(output);
         return output.buildResult().getDoubleOr("damage", Double.NaN);
+    }
+
+    /**
+     * A mock player moved into open air. GameTestHelper's mock players spawn at the world origin,
+     * which 26.3's test world (flat_all_dimensions: sandstone up to y=3) fills, so a tick there costs
+     * 1 suffocation damage and starts the damage cooldown, and an explosion centred on the player
+     * sees nothing. 26.2's flat world left the origin empty. Tests that tick the player and measure a
+     * blow, or explode at the player, need it out of the wall.
+     */
+    static <P extends Player> P inAir(P player) {
+        player.setPos(0.5D, 8.0D, 0.5D);
+        return player;
     }
 }

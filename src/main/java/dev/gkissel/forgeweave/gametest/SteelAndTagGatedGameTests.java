@@ -16,7 +16,6 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
@@ -93,7 +92,7 @@ public class SteelAndTagGatedGameTests {
     public static void anIronIngotAndACoalMeltAndAlloyIntoOneSteelIngot(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = smeltery(helper);
         SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS, SearedTankBlockEntity.class);
-        tank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+        tank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), false);
 
         helper.assertTrue(core.insertForMelting(new ItemStack(Items.IRON_INGOT)).isEmpty(), "expected the iron ingot to go in");
         helper.assertTrue(core.insertForMelting(new ItemStack(Items.COAL)).isEmpty(), "expected the coal to go in");
@@ -185,14 +184,14 @@ public class SteelAndTagGatedGameTests {
 
     /** Puts fluid straight into the smeltery's tank, the way a faucet pouring through a drain would. */
     private static void pour(SmelteryControllerBlockEntity core, Fluid fluid, int amount) {
-        core.tank().fill(new FluidStack(fluid, amount), IFluidHandler.FluidAction.EXECUTE);
+        core.tank().fill(new FluidStack(fluid, amount), false);
     }
 
     /** A tank of {@code fluid}, a faucet on its east side, and a casting table below ({@code M3CastingGameTests#rig}). */
     private static CastingBlockEntity rig(GameTestHelper helper, Fluid fluid) {
         helper.setBlock(TANK, ForgeweaveBlocks.SEARED_TANK.get());
         helper.getBlockEntity(TANK, SearedTankBlockEntity.class).tank()
-                .fill(new FluidStack(fluid, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+                .fill(new FluidStack(fluid, SearedTankBlockEntity.CAPACITY), false);
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_TABLE.get());
         helper.setBlock(FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
                 .setValue(FaucetBlock.FACING, Direction.WEST));

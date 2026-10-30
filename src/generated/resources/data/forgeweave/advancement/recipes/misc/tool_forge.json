@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:tool_forge"
+        "recipes": "forgeweave:tool_forge"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

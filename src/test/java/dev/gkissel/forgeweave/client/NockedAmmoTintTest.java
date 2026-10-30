@@ -56,7 +56,7 @@ class NockedAmmoTintTest {
      */
     private static BakedQuad quad(int tintIndex) {
         return new BakedQuad(new Vector3f(), new Vector3f(), new Vector3f(), new Vector3f(), 0L, 0L, 0L, 0L,
-                Direction.NORTH, new BakedQuad.MaterialInfo(null, null, null, tintIndex, true, 0, true),
+                Direction.NORTH, new BakedQuad.MaterialInfo(null, null, null, null, null, tintIndex, null, 0, true),
                 BakedNormals.UNSPECIFIED, BakedColors.of(WHITE));
     }
 

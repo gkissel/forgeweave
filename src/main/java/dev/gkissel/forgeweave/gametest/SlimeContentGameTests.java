@@ -17,7 +17,6 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.material.Fluid;
 
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
@@ -317,7 +316,7 @@ public class SlimeContentGameTests {
 
     /** Puts fluid straight into the smeltery's tank, the way a faucet pouring through a drain would. */
     private static void pour(SmelteryControllerBlockEntity core, Fluid fluid, int amount) {
-        core.tank().fill(new FluidStack(fluid, amount), IFluidHandler.FluidAction.EXECUTE);
+        core.tank().fill(new FluidStack(fluid, amount), false);
     }
 
     private static List<Identifier> traits(ItemStack stack) {

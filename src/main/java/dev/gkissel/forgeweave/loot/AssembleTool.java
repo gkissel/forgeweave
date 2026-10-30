@@ -7,6 +7,7 @@ import java.util.Optional;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
@@ -79,8 +80,8 @@ public class AssembleTool extends LootItemConditionalFunction {
 
     private final List<Identifier> materials;
 
-    protected AssembleTool(List<LootItemCondition> predicates, List<Identifier> materials) {
-        super(predicates);
+    protected AssembleTool(Optional<Holder<LootItemCondition>> condition, List<Identifier> materials) {
+        super(condition);
         this.materials = List.copyOf(materials);
     }
 

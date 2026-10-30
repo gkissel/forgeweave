@@ -1,0 +1,23 @@
+{
+    block: "forgeweave:seared_tank",
+    decoder: "block_entity",
+    expect: {
+        id: "forgeweave:seared_tank",
+        tank: {
+            Fluid: {
+                amount: 2345,
+                id: "forgeweave:molten_slime"
+            }
+        }
+    },
+    nbt: {
+        id: "forgeweave:seared_tank",
+        tank: {
+            Fluid: {
+                amount: 2345,
+                id: "forgeweave:molten_slime"
+            }
+        }
+    },
+    what: "26.3 port: a standalone seared tank holding 2345 mB of molten slime, as a 26.2 server saved it. 26.2 kept this in NeoForge's own FluidTank, which 26.3 removed; Forgeweave's block/FluidTank replaced it and must keep reading the `tank.Fluid` key the NeoForge class wrote. No `core` key, because a tank outside a smeltery has none."
+}

@@ -8,6 +8,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.BonemealSource;
 import net.minecraft.world.level.block.BonemealableBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -46,11 +47,11 @@ public record FertilizeOnUse(int durabilityCost, float chance) implements Trait 
         BlockPos pos = context.getClickedPos();
         BlockState state = level.getBlockState(pos);
         if (!(state.getBlock() instanceof BonemealableBlock bonemealable)
-                || !bonemealable.isValidBonemealTarget(level, pos, state)
+                || !bonemealable.isValidBonemealTarget(level, pos, state, BonemealSource.INTERACTION)
                 || serverLevel.getRandom().nextFloat() >= chance) {
             return InteractionResult.PASS;
         }
-        bonemealable.performBonemeal(serverLevel, serverLevel.getRandom(), pos, state);
+        bonemealable.performBonemeal(serverLevel, serverLevel.getRandom(), pos, state, BonemealSource.INTERACTION);
         level.levelEvent(GROWTH_PARTICLES_EVENT, pos, GROWTH_PARTICLES_DATA);
         stack.hurtAndBreak(durabilityCost, player, EquipmentSlot.MAINHAND);
         // #1112: vanilla's growth particles above are silent and look the same as a hand-held bone

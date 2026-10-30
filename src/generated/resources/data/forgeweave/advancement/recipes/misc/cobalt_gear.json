@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:cobalt_gear"
+        "recipes": "forgeweave:cobalt_gear"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

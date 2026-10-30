@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:blood_slime_ball_from_blood_slime_block"
+        "recipes": "forgeweave:blood_slime_ball_from_blood_slime_block"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

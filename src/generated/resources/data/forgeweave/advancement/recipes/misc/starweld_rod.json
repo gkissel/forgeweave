@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:starweld_rod"
+        "recipes": "forgeweave:starweld_rod"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

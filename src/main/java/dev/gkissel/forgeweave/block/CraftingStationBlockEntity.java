@@ -28,7 +28,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 import net.neoforged.neoforge.model.data.ModelData;
-import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 import dev.gkissel.forgeweave.menu.CraftingStationMenu;
 import dev.gkissel.forgeweave.menu.StationGroup;
@@ -78,7 +79,7 @@ public class CraftingStationBlockEntity extends BlockEntity implements StationMe
 
     /** The adjacent block's item handler to expose in the GUI's side panel, or {@code null} if none qualifies. */
     @Nullable
-    public IItemHandler findSideInventory() {
+    public ResourceHandler<ItemResource> findSideInventory() {
         return SideInventory.findExternal(this);
     }
 
@@ -155,8 +156,8 @@ public class CraftingStationBlockEntity extends BlockEntity implements StationMe
     /** Side-inventory slot count first, then the station-group tab row (issue #78). */
     @Override
     public void writeMenuData(RegistryFriendlyByteBuf buf) {
-        IItemHandler sideInventory = findSideInventory();
-        buf.writeVarInt(sideInventory == null ? 0 : sideInventory.getSlots());
+        ResourceHandler<ItemResource> sideInventory = findSideInventory();
+        buf.writeVarInt(sideInventory == null ? 0 : sideInventory.size());
         StationGroup.STREAM_CODEC.encode(buf, StationGroup.tabsFor(level, worldPosition));
     }
 

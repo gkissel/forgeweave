@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:hepatizon_plate"
+        "recipes": "forgeweave:hepatizon_plate"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

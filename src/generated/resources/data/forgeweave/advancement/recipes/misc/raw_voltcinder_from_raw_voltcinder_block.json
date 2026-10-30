@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:raw_voltcinder_from_raw_voltcinder_block"
+        "recipes": "forgeweave:raw_voltcinder_from_raw_voltcinder_block"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

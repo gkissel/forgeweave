@@ -49,9 +49,6 @@ import net.minecraft.world.phys.AABB; // #98
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.wrapper.InvWrapper;
 
 // #101: the smeltery GUI. The block entity is the menu's host, so the controller opens its own
 // screen the same way every M1 station does.
@@ -683,8 +680,8 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
             }
             return;
         }
-        tank.fill(result, IFluidHandler.FluidAction.EXECUTE);
-        recipe.byproduct().ifPresent(byproduct -> tank.fill(byproduct.result(), IFluidHandler.FluidAction.EXECUTE));
+        tank.fill(result, false);
+        recipe.byproduct().ifPresent(byproduct -> tank.fill(byproduct.result(), false));
         setMeltingItem(slot, ItemStack.EMPTY);
     }
 
@@ -839,7 +836,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
                 .orElseGet(EntityMeltingRecipe::defaultResult);
         ResourceKey<DamageType> type = entity.fireImmune() ? DamageTypes.MAGIC : DamageTypes.IN_FIRE;
         if (level instanceof ServerLevel server && entity.hurtServer(server, level.damageSources().source(type), EntityMeltingRecipe.DAMAGE)) {
-            tank.fill(result, IFluidHandler.FluidAction.EXECUTE);
+            tank.fill(result, false);
         }
     }
 
@@ -1047,10 +1044,10 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         if (fuel == null || !(level.getBlockEntity(fuelTank) instanceof SearedTankBlockEntity tank)) {
             return;
         }
-        if (tank.tank().drain(fuel.amount(), IFluidHandler.FluidAction.SIMULATE).getAmount() != fuel.amount()) {
+        if (tank.tank().drain(fuel.amount(), true).getAmount() != fuel.amount()) {
             return;
         }
-        tank.tank().drain(fuel.amount(), IFluidHandler.FluidAction.EXECUTE);
+        tank.tank().drain(fuel.amount(), false);
         fuelBurnTicksRemaining = fuel.duration();
         fuelTemperature = fuel.temperature();
     }
@@ -1245,10 +1242,10 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
                 continue;
             }
             for (FluidStack input : recipe.inputs()) {
-                tank.drain(input.copyWithAmount(input.getAmount() * times), IFluidHandler.FluidAction.EXECUTE);
+                tank.drain(input.copyWithAmount(input.getAmount() * times), false);
             }
             tank.fill(recipe.result().copyWithAmount(recipe.result().getAmount() * times),
-                    IFluidHandler.FluidAction.EXECUTE);
+                    false);
             alloyed = true;
         }
         return alloyed;
@@ -1379,19 +1376,19 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * {@link SearedChuteBlockEntity#itemHandler()}, because {@link #meltingContainer()} is itself a
      * live view a resize replaces the backing list of.
      *
-     * <p>Zero slots (an {@link InvWrapper} over an empty {@link MeltingContainer}) while unformed --
+     * <p>Zero slots (a store over an empty {@link MeltingContainer}) while unformed --
      * there is nothing to feed into yet, which is the correct answer, not a special case.
      */
-    public IItemHandler itemHandler() {
-        return new InvWrapper(meltingContainer());
+    public TransferBridge.ItemStore itemHandler() {
+        return TransferBridge.items(meltingContainer(), meltingState);
     }
 
-    /** {@link #itemHandler()} as the 21.9 transfer API sees it; what the core's and the chutes' capabilities hand out. */
-    public ResourceHandler<ItemResource> itemCapability() {
-        return TransferBridge.items(itemHandler(), meltingState);
+    /** {@link #itemHandler()}, which is what the core's and the chutes' capabilities hand out. */
+    public TransferBridge.ItemStore itemCapability() {
+        return itemHandler();
     }
 
-    /** {@link #transformHandler()} as the 21.9 transfer API sees it: pours count only once their transaction commits. */
+    /** {@link #transformHandler()} as the transfer API sees it: pours count only once their transaction commits. */
     public ResourceHandler<FluidResource> transformCapability() {
         return TransferBridge.deferredFluids(transformHandler());
     }
@@ -1450,7 +1447,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * <p>Built fresh each call like {@link #itemHandler()}: it is a thin, stateless view over this
      * block entity's own fields ({@link #transformProgress}), not a resource worth caching.
      */
-    public IFluidHandler transformHandler() {
+    public TransferBridge.FluidStore transformHandler() {
         return new CoreTransformHandler();
     }
 
@@ -1487,7 +1484,14 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
     /**
      * @see #transformHandler()
      */
-    private final class CoreTransformHandler implements IFluidHandler {
+    private final class CoreTransformHandler extends TransferBridge.FluidStore {
+        /** None: a fill is only ever run for real once its transaction has committed ({@link #transformCapability}). */
+        @Nullable
+        @Override
+        protected TransferBridge.State<?> state() {
+            return null;
+        }
+
         /**
          * None: the intake is a running total, not a tank anyone can see or drain back out (#845).
          * Jade and WTHIT draw a bar per reported tank, and a single empty one drew "Empty 2.14MB" on
@@ -1523,7 +1527,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
          * strategy).
          */
         @Override
-        public int fill(FluidStack resource, FluidAction action) {
+        public int fill(FluidStack resource, boolean simulate) {
             if (level == null || level.isClientSide() || resource.isEmpty()) {
                 return 0;
             }
@@ -1531,7 +1535,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
             if (recipe.isEmpty()) {
                 return 0;
             }
-            if (action.execute()) {
+            if (!simulate) {
                 transformProgress += resource.getAmount();
                 if (transformProgress >= recipe.get().amount()) {
                     transformTo(recipe.get().toBlock());
@@ -1543,12 +1547,12 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         }
 
         @Override
-        public FluidStack drain(FluidStack resource, FluidAction action) {
+        public FluidStack drain(FluidStack resource, boolean simulate) {
             return FluidStack.EMPTY;
         }
 
         @Override
-        public FluidStack drain(int maxDrain, FluidAction action) {
+        public FluidStack drain(int maxDrain, boolean simulate) {
             return FluidStack.EMPTY;
         }
     }

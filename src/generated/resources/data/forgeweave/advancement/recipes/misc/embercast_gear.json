@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:embercast_gear"
+        "recipes": "forgeweave:embercast_gear"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

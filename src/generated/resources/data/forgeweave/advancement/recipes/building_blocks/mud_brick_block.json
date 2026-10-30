@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:mud_brick_block"
+        "recipes": "forgeweave:mud_brick_block"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

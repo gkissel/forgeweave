@@ -2,8 +2,6 @@ package dev.gkissel.forgeweave.block;
 
 import javax.annotation.Nullable;
 
-import com.mojang.serialization.MapCodec;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
@@ -20,7 +18,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.StateDefinition;
 
-import net.neoforged.neoforge.fluids.FluidUtil;
+import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 
 /**
  * The seared tank, gauge and window (docs/SCOPE.md M2 issue #95): the fluid-holding wall blocks a
@@ -36,8 +34,6 @@ import net.neoforged.neoforge.fluids.FluidUtil;
  * rendering in issue #101 -- and until melting lands (#96) there is no Forgeweave fluid to show.
  */
 public class SearedTankBlock extends Block implements EntityBlock {
-    public static final MapCodec<SearedTankBlock> CODEC = simpleCodec(SearedTankBlock::new);
-
     public SearedTankBlock(Properties properties) {
         super(properties);
         registerDefaultState(SearedTier.standard(stateDefinition.any()));
@@ -54,11 +50,6 @@ public class SearedTankBlock extends Block implements EntityBlock {
         SearedTier.flip(state, level, pos);
     }
 
-    @Override
-    protected MapCodec<? extends SearedTankBlock> codec() {
-        return CODEC;
-    }
-
     @Nullable
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
@@ -69,7 +60,7 @@ public class SearedTankBlock extends Block implements EntityBlock {
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hit) {
         if (level.getBlockEntity(pos) instanceof SearedTankBlockEntity tank
-                && FluidUtil.interactWithFluidHandler(player, hand, tank.tank())) {
+                && FluidUtil.interactWithFluidHandler(player, hand, null, tank.tank(), null)) {
             return InteractionResult.SUCCESS;
         }
         return super.useItemOn(stack, state, level, pos, player, hand, hit);

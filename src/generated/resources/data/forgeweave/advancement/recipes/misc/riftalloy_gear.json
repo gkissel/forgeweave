@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:riftalloy_gear"
+        "recipes": "forgeweave:riftalloy_gear"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

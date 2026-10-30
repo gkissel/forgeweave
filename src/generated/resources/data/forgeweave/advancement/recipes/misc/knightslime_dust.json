@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:knightslime_dust"
+        "recipes": "forgeweave:knightslime_dust"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:cinderforge_tiny_dust"
+        "recipes": "forgeweave:cinderforge_tiny_dust"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

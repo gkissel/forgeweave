@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:slime_sling"
+        "recipes": "forgeweave:slime_sling"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

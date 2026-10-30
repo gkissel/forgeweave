@@ -3,6 +3,8 @@ package dev.gkissel.forgeweave.block;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.TransferPreconditions;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import javax.annotation.Nullable;
@@ -27,9 +29,7 @@ import net.minecraft.world.level.material.Fluid;
 
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
 
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.menu.EnergizedTankMenu;
@@ -88,16 +88,14 @@ public class EnergizedTankBlockEntity extends BlockEntity implements StationMenu
         }
     };
 
-    private final IEnergyStorage buffer = new Buffer();
+    private final Buffer buffer = new Buffer();
 
-    /** The sample tank and the buffer as the 21.9 transfer API sees them; what the capabilities hand out. */
-    private final ResourceHandler<FluidResource> sampleHandler =
-            TransferBridge.fluids(sample, TransferBridge.tankState(sample, this::changed));
-    private final EnergyHandler energyHandler = TransferBridge.energy(buffer, TransferBridge.State.of(
+    /** The buffer's transaction journal: what it holds, and the change hook to run when that rolls back. */
+    private final TransferBridge.State<Integer> energyState = TransferBridge.State.of(
             () -> energy, stored -> {
                 energy = stored;
                 changed();
-            }));
+            });
 
     public EnergizedTankBlockEntity(BlockPos pos, BlockState state) {
         super(ForgeweaveBlockEntities.ENERGIZED_TANK.get(), pos, state);
@@ -108,19 +106,19 @@ public class EnergizedTankBlockEntity extends BlockEntity implements StationMenu
         return sample;
     }
 
-    /** The Forge Energy buffer, which {@link Capabilities.Energy#BLOCK} hands out through {@link #energyHandler}. */
-    public IEnergyStorage buffer() {
+    /** The Forge Energy buffer, which {@link Capabilities.Energy#BLOCK} hands out. */
+    public Buffer buffer() {
         return buffer;
     }
 
-    /** The energy capability (21.9 transfer API). */
+    /** The energy capability (transfer API): the buffer. */
     public EnergyHandler energyHandler() {
-        return energyHandler;
+        return buffer;
     }
 
-    /** The fluid capability (21.9 transfer API). */
+    /** The fluid capability (transfer API): the sample tank. */
     public ResourceHandler<FluidResource> sampleHandler() {
-        return sampleHandler;
+        return sample;
     }
 
     /** Whether the overdrive button is pressed. Saved with this block entity, so it survives a reload. */
@@ -282,9 +280,9 @@ public class EnergizedTankBlockEntity extends BlockEntity implements StationMenu
     /** Wires the energy and fluid capabilities; called from {@code Forgeweave}'s constructor. */
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(Capabilities.Energy.BLOCK, ForgeweaveBlockEntities.ENERGIZED_TANK.get(),
-                (blockEntity, side) -> blockEntity.energyHandler);
+                (blockEntity, side) -> blockEntity.buffer);
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, ForgeweaveBlockEntities.ENERGIZED_TANK.get(),
-                (blockEntity, side) -> blockEntity.sampleHandler);
+                (blockEntity, side) -> blockEntity.sample);
     }
 
     /**
@@ -293,11 +291,10 @@ public class EnergizedTankBlockEntity extends BlockEntity implements StationMenu
      * value: this reads {@link ForgeweaveConfig#energizedTankBuffer()} on every query, so lowering
      * the option takes effect on a tank already in the ground instead of waiting for a reload.
      *
-     * <p>Energy only ever leaves through {@link #payMeltTick()}. {@link #canExtract()} is false, so
+     * <p>Energy only ever leaves through {@link #payMeltTick()}. {@link Buffer#extract} takes nothing, so
      * a cable cannot pull a smeltery's heat back out into the grid that fed it.
      */
-    private final class Buffer implements IEnergyStorage {
-        @Override
+    public final class Buffer implements EnergyHandler {
         public int receiveEnergy(int toReceive, boolean simulate) {
             int accepted = Math.min(toReceive, getMaxEnergyStored() - energy);
             if (accepted <= 0) {
@@ -310,30 +307,40 @@ public class EnergizedTankBlockEntity extends BlockEntity implements StationMenu
             return accepted;
         }
 
-        @Override
-        public int extractEnergy(int toExtract, boolean simulate) {
-            return 0;
-        }
-
-        @Override
         public int getEnergyStored() {
             // A buffer filled before the option was lowered reads as full rather than over-full.
             return Math.min(energy, getMaxEnergyStored());
         }
 
-        @Override
         public int getMaxEnergyStored() {
             return ForgeweaveConfig.energizedTankBuffer();
         }
 
         @Override
-        public boolean canExtract() {
-            return false;
+        public long getAmountAsLong() {
+            return getEnergyStored();
         }
 
         @Override
-        public boolean canReceive() {
-            return true;
+        public long getCapacityAsLong() {
+            return getMaxEnergyStored();
+        }
+
+        @Override
+        public int insert(int amount, TransactionContext transaction) {
+            TransferPreconditions.checkNonNegative(amount);
+            if (receiveEnergy(amount, true) <= 0) {
+                return 0;
+            }
+            energyState.updateSnapshots(transaction);
+            return receiveEnergy(amount, false);
+        }
+
+        /** Never: energy only leaves through {@link #payMeltTick()}. */
+        @Override
+        public int extract(int amount, TransactionContext transaction) {
+            TransferPreconditions.checkNonNegative(amount);
+            return 0;
         }
     }
 }

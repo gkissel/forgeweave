@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:quakestone_dust"
+        "recipes": "forgeweave:quakestone_dust"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

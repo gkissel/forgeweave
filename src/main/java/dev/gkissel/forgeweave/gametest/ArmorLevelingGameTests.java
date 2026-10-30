@@ -58,7 +58,7 @@ public class ArmorLevelingGameTests {
 
     /** A survival mock player in a full set of {@code material}, ticked once so the attributes apply. */
     private static Player suitedUp(GameTestHelper helper, String material) {
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        Player player = GameTestCompat.inAir(helper.makeMockPlayer(GameType.SURVIVAL));
         player.setItemSlot(EquipmentSlot.HEAD, piece(helper, player, ToolConstants.HELMET, material));
         player.setItemSlot(EquipmentSlot.CHEST, piece(helper, player, ToolConstants.CHESTPLATE, material));
         player.setItemSlot(EquipmentSlot.LEGS, piece(helper, player, ToolConstants.LEGGINGS, material));
@@ -74,7 +74,7 @@ public class ArmorLevelingGameTests {
     /** One blow onto a healed, non-invulnerable player; what it cost them. */
     private static float lost(Player player, DamageSource source, float amount) {
         player.setHealth(player.getMaxHealth());
-        player.invulnerableTime = 0;
+        player.damageCooldownTime = 0;
         float before = player.getHealth();
         player.hurt(source, amount);
         return before - player.getHealth();

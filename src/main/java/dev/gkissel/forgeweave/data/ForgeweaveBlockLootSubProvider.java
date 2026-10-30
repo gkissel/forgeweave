@@ -2,13 +2,11 @@ package dev.gkissel.forgeweave.data;
 
 import java.util.Set;
 
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.data.loot.BlockLootSubProvider;
+import net.minecraft.data.loot.LootTableSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.storage.loot.LootPool;
@@ -18,7 +16,7 @@ import net.minecraft.world.level.storage.loot.functions.ApplyBonusCount;
 import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.predicates.BonusLevelTableCondition;
-import net.minecraft.world.level.storage.loot.providers.number.ConstantValue;
+import net.minecraft.world.level.storage.loot.providers.number.ints.ContextIntProviders;
 
 import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -37,8 +35,8 @@ import dev.gkissel.forgeweave.trackb.TrackBOre;
  * component so this loot function can find it via {@code LootContextParams.BLOCK_ENTITY}.
  */
 public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
-    public ForgeweaveBlockLootSubProvider(HolderLookup.Provider registries) {
-        super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);
+    public ForgeweaveBlockLootSubProvider(LootTableSubProvider.Context output) {
+        super(Set.of(), FeatureFlags.REGISTRY.allFlags(), output);
     }
 
     /**
@@ -53,7 +51,6 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
      * never do upstream.
      */
     private LootTable.Builder slimeLeavesDrop(Block block, Block sapling) {
-        HolderLookup.RegistryLookup<Enchantment> enchantments = registries.lookupOrThrow(Registries.ENCHANTMENT);
         return createSilkTouchOrShearsDispatchTable(block,
                 applyExplosionCondition(block, LootItem.lootTableItem(sapling))
                         .when(BonusLevelTableCondition.bonusLevelFlatChance(
@@ -274,22 +271,21 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
 
     private LootTable.Builder oreDrop(Block block, Item item) {
         return LootTable.lootTable().withPool(applyExplosionCondition(block, LootPool.lootPool()
-                .setRolls(ConstantValue.exactly(1.0F))
+                .setRolls(ContextIntProviders.exactly(1))
                 .add(LootItem.lootTableItem(item))));
     }
 
     /** {@link #oreDrop} plus vanilla's own ore Fortune curve (#903, brimspar's crystals). */
     private LootTable.Builder fortuneOreDrop(Block block, Item item) {
-        HolderLookup.RegistryLookup<Enchantment> enchantments = registries.lookupOrThrow(Registries.ENCHANTMENT);
         return LootTable.lootTable().withPool(applyExplosionCondition(block, LootPool.lootPool()
-                .setRolls(ConstantValue.exactly(1.0F))
+                .setRolls(ContextIntProviders.exactly(1))
                 .add(LootItem.lootTableItem(item)
                         .apply(ApplyBonusCount.addOreBonusCount(enchantments.getOrThrow(Enchantments.FORTUNE))))));
     }
 
     private LootTable.Builder tankDrop(Block block) {
         return LootTable.lootTable().withPool(applyExplosionCondition(block, LootPool.lootPool()
-                .setRolls(ConstantValue.exactly(1.0F))
+                .setRolls(ContextIntProviders.exactly(1))
                 .add(LootItem.lootTableItem(block)
                         .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)
                                 .include(ForgeweaveDataComponents.FLUID_CONTENT.get())))));
@@ -302,7 +298,7 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
      */
     private LootTable.Builder chestDrop(Block block) {
         return LootTable.lootTable().withPool(applyExplosionCondition(block, LootPool.lootPool()
-                .setRolls(ConstantValue.exactly(1.0F))
+                .setRolls(ContextIntProviders.exactly(1))
                 .add(LootItem.lootTableItem(block)
                         .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)
                                 .include(DataComponents.CONTAINER)))));
@@ -310,7 +306,7 @@ public class ForgeweaveBlockLootSubProvider extends BlockLootSubProvider {
 
     private LootTable.Builder retexturedTableDrop(Block block) {
         return LootTable.lootTable().withPool(applyExplosionCondition(block, LootPool.lootPool()
-                .setRolls(ConstantValue.exactly(1.0F))
+                .setRolls(ContextIntProviders.exactly(1))
                 .add(LootItem.lootTableItem(block)
                         .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)
                                 .include(ForgeweaveDataComponents.TEXTURE.get())))));

@@ -32,7 +32,7 @@ import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
-import org.lwjgl.glfw.GLFW;
+import com.mojang.blaze3d.platform.InputConstants;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.client.book.BookPage.IconGridPage;
@@ -1270,7 +1270,7 @@ public class BookScreen extends Screen {
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         double mouseX = event.x();
         double mouseY = event.y();
-        if (event.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+        if (event.button() == InputConstants.MOUSE_BUTTON_LEFT) {
             boolean cover = this.spread < 0;
             if (hasNext() && over(mouseX, mouseY, BookGeometry.nextArrowX(this.width, cover),
                     BookGeometry.arrowY(this.height), BookGeometry.ARROW_W, BookGeometry.ARROW_H)) {
@@ -1345,11 +1345,11 @@ public class BookScreen extends Screen {
     public boolean keyPressed(KeyEvent event) {
         int keyCode = event.key();
         // Upstream binds A/D alongside the arrow keys (GuiBook.keyTyped).
-        if ((keyCode == GLFW.GLFW_KEY_RIGHT || keyCode == GLFW.GLFW_KEY_D) && hasNext()) {
+        if ((keyCode == InputConstants.KEY_RIGHT || keyCode == InputConstants.KEY_D) && hasNext()) {
             turnTo(this.spread + 1);
             return true;
         }
-        if ((keyCode == GLFW.GLFW_KEY_LEFT || keyCode == GLFW.GLFW_KEY_A) && hasPrev()) {
+        if ((keyCode == InputConstants.KEY_LEFT || keyCode == InputConstants.KEY_A) && hasPrev()) {
             turnTo(this.spread - 1);
             return true;
         }

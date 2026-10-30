@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:tideiron_rod"
+        "recipes": "forgeweave:tideiron_rod"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

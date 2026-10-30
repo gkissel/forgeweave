@@ -2,8 +2,6 @@ package dev.gkissel.forgeweave.block;
 
 import javax.annotation.Nullable;
 
-import com.mojang.serialization.MapCodec;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.Containers;
@@ -40,8 +38,6 @@ import dev.gkissel.forgeweave.api.modifier.Modifier;
  * a stone axis.
  */
 public class ModifierWorktableBlock extends HorizontalDirectionalBlock implements EntityBlock {
-    public static final MapCodec<ModifierWorktableBlock> CODEC = simpleCodec(ModifierWorktableBlock::new);
-
     /** The shared station table shape: a 4px top plate on four corner legs. */
     private static final VoxelShape TABLE_SHAPE = Shapes.or(
             Block.box(0.0D, 12.0D, 0.0D, 16.0D, 16.0D, 16.0D), // top
@@ -53,11 +49,6 @@ public class ModifierWorktableBlock extends HorizontalDirectionalBlock implement
     public ModifierWorktableBlock(Properties properties) {
         super(properties);
         registerDefaultState(defaultBlockState().setValue(FACING, Direction.NORTH));
-    }
-
-    @Override
-    protected MapCodec<? extends ModifierWorktableBlock> codec() {
-        return CODEC;
     }
 
     @Override

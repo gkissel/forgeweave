@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:voidglass_ingot_from_voidglass_block"
+        "recipes": "forgeweave:voidglass_ingot_from_voidglass_block"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

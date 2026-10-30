@@ -133,7 +133,7 @@ public class ToolXpGameTests {
         DamageSource swing = helper.getLevel().damageSources().playerAttack(player);
 
         pig.hurt(swing, 3.0F);
-        pig.invulnerableTime = 0; // vanilla's post-hit window would swallow the second blow
+        pig.damageCooldownTime = 0; // vanilla's post-hit window would swallow the second blow
         pig.hurt(swing, 4.0F);
         helper.assertTrue(pig.isAlive(), "seven damage must not kill a pig, or this proves nothing");
         helper.assertTrue(ToolLevel.of(sword).xp() == 0, "neither blow may have paid out yet");
@@ -141,7 +141,7 @@ public class ToolXpGameTests {
         // Pocket the weapon, then let something else finish the pig off.
         player.getInventory().setItem(9, sword);
         player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
-        pig.invulnerableTime = 0;
+        pig.damageCooldownTime = 0;
         pig.hurt(helper.getLevel().damageSources().generic(), 100.0F);
 
         helper.assertFalse(pig.isAlive(), "the pig was meant to be dead by now");
@@ -235,7 +235,7 @@ public class ToolXpGameTests {
             Pig pig = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
             DamageSource swing = helper.getLevel().damageSources().playerAttack(player);
             pig.hurt(swing, 3.0F);
-            pig.invulnerableTime = 0;
+            pig.damageCooldownTime = 0;
             pig.hurt(swing, 20.0F);
 
             helper.assertFalse(pig.isAlive(), "the pig was meant to be dead by now");

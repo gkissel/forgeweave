@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:glowveil_plate"
+        "recipes": "forgeweave:glowveil_plate"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

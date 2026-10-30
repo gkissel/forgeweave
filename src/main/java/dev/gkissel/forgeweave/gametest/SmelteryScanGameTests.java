@@ -15,7 +15,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
@@ -119,7 +118,7 @@ public class SmelteryScanGameTests {
         helper.assertTrue(core != null, "expected a smeltery core at " + FAR_CORE);
         SmelteryStructure formed = core.structure();
         helper.assertTrue(formed != null, "expected the straddling smeltery to form: " + reason(core));
-        core.tank().fill(new FluidStack(Fluids.WATER, FILLED_AMOUNT), IFluidHandler.FluidAction.EXECUTE);
+        core.tank().fill(new FluidStack(Fluids.WATER, FILLED_AMOUNT), false);
 
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(!level.hasChunkAt(FAR_WALL),

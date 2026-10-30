@@ -28,8 +28,9 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.GenerationStep;
-import net.minecraft.world.level.levelgen.feature.ConfiguredFeature;
-import net.minecraft.world.level.levelgen.feature.configurations.OreConfiguration;
+import net.minecraft.world.level.levelgen.feature.BlockReplacement;
+import net.minecraft.world.level.levelgen.feature.Feature;
+import net.minecraft.world.level.levelgen.feature.OreFeature;
 import net.minecraft.world.level.levelgen.placement.PlacedFeature;
 
 import net.neoforged.neoforge.common.world.BiomeModifier;
@@ -188,22 +189,22 @@ public class TrackBOreGameTests {
      * feature still targets deepslate would generate nowhere at all).
      */
     private static void assertReplacesItsHostRock(GameTestHelper helper, TrackBOre ore) {
-        ResourceKey<ConfiguredFeature<?, ?>> key = ResourceKey.create(Registries.CONFIGURED_FEATURE,
+        // 26.3 merged ConfiguredFeature into Feature (worldgen/feature); an ore is an OreFeature.
+        ResourceKey<Feature> key = ResourceKey.create(Registries.FEATURE,
                 Identifier.fromNamespaceAndPath(Forgeweave.MODID, ore.oreBlockId()));
-        ConfiguredFeature<?, ?> configured =
-                helper.getLevel().registryAccess().lookupOrThrow(Registries.CONFIGURED_FEATURE).getValue(key);
+        Feature configured = helper.getLevel().registryAccess().lookupOrThrow(Registries.FEATURE).getValue(key);
         helper.assertTrue(configured != null, "expected a configured feature registered as " + key.identifier());
-        helper.assertTrue(configured.config() instanceof OreConfiguration,
+        helper.assertTrue(configured instanceof OreFeature,
                 ore.oreBlockId() + " must be a minecraft:ore feature");
 
-        List<OreConfiguration.TargetBlockState> targets = ((OreConfiguration) configured.config()).targetStates;
+        List<BlockReplacement> targets = ((OreFeature) configured).targetStates();
         helper.assertTrue(targets.size() == 1, ore.oreBlockId() + " must have exactly one ore target");
-        OreConfiguration.TargetBlockState target = targets.get(0);
+        BlockReplacement target = targets.get(0);
 
         Block host = BuiltInRegistries.BLOCK.getValue(Identifier.parse(ore.host().targetBlock));
-        helper.assertTrue(target.target.test(host.defaultBlockState(), helper.getLevel().getRandom()),
+        helper.assertTrue(target.target().test(host.defaultBlockState(), BlockPos.ZERO, helper.getLevel().getRandom()),
                 ore.oreBlockId() + " must replace " + ore.host().targetBlock + ", its " + ore.host() + " host rock");
-        helper.assertTrue(target.state.is(ForgeweaveBlocks.trackBOre(ore.id()).get()),
+        helper.assertTrue(target.state().is(ForgeweaveBlocks.trackBOre(ore.id()).get()),
                 ore.oreBlockId() + " must place its own ore block");
     }
 

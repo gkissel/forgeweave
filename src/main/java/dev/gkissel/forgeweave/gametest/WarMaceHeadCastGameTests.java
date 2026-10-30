@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.gametest;
 
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import dev.gkissel.forgeweave.gametest.GameTest;
@@ -17,7 +19,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
@@ -145,9 +146,9 @@ public class WarMaceHeadCastGameTests {
         CastingBlockEntity table = rigWithoutPour(helper);
         insert(helper, table, new ItemStack(ForgeweaveItems.PART_WAR_MACE_HEAD.get()));
 
-        IFluidHandler handler = TransferBridge.fluidAt(helper.getLevel(), helper.absolutePos(CASTING), Direction.UP);
+        ResourceHandler<FluidResource> handler = TransferBridge.fluidAt(helper.getLevel(), helper.absolutePos(CASTING), Direction.UP);
         helper.assertTrue(handler != null, "expected the casting table to expose a fluid handler");
-        int filled = handler.fill(new FluidStack(ForgeweaveFluids.GOLD.still().get(), 288), IFluidHandler.FluidAction.EXECUTE);
+        int filled = TransferBridge.fill(handler, new FluidStack(ForgeweaveFluids.GOLD.still().get(), 288), false);
         helper.assertValueEqual(filled, 0,
                 "expected no casting recipe to match a war mace head part sitting in the table");
 
@@ -194,7 +195,7 @@ public class WarMaceHeadCastGameTests {
     private static CastingBlockEntity rig(GameTestHelper helper, Fluid fluid) {
         CastingBlockEntity table = rigWithoutPour(helper);
         helper.getBlockEntity(TANK, SearedTankBlockEntity.class).tank()
-                .fill(new FluidStack(fluid, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+                .fill(new FluidStack(fluid, SearedTankBlockEntity.CAPACITY), false);
         return table;
     }
 

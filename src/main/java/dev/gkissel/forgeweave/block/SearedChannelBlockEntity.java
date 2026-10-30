@@ -25,7 +25,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 import dev.gkissel.forgeweave.block.SearedChannelBlock.ChannelConnection;
 
@@ -155,7 +154,7 @@ public class SearedChannelBlockEntity extends BlockEntity {
         if (tank.fluid.isEmpty() || !isOutput(side) || level == null) {
             return false;
         }
-        IFluidHandler target = TransferBridge.fluidAt(level, worldPosition.relative(side), side.getOpposite());
+        ResourceHandler<FluidResource> target = TransferBridge.fluidAt(level, worldPosition.relative(side), side.getOpposite());
         if (target == null) {
             setFlow(side, false);
             return false;
@@ -163,7 +162,7 @@ public class SearedChannelBlockEntity extends BlockEntity {
 
         int usable = Math.min(tank.usable(), rate);
         if (usable > 0) {
-            int filled = target.fill(tank.fluid.copyWithAmount(usable), IFluidHandler.FluidAction.EXECUTE);
+            int filled = TransferBridge.fill(target, tank.fluid.copyWithAmount(usable), false);
             if (filled > 0) {
                 tank.drain(filled);
                 setFlow(side, true);
@@ -219,7 +218,7 @@ public class SearedChannelBlockEntity extends BlockEntity {
      * connected -- and everything else exposes nothing at all.
      */
     @Nullable
-    private IFluidHandler handlerFor(@Nullable Direction side) {
+    private TransferBridge.FluidStore handlerFor(@Nullable Direction side) {
         if (side == null || side == Direction.UP) {
             return tank.fillOnly(null);
         }
@@ -228,7 +227,7 @@ public class SearedChannelBlockEntity extends BlockEntity {
         }
         return switch (getBlockState().getValue(SearedChannelBlock.SIDES.get(side))) {
             case IN -> tank.fillOnly(side);
-            case OUT -> ClosedHandler.INSTANCE;
+            case OUT -> CLOSED;
             case NONE -> null;
         };
     }
@@ -239,14 +238,13 @@ public class SearedChannelBlockEntity extends BlockEntity {
                 (blockEntity, side) -> blockEntity.fluidCapability(side));
     }
 
-    /** The fluid capability on {@code side} (21.9 transfer API), or {@code null} where the side takes none. */
+    /** The fluid capability on {@code side} (transfer API), or {@code null} where the side takes none. */
     @Nullable
     public ResourceHandler<FluidResource> fluidCapability(@Nullable Direction side) {
-        IFluidHandler handler = handlerFor(side);
-        return handler == null ? null : TransferBridge.fluids(handler, transferState);
+        return handlerFor(side);
     }
 
-    /** One journal for the buffer, shared by every side's bridge. */
+    /** One journal for the buffer, shared by every side's store. */
     private final TransferBridge.State<Snapshot> transferState = TransferBridge.State.of(
             () -> new Snapshot(tank.fluid.copy(), tank.locked, isFlowing.clone()),
             snapshot -> {
@@ -329,12 +327,12 @@ public class SearedChannelBlockEntity extends BlockEntity {
             setChanged();
         }
 
-        int fill(FluidStack resource, IFluidHandler.FluidAction action, @Nullable Direction side) {
+        int fill(FluidStack resource, boolean simulate, @Nullable Direction side) {
             if (resource.isEmpty() || (!fluid.isEmpty() && !FluidStack.isSameFluidSameComponents(fluid, resource))) {
                 return 0;
             }
             int accepted = Math.min(resource.getAmount(), CAPACITY - fluid.getAmount());
-            if (accepted <= 0 || action.simulate()) {
+            if (accepted <= 0 || simulate) {
                 return Math.max(accepted, 0);
             }
 
@@ -353,8 +351,13 @@ public class SearedChannelBlockEntity extends BlockEntity {
         }
 
         /** The view handed out on a face: fills land here, drains never do (only the flow drains). */
-        IFluidHandler fillOnly(@Nullable Direction side) {
-            return new IFluidHandler() {
+        TransferBridge.FluidStore fillOnly(@Nullable Direction side) {
+            return new TransferBridge.FluidStore() {
+                @Override
+                protected TransferBridge.State<?> state() {
+                    return transferState;
+                }
+
                 @Override
                 public int getTanks() {
                     return 1;
@@ -376,17 +379,17 @@ public class SearedChannelBlockEntity extends BlockEntity {
                 }
 
                 @Override
-                public int fill(FluidStack resource, FluidAction action) {
-                    return ChannelTank.this.fill(resource, action, side);
+                public int fill(FluidStack resource, boolean simulate) {
+                    return ChannelTank.this.fill(resource, simulate, side);
                 }
 
                 @Override
-                public FluidStack drain(int maxDrain, FluidAction action) {
+                public FluidStack drain(int maxDrain, boolean simulate) {
                     return FluidStack.EMPTY;
                 }
 
                 @Override
-                public FluidStack drain(FluidStack resource, FluidAction action) {
+                public FluidStack drain(FluidStack resource, boolean simulate) {
                     return FluidStack.EMPTY;
                 }
             };
@@ -398,8 +401,12 @@ public class SearedChannelBlockEntity extends BlockEntity {
      * something to connect to) and takes nothing. Upstream returns its {@code EmptyFluidHandler} here
      * for the same reason.
      */
-    private enum ClosedHandler implements IFluidHandler {
-        INSTANCE;
+    private static final TransferBridge.FluidStore CLOSED = new TransferBridge.FluidStore() {
+        @Nullable
+        @Override
+        protected TransferBridge.State<?> state() {
+            return null;
+        }
 
         @Override
         public int getTanks() {
@@ -422,18 +429,18 @@ public class SearedChannelBlockEntity extends BlockEntity {
         }
 
         @Override
-        public int fill(FluidStack resource, FluidAction action) {
+        public int fill(FluidStack resource, boolean simulate) {
             return 0;
         }
 
         @Override
-        public FluidStack drain(int maxDrain, FluidAction action) {
+        public FluidStack drain(int maxDrain, boolean simulate) {
             return FluidStack.EMPTY;
         }
 
         @Override
-        public FluidStack drain(FluidStack resource, FluidAction action) {
+        public FluidStack drain(FluidStack resource, boolean simulate) {
             return FluidStack.EMPTY;
         }
-    }
+    };
 }

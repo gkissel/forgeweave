@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:slimy_mud_magma"
+        "recipes": "forgeweave:slimy_mud_magma"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

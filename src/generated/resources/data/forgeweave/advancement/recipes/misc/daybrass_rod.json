@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:daybrass_rod"
+        "recipes": "forgeweave:daybrass_rod"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

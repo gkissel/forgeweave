@@ -2,8 +2,6 @@ package dev.gkissel.forgeweave.block;
 
 import javax.annotation.Nullable;
 
-import com.mojang.serialization.MapCodec;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -28,15 +26,8 @@ import net.minecraft.world.level.block.state.BlockState;
  * {@code ToolStationBlockEntity}, which is exactly what a Tool Forge has.
  */
 public class ToolForgeBlock extends ToolStationBlock {
-    public static final MapCodec<ToolForgeBlock> CODEC = simpleCodec(ToolForgeBlock::new);
-
     public ToolForgeBlock(Properties properties) {
         super(properties);
-    }
-
-    @Override
-    protected MapCodec<? extends ToolForgeBlock> codec() {
-        return CODEC;
     }
 
     @Nullable

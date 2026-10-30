@@ -28,7 +28,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 import net.neoforged.neoforge.model.data.ModelData;
-import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 import dev.gkissel.forgeweave.menu.StationGroup;
 import dev.gkissel.forgeweave.menu.StencilTableMenu;
@@ -76,7 +77,7 @@ public class StencilTableBlockEntity extends BlockEntity implements StationMenuH
 
     /** The adjacent Pattern Chest's item handler to expose in the GUI's side panel, or {@code null} if none qualifies. */
     @Nullable
-    public IItemHandler findSideInventory() {
+    public ResourceHandler<ItemResource> findSideInventory() {
         return SideInventory.find(this);
     }
 
@@ -146,7 +147,7 @@ public class StencilTableBlockEntity extends BlockEntity implements StationMenuH
     @Nullable
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
-        IItemHandler sideInventory = findSideInventory();
+        ResourceHandler<ItemResource> sideInventory = findSideInventory();
         return new StencilTableMenu(containerId, playerInventory, container,
                 ContainerLevelAccess.create(level, worldPosition), sideInventory, SideInventory.maxSlots(this, sideInventory));
     }
@@ -159,7 +160,7 @@ public class StencilTableBlockEntity extends BlockEntity implements StationMenuH
      */
     @Override
     public void writeMenuData(RegistryFriendlyByteBuf buf) {
-        IItemHandler sideInventory = findSideInventory();
+        ResourceHandler<ItemResource> sideInventory = findSideInventory();
         buf.writeVarInt(SideInventory.maxSlots(this, sideInventory));
         StationGroup.STREAM_CODEC.encode(buf, StationGroup.tabsFor(level, worldPosition));
     }

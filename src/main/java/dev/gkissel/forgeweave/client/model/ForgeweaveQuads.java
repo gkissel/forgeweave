@@ -23,6 +23,7 @@ import net.minecraft.client.resources.model.cuboid.CuboidFace;
 import net.minecraft.client.resources.model.cuboid.FaceBakery;
 import net.minecraft.client.resources.model.cuboid.ItemModelGenerator;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
+import net.minecraft.client.resources.model.geometry.ItemQuads;
 import net.minecraft.client.resources.model.geometry.QuadCollection;
 import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.client.resources.model.sprite.SpriteId;
@@ -70,7 +71,8 @@ public final class ForgeweaveQuads {
     public static BakedQuad retexture(BakedQuad quad, TextureAtlasSprite target, int tintIndex) {
         BakedQuad.MaterialInfo info = quad.materialInfo();
         return new MutableQuad().setFrom(quad)
-                .setSpriteAndMoveUv(target, info.layer(), info.itemRenderType())
+                .setSpriteAndMoveUv(target, info.layer(), info.itemRenderType(), info.itemGlintRenderType(),
+                        info.itemGlintSpecialRenderType())
                 .setTintIndex(tintIndex)
                 .toBakedQuad();
     }
@@ -82,7 +84,7 @@ public final class ForgeweaveQuads {
      */
     public static List<BakedQuad> extrude(TextureAtlasSprite sprite, int tintIndex, ModelState state) {
         BakedQuad.MaterialInfo info = BakedQuad.MaterialInfo.of(new Material.Baked(sprite, false), sprite.transparency(),
-                tintIndex, true, 0, true);
+                tintIndex, null, 0, true);
         Vector3f from = new Vector3f(0.0F, 0.0F, 7.5F);
         Vector3f to = new Vector3f(16.0F, 16.0F, 8.5F);
         QuadCollection.Builder builder = new QuadCollection.Builder();
@@ -124,7 +126,7 @@ public final class ForgeweaveQuads {
         layer.setExtents(extents);
         layer.setLocalTransform(transformation);
         properties.applyToLayer(layer, displayContext);
-        layer.prepareQuadList().addAll(quads);
+        layer.setQuads(ItemQuads.split(quads));
         for (BakedQuad quad : quads) {
             if ((quad.materialInfo().flags() & BakedQuad.FLAG_ANIMATED) != 0) {
                 output.setAnimated();

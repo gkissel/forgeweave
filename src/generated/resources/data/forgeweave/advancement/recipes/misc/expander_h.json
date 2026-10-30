@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:expander_h"
+        "recipes": "forgeweave:expander_h"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

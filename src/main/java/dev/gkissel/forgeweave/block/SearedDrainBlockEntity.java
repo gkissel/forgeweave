@@ -9,7 +9,6 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 /**
  * A drain's link back to the smeltery core whose fluids it serves (docs/SCOPE.md M2 issue #95),
@@ -33,15 +32,14 @@ public class SearedDrainBlockEntity extends SmelteryIoBlockEntity {
      * {@code TileDrain} likewise looks up {@code ISmelteryTankHandler}, not {@code TileSmeltery}.
      */
     @Nullable
-    public IFluidHandler fluidHandler() {
+    public SmelteryTank fluidHandler() {
         return formedTank();
     }
 
-    /** {@link #fluidHandler()} as the 21.9 transfer API sees it; what the capability hands out. */
+    /** {@link #fluidHandler()} as the transfer API sees it; what the capability hands out. */
     @Nullable
     public ResourceHandler<FluidResource> fluidCapability() {
-        SmelteryTank tank = formedTank();
-        return tank == null ? null : tank.transferHandler();
+        return formedTank();
     }
 
     /** Wires the fluid-handler capability; called from {@code Forgeweave}'s constructor. */

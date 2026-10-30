@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:pattern_chest_from_planks"
+        "recipes": "forgeweave:pattern_chest_from_planks"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

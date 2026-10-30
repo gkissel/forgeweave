@@ -112,7 +112,7 @@ public class FaucetBlockEntityRenderer implements BlockEntityRenderer<FaucetBloc
             // rotation about +Y turns it the other way, so the pose angle is the negated one the
             // block state provider gave the model for this facing.
             poseStack.translate(0.5f, 0f, 0.5f);
-            poseStack.mulPose(Axis.YP.rotationDegrees(-modelRotation(facing)));
+            poseStack.rotateDegrees(Axis.YP, -modelRotation(facing));
             poseStack.translate(-0.5f, 0f, -0.5f);
 
             collector.submitCustomGeometry(poseStack, RenderTypes.translucentMovingBlock(), (pose, buffer) -> {

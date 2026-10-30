@@ -1,10 +1,9 @@
 package dev.gkissel.forgeweave.data;
 
-import java.util.List;
-
-import net.minecraft.data.advancements.AdvancementProvider;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.server.packs.PackType;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
+import net.neoforged.neoforge.data.event.GatherDataRegistryEntriesEvent;
 
 import dev.gkissel.forgeweave.data.sprite.MaterialPartTextureProvider;
 
@@ -25,7 +24,6 @@ public final class ForgeweaveDataGenerators {
         // per-material palettes into textures/staging/part/ (M9 groundwork, epic #30).
         event.createProvider(output -> new MaterialPartTextureProvider(output, event.getResourceManager(PackType.CLIENT_RESOURCES)));
         event.createProvider(ForgeweaveLanguageProvider::new);
-        event.createProvider(ForgeweaveRecipeProvider.Runner::new);
         // #915 -- the Draconic Evolution fusion recipes (docs/SCOPE.md M8). A plain DataProvider
         // rather than a RecipeProvider: both layers' serializers live behind the mod_loaded gate, so
         // there is no Recipe object runData could build. See the provider's own javadoc.
@@ -37,7 +35,6 @@ public final class ForgeweaveDataGenerators {
         // and the same reason: Mekanism's serializer is compileOnly, so there is no Recipe object here
         // either.
         event.createProvider(ForgeweaveMekanismRecipeProvider::new);
-        event.createProvider(ForgeweaveLootTableProvider::new);
         // #104 -- the cobalt + ardite nether ore blocks' tool-tier tags (ForgeweaveBlockTagsProvider
         // javadoc).
         event.createProvider(ForgeweaveBlockTagsProvider::new);
@@ -49,10 +46,18 @@ public final class ForgeweaveDataGenerators {
         // #680 -- the five protection damage-type tags the ARMOR traits and #681's modifiers filter on.
         event.createProvider(ForgeweaveDamageTypeTagsProvider::new);
         event.createProvider(ForgeweaveFluidTagsProvider::new); // #992
-        // #110 -- the M2 advancement chain (docs/SCOPE.md M2 issue #110): build smeltery -> first
-        // melt -> first cast -> first alloy -> first modifier.
-        event.createProvider((output, lookupProvider) ->
-                new AdvancementProvider(output, lookupProvider, List.of(new ForgeweaveAdvancementProvider())));
+    }
+
+    /**
+     * 26.3 made recipes, loot tables and advancements datapack registries: their providers are
+     * registry bootstraps now, gathered here and written by NeoForge alongside the providers above.
+     */
+    public static void gatherRegistries(GatherDataRegistryEntriesEvent event) {
+        event.recipe(ForgeweaveRecipeProvider::new)
+                .add(Registries.LOOT_TABLE, new ForgeweaveLootTableProvider())
+                // #110 -- the M2 advancement chain (docs/SCOPE.md M2 issue #110): build smeltery ->
+                // first melt -> first cast -> first alloy -> first modifier.
+                .advancement(ForgeweaveAdvancementProvider::new);
     }
 
     private ForgeweaveDataGenerators() {}

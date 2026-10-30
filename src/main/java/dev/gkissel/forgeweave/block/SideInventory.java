@@ -11,7 +11,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.menu.StationGroup;
@@ -48,14 +49,14 @@ public final class SideInventory {
 
     /** The adjacent block's item handler to expose in a station GUI's side panel, or {@code null} if none qualifies. */
     @Nullable
-    public static IItemHandler find(BlockEntity blockEntity) {
+    public static ResourceHandler<ItemResource> find(BlockEntity blockEntity) {
         Direction direction = findDirection(blockEntity, false);
         return direction == null ? null : handlerAt(blockEntity, direction);
     }
 
     /** {@link #find}, but excluding the opened station's own workshop group and the blacklist -- see class javadoc. */
     @Nullable
-    public static IItemHandler findExternal(BlockEntity blockEntity) {
+    public static ResourceHandler<ItemResource> findExternal(BlockEntity blockEntity) {
         Direction direction = findDirection(blockEntity, true);
         return direction == null ? null : handlerAt(blockEntity, direction);
     }
@@ -109,7 +110,7 @@ public final class SideInventory {
     }
 
     @Nullable
-    private static IItemHandler handlerAt(BlockEntity blockEntity, Direction direction) {
+    private static ResourceHandler<ItemResource> handlerAt(BlockEntity blockEntity, Direction direction) {
         Level level = blockEntity.getLevel();
         BlockPos neighborPos = blockEntity.getBlockPos().relative(direction);
         return TransferBridge.itemsAt(level, neighborPos, direction.getOpposite());
@@ -117,22 +118,22 @@ public final class SideInventory {
 
     /**
      * The slot-count ceiling a {@link #find}-fed side panel (Part Builder, Stencil Table) must
-     * pre-build for {@code sideInventory} (issue #756): a Forgeweave chest keeps growing its {@link
-     * IItemHandler} while the panel's menu is open -- including through insertions made via that
+     * pre-build for {@code sideInventory} (issue #756): a Forgeweave chest keeps growing its item
+     * handler while the panel's menu is open -- including through insertions made via that
      * very panel -- because its backing {@link net.minecraft.world.SimpleContainer} array is always
      * {@link ChestBlockEntity#MAX_SLOTS} regardless of the chest's current logical size ({@link
      * ChestBlockEntity} class javadoc). A slot count captured once at menu-open time (plain {@link
-     * IItemHandler#getSlots()}) leaves any slot the chest grows into afterward unbacked by a {@code
+     * ResourceHandler#size()}) leaves any slot the chest grows into afterward unbacked by a {@code
      * Slot} in the already-open menu -- unreachable until the GUI is reopened, the reported defect.
      * Building the whole {@value ChestBlockEntity#MAX_SLOTS}-slot range up front sidesteps that,
      * mirroring what {@code ChestMenu} already does for the chest's own GUI.
      *
-     * <p>Any other neighbor's {@link IItemHandler#getSlots()} cannot change once queried -- nothing
+     * <p>Any other neighbor's {@link ResourceHandler#size()} cannot change once queried -- nothing
      * else in Forgeweave grows -- so its current count is already the safe ceiling; padding a static,
      * differently-sized handler (a vanilla chest, a hopper) out to 256 would instead let the panel
      * address slot indices the real handler doesn't have.
      */
-    public static int maxSlots(BlockEntity blockEntity, @Nullable IItemHandler sideInventory) {
+    public static int maxSlots(BlockEntity blockEntity, @Nullable ResourceHandler<ItemResource> sideInventory) {
         if (sideInventory == null) {
             return 0;
         }
@@ -141,6 +142,6 @@ public final class SideInventory {
         if (sidePos != null && level != null && level.getBlockEntity(sidePos) instanceof ChestBlockEntity) {
             return ChestBlockEntity.MAX_SLOTS;
         }
-        return sideInventory.getSlots();
+        return sideInventory.size();
     }
 }

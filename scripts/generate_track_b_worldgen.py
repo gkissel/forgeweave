@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generates Track B's ore worldgen JSON (issue #839, epic #824): one configured_feature + placed_feature
+"""Generates Track B's ore worldgen JSON (issue #839, epic #824): one feature + placed_feature
 pair per material plus the two biome_modifier files, and (issue #903) the same pair for the one
 standalone non-Track-B ore that follows their shape -- brimspar, the Nether fuel ore -- from the
 distribution table also encoded in
@@ -83,23 +83,22 @@ def write_json(path: Path, data: dict) -> None:
 
 
 def write_ore_pair(ore_id: str, target: str, size: int, min_y: int, max_y: int, count_modifier: dict) -> None:
-    """One configured_feature + placed_feature pair. `count_modifier` is the placement modifier that
+    """One feature + placed_feature pair. `count_modifier` is the placement modifier that
     answers "how many veins per chunk" -- Track B's config-aware `forgeweave:track_b_ore_rate` for the
     roster above, plain `minecraft:count` for anything outside it."""
     configured = {
         "type": "minecraft:ore",
-        "config": {
-            "targets": [
-                {
-                    "target": {"predicate_type": "minecraft:block_match", "block": target},
-                    "state": {"Name": f"forgeweave:{ore_id}_ore"},
-                }
-            ],
-            "size": size,
-            "discard_chance_on_air_exposure": 0.0,
-        },
+        "targets": [
+            {
+                "target": {"predicate_type": "minecraft:block_match", "block": target},
+                "state": f"forgeweave:{ore_id}_ore",
+            }
+        ],
+        "size": size,
+        "discard_chance_on_air_exposure": 0.0,
     }
-    write_json(WORLDGEN / "configured_feature" / f"{ore_id}_ore.json", configured)
+    # 26.3 merged ConfiguredFeature into Feature: the config fields sit at the top level, under worldgen/feature.
+    write_json(WORLDGEN / "feature" / f"{ore_id}_ore.json", configured)
 
     placed = {
         "feature": f"forgeweave:{ore_id}_ore",
@@ -120,7 +119,7 @@ def write_ore_pair(ore_id: str, target: str, size: int, min_y: int, max_y: int, 
 
 
 def main() -> None:
-    (WORLDGEN / "configured_feature").mkdir(parents=True, exist_ok=True)
+    (WORLDGEN / "feature").mkdir(parents=True, exist_ok=True)
     (WORLDGEN / "placed_feature").mkdir(parents=True, exist_ok=True)
     BIOME_MODIFIERS.mkdir(parents=True, exist_ok=True)
 

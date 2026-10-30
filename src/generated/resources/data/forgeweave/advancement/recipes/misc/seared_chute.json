@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:seared_chute"
+        "recipes": "forgeweave:seared_chute"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

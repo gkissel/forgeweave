@@ -17,7 +17,6 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
@@ -171,7 +170,7 @@ public class MaterialFormMeltingGameTests {
         helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
 
         SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS, SearedTankBlockEntity.class);
-        tank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+        tank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), false);
         return core;
     }
 

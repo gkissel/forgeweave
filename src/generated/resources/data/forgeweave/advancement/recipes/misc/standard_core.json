@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:standard_core"
+        "recipes": "forgeweave:standard_core"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:tideiron_wire"
+        "recipes": "forgeweave:tideiron_wire"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

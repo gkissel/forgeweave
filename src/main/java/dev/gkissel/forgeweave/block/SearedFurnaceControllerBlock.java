@@ -2,8 +2,6 @@ package dev.gkissel.forgeweave.block;
 
 import javax.annotation.Nullable;
 
-import com.mojang.serialization.MapCodec;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.core.Direction;
@@ -38,16 +36,9 @@ import net.minecraft.world.phys.BlockHitResult;
  */
 public class SearedFurnaceControllerBlock extends HorizontalDirectionalBlock implements EntityBlock {
     public static final BooleanProperty ACTIVE = SmelteryControllerBlock.ACTIVE;
-    private static final MapCodec<SearedFurnaceControllerBlock> CODEC = simpleCodec(SearedFurnaceControllerBlock::new);
-
     public SearedFurnaceControllerBlock(Properties properties) {
         super(properties.lightLevel(state -> state.getValue(ACTIVE) ? 15 : 0));
         registerDefaultState(defaultBlockState().setValue(FACING, Direction.NORTH).setValue(ACTIVE, false));
-    }
-
-    @Override
-    protected MapCodec<? extends SearedFurnaceControllerBlock> codec() {
-        return CODEC;
     }
 
     @Override
