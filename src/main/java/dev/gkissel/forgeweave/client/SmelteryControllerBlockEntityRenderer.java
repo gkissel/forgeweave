@@ -100,7 +100,7 @@ public class SmelteryControllerBlockEntityRenderer implements BlockEntityRendere
         // wall's -- upstream lights the pool from the interior instead, which is what actually shines
         // on it. Fluid luminosity (molten metal is light level 10) floors the block-light channel the
         // same way upstream's getCombinedLight(pos, luminosity) does.
-        int interiorLight = LevelRenderer.getLightCoords(blockEntity.getLevel(), min);
+        int interiorLight = LightCoordsUtil.getLightCoords(blockEntity.getLevel(), min);
         int skyLight = LightCoordsUtil.sky(interiorLight);
         int blockLight = LightCoordsUtil.block(interiorLight);
 

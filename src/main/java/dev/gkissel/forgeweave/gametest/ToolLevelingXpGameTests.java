@@ -11,7 +11,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 import net.minecraft.world.item.ArrowItem;
@@ -96,8 +96,8 @@ public class ToolLevelingXpGameTests {
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         // Two separate targets: vanilla's post-hurt invulnerability window would silently swallow a
         // second same-tick hit on the same entity, which would look identical to a miss here.
-        Pig shortbowTarget = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
-        Pig longbowTarget = helper.spawn(EntityType.PIG, new BlockPos(5, 2, 2));
+        Pig shortbowTarget = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
+        Pig longbowTarget = helper.spawn(EntityTypes.PIG, new BlockPos(5, 2, 2));
 
         ItemStack shortbow = assembleUniform(helper, player, new BlockPos(1, 1, 1),
                 ForgeweaveItems.TOOL_SHORTBOW.get(), "wood", false);
@@ -135,7 +135,7 @@ public class ToolLevelingXpGameTests {
                 ForgeweaveItems.TOOL_CROSSBOW.get(), "iron", true);
         helper.assertTrue(((BowItem) crossbow.getItem()).drawTime() == 45, "CrossBow#getDrawTime() = 45");
         player.setItemInHand(InteractionHand.MAIN_HAND, crossbow);
-        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
 
         int expected = expectedRangedXp(crossbow);
         target.hurt(arrowFrom(helper, player, crossbow), 1.0F);
@@ -180,7 +180,7 @@ public class ToolLevelingXpGameTests {
             ServerPlayer player = helper.makeMockServerPlayerInLevel();
             ItemStack bow = assembleUniform(helper, player, new BlockPos(1, 1, 1), ForgeweaveItems.TOOL_SHORTBOW.get(), "wood", false);
             player.setItemInHand(InteractionHand.MAIN_HAND, bow);
-            Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+            Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
 
             target.hurt(arrowFrom(helper, player, bow), 1.0F);
 

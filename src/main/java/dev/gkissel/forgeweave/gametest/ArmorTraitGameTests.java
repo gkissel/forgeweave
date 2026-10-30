@@ -8,7 +8,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.zombie.Zombie;
@@ -86,7 +86,7 @@ public class ArmorTraitGameTests {
     }
 
     private static Zombie zombie(GameTestHelper helper) {
-        Zombie zombie = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2));
+        Zombie zombie = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2));
         zombie.setNoAi(true);
         return zombie;
     }
@@ -297,7 +297,7 @@ public class ArmorTraitGameTests {
                 Identifier.fromNamespaceAndPath(Forgeweave.MODID, "trait/crystalstrike/chest")) != null,
                 "the piece grants the attack speed modifier");
         player.setDeltaMovement(Vec3.ZERO);
-        player.knockback(0.4, 0.3, 1.0); // 16.7 degrees off north: not on the 11.25-degree grid
+        player.knockback(0.4, 0.3, 1.0, player.damageSources().generic(), 0.0F); // 16.7 degrees off north: not on the 11.25-degree grid
         Vec3 push = player.getDeltaMovement();
         helper.assertTrue(push.horizontalDistanceSqr() > 0.0, "the push must land");
         double increment = 2 * Math.PI / 32;

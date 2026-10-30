@@ -1,6 +1,5 @@
 {
   "type": "forgeweave:energized_tank",
-  "category": "misc",
   "key": {
     "A": "forgeweave:seared_brick",
     "B": "minecraft:redstone_block",

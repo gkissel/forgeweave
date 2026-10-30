@@ -2,7 +2,7 @@
 # Line 9: no material that needs another mod exists. Line 62: the material sync line.
 # The upgrade pass loads a world the previous release saved (lines 17, 18).
 
-recipes 2151
+recipes 2221
 materials 80
 no-material forgeweave:zinc forgeweave:brass forgeweave:andesite_alloy forgeweave:rose_quartz
 no-material forgeweave:infused_alloy forgeweave:reinforced_alloy forgeweave:atomic_alloy forgeweave:hellforged

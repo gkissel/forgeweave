@@ -39,6 +39,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
@@ -46,7 +47,7 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.monster.Slime;
+import net.minecraft.world.entity.monster.cubemob.Slime;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.raid.Raider;
 import net.minecraft.world.food.FoodData;
@@ -387,7 +388,7 @@ public final class ForgeweaveTraits {
             Vec3 delta = center.subtract(item.position());
             if (delta.lengthSqr() > 1.0e-6) {
                 // Entity#push, not setDeltaMovement: it also sets hasImpulse, without which the
-                // server only syncs an item's motion every 20 ticks (EntityType.ITEM updateInterval)
+                // server only syncs an item's motion every 20 ticks (EntityTypes.ITEM updateInterval)
                 // and ItemEntity#tick only self-flags on velocity changes > 0.1/tick -- a 0.07 pull
                 // never does. Issue #694: on a dedicated server the client simulated its own gravity
                 // between syncs, so the pull looked horizontal-only and jumped every 20 ticks.
@@ -915,7 +916,7 @@ public final class ForgeweaveTraits {
      * the blue variant its own {@code EntityBlueSlime} -- which each id now really does, since #451
      * (parity audit T20) registered the blue slime.
      */
-    public static final Trait SLIMEY_GREEN = slimey(() -> EntityType.SLIME);
+    public static final Trait SLIMEY_GREEN = slimey(() -> EntityTypes.SLIME);
 
     /** See {@link #SLIMEY_GREEN}: upstream's own blue slime, since #451. */
     public static final Trait SLIMEY_BLUE = slimey(ForgeweaveEntities.BLUE_SLIME);

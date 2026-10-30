@@ -89,9 +89,6 @@ import dev.gkissel.forgeweave.modifier.ModifierDefinition; // #973
 import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 import dev.gkissel.forgeweave.modifier.WorktableRecipe; // #1057
 import dev.gkissel.forgeweave.particle.ForgeweaveParticles; // #482
-import dev.gkissel.forgeweave.ponder.CatnipArgumentTypes;
-import dev.gkissel.forgeweave.ponder.PonderClientRepairs;
-import dev.gkissel.forgeweave.ponder.ForgeweavePonderPlugin;
 import dev.gkissel.forgeweave.recipe.AlloyRecipe; // #98
 import dev.gkissel.forgeweave.recipe.CoreTransformRecipe; // #845
 import dev.gkissel.forgeweave.recipe.EntityMeltingRecipe; // #270
@@ -161,9 +158,9 @@ public class Forgeweave {
         ForgeweaveParticles.PARTICLE_TYPES.register(modEventBus);
         // Catnip (embedded with Ponder) uses three command argument types it never registers, which
         // kicks every joining player. See CatnipArgumentTypes.
-        if (ModList.get().isLoaded("catnip")) {
-            CatnipArgumentTypes.register(modEventBus);
-        }
+        // 26.2: Catnip has no build for this Minecraft, so CatnipArgumentTypes is left out of the
+        // compile (build.gradle's COMPAT_DISABLED). Restore `CatnipArgumentTypes.register(modEventBus);`
+        // here once one ships.
         // T22 (#453) -- the Slimesling's launch sound, upstream's own slimesling.ogg.
         ForgeweaveSounds.SOUND_EVENTS.register(modEventBus);
         ForgeweaveRecipeSerializers.RECIPE_SERIALIZERS.register(modEventBus);
@@ -335,14 +332,12 @@ public class Forgeweave {
         // touched behind this ModList guard, so a repackaged install that strips the embedded jars
         // degrades to the ForgeweavePonderHint fallback instead of crashing. See
         // ForgeweavePonderPlugin's javadoc for why this isn't an @EventBusSubscriber instead.
+        // 26.2: Ponder has no build for this Minecraft and is no longer embedded, so the scenes,
+        // ForgeweavePonderPlugin and PonderClientRepairs are left out of the compile (build.gradle's
+        // COMPAT_DISABLED) and the guard only says so. Restore the onClientSetup, onLoadComplete
+        // and client-only registerSceneRenderer listeners once one ships.
         if (ModList.get().isLoaded("ponder")) {
-            modEventBus.addListener(ForgeweavePonderPlugin::onClientSetup);
-            // Ponder 1.0.52 and Catnip set up their client configs and scene renderer too late on
-            // 26.1, so a scene would crash or open blank. See PonderClientRepairs.
-            modEventBus.addListener(PonderClientRepairs::onLoadComplete);
-            if (FMLEnvironment.getDist() == Dist.CLIENT) {
-                modEventBus.addListener(PonderClientRepairs::registerSceneRenderer);
-            }
+            LOGGER.warn("Ponder is installed, but Forgeweave's Ponder scenes are not available on Minecraft 26.2");
         }
         // #335 -- DarkModeEverywhere compat is a soft dependency too, same idiom as ponder just above.
         // Unlike FMLClientSetupEvent (inherently client-only), InterModEnqueueEvent is a mod-bus
@@ -366,7 +361,7 @@ public class Forgeweave {
         // 26.1.2: Create has no build for this Minecraft yet, so ForgeweaveCreateCompat is left out of
         // the compile (build.gradle's COMPAT_DISABLED) and the guard only says so.
         if (ModList.get().isLoaded("create")) {
-            LOGGER.warn("Create is installed, but Forgeweave's Create integration is not available on Minecraft 26.1.2");
+            LOGGER.warn("Create is installed, but Forgeweave's Create integration is not available on Minecraft 26.2");
         }
         // #969 -- Apotheosis gem sockets (docs/SCOPE.md M8, D-M8-1). Same load-bearing guard: the
         // bridge behind this call names dev.shadowsoffire types and cannot link without the mod,

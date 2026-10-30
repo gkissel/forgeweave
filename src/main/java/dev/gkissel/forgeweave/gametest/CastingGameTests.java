@@ -11,6 +11,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
@@ -459,7 +460,7 @@ public class CastingGameTests {
     @GameTest(template = "empty", timeoutTicks = 400)
     public static void searedGlassCastsFromStainedGlassInTheBasin(GameTestHelper helper) {
         CastingBlockEntity basin = rig(helper, ForgeweaveBlocks.CASTING_BASIN.get(), ForgeweaveFluids.SEARED_STONE.still().get());
-        insert(helper, basin, new ItemStack(Items.WHITE_STAINED_GLASS));
+        insert(helper, basin, new ItemStack(Items.STAINED_GLASS.pick(DyeColor.WHITE)));
         faucet(helper).activate();
 
         helper.succeedWhen(() -> helper.assertTrue(basin.output().is(ForgeweaveItems.SEARED_GLASS.get()),

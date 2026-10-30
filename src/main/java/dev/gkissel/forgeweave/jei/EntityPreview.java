@@ -65,6 +65,14 @@ public final class EntityPreview {
         if (level == null) {
             return null;
         }
-        return renderEntities.computeIfAbsent(type, t -> t.create(level, EntitySpawnReason.LOAD) instanceof LivingEntity living ? living : null);
+        return renderEntities.computeIfAbsent(type, t -> {
+            if (!(t.create(level, EntitySpawnReason.LOAD) instanceof LivingEntity living)) {
+                return null;
+            }
+            // Never added to the level, so 26.2 never gives it an id; the renderer reads one. -1 is
+            // what vanilla's BaseSpawner gives its own display entity.
+            living.setId(-1);
+            return living;
+        });
     }
 }

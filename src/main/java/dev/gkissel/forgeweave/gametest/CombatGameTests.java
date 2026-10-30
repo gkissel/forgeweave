@@ -8,7 +8,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -104,7 +104,7 @@ public class CombatGameTests {
         ItemStack hatchet = ToolAssembly.tool(helper, player, pos, ForgeweaveItems.PART_AXE_HEAD.get(),
                 "stone", "wood", "wood");
         player.setItemInHand(InteractionHand.MAIN_HAND, hatchet);
-        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         DamageSource source = helper.getLevel().damageSources().playerAttack(player);
         helper.assertTrue(source.getWeaponItem() == hatchet, "the blow must be attributed to the tool being tested");
 
@@ -274,7 +274,7 @@ public class CombatGameTests {
 
     /** A pig that survives every blow staged here: 100 max health, no armor, no AI. */
     private static Pig tankPig(GameTestHelper helper) {
-        Pig pig = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig pig = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         pig.setNoAi(true);
         pig.getAttribute(Attributes.MAX_HEALTH).setBaseValue(100.0);
         pig.setHealth(100.0F);

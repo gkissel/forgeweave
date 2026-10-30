@@ -15,7 +15,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.animal.sheep.Sheep;
@@ -542,7 +542,7 @@ public class LargeToolGameTests {
         ServerPlayer player = holdingLargeTool(helper, ForgeweaveItems.TOOL_LUMBERAXE.get(), "stone");
         DamageSource source = helper.getLevel().damageSources().playerAttack(player);
 
-        Pig fresh = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig fresh = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         float freshMax = fresh.getMaxHealth();
         fresh.hurt(source, 4.0F);
         float firstBlow = freshMax - fresh.getHealth();
@@ -567,9 +567,9 @@ public class LargeToolGameTests {
     public static void hammerDealsBonusDamageAgainstTheUndead(GameTestHelper helper) {
         ServerPlayer player = holdingLargeTool(helper, ForgeweaveItems.TOOL_HAMMER.get(), "stone");
         ItemStack hammer = player.getMainHandItem();
-        Zombie zombie = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2));
+        Zombie zombie = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2));
         zombie.setNoAi(true);
-        Pig pig = helper.spawn(EntityType.PIG, new BlockPos(3, 2, 3));
+        Pig pig = helper.spawn(EntityTypes.PIG, new BlockPos(3, 2, 3));
 
         for (int i = 0; i < 20; i++) {
             float bonus = preHit(helper, player, hammer, zombie, 2.0F) - 2.0F;
@@ -677,7 +677,7 @@ public class LargeToolGameTests {
 
     /** An unsheared white sheep at {@code pos}, ready for a shear test. */
     private static Sheep spawnUnshornSheep(GameTestHelper helper, BlockPos pos) {
-        Sheep sheep = helper.spawn(EntityType.SHEEP, pos);
+        Sheep sheep = helper.spawn(EntityTypes.SHEEP, pos);
         sheep.setSheared(false);
         sheep.setColor(DyeColor.WHITE);
         return sheep;
@@ -691,7 +691,7 @@ public class LargeToolGameTests {
      * machines.
      */
     private static Pig staticAdultPig(GameTestHelper helper, BlockPos pos) {
-        Pig pig = helper.spawn(EntityType.PIG, pos);
+        Pig pig = helper.spawn(EntityTypes.PIG, pos);
         pig.setNoAi(true);
         pig.setBaby(false);
         pig.snapTo(helper.absoluteVec(new net.minecraft.world.phys.Vec3(

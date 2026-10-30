@@ -9,11 +9,7 @@ import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 
-import net.neoforged.fml.ModList;
-
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
-import dev.gkissel.forgeweave.compat.mysticalagriculture.MysticalAugments;
-import dev.gkissel.forgeweave.compat.mysticalagriculture.MysticalItems;
 import dev.gkissel.forgeweave.item.ArmorPieceItem;
 import dev.gkissel.forgeweave.item.MeleeWeaponItem;
 import dev.gkissel.forgeweave.item.ToolItem;
@@ -64,7 +60,11 @@ public final class CompatItems {
      * reason a Forgeweave tool is not tinkerable, and installing or removing a mod needs a restart
      * whatever Forgeweave does.
      */
-    private static final boolean MYSTICAL_AGRICULTURE = ModList.get().isLoaded(MysticalAugments.MODID);
+    // 26.2: Mystical Agriculture has no build for this Minecraft yet, so MysticalItems is left out of
+    // the compile (build.gradle's COMPAT_DISABLED) and every item is the plain class. Restore
+    // `ModList.get().isLoaded(MysticalAugments.MODID)` and the three MysticalItems branches below
+    // once one ships.
+    private static final boolean MYSTICAL_AGRICULTURE = false;
 
     private CompatItems() {}
 
@@ -75,10 +75,6 @@ public final class CompatItems {
     public static ToolItem tool(Item.Properties properties, List<TagKey<Block>> mineableBlocks,
             float attackSpeed, float damagePotential, float miningSpeedModifier, float damageCutoff,
             boolean weapon, @Nullable ForgeweaveInnates.Innate innate, AoeHarvest.Shape aoeShape) {
-        if (MYSTICAL_AGRICULTURE) {
-            return MysticalItems.tool(properties, mineableBlocks, attackSpeed, damagePotential,
-                    miningSpeedModifier, damageCutoff, weapon, innate, aoeShape);
-        }
         return new ToolItem(properties, mineableBlocks, attackSpeed, damagePotential, miningSpeedModifier,
                 damageCutoff, weapon, innate, aoeShape);
     }
@@ -108,9 +104,6 @@ public final class CompatItems {
     /** A sword-family weapon, the same split as {@link #tool}. */
     public static ToolItem meleeWeapon(Item.Properties properties, ToolConstants.Entry constants,
             List<TagKey<Block>> mineableBlocks, boolean weapon, @Nullable ForgeweaveInnates.Innate innate) {
-        if (MYSTICAL_AGRICULTURE) {
-            return MysticalItems.meleeWeapon(properties, constants, mineableBlocks, weapon, innate);
-        }
         return new MeleeWeaponItem(properties, constants, mineableBlocks, weapon, innate);
     }
 
@@ -122,9 +115,6 @@ public final class CompatItems {
 
     /** An armour piece, the same split as {@link #tool}. */
     public static ArmorPieceItem armor(ArmorType type, boolean heavy, Item.Properties properties) {
-        if (MYSTICAL_AGRICULTURE) {
-            return MysticalItems.armor(type, heavy, properties);
-        }
         return new ArmorPieceItem(type, heavy, properties);
     }
 

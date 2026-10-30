@@ -7,7 +7,7 @@ import net.minecraft.core.component.DataComponents;
 import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.zombie.Zombie;
@@ -237,7 +237,7 @@ public class ArmorModifierGameTests {
 
         player.setItemSlot(EquipmentSlot.CHEST, piece);
         ItemStack worn = player.getItemBySlot(EquipmentSlot.CHEST);
-        Zombie zombie = helper.spawn(EntityType.ZOMBIE, new BlockPos(3, 2, 3));
+        Zombie zombie = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(3, 2, 3));
         // #767: a vanilla zombie's own base armor (2.0) shaves a hair off a minimum 1.0 thorns
         // roll via CombatRules#getDamageAfterAbsorb, flaking the >= 1.0F assertion below. Strip it
         // so the target takes the seam's damage unmitigated -- thorns behaviour is unchanged.

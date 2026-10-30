@@ -6,6 +6,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -141,22 +142,22 @@ public final class Beheading implements CombatSeam {
      * entity a GameTest structure has no room for).
      */
     public static ItemStack headDropFor(EntityType<?> type) {
-        if (type == EntityType.SKELETON) {
+        if (type == EntityTypes.SKELETON) {
             return new ItemStack(Items.SKELETON_SKULL);
         }
-        if (type == EntityType.WITHER_SKELETON) {
+        if (type == EntityTypes.WITHER_SKELETON) {
             return new ItemStack(Items.WITHER_SKELETON_SKULL);
         }
-        if (type == EntityType.ZOMBIE) {
+        if (type == EntityTypes.ZOMBIE) {
             return new ItemStack(Items.ZOMBIE_HEAD);
         }
-        if (type == EntityType.CREEPER) {
+        if (type == EntityTypes.CREEPER) {
             return new ItemStack(Items.CREEPER_HEAD);
         }
-        if (type == EntityType.PIGLIN) {
+        if (type == EntityTypes.PIGLIN) {
             return new ItemStack(Items.PIGLIN_HEAD);
         }
-        if (type == EntityType.ENDER_DRAGON) {
+        if (type == EntityTypes.ENDER_DRAGON) {
             return new ItemStack(Items.DRAGON_HEAD);
         }
         return ItemStack.EMPTY;

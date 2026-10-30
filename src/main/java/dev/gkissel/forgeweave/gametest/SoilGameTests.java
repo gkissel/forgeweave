@@ -8,7 +8,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.monster.skeleton.Skeleton;
 import net.minecraft.world.entity.monster.skeleton.WitherSkeleton;
@@ -106,7 +106,7 @@ public class SoilGameTests {
         BlockPos pos = new BlockPos(1, 1, 1);
         helper.setBlock(pos, ForgeweaveBlocks.GRAVEYARD_SOIL.get());
 
-        Zombie zombie = helper.spawn(EntityType.ZOMBIE, new BlockPos(1, 2, 1));
+        Zombie zombie = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(1, 2, 1));
         zombie.setHealth(5.0F);
         ForgeweaveBlocks.GRAVEYARD_SOIL.get()
                 .stepOn(helper.getLevel(), helper.absolutePos(pos), helper.getBlockState(pos), zombie);
@@ -127,7 +127,7 @@ public class SoilGameTests {
         BlockPos pos = new BlockPos(1, 1, 1);
         helper.setBlock(pos, ForgeweaveBlocks.CONSECRATED_SOIL.get());
 
-        Zombie zombie = helper.spawn(EntityType.ZOMBIE, new BlockPos(1, 2, 1));
+        Zombie zombie = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(1, 2, 1));
         float before = zombie.getHealth();
         ForgeweaveBlocks.CONSECRATED_SOIL.get()
                 .stepOn(helper.getLevel(), helper.absolutePos(pos), helper.getBlockState(pos), zombie);
@@ -136,7 +136,7 @@ public class SoilGameTests {
                 "expected consecrated soil to hurt the zombie, left it at " + zombie.getHealth());
         helper.assertTrue(zombie.isOnFire(), "expected consecrated soil to set the zombie alight");
 
-        Pig pig = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 1));
+        Pig pig = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 1));
         float pigBefore = pig.getHealth();
         ForgeweaveBlocks.CONSECRATED_SOIL.get()
                 .stepOn(helper.getLevel(), helper.absolutePos(pos), helper.getBlockState(pos), pig);
@@ -158,11 +158,11 @@ public class SoilGameTests {
     @GameTest(template = "empty")
     public static void witherSkeletonsDropNecroticBonesForPlayerKills(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        WitherSkeleton skeleton = helper.spawn(EntityType.WITHER_SKELETON, new BlockPos(1, 2, 1));
+        WitherSkeleton skeleton = helper.spawn(EntityTypes.WITHER_SKELETON, new BlockPos(1, 2, 1));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
-        int killedByPlayer = rollLoot(level, EntityType.WITHER_SKELETON.getDefaultLootTable().orElseThrow(), skeleton, player);
-        int noKiller = rollLoot(level, EntityType.WITHER_SKELETON.getDefaultLootTable().orElseThrow(), skeleton, null);
+        int killedByPlayer = rollLoot(level, EntityTypes.WITHER_SKELETON.getDefaultLootTable().orElseThrow(), skeleton, player);
+        int noKiller = rollLoot(level, EntityTypes.WITHER_SKELETON.getDefaultLootTable().orElseThrow(), skeleton, null);
 
         helper.assertTrue(killedByPlayer > 0,
                 "expected a player-killed wither skeleton to drop necrotic bones over " + DROP_ROLLS + " rolls");
@@ -177,10 +177,10 @@ public class SoilGameTests {
     @GameTest(template = "empty")
     public static void plainSkeletonsDropNoNecroticBone(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        Skeleton skeleton = helper.spawn(EntityType.SKELETON, new BlockPos(1, 2, 1));
+        Skeleton skeleton = helper.spawn(EntityTypes.SKELETON, new BlockPos(1, 2, 1));
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
-        int bones = rollLoot(level, EntityType.SKELETON.getDefaultLootTable().orElseThrow(), skeleton, player);
+        int bones = rollLoot(level, EntityTypes.SKELETON.getDefaultLootTable().orElseThrow(), skeleton, player);
 
         helper.assertTrue(bones == 0, "expected the injection to be keyed on wither skeletons only, got " + bones);
 

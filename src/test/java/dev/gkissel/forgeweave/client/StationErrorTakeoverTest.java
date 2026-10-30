@@ -13,9 +13,9 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.SharedConstants;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
@@ -147,7 +147,7 @@ class StationErrorTakeoverTest {
         Component short_ = (Component) args(StationText.materialValue(1.0F, false, IRON))[0];
 
         assertEquals(null, enough.getStyle().getColor(), "a sufficient amount stays in the line's own grey");
-        assertEquals(ChatFormatting.DARK_RED.getColor().intValue(), short_.getStyle().getColor().getValue(),
+        assertEquals(TextColor.DARK_RED.getValue(), short_.getStyle().getColor().getValue(),
                 "upstream wraps the amount alone in DARK_RED (GuiPartBuilder:127-129)");
         assertEquals(null, ((Component) args(StationText.materialValue(1.0F, false, IRON))[1]).getStyle().getColor(),
                 "the material name is not part of the shortfall; upstream names it with the uncoloured "

@@ -13,7 +13,7 @@ import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.biome.MobSpawnSettings;
@@ -107,7 +107,7 @@ public class MagmaSlimeIslandGameTests {
         List<Weighted<MobSpawnSettings.SpawnerData>> spawns = override.spawns().unwrap();
         helper.assertValueEqual(spawns.size(), 1, "magma island monster spawn entries");
         MobSpawnSettings.SpawnerData magma = spawns.getFirst().value();
-        helper.assertTrue(magma.type() == EntityType.MAGMA_CUBE, "a magma island must only spawn magma cubes");
+        helper.assertTrue(magma.type() == EntityTypes.MAGMA_CUBE, "a magma island must only spawn magma cubes");
         helper.assertValueEqual(spawns.getFirst().weight(), 150, "magma cube spawn weight");
         helper.assertValueEqual(magma.minCount(), 4, "magma cube minimum pack size");
         helper.assertValueEqual(magma.maxCount(), 6, "magma cube maximum pack size");

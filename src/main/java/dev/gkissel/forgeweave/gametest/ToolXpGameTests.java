@@ -12,6 +12,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntitySpawnRequest;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
@@ -20,6 +21,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -84,7 +86,7 @@ public class ToolXpGameTests {
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         ItemStack sword = pickaxe();
         player.setItemInHand(InteractionHand.MAIN_HAND, sword);
-        Pig pig = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig pig = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
 
         pig.hurt(helper.getLevel().damageSources().playerAttack(player), 10.0F);
 
@@ -103,7 +105,7 @@ public class ToolXpGameTests {
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         ItemStack sword = pickaxe();
         player.setItemInHand(InteractionHand.MAIN_HAND, sword);
-        Pig pig = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig pig = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
 
         pig.hurt(helper.getLevel().damageSources().playerAttack(player), 3.0F);
 
@@ -127,7 +129,7 @@ public class ToolXpGameTests {
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         ItemStack sword = pickaxe();
         player.setItemInHand(InteractionHand.MAIN_HAND, sword);
-        Pig pig = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig pig = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         DamageSource swing = helper.getLevel().damageSources().playerAttack(player);
 
         pig.hurt(swing, 3.0F);
@@ -191,7 +193,7 @@ public class ToolXpGameTests {
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         ItemStack sword = pickaxe();
         player.setItemInHand(InteractionHand.MAIN_HAND, sword);
-        Pig pig = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig pig = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
 
         pig.hurt(helper.getLevel().damageSources().playerAttack(player), 3.0F);
         helper.assertTrue(pig.isAlive(), "a 3-damage blow must not kill a pig, or this proves nothing");
@@ -204,7 +206,7 @@ public class ToolXpGameTests {
         CompoundTag tag = output.buildResult();
         pig.discard();
 
-        Entity reloaded = EntityType.loadEntityRecursive(tag, helper.getLevel(), EntitySpawnReason.LOAD,
+        Entity reloaded = EntityType.loadEntityRecursive(tag, helper.getLevel(), new EntitySpawnRequest(EntitySpawnReason.LOAD, false),
                 entity -> entity);
         helper.assertTrue(reloaded instanceof Pig, "the saved pig must reload as a pig");
         helper.assertTrue(reloaded.getData(ForgeweaveAttachments.DAMAGE_XP).damage(player.getUUID(), toolId) == 3.0F,
@@ -230,7 +232,7 @@ public class ToolXpGameTests {
             ServerPlayer player = helper.makeMockServerPlayerInLevel();
             ItemStack sword = pickaxe();
             player.setItemInHand(InteractionHand.MAIN_HAND, sword);
-            Pig pig = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+            Pig pig = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
             DamageSource swing = helper.getLevel().damageSources().playerAttack(player);
             pig.hurt(swing, 3.0F);
             pig.invulnerableTime = 0;

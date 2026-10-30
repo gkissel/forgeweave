@@ -8,7 +8,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.pig.Pig;
@@ -104,7 +104,7 @@ public class WarmaceGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack warmace = warmace(helper, player, pos);
         player.setItemInHand(InteractionHand.MAIN_HAND, warmace);
-        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         DamageSource source = helper.getLevel().damageSources().playerAttack(player);
 
         assertSmashBonus(helper, player, target, source, 0.0F, 0.0F, "standing on the ground");
@@ -132,7 +132,7 @@ public class WarmaceGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack warmace = warmace(helper, player, pos);
         player.setItemInHand(InteractionHand.MAIN_HAND, warmace);
-        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
 
         player.fallDistance = 6.0F;
         warmace.getItem().postHurtEnemy(warmace, target, player);
@@ -163,7 +163,7 @@ public class WarmaceGameTests {
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         ItemStack warmace = warmace(helper, player, pos);
         player.setItemInHand(InteractionHand.MAIN_HAND, warmace);
-        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
 
         player.fallDistance = 6.0F;
         helper.assertFalse(player.isIgnoringFallDamageFromCurrentImpulse(),

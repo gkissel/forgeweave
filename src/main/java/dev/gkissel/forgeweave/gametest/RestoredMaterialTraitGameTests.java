@@ -7,7 +7,7 @@ import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -180,7 +180,7 @@ public class RestoredMaterialTraitGameTests {
     }
 
     private static Zombie zombie(GameTestHelper helper, BlockPos pos) {
-        Zombie zombie = helper.spawn(EntityType.ZOMBIE, pos);
+        Zombie zombie = helper.spawn(EntityTypes.ZOMBIE, pos);
         zombie.setNoAi(true);
         return zombie;
     }

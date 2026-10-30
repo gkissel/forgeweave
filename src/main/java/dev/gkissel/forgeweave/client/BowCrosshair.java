@@ -186,7 +186,7 @@ public final class BowCrosshair {
         Minecraft minecraft = Minecraft.getInstance();
         LocalPlayer player = minecraft.player;
         if (player == null
-                || minecraft.options.hideGui
+                || minecraft.gui.hud.isHidden()
                 || !minecraft.options.getCameraType().isFirstPerson()
                 || player.isSpectator()) {
             return;

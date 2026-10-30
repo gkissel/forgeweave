@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shaped",
-  "category": "misc",
   "group": "pattern_chest",
   "key": {
     "A": "forgeweave:pattern_blank",

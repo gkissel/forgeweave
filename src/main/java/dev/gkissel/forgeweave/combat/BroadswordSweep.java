@@ -83,7 +83,7 @@ public final class BroadswordSweep implements CombatSeam {
         try {
             float yawRadians = attacker.getYRot() * ((float) Math.PI / 180.0F);
             for (LivingEntity other : others) {
-                other.knockback(SWEEP_KNOCKBACK, Mth.sin(yawRadians), -Mth.cos(yawRadians));
+                other.knockback(SWEEP_KNOCKBACK, Mth.sin(yawRadians), -Mth.cos(yawRadians), hit.source(), SWEEP_DAMAGE);
                 other.hurt(hit.source(), SWEEP_DAMAGE);
             }
         } finally {

@@ -7,22 +7,22 @@
 # alumite, silver and immersiveEngineeringRecipes. Occultism 26.1.2 no longer needs SmartBrainLib, so it
 # is gone too. Powah and EnderIO only have alpha builds for 26.1.2; Patchouli and GuideME only betas.
 
-mod modrinth apotheosis 26.1.2-9.1.0 8db33b929de427e0f2154d0007fb13cc6d3a95b30b6b68b8be265c3bd45f099a72284315e19203e3dd2662bbe1447b5c052eae4b014d7fd46b9edaaeb31b258c Apotheosis-26.1.2-9.1.0.jar
-mod modrinth apothic-attributes 26.1.2-3.1.0 7b1d3e618aff092aa48272d8a3cea973cc5ada327cca708b73af826b5ef8ef945e803e72f8858704059e3b00241786a952de017c4279c23813600fcfb1a212b7 ApothicAttributes-26.1.2-3.1.0.jar
-mod modrinth apothic-enchanting 26.1.2-2.1.0 3eb146a2b22c18beb1d739b05a6bf5054f05b2f239c25edc3c21b6a8c6f81d3595db0235cba243b44f997ed6fe4198c45763bc6a9e5017b8e5d4067a983a3c58 ApothicEnchanting-26.1.2-2.1.0.jar
-mod modrinth apothic-spawners 26.1.2-2.0.1 eaee07de506f07be5c78bdef09c9cb33ed00655a70d279499b6801f6ecf128907728e6e1e46863a7073a95409f3d17a08cdb41d98da2f6830e47afcec604f8cf ApothicSpawners-26.1.2-2.0.1.jar
-mod modrinth placebo 26.1.2-10.0.2 a55e8d5833c8260aab27ef90b0f2db40b02d10cb49c3a32f66ac85f75cb1357d5519e69e5bcb61e277ebe724dd3852d769fd32806182910d88b11f7c53ca1dab Placebo-26.1.2-10.0.2.jar
-mod modrinth occultism 26.1.2-neoforge-1.256.1 2ce1eb65a3ee4c33a86860cc2429f0d03550ad18bdb2e518bcb23524c06b49baf2091fb3fb3688d4b69f03066599330793287ee6f32ae1d617afb232734624c3 occultism-26.1.2-neoforge-1.256.1.jar
-mod modrinth geckolib 5.5.2 d634390ad63372324220b14be3a70b0befca2a753fc8c0561f4162d31341182b08c102bd44432e59d884cb18d2906c1d0b36344f72c2d6e07c9b109a57c693f3 geckolib-neoforge-26.1.2-5.5.2.jar
-mod modrinth modonomicon 26.1.2-2.17.1 c94fe21fd0fdb934109faf33eea54e6c1a0e087c6252c86e997f52ff0ce05b4855028b39ca1b8c56b09bcbad32ffbce4a53a82f1d844e50b8323b398542d9c2e modonomicon-26.1.2-neoforge-2.17.1.jar
-mod modrinth curios 15.0.0+26.1.2 0b1a79e78e74e1fd45fe70264ac69329432199ea9e21dfae01a3435b5da8b153b4b218276091b2fa82de6cf40a42273af2b2cbc84667b3b5de2f9c932b4551db curios-neoforge-15.0.0+26.1.2.jar
-mod modrinth mystical-agriculture 9.0.11 78deb9b8c084e64089217698cd056464bd68894683ecee3e55302dfd91e6a976e6d60f26f124d39b5d8f6747782ff2b2c17e2a88c1bff790a4b15a2794eb81f7 MysticalAgriculture-26.1.2-9.0.11.jar
-mod modrinth cucumber 9.0.7 0093fd547e878ece2048d6e4f8275840f4efa7dae6171116fc70a05d67163f10c13d2d1768ba17b99c97a71f89cb0a0d8cc3fbca78989d87e656fb22fb71088f Cucumber-26.1.2-9.0.7.jar
-mod modrinth powah 7.0.4-alpha-neoforge a5d1fcaa70529a0286783a49eac992a5d3cb15fa5e2aee5c7d080e86d3c501b3bce79adcf51b86c019f2119a377cdb20dd4f896c8ae468a30b01d8cdf4bd0d01 Powah-7.0.4-alpha.jar
-mod modrinth guideme 26.1.15-beta c98f19285b37b4055a321ed9faed89cdc15dfc3bfbbad29e813f92b0fd4b6cf77b01a2ffcf971d57171c247d748e760355e87b3fd4722af699c2b0bef17a4e6e guideme-26.1.15-beta.jar
-mod modrinth cloth-config 26.1.154+neoforge b3084e992459c211617bf5247a94b93c06823277932341e7cec98602a6c6e21ca599aae5e552868ae7a60aac6ec33f3a9cee11615667470483948b3e349d3caf cloth-config-26.1.154.jar
-mod modrinth enderio v9.0.6-alpha 740ad186502c72a949799233b7c52b677e129f6df4b3be113abf1ea8ec7142dbc17a439c9ea84dfb910c2732f09d5272ae102f8184c64bbb9759d180f977bb92 enderio-9.0.6-alpha.jar
-mod modrinth patchouli 26.1-94-beta 58c90a495219f0e6b923df9161597c18d14d3f867272c18141873bb6e9124d68eff6594c23f1759091507e484f680794a46ed5c5b9fb21964c6670d6dce2a278 patchouli-neoforge-26.1-94.jar
+# no 26.2 NeoForge build (checked): mod modrinth apotheosis 26.1.2-9.1.0 8db33b929de427e0f2154d0007fb13cc6d3a95b30b6b68b8be265c3bd45f099a72284315e19203e3dd2662bbe1447b5c052eae4b014d7fd46b9edaaeb31b258c Apotheosis-26.1.2-9.1.0.jar
+# no 26.2 NeoForge build (checked): mod modrinth apothic-attributes 26.1.2-3.1.0 7b1d3e618aff092aa48272d8a3cea973cc5ada327cca708b73af826b5ef8ef945e803e72f8858704059e3b00241786a952de017c4279c23813600fcfb1a212b7 ApothicAttributes-26.1.2-3.1.0.jar
+# no 26.2 NeoForge build (checked): mod modrinth apothic-enchanting 26.1.2-2.1.0 3eb146a2b22c18beb1d739b05a6bf5054f05b2f239c25edc3c21b6a8c6f81d3595db0235cba243b44f997ed6fe4198c45763bc6a9e5017b8e5d4067a983a3c58 ApothicEnchanting-26.1.2-2.1.0.jar
+# no 26.2 NeoForge build (checked): mod modrinth apothic-spawners 26.1.2-2.0.1 eaee07de506f07be5c78bdef09c9cb33ed00655a70d279499b6801f6ecf128907728e6e1e46863a7073a95409f3d17a08cdb41d98da2f6830e47afcec604f8cf ApothicSpawners-26.1.2-2.0.1.jar
+# no 26.2 NeoForge build (checked): mod modrinth placebo 26.1.2-10.0.2 a55e8d5833c8260aab27ef90b0f2db40b02d10cb49c3a32f66ac85f75cb1357d5519e69e5bcb61e277ebe724dd3852d769fd32806182910d88b11f7c53ca1dab Placebo-26.1.2-10.0.2.jar
+mod modrinth occultism 26.2-neoforge-1.256.0 cbdef1c2fad887e951de8266ec95e81007533974e13fa7f834b6bc33f37a6ff9649548c292371fa5a2224be1f05138d4e88c5d916ad55f76763c4e9a1494cbc7 occultism-26.2-neoforge-1.256.0.jar
+mod modrinth geckolib 5.5.6 0717d360e0bba26dedd77eb42450a327eae6f3931692c353ebe3ac622c8556b442f3ece22e5eaf699ac9702a6edd6e02d1cfba96d3f1a52aba98cce0bd0bae55 geckolib-neoforge-26.2-5.5.6.jar
+mod modrinth modonomicon 26.2-2.5.0 07eac25a0fdc22187bb7108572ab9af094659cf3bd051d7855f4c351a25f38667331d582d4b66269d54da26bac2c234ca7702e5f5eb3d9b1409fca3c9ed7f56f modonomicon-26.2-neoforge-2.5.0.jar
+mod modrinth curios 16.0.0+26.2 e4dc10aaaa5ba5fb54a9b48af7507055c62fc515819578b1c1b95ade786449e6ceeda72a3cf0375060b07b92f4ded1a7f3b784608a57177ca3f4899c61b871e6 curios-neoforge-16.0.0+26.2.jar
+# no 26.2 NeoForge build (checked): mod modrinth mystical-agriculture 9.0.11 78deb9b8c084e64089217698cd056464bd68894683ecee3e55302dfd91e6a976e6d60f26f124d39b5d8f6747782ff2b2c17e2a88c1bff790a4b15a2794eb81f7 MysticalAgriculture-26.1.2-9.0.11.jar
+# no 26.2 NeoForge build (checked): mod modrinth cucumber 9.0.7 0093fd547e878ece2048d6e4f8275840f4efa7dae6171116fc70a05d67163f10c13d2d1768ba17b99c97a71f89cb0a0d8cc3fbca78989d87e656fb22fb71088f Cucumber-26.1.2-9.0.7.jar
+# no 26.2 NeoForge build (checked): mod modrinth powah 7.0.4-alpha-neoforge a5d1fcaa70529a0286783a49eac992a5d3cb15fa5e2aee5c7d080e86d3c501b3bce79adcf51b86c019f2119a377cdb20dd4f896c8ae468a30b01d8cdf4bd0d01 Powah-7.0.4-alpha.jar
+mod modrinth guideme 26.2.2-alpha 08fea710bd9edec972754dc76c4f06d470d8ec2c73f12e145fc656023c954fd01e699a812ace279cf4d2a427e3b205546339a389e474e62ff043a15a827dd851 guideme-26.2.2-alpha.jar
+mod modrinth cloth-config 26.2.155+neoforge 3f7ea8108d8c0463764e419f3fe7d4d7f586b6fb7d2578de85f709b70d59587060a07c0fe02d5b79ed37e74850dd088caace40f8baefb4402df8139d076dc662 cloth-config-26.2.155.jar
+# no 26.2 NeoForge build (checked): mod modrinth enderio v9.0.6-alpha 740ad186502c72a949799233b7c52b677e129f6df4b3be113abf1ea8ec7142dbc17a439c9ea84dfb910c2732f09d5272ae102f8184c64bbb9759d180f977bb92 enderio-9.0.6-alpha.jar
+# no 26.2 NeoForge build (checked): mod modrinth patchouli 26.1-94-beta 58c90a495219f0e6b923df9161597c18d14d3f867272c18141873bb6e9124d68eff6594c23f1759091507e484f680794a46ed5c5b9fb21964c6670d6dce2a278 patchouli-neoforge-26.1-94.jar
 
 # 1.21.1:
 # mod modrinth apotheosis 1.21.1-8.9.0 b3022bc31f4e9f99d298c36486e09cad308d4aa87e2aa65a341809aeca41f0067e744086768884959036a46685d4c0babc4274600884ad8962fe9d080d8ef3ee Apotheosis-1.21.1-8.9.0.jar
@@ -45,3 +45,21 @@ mod modrinth patchouli 26.1-94-beta 58c90a495219f0e6b923df9161597c18d14d3f867272
 # mod modrinth immersiveengineering 12.4.2-194 862523e84747a8b7eaa65f9b3c337fa832ef9efd0545c27f68e350e01f482c7a1242d0e4bdc2caff3d7eb033508b43a353fcd7150c9b544d0c05765ca2a551b3 ImmersiveEngineering-1.21.1-12.4.2-194.jar
 # mod modrinth enderio v8.2.12-beta c4415c1e835fa7eaf7f4528fd685412151968b092e9be91528add11dd981943ba6243eee41ff73923df64d59d8f907901cb006edcb5c02783e73ab656524c995 enderio-8.2.12-beta.jar
 # mod modrinth patchouli 1.21.1-93-neoforge 0b5c172db9a6eeecb5ca44b359a83548c3a60be7ff313959acdfc1e5b8039736c18e57e947d435b52d06da31159d2d02ea36e5742668dbc826308a4c99e4039f Patchouli-1.21.1-93-NEOFORGE.jar
+
+# 26.1.2:
+# mod modrinth apotheosis 26.1.2-9.1.0 8db33b929de427e0f2154d0007fb13cc6d3a95b30b6b68b8be265c3bd45f099a72284315e19203e3dd2662bbe1447b5c052eae4b014d7fd46b9edaaeb31b258c Apotheosis-26.1.2-9.1.0.jar
+# mod modrinth apothic-attributes 26.1.2-3.1.0 7b1d3e618aff092aa48272d8a3cea973cc5ada327cca708b73af826b5ef8ef945e803e72f8858704059e3b00241786a952de017c4279c23813600fcfb1a212b7 ApothicAttributes-26.1.2-3.1.0.jar
+# mod modrinth apothic-enchanting 26.1.2-2.1.0 3eb146a2b22c18beb1d739b05a6bf5054f05b2f239c25edc3c21b6a8c6f81d3595db0235cba243b44f997ed6fe4198c45763bc6a9e5017b8e5d4067a983a3c58 ApothicEnchanting-26.1.2-2.1.0.jar
+# mod modrinth apothic-spawners 26.1.2-2.0.1 eaee07de506f07be5c78bdef09c9cb33ed00655a70d279499b6801f6ecf128907728e6e1e46863a7073a95409f3d17a08cdb41d98da2f6830e47afcec604f8cf ApothicSpawners-26.1.2-2.0.1.jar
+# mod modrinth placebo 26.1.2-10.0.2 a55e8d5833c8260aab27ef90b0f2db40b02d10cb49c3a32f66ac85f75cb1357d5519e69e5bcb61e277ebe724dd3852d769fd32806182910d88b11f7c53ca1dab Placebo-26.1.2-10.0.2.jar
+# mod modrinth occultism 26.1.2-neoforge-1.256.1 2ce1eb65a3ee4c33a86860cc2429f0d03550ad18bdb2e518bcb23524c06b49baf2091fb3fb3688d4b69f03066599330793287ee6f32ae1d617afb232734624c3 occultism-26.1.2-neoforge-1.256.1.jar
+# mod modrinth geckolib 5.5.2 d634390ad63372324220b14be3a70b0befca2a753fc8c0561f4162d31341182b08c102bd44432e59d884cb18d2906c1d0b36344f72c2d6e07c9b109a57c693f3 geckolib-neoforge-26.1.2-5.5.2.jar
+# mod modrinth modonomicon 26.1.2-2.17.1 c94fe21fd0fdb934109faf33eea54e6c1a0e087c6252c86e997f52ff0ce05b4855028b39ca1b8c56b09bcbad32ffbce4a53a82f1d844e50b8323b398542d9c2e modonomicon-26.1.2-neoforge-2.17.1.jar
+# mod modrinth curios 15.0.0+26.1.2 0b1a79e78e74e1fd45fe70264ac69329432199ea9e21dfae01a3435b5da8b153b4b218276091b2fa82de6cf40a42273af2b2cbc84667b3b5de2f9c932b4551db curios-neoforge-15.0.0+26.1.2.jar
+# mod modrinth mystical-agriculture 9.0.11 78deb9b8c084e64089217698cd056464bd68894683ecee3e55302dfd91e6a976e6d60f26f124d39b5d8f6747782ff2b2c17e2a88c1bff790a4b15a2794eb81f7 MysticalAgriculture-26.1.2-9.0.11.jar
+# mod modrinth cucumber 9.0.7 0093fd547e878ece2048d6e4f8275840f4efa7dae6171116fc70a05d67163f10c13d2d1768ba17b99c97a71f89cb0a0d8cc3fbca78989d87e656fb22fb71088f Cucumber-26.1.2-9.0.7.jar
+# mod modrinth powah 7.0.4-alpha-neoforge a5d1fcaa70529a0286783a49eac992a5d3cb15fa5e2aee5c7d080e86d3c501b3bce79adcf51b86c019f2119a377cdb20dd4f896c8ae468a30b01d8cdf4bd0d01 Powah-7.0.4-alpha.jar
+# mod modrinth guideme 26.1.15-beta c98f19285b37b4055a321ed9faed89cdc15dfc3bfbbad29e813f92b0fd4b6cf77b01a2ffcf971d57171c247d748e760355e87b3fd4722af699c2b0bef17a4e6e guideme-26.1.15-beta.jar
+# mod modrinth cloth-config 26.1.154+neoforge b3084e992459c211617bf5247a94b93c06823277932341e7cec98602a6c6e21ca599aae5e552868ae7a60aac6ec33f3a9cee11615667470483948b3e349d3caf cloth-config-26.1.154.jar
+# mod modrinth enderio v9.0.6-alpha 740ad186502c72a949799233b7c52b677e129f6df4b3be113abf1ea8ec7142dbc17a439c9ea84dfb910c2732f09d5272ae102f8184c64bbb9759d180f977bb92 enderio-9.0.6-alpha.jar
+# mod modrinth patchouli 26.1-94-beta 58c90a495219f0e6b923df9161597c18d14d3f867272c18141873bb6e9124d68eff6594c23f1759091507e484f680794a46ed5c5b9fb21964c6670d6dce2a278 patchouli-neoforge-26.1-94.jar

@@ -2,9 +2,9 @@ package dev.gkissel.forgeweave.data;
 
 import java.util.stream.Stream;
 
-import net.minecraft.advancements.criterion.EntityPredicate;
-import net.minecraft.advancements.criterion.MinMaxBounds;
-import net.minecraft.advancements.criterion.SlimePredicate;
+import net.minecraft.advancements.predicates.entity.EntityPredicate;
+import net.minecraft.advancements.predicates.MinMaxBounds;
+import net.minecraft.advancements.predicates.entity.CubeMobPredicate;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.flag.FeatureFlags;
@@ -60,7 +60,7 @@ public class ForgeweaveEntityLootSubProvider extends EntityLootSubProvider {
                                         UniformGenerator.between(0.0F, 1.0F))))
                         .when(LootItemEntityPropertyCondition.hasProperties(LootContext.EntityTarget.THIS,
                                 EntityPredicate.Builder.entity()
-                                        .subPredicate(SlimePredicate.sized(MinMaxBounds.Ints.exactly(1)))))));
+                                        .cubeMob(CubeMobPredicate.sized(MinMaxBounds.Ints.exactly(1)))))));
     }
 
     @Override

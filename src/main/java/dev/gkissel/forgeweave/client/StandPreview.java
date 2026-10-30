@@ -138,6 +138,9 @@ public final class StandPreview {
 
     private static ArmorStand armorStand(Level level) {
         ArmorStand armorStand = new ArmorStand(level, 0.0D, 0.0D, 0.0D);
+        // 26.2 hands out entity ids only when an entity joins a level, and the renderer reads one;
+        // -1 is the id vanilla gives its own never-added display entity (BaseSpawner).
+        armorStand.setId(-1);
         armorStand.setNoBasePlate(true);
         armorStand.setShowArms(true);
         return armorStand;
@@ -161,6 +164,7 @@ public final class StandPreview {
                 entityData.set(DATA_PLAYER_MODE_CUSTOMISATION, shownLayers);
             }
         };
+        player.setId(-1); // see armorStand
         player.setPos(0.0D, OUT_OF_NAME_TAG_RANGE, 0.0D);
         return player;
     }

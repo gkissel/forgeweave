@@ -10,6 +10,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EntitySpawnRequest;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.TagValueOutput;
@@ -172,7 +173,7 @@ public class IndestructibleDropGameTests {
                             .orElse(null) == ForgeweaveEntities.INDESTRUCTIBLE_ITEM.get(),
                     "the saved tag must name this mod's entity type, not minecraft:item");
 
-            Entity reloaded = EntityType.loadEntityRecursive(tag, level, EntitySpawnReason.LOAD, e -> e);
+            Entity reloaded = EntityType.loadEntityRecursive(tag, level, new EntitySpawnRequest(EntitySpawnReason.LOAD, false), e -> e);
             helper.assertTrue(reloaded instanceof IndestructibleItemEntity,
                     "a saved indestructible drop must reload as one");
             IndestructibleItemEntity reloadedDrop = (IndestructibleItemEntity) reloaded;

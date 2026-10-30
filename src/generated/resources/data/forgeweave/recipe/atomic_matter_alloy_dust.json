@@ -1,6 +1,5 @@
 {
   "type": "minecraft:crafting_shapeless",
-  "category": "misc",
   "ingredients": [
     "#c:small_dusts/atomic_matter_alloy",
     "#c:small_dusts/atomic_matter_alloy",

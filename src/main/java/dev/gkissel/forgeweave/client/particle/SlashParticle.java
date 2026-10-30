@@ -18,7 +18,6 @@ import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.particle.SingleQuadParticle;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.renderer.culling.Frustum;
-import net.minecraft.client.renderer.feature.ParticleFeatureRenderer;
 import net.minecraft.client.renderer.state.level.ParticleGroupRenderState;
 import net.minecraft.client.renderer.state.level.QuadParticleRenderState;
 import net.minecraft.core.particles.SimpleParticleType;
@@ -27,8 +26,6 @@ import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.HumanoidArm;
 
-
-import org.jspecify.annotations.Nullable;
 
 import dev.gkissel.forgeweave.particle.ForgeweaveParticles;
 
@@ -75,7 +72,7 @@ public class SlashParticle extends SingleQuadParticle {
      * Slashes get their own particle group: 26.1's shared quad group only ever emits square quads,
      * and {@link #height} needs a vertical stretch it has no room for. See {@link Group}.
      */
-    public static final ParticleRenderType GROUP = new ParticleRenderType("FORGEWEAVE_SLASHES");
+    public static final ParticleRenderType GROUP = new ParticleRenderType("FORGEWEAVE_SLASHES", "FWS");
 
     private final SpriteSet sprites;
     /** Upstream {@code ParticleAttack#height}: a world-vertical stretch of the quad. */
@@ -185,10 +182,9 @@ public class SlashParticle extends SingleQuadParticle {
         }
 
         @Override
-        public QuadParticleRenderState.@Nullable PreparedBuffers prepare(
-                ParticleFeatureRenderer.ParticleBufferCache cachedBuffer, boolean translucent) {
+        public void buildLayer(SingleQuadParticle.Layer layer, VertexConsumer bufferBuilder) {
             this.next = 0;
-            return super.prepare(cachedBuffer, translucent);
+            super.buildLayer(layer, bufferBuilder);
         }
 
         @Override

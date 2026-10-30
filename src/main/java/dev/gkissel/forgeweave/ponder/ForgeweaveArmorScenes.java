@@ -11,7 +11,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.item.ItemStack;
@@ -116,7 +116,7 @@ public final class ForgeweaveArmorScenes {
 
     /** An armor stand at {@link #STAND}, facing the default camera. */
     private static ArmorStand bareStand(Level level) {
-        ArmorStand stand = new ArmorStand(EntityType.ARMOR_STAND, level);
+        ArmorStand stand = new ArmorStand(EntityTypes.ARMOR_STAND, level);
         stand.setPos(STAND.getX() + 0.5, STAND.getY(), STAND.getZ() + 0.5);
         stand.setYRot(180.0F);
         stand.setYBodyRot(180.0F);
