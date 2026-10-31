@@ -3091,6 +3091,29 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.materials.intro.title", "Materials");
         add("book.forgeweave.materials.intro.text",
                 "Every part of a tool contributes the stats of the material it is made from: the head brings durability, mining speed and attack; the handle multiplies durability; a binding adds a flat bonus.\n\nMaterials also grant traits: special behaviours listed on the pages that follow.");
+        // The mining ladder, rung by rung: what each rung mines and the first head that reaches it,
+        // then every other way a tool changes rung. Answers the "what pickaxe mines resonite?"
+        // question players ask, which the tier tags alone never told them.
+        add("book.forgeweave.materials.mining_ladder.title", "The Mining Ladder");
+        add("book.forgeweave.materials.mining_ladder.text",
+                "A tool's mining level comes from its head. Every material sits on one rung of an eight-rung ladder, and a tool harvests anything at its own rung or below. A block that needs a higher rung still breaks at the tool's normal speed, but it drops nothing. The Tool Tier line on a tool's tooltip names its rung.\n\n"
+                        + "Below, each rung lists what it mines, then the first head that gets you there.\n\n"
+                        + "Wood mines stone and coal. Wood, slime and paper at the Part Builder.\n\n"
+                        + "Stone mines iron, copper and lapis. Flint, stone and bone at the Part Builder.\n\n"
+                        + "Iron mines diamond, gold, redstone and fulmenite in the Nether. Iron cast in the smeltery, or seared bricks at the Part Builder.\n\n"
+                        + "Diamond mines obsidian and ancient debris. Amethyst shards or emeralds at the Part Builder, or cast fulmenite.\n\n"
+                        + "Netherite mines cobalt, ardite and brimspar in the Nether, voltcinder below y -48, starfall stone near the surface, and duskspar and voidglass in the End. Obsidian, or netherite.\n\n"
+                        + "Hardcinder mines hardcinder in deepslate, murkiron in the Nether and nightshale in the End. Manyullyn, alloyed from cobalt and ardite.\n\n"
+                        + "Warspar mines warspar in the Nether and hollowstone in the End. Glowveil, alloyed from riftalloy or dreadalloy with sparkalloy and brimspar.\n\n"
+                        + "Resonite mines resonite ore, deep in the deepslate below y -16. Sunsteel, alloyed from warspar, hollowstone and glowveil.");
+        add("book.forgeweave.materials.raising_tier.title", "Raising a Tool's Rung");
+        add("book.forgeweave.materials.raising_tier.text",
+                "You can also climb the ladder without a new head. Four things change a tool's rung. Each one is applied at the Tool Station or Tool Forge and costs a modifier slot.\n\n"
+                        + "The Diamond modifier raises a tool 1 rung, but never past diamond. The Emerald modifier raises it 1 rung, but never past iron. A stone pickaxe with Diamond mines what an iron one does, and an iron pickaxe with Diamond mines obsidian.\n\n"
+                        + "The Netherite modifier takes a netherite upgrade template and a netherite ingot together, and lifts any tool to the netherite rung however cheap its head.\n\n"
+                        + "Fortification sets the rung outright. A sharpening kit of any material plus a flint makes the tool mine at that material's rung. It works on harvest tools only, and it works both ways: a kit of a lower material lowers the tool. A tool holds one fortification, and a kit of a new material replaces the old one. That way a favourite pickaxe keeps up with the ladder without being rebuilt.\n\n"
+                        + "A tool with more than one head part, such as a hammer, mines at the rung of its best head. One cobalt plate makes the whole hammer a netherite-rung tool.\n\n"
+                        + "Above netherite, only a head or a fortification moves a tool, and both need the material first. So each of the top three rungs opens with an alloy of ores that the rung below can mine.");
         // #998 (D-M8-19): the Allthemodium tier equivalence, so a player who mines unobtainium with a
         // resonite pick (or the reverse) knows that is expected rather than a bug.
         add("book.forgeweave.materials.tier_equivalence.title", "Beyond Resonite");
