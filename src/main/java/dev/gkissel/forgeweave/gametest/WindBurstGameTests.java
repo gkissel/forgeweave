@@ -10,7 +10,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -146,7 +146,7 @@ public class WindBurstGameTests {
         ItemStack warmace = warmace(helper, player, pos);
         warmace = applyReagent(helper, player, pos, warmace, new ItemStack(Items.BREEZE_ROD, 1));
         player.setItemInHand(InteractionHand.MAIN_HAND, warmace);
-        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         DamageSource source = helper.getLevel().damageSources().playerAttack(player);
 
         // Past MaceItem.SMASH_ATTACK_FALL_THRESHOLD -- wind burst's own requirement (fall_distance
@@ -173,7 +173,7 @@ public class WindBurstGameTests {
         ItemStack warmace = warmace(helper, player, pos);
         warmace = applyReagent(helper, player, pos, warmace, new ItemStack(Items.BREEZE_ROD, 1));
         player.setItemInHand(InteractionHand.MAIN_HAND, warmace);
-        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         DamageSource source = helper.getLevel().damageSources().playerAttack(player);
 
         player.fallDistance = 0.0F;

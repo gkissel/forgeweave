@@ -8,7 +8,7 @@ import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
@@ -188,7 +188,7 @@ public class ShurikenGameTests {
         player.setXRot(20.0F); // aim down from eye height onto the pig's hitbox three blocks out
         ItemStack shuriken = shuriken(helper, player, pos);
 
-        Pig pig = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 5));
+        Pig pig = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 5));
         pig.setNoAi(true);
         pig.setNoGravity(true); // stays on the line the throw below is aimed at
         float before = pig.getHealth();

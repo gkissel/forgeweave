@@ -7,7 +7,7 @@ import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -444,7 +444,7 @@ public class ContentFamilyGameTests {
 
         ForgeweaveConfig.MELEE_WEAPONS.set(false);
         try {
-            Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+            Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
             player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, broadsword);
             DamageSource source = helper.getLevel().damageSources().playerAttack(player);
             float before = target.getHealth();

@@ -16,7 +16,6 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.data.tags.TagAppender;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
@@ -535,8 +534,8 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
      * from the smeltery itself, so a tag naming every shallow alloy would have no reader.
      */
     private void addAlloyDepthTags() {
-        TagAppender<Item, Item> deep = tag(ALLOYS_DEEP);
-        TagAppender<Item, Item> deepest = tag(ALLOYS_DEEPEST);
+        KeyedTagAppender<Item> deep = tag(ALLOYS_DEEP);
+        KeyedTagAppender<Item> deepest = tag(ALLOYS_DEEPEST);
         AlloyDepths.byMaterial(resources).forEach((metal, depth) -> {
             if (depth >= DEEP_ALLOY_DEPTH) {
                 deep.addTag(cTag("ingots/" + metal));
@@ -597,6 +596,11 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
                 .forEach(tag -> tag(TagKey.create(Registries.ITEM, tag)));
     }
 
+    @Override
+    protected KeyedTagAppender<Item> tag(TagKey<Item> tag) {
+        return new KeyedTagAppender<>(super.tag(tag), entry -> entry.builtInRegistryHolder().key());
+    }
+
     private static TagKey<Item> cTag(String path) {
         return TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", path));
     }
@@ -605,7 +609,7 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
         return cTag("storage_blocks/" + metal);
     }
 
-    private TagAppender<Item, Item> tag(String path) {
+    private KeyedTagAppender<Item> tag(String path) {
         return tag(TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath("c", path)));
     }
 
@@ -615,7 +619,7 @@ public class ForgeweaveItemTagsProvider extends ItemTagsProvider {
      */
     @SafeVarargs
     private void addAll(TagKey<Item> tag, List<Item>... families) {
-        TagAppender<Item, Item> appender = tag(tag);
+        KeyedTagAppender<Item> appender = tag(tag);
         Stream.of(families).flatMap(List::stream).distinct().forEach(appender::add);
     }
 }

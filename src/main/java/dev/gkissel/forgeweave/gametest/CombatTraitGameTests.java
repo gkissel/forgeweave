@@ -15,7 +15,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.LivingEntity;
@@ -93,7 +93,7 @@ public class CombatTraitGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("prickly")), 3.0F);
         player.setItemInHand(InteractionHand.MAIN_HAND, hatchet);
-        Zombie target = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
+        Zombie target = noAi(helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2)));
 
         float before = target.getHealth();
         int hits = 15;
@@ -117,7 +117,7 @@ public class CombatTraitGameTests {
     @GameTest(template = "empty")
     public static void spikyReflectsToolDamageHalvedHeldFullBlocking(GameTestHelper helper) {
         Player defender = helper.makeMockPlayer(GameType.SURVIVAL);
-        Zombie attacker = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
+        Zombie attacker = noAi(helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2)));
 
         // Merely held: half the tool's attack damage, past armor (so the zombie's 2 armor is moot).
         ItemStack pickaxe = tool(ForgeweaveItems.TOOL_PICKAXE.get(), List.of(traitId("spiky")), 3.0F);
@@ -155,7 +155,7 @@ public class CombatTraitGameTests {
     @GameTest(template = "empty")
     public static void aRaisedShieldMakesAHeldToolBlock(GameTestHelper helper) {
         Player defender = helper.makeMockPlayer(GameType.SURVIVAL);
-        Zombie attacker = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
+        Zombie attacker = noAi(helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2)));
         ItemStack pickaxe = tool(ForgeweaveItems.TOOL_PICKAXE.get(), List.of(traitId("stiff")), 3.0F);
         defender.setItemInHand(InteractionHand.MAIN_HAND, pickaxe);
 
@@ -186,7 +186,7 @@ public class CombatTraitGameTests {
     @GameTest(template = "empty")
     public static void offHandToolTraitsRunOnAnIncomingBlow(GameTestHelper helper) {
         Player defender = helper.makeMockPlayer(GameType.SURVIVAL);
-        Zombie attacker = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
+        Zombie attacker = noAi(helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2)));
         ItemStack pickaxe = tool(ForgeweaveItems.TOOL_PICKAXE.get(), List.of(traitId("spiky")), 3.0F);
         defender.setItemInHand(InteractionHand.OFF_HAND, pickaxe);
         float expected = ((ToolItem) pickaxe.getItem()).attackDamage(pickaxe) / 2.0F;
@@ -212,7 +212,7 @@ public class CombatTraitGameTests {
     @GameTest(template = "empty")
     public static void chargingTheLongswordIsNotABlock(GameTestHelper helper) {
         Player defender = helper.makeMockPlayer(GameType.SURVIVAL);
-        Zombie attacker = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
+        Zombie attacker = noAi(helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2)));
         ItemStack longsword = tool(ForgeweaveItems.TOOL_LONGSWORD.get(), List.of(traitId("stiff")), 3.0F);
         defender.setItemInHand(InteractionHand.MAIN_HAND, longsword);
         defender.startUsingItem(InteractionHand.MAIN_HAND);
@@ -233,8 +233,8 @@ public class CombatTraitGameTests {
     public static void hellishAddsFlatDamageAgainstNonFireImmune(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("hellish")), 3.0F);
-        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
-        Blaze blaze = noAi(helper.spawn(EntityType.BLAZE, new BlockPos(3, 2, 3)));
+        Pig pig = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2)));
+        Blaze blaze = noAi(helper.spawn(EntityTypes.BLAZE, new BlockPos(3, 2, 3)));
 
         float vsPig = preHit(helper, player, hatchet, pig, 1.0F);
         helper.assertTrue(Math.abs(vsPig - 5.0F) < 0.001F,
@@ -253,7 +253,7 @@ public class CombatTraitGameTests {
     public static void superheatScalesDamageAgainstBurningTargets(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("superheat")), 3.0F);
-        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+        Pig pig = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2)));
 
         float unlit = preHit(helper, player, hatchet, pig, 2.0F);
         helper.assertTrue(Math.abs(unlit - 2.0F) < 0.001F,
@@ -275,8 +275,8 @@ public class CombatTraitGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("holy")), 3.0F);
         player.setItemInHand(InteractionHand.MAIN_HAND, hatchet);
-        Zombie zombie = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
-        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(3, 2, 3)));
+        Zombie zombie = noAi(helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2)));
+        Pig pig = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(3, 2, 3)));
 
         float vsZombie = preHit(helper, player, hatchet, zombie, 1.0F);
         helper.assertTrue(Math.abs(vsZombie - 6.0F) < 0.001F,
@@ -303,7 +303,7 @@ public class CombatTraitGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("poisonous")), 3.0F);
         player.setItemInHand(InteractionHand.MAIN_HAND, hatchet);
-        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+        Pig pig = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2)));
 
         pig.hurt(helper.getLevel().damageSources().playerAttack(player), 1.0F);
         MobEffectInstance poison = pig.getEffect(MobEffects.POISON);
@@ -343,7 +343,7 @@ public class CombatTraitGameTests {
     @GameTest(template = "empty")
     public static void stiffShavesBlockedDamageWithAFloor(GameTestHelper helper) {
         Player defender = helper.makeMockPlayer(GameType.SURVIVAL);
-        Zombie attacker = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
+        Zombie attacker = noAi(helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2)));
         ItemStack battlesign = tool(ForgeweaveItems.TOOL_BATTLESIGN.get(), List.of(traitId("stiff")), 3.0F);
         defender.setItemInHand(InteractionHand.MAIN_HAND, battlesign);
 
@@ -376,7 +376,7 @@ public class CombatTraitGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("sharp")), 3.0F);
         player.setItemInHand(InteractionHand.MAIN_HAND, hatchet);
-        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+        Pig pig = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2)));
 
         pig.hurt(helper.getLevel().damageSources().playerAttack(player), 1.0F);
         helper.assertTrue(pig.hasEffect(ForgeweaveMobEffects.BLEED), "a landed sharp hit must leave the bleed");
@@ -412,8 +412,8 @@ public class CombatTraitGameTests {
      */
     @GameTest(template = "empty")
     public static void sharpBleedDealsNoKnockback(GameTestHelper helper) {
-        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
-        Zombie attacker = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(6, 2, 2)));
+        Pig pig = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2)));
+        Zombie attacker = noAi(helper.spawn(EntityTypes.ZOMBIE, new BlockPos(6, 2, 2)));
         pig.setLastHurtByMob(attacker);
 
         BleedEffect effect = (BleedEffect) ForgeweaveMobEffects.BLEED.value();
@@ -437,7 +437,7 @@ public class CombatTraitGameTests {
     public static void sharpBleedCreditsTheAttackerForAKill(GameTestHelper helper) {
         Player attacker = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("sharp")), 3.0F);
-        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+        Pig pig = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2)));
         helper.assertTrue(pig.getLastHurtByMob() == null, "a fresh pig starts with no remembered attacker");
 
         onHit(helper, attacker, hatchet, pig);
@@ -455,7 +455,7 @@ public class CombatTraitGameTests {
     public static void splinteringStacksBonusDamagePerHit(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("splintering")), 3.0F);
-        Zombie target = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
+        Zombie target = noAi(helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2)));
 
         float unmarked = preHit(helper, player, hatchet, target, 1.0F);
         helper.assertTrue(Math.abs(unmarked - 1.0F) < 0.001F,
@@ -482,7 +482,7 @@ public class CombatTraitGameTests {
     @GameTest(template = "empty")
     public static void flammableIgnitesAttackersAndAbsorbsFireWhileBlocking(GameTestHelper helper) {
         Player defender = helper.makeMockPlayer(GameType.SURVIVAL);
-        Zombie attacker = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
+        Zombie attacker = noAi(helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2)));
 
         // Merely held: whoever lands a blow is set on fire (upstream's onPlayerHurt half).
         ItemStack pickaxe = tool(ForgeweaveItems.TOOL_PICKAXE.get(), List.of(traitId("flammable")), 3.0F);
@@ -510,8 +510,8 @@ public class CombatTraitGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("enderference")), 3.0F);
         player.setItemInHand(InteractionHand.MAIN_HAND, hatchet);
-        EnderMan marked = noAi(helper.spawn(EntityType.ENDERMAN, new BlockPos(2, 2, 2)));
-        EnderMan unmarked = noAi(helper.spawn(EntityType.ENDERMAN, new BlockPos(4, 2, 4)));
+        EnderMan marked = noAi(helper.spawn(EntityTypes.ENDERMAN, new BlockPos(2, 2, 2)));
+        EnderMan unmarked = noAi(helper.spawn(EntityTypes.ENDERMAN, new BlockPos(4, 2, 4)));
 
         marked.hurt(helper.getLevel().damageSources().playerAttack(player), 1.0F);
         MobEffectInstance mark = marked.getEffect(ForgeweaveMobEffects.ENDERFERENCE);
@@ -541,7 +541,7 @@ public class CombatTraitGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("lacerating")), 3.0F);
         player.setItemInHand(InteractionHand.MAIN_HAND, hatchet);
-        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+        Pig pig = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2)));
 
         pig.hurt(helper.getLevel().damageSources().playerAttack(player), 1.0F);
         helper.assertTrue(pig.hasEffect(ForgeweaveMobEffects.LACERATE),
@@ -570,7 +570,7 @@ public class CombatTraitGameTests {
     public static void pristineScalesDamageWithRemainingDurability(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("pristine")), 3.0F);
-        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+        Pig pig = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2)));
 
         float atFullDurability = preHit(helper, player, hatchet, pig, 1.0F);
         helper.assertTrue(Math.abs(atFullDurability - 4.0F) < 0.001F,
@@ -590,7 +590,7 @@ public class CombatTraitGameTests {
     public static void vigorousScalesDamageWithWielderHealth(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("vigorous")), 3.0F);
-        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+        Pig pig = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2)));
 
         float atFullHealth = preHit(helper, player, hatchet, pig, 1.0F);
         helper.assertTrue(Math.abs(atFullHealth - 3.0F) < 0.001F,
@@ -610,7 +610,7 @@ public class CombatTraitGameTests {
     public static void predatoryScalesDamageWithTheTargetsMissingHealth(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("predatory")), 3.0F);
-        Zombie target = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
+        Zombie target = noAi(helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2)));
 
         float atFullHealth = preHit(helper, player, hatchet, target, 1.0F);
         helper.assertTrue(Math.abs(atFullHealth - 1.0F) < 0.001F,
@@ -630,8 +630,8 @@ public class CombatTraitGameTests {
     public static void colossalScalesDamageWithTheTargetsMaxHealth(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("colossal")), 3.0F);
-        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
-        Zombie zombie = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(3, 2, 3)));
+        Pig pig = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2)));
+        Zombie zombie = noAi(helper.spawn(EntityTypes.ZOMBIE, new BlockPos(3, 2, 3)));
 
         float vsPig = preHit(helper, player, hatchet, pig, 1.0F);
         helper.assertTrue(Math.abs(vsPig - 1.6F) < 0.001F,
@@ -650,7 +650,7 @@ public class CombatTraitGameTests {
     public static void kineticScalesDamageWithTheWieldersMotion(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("kinetic")), 3.0F);
-        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+        Pig pig = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2)));
 
         player.setDeltaMovement(Vec3.ZERO);
         float stationary = preHit(helper, player, hatchet, pig, 1.0F);
@@ -671,7 +671,7 @@ public class CombatTraitGameTests {
     public static void dominantAddsDamageAgainstATargetWeakerThanTheWielder(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("dominant")), 3.0F);
-        Zombie target = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
+        Zombie target = noAi(helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2)));
 
         float evenHealth = preHit(helper, player, hatchet, target, 1.0F);
         helper.assertTrue(Math.abs(evenHealth - 1.0F) < 0.001F,
@@ -693,7 +693,7 @@ public class CombatTraitGameTests {
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("armor_breaker")), 3.0F);
         // A pig, not a zombie: zombies carry a nonzero base armor value even with no equipped piece,
         // which would make the "unarmored" half of this test trigger the trait it's meant to rule out.
-        Pig target = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+        Pig target = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2)));
 
         float unarmored = preHit(helper, player, hatchet, target, 1.0F);
         helper.assertTrue(Math.abs(unarmored - 1.0F) < 0.001F,
@@ -716,7 +716,7 @@ public class CombatTraitGameTests {
     public static void opportunistAddsDamageAgainstADebuffedTarget(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("opportunist")), 3.0F);
-        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+        Pig pig = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2)));
 
         float clean = preHit(helper, player, hatchet, pig, 1.0F);
         helper.assertTrue(Math.abs(clean - 1.0F) < 0.001F,
@@ -736,7 +736,7 @@ public class CombatTraitGameTests {
     public static void surgingAddsDamageOnlyOnAFullyChargedSwing(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("surging")), 3.0F);
-        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+        Pig pig = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2)));
 
         float partial = preHitCharged(helper, player, hatchet, pig, 1.0F, 0.5F);
         helper.assertTrue(Math.abs(partial - 1.0F) < 0.001F,
@@ -756,7 +756,7 @@ public class CombatTraitGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack surging2 = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("surging2")), 3.0F);
         ItemStack surging3 = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("surging3")), 3.0F);
-        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+        Pig pig = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2)));
 
         float levelTwo = preHitCharged(helper, player, surging2, pig, 1.0F, 1.0F);
         helper.assertTrue(Math.abs(levelTwo - 4.0F) < 0.001F,
@@ -774,7 +774,7 @@ public class CombatTraitGameTests {
     public static void ruthlessAddsExtraDamageOnlyOnACriticalHit(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("ruthless")), 3.0F);
-        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+        Pig pig = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2)));
 
         float notCrit = preHitCrit(helper, player, hatchet, pig, 3.0F, 1.0F);
         helper.assertTrue(Math.abs(notCrit - 3.0F) < 0.001F,
@@ -793,7 +793,7 @@ public class CombatTraitGameTests {
     public static void escalatingBuildsOnlyFromConsecutiveFullyChargedHits(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("escalating")), 3.0F);
-        Zombie target = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
+        Zombie target = noAi(helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2)));
 
         onHitCharged(helper, player, hatchet, target, 0.5F); // not fully charged: must not build a stack
         long gameTime = helper.getLevel().getGameTime();
@@ -825,7 +825,7 @@ public class CombatTraitGameTests {
     public static void blightedStacksWitherUpToIIIOnRepeatHits(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("blighted")), 3.0F);
-        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+        Pig pig = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2)));
 
         onHit(helper, player, hatchet, pig);
         MobEffectInstance first = pig.getEffect(MobEffects.WITHER);
@@ -848,7 +848,7 @@ public class CombatTraitGameTests {
     public static void enfeeblingWeakensOnHit(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("enfeebling")), 3.0F);
-        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+        Pig pig = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2)));
 
         onHit(helper, player, hatchet, pig);
         MobEffectInstance weakness = pig.getEffect(MobEffects.WEAKNESS);
@@ -864,7 +864,7 @@ public class CombatTraitGameTests {
     public static void shacklingRootsBrieflyOnHit(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("shackling")), 3.0F);
-        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+        Pig pig = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2)));
 
         onHit(helper, player, hatchet, pig);
         MobEffectInstance slow = pig.getEffect(MobEffects.SLOWNESS);
@@ -882,7 +882,7 @@ public class CombatTraitGameTests {
     public static void revealingMarksTheTargetWithGlowOnHit(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("revealing")), 3.0F);
-        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+        Pig pig = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2)));
 
         onHit(helper, player, hatchet, pig);
         helper.assertTrue(pig.hasEffect(MobEffects.GLOWING), "a revealing hit must leave the target glowing");
@@ -896,7 +896,7 @@ public class CombatTraitGameTests {
     public static void mercifulRegeneratesTheTargetOnHit(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("merciful")), 3.0F);
-        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+        Pig pig = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2)));
 
         onHit(helper, player, hatchet, pig);
         MobEffectInstance regen = pig.getEffect(MobEffects.REGENERATION);
@@ -913,7 +913,7 @@ public class CombatTraitGameTests {
     public static void quickstepGrantsSpeedOnlyOnAFullyChargedHit(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("quickstep")), 3.0F);
-        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+        Pig pig = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2)));
 
         onHitCharged(helper, player, hatchet, pig, 0.5F);
         helper.assertFalse(player.hasEffect(MobEffects.SPEED),
@@ -941,7 +941,7 @@ public class CombatTraitGameTests {
         // A pig, not a zombie: undead entities are tagged minecraft:ignores_poison_and_regen and
         // silently refuse Regeneration outright (LivingEntity#canBeAffected), which would make this
         // test measure vanilla immunity rather than unraveling's own strip.
-        Pig target = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+        Pig target = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2)));
 
         target.addEffect(new MobEffectInstance(MobEffects.REGENERATION, 200));
         onHitCharged(helper, player, hatchet3, target, 0.5F);
@@ -966,8 +966,8 @@ public class CombatTraitGameTests {
     public static void grievousShavesHealingOnTheMarkedTarget(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("grievous")), 3.0F);
-        Pig marked = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
-        Pig unmarked = noAi(helper.spawn(EntityType.PIG, new BlockPos(4, 2, 4)));
+        Pig marked = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2)));
+        Pig unmarked = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(4, 2, 4)));
 
         onHit(helper, player, hatchet, marked);
         helper.assertTrue(marked.hasEffect(ForgeweaveMobEffects.REDUCED_HEALING), "a grievous hit must leave the mark");
@@ -992,7 +992,7 @@ public class CombatTraitGameTests {
     public static void harryingShortensTheTargetsInvulnerabilityWindow(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("harrying")), 3.0F);
-        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+        Pig pig = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2)));
 
         pig.hurt(helper.getLevel().damageSources().generic(), 1.0F);
         int before = pig.invulnerableTime;
@@ -1013,7 +1013,7 @@ public class CombatTraitGameTests {
     public static void leechingHealsTheWielderByAFractionOfDamageDealt(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("soulrend2")), 3.0F);
-        Zombie target = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
+        Zombie target = noAi(helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2)));
 
         player.setHealth(player.getMaxHealth() - 5.0F);
         float before = player.getHealth();
@@ -1031,8 +1031,8 @@ public class CombatTraitGameTests {
     public static void arcingReachesANearbyEnemyOnAFullyChargedHit(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("arcing")), 3.0F);
-        Zombie primary = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
-        Zombie nearby = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(4, 2, 2)));
+        Zombie primary = noAi(helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2)));
+        Zombie nearby = noAi(helper.spawn(EntityTypes.ZOMBIE, new BlockPos(4, 2, 2)));
 
         boolean arced = false;
         for (int attempt = 0; attempt < 40 && !arced; attempt++) {
@@ -1057,8 +1057,8 @@ public class CombatTraitGameTests {
     @GameTest(template = "empty")
     public static void arcingIWaitsForAFullChargeAndArcingIIDoesNot(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        Zombie primary = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
-        Zombie nearby = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(4, 2, 2)));
+        Zombie primary = noAi(helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2)));
+        Zombie nearby = noAi(helper.spawn(EntityTypes.ZOMBIE, new BlockPos(4, 2, 2)));
 
         ItemStack arcing = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("arcing")), 3.0F);
         float before = nearby.getHealth();
@@ -1082,7 +1082,7 @@ public class CombatTraitGameTests {
     @GameTest(template = "empty")
     public static void luminousLeavesTheTargetGlowingForFiveSeconds(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+        Pig pig = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2)));
 
         onHit(helper, player, tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(), 3.0F), pig);
         helper.assertTrue(!pig.hasEffect(MobEffects.GLOWING), "a plain hatchet must leave the target unmarked");
@@ -1114,7 +1114,7 @@ public class CombatTraitGameTests {
     public static void stormcallerStrikesLightningOnlyAtFullWielderHealth(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(traitId("stormcaller")), 3.0F);
-        Pig target = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
+        Pig target = noAi(helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2)));
         AABB nearTarget = target.getBoundingBox().inflate(2.0);
 
         player.setHealth(player.getMaxHealth() - 5.0F);
@@ -1185,7 +1185,7 @@ public class CombatTraitGameTests {
     @GameTest(template = "empty")
     public static void soulRendHealsMoreAtEachLevel(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        Zombie target = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
+        Zombie target = noAi(helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2)));
 
         // The shipped fractions (trait_definition/soulrend*.json) against the onHit helper's 1.0
         // damage, all well under each level's own cap. Issue #1103 folded soulwick, mendreach,
@@ -1217,7 +1217,7 @@ public class CombatTraitGameTests {
     @GameTest(template = "empty")
     public static void evolvedIsRegisteredAndChangesNothingAboutAHit(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        Zombie target = noAi(helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2)));
+        Zombie target = noAi(helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2)));
 
         for (String id : List.of("evolving", "evolved", "evolved2", "evolved3")) {
             helper.assertTrue(ForgeweaveTraits.lookup(traitId(id)) != null,

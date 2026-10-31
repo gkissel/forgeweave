@@ -6,6 +6,7 @@ import java.util.Map;
 
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.level.material.Fluid;
 
@@ -27,7 +28,7 @@ final class EntityMeltingRecipes {
      * always-registered mob works, since the row's own {@link EntityMeltingDisplay#defaultRow()} flag
      * is what {@link EntityMeltingCategory} actually reads for its label, not this type's name.
      */
-    static final EntityType<Pig> DEFAULT_ROW_ENTITY = EntityType.PIG;
+    static final EntityType<Pig> DEFAULT_ROW_ENTITY = EntityTypes.PIG;
 
     static List<EntityMeltingDisplay> build(Map<Identifier, EntityMeltingRecipe> recipes, List<Fluid> fuels) {
         List<EntityMeltingDisplay> displays = new ArrayList<>();

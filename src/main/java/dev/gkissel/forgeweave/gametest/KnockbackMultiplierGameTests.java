@@ -9,7 +9,7 @@ import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -68,7 +68,7 @@ public class KnockbackMultiplierGameTests {
 
     private static CombatHit trivialHit(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        Pig pig = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig pig = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         DamageSource source = helper.getLevel().damageSources().playerAttack(player);
         return new CombatHit(helper.getLevel(), new ItemStack(ForgeweaveItems.TOOL_HATCHET.get()), player, pig, source);
     }
@@ -117,7 +117,7 @@ public class KnockbackMultiplierGameTests {
         hatchet.set(ForgeweaveDataComponents.MODIFIERS.get(),
                 List.of(new ModifierEntry(CombatModifierGameTests.KNOCKBACK, 10)));
         player.setItemInHand(InteractionHand.MAIN_HAND, hatchet);
-        Pig pig = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig pig = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
 
         List<Float> pushes = new ArrayList<>();
         Consumer<LivingKnockBackEvent> capture = event -> {

@@ -7,6 +7,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.Identifier;
+import net.minecraft.tags.BlockItemTags;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
@@ -136,7 +137,7 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
         var slimeLeaves = tag(BlockTags.LEAVES);
         var slimeHoe = tag(BlockTags.MINEABLE_WITH_HOE);
         var slimeSword = tag(BlockTags.SWORD_EFFICIENT);
-        var slimeSaplings = tag(BlockTags.SAPLINGS);
+        var slimeSaplings = tag(BlockItemTags.SAPLINGS.block());
         var slimeClimbable = tag(BlockTags.CLIMBABLE);
         for (ForgeweaveBlocks.SlimePlants plants : ForgeweaveBlocks.slimePlants()) {
             slimeLeaves.add(plants.leaves().get());
@@ -342,6 +343,11 @@ public class ForgeweaveBlockTagsProvider extends BlockTagsProvider {
                 .addTag(SmelteryScan.IO)
                 .add(ForgeweaveBlocks.SEARED_GLASS.get())
                 .addOptionalTag(SmelteryScan.WALL_ADDON);
+    }
+
+    @Override
+    protected KeyedTagAppender<Block> tag(TagKey<Block> tag) {
+        return new KeyedTagAppender<>(super.tag(tag), entry -> entry.builtInRegistryHolder().key());
     }
 
     private static TagKey<Block> cTag(String path) {

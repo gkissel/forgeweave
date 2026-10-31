@@ -16,7 +16,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -96,7 +96,7 @@ public class MiningTraitGameTests {
     @GameTest(template = "empty")
     public static void jaggedGrowsAttackDamageAsDurabilityDrops(GameTestHelper helper) {
         ItemStack pickaxe = pickaxe(List.of(traitId("jagged")), 200, 1.0F, 3.0F);
-        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
 
         float fresh = ForgeweaveTraits.bonusDamageAgainst(pickaxe, target, 3.0F);
         helper.assertTrue(fresh == 0.0F, "no bonus at full durability, got " + fresh);
@@ -157,7 +157,7 @@ public class MiningTraitGameTests {
         helper.assertTrue(Math.abs(event.getNewSpeed() - expectedSpeed) < 0.001F,
                 "expected break speed " + expectedSpeed + ", got " + event.getNewSpeed());
 
-        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         float bonus = ForgeweaveTraits.bonusDamageAgainst(pickaxe, target, 3.0F);
         helper.assertTrue(Math.abs(bonus - 2.0F * calc) < 0.01F,
                 "expected bonus damage " + 2.0F * calc + ", got " + bonus);
@@ -311,7 +311,7 @@ public class MiningTraitGameTests {
             }
         }
 
-        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         CombatHit hit = new CombatHit(level, pickaxe, player, target, level.damageSources().playerAttack(player));
         float damage = ForgeweaveTraits.COMBAT_SEAM.preHit(hit, 5.0F, 5.0F);
         helper.assertTrue(damage == 0.0F, "squeaky must zero the blow itself, got " + damage);
@@ -339,7 +339,7 @@ public class MiningTraitGameTests {
         Player attacker = helper.makeMockPlayer(GameType.SURVIVAL);
         BlockPos attackerPos = helper.absolutePos(new BlockPos(1, 2, 1));
         attacker.setPos(attackerPos.getX() + 0.5, attackerPos.getY(), attackerPos.getZ() + 0.5);
-        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         ItemStack pickaxe = pickaxe(List.of(traitId("squeaky")), 1000, 1.0F, 1.0F);
 
         List<SoundCapture.Played> played = SoundCapture.playedDuring(helper,

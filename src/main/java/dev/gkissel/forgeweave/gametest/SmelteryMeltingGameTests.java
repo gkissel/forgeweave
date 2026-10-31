@@ -662,7 +662,7 @@ public class SmelteryMeltingGameTests {
 
     /** Spawns {@code stack} as a dropped item entity inside {@link SmelteryGameTests#buildWalls}'s 1x1x2 interior (relative (1, 2, 1)). */
     private static ItemEntity dropInsideSmeltery(GameTestHelper helper, ItemStack stack) {
-        Vec3 pos = helper.absoluteVec(new BlockPos(1, 2, 1).getCenter());
+        Vec3 pos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(1, 2, 1)));
         ItemEntity entity = new ItemEntity(helper.getLevel(), pos.x, pos.y, pos.z, stack);
         helper.getLevel().addFreshEntity(entity);
         return entity;

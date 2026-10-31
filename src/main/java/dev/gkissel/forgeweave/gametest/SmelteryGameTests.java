@@ -23,6 +23,7 @@ import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -270,7 +271,7 @@ public class SmelteryGameTests {
         BlockPos core = placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
         SmelteryMenu menu = openMenu(helper, core);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        player.setPos(helper.absoluteVec(new BlockPos(0, 2, 1).getCenter()));
+        player.setPos(helper.absoluteVec(Vec3.atCenterOf(new BlockPos(0, 2, 1))));
         helper.assertTrue(menu.stillValid(player), "expected a formed smeltery's menu to stay open");
 
         helper.setBlock(new BlockPos(4, 2, 2), Blocks.AIR);

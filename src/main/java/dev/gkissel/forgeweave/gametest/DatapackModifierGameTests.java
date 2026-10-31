@@ -12,7 +12,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -71,7 +71,7 @@ public class DatapackModifierGameTests {
                 "and to have spent one modifier slot, got " + ForgeweaveModifiers.freeSlots(chilled));
 
         player.setItemInHand(InteractionHand.MAIN_HAND, chilled);
-        Pig pig = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig pig = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         pig.setNoAi(true);
         pig.hurt(helper.getLevel().damageSources().playerAttack(player), 1.0F);
 

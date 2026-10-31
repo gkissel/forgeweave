@@ -7,7 +7,6 @@ import net.minecraft.data.PackOutput;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 
-import net.createmod.ponder.api.client.PonderIndex;
 
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
@@ -26,7 +25,6 @@ import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.material.MaterialForm;
 import dev.gkissel.forgeweave.material.MaterialForms;
-import dev.gkissel.forgeweave.ponder.ForgeweavePonderPlugin;
 import dev.gkissel.forgeweave.trackb.TrackBAlloy;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
 
@@ -2430,10 +2428,11 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // keeps the English inline in the storyboards (ForgeweaveSmelteryScenes) and extracts it
         // through its own datagen hook: provideLang registers our plugin's scenes headlessly and
         // emits one entry per title()/text() call, so the strings still flow through this provider
-        // and runData like every other player-facing key. Ponder is jar-in-jar embedded (build
-        // .gradle), so its classes are always present on the data run's classpath.
-        PonderIndex.addPlugin(new ForgeweavePonderPlugin());
-        PonderIndex.getLangAccess().provideLang(Forgeweave.MODID, this::add);
+        // and runData like every other player-facing key.
+        // 26.2: Ponder has no build for this Minecraft (build.gradle's COMPAT_DISABLED), so the scenes
+        // are out of the compile and their keys are not generated. Restore
+        // `PonderIndex.addPlugin(new ForgeweavePonderPlugin());` and
+        // `PonderIndex.getLangAccess().provideLang(Forgeweave.MODID, this::add);` once one ships.
 
         // #229 -- the M3.2 combat-seam trait batch. Wording follows upstream 1.12's
         // modifier.<id>.name/.desc entries (NOTICE.md), same as the M1/M2 trait families above;

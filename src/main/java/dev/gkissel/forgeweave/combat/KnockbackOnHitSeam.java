@@ -32,6 +32,7 @@ public record KnockbackOnHitSeam(float magnitude) implements CombatSeam {
             return; // Nothing to compute a push direction from -- see CombatHit's javadoc.
         }
         float yawRadians = attacker.getYRot() * ((float) Math.PI / 180.0F);
-        hit.target().knockback(magnitude, Mth.sin(yawRadians), -Mth.cos(yawRadians));
+        // comesFromEffect = true, as vanilla passes for its own bonus knockback (LivingEntity#causeExtraKnockback).
+        hit.target().knockback(magnitude, Mth.sin(yawRadians), -Mth.cos(yawRadians), hit.source(), damageDealt, true);
     }
 }

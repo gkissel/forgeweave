@@ -14,7 +14,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.monster.zombie.Zombie;
@@ -163,9 +163,9 @@ public class SignatureTraitGameTests {
         ItemStack sword = pickaxe(List.of(id("warcharge")));
         player.setItemInHand(InteractionHand.MAIN_HAND, sword);
 
-        Pig first = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig first = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         first.setNoAi(true);
-        Pig second = helper.spawn(EntityType.PIG, new BlockPos(3, 2, 2));
+        Pig second = helper.spawn(EntityTypes.PIG, new BlockPos(3, 2, 2));
         second.setNoAi(true);
 
         helper.assertTrue(ForgeweaveTraits.bonusDamageAgainst(sword, second, 4.0F) == 0.0F,
@@ -201,11 +201,11 @@ public class SignatureTraitGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack sword = pickaxe(List.of(id("warcharge")));
         player.setItemInHand(InteractionHand.MAIN_HAND, sword);
-        Pig target = helper.spawn(EntityType.PIG, new BlockPos(3, 2, 2));
+        Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(3, 2, 2));
         target.setNoAi(true);
 
         for (int kill = 0; kill < 3; kill++) {
-            Pig victim = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+            Pig victim = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
             victim.setNoAi(true);
             ForgeweaveTraits.bonusDamageAgainst(sword, victim, 4.0F);
             victim.setHealth(0.0F);
@@ -224,7 +224,7 @@ public class SignatureTraitGameTests {
                 "the tooltip's banked line");
 
         for (int kill = 0; kill < 2; kill++) {
-            Pig victim = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+            Pig victim = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
             victim.setNoAi(true);
             victim.setHealth(0.0F);
             ForgeweaveTraits.afterHit(sword, level, player, victim);
@@ -265,7 +265,7 @@ public class SignatureTraitGameTests {
     }
 
     private static Zombie bystander(GameTestHelper helper, Player player, double dx, double dz) {
-        Zombie zombie = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2));
+        Zombie zombie = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2));
         zombie.setNoAi(true);
         zombie.setPos(player.getX() + dx, player.getY(), player.getZ() + dz);
         return zombie;
@@ -326,7 +326,7 @@ public class SignatureTraitGameTests {
     @GameTest(template = "empty")
     public static void backlashStoresBlowsThenEruptsOnWhatIsNearby(GameTestHelper helper) {
         Player player = wearing(helper, "backlash");
-        Zombie attacker = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2));
+        Zombie attacker = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2));
         attacker.setNoAi(true);
         attacker.setPos(player.getX() + 1.0, player.getY(), player.getZ());
         DamageSource source = helper.getLevel().damageSources().mobAttack(attacker);

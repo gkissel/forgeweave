@@ -11,7 +11,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.pig.Pig;
@@ -147,7 +147,7 @@ public class StationWeaponGameTests {
         player.startUsingItem(InteractionHand.MAIN_HAND);
         helper.assertTrue(player.isUsingItem(), "raising the battlesign must open its blocking stance");
 
-        Arrow arrow = helper.spawn(EntityType.ARROW, new BlockPos(1, 2, 4));
+        Arrow arrow = helper.spawn(EntityTypes.ARROW, new BlockPos(1, 2, 4));
         arrow.setDeltaMovement(0.0, 0.0, -1.0); // flying at the player, who is looking at it
         float before = player.getHealth();
 
@@ -174,7 +174,7 @@ public class StationWeaponGameTests {
         Player defender = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack battlesign = weapon(helper, defender, pos, ForgeweaveItems.TOOL_BATTLESIGN.get());
         defender.setItemInHand(InteractionHand.MAIN_HAND, battlesign);
-        Pig attacker = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig attacker = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         defender.startUsingItem(InteractionHand.MAIN_HAND);
         helper.assertTrue(defender.isUsingItem(), "raising the battlesign must open its blocking stance");
 
@@ -369,7 +369,7 @@ public class StationWeaponGameTests {
      * level look-ray runs through the pig's rather short bounding box.
      */
     private static Pig pigInFrontOf(GameTestHelper helper, Player player, double distance) {
-        Pig pig = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig pig = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         pig.setDeltaMovement(Vec3.ZERO);
         player.setPos(pig.getX(), pig.getY() - 1.2, pig.getZ() - distance);
         return pig;
@@ -377,7 +377,7 @@ public class StationWeaponGameTests {
 
     /** How far a pig is pushed horizontally by one blow with {@code tool}. */
     private static double knockbackDistance(GameTestHelper helper, Player player, ItemStack tool) {
-        Pig pig = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig pig = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         player.setItemInHand(InteractionHand.MAIN_HAND, tool);
         player.setYRot(0.0F);
         pig.setDeltaMovement(Vec3.ZERO);
@@ -417,7 +417,7 @@ public class StationWeaponGameTests {
 
     /** Hits a heavily armored pig once with {@code tool} and returns the health it lost. */
     private static float hitArmoredPig(GameTestHelper helper, Player player, ItemStack tool) {
-        Pig pig = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig pig = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         pig.getAttribute(Attributes.ARMOR).setBaseValue(20.0);
         pig.getAttribute(Attributes.ARMOR_TOUGHNESS).setBaseValue(12.0);
         player.setItemInHand(InteractionHand.MAIN_HAND, tool);
@@ -555,7 +555,7 @@ public class StationWeaponGameTests {
     @GameTest(template = "empty")
     public static void daggerBackstabScalesWithTheAngleBehindTheTarget(GameTestHelper helper) {
         Player attacker = helper.makeMockPlayer(GameType.SURVIVAL);
-        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
         ForgeweaveInnates.Backstab backstab = ForgeweaveInnates.BACKSTAB_SEAM;
 
         // The pig always stands at the same spot; moving the attacker around it is what changes the
@@ -596,7 +596,7 @@ public class StationWeaponGameTests {
         ItemStack dagger = weapon(helper, player, pos, ForgeweaveItems.TOOL_DAGGER.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, dagger);
 
-        Pig target = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 3));
+        Pig target = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 3));
         target.setYRot(0.0F);
         target.setYHeadRot(0.0F);
         // Straight behind it, striking along its own facing.
@@ -632,7 +632,7 @@ public class StationWeaponGameTests {
         Player defender = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack broadsword = weapon(helper, defender, pos, ForgeweaveItems.TOOL_BROADSWORD.get());
         defender.setItemInHand(InteractionHand.MAIN_HAND, broadsword);
-        Pig attacker = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2));
+        Pig attacker = helper.spawn(EntityTypes.PIG, new BlockPos(2, 2, 2));
 
         // Nothing raised: the blow lands as usual, which is what makes the parried case mean something.
         float before = defender.getHealth();
@@ -740,7 +740,7 @@ public class StationWeaponGameTests {
 
     /** A gravity-free, AI-free pig -- {@link SpawnCapture}'s entity-index defect class applies here too. */
     private static Pig broadswordPig(GameTestHelper helper, BlockPos pos) {
-        Pig pig = helper.spawn(EntityType.PIG, pos);
+        Pig pig = helper.spawn(EntityTypes.PIG, pos);
         pig.setNoGravity(true);
         pig.setNoAi(true);
         return pig;

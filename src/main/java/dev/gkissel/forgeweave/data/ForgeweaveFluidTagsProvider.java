@@ -47,6 +47,11 @@ public class ForgeweaveFluidTagsProvider extends FluidTagsProvider {
         }
     }
 
+    @Override
+    protected KeyedTagAppender<Fluid> tag(TagKey<Fluid> tag) {
+        return new KeyedTagAppender<>(super.tag(tag), entry -> entry.builtInRegistryHolder().key());
+    }
+
     private static TagKey<Fluid> conventionTag(String path) {
         return TagKey.create(Registries.FLUID, Identifier.fromNamespaceAndPath("c", path));
     }

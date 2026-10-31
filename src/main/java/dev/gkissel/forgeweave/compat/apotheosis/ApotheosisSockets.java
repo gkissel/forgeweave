@@ -236,7 +236,7 @@ public final class ApotheosisSockets {
      */
     public record AttributeGrant(Identifier attribute, AttributeModifier modifier) {}
 
-    /** What {@link ApotheosisGemBonuses} answers once Apotheosis is installed. */
+    /** What {@code ApotheosisGemBonuses} answers once Apotheosis is installed. */
     public interface Bridge {
 
         /** Whether Apotheosis would let {@code gem} sit in {@code target} at all. */
@@ -266,15 +266,17 @@ public final class ApotheosisSockets {
 
     /**
      * Called once, from inside the {@code ModList} guard in {@code Forgeweave}'s constructor. The
-     * reference to {@link ApotheosisGemBonuses} is inside a method body rather than a field, so a
+     * reference to {@code ApotheosisGemBonuses} is inside a method body rather than a field, so a
      * Forgeweave-only install -- which classloads this class but never runs this method -- never
      * links a {@code dev.shadowsoffire} type at all. Same trick, same reason, as
      * {@code ForgeweaveDraconicCompat#register}.
      */
     public static void installBridge() {
-        if (enabled()) {
-            install(new ApotheosisGemBonuses());
-        }
+        // 26.2: Apotheosis has no build for this Minecraft yet, so ApotheosisGemBonuses is left out
+        // of the compile -- build.gradle's COMPAT_DISABLED -- and no bridge is installed. Restore
+        // `if (enabled()) install(new ApotheosisGemBonuses());` once one ships.
+        com.mojang.logging.LogUtils.getLogger().warn(
+                "Apotheosis is installed, but Forgeweave's Apotheosis integration is not available on Minecraft 26.2");
     }
 
     /**

@@ -15,7 +15,7 @@ import net.minecraft.client.renderer.entity.state.SlimeRenderState;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.monster.Slime;
+import net.minecraft.world.entity.monster.cubemob.Slime;
 
 
 import dev.gkissel.forgeweave.Forgeweave;

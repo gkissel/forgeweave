@@ -19,7 +19,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.resources.language.I18n;
+import net.minecraft.locale.Language;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
@@ -696,13 +696,13 @@ public class BookScreen extends Screen {
      * BookLangCoverageTest} guards the runs for gaps).
      */
     private void bulletBlocks(List<Block> blocks, String titleKey, IntFunction<String> keyOf) {
-        if (!I18n.exists(keyOf.apply(0))) {
+        if (!Language.getInstance().has(keyOf.apply(0))) {
             return;
         }
         Component head = Component.translatable(titleKey).withStyle(ChatFormatting.UNDERLINE);
         blocks.add(new Block(this.font.lineHeight + 4, (graphics, x, y) ->
                 graphics.text(this.font, head, x, y + 2, TITLE_COLOR, false)));
-        for (int i = 0; I18n.exists(keyOf.apply(i)); i++) {
+        for (int i = 0; Language.getInstance().has(keyOf.apply(i)); i++) {
             bodyBlocks(blocks, Component.literal("● ").append(Component.translatable(keyOf.apply(i))));
         }
     }
@@ -1181,7 +1181,7 @@ public class BookScreen extends Screen {
      */
     private void flavourBlocks(List<Block> blocks, Identifier id) {
         String key = MaterialPageContent.flavourKey(id);
-        if (!I18n.exists(key)) {
+        if (!Language.getInstance().has(key)) {
             return;
         }
         bodyBlocks(blocks, Component.literal("\"").append(Component.translatable(key)).append("\"")

@@ -8,7 +8,7 @@ import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.zombie.Zombie;
@@ -113,7 +113,7 @@ public class ArmorRealPathGameTests {
     }
 
     private static Zombie zombie(GameTestHelper helper) {
-        Zombie zombie = helper.spawn(EntityType.ZOMBIE, new BlockPos(3, 2, 4));
+        Zombie zombie = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(3, 2, 4));
         zombie.setNoAi(true);
         return zombie;
     }

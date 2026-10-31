@@ -8,7 +8,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -209,7 +209,7 @@ public class SearedFurnaceGameTests {
         buildFurnace(helper, 3, 3, 2);
         SearedFurnaceBlockEntity furnace = placeController(helper);
         helper.assertTrue(furnace.isFormed(), "expected the furnace to form: " + furnace.lastResult().getString());
-        Zombie zombie = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2));
+        Zombie zombie = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2));
         helper.runAfterDelay(45, () -> {
             helper.assertTrue(!zombie.isAlive(), "expected the zombie inside a formed furnace to be gone");
             helper.succeed();

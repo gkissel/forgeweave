@@ -5,6 +5,7 @@ import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.animal.cow.Cow;
@@ -56,7 +57,7 @@ public class EntityMeltingGameTests {
     @GameTest(template = "smeltery", timeoutTicks = 200)
     public static void aMobWithNoRecipeBleedsTheDefaultBlood(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = primedSmeltery(helper);
-        Cow cow = spawnInside(helper, EntityType.COW);
+        Cow cow = spawnInside(helper, EntityTypes.COW);
         float before = cow.getHealth();
 
         core.sweepInterior();
@@ -75,7 +76,7 @@ public class EntityMeltingGameTests {
     @GameTest(template = "smeltery", timeoutTicks = 200)
     public static void aFireImmuneBlazeStillMeltsIntoBlazingBlood(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = primedSmeltery(helper);
-        Blaze blaze = spawnInside(helper, EntityType.BLAZE);
+        Blaze blaze = spawnInside(helper, EntityTypes.BLAZE);
         float before = blaze.getHealth();
 
         core.sweepInterior();
@@ -93,7 +94,7 @@ public class EntityMeltingGameTests {
     @GameTest(template = "smeltery", timeoutTicks = 200)
     public static void aVindicatorMeltsIntoEmeraldOffAMultiEntityRecipe(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = primedSmeltery(helper);
-        spawnInside(helper, EntityType.VINDICATOR);
+        spawnInside(helper, EntityTypes.VINDICATOR);
 
         core.sweepInterior();
 
@@ -108,7 +109,7 @@ public class EntityMeltingGameTests {
     @GameTest(template = "smeltery", timeoutTicks = 200)
     public static void anIronGolemMeltsIntoIronAtUpstreamsOwnAmount(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = primedSmeltery(helper);
-        spawnInside(helper, EntityType.IRON_GOLEM);
+        spawnInside(helper, EntityTypes.IRON_GOLEM);
 
         core.sweepInterior();
 
@@ -126,7 +127,7 @@ public class EntityMeltingGameTests {
     @GameTest(template = "smeltery", timeoutTicks = 200)
     public static void aSweepHitsAtMostOncePerSecondNoMatterHowOftenItIsCalled(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = primedSmeltery(helper);
-        Cow cow = spawnInside(helper, EntityType.COW);
+        Cow cow = spawnInside(helper, EntityTypes.COW);
         float before = cow.getHealth();
 
         helper.assertTrue(core.sweepInterior(), "expected the first sweep to run");
@@ -148,7 +149,7 @@ public class EntityMeltingGameTests {
     public static void anEmptySmelteryDoesNotTouchTheMobStandingInIt(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = lavaFuelled(helper);
         helper.assertValueEqual(core.tank().getFluidAmount(), 0, "an unprimed smeltery's tank");
-        Cow cow = spawnInside(helper, EntityType.COW);
+        Cow cow = spawnInside(helper, EntityTypes.COW);
         float before = cow.getHealth();
 
         core.sweepInterior();
@@ -169,7 +170,7 @@ public class EntityMeltingGameTests {
     @GameTest(template = "smeltery", timeoutTicks = 200)
     public static void aRemovedEntityStopsYielding(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = primedSmeltery(helper);
-        LivingEntity golem = spawnInside(helper, EntityType.IRON_GOLEM);
+        LivingEntity golem = spawnInside(helper, EntityTypes.IRON_GOLEM);
         int primer = core.tank().getFluidAmount();
 
         golem.discard();
@@ -190,7 +191,7 @@ public class EntityMeltingGameTests {
     @GameTest(template = "smeltery", timeoutTicks = 200)
     public static void aSmallOverworldMobBleedsLessThanTheDefault(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = primedSmeltery(helper);
-        spawnInside(helper, EntityType.CHICKEN);
+        spawnInside(helper, EntityTypes.CHICKEN);
 
         core.sweepInterior();
 
@@ -202,7 +203,7 @@ public class EntityMeltingGameTests {
     @GameTest(template = "smeltery", timeoutTicks = 200)
     public static void aLargeOverworldMobBleedsMoreThanTheDefault(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = primedSmeltery(helper);
-        spawnInside(helper, EntityType.POLAR_BEAR);
+        spawnInside(helper, EntityTypes.POLAR_BEAR);
 
         core.sweepInterior();
 
@@ -252,7 +253,7 @@ public class EntityMeltingGameTests {
      */
     @SuppressWarnings("unchecked")
     private static <T extends LivingEntity> T spawnInside(GameTestHelper helper, EntityType<T> type) {
-        Vec3 pos = helper.absoluteVec(new BlockPos(1, 2, 1).getCenter());
+        Vec3 pos = helper.absoluteVec(Vec3.atCenterOf(new BlockPos(1, 2, 1)));
         T entity = type.create(helper.getLevel(), EntitySpawnReason.MOB_SUMMONED);
         helper.assertTrue(entity != null, "expected " + type + " to be creatable");
         entity.snapTo(pos.x, pos.y, pos.z, 0f, 0f);

@@ -13,7 +13,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.item.ItemStack;
@@ -53,7 +53,7 @@ public class Issue886GameTests {
     public static void dusksnareCapturesAWoundedMobWhileSneaking(GameTestHelper helper) {
         ServerPlayer player = holding(helper);
         player.setShiftKeyDown(true);
-        Zombie target = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2));
+        Zombie target = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2));
         target.setHealth(target.getMaxHealth() * 0.1F);
 
         ForgeweaveTraits.DUSKSNARE.afterHit(player.getMainHandItem(), helper.getLevel(), player, target);
@@ -70,7 +70,7 @@ public class Issue886GameTests {
     @GameTest(template = "empty")
     public static void dusksnareIgnoresAHitWithoutSneaking(GameTestHelper helper) {
         ServerPlayer player = holding(helper);
-        Zombie target = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2));
+        Zombie target = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2));
         target.setHealth(target.getMaxHealth() * 0.1F);
 
         ForgeweaveTraits.DUSKSNARE.afterHit(player.getMainHandItem(), helper.getLevel(), player, target);
@@ -85,7 +85,7 @@ public class Issue886GameTests {
     public static void dusksnareIgnoresAMobAboveTheHealthGate(GameTestHelper helper) {
         ServerPlayer player = holding(helper);
         player.setShiftKeyDown(true);
-        Zombie target = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2));
+        Zombie target = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2));
         target.setHealth(target.getMaxHealth() * 0.2F);
 
         ForgeweaveTraits.DUSKSNARE.afterHit(player.getMainHandItem(), helper.getLevel(), player, target);
@@ -100,7 +100,7 @@ public class Issue886GameTests {
     public static void dusksnareRefusesABoss(GameTestHelper helper) {
         ServerPlayer player = holding(helper);
         player.setShiftKeyDown(true);
-        WitherBoss target = helper.spawn(EntityType.WITHER, new BlockPos(2, 2, 2));
+        WitherBoss target = helper.spawn(EntityTypes.WITHER, new BlockPos(2, 2, 2));
         target.setHealth(1.0F);
 
         ForgeweaveTraits.DUSKSNARE.afterHit(player.getMainHandItem(), helper.getLevel(), player, target);
@@ -115,7 +115,7 @@ public class Issue886GameTests {
     public static void duskCageReleasesTheMobAtTheHealthItWasCapturedAt(GameTestHelper helper) {
         ServerPlayer player = holding(helper);
         player.setShiftKeyDown(true);
-        Zombie target = helper.spawn(EntityType.ZOMBIE, new BlockPos(2, 2, 2));
+        Zombie target = helper.spawn(EntityTypes.ZOMBIE, new BlockPos(2, 2, 2));
         float capturedHealth = 2.5F;
         target.setHealth(capturedHealth);
 

@@ -18,11 +18,11 @@ import com.mojang.serialization.JsonOps;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.RegistryOps;
@@ -130,7 +130,7 @@ class BookMaterialPageTest {
                             + "lists the traits a part of its kind grants");
             for (MaterialPageContent.TraitLine entry : group.traits()) {
                 Component trait = entry.line();
-                assertEquals(ChatFormatting.DARK_GRAY.getColor(),
+                assertEquals(TextColor.DARK_GRAY.getValue(),
                         trait.getStyle().getColor() == null ? null : trait.getStyle().getColor().getValue(),
                         "upstream getTraitLines colours a book trait line DARK_GRAY");
                 assertTrue(trait.getStyle().isUnderlined(), "upstream getTraitLines underlines it");

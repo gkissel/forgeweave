@@ -1,6 +1,6 @@
 package dev.gkissel.forgeweave.advancement;
 
-import net.minecraft.advancements.CriterionTrigger;
+import net.minecraft.advancements.triggers.CriterionTrigger;
 import net.minecraft.core.registries.Registries;
 
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -16,7 +16,7 @@ import dev.gkissel.forgeweave.Forgeweave;
  * shared class covers all five.
  *
  * <p>Registered against {@code minecraft:trigger_type} ({@link Registries#TRIGGER_TYPE}), the same
- * built-in registry {@code net.minecraft.advancements.CriteriaTriggers} populates for every vanilla
+ * built-in registry {@code net.minecraft.advancements.triggers.CriteriaTriggers} populates for every vanilla
  * trigger -- a {@link DeferredRegister} on it works exactly like one on {@code Registries.BLOCK} or
  * {@code Registries.ITEM}.
  *

@@ -46,6 +46,6 @@ public final class HeftSeam implements CombatSeam {
         double horizontalDistance = delta.horizontalDistance();
         double dx = horizontalDistance < 1.0e-4 ? 0.0 : delta.x / horizontalDistance;
         double dz = horizontalDistance < 1.0e-4 ? 0.0 : delta.z / horizontalDistance;
-        target.knockback(KNOCKBACK_STRENGTH, -dx, -dz);
+        target.knockback(KNOCKBACK_STRENGTH, -dx, -dz, hit.source(), damageDealt, true);
     }
 }

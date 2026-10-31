@@ -581,7 +581,7 @@ public final class ScreenshotHarness {
 
     /** Ceiling on waiting for a Ponder scene's finished frame; the longest scene runs about 900 ticks. */
     private static final int PONDER_SCENE_TIMEOUT_TICKS = 1500;
-    /** Which of {@link PonderHarnessCaptures#CAPTURES} is playing (#700). */
+    /** Which of {@code PonderHarnessCaptures#CAPTURES} is playing (#700). */
     private static int ponderCaptureIndex;
     /** How long the EMI captures (issue #971) wait for EMI's own reload before shooting anyway. */
     private static final int EMI_RELOAD_TIMEOUT_TICKS = 1200;
@@ -691,7 +691,7 @@ public final class ScreenshotHarness {
             return;
         }
         if (origin != null) {
-            mc.getToastManager().clear();
+            mc.gui.toastManager().clear();
         }
         switch (stage) {
             case AWAIT_TITLE -> awaitTitle(mc);
@@ -742,7 +742,7 @@ public final class ScreenshotHarness {
     }
 
     private static void awaitTitle(Minecraft mc) {
-        if (mc.screen instanceof net.neoforged.neoforge.client.gui.LoadingErrorScreen) {
+        if (mc.gui.screen() instanceof net.neoforged.neoforge.client.gui.LoadingErrorScreen) {
             // NeoForge parks the client on this screen when mod loading reported warnings (26.1 warns
             // on every @OnlyIn), and only a click moves it on. A player would see it too, so it fails
             // the run instead of leaving the harness waiting for a title screen that never comes.
@@ -752,17 +752,17 @@ public final class ScreenshotHarness {
             advance(Stage.DONE);
             return;
         }
-        if (mc.screen instanceof AccessibilityOnboardingScreen) {
+        if (mc.gui.screen() instanceof AccessibilityOnboardingScreen) {
             // 1.21 shows accessibility onboarding in front of the title screen on a run dir's
             // first-ever launch (fresh worktree, CI), and the harness would wait on it forever.
             // Opting out through the real option -- not a synthetic click -- both dismisses it and
             // persists to options.txt so the next run in this dir goes straight to the title.
             mc.options.onboardAccessibility = false;
             mc.options.save();
-            mc.setScreen(new TitleScreen());
+            mc.gui.setScreen(new TitleScreen());
             return;
         }
-        if (!(mc.screen instanceof TitleScreen)) {
+        if (!(mc.gui.screen() instanceof TitleScreen)) {
             return;
         }
         // A harness run is unattended, so its window is routinely not the focused one, and vanilla
@@ -796,8 +796,8 @@ public final class ScreenshotHarness {
             return;
         }
         HarnessChecks.checkTitleReload(mc, FAILED_FRAMES::add);
-        if (!(mc.screen instanceof TitleScreen)) {
-            mc.setScreen(new TitleScreen());
+        if (!(mc.gui.screen() instanceof TitleScreen)) {
+            mc.gui.setScreen(new TitleScreen());
         }
         LOGGER.info("{}creating flat world '{}'", LOG_PREFIX, LEVEL_NAME);
         LevelSettings levelSettings = new LevelSettings(
@@ -806,7 +806,7 @@ public final class ScreenshotHarness {
         // Fixed seed, no structures, no bonus chest: a deterministic flat world is all the harness needs.
         WorldOptions worldOptions = new WorldOptions(0L, false, false);
         mc.createWorldOpenFlows().createFreshLevel(
-                LEVEL_NAME, levelSettings, worldOptions, ScreenshotHarness::flatWorldDimensions, mc.screen);
+                LEVEL_NAME, levelSettings, worldOptions, ScreenshotHarness::flatWorldDimensions, mc.gui.screen());
         advance(Stage.AWAIT_WORLD);
     }
 
@@ -844,7 +844,7 @@ public final class ScreenshotHarness {
         // Scenes hand the player bows and armor, which earn advancements; their chat lines and toasts
         // would sit over the frames. The toasts are cleared every tick in onClientTick, and the chat
         // line for the root advancement, earned with the guide book at login, is cleared here.
-        mc.gui.getChat().clearMessages(false);
+        mc.gui.hud.getChat().clearMessages(false);
         server.execute(() -> server.getGameRules().set(
                 net.minecraft.world.level.gamerules.GameRules.SHOW_ADVANCEMENT_MESSAGES, false, server));
         LOGGER.info("{}world ready, settling before placing stations at {}", LOG_PREFIX, origin);
@@ -2260,7 +2260,7 @@ public final class ScreenshotHarness {
      */
     private static boolean containerScreenReady(Minecraft mc) {
         return mc.player != null && mc.player.hasContainerOpen()
-                && mc.screen instanceof AbstractContainerScreen<?> containerScreen
+                && mc.gui.screen() instanceof AbstractContainerScreen<?> containerScreen
                 && containerScreen.getMenu() == mc.player.containerMenu;
     }
 
@@ -2269,9 +2269,9 @@ public final class ScreenshotHarness {
         if (!awaitReady(mc, screen.fileName(), () -> containerScreenReady(mc))) {
             return;
         }
-        capture(mc, screen.fileName(), mc.screen instanceof AbstractContainerScreen<?> containerScreen ? containerScreen : null);
-        if (mc.screen != null) {
-            mc.screen.onClose(); // Same path Escape takes: closes the menu and notifies the server.
+        capture(mc, screen.fileName(), mc.gui.screen() instanceof AbstractContainerScreen<?> containerScreen ? containerScreen : null);
+        if (mc.gui.screen() != null) {
+            mc.gui.screen().onClose(); // Same path Escape takes: closes the menu and notifies the server.
         }
         screenIndex++;
         advance(Stage.OPEN_SCREEN);
@@ -2327,7 +2327,7 @@ public final class ScreenshotHarness {
         BookScreen screen = scene.bookmark() != null
                 ? new BookScreen(BookContent.sections(mc.level.registryAccess()), scene.bookmark(), null)
                 : new BookScreen(BookContent.sections(mc.level.registryAccess()));
-        mc.setScreen(screen);
+        mc.gui.setScreen(screen);
         if (scene.bookmark() == null && scene.spread() >= 0) {
             screen.openSpread(scene.spread());
         }
@@ -2337,12 +2337,12 @@ public final class ScreenshotHarness {
 
     private static void settleBook(Minecraft mc) {
         BookScene scene = BOOK_SCENES.get(bookSceneIndex);
-        if (!awaitReady(mc, scene.fileName(), () -> mc.screen instanceof BookScreen)) {
+        if (!awaitReady(mc, scene.fileName(), () -> mc.gui.screen() instanceof BookScreen)) {
             return;
         }
         capture(mc, scene.fileName());
-        if (mc.screen != null) {
-            mc.screen.onClose();
+        if (mc.gui.screen() != null) {
+            mc.gui.screen().onClose();
         }
         bookSceneIndex++;
         advance(Stage.OPEN_BOOK);
@@ -2351,44 +2351,17 @@ public final class ScreenshotHarness {
     /**
      * #700: every Ponder scene, opened through Ponder's own UI and captured on its finished frame --
      * the one frame that shows the whole structure, every directional block included, from the
-     * default camera. See {@link PonderHarnessCaptures}.
+     * default camera. See {@code PonderHarnessCaptures}.
      */
     private static void openPonder(Minecraft mc) {
-        if (stageTicks < SCREEN_GAP_TICKS) {
-            return;
-        }
-        if (ponderCaptureIndex >= PonderHarnessCaptures.CAPTURES.size()) {
-            advance(Stage.OPEN_JEI);
-            return;
-        }
-        PonderHarnessCaptures.Capture capture = PonderHarnessCaptures.CAPTURES.get(ponderCaptureIndex);
-        LOGGER.info("{}opening ponder scene {}", LOG_PREFIX, capture.fileName());
-        PonderHarnessCaptures.open(capture);
-        advance(Stage.SETTLE_PONDER);
+        // 26.2: Ponder has no build for this Minecraft (build.gradle's COMPAT_DISABLED), so
+        // PonderHarnessCaptures is out of the compile and this stage captures nothing. Restore the
+        // scene loop from git history (#700) once one ships.
+        advance(Stage.OPEN_JEI);
     }
 
     private static void settlePonder(Minecraft mc) {
-        if (!PonderHarnessCaptures.finished(mc) && stageTicks < PONDER_SCENE_TIMEOUT_TICKS) {
-            return;
-        }
-        PonderHarnessCaptures.Capture capture = PonderHarnessCaptures.CAPTURES.get(ponderCaptureIndex);
-        if (!PonderHarnessCaptures.finished(mc)) {
-            failCheck("{}ponder scene {} never reached its finished frame; capturing it as is", LOG_PREFIX,
-                    capture.fileName());
-        }
-        // Checklist line 4: no empty scene. A schematic that failed to load still "finishes".
-        int blocks = PonderHarnessCaptures.visibleBlockCount(mc);
-        if (blocks == 0) {
-            failCheck("{}ponder scene {} ends with no blocks in it", LOG_PREFIX, capture.fileName());
-        } else {
-            LOGGER.info("{}ponder scene {} ends with {} blocks", LOG_PREFIX, capture.fileName(), blocks);
-        }
-        capture(mc, capture.fileName());
-        if (mc.screen != null) {
-            mc.screen.onClose();
-        }
-        ponderCaptureIndex++;
-        advance(Stage.OPEN_PONDER);
+        advance(Stage.OPEN_JEI);
     }
 
     /**
@@ -2419,7 +2392,7 @@ public final class ScreenshotHarness {
         int count = JeiScreenshotHarness.categoryCount();
         if (jeiCaptureIndex >= count) {
             LOGGER.info("{}all {} screens, {} book scenes, {} ponder scenes and {} {} categories captured, exiting",
-                    LOG_PREFIX, SCREENS.size(), BOOK_SCENES.size(), PonderHarnessCaptures.CAPTURES.size(),
+                    LOG_PREFIX, SCREENS.size(), BOOK_SCENES.size(), 0,
                     count, emi ? "EMI" : "JEI");
             finishHarness(mc);
             advance(Stage.DONE);
@@ -2447,12 +2420,12 @@ public final class ScreenshotHarness {
         // unlike the station menus above -- there is no server round trip to race here, so "some
         // screen is up" is already a strong signal. JEI's own types stay off this class's classpath
         // (see JeiScreenshotHarness's javadoc), which rules out naming its screen class here too.
-        if (!awaitReady(mc, fileName, () -> mc.screen != null)) {
+        if (!awaitReady(mc, fileName, () -> mc.gui.screen() != null)) {
             return;
         }
         capture(mc, fileName);
-        if (mc.screen != null) {
-            mc.screen.onClose();
+        if (mc.gui.screen() != null) {
+            mc.gui.screen().onClose();
         }
         jeiCaptureIndex++;
         advance(Stage.OPEN_JEI);
@@ -2490,7 +2463,7 @@ public final class ScreenshotHarness {
     private static void capture(Minecraft mc, String fileName, @Nullable AbstractContainerScreen<?> panelScreen) {
         // 26.1 reads the framebuffer back asynchronously; finishHarness waits for this to land.
         PENDING_CAPTURES.incrementAndGet();
-        Screenshot.takeScreenshot(mc.getMainRenderTarget(), image -> {
+        Screenshot.takeScreenshot(mc.gameRenderer.mainRenderTarget(), image -> {
         try {
             if (!isExpectedFrameShape(image.getWidth(), image.getHeight())) {
                 failCheck("{}#712 scene check FAILED: {} captured at {}x{}, expected the {}x{} window from build.gradle"

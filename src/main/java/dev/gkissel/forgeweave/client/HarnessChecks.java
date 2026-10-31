@@ -221,7 +221,7 @@ final class HarnessChecks {
 
     /** Whether the reload has finished and its loading overlay is gone. */
     static boolean titleReloadDone(Minecraft mc) {
-        return titleReload != null && titleReload.isDone() && mc.getOverlay() == null;
+        return titleReload != null && titleReload.isDone() && mc.gui.overlay() == null;
     }
 
     static void checkTitleReload(Minecraft mc, Consumer<String> fail) {
@@ -270,8 +270,8 @@ final class HarnessChecks {
             // setScreen(null) leaves it on the creative picker menu, whose container id is the
             // inventory's own 0, so later armor-slot updates from the server land in the picker
             // and the client never sees the armor the #679 scenes put on.
-            if (mc.screen != null) {
-                mc.screen.onClose();
+            if (mc.gui.screen() != null) {
+                mc.gui.screen().onClose();
             }
             return false;
         }
@@ -281,7 +281,7 @@ final class HarnessChecks {
             throw new IllegalStateException(e);
         }
         LOGGER.info("{}showing creative tab {}", LOG_PREFIX, tabs.get(index).getDisplayName().getString());
-        mc.setScreen(new CreativeModeInventoryScreen(mc.player, mc.player.connection.enabledFeatures(),
+        mc.gui.setScreen(new CreativeModeInventoryScreen(mc.player, mc.player.connection.enabledFeatures(),
                 mc.options.operatorItemsTab().get()));
         return true;
     }

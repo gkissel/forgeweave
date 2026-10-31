@@ -242,14 +242,14 @@ public class ToolKindGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack lumberaxe = axe(helper, player, ForgeweaveItems.TOOL_LUMBERAXE.get());
         player.setItemInHand(InteractionHand.MAIN_HAND, lumberaxe);
-        helper.setBlock(exposed, Blocks.EXPOSED_COPPER);
-        helper.setBlock(waxed, Blocks.WAXED_COPPER_BLOCK);
+        helper.setBlock(exposed, Blocks.COPPER_BLOCK.weathering().exposed());
+        helper.setBlock(waxed, Blocks.COPPER_BLOCK.waxed().unaffected());
 
         helper.useBlock(exposed, player);
         helper.useBlock(waxed, player);
 
-        helper.assertBlockPresent(Blocks.COPPER_BLOCK, exposed);
-        helper.assertBlockPresent(Blocks.COPPER_BLOCK, waxed);
+        helper.assertBlockPresent(Blocks.COPPER_BLOCK.weathering().unaffected(), exposed);
+        helper.assertBlockPresent(Blocks.COPPER_BLOCK.weathering().unaffected(), waxed);
         helper.assertTrue(lumberaxe.getDamageValue() == 2,
                 "each transform must cost 1 durability, got " + lumberaxe.getDamageValue());
         helper.succeed();

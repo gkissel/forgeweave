@@ -9,7 +9,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -222,7 +222,7 @@ public class TraitPairingGameTests {
      */
     @GameTest(template = "empty")
     public static void ludicriteMeltdownWithersWhoeverStrikesTheWearer(GameTestHelper helper) {
-        LivingEntity control = helper.spawn(EntityType.COW, 2, 2, 2);
+        LivingEntity control = helper.spawn(EntityTypes.COW, 2, 2, 2);
         Player unprotected = wearing(helper, "arcing");
         for (int i = 0; i < 10; i++) {
             lost(unprotected, helper.getLevel().damageSources().mobAttack(control), BLOW);
@@ -230,7 +230,7 @@ public class TraitPairingGameTests {
         helper.assertTrue(control.getEffect(MobEffects.WITHER) == null,
                 "the tool-side trait must leave an attacker alone");
 
-        LivingEntity attacker = helper.spawn(EntityType.COW, 3, 2, 3);
+        LivingEntity attacker = helper.spawn(EntityTypes.COW, 3, 2, 3);
         Player wearer = wearing(helper, "witherward");
         // P(no proc in 20 blows at 60%) is about 1e-8, the repository's usual bar for a chance roll.
         for (int i = 0; i < 20 && attacker.getEffect(MobEffects.WITHER) == null; i++) {
@@ -293,13 +293,13 @@ public class TraitPairingGameTests {
     public static void cyaniteChillSlowsWhatItStrikes(GameTestHelper helper) {
         Player attacker = helper.makeMockPlayer(GameType.SURVIVAL);
 
-        LivingEntity control = helper.spawn(EntityType.COW, 2, 2, 2);
+        LivingEntity control = helper.spawn(EntityTypes.COW, 2, 2, 2);
         CombatTraitGameTests.onHit(helper, attacker,
                 CombatTraitGameTests.tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(), 3.0F), control);
         helper.assertTrue(control.getEffect(MobEffects.SLOWNESS) == null,
                 "a plain hatchet must leave the target unslowed");
 
-        LivingEntity target = helper.spawn(EntityType.COW, 3, 2, 3);
+        LivingEntity target = helper.spawn(EntityTypes.COW, 3, 2, 3);
         CombatTraitGameTests.onHit(helper, attacker,
                 CombatTraitGameTests.tool(ForgeweaveItems.TOOL_HATCHET.get(), ids("cyanite_chill"), 3.0F), target);
         helper.assertTrue(target.getEffect(MobEffects.SLOWNESS) != null,
@@ -356,7 +356,7 @@ public class TraitPairingGameTests {
 
     /** How far a small blast 1.5 blocks away pushes a zombie wearing a staged chestplate of {@code traits}. */
     private static double blasted(GameTestHelper helper, int x, String... traits) {
-        net.minecraft.world.entity.monster.zombie.Zombie zombie = helper.spawn(EntityType.ZOMBIE, x, 2, 2);
+        net.minecraft.world.entity.monster.zombie.Zombie zombie = helper.spawn(EntityTypes.ZOMBIE, x, 2, 2);
         zombie.setNoAi(true);
         Player builder = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack piece = ToolAssembly.assembleAt(helper, builder, STATION, ForgeweaveBlocks.TOOL_STATION.get(),
@@ -375,7 +375,7 @@ public class TraitPairingGameTests {
     /** How far one vanilla shove moves {@code player} horizontally. */
     private static double shoved(Player player) {
         player.setDeltaMovement(net.minecraft.world.phys.Vec3.ZERO);
-        player.knockback(0.4, 1.0, 0.0);
+        player.knockback(0.4, 1.0, 0.0, player.damageSources().generic(), 0.0F);
         return player.getDeltaMovement().horizontalDistance();
     }
 
@@ -441,14 +441,14 @@ public class TraitPairingGameTests {
      */
     private static void assertTheAttackerComesAwayWith(GameTestHelper helper, String trait,
             net.minecraft.core.Holder<net.minecraft.world.effect.MobEffect> effect, int amplifier) {
-        LivingEntity control = helper.spawn(EntityType.COW, 2, 2, 2);
+        LivingEntity control = helper.spawn(EntityTypes.COW, 2, 2, 2);
         Player plain = wearing(helper);
         for (int i = 0; i < 20; i++) {
             lost(plain, helper.getLevel().damageSources().mobAttack(control), 1.0F);
         }
         helper.assertTrue(control.getEffect(effect) == null, "an untraited piece must leave the attacker alone");
 
-        LivingEntity attacker = helper.spawn(EntityType.COW, 3, 2, 3);
+        LivingEntity attacker = helper.spawn(EntityTypes.COW, 3, 2, 3);
         Player wearer = wearing(helper, trait);
         for (int i = 0; i < 60 && attacker.getEffect(effect) == null; i++) {
             lost(wearer, helper.getLevel().damageSources().mobAttack(attacker), 1.0F);
@@ -462,7 +462,7 @@ public class TraitPairingGameTests {
     /** Checklist line 212: being struck in bloodward grants Regeneration for 6 seconds. */
     @GameTest(template = "empty")
     public static void bloodwardRegeneratesTheWearerForSixSeconds(GameTestHelper helper) {
-        LivingEntity attacker = helper.spawn(EntityType.COW, 2, 2, 2);
+        LivingEntity attacker = helper.spawn(EntityTypes.COW, 2, 2, 2);
         Player plain = wearing(helper);
         lost(plain, helper.getLevel().damageSources().mobAttack(attacker), 1.0F);
         helper.assertTrue(plain.getEffect(MobEffects.REGENERATION) == null, "an untraited piece grants nothing");
