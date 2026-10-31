@@ -1,7 +1,6 @@
 package dev.gkissel.forgeweave.client;
 
-import org.lwjgl.glfw.GLFW;
-
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
@@ -29,7 +28,7 @@ public final class VeinmineKeyMapping {
     public static final KeyMapping.Category CATEGORY =
             new KeyMapping.Category(Identifier.fromNamespaceAndPath("forgeweave", "forgeweave"));
 
-    public static final KeyMapping KEY = new KeyMapping("key.forgeweave.veinmine", GLFW.GLFW_KEY_GRAVE_ACCENT,
+    public static final KeyMapping KEY = new KeyMapping("key.forgeweave.veinmine", InputConstants.KEY_GRAVE,
             CATEGORY);
 
     private static boolean lastSent;

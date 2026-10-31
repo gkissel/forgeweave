@@ -10,8 +10,11 @@
         {
           "type": "minecraft:magma_cube",
           "weight": 150,
-          "minCount": 4,
-          "maxCount": 6
+          "count": {
+            "type": "minecraft:uniform",
+            "min_inclusive": 4,
+            "max_inclusive": 6
+          }
         }
       ]
     }

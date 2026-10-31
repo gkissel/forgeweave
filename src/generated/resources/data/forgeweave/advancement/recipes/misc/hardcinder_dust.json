@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:hardcinder_dust"
+        "recipes": "forgeweave:hardcinder_dust"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -17,7 +17,8 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
 /**
  * The faucet (docs/SCOPE.md M2 issue #100), ported from upstream 1.12's {@code TileFaucet}
@@ -163,14 +164,14 @@ public class FaucetBlockEntity extends BlockEntity {
             return;
         }
         Direction facing = getBlockState().getValue(FaucetBlock.FACING);
-        IFluidHandler source = handlerAt(worldPosition.relative(facing), facing.getOpposite());
-        IFluidHandler target = handlerAt(worldPosition.below(), Direction.UP);
+        ResourceHandler<FluidResource> source = handlerAt(worldPosition.relative(facing), facing.getOpposite());
+        ResourceHandler<FluidResource> target = handlerAt(worldPosition.below(), Direction.UP);
         if (source != null && target != null) {
-            FluidStack available = source.drain(TRANSACTION_AMOUNT, IFluidHandler.FluidAction.SIMULATE);
+            FluidStack available = TransferBridge.drain(source, TRANSACTION_AMOUNT, true);
             if (!available.isEmpty()) {
-                int accepted = target.fill(available, IFluidHandler.FluidAction.SIMULATE);
+                int accepted = TransferBridge.fill(target, available, true);
                 if (accepted > 0) {
-                    buffered = source.drain(accepted, IFluidHandler.FluidAction.EXECUTE);
+                    buffered = TransferBridge.drain(source, accepted, false);
                     pouring = true;
                     pour();
                     scheduleNextStep();
@@ -191,14 +192,14 @@ public class FaucetBlockEntity extends BlockEntity {
 
     /** Upstream's {@code pour}: one step of the buffered fluid into the block below. */
     private void pour() {
-        IFluidHandler target = handlerAt(worldPosition.below(), Direction.UP);
+        ResourceHandler<FluidResource> target = handlerAt(worldPosition.below(), Direction.UP);
         if (target == null) {
             // Upstream: the receiving block vanished, and the buffered fluid goes with it.
             reset();
             return;
         }
         FluidStack step = buffered.copyWithAmount(Math.min(buffered.getAmount(), LIQUID_TRANSFER));
-        int filled = target.fill(step, IFluidHandler.FluidAction.EXECUTE);
+        int filled = TransferBridge.fill(target, step, false);
         if (filled > 0) {
             buffered.shrink(filled);
         }
@@ -224,7 +225,7 @@ public class FaucetBlockEntity extends BlockEntity {
     }
 
     @Nullable
-    private IFluidHandler handlerAt(BlockPos pos, Direction side) {
+    private ResourceHandler<FluidResource> handlerAt(BlockPos pos, Direction side) {
         return level == null || !level.isLoaded(pos)
                 ? null
                 : TransferBridge.fluidAt(level, pos, side);

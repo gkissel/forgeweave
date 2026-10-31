@@ -3,15 +3,17 @@ package dev.gkissel.forgeweave.trait;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 
-import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.transfer.access.ItemAccess;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import net.neoforged.neoforge.transfer.energy.ItemAccessEnergyHandler;
+import net.neoforged.neoforge.transfer.TransferPreconditions;
 import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
 import org.jspecify.annotations.Nullable;
 
 import dev.gkissel.forgeweave.api.trait.Trait;
+import dev.gkissel.forgeweave.block.TransferBridge;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 
 /**
@@ -44,10 +46,10 @@ import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
  * <h2>The item capability (deliverable 1)</h2>
  *
  * <p>{@link #capability} is what {@code ToolItem#registerCapabilities} hands {@code
- * Capabilities.EnergyStorage.ITEM} as its per-stack provider: a completely ordinary {@link
- * IEnergyStorage} view over the stack's own component for a tool that actually carries the trait,
+ * Capabilities.Energy.ITEM} as its per-stack provider: a completely ordinary {@link
+ * EnergyHandler} view over the stack's own component for a tool that actually carries the trait,
  * {@code null} otherwise. It reads and writes {@code stack} directly rather than caching a snapshot,
- * so an external charger's {@code receiveEnergy} call is visible to the very next capability query
+ * so an external charger's {@code insert} is visible to the very next capability query
  * on the same stack.
  */
 public record EnergyBuffer(int capacity, float energyPerDurabilityPoint) implements Trait {
@@ -67,7 +69,7 @@ public record EnergyBuffer(int capacity, float energyPerDurabilityPoint) impleme
 
     /**
      * Adds up to {@code toReceive} FE, clamped so the buffer never exceeds {@code capacity} --
-     * {@link IEnergyStorage#receiveEnergy}'s own "amount accepted" contract, shared by the item
+     * {@link EnergyHandler#insert}'s own "amount accepted" contract, shared by the item
      * capability, {@link SolarRecharge} and {@link KineticCharge} so all three fill the same way.
      */
     public static int receive(ItemStack stack, int capacity, int toReceive, boolean simulate) {
@@ -85,7 +87,7 @@ public record EnergyBuffer(int capacity, float energyPerDurabilityPoint) impleme
         return accepted;
     }
 
-    /** Removes up to {@code toExtract} FE -- {@link IEnergyStorage#extractEnergy}'s contract. */
+    /** Removes up to {@code toExtract} FE -- {@link EnergyHandler#extract}'s contract. */
     public static int extract(ItemStack stack, int toExtract, boolean simulate) {
         if (toExtract <= 0) {
             return 0;
@@ -120,41 +122,45 @@ public record EnergyBuffer(int capacity, float energyPerDurabilityPoint) impleme
         };
     }
 
-    /** See the class javadoc: {@code null} for a tool whose traits sum to zero energy capacity. */
-    public static IEnergyStorage capability(ItemStack stack) {
+    /**
+     * See the class javadoc: {@code null} for a tool whose traits sum to zero energy capacity. Reads and
+     * writes {@code stack} itself, where {@link #capability(ItemStack, ItemAccess)} writes through an access.
+     */
+    public static @Nullable EnergyHandler capability(ItemStack stack) {
         int capacity = ForgeweaveTraits.energyCapacity(stack);
         if (capacity <= 0) {
             return null;
         }
-        return new IEnergyStorage() {
+        TransferBridge.State<Integer> journal = TransferBridge.State.of(() -> stored(stack), amount -> setStored(stack, amount));
+        return new EnergyHandler() {
             @Override
-            public int receiveEnergy(int toReceive, boolean simulate) {
-                return EnergyBuffer.receive(stack, capacity, toReceive, simulate);
+            public long getAmountAsLong() {
+                return stored(stack);
             }
 
             @Override
-            public int extractEnergy(int toExtract, boolean simulate) {
-                return EnergyBuffer.extract(stack, toExtract, simulate);
-            }
-
-            @Override
-            public int getEnergyStored() {
-                return EnergyBuffer.stored(stack);
-            }
-
-            @Override
-            public int getMaxEnergyStored() {
+            public long getCapacityAsLong() {
                 return capacity;
             }
 
             @Override
-            public boolean canExtract() {
-                return true;
+            public int insert(int amount, TransactionContext transaction) {
+                TransferPreconditions.checkNonNegative(amount);
+                if (receive(stack, capacity, amount, true) <= 0) {
+                    return 0;
+                }
+                journal.updateSnapshots(transaction);
+                return receive(stack, capacity, amount, false);
             }
 
             @Override
-            public boolean canReceive() {
-                return true;
+            public int extract(int amount, TransactionContext transaction) {
+                TransferPreconditions.checkNonNegative(amount);
+                if (EnergyBuffer.extract(stack, amount, true) <= 0) {
+                    return 0;
+                }
+                journal.updateSnapshots(transaction);
+                return EnergyBuffer.extract(stack, amount, false);
             }
         };
     }

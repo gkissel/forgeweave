@@ -142,7 +142,7 @@ public class WindBurstGameTests {
     @GameTest(template = "empty")
     public static void smashWithWindBurstLaunchesTheAttackerUpward(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 1, 1);
-        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        ServerPlayer player = GameTestCompat.inAir(helper.makeMockServerPlayerInLevel());
         ItemStack warmace = warmace(helper, player, pos);
         warmace = applyReagent(helper, player, pos, warmace, new ItemStack(Items.BREEZE_ROD, 1));
         player.setItemInHand(InteractionHand.MAIN_HAND, warmace);

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:blue_slime_crystal"
+        "recipes": "forgeweave:blue_slime_crystal"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

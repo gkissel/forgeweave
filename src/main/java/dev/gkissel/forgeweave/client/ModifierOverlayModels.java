@@ -246,7 +246,7 @@ public final class ModifierOverlayModels {
         List<BakedQuad> nocked = new ArrayList<>();
         for (ItemStackRenderState.LayerRenderState layer : capture.layers) {
             int[] tints = layer.tintLayers().toIntArray();
-            nocked.addAll(nockedQuads(layer.prepareQuadList(), position,
+            nocked.addAll(nockedQuads(layer.quads.all(), position,
                     index -> index < tints.length ? ARGB.opaque(tints[index]) : -1));
         }
         return nocked;
@@ -278,7 +278,8 @@ public final class ModifierOverlayModels {
                     : placed.bakedColors();
             baked.add(new BakedQuad(placed.position0(), placed.position1(), placed.position2(), placed.position3(),
                     placed.packedUV0(), placed.packedUV1(), placed.packedUV2(), placed.packedUV3(), placed.direction(),
-                    new BakedQuad.MaterialInfo(info.sprite(), info.layer(), info.itemRenderType(), -1, info.shade(),
+                    new BakedQuad.MaterialInfo(info.sprite(), info.layer(), info.itemRenderType(), info.itemGlintRenderType(),
+                            info.itemGlintSpecialRenderType(), -1, info.shadeDirectionOverride(),
                             info.lightEmission(), info.ambientOcclusion()),
                     placed.bakedNormals(), colors));
         }

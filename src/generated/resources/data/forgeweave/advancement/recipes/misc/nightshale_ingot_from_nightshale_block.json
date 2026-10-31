@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:nightshale_ingot_from_nightshale_block"
+        "recipes": "forgeweave:nightshale_ingot_from_nightshale_block"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

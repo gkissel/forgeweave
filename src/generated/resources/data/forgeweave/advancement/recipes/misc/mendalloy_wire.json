@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:mendalloy_wire"
+        "recipes": "forgeweave:mendalloy_wire"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

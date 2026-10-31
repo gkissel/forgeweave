@@ -5,8 +5,6 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
-import com.mojang.serialization.MapCodec;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -38,8 +36,6 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
  */
 public class ConnectedGlassBlock extends Block {
 
-    public static final MapCodec<ConnectedGlassBlock> CODEC = simpleCodec(ConnectedGlassBlock::new);
-
     public static final BooleanProperty CONNECTED_DOWN = BooleanProperty.create("connected_down");
     public static final BooleanProperty CONNECTED_UP = BooleanProperty.create("connected_up");
     public static final BooleanProperty CONNECTED_NORTH = BooleanProperty.create("connected_north");
@@ -63,11 +59,6 @@ public class ConnectedGlassBlock extends Block {
             state = state.setValue(side, false);
         }
         registerDefaultState(state);
-    }
-
-    @Override
-    protected MapCodec<? extends ConnectedGlassBlock> codec() {
-        return CODEC;
     }
 
     @Override

@@ -109,8 +109,8 @@ public class MagmaSlimeIslandGameTests {
         MobSpawnSettings.SpawnerData magma = spawns.getFirst().value();
         helper.assertTrue(magma.type() == EntityTypes.MAGMA_CUBE, "a magma island must only spawn magma cubes");
         helper.assertValueEqual(spawns.getFirst().weight(), 150, "magma cube spawn weight");
-        helper.assertValueEqual(magma.minCount(), 4, "magma cube minimum pack size");
-        helper.assertValueEqual(magma.maxCount(), 6, "magma cube maximum pack size");
+        helper.assertValueEqual(magma.count().minInclusive(), 4, "magma cube minimum pack size");
+        helper.assertValueEqual(magma.count().maxInclusive(), 6, "magma cube maximum pack size");
 
         helper.succeed();
     }

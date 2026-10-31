@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.gametest;
 
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
@@ -36,7 +38,7 @@ import dev.gkissel.forgeweave.menu.PartBuilderMenu;
 /**
  * Covers docs/SCOPE.md M1 issue #66's verification: each chest's slots only accept the item type
  * they're named for (upstream {@code isItemValidForSlot}, NOTICE.md), and an adjacent station's
- * side-inventory panel picks up a chest through the {@code IItemHandler} capability {@link
+ * side-inventory panel picks up a chest through the {@code ResourceHandler<ItemResource>} capability {@link
  * ChestBlockEntity#registerCapabilities} exposes, the same way it already does for a vanilla chest
  * ({@code CraftingStationGameTests#adjacentChestInventoryIsExposedThroughTheMenu}).
  *
@@ -491,10 +493,10 @@ public class ChestGameTests {
         ItemStack stack = theOneDroppedChest(helper, dropped, 1);
         ItemContainerContents contents = stack.get(DataComponents.CONTAINER);
         helper.assertTrue(contents != null, "expected the dropped chest to carry its contents");
-        helper.assertTrue(contents.getStackInSlot(0).is(ForgeweaveItems.PART_PICKAXE_HEAD.get()),
+        helper.assertTrue(slot(contents, 0).is(ForgeweaveItems.PART_PICKAXE_HEAD.get()),
                 "expected slot 0's pickaxe head to ride along on the item");
-        helper.assertValueEqual(contents.getStackInSlot(53).getCount(), 7, "the shard stack's size");
-        helper.assertTrue(contents.getStackInSlot(60).is(ForgeweaveItems.PART_TOUGH_TOOL_ROD.get()),
+        helper.assertValueEqual(slot(contents, 53).getCount(), 7, "the shard stack's size");
+        helper.assertTrue(slot(contents, 60).is(ForgeweaveItems.PART_TOUGH_TOOL_ROD.get()),
                 "expected the far tool rod to ride along at its own slot");
 
         helper.succeed();
@@ -570,7 +572,7 @@ public class ChestGameTests {
         ItemStack stack = theOneDroppedChest(helper, dropped, 1);
         ItemContainerContents contents = stack.get(DataComponents.CONTAINER);
         helper.assertTrue(contents != null, "expected the creative break to hand back a packed chest");
-        helper.assertTrue(contents.getStackInSlot(0).is(ForgeweaveItems.PART_PICKAXE_HEAD.get()),
+        helper.assertTrue(slot(contents, 0).is(ForgeweaveItems.PART_PICKAXE_HEAD.get()),
                 "expected the packed chest to carry slot 0's pickaxe head");
 
         helper.succeed();
@@ -626,5 +628,10 @@ public class ChestGameTests {
         }
 
         helper.succeed();
+    }
+
+    /** Slot {@code index} of a container component, which 26.3 no longer reads by index itself. */
+    private static ItemStack slot(ItemContainerContents contents, int index) {
+        return contents.itemCopies().skip(index).findFirst().orElse(ItemStack.EMPTY);
     }
 }

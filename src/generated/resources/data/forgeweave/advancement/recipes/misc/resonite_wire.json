@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:resonite_wire"
+        "recipes": "forgeweave:resonite_wire"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

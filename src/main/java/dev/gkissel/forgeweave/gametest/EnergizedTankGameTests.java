@@ -14,7 +14,6 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
@@ -378,7 +377,7 @@ public class EnergizedTankGameTests {
         helper.setBlock(pos, ForgeweaveBlocks.ENERGIZED_TANK.get());
         EnergizedTankBlockEntity tank = tank(helper, pos);
         tank.sample().fill(new FluidStack(sample, EnergizedTankBlockEntity.SAMPLE_CAPACITY),
-                IFluidHandler.FluidAction.EXECUTE);
+                false);
         tank.buffer().receiveEnergy(energy, false);
     }
 

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:voidweld_gear"
+        "recipes": "forgeweave:voidweld_gear"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

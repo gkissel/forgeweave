@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:daybrass_wire"
+        "recipes": "forgeweave:daybrass_wire"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

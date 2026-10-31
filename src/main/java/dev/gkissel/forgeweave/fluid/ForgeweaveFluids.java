@@ -602,7 +602,7 @@ public final class ForgeweaveFluids {
                 .strength(100f)
                 .noLootTable()
                 .liquid()
-                .pushReaction(PushReaction.DESTROY)
+                .pushReaction(PushReaction.POPPED)
                 .lightLevel(state -> lightLevel));
 
         MoltenMetal fluid = new MoltenMetal(name, type, stillRef[0], flowingRef[0], blockRef[0], bucket,

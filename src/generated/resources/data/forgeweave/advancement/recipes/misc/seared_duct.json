@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:seared_duct"
+        "recipes": "forgeweave:seared_duct"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

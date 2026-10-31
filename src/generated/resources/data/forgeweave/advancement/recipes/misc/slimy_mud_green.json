@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:slimy_mud_green"
+        "recipes": "forgeweave:slimy_mud_green"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

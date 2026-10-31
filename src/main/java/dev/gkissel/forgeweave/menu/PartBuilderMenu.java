@@ -18,7 +18,8 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.PartBuilderBlockEntity;
@@ -40,7 +41,7 @@ import dev.gkissel.forgeweave.block.PartBuilderBlockEntity;
  * completing the craft.
  *
  * <p>When the station has a qualifying neighbor ({@code PartBuilderBlockEntity#findSideInventory},
- * issue #40's follow-up), its {@link IItemHandler} is exposed as extra slots after the change slot
+ * issue #40's follow-up), its {@link ResourceHandler} is exposed as extra slots after the change slot
  * via {@link SideInventorySlots#create} -- same shape as {@link CraftingStationMenu}'s own side
  * panel; see that class's javadoc for the client/server slot-count handshake.
  */
@@ -68,7 +69,7 @@ public class PartBuilderMenu extends StationMenu {
     private final ContainerLevelAccess access;
     private final HolderLookup.Provider registries;
     @Nullable
-    private final IItemHandler sideInventory;
+    private final ResourceHandler<ItemResource> sideInventory;
     /**
      * How many of {@link #sideSlots} are actually backed by the neighbor right now (issue #756):
      * {@link #sideSlots} is pre-built up to {@link dev.gkissel.forgeweave.block.SideInventory#maxSlots}'s
@@ -100,9 +101,9 @@ public class PartBuilderMenu extends StationMenu {
 
     /** Server-side: constructed by {@code PartBuilderBlockEntity} with the block's real inventory and detected neighbor. */
     public PartBuilderMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access,
-            @Nullable IItemHandler sideInventory) {
+            @Nullable ResourceHandler<ItemResource> sideInventory) {
         this(containerId, playerInventory, container, access, sideInventory,
-                sideInventory == null ? 0 : sideInventory.getSlots(), groupAt(access),
+                sideInventory == null ? 0 : sideInventory.size(), groupAt(access),
                 access.evaluate((level, pos) -> level.getBlockEntity(pos) instanceof PartBuilderBlockEntity partBuilder
                         && partBuilder.isPartCrafter()).orElse(false));
     }
@@ -115,14 +116,14 @@ public class PartBuilderMenu extends StationMenu {
      * every existing GameTest that doesn't care about a growing neighbor.
      */
     public PartBuilderMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access,
-            @Nullable IItemHandler sideInventory, int maxSideInventorySlots) {
+            @Nullable ResourceHandler<ItemResource> sideInventory, int maxSideInventorySlots) {
         this(containerId, playerInventory, container, access, sideInventory, maxSideInventorySlots, groupAt(access),
                 access.evaluate((level, pos) -> level.getBlockEntity(pos) instanceof PartBuilderBlockEntity partBuilder
                         && partBuilder.isPartCrafter()).orElse(false));
     }
 
     private PartBuilderMenu(int containerId, Inventory playerInventory, Container container, ContainerLevelAccess access,
-            @Nullable IItemHandler sideInventory, int sideInventorySlotCount, StationGroup stationGroup,
+            @Nullable ResourceHandler<ItemResource> sideInventory, int sideInventorySlotCount, StationGroup stationGroup,
             boolean partCrafter) {
         super(ForgeweaveMenus.PART_BUILDER.get(), containerId, stationGroup);
         this.partCrafter = partCrafter;
@@ -167,7 +168,7 @@ public class PartBuilderMenu extends StationMenu {
                 !partCrafter);
         this.sideSlots.forEach(this::addSlot);
         addDataSlot(sideInventoryLiveSlots);
-        sideInventoryLiveSlots.set(sideInventory == null ? 0 : sideInventory.getSlots());
+        sideInventoryLiveSlots.set(sideInventory == null ? 0 : sideInventory.size());
         layoutPlayerInventorySlots(playerInventory);
     }
 
@@ -191,7 +192,7 @@ public class PartBuilderMenu extends StationMenu {
     public void broadcastChanges() {
         updateResult();
         if (sideInventory != null) {
-            sideInventoryLiveSlots.set(sideInventory.getSlots());
+            sideInventoryLiveSlots.set(sideInventory.size());
         }
         super.broadcastChanges();
     }

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:queens_slime_gear"
+        "recipes": "forgeweave:queens_slime_gear"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

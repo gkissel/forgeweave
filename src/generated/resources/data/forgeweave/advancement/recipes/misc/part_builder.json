@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:part_builder"
+        "recipes": "forgeweave:part_builder"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

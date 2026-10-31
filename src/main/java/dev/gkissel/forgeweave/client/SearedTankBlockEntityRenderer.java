@@ -19,7 +19,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jspecify.annotations.Nullable;
 
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import dev.gkissel.forgeweave.block.FluidTank;
 
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:voidglass_dust"
+        "recipes": "forgeweave:voidglass_dust"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

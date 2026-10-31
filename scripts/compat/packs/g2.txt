@@ -1,16 +1,20 @@
 # Group 2 (lines 14-109): Forgeweave, JEI and spark. The spark pass covers line 20 (idle server cost).
 # JEI 26.1.2 lists mezz_config as required; the JEI jar carries it as a jar-in-jar, so it needs no line.
 
-mod modrinth jei 30.48.0.244 eb9c66808518b5f78e624dfd38c8a541daa19948f0269e42c3d9e6c24f72a8f401124572c1f6be8c711c491301df7a441c7d9db12da1943b8717971e73ede5a9 jei-26.2-neoforge-30.48.0.244.jar
+mod modrinth jei 31.17.0.100 bdedfbdd72840e8fadd67d400aa4d6a91960ded85c0acf7ec4d482edbb4c5618b0ec08a0d068fb5e38aa9a32769cae479f4c333717b1049408786f325887051c jei-26.3-neoforge-31.17.0.100.jar
 mod modrinth spark 1.10.187-neoforge 130c6f529346cd275460070491a47d76c0e61b30f1d02530e97aae7fce3eccba2b82b4e3bef5abe5febff62daf53066a235d843a94e81fed2ecf1def5946349a spark-1.10.187-neoforge.jar
 # 1.21.1:
 # mod modrinth jei 19.43.0.393 04ea7c24a00b980851a34b71899c44731df5b830feafe4172641ae5f42432aabd34ba2ea57fa8f0577823bed0212c4214d409a8ea2060038deed0e8e7e237e81 jei-1.21.1-neoforge-19.43.0.393.jar
 # mod modrinth spark 1.10.124-neoforge-1.21.1 f86ce34f2759c69df82578c397ff55b666c84626229a98f598458b960c21b38c95d6bfef4772af7f963c4f4868e5e2d9aef6b99c1d51bab55bf45e0e6e6b5ed4 spark-1.10.124-neoforge.jar
 
 spark
-recipes 2221
+recipes 2678
 materials 80
 
 # 26.1.2:
 # mod modrinth jei 29.47.0.110 487461d71820e3b31086d8b334b38b6ad6895c49d85e554b4083b60e0c2b185ed09a345b9aa9a96c0dd240be8cb6d890e08724a954ac9e6a69875a928ecbe27c jei-26.1.2-neoforge-29.47.0.110.jar
+# mod modrinth spark 1.10.187-neoforge 130c6f529346cd275460070491a47d76c0e61b30f1d02530e97aae7fce3eccba2b82b4e3bef5abe5febff62daf53066a235d843a94e81fed2ecf1def5946349a spark-1.10.187-neoforge.jar
+
+# 26.2:
+# mod modrinth jei 30.48.0.244 eb9c66808518b5f78e624dfd38c8a541daa19948f0269e42c3d9e6c24f72a8f401124572c1f6be8c711c491301df7a441c7d9db12da1943b8717971e73ede5a9 jei-26.2-neoforge-30.48.0.244.jar
 # mod modrinth spark 1.10.187-neoforge 130c6f529346cd275460070491a47d76c0e61b30f1d02530e97aae7fce3eccba2b82b4e3bef5abe5febff62daf53066a235d843a94e81fed2ecf1def5946349a spark-1.10.187-neoforge.jar

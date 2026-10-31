@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 import com.mojang.serialization.DynamicOps;
 
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.Registry;
@@ -24,7 +25,6 @@ import net.minecraft.server.packs.resources.MultiPackResourceManager;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.tags.TagKey;
 import net.minecraft.tags.TagLoader;
-import net.neoforged.neoforge.registries.DataPackRegistriesHooks;
 
 /**
  * {@link RegistryOps} for plain JUnit, where no datapack is loaded and so no tag exists.
@@ -49,9 +49,15 @@ public final class TestRegistries {
     /** Ops over {@code provider}'s registries, lenient on missing tags the same way. */
     public static <T> RegistryOps<T> ops(DynamicOps<T> ops, HolderLookup.Provider provider) {
         return RegistryOps.create(ops, new RegistryOps.RegistryInfoLookup() {
+            // 26.3 dropped RegistryInfo: the lookup is the lenient getter, the full lookup the same view.
             @Override
-            public <E> Optional<RegistryOps.RegistryInfo<E>> lookup(ResourceKey<? extends Registry<? extends E>> key) {
-                return provider.lookup(key).map(TestRegistries::lenient);
+            public <E> Optional<HolderGetter<E>> lookup(ResourceKey<? extends Registry<? extends E>> key) {
+                return provider.<E>lookup(key).map(TestRegistries::lenientLookup);
+            }
+
+            @Override
+            public <E> Optional<HolderLookup<E>> fullLookup(ResourceKey<? extends Registry<? extends E>> key) {
+                return provider.<E>lookup(key).map(TestRegistries::lenientLookup);
             }
         });
     }
@@ -74,7 +80,7 @@ public final class TestRegistries {
             List<Registry.PendingTags<?>> staticTags = TagLoader.loadTagsForExistingRegistries(data, builtins);
             List<HolderLookup.RegistryLookup<?>> context = TagLoader.buildUpdatedLookups(builtins, staticTags);
             RegistryAccess.Frozen loaded = RegistryDataLoader.load(data, context,
-                    DataPackRegistriesHooks.getDataPackRegistries(), Runnable::run, staticTags).join();
+                    RegistryDataLoader.WORLD_REGISTRIES, Runnable::run, staticTags).join();
             vanilla = HolderLookup.Provider.create(Stream.concat(builtins.listRegistries(), loaded.listRegistries()));
         }
         return vanilla;
@@ -124,11 +130,6 @@ public final class TestRegistries {
                 return bound.isPresent() ? bound : bindEmpty(lookup, id);
             }
         };
-    }
-
-    private static <E> RegistryOps.RegistryInfo<E> lenient(HolderLookup.RegistryLookup<E> lookup) {
-        // The owner stays the registry itself, so a holder or tag it hands out serializes back.
-        return new RegistryOps.RegistryInfo<>(lookup, lenientLookup(lookup), lookup.registryLifecycle());
     }
 
     /** Adds {@code tag}, empty, to {@code lookup}'s registry, keeping every tag it already has as it is. */

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:moss"
+        "recipes": "forgeweave:moss"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

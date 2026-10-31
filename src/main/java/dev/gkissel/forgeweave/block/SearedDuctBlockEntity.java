@@ -5,6 +5,7 @@ import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.ItemStackWithSlot;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.Containers;
 import javax.annotation.Nullable;
@@ -29,11 +30,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 import net.minecraft.world.item.ItemStackTemplate;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.common.util.ValueIOSerializable;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.menu.SearedDuctMenu;
@@ -68,14 +67,13 @@ public class SearedDuctBlockEntity extends SmelteryIoBlockEntity implements Menu
 
     private final FilterSlot filter = new FilterSlot();
     private final FilteredTank filteredTank = new FilteredTank();
-    private final ResourceHandler<ItemResource> filterCapability = TransferBridge.items(filter);
 
     public SearedDuctBlockEntity(BlockPos pos, BlockState state) {
         super(ForgeweaveBlockEntities.SEARED_DUCT.get(), pos, state);
     }
 
     /** The one-slot filter inventory, exposed to hoppers and to {@link SearedDuctMenu}. */
-    public IItemHandler filterSlot() {
+    public TransferBridge.ItemStore filterSlot() {
         return filter;
     }
 
@@ -89,7 +87,7 @@ public class SearedDuctBlockEntity extends SmelteryIoBlockEntity implements Menu
      * formed structure (same as a drain).
      */
     @Nullable
-    public IFluidHandler fluidHandler() {
+    public TransferBridge.FluidStore fluidHandler() {
         return formedCore() == null ? null : filteredTank;
     }
 
@@ -121,31 +119,58 @@ public class SearedDuctBlockEntity extends SmelteryIoBlockEntity implements Menu
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, ForgeweaveBlockEntities.SEARED_DUCT.get(),
                 (blockEntity, side) -> blockEntity.fluidCapability());
         event.registerBlockEntity(Capabilities.Item.BLOCK, ForgeweaveBlockEntities.SEARED_DUCT.get(),
-                (blockEntity, side) -> blockEntity.filterCapability);
+                (blockEntity, side) -> blockEntity.filter);
     }
 
-    /** {@link #fluidHandler()} as the 21.9 transfer API sees it, journalled on the smeltery's own tank. */
+    /** {@link #fluidHandler()} as the transfer API sees it, journalled on the smeltery's own tank. */
     @Nullable
     public ResourceHandler<FluidResource> fluidCapability() {
-        SmelteryControllerBlockEntity core = formedCore();
-        return core == null ? null : TransferBridge.fluids(filteredTank, core.tank().transferState());
+        return fluidHandler();
     }
 
-    /** {@link #filterSlot()} as the 21.9 transfer API sees it; what the item capability hands out. */
+    /** {@link #filterSlot()} as the transfer API sees it; what the item capability hands out. */
     public ResourceHandler<ItemResource> filterCapability() {
-        return filterCapability;
+        return filter;
     }
 
     /**
      * The filter slot, upstream's {@code DuctItemHandler}: one item, only a filled fluid container,
      * with the container's fluid cached until the slot changes.
      */
-    private final class FilterSlot extends ItemStackHandler {
+    private final class FilterSlot extends TransferBridge.ItemStore implements ValueIOSerializable {
+        /** NeoForge's removed {@code ItemStackHandler} saved its slots under these two keys; so does this. */
+        private static final String TAG_ITEMS = "Items";
+        private static final String TAG_SIZE = "Size";
+
+        private ItemStack stack = ItemStack.EMPTY;
         @Nullable
         private FluidStack cached;
+        private final TransferBridge.State<ItemStack> state = TransferBridge.State.of(() -> stack.copy(), this::setStackInSlot0);
 
-        private FilterSlot() {
-            super(1);
+        @Override
+        protected TransferBridge.State<?> state() {
+            return state;
+        }
+
+        @Override
+        public int getSlots() {
+            return 1;
+        }
+
+        @Override
+        public ItemStack getStackInSlot(int slot) {
+            return stack;
+        }
+
+        @Override
+        public boolean setStackInSlot(int slot, ItemStack stack) {
+            setStackInSlot0(stack);
+            return true;
+        }
+
+        private void setStackInSlot0(ItemStack stack) {
+            this.stack = stack;
+            onContentsChanged();
         }
 
         @Override
@@ -170,8 +195,61 @@ public class SearedDuctBlockEntity extends SmelteryIoBlockEntity implements Menu
             return !FluidUtil.getFirstStackContained(stack).isEmpty();
         }
 
+        /** {@code ItemStackHandler#insertItem}'s rules, for its one slot. */
         @Override
-        protected void onContentsChanged(int slot) {
+        public ItemStack insertItem(int slot, ItemStack offered, boolean simulate) {
+            if (offered.isEmpty()) {
+                return ItemStack.EMPTY;
+            }
+            if (!isItemValid(slot, offered)) {
+                return offered;
+            }
+            int limit = Math.min(getSlotLimit(slot), offered.getMaxStackSize());
+            if (!stack.isEmpty()) {
+                if (!ItemStack.isSameItemSameComponents(offered, stack)) {
+                    return offered;
+                }
+                limit -= stack.getCount();
+            }
+            if (limit <= 0) {
+                return offered;
+            }
+            boolean reachedLimit = offered.getCount() > limit;
+            if (!simulate) {
+                if (stack.isEmpty()) {
+                    stack = reachedLimit ? offered.copyWithCount(limit) : offered;
+                } else {
+                    stack.grow(reachedLimit ? limit : offered.getCount());
+                }
+                onContentsChanged();
+            }
+            return reachedLimit ? offered.copyWithCount(offered.getCount() - limit) : ItemStack.EMPTY;
+        }
+
+        /** {@code ItemStackHandler#extractItem}'s rules, for its one slot. */
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+            if (amount == 0 || stack.isEmpty()) {
+                return ItemStack.EMPTY;
+            }
+            int toExtract = Math.min(amount, stack.getMaxStackSize());
+            if (stack.getCount() <= toExtract) {
+                ItemStack existing = stack;
+                if (simulate) {
+                    return existing.copy();
+                }
+                stack = ItemStack.EMPTY;
+                onContentsChanged();
+                return existing;
+            }
+            if (!simulate) {
+                stack = stack.copyWithCount(stack.getCount() - toExtract);
+                onContentsChanged();
+            }
+            return stack.copyWithCount(toExtract);
+        }
+
+        private void onContentsChanged() {
             cached = null;
             setChanged();
             if (level != null) {
@@ -179,6 +257,26 @@ public class SearedDuctBlockEntity extends SmelteryIoBlockEntity implements Menu
                 // may be holding a BlockCapabilityCache over the old answer.
                 level.invalidateCapabilities(worldPosition);
             }
+        }
+
+        @Override
+        public void serialize(ValueOutput output) {
+            ValueOutput.TypedOutputList<ItemStackWithSlot> items = output.list(TAG_ITEMS, ItemStackWithSlot.CODEC);
+            if (!stack.isEmpty()) {
+                items.add(new ItemStackWithSlot(0, stack));
+            }
+            output.putInt(TAG_SIZE, 1);
+        }
+
+        @Override
+        public void deserialize(ValueInput input) {
+            stack = ItemStack.EMPTY;
+            input.listOrEmpty(TAG_ITEMS, ItemStackWithSlot.CODEC).forEach(saved -> {
+                if (saved.isValidInContainer(1)) {
+                    stack = saved.stack();
+                }
+            });
+            cached = null;
         }
 
         FluidStack fluid() {
@@ -199,7 +297,15 @@ public class SearedDuctBlockEntity extends SmelteryIoBlockEntity implements Menu
      * usefully report, and the fill/drain gating (which is what "only the filtered fluid passes"
      * means) is upstream's verbatim. Re-index here if something ever wants to enumerate a duct.
      */
-    private final class FilteredTank implements IFluidHandler {
+    private final class FilteredTank extends TransferBridge.FluidStore {
+        /** The smeltery tank's own journal: a filtered fill or drain changes nothing else. */
+        @Nullable
+        @Override
+        protected TransferBridge.State<?> state() {
+            SmelteryTank smeltery = tank();
+            return smeltery == null ? null : smeltery.transferState();
+        }
+
         @Nullable
         private SmelteryTank tank() {
             SmelteryControllerBlockEntity core = formedCore();
@@ -238,30 +344,30 @@ public class SearedDuctBlockEntity extends SmelteryIoBlockEntity implements Menu
         }
 
         @Override
-        public int fill(FluidStack resource, FluidAction action) {
+        public int fill(FluidStack resource, boolean simulate) {
             SmelteryTank smeltery = tank();
             if (smeltery == null || resource.isEmpty() || !isFluidValid(0, resource)) {
                 return 0;
             }
-            return smeltery.fill(resource, action);
+            return smeltery.fill(resource, simulate);
         }
 
         @Override
-        public FluidStack drain(int maxDrain, FluidAction action) {
+        public FluidStack drain(int maxDrain, boolean simulate) {
             FluidStack wanted = filterFluid();
             if (wanted.isEmpty()) {
                 return FluidStack.EMPTY;
             }
-            return drain(wanted.copyWithAmount(maxDrain), action);
+            return drain(wanted.copyWithAmount(maxDrain), simulate);
         }
 
         @Override
-        public FluidStack drain(FluidStack resource, FluidAction action) {
+        public FluidStack drain(FluidStack resource, boolean simulate) {
             SmelteryTank smeltery = tank();
             if (smeltery == null || resource.isEmpty() || !isFluidValid(0, resource)) {
                 return FluidStack.EMPTY;
             }
-            return smeltery.drain(resource, action);
+            return smeltery.drain(resource, simulate);
         }
     }
 

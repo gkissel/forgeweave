@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Set;
 
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionResult;
@@ -12,15 +11,16 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemInstance;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.BlockTransformers;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
-import net.neoforged.neoforge.common.ItemAbilities;
 import net.neoforged.neoforge.common.ItemAbility;
 
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.tool.AoeHarvest;
+import dev.gkissel.forgeweave.tool.BlockTransforms;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 import dev.gkissel.forgeweave.tool.ToolLeveling;
 
@@ -33,8 +33,8 @@ import dev.gkissel.forgeweave.tool.ToolLeveling;
  * touch it, then Forgeweave's own {@code ToolHelper.damageTool}-equivalent applies once).
  *
  * <p>Modern NeoForge exposes the same "can this block be tool-modified" question upstream's own
- * {@code TILLABLES} map answered as {@link BlockState#getToolModifiedState}, driven by {@link
- * ItemAbilities#HOE_TILL} -- {@code HoeItem#useOn} (NOTICE.md) is the vanilla caller this mirrors, so
+ * {@code TILLABLES} map answered as vanilla's hoe block transformer ({@link BlockTransforms}; once
+ * {@code BlockState#getToolModifiedState} with {@link #HOE_TILL}) -- {@code HoeItem#useOn} (NOTICE.md) is the vanilla caller this mirrors, so
  * tilling stays consistent with every other hoe (including mod-added tillable blocks) instead of
  * re-deriving upstream's block-to-block table.
  */
@@ -53,13 +53,13 @@ public class MattockItem extends ToolItem {
             return InteractionResult.PASS;
         }
         Level level = context.getLevel();
-        BlockState tilled = level.getBlockState(context.getClickedPos())
-                .getToolModifiedState(context, ItemAbilities.HOE_TILL, false);
-        if (tilled == null) {
+        BlockTransforms.Match till = BlockTransforms.match(context, BlockTransformers.HOE);
+        if (till == null) {
             return InteractionResult.PASS;
         }
+        BlockState tilled = till.state();
         Player player = context.getPlayer();
-        level.playSound(player, context.getClickedPos(), SoundEvents.HOE_TILL, SoundSource.BLOCKS, 1.0F, 1.0F);
+        level.playSound(player, context.getClickedPos(), till.data().sound().value(), SoundSource.BLOCKS, 1.0F, 1.0F);
         if (!level.isClientSide()) {
             level.setBlock(context.getClickedPos(), tilled, 11);
             if (player != null) {
@@ -81,14 +81,14 @@ public class MattockItem extends ToolItem {
      * on both branches: 1.12's {@code Mattock#getHarvestLevel} answers "axe" and "shovel" and its
      * {@code onItemUse} hoes, and 1.20 spells the same tool {@code ToolActionsModule.of(AXE_DIG,
      * SHOVEL_DIG)} plus the {@code tilling} trait. Notably absent is {@link
-     * ItemAbilities#SHOVEL_FLATTEN}: digging as a shovel is not pathing as one, and no upstream
+     * #SHOVEL_FLATTEN}: digging as a shovel is not pathing as one, and no upstream
      * mattock has ever made a grass path. Absent for the same reason -- and the same upstream
      * evidence, 1.20's mattock definition carrying {@code tilling} and no other interaction trait --
-     * is {@link ItemAbilities#AXE_STRIP} and the two abilities that travel with it (issue #575):
+     * is {@link #AXE_STRIP} and the two abilities that travel with it (issue #575):
      * digging as an axe is not stripping as one.
      *
-     * <p>{@link #useOn} above depends on this method -- {@code BlockState#getToolModifiedState} will
-     * not hand back farmland for a tool that does not claim {@link ItemAbilities#HOE_TILL}.
+     * <p>{@link #HOE_TILL} stays claimed by name for other mods asking; 26.3's tilling itself no longer
+     * consults it.
      */
     @Override
     public boolean canPerformAction(ItemInstance stack, ItemAbility itemAbility) {
@@ -98,5 +98,5 @@ public class MattockItem extends ToolItem {
     /** See {@link #canPerformAction}. */
     private static final Set<ItemAbility> ABILITIES = Set.of(
             // NeoForge 26.1 dropped the *_DIG abilities; the same ids stay answerable by name.
-            ItemAbility.get("axe_dig"), ItemAbility.get("shovel_dig"), ItemAbility.get("hoe_dig"), ItemAbilities.HOE_TILL);
+            ItemAbility.get("axe_dig"), ItemAbility.get("shovel_dig"), ItemAbility.get("hoe_dig"), HOE_TILL);
 }

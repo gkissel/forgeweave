@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:manyullyn_ingot_from_manyullyn_block"
+        "recipes": "forgeweave:manyullyn_ingot_from_manyullyn_block"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

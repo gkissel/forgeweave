@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:seared_slab_tile"
+        "recipes": "forgeweave:seared_slab_tile"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

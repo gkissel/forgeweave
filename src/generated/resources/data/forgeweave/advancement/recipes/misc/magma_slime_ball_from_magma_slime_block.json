@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:magma_slime_ball_from_magma_slime_block"
+        "recipes": "forgeweave:magma_slime_ball_from_magma_slime_block"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

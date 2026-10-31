@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:alumite_dust"
+        "recipes": "forgeweave:alumite_dust"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -11,10 +11,10 @@
 # newer, itself a beta.
 
 include base.txt
-mod modrinth jade 26.2.10+neoforge 23c4ce0e0aec0d70b38ba5c8a346e5233aaa3923a94f54dc1b412e48ef98d394d3a1ac3ceaa9fe674dc1653bbef489a228be167f011d163db7ae6e4a947051b9 Jade-mc26.2-NeoForge-26.2.10.jar
+mod modrinth jade 26.3.5+neoforge 32219fb2a8b004d027179bdf2707647be4c08ab374ca5204432d63601e7e4cbc4f4574273289bb867a8afa476db63a69a5a0d08746e9bc134d52eb41489e3add Jade-mc26.3-NeoForge-26.3.5.jar
 # no 26.2 NeoForge build (checked): mod modrinth kubejs 26.1.2-8.0.7+neoforge 8535d68cbfc31d38d9bcfa4b971c79c270c45c6a9143768d17d0d33d6e203c0825ec86be82a2fa9b16416f00539d189185af7bcdd10488707b0e531340f94d51 kubejs-neoforge-26.1.2-8.0.7.jar
 # no 26.2 NeoForge build (checked): mod modrinth rhino 2101.2.8-build.91+Rhino-1.21 e3d92f663bc07872a83b0a6474b30a75230e9f92a2844fd98da1842ec9a79712bcb7d8e76574cc11ae3aeceb47f2933c60ddd6cf41f3ad7027bd573623730945 rhino-2101.2.8-build.91.jar
-# no 26.2 NeoForge build (checked): mod modrinth better-advanced-tooltips 2601.1.0-build.11 db68c54a275f9218b0fcc611c581306dfe1b0eed379fc9db3d787b85225d072939ad28ff9853f822a669a71c0d9c4c6d89c561047d5b49ba2cc42fe25700c251 better-advanced-tooltips-2601.1.0-build.11.jar
+mod modrinth better-advanced-tooltips 2603.1.1-build.13 6b4854af1ab5c68c7ae09ad1a26af2dc725da3b4bd8a4ce5a3c94e32f76b302078812b2b2c1549858ba8d39f2a7deebedb9ebb72d368b2353124c2a6822eed1a better-advanced-tooltips-2603.1.1-build.13.jar
 # 1.21.1:
 # mod modrinth emi 1.1.24+1.21.1+neoforge f4c45ed686fe617311d6debadcb6ace5963e66f8cfe0cfed398231f081f87407070efc7a73c8b695d158f1d87a97180737b9107a46771e77df2bc9a7dc715ebd emi-1.1.24+1.21.1+neoforge.jar
 # mod modrinth jade 15.9.4+neoforge 8337acc1cfb2168d7ed1bf2b34bc5c14c87d550334c3448902d8f1a629e4af65ba3a9d19551f29de1a836772077d9ae066749c8a662db5238e7a5c1590628e63 Jade-1.21.1-NeoForge-15.9.4.jar
@@ -35,8 +35,8 @@ mod modrinth jade 26.2.10+neoforge 23c4ce0e0aec0d70b38ba5c8a346e5233aaa3923a94f5
 # material forgeweave:starweld forgeweave:voidweld forgeweave:atomic_alloy
 # Mystical Agriculture's supremium, out until it reaches 26.2:
 # material forgeweave:supremium
-recipes 2862
-recipes-off 2862
+recipes 3385
+recipes-off 3385
 materials 84
 
 # 26.1.2:
@@ -44,3 +44,6 @@ materials 84
 # mod modrinth kubejs 26.1.2-8.0.7+neoforge 8535d68cbfc31d38d9bcfa4b971c79c270c45c6a9143768d17d0d33d6e203c0825ec86be82a2fa9b16416f00539d189185af7bcdd10488707b0e531340f94d51 kubejs-neoforge-26.1.2-8.0.7.jar
 # mod modrinth rhino 2101.2.8-build.91+Rhino-1.21 e3d92f663bc07872a83b0a6474b30a75230e9f92a2844fd98da1842ec9a79712bcb7d8e76574cc11ae3aeceb47f2933c60ddd6cf41f3ad7027bd573623730945 rhino-2101.2.8-build.91.jar
 # mod modrinth better-advanced-tooltips 2601.1.0-build.11 db68c54a275f9218b0fcc611c581306dfe1b0eed379fc9db3d787b85225d072939ad28ff9853f822a669a71c0d9c4c6d89c561047d5b49ba2cc42fe25700c251 better-advanced-tooltips-2601.1.0-build.11.jar
+
+# 26.2:
+# mod modrinth jade 26.2.10+neoforge 23c4ce0e0aec0d70b38ba5c8a346e5233aaa3923a94f54dc1b412e48ef98d394d3a1ac3ceaa9fe674dc1653bbef489a228be167f011d163db7ae6e4a947051b9 Jade-mc26.2-NeoForge-26.2.10.jar

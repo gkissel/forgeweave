@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:truesteel_small_dust_from_tiny_dust"
+        "recipes": "forgeweave:truesteel_small_dust_from_tiny_dust"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

@@ -1,5 +1,8 @@
 package dev.gkissel.forgeweave.gametest;
 
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -22,8 +25,6 @@ import net.minecraft.world.level.material.Fluid;
 
 import dev.gkissel.forgeweave.block.TransferBridge;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.items.IItemHandler;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
@@ -157,7 +158,7 @@ public class CastingGameTests {
         BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
         SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the smeltery to form first: " + core.lastResult().getString());
-        core.tank().fill(new FluidStack(ForgeweaveFluids.GOLD.still().get(), 4000), IFluidHandler.FluidAction.EXECUTE);
+        core.tank().fill(new FluidStack(ForgeweaveFluids.GOLD.still().get(), 4000), false);
 
         // Only now the drain, the faucet and the basin -- the smeltery is already built and idle.
         helper.setBlock(DRAIN, ForgeweaveBlocks.SEARED_DRAIN.get());
@@ -182,7 +183,7 @@ public class CastingGameTests {
         BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
         SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the drain smeltery to form: " + core.lastResult().getString());
-        core.tank().fill(new FluidStack(fluid, 4000), IFluidHandler.FluidAction.EXECUTE);
+        core.tank().fill(new FluidStack(fluid, 4000), false);
 
         helper.setBlock(DRAIN_CASTING, casting);
         helper.setBlock(DRAIN_FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
@@ -260,11 +261,11 @@ public class CastingGameTests {
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_BASIN.get());
         CastingBlockEntity basin = helper.getBlockEntity(CASTING, CastingBlockEntity.class);
 
-        IFluidHandler handler = TransferBridge.fluidAt(helper.getLevel(),
+        ResourceHandler<FluidResource> handler = TransferBridge.fluidAt(helper.getLevel(),
                 helper.absolutePos(CASTING), Direction.UP);
         helper.assertTrue(handler != null, "expected the basin to expose a fluid handler");
-        int filled = handler.fill(new FluidStack(ForgeweaveFluids.GOLD.still().get(), 4000),
-                IFluidHandler.FluidAction.EXECUTE);
+        int filled = TransferBridge.fill(handler, new FluidStack(ForgeweaveFluids.GOLD.still().get(), 4000),
+                false);
         helper.assertValueEqual(filled, 1296, "a gold block's worth of fluid, and no more");
 
         helper.succeedWhen(() -> helper.assertTrue(basin.output().is(Items.GOLD_BLOCK),
@@ -288,11 +289,11 @@ public class CastingGameTests {
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_BASIN.get());
         CastingBlockEntity basin = helper.getBlockEntity(CASTING, CastingBlockEntity.class);
 
-        IFluidHandler handler = TransferBridge.fluidAt(helper.getLevel(),
+        ResourceHandler<FluidResource> handler = TransferBridge.fluidAt(helper.getLevel(),
                 helper.absolutePos(CASTING), Direction.UP);
         helper.assertTrue(handler != null, "expected the basin to expose a fluid handler");
-        int filled = handler.fill(new FluidStack(ForgeweaveFluids.EMERALD.still().get(), 8000),
-                IFluidHandler.FluidAction.EXECUTE);
+        int filled = TransferBridge.fill(handler, new FluidStack(ForgeweaveFluids.EMERALD.still().get(), 8000),
+                false);
         helper.assertValueEqual(filled, 5994, "an emerald block's worth of fluid, and no more");
 
         helper.succeedWhen(() -> helper.assertTrue(basin.output().is(Items.EMERALD_BLOCK),
@@ -469,10 +470,10 @@ public class CastingGameTests {
 
     /** Pours into the casting block through its own capability, the way a faucet does. */
     private static int fill(GameTestHelper helper, FluidStack fluid) {
-        IFluidHandler handler = TransferBridge.fluidAt(helper.getLevel(),
+        ResourceHandler<FluidResource> handler = TransferBridge.fluidAt(helper.getLevel(),
                 helper.absolutePos(CASTING), Direction.UP);
         helper.assertTrue(handler != null, "expected the casting block to expose a fluid handler");
-        return handler.fill(fluid, IFluidHandler.FluidAction.EXECUTE);
+        return TransferBridge.fill(handler, fluid, false);
     }
 
     /**
@@ -682,7 +683,7 @@ public class CastingGameTests {
                 .thenExecuteAfter(20, () -> {
                     helper.assertFalse(faucet(helper).isPouring(), "there is nothing to pour yet");
                     tank.tank().fill(new FluidStack(ForgeweaveFluids.GOLD.still().get(), SearedTankBlockEntity.CAPACITY),
-                            IFluidHandler.FluidAction.EXECUTE);
+                            false);
                 })
                 .thenWaitUntil(() -> helper.assertTrue(basin.output().is(Items.GOLD_BLOCK),
                         "expected the still-powered faucet to have picked the gold up by itself, found " + basin.output()))
@@ -765,14 +766,14 @@ public class CastingGameTests {
         fill(helper, new FluidStack(ForgeweaveFluids.IRON.still().get(), 72));
         helper.setBlock(HOPPER, Blocks.HOPPER);
 
-        IItemHandler handler = TransferBridge.itemsAt(helper.getLevel(),
+        ResourceHandler<ItemResource> handler = TransferBridge.itemsAt(helper.getLevel(),
                 helper.absolutePos(CASTING), Direction.DOWN);
         helper.assertTrue(handler != null, "expected the casting table to expose an item handler");
-        for (int slot = 0; slot < handler.getSlots(); slot++) {
-            helper.assertTrue(handler.extractItem(slot, 64, true).isEmpty(),
+        for (int slot = 0; slot < handler.size(); slot++) {
+            helper.assertTrue(TransferBridge.extract(handler, slot, 64, true).isEmpty(),
                     "expected slot " + slot + " of a mid-pour table to be unextractable");
         }
-        helper.assertFalse(handler.isItemValid(0, new ItemStack(ForgeweaveItems.CAST_INGOT.get())),
+        helper.assertFalse(handler.isValid(0, ItemResource.of(new ItemStack(ForgeweaveItems.CAST_INGOT.get()))),
                 "and nothing to be insertable into it either");
 
         // The real hopper agrees, given more than the 8 ticks it waits between transfers.
@@ -791,7 +792,7 @@ public class CastingGameTests {
     private static CastingBlockEntity rig(GameTestHelper helper, net.minecraft.world.level.block.Block casting, Fluid fluid) {
         helper.setBlock(TANK, ForgeweaveBlocks.SEARED_TANK.get());
         helper.getBlockEntity(TANK, SearedTankBlockEntity.class).tank()
-                .fill(new FluidStack(fluid, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+                .fill(new FluidStack(fluid, SearedTankBlockEntity.CAPACITY), false);
         helper.setBlock(CASTING, casting);
         helper.setBlock(FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
                 .setValue(FaucetBlock.FACING, Direction.WEST));

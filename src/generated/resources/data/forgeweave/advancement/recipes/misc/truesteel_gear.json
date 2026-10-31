@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:truesteel_gear"
+        "recipes": "forgeweave:truesteel_gear"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

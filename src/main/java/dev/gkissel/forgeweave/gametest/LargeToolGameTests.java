@@ -547,7 +547,7 @@ public class LargeToolGameTests {
         fresh.hurt(source, 4.0F);
         float firstBlow = freshMax - fresh.getHealth();
 
-        fresh.invulnerableTime = 0;
+        fresh.damageCooldownTime = 0;
         fresh.hurt(source, 4.0F);
         float secondBlow = freshMax - fresh.getHealth() - firstBlow;
 

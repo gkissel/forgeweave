@@ -272,7 +272,7 @@ public class ArmorModifierGameTests {
      */
     @GameTest(template = "empty")
     public static void fireProtectionAttenuatesFireDamageAfterArmor(GameTestHelper helper) {
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        Player player = GameTestCompat.inAir(helper.makeMockPlayer(GameType.SURVIVAL));
         ItemStack piece = apply(helper, player, chestplate(helper, player), new ItemStack(ForgeweaveItems.SEARED_BRICK.get(), 15));
         helper.assertTrue(ForgeweaveModifiers.freeSlots(piece) == 0, "three levels fill the three slots");
         player.setItemSlot(EquipmentSlot.CHEST, piece);
@@ -286,7 +286,7 @@ public class ArmorModifierGameTests {
         helper.assertTrue(Math.abs(lost - expected) < 0.01F, "fire III must cut a " + BLOW + " fire blow to " + expected + ", lost " + lost);
 
         player.setHealth(player.getMaxHealth());
-        player.invulnerableTime = 0;
+        player.damageCooldownTime = 0;
         before = player.getHealth();
         player.hurt(helper.getLevel().damageSources().explosion(null, null), BLOW);
         lost = before - player.getHealth();

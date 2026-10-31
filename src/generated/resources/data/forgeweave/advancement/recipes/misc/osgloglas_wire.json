@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:osgloglas_wire"
+        "recipes": "forgeweave:osgloglas_wire"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

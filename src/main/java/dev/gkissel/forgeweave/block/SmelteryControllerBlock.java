@@ -2,8 +2,6 @@ package dev.gkissel.forgeweave.block;
 
 import javax.annotation.Nullable;
 
-import com.mojang.serialization.MapCodec;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.core.Direction;
@@ -59,22 +57,15 @@ public class SmelteryControllerBlock extends HorizontalDirectionalBlock implemen
     public static final int HOT_TEMPERATURE = 1600;
 
     private final SmelteryCore core;
-    private final MapCodec<SmelteryControllerBlock> codec;
 
     public SmelteryControllerBlock(Properties properties, SmelteryCore core) {
         super(properties);
         this.core = core;
-        this.codec = simpleCodec(p -> new SmelteryControllerBlock(p, core));
         registerDefaultState(defaultBlockState().setValue(FACING, Direction.NORTH).setValue(ACTIVE, false));
     }
 
     public SmelteryCore core() {
         return core;
-    }
-
-    @Override
-    protected MapCodec<? extends SmelteryControllerBlock> codec() {
-        return codec;
     }
 
     @Override

@@ -1,0 +1,58 @@
+{
+    block: "forgeweave:part_chest",
+    decoder: "block_entity",
+    expect: {
+        id: "forgeweave:part_chest",
+        inventory: [
+            {
+                components: {
+                    "forgeweave:material": "forgeweave:iron"
+                },
+                count: 3,
+                id: "forgeweave:pickaxe_head"
+            },
+            {
+                components: {
+                    "forgeweave:material": "forgeweave:wood"
+                },
+                count: 1,
+                id: "forgeweave:tool_binding"
+            },
+            {
+                components: {
+                    "forgeweave:material": "forgeweave:stone"
+                },
+                count: 7,
+                id: "forgeweave:tool_handle"
+            }
+        ]
+    },
+    nbt: {
+        "forgeweave:data_version": 4903,
+        id: "forgeweave:part_chest",
+        inventory: [
+            {
+                components: {
+                    "forgeweave:material": "forgeweave:iron"
+                },
+                count: 3,
+                id: "forgeweave:pickaxe_head"
+            },
+            {
+                components: {
+                    "forgeweave:material": "forgeweave:wood"
+                },
+                count: 1,
+                id: "forgeweave:tool_binding"
+            },
+            {
+                components: {
+                    "forgeweave:material": "forgeweave:stone"
+                },
+                count: 7,
+                id: "forgeweave:tool_handle"
+            }
+        ]
+    },
+    what: "26.3 port: a Part Chest holding three different tool parts, each with its own material, as a 26.2 server saved it (data version 4903). The pattern chest fixtures already cover the shared ChestBlockEntity code; this one covers the part chest's own type and filter, and a material component on every stack. 26.3 moved the chest's item handler from InvWrapper to TransferBridge.ContainerItems, and the saved list is meant to stay the same."
+}

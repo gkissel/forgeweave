@@ -22,7 +22,7 @@ import net.minecraft.world.phys.Vec3;
 import com.mojang.math.Axis;
 
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import dev.gkissel.forgeweave.block.FluidTank;
 
 import org.jspecify.annotations.Nullable;
 
@@ -230,7 +230,7 @@ public class CastingBlockEntityRenderer implements BlockEntityRenderer<CastingBl
         if (item.flat()) {
             // After the rotation the model's own depth axis is the block's vertical one, so the
             // third scale is the item's thickness -- squashed to FLAT_ITEM_THICKNESS, see there.
-            poseStack.mulPose(Axis.XP.rotationDegrees(-90f));
+            poseStack.rotateDegrees(Axis.XP, -90f);
             poseStack.scale(itemScale, itemScale, FLAT_ITEM_THICKNESS / ITEM_MODEL_DEPTH);
         } else {
             poseStack.scale(itemScale, itemScale, itemScale);

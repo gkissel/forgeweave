@@ -3,7 +3,7 @@
   "criteria": {
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:voltcinder_ingot_from_voltcinder_block"
+        "recipes": "forgeweave:voltcinder_ingot_from_voltcinder_block"
       },
       "trigger": "minecraft:recipe_unlocked"
     },

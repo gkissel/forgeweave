@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:osmiridium_wire"
+        "recipes": "forgeweave:osmiridium_wire"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

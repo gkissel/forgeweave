@@ -2,8 +2,6 @@ package dev.gkissel.forgeweave.block;
 
 import javax.annotation.Nullable;
 
-import com.mojang.serialization.MapCodec;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.HopperBlock;
@@ -28,18 +26,8 @@ import net.minecraft.world.level.block.state.BlockState;
  * meant to be a vanilla hopper in every respect except transfer speed.
  */
 public class WoodenHopperBlock extends HopperBlock {
-    // HopperBlock#codec() is declared as MapCodec<HopperBlock> rather than MapCodec<? extends
-    // HopperBlock>, so an override can't narrow it to MapCodec<WoodenHopperBlock> (generics are
-    // invariant) -- CODEC keeps HopperBlock's own type, matching the super method it overrides.
-    public static final MapCodec<HopperBlock> CODEC = simpleCodec(WoodenHopperBlock::new);
-
     public WoodenHopperBlock(Properties properties) {
         super(properties);
-    }
-
-    @Override
-    public MapCodec<HopperBlock> codec() {
-        return CODEC;
     }
 
     @Override

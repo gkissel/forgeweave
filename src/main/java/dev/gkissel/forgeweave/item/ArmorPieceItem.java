@@ -230,7 +230,7 @@ public class ArmorPieceItem extends Item {
      * (#728: overslime pays the loss first, same chain as a tool's), then the Broken clamp.
      */
     @Override
-    public <T extends LivingEntity> int damageItem(ItemStack stack, int amount, @Nullable T entity, Consumer<Item> onBroken) {
+    public <T extends LivingEntity> int damageItem(ItemStack stack, int amount, @Nullable T entity, Consumer<ItemStack> onBroken) {
         if (entity != null && amount > 0 && !ToolItem.isBroken(stack)) {
             float chance = durabilityNegationChance(entity);
             if (chance > 0.0F && entity.getRandom().nextFloat() < chance) {

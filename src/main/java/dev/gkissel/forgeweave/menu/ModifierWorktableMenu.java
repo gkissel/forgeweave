@@ -8,6 +8,7 @@ import javax.annotation.Nullable;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -19,7 +20,8 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.world.item.ItemStack;
 
-import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -90,7 +92,7 @@ public class ModifierWorktableMenu extends StationMenu {
     private final ContainerLevelAccess access;
     private final HolderLookup.Provider registries;
     @Nullable
-    private final IItemHandler sideInventory;
+    private final ResourceHandler<ItemResource> sideInventory;
     /** The result, held outside the container so nothing about it is persisted on the block. */
     private final SimpleContainer result = new SimpleContainer(1);
     private final DataSlot selected = DataSlot.standalone();
@@ -106,19 +108,19 @@ public class ModifierWorktableMenu extends StationMenu {
 
     /** Server-side, or a GameTest driving the menu directly against a bare container. */
     public ModifierWorktableMenu(int containerId, Inventory playerInventory, Container container,
-            ContainerLevelAccess access, @Nullable IItemHandler sideInventory) {
+            ContainerLevelAccess access, @Nullable ResourceHandler<ItemResource> sideInventory) {
         this(containerId, playerInventory, container, access, sideInventory,
-                sideInventory == null ? 0 : sideInventory.getSlots(), groupAt(access));
+                sideInventory == null ? 0 : sideInventory.size(), groupAt(access));
     }
 
     /** Server-side, with {@code SideInventory#maxSlots}' ceiling for a chest that can still grow (#756). */
     public ModifierWorktableMenu(int containerId, Inventory playerInventory, Container container,
-            ContainerLevelAccess access, @Nullable IItemHandler sideInventory, int maxSideInventorySlots) {
+            ContainerLevelAccess access, @Nullable ResourceHandler<ItemResource> sideInventory, int maxSideInventorySlots) {
         this(containerId, playerInventory, container, access, sideInventory, maxSideInventorySlots, groupAt(access));
     }
 
     private ModifierWorktableMenu(int containerId, Inventory playerInventory, Container container,
-            ContainerLevelAccess access, @Nullable IItemHandler sideInventory, int sideInventorySlotCount,
+            ContainerLevelAccess access, @Nullable ResourceHandler<ItemResource> sideInventory, int sideInventorySlotCount,
             StationGroup stationGroup) {
         super(ForgeweaveMenus.MODIFIER_WORKTABLE.get(), containerId, stationGroup);
         checkContainerSize(container, CONTAINER_SLOTS);
@@ -156,7 +158,7 @@ public class ModifierWorktableMenu extends StationMenu {
         addDataSlot(selected);
         selected.set(-1);
         addDataSlot(sideInventoryLiveSlots);
-        sideInventoryLiveSlots.set(sideInventory == null ? 0 : sideInventory.getSlots());
+        sideInventoryLiveSlots.set(sideInventory == null ? 0 : sideInventory.size());
 
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
@@ -240,7 +242,7 @@ public class ModifierWorktableMenu extends StationMenu {
     public void broadcastChanges() {
         updateResult();
         if (sideInventory != null) {
-            sideInventoryLiveSlots.set(sideInventory.getSlots());
+            sideInventoryLiveSlots.set(sideInventory.size());
         }
         super.broadcastChanges();
     }
@@ -355,7 +357,7 @@ public class ModifierWorktableMenu extends StationMenu {
                 }
                 for (ItemStack leftover : outcome.leftovers()) {
                     if (!player.getInventory().add(leftover.copy())) {
-                        player.drop(leftover.copy(), false);
+                        player.drop(leftover.copy(), false, Prediction.PREDICTED);
                     }
                 }
             }

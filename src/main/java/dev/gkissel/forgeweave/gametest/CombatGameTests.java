@@ -115,7 +115,7 @@ public class CombatGameTests {
             COUNTER.assertCounts(helper, 1, 1, 0, "one survivable blow");
 
             // Vanilla's post-hit invulnerability window would swallow the second blow's own event.
-            target.invulnerableTime = 0;
+            target.damageCooldownTime = 0;
             target.hurt(source, 100.0F);
             helper.assertFalse(target.isAlive(), "the second blow was meant to be lethal");
             COUNTER.assertCounts(helper, 2, 2, 1, "a second, lethal blow");
@@ -285,7 +285,7 @@ public class CombatGameTests {
     private static void assertLost(GameTestHelper helper, Pig pig, DamageSource source, float amount, float expected,
             String what) {
         pig.setHealth(pig.getMaxHealth());
-        pig.invulnerableTime = 0;
+        pig.damageCooldownTime = 0;
         pig.hurt(source, amount);
         float lost = pig.getMaxHealth() - pig.getHealth();
         helper.assertTrue(Math.abs(lost - expected) < 0.01F,

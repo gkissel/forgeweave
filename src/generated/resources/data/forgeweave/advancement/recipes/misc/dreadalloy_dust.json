@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:dreadalloy_dust"
+        "recipes": "forgeweave:dreadalloy_dust"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

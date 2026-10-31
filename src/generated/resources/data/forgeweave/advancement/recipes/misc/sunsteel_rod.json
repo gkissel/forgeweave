@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:sunsteel_rod"
+        "recipes": "forgeweave:sunsteel_rod"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

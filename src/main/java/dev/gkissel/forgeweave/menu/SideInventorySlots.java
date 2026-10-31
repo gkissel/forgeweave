@@ -5,14 +5,16 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.ItemStack;
 
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.IItemHandlerModifiable;
-import net.neoforged.neoforge.items.ItemStackHandler;
-import net.neoforged.neoforge.items.SlotItemHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
+import net.neoforged.neoforge.transfer.item.ResourceHandlerSlot;
+
+import dev.gkissel.forgeweave.block.TransferBridge;
 
 /**
  * Shared side-inventory slot wiring for the three stations that expose a neighboring block's item
@@ -89,12 +91,12 @@ public final class SideInventorySlots {
     /**
      * @param sideInventory the neighbor's item handler, or {@code null} when constructing the
      *     client-side placeholder (its contents sync down via the normal container-slot-sync
-     *     packets, same as every other slot -- the real {@link IItemHandler} only exists server-side)
+     *     packets, same as every other slot -- the real handler only exists server-side)
      * @param slotCount how many slots to build -- 0 if there is no qualifying neighbor
      * @param x the panel's first slot's left edge, in GUI pixels from the screen's top-left
      * @param y the panel's first slot's top edge, in GUI pixels from the screen's top-left
      */
-    public static List<SideSlot> create(@Nullable IItemHandler sideInventory, int slotCount, int x, int y) {
+    public static List<SideSlot> create(@Nullable ResourceHandler<ItemResource> sideInventory, int slotCount, int x, int y) {
         return create(sideInventory, slotCount, x, y, true);
     }
 
@@ -105,9 +107,9 @@ public final class SideInventorySlots {
      *     in its container while its {@code drawSlot}/{@code isMouseOverSlot} pair hides them behind
      *     {@code GuiButtonsPartCrafter}'s buttons.
      */
-    public static List<SideSlot> create(@Nullable IItemHandler sideInventory, int slotCount, int x, int y,
+    public static List<SideSlot> create(@Nullable ResourceHandler<ItemResource> sideInventory, int slotCount, int x, int y,
             boolean visible) {
-        IItemHandler handler = sideInventory != null ? sideInventory : new ItemStackHandler(slotCount);
+        ResourceHandler<ItemResource> handler = sideInventory != null ? sideInventory : new ItemStacksResourceHandler(slotCount);
         List<SideSlot> slots = new ArrayList<>(slotCount);
         for (int i = 0; i < slotCount; i++) {
             slots.add(new SideSlot(handler, i, x + (i % COLUMNS) * SLOT_SIZE, y + (i / COLUMNS) * SLOT_SIZE, visible));
@@ -140,11 +142,9 @@ public final class SideInventorySlots {
             if (slot.visible == visible && slot.x == targetX && slot.y == targetY) {
                 continue;
             }
-            SideSlot replacement = new SideSlot(slot.getItemHandler(), slot.getSlotIndex(), targetX, targetY, visible);
-            // Casts because SlotItemHandler shadows Slot's public menu-position `index` with a
-            // protected field of its own holding the *item handler* index; the two are unrelated.
-            int menuIndex = ((Slot) slot).index;
-            ((Slot) replacement).index = menuIndex;
+            SideSlot replacement = new SideSlot(slot.getResourceHandler(), slot.getSlotIndex(), targetX, targetY, visible);
+            int menuIndex = slot.index;
+            replacement.index = menuIndex;
             menu.slots.set(menuIndex, replacement);
             slots.set(i, replacement);
         }
@@ -156,23 +156,20 @@ public final class SideInventorySlots {
      * shift-click transfers still reach scrolled-away slots, exactly as upstream's client-only
      * {@code shouldDrawSlot} leaves its container's transfers alone.
      *
-     * <p>Another mod's neighbour hands out copies of its stacks on 26.1 ({@code TransferBridge#itemsAt}),
-     * while vanilla's menu code grows the stack {@link #getItem} returned and then calls {@link
-     * #setChanged}. So, like NeoForge's {@code StackCopySlot}, this remembers the stack it handed out and
-     * writes it back on {@code setChanged} when the handler's own copy no longer matches. Over a live
-     * handler (a Forgeweave chest) the two are the same object and nothing is written.
+     * <p>NeoForge's {@link ResourceHandlerSlot}: it hands vanilla's menu code a copy of the slot's stack and
+     * writes the copy back on {@code setChanged} once vanilla has grown or shrunk it. A Forgeweave chest's
+     * slot is overwritten in place, any other mod's by a swap in one transaction ({@link
+     * TransferBridge#slotModifier}).
      */
-    public static final class SideSlot extends SlotItemHandler {
+    public static final class SideSlot extends ResourceHandlerSlot {
         private final boolean visible;
-        @Nullable
-        private ItemStack handedOut;
 
-        SideSlot(IItemHandler handler, int index, int x, int y) {
+        SideSlot(ResourceHandler<ItemResource> handler, int index, int x, int y) {
             this(handler, index, x, y, true);
         }
 
-        SideSlot(IItemHandler handler, int index, int x, int y, boolean visible) {
-            super(handler, index, x, y);
+        SideSlot(ResourceHandler<ItemResource> handler, int index, int x, int y, boolean visible) {
+            super(handler, TransferBridge.slotModifier(handler), index, x, y);
             this.visible = visible;
         }
 
@@ -181,28 +178,14 @@ public final class SideInventorySlots {
             return visible;
         }
 
+        /**
+         * The 1.21.1 slot's own check, a simulated one-item take. {@link ResourceHandlerSlot}'s opens a root
+         * transaction and so runs a Forgeweave store's take for real before rolling it back, change hooks
+         * and all.
+         */
         @Override
-        public ItemStack getItem() {
-            return handedOut = super.getItem();
-        }
-
-        @Override
-        public void set(ItemStack stack) {
-            ((IItemHandlerModifiable) getItemHandler()).setStackInSlot(index, stack);
-            handedOut = stack;
-        }
-
-        @Override
-        public void setChanged() {
-            if (handedOut != null && !ItemStack.matches(handedOut, super.getItem())) {
-                set(handedOut);
-            }
-        }
-
-        @Override
-        public ItemStack remove(int amount) {
-            handedOut = null;
-            return super.remove(amount);
+        public boolean mayPickup(Player player) {
+            return !TransferBridge.extract(getResourceHandler(), getSlotIndex(), 1, true).isEmpty();
         }
     }
 }

@@ -567,7 +567,7 @@ public final class ForgeweaveInnates {
                     hit.source(), damageDealt, true);
             // knockback() sets hasImpulse, which syncs a mob; a player's client owns its own motion
             // and only takes a velocity packet when the server marks the entity hurt.
-            target.hurtMarked = true;
+            target.syncVelocity = true;
         }
     }
 
@@ -814,7 +814,7 @@ public final class ForgeweaveInnates {
             Vec3 look = Vec3.directionFromRotation(user.getXRot(), user.getYRot());
             user.setDeltaMovement(look.x * speed, user.getDeltaMovement().y + rise, look.z * speed);
             user.setSprinting(true);
-            user.hurtMarked = true; // a player's own client is authoritative; push the new motion down.
+            user.syncVelocity = true; // a player's own client is authoritative; push the new motion down.
             if (user instanceof Player player) {
                 player.causeFoodExhaustion(LEAP_EXHAUSTION);
                 player.getCooldowns().addCooldown(stack, LEAP_COOLDOWN_TICKS);
@@ -863,7 +863,7 @@ public final class ForgeweaveInnates {
                 player.setDeltaMovement(-look.x * LUNGE_SPEED,
                         player.getDeltaMovement().y + LUNGE_RISE,
                         -look.z * LUNGE_SPEED);
-                player.hurtMarked = true; // a player's own client is authoritative; push the motion down.
+                player.syncVelocity = true; // a player's own client is authoritative; push the motion down.
                 player.causeFoodExhaustion(LUNGE_EXHAUSTION);
                 player.getCooldowns().addCooldown(stack, LUNGE_COOLDOWN_TICKS);
             }
@@ -958,7 +958,7 @@ public final class ForgeweaveInnates {
             target.setDeltaMovement(target.getDeltaMovement().add(look.x * strength,
                     look.y / 3.0F * strength + LAUNCH_LIFT_BASE + LAUNCH_LIFT_PER_CHARGE * progress,
                     look.z * strength));
-            target.hurtMarked = true; // a launched player's own client owns its motion until told otherwise
+            target.syncVelocity = true; // a launched player's own client owns its motion until told otherwise
 
             // #584: upstream's eighth spawnAttackParticle site (FryPan.java:115), right after the
             // push and at its own 0.6 height factor -- the pan's arc is drawn lower on a launch than

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:pink_slime_ball_from_pink_congealed_slime"
+        "recipes": "forgeweave:pink_slime_ball_from_pink_congealed_slime"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:duskweld_rod"
+        "recipes": "forgeweave:duskweld_rod"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

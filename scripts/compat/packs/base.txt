@@ -12,15 +12,15 @@
 # no 26.2 NeoForge build (checked): mod modrinth apothic-enchanting 26.1.2-2.1.0 3eb146a2b22c18beb1d739b05a6bf5054f05b2f239c25edc3c21b6a8c6f81d3595db0235cba243b44f997ed6fe4198c45763bc6a9e5017b8e5d4067a983a3c58 ApothicEnchanting-26.1.2-2.1.0.jar
 # no 26.2 NeoForge build (checked): mod modrinth apothic-spawners 26.1.2-2.0.1 eaee07de506f07be5c78bdef09c9cb33ed00655a70d279499b6801f6ecf128907728e6e1e46863a7073a95409f3d17a08cdb41d98da2f6830e47afcec604f8cf ApothicSpawners-26.1.2-2.0.1.jar
 # no 26.2 NeoForge build (checked): mod modrinth placebo 26.1.2-10.0.2 a55e8d5833c8260aab27ef90b0f2db40b02d10cb49c3a32f66ac85f75cb1357d5519e69e5bcb61e277ebe724dd3852d769fd32806182910d88b11f7c53ca1dab Placebo-26.1.2-10.0.2.jar
-mod modrinth occultism 26.2-neoforge-1.256.0 cbdef1c2fad887e951de8266ec95e81007533974e13fa7f834b6bc33f37a6ff9649548c292371fa5a2224be1f05138d4e88c5d916ad55f76763c4e9a1494cbc7 occultism-26.2-neoforge-1.256.0.jar
-mod modrinth geckolib 5.5.6 0717d360e0bba26dedd77eb42450a327eae6f3931692c353ebe3ac622c8556b442f3ece22e5eaf699ac9702a6edd6e02d1cfba96d3f1a52aba98cce0bd0bae55 geckolib-neoforge-26.2-5.5.6.jar
-mod modrinth modonomicon 26.2-2.5.0 07eac25a0fdc22187bb7108572ab9af094659cf3bd051d7855f4c351a25f38667331d582d4b66269d54da26bac2c234ca7702e5f5eb3d9b1409fca3c9ed7f56f modonomicon-26.2-neoforge-2.5.0.jar
-mod modrinth curios 16.0.0+26.2 e4dc10aaaa5ba5fb54a9b48af7507055c62fc515819578b1c1b95ade786449e6ceeda72a3cf0375060b07b92f4ded1a7f3b784608a57177ca3f4899c61b871e6 curios-neoforge-16.0.0+26.2.jar
+mod modrinth occultism 26.3-neoforge-1.262.0 e5b267524d68c4afa50bff75da8cbaabcf1e40cc643dd545ca4d345f8f29ba9af90ea0057b18958b822db9c0d1c6abe41715faa829577dc7445055f4ffd53fd0 occultism-26.3-neoforge-1.262.0.jar
+mod modrinth geckolib 5.5.7 24a607529f57841a12d90d653a7823acf9a13284cb4631c9ee4c017bcba062e81cb8a7db8933112d9349dd05765333d54c90c9dde8feae3d2590f417201a3220 geckolib-neoforge-26.3-5.5.7.jar
+mod modrinth modonomicon 26.3-2.20.0 273d2b8416549841047b0de20f7daee35bd74b609d4c445004395418926a05168ce7a3a3dcbdfe4f027ed5888686a273eb8f12448768bf89d48da23dc9516f86 modonomicon-26.3-neoforge-2.20.0.jar
+mod modrinth curios 17.0.0-beta.3+26.3 ebacde6e36685849fefcaaace4ae3c2f725dd1540adca128a83b5c611998d87158750fdc224fd9faf4af8f249bb1005466e6e951d6516a99f4e0d6102a382ea1 curios-neoforge-17.0.0-beta.3+26.3.jar
 # no 26.2 NeoForge build (checked): mod modrinth mystical-agriculture 9.0.11 78deb9b8c084e64089217698cd056464bd68894683ecee3e55302dfd91e6a976e6d60f26f124d39b5d8f6747782ff2b2c17e2a88c1bff790a4b15a2794eb81f7 MysticalAgriculture-26.1.2-9.0.11.jar
 # no 26.2 NeoForge build (checked): mod modrinth cucumber 9.0.7 0093fd547e878ece2048d6e4f8275840f4efa7dae6171116fc70a05d67163f10c13d2d1768ba17b99c97a71f89cb0a0d8cc3fbca78989d87e656fb22fb71088f Cucumber-26.1.2-9.0.7.jar
 # no 26.2 NeoForge build (checked): mod modrinth powah 7.0.4-alpha-neoforge a5d1fcaa70529a0286783a49eac992a5d3cb15fa5e2aee5c7d080e86d3c501b3bce79adcf51b86c019f2119a377cdb20dd4f896c8ae468a30b01d8cdf4bd0d01 Powah-7.0.4-alpha.jar
-mod modrinth guideme 26.2.2-alpha 08fea710bd9edec972754dc76c4f06d470d8ec2c73f12e145fc656023c954fd01e699a812ace279cf4d2a427e3b205546339a389e474e62ff043a15a827dd851 guideme-26.2.2-alpha.jar
-mod modrinth cloth-config 26.2.155+neoforge 3f7ea8108d8c0463764e419f3fe7d4d7f586b6fb7d2578de85f709b70d59587060a07c0fe02d5b79ed37e74850dd088caace40f8baefb4402df8139d076dc662 cloth-config-26.2.155.jar
+mod modrinth guideme 26.3.5-alpha 9682790df51061c7f121fccbbdf43bbe0bb0d36a92edad2cfbb48f110eafcecdfacb04e2d0ab4ea351670a15de3edb82c251e926555f1b4e44cd30ca7a10065b guideme-26.3.5-alpha.jar
+mod modrinth cloth-config 26.3.159+neoforge 941dd8aab50d658cfa6da071dacd05802c7097643ad569935d0073b39231a2137f2ade2403b791f70cf5ebf1649d7b6337862568a8b340c88e5d364569f94431 cloth-config-neoforge-26.3.159.jar
 # no 26.2 NeoForge build (checked): mod modrinth enderio v9.0.6-alpha 740ad186502c72a949799233b7c52b677e129f6df4b3be113abf1ea8ec7142dbc17a439c9ea84dfb910c2732f09d5272ae102f8184c64bbb9759d180f977bb92 enderio-9.0.6-alpha.jar
 # no 26.2 NeoForge build (checked): mod modrinth patchouli 26.1-94-beta 58c90a495219f0e6b923df9161597c18d14d3f867272c18141873bb6e9124d68eff6594c23f1759091507e484f680794a46ed5c5b9fb21964c6670d6dce2a278 patchouli-neoforge-26.1-94.jar
 
@@ -63,3 +63,11 @@ mod modrinth cloth-config 26.2.155+neoforge 3f7ea8108d8c0463764e419f3fe7d4d7f586
 # mod modrinth cloth-config 26.1.154+neoforge b3084e992459c211617bf5247a94b93c06823277932341e7cec98602a6c6e21ca599aae5e552868ae7a60aac6ec33f3a9cee11615667470483948b3e349d3caf cloth-config-26.1.154.jar
 # mod modrinth enderio v9.0.6-alpha 740ad186502c72a949799233b7c52b677e129f6df4b3be113abf1ea8ec7142dbc17a439c9ea84dfb910c2732f09d5272ae102f8184c64bbb9759d180f977bb92 enderio-9.0.6-alpha.jar
 # mod modrinth patchouli 26.1-94-beta 58c90a495219f0e6b923df9161597c18d14d3f867272c18141873bb6e9124d68eff6594c23f1759091507e484f680794a46ed5c5b9fb21964c6670d6dce2a278 patchouli-neoforge-26.1-94.jar
+
+# 26.2:
+# mod modrinth occultism 26.2-neoforge-1.256.0 cbdef1c2fad887e951de8266ec95e81007533974e13fa7f834b6bc33f37a6ff9649548c292371fa5a2224be1f05138d4e88c5d916ad55f76763c4e9a1494cbc7 occultism-26.2-neoforge-1.256.0.jar
+# mod modrinth geckolib 5.5.6 0717d360e0bba26dedd77eb42450a327eae6f3931692c353ebe3ac622c8556b442f3ece22e5eaf699ac9702a6edd6e02d1cfba96d3f1a52aba98cce0bd0bae55 geckolib-neoforge-26.2-5.5.6.jar
+# mod modrinth modonomicon 26.2-2.5.0 07eac25a0fdc22187bb7108572ab9af094659cf3bd051d7855f4c351a25f38667331d582d4b66269d54da26bac2c234ca7702e5f5eb3d9b1409fca3c9ed7f56f modonomicon-26.2-neoforge-2.5.0.jar
+# mod modrinth curios 16.0.0+26.2 e4dc10aaaa5ba5fb54a9b48af7507055c62fc515819578b1c1b95ade786449e6ceeda72a3cf0375060b07b92f4ded1a7f3b784608a57177ca3f4899c61b871e6 curios-neoforge-16.0.0+26.2.jar
+# mod modrinth guideme 26.2.2-alpha 08fea710bd9edec972754dc76c4f06d470d8ec2c73f12e145fc656023c954fd01e699a812ace279cf4d2a427e3b205546339a389e474e62ff043a15a827dd851 guideme-26.2.2-alpha.jar
+# mod modrinth cloth-config 26.2.155+neoforge 3f7ea8108d8c0463764e419f3fe7d4d7f586b6fb7d2578de85f709b70d59587060a07c0fe02d5b79ed37e74850dd088caace40f8baefb4402df8139d076dc662 cloth-config-26.2.155.jar

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:duskspar_dust"
+        "recipes": "forgeweave:duskspar_dust"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

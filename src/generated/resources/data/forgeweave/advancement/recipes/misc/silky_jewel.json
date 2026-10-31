@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:silky_jewel"
+        "recipes": "forgeweave:silky_jewel"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

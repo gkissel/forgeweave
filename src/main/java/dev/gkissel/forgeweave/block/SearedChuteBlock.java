@@ -2,8 +2,6 @@ package dev.gkissel.forgeweave.block;
 
 import javax.annotation.Nullable;
 
-import com.mojang.serialization.MapCodec;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -25,16 +23,9 @@ import net.minecraft.util.RandomSource;
  * hopper or pipe can feed the smeltery and pull items back out. See {@link SearedChuteBlockEntity}.
  */
 public class SearedChuteBlock extends HorizontalDirectionalBlock implements EntityBlock {
-    public static final MapCodec<SearedChuteBlock> CODEC = simpleCodec(SearedChuteBlock::new);
-
     public SearedChuteBlock(Properties properties) {
         super(properties);
         registerDefaultState(SearedTier.standard(defaultBlockState().setValue(FACING, Direction.NORTH)));
-    }
-
-    @Override
-    protected MapCodec<? extends SearedChuteBlock> codec() {
-        return CODEC;
     }
 
     @Override

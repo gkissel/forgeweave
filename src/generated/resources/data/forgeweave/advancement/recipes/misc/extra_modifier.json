@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:extra_modifier"
+        "recipes": "forgeweave:extra_modifier"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

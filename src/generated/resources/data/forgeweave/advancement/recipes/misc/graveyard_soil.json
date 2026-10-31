@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:graveyard_soil"
+        "recipes": "forgeweave:graveyard_soil"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

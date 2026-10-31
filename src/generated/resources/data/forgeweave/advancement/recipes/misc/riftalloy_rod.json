@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:riftalloy_rod"
+        "recipes": "forgeweave:riftalloy_rod"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

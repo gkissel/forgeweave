@@ -70,11 +70,10 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
+import dev.gkissel.forgeweave.block.FluidTank;
 
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -956,7 +955,7 @@ public final class ScreenshotHarness {
         FluidTank fluidTank = tank.tank();
         fluidTank.setFluid(FluidStack.EMPTY); // idempotent: wipe whatever a prior harness run left.
         int amount = (int) Math.round(fluidTank.getCapacity() * fraction);
-        fluidTank.fill(new FluidStack(Fluids.LAVA, amount), IFluidHandler.FluidAction.EXECUTE);
+        fluidTank.fill(new FluidStack(Fluids.LAVA, amount), false);
     }
 
     /**
@@ -1175,9 +1174,9 @@ public final class ScreenshotHarness {
             // A little over half full, in two metals: the lower (iron) band is much the thicker one,
             // so a stack rendered in the wrong order is obvious rather than subtle.
             controller.tank().fill(new FluidStack(ForgeweaveFluids.IRON.still().get(), 4 * 1152),
-                    IFluidHandler.FluidAction.EXECUTE);
+                    false);
             controller.tank().fill(new FluidStack(ForgeweaveFluids.COPPER.still().get(), 2 * 576),
-                    IFluidHandler.FluidAction.EXECUTE);
+                    false);
             LOGGER.info("{}smeltery scene core={} holding {}/{} mB in {} fluids", LOG_PREFIX, corePos,
                     controller.tank().getFluidAmount(), controller.tank().getCapacity(),
                     controller.tank().fluids().size());
@@ -1331,7 +1330,7 @@ public final class ScreenshotHarness {
         if (level.getBlockEntity(sourceTankPos) instanceof SearedTankBlockEntity tank) {
             tank.tank().setFluid(FluidStack.EMPTY); // Idempotent across harness re-runs, as #145's scene is.
             tank.tank().fill(new FluidStack(ForgeweaveFluids.IRON.still().get(), SearedTankBlockEntity.CAPACITY),
-                    IFluidHandler.FluidAction.EXECUTE);
+                    false);
         }
         // Drawing sideways rather than from a tank straight above: the horizontal model is the one
         // with a trough to fill and a rotation to get wrong, so it is the one worth photographing.
@@ -2776,9 +2775,9 @@ public final class ScreenshotHarness {
         // that the background blits -- and a screenshot that cannot fail is the review gap issues
         // #75/#85/#89 slipped through.
         controller.tank().fill(new FluidStack(ForgeweaveFluids.IRON.still().get(), 4 * 1152),
-                IFluidHandler.FluidAction.EXECUTE);
+                false);
         controller.tank().fill(new FluidStack(ForgeweaveFluids.COPPER.still().get(), 2 * 576),
-                IFluidHandler.FluidAction.EXECUTE);
+                false);
         // Items mid-melt, so the grid shows occupied slots with heat bars rather than an empty frame.
         for (int i = 0; i < 5; i++) {
             controller.insertForMelting(new ItemStack(Items.IRON_INGOT));
@@ -2849,7 +2848,7 @@ public final class ScreenshotHarness {
         level.setBlockAndUpdate(tankPos, ForgeweaveBlocks.SEARED_TANK.get().defaultBlockState());
         if (level.getBlockEntity(tankPos) instanceof SearedTankBlockEntity tank) {
             tank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY),
-                    IFluidHandler.FluidAction.EXECUTE);
+                    false);
         }
 
         // Re-placing the core with the right facing does not re-trigger its own scan (the block skips

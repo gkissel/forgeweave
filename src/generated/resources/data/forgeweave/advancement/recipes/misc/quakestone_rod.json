@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:quakestone_rod"
+        "recipes": "forgeweave:quakestone_rod"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

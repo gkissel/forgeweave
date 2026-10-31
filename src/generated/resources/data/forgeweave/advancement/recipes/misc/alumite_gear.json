@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:alumite_gear"
+        "recipes": "forgeweave:alumite_gear"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

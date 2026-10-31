@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:purple_slime_ball_from_purple_slime_block"
+        "recipes": "forgeweave:purple_slime_ball_from_purple_slime_block"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

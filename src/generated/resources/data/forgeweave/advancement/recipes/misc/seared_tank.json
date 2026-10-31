@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:seared_tank"
+        "recipes": "forgeweave:seared_tank"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

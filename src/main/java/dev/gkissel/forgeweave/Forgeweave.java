@@ -21,7 +21,7 @@ import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
-import net.neoforged.neoforge.registries.DataPackRegistryEvent;
+import net.neoforged.neoforge.registries.NewDatapackRegistryEvent;
 
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
@@ -175,7 +175,7 @@ public class Forgeweave {
         // SERVER type: see ForgeweaveConfig javadoc for why these must sync client<->server, and for
         // why the one flat spec became four files under config/forgeweave/ (#968, D-M8-8).
         ForgeweaveConfigMigration.FILES.forEach(
-                (fileName, spec) -> modContainer.registerConfig(ModConfig.Type.SERVER, spec, fileName));
+                (fileName, spec) -> modContainer.registerConfig(ModConfig.Type.SYNCED, spec, fileName));
         // CLIENT type: display preferences only, never read server-side -- see the class javadoc.
         modContainer.registerConfig(ModConfig.Type.CLIENT, ForgeweaveClientConfig.SPEC);
         modEventBus.addListener(this::registerDataPackRegistries);
@@ -186,7 +186,7 @@ public class Forgeweave {
         modEventBus.addListener(ForgeweaveResourcePacks::addPackFinders);
         // Powah's and Apotheosis' data maps, as built-in data packs that exist only with that mod.
         modEventBus.addListener(CompatDataPacks::addPackFinders);
-        // The Pattern Chest/Part Chest (issue #66) expose their inventory as an IItemHandler so
+        // The Pattern Chest/Part Chest (issue #66) expose their inventory as an item handler so
         // adjacent stations' side-inventory panels pick them up (SideInventory#find).
         modEventBus.addListener(ChestBlockEntity::registerCapabilities);
         // The smeltery's seared tanks hold fluids directly; a drain re-exposes its core's tank (#95).
@@ -210,6 +210,7 @@ public class Forgeweave {
         // charger can fill.
         modEventBus.addListener(ToolItem::registerCapabilities);
         modEventBus.addListener(ForgeweaveDataGenerators::gatherData);
+        modEventBus.addListener(ForgeweaveDataGenerators::gatherRegistries);
         NeoForge.EVENT_BUS.addListener(this::onServerStarted);
         // #150 -- the shared per-hit pipeline (ADR-0005 decision 3): pre-hit, on-hit and post-kill
         // for every blow struck with a Forgeweave tool, and the only place combat innates and combat
@@ -395,6 +396,8 @@ public class Forgeweave {
         RegistryAccess.Frozen registries = event.getServer().registryAccess();
         Registry<Material> materials = registries.lookupOrThrow(Material.REGISTRY);
         LOGGER.info("Loaded {} materials: {}", materials.size(), materials.keySet());
+        // 26.3 stopped logging the recipe total, which pack makers and the compat matrix read.
+        LOGGER.info("Loaded {} recipes", event.getServer().getRecipeManager().getRecipes().size());
         MaterialSyncSize sync = materialSyncSize(registries);
         LOGGER.info("Material registry sync payload: {} of {} materials encode to {} bytes", sync.encoded(),
                 sync.total(), sync.bytes());
@@ -432,45 +435,45 @@ public class Forgeweave {
         return new MaterialSyncSize(encoded, materials.size(), buf.readableBytes());
     }
 
-    private void registerDataPackRegistries(final DataPackRegistryEvent.NewRegistry event) {
+    private void registerDataPackRegistries(final NewDatapackRegistryEvent event) {
         // Passing the codec as the network codec too makes NeoForge sync materials server -> client.
-        event.dataPackRegistry(Material.REGISTRY, Material.CODEC, Material.CODEC);
+        event.worldRegistry(Material.REGISTRY, Material.CODEC, Material.CODEC);
         // Modifier application recipes, same deal (ADR-0004): the client needs them so the Tool
         // Station screen can explain a rejection without a payload of its own.
-        event.dataPackRegistry(ModifierRecipe.REGISTRY, ModifierRecipe.CODEC, ModifierRecipe.CODEC);
+        event.worldRegistry(ModifierRecipe.REGISTRY, ModifierRecipe.CODEC, ModifierRecipe.CODEC);
         // #1057 -- what the Modifier Worktable can do to modifiers already on a tool. Synced for the
         // same reason: the worktable screen works out its own button list from the loaded slots.
-        event.dataPackRegistry(WorktableRecipe.REGISTRY, WorktableRecipe.CODEC, WorktableRecipe.CODEC);
+        event.worldRegistry(WorktableRecipe.REGISTRY, WorktableRecipe.CODEC, WorktableRecipe.CODEC);
         // #100 -- casting recipes, same deal: the client needs them for JEI (#109) and for showing
         // what a casting block is currently making.
-        event.dataPackRegistry(CastingRecipe.REGISTRY, CastingRecipe.CODEC, CastingRecipe.CODEC);
+        event.worldRegistry(CastingRecipe.REGISTRY, CastingRecipe.CODEC, CastingRecipe.CODEC);
         // #96 -- melting recipes, same idiom again: the client needs them for JEI's melting category
         // and the smeltery screen's "what is this turning into" readout.
-        event.dataPackRegistry(MeltingRecipe.REGISTRY, MeltingRecipe.CODEC, MeltingRecipe.CODEC);
+        event.worldRegistry(MeltingRecipe.REGISTRY, MeltingRecipe.CODEC, MeltingRecipe.CODEC);
         // #97 -- smeltery fuels, same idiom again: the client needs them for the smeltery screen's
         // fuel gauge (#101).
-        event.dataPackRegistry(SmelteryFuel.REGISTRY, SmelteryFuel.CODEC, SmelteryFuel.CODEC);
+        event.worldRegistry(SmelteryFuel.REGISTRY, SmelteryFuel.CODEC, SmelteryFuel.CODEC);
         // #270 -- what an entity standing in a smeltery melts into, same idiom again.
-        event.dataPackRegistry(EntityMeltingRecipe.REGISTRY, EntityMeltingRecipe.CODEC, EntityMeltingRecipe.CODEC);
+        event.worldRegistry(EntityMeltingRecipe.REGISTRY, EntityMeltingRecipe.CODEC, EntityMeltingRecipe.CODEC);
         // #98 -- alloy recipes, same idiom again: the client needs them for JEI's alloy category
         // (#109) and to explain what a smeltery is about to combine.
-        event.dataPackRegistry(AlloyRecipe.REGISTRY, AlloyRecipe.CODEC, AlloyRecipe.CODEC);
+        event.worldRegistry(AlloyRecipe.REGISTRY, AlloyRecipe.CODEC, AlloyRecipe.CODEC);
         // #154 -- what an embossment costs, same idiom again: the client needs it so the Tool
         // Station screen can say "already embossed" without a payload of its own.
-        event.dataPackRegistry(EmbossingRecipe.REGISTRY, EmbossingRecipe.CODEC, EmbossingRecipe.CODEC);
+        event.worldRegistry(EmbossingRecipe.REGISTRY, EmbossingRecipe.CODEC, EmbossingRecipe.CODEC);
         // #845 -- what pouring a fluid over a smeltery core transforms it into, same idiom again: the
         // client needs it so the smeltery screen (or a future tooltip) could explain what a core's
         // next tier costs without a payload of its own.
-        event.dataPackRegistry(CoreTransformRecipe.REGISTRY, CoreTransformRecipe.CODEC, CoreTransformRecipe.CODEC);
+        event.worldRegistry(CoreTransformRecipe.REGISTRY, CoreTransformRecipe.CODEC, CoreTransformRecipe.CODEC);
         // #832 -- datapack trait definitions (ADR-0004 item 3, traits only), same idiom again: the
         // client needs them so a held tool's trait hooks (attack damage, mining speed, ...) answer
         // the same on both sides, and so neoforge:conditions existence-gates a definition exactly
         // as it gates a material.
-        event.dataPackRegistry(TraitDefinition.REGISTRY, TraitDefinition.CODEC, TraitDefinition.CODEC);
+        event.worldRegistry(TraitDefinition.REGISTRY, TraitDefinition.CODEC, TraitDefinition.CODEC);
         // #973 -- datapack modifier definitions (ADR-0004 item 3's second half), the same idiom once
         // more: the client needs them so a held tool's modifier hooks answer the same on both sides,
         // and so neoforge:conditions existence-gates a definition exactly as it gates a material.
-        event.dataPackRegistry(ModifierDefinition.REGISTRY, ModifierDefinition.CODEC, ModifierDefinition.CODEC);
+        event.worldRegistry(ModifierDefinition.REGISTRY, ModifierDefinition.CODEC, ModifierDefinition.CODEC);
     }
 
     /**

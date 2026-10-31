@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.gametest;
 
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
@@ -18,7 +20,6 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
@@ -90,8 +91,8 @@ public class SearedChannelGameTests {
     public static void aChannelBuffersOnlyUpstreamsCapacity(GameTestHelper helper) {
         helper.setBlock(SOURCE, ForgeweaveBlocks.SEARED_CHANNEL.get());
 
-        IFluidHandler top = requireTop(helper, SOURCE);
-        helper.assertValueEqual(top.fill(new FluidStack(Fluids.WATER, 1000), IFluidHandler.FluidAction.EXECUTE),
+        ResourceHandler<FluidResource> top = requireTop(helper, SOURCE);
+        helper.assertValueEqual(TransferBridge.fill(top, new FluidStack(Fluids.WATER, 1000), false),
                 SearedChannelBlockEntity.CAPACITY, "the channel's accepted fill");
         helper.succeed();
     }
@@ -101,9 +102,9 @@ public class SearedChannelGameTests {
     public static void anOutputSideAcceptsNoFluid(GameTestHelper helper) {
         helper.setBlock(SOURCE, connected(Direction.SOUTH, ChannelConnection.OUT));
 
-        IFluidHandler out = TransferBridge.fluidAt(helper.getLevel(), helper.absolutePos(SOURCE), Direction.SOUTH);
+        ResourceHandler<FluidResource> out = TransferBridge.fluidAt(helper.getLevel(), helper.absolutePos(SOURCE), Direction.SOUTH);
         helper.assertTrue(out != null, "expected an output side to still expose a handler");
-        helper.assertValueEqual(out.fill(new FluidStack(Fluids.WATER, SOME), IFluidHandler.FluidAction.EXECUTE), 0,
+        helper.assertValueEqual(TransferBridge.fill(out, new FluidStack(Fluids.WATER, SOME), false), 0,
                 "an output side's fill");
         helper.succeed();
     }
@@ -116,8 +117,8 @@ public class SearedChannelGameTests {
         helper.setBlock(SOURCE.below(), ForgeweaveBlocks.CASTING_BASIN.get());
 
         // Molten gold rather than water: a casting basin only takes a fluid some recipe wants.
-        requireTop(helper, SOURCE).fill(new FluidStack(ForgeweaveFluids.GOLD.still().get(), SOME),
-                IFluidHandler.FluidAction.EXECUTE);
+        TransferBridge.fill(requireTop(helper, SOURCE), new FluidStack(ForgeweaveFluids.GOLD.still().get(), SOME),
+                false);
         // #715: driven directly rather than waited on. A fill is locked for the tick it landed in, so
         // the first step only unlocks it and the second is the one that pours.
         SearedChannelBlockEntity channel = helper.getBlockEntity(SOURCE, SearedChannelBlockEntity.class);
@@ -311,19 +312,19 @@ public class SearedChannelGameTests {
                 .setValue(SearedChannelBlock.SIDES.get(side), connection);
     }
 
-    private static IFluidHandler requireTop(GameTestHelper helper, BlockPos pos) {
-        IFluidHandler handler = handler(helper, pos, Direction.UP);
+    private static ResourceHandler<FluidResource> requireTop(GameTestHelper helper, BlockPos pos) {
+        ResourceHandler<FluidResource> handler = handler(helper, pos, Direction.UP);
         helper.assertTrue(handler != null, "expected a channel to expose a fluid handler on its top");
         return handler;
     }
 
     @Nullable
-    private static IFluidHandler handler(GameTestHelper helper, BlockPos pos, Direction side) {
+    private static ResourceHandler<FluidResource> handler(GameTestHelper helper, BlockPos pos, Direction side) {
         return TransferBridge.fluidAt(helper.getLevel(), helper.absolutePos(pos), side);
     }
 
     private static void fillTop(GameTestHelper helper, BlockPos pos, int amount) {
-        requireTop(helper, pos).fill(new FluidStack(Fluids.WATER, amount), IFluidHandler.FluidAction.EXECUTE);
+        TransferBridge.fill(requireTop(helper, pos), new FluidStack(Fluids.WATER, amount), false);
     }
 
     /** Places a channel item against {@code face} of the channel at {@code pos}, as a player would. */

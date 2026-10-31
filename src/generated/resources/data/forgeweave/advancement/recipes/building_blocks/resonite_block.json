@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:resonite_block"
+        "recipes": "forgeweave:resonite_block"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

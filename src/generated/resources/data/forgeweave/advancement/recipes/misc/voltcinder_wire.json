@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:voltcinder_wire"
+        "recipes": "forgeweave:voltcinder_wire"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

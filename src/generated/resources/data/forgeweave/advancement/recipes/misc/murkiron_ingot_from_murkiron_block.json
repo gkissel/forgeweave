@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:murkiron_ingot_from_murkiron_block"
+        "recipes": "forgeweave:murkiron_ingot_from_murkiron_block"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

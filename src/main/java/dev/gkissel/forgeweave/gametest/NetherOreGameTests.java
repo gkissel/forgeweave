@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.gametest;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
@@ -187,7 +188,9 @@ public class NetherOreGameTests {
 
         final int samples = 200;
         for (int i = 0; i < samples; i++) {
-            int y = modifier.getPositions(context, random, origin).findFirst().orElseThrow().getY();
+            List<BlockPos> positions = new ArrayList<>();
+            modifier.modify(context, random, origin, positions::add);
+            int y = positions.getFirst().getY();
             helper.assertTrue(y >= min && y <= max,
                     name + " sampled y=" + y + ", expected within [" + min + ", " + max + "]");
         }

@@ -1,5 +1,8 @@
 package dev.gkissel.forgeweave.gametest;
 
+import com.mojang.serialization.Dynamic;
+
+import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
@@ -8,7 +11,10 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.NbtUtils;
+import net.minecraft.util.datafix.DataFixers;
+import net.minecraft.util.datafix.fixes.References;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -81,8 +87,12 @@ public class ArmorStationMigrationGameTests {
         HolderLookup.Provider registries = helper.getLevel().registryAccess();
         ItemStack head = ToolAssembly.part(ForgeweaveItems.PART_PLATING_CHESTPLATE.get(), "iron");
 
-        BlockState loaded = NbtUtils.readBlockState(
-                helper.getLevel().holderLookup(Registries.BLOCK), savedBlockState());
+        // A chunk palette goes through the data fixer before it is read, and 26.3 renamed its
+        // Name/Properties keys; the fixture is what a 1.21.1 (data version 3955) world wrote.
+        CompoundTag upgraded = (CompoundTag) DataFixers.getDataFixer().update(References.BLOCK_STATE,
+                new Dynamic<>(NbtOps.INSTANCE, savedBlockState()), 3955,
+                SharedConstants.getCurrentVersion().dataVersion().version()).getValue();
+        BlockState loaded = NbtUtils.readBlockState(helper.getLevel().holderLookup(Registries.BLOCK), upgraded);
         helper.assertTrue(loaded.is(ForgeweaveBlocks.TOOL_STATION.get()),
                 OLD_ID + " must read back as a Tool Station, got " + loaded);
         helper.assertTrue(ForgeweaveBlockEntities.TOOL_STATION.get().isValid(loaded),

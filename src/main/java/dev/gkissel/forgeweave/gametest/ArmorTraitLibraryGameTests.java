@@ -70,7 +70,7 @@ public class ArmorTraitLibraryGameTests {
     /** One blow onto a healed, non-invulnerable player; what it cost them ({@link ArmorTraitGameTests}' own helper). */
     private static float lost(Player player, DamageSource source, float amount) {
         player.setHealth(player.getMaxHealth());
-        player.invulnerableTime = 0;
+        player.damageCooldownTime = 0;
         float before = player.getHealth();
         player.hurt(source, amount);
         return before - player.getHealth();
@@ -133,7 +133,7 @@ public class ArmorTraitLibraryGameTests {
     public static void emberdrinkTurnsFireIntoHealing(GameTestHelper helper) {
         Player player = wearing(helper, "emberdrink");
         player.setHealth(10.0F);
-        player.invulnerableTime = 0;
+        player.damageCooldownTime = 0;
         player.hurt(helper.getLevel().damageSources().inFire(), BLOW);
         helper.assertTrue(player.getHealth() > 10.0F,
                 "a fire blow must heal rather than hurt, health " + player.getHealth());
@@ -177,7 +177,7 @@ public class ArmorTraitLibraryGameTests {
         int before = worn(player).getDamageValue();
 
         player.setHealth(2.0F);
-        player.invulnerableTime = 0;
+        player.damageCooldownTime = 0;
         player.hurt(source, 40.0F);
         helper.assertTrue(player.getHealth() == 2.0F, "the killing blow must be negated, health " + player.getHealth());
         helper.assertTrue(worn(player).getDamageValue() == before + 100,
@@ -185,7 +185,7 @@ public class ArmorTraitLibraryGameTests {
         helper.assertTrue(worn(player).get(ForgeweaveDataComponents.DEATH_SAVE_COOLDOWN.get()) != null,
                 "and leave the cooldown on the piece");
 
-        player.invulnerableTime = 0;
+        player.damageCooldownTime = 0;
         player.hurt(source, 40.0F);
         helper.assertTrue(player.getHealth() < 2.0F, "a second killing blow inside the cooldown must land");
         helper.succeed();
@@ -196,12 +196,12 @@ public class ArmorTraitLibraryGameTests {
     public static void aegispulseLengthensTheInvulnerabilityWindow(GameTestHelper helper) {
         Player plain = wearing(helper);
         lost(plain, helper.getLevel().damageSources().generic(), BLOW);
-        helper.assertTrue(plain.invulnerableTime == 20, "vanilla's own window is 20, got " + plain.invulnerableTime);
+        helper.assertTrue(plain.damageCooldownTime == 20, "vanilla's own window is 20, got " + plain.damageCooldownTime);
 
         Player player = wearing(helper, "aegispulse");
         lost(player, helper.getLevel().damageSources().generic(), BLOW);
-        helper.assertTrue(player.invulnerableTime == 40,
-                "a blow at full health must buy 40 ticks, got " + player.invulnerableTime);
+        helper.assertTrue(player.damageCooldownTime == 40,
+                "a blow at full health must buy 40 ticks, got " + player.damageCooldownTime);
         helper.succeed();
     }
 
@@ -233,9 +233,9 @@ public class ArmorTraitLibraryGameTests {
         Zombie looker = zombie(helper);
 
         daytime(helper, NOON);
-        double lit = player.getVisibilityPercent(looker);
+        double lit = player.getVisibilityPercent(helper.getLevel(), looker);
         daytime(helper, MIDNIGHT);
-        double dark = player.getVisibilityPercent(looker);
+        double dark = player.getVisibilityPercent(helper.getLevel(), looker);
 
         helper.assertTrue(Math.abs(lit - 1.0) < 0.01, "broad daylight must not conceal anyone, got " + lit);
         helper.assertTrue(Math.abs(dark - 0.5) < 0.01, "darkness must halve visibility, got " + dark);

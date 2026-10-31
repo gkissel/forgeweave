@@ -26,11 +26,11 @@ public final class SecondaryDamage {
 
     /** @return whether the hit landed ({@code LivingEntity#hurt}'s own answer) */
     public static boolean deal(LivingEntity target, DamageSource source, float amount) {
-        int invulnerableTime = target.invulnerableTime;
+        int invulnerableTime = target.damageCooldownTime;
         float lastHurt = target.lastHurt;
-        target.invulnerableTime = 0;
+        target.damageCooldownTime = 0;
         boolean hit = target.level() instanceof ServerLevel level && target.hurtServer(level, source, amount);
-        target.invulnerableTime = invulnerableTime;
+        target.damageCooldownTime = invulnerableTime;
         if (hit) {
             target.lastHurt += lastHurt;
         }

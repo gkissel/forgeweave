@@ -186,10 +186,10 @@ public class WeaponInnateGameTests {
         DamageSource source = helper.getLevel().damageSources().playerAttack(player);
 
         Pig target = pig(helper, new BlockPos(3, 2, 3));
-        target.setInvulnerable(false);
+        target.setPermanentlyInvulnerable(false);
 
         for (int hit = 1; hit <= LacerateEffect.MAX_STACKS + 2; hit++) {
-            target.invulnerableTime = 0;
+            target.damageCooldownTime = 0;
             target.setHealth(target.getMaxHealth()); // the bleed itself is not what this test measures
             target.hurt(source, 1.0F);
 
@@ -233,7 +233,7 @@ public class WeaponInnateGameTests {
         int fires = 0;
         for (int duration = LacerateEffect.DURATION_TICKS; duration >= 1; duration--) {
             if (effect.shouldApplyEffectTickThisTick(duration, 0)) {
-                target.invulnerableTime = 0; // each simulated fire is a full second apart in game time
+                target.damageCooldownTime = 0; // each simulated fire is a full second apart in game time
                 effect.applyEffectTick(helper.getLevel(), target, 0);
                 fires++;
             }

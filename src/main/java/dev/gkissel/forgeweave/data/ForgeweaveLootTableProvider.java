@@ -2,10 +2,7 @@ package dev.gkissel.forgeweave.data;
 
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 
-import net.minecraft.core.HolderLookup;
-import net.minecraft.data.PackOutput;
 import net.minecraft.data.loot.LootTableProvider;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -16,10 +13,10 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
  * {@link ForgeweaveEntityLootSubProvider} as the entity-loot one (#451).
  */
 public class ForgeweaveLootTableProvider extends LootTableProvider {
-    public ForgeweaveLootTableProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> registries) {
-        super(output, Set.<ResourceKey<LootTable>>of(),
+    /** 26.3: loot tables are a datapack registry, so this is a registry bootstrap rather than a data provider. */
+    public ForgeweaveLootTableProvider() {
+        super(Set.<ResourceKey<LootTable>>of(),
                 List.of(new SubProviderEntry(ForgeweaveBlockLootSubProvider::new, LootContextParamSets.BLOCK),
-                        new SubProviderEntry(ForgeweaveEntityLootSubProvider::new, LootContextParamSets.ENTITY)),
-                registries);
+                        new SubProviderEntry(ForgeweaveEntityLootSubProvider::new, LootContextParamSets.ENTITY)));
     }
 }

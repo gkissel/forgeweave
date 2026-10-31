@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:starweld_plate"
+        "recipes": "forgeweave:starweld_plate"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

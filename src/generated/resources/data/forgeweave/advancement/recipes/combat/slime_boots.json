@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:slime_boots"
+        "recipes": "forgeweave:slime_boots"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

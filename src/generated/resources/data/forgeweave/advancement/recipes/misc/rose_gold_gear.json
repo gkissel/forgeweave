@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:rose_gold_gear"
+        "recipes": "forgeweave:rose_gold_gear"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:rose_gold_double_plate"
+        "recipes": "forgeweave:rose_gold_double_plate"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

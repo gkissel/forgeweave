@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:brimspar_dust"
+        "recipes": "forgeweave:brimspar_dust"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

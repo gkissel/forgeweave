@@ -171,7 +171,7 @@ public class ArmorGameTests {
      * ticks of spawn invulnerability that nothing here would ever count down.
      */
     private static Player wearing(GameTestHelper helper, ToolConstants.Entry entry) {
-        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        Player player = GameTestCompat.inAir(helper.makeMockPlayer(GameType.SURVIVAL));
         player.setItemSlot(EquipmentSlot.CHEST, piece(helper, player, ForgeweaveBlocks.TOOL_STATION.get(), entry));
         player.tick();
         return player;

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:tideiron_dust"
+        "recipes": "forgeweave:tideiron_dust"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:hollowstone_gear"
+        "recipes": "forgeweave:hollowstone_gear"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

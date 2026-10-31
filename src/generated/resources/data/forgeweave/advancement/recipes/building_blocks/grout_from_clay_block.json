@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:grout_from_clay_block"
+        "recipes": "forgeweave:grout_from_clay_block"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

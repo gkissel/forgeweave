@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:casting_table"
+        "recipes": "forgeweave:casting_table"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

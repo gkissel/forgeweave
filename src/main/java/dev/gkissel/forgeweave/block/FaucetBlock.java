@@ -4,8 +4,6 @@ import java.util.Map;
 
 import javax.annotation.Nullable;
 
-import com.mojang.serialization.MapCodec;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.core.Direction;
@@ -36,8 +34,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * stays up the faucet keeps pouring on its own (#207 -- see {@link FaucetBlockEntity}).
  */
 public class FaucetBlock extends Block implements EntityBlock {
-    public static final MapCodec<FaucetBlock> CODEC = simpleCodec(FaucetBlock::new);
-
     /** Upstream's {@code BlockFaucet.FACING}: the side the fluid comes from, never {@code DOWN}. */
     public static final EnumProperty<Direction> FACING = EnumProperty.create("facing", Direction.class,
             direction -> direction != Direction.DOWN);
@@ -53,11 +49,6 @@ public class FaucetBlock extends Block implements EntityBlock {
     public FaucetBlock(Properties properties) {
         super(properties);
         registerDefaultState(defaultBlockState().setValue(FACING, Direction.NORTH));
-    }
-
-    @Override
-    protected MapCodec<? extends FaucetBlock> codec() {
-        return CODEC;
     }
 
     @Override
@@ -114,7 +105,7 @@ public class FaucetBlock extends Block implements EntityBlock {
 
     /** Upstream's {@code canConnectRedstone}: dust routed at a faucet connects to it from any side. */
     @Override
-    public boolean canConnectRedstone(BlockState state, BlockGetter level, BlockPos pos, @Nullable Direction direction) {
+    protected boolean shouldRedstoneWireConnectTo(BlockState state, BlockGetter level, BlockPos pos, @Nullable Direction direction) {
         return true;
     }
 

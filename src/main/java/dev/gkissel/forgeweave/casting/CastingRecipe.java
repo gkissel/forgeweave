@@ -206,9 +206,9 @@ public record CastingRecipe(Station station, Optional<Ingredient> cast, Optional
      * Pours {@link #amount} of {@code poured} into the container in {@code slot}; {@code commit}
      * false is a simulation. The amount that went in, or -1 when the container holds no fluid at all.
      *
-     * <p>The table asks this from inside its own fill, which NeoForge's legacy fluid adapter already
-     * runs in a root transaction, so the pour nests in whatever transaction is open: a second root
-     * would throw.
+     * <p>The table asks this from inside its own fill, which can itself be running inside another
+     * mod's transaction (a pipe pouring in), so the pour nests in whatever transaction is open: a
+     * second root would throw.
      */
     private int fill(ItemStacksResourceHandler slot, Fluid poured, boolean commit) {
         ResourceHandler<FluidResource> handler = ItemAccess.forHandlerIndex(slot, 0).getCapability(Capabilities.Fluid.ITEM);

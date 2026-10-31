@@ -1,5 +1,8 @@
 package dev.gkissel.forgeweave.gametest;
 
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import dev.gkissel.forgeweave.gametest.GameTest;
@@ -13,10 +16,8 @@ import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
-import net.neoforged.neoforge.items.IItemHandler;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -94,12 +95,12 @@ public class SmelteryIoGameTests {
     @GameTest(template = "smeltery")
     public static void aDuctWithNoFilterPassesNothing(GameTestHelper helper) {
         BlockPos core = buildSmelteryWithIo(helper);
-        tankOf(helper, core).fill(new FluidStack(Fluids.LAVA, SOME), IFluidHandler.FluidAction.EXECUTE);
+        tankOf(helper, core).fill(new FluidStack(Fluids.LAVA, SOME), false);
 
-        IFluidHandler duct = requireFluids(helper, DUCT);
-        helper.assertTrue(duct.drain(SOME, IFluidHandler.FluidAction.EXECUTE).isEmpty(),
+        ResourceHandler<FluidResource> duct = requireFluids(helper, DUCT);
+        helper.assertTrue(TransferBridge.drain(duct, SOME, false).isEmpty(),
                 "expected an unfiltered duct to drain nothing");
-        helper.assertValueEqual(duct.fill(new FluidStack(Fluids.WATER, SOME), IFluidHandler.FluidAction.EXECUTE), 0,
+        helper.assertValueEqual(TransferBridge.fill(duct, new FluidStack(Fluids.WATER, SOME), false), 0,
                 "an unfiltered duct's fill");
         helper.succeed();
     }
@@ -114,26 +115,26 @@ public class SmelteryIoGameTests {
     @GameTest(template = "smeltery")
     public static void aDuctPassesOnlyItsFilteredFluid(GameTestHelper helper) {
         BlockPos core = buildSmelteryWithIo(helper);
-        tankOf(helper, core).fill(new FluidStack(Fluids.LAVA, SOME), IFluidHandler.FluidAction.EXECUTE);
-        IFluidHandler duct = requireFluids(helper, DUCT);
+        tankOf(helper, core).fill(new FluidStack(Fluids.LAVA, SOME), false);
+        ResourceHandler<FluidResource> duct = requireFluids(helper, DUCT);
 
         // A filter naming something else closes the duct even to what the smeltery does hold.
         setFilter(helper, new ItemStack(Items.WATER_BUCKET));
-        helper.assertTrue(duct.drain(SOME, IFluidHandler.FluidAction.EXECUTE).isEmpty(),
+        helper.assertTrue(TransferBridge.drain(duct, SOME, false).isEmpty(),
                 "expected a water-filtered duct to leave the smeltery's lava alone");
-        helper.assertValueEqual(duct.fill(new FluidStack(Fluids.LAVA, SOME), IFluidHandler.FluidAction.EXECUTE), 0,
+        helper.assertValueEqual(TransferBridge.fill(duct, new FluidStack(Fluids.LAVA, SOME), false), 0,
                 "a water-filtered duct's lava fill");
 
         setFilter(helper, new ItemStack(Items.LAVA_BUCKET));
-        helper.assertValueEqual(duct.fill(new FluidStack(Fluids.WATER, SOME), IFluidHandler.FluidAction.EXECUTE), 0,
+        helper.assertValueEqual(TransferBridge.fill(duct, new FluidStack(Fluids.WATER, SOME), false), 0,
                 "a lava-filtered duct's water fill");
-        helper.assertTrue(duct.drain(new FluidStack(Fluids.WATER, SOME), IFluidHandler.FluidAction.EXECUTE).isEmpty(),
+        helper.assertTrue(TransferBridge.drain(duct, new FluidStack(Fluids.WATER, SOME), false).isEmpty(),
                 "expected a lava-filtered duct to refuse to drain water");
 
-        FluidStack drained = duct.drain(SOME, IFluidHandler.FluidAction.EXECUTE);
+        FluidStack drained = TransferBridge.drain(duct, SOME, false);
         helper.assertTrue(drained.getFluid() == Fluids.LAVA, "expected the duct to drain lava, got " + drained);
         helper.assertValueEqual(drained.getAmount(), SOME, "drained lava");
-        helper.assertValueEqual(duct.fill(new FluidStack(Fluids.LAVA, SOME), IFluidHandler.FluidAction.EXECUTE), SOME,
+        helper.assertValueEqual(TransferBridge.fill(duct, new FluidStack(Fluids.LAVA, SOME), false), SOME,
                 "a lava-filtered duct's lava fill");
         helper.succeed();
     }
@@ -142,13 +143,13 @@ public class SmelteryIoGameTests {
     @GameTest(template = "smeltery")
     public static void aDuctFilterTakesOnlyAFilledContainer(GameTestHelper helper) {
         buildSmelteryWithIo(helper);
-        IItemHandler filter = requireItems(helper, DUCT);
+        ResourceHandler<ItemResource> filter = requireItems(helper, DUCT);
 
-        helper.assertTrue(!filter.insertItem(0, new ItemStack(Items.STICK), false).isEmpty(),
+        helper.assertTrue(!TransferBridge.insert(filter, 0, new ItemStack(Items.STICK), false).isEmpty(),
                 "expected the duct filter to refuse a stick");
-        helper.assertTrue(!filter.insertItem(0, new ItemStack(Items.BUCKET), false).isEmpty(),
+        helper.assertTrue(!TransferBridge.insert(filter, 0, new ItemStack(Items.BUCKET), false).isEmpty(),
                 "expected the duct filter to refuse an empty bucket");
-        helper.assertTrue(filter.insertItem(0, new ItemStack(Items.WATER_BUCKET), false).isEmpty(),
+        helper.assertTrue(TransferBridge.insert(filter, 0, new ItemStack(Items.WATER_BUCKET), false).isEmpty(),
                 "expected the duct filter to take a water bucket");
         helper.succeed();
     }
@@ -159,10 +160,10 @@ public class SmelteryIoGameTests {
     @GameTest(template = "smeltery")
     public static void aChuteInsertsItemsForMelting(GameTestHelper helper) {
         BlockPos core = buildSmelteryWithIo(helper);
-        IItemHandler chute = requireItems(helper, CHUTE);
+        ResourceHandler<ItemResource> chute = requireItems(helper, CHUTE);
 
-        helper.assertTrue(chute.getSlots() > 0, "expected the chute to expose the melting slots");
-        helper.assertTrue(chute.insertItem(0, new ItemStack(Items.IRON_INGOT), false).isEmpty(),
+        helper.assertTrue(chute.size() > 0, "expected the chute to expose the melting slots");
+        helper.assertTrue(TransferBridge.insert(chute, 0, new ItemStack(Items.IRON_INGOT), false).isEmpty(),
                 "expected the chute to take an iron ingot");
         helper.assertTrue(helper.getBlockEntity(core, SmelteryControllerBlockEntity.class).meltingItems().stream()
                         .anyMatch(stack -> stack.is(Items.IRON_INGOT)),
@@ -174,9 +175,9 @@ public class SmelteryIoGameTests {
     @GameTest(template = "smeltery")
     public static void aChuteRefusesWhatCannotMelt(GameTestHelper helper) {
         buildSmelteryWithIo(helper);
-        IItemHandler chute = requireItems(helper, CHUTE);
+        ResourceHandler<ItemResource> chute = requireItems(helper, CHUTE);
 
-        helper.assertTrue(!chute.insertItem(0, new ItemStack(Items.STICK), false).isEmpty(),
+        helper.assertTrue(!TransferBridge.insert(chute, 0, new ItemStack(Items.STICK), false).isEmpty(),
                 "expected the chute to refuse a stick");
         helper.succeed();
     }
@@ -185,10 +186,10 @@ public class SmelteryIoGameTests {
     @GameTest(template = "smeltery")
     public static void aChuteExtractsItemsBackOut(GameTestHelper helper) {
         BlockPos core = buildSmelteryWithIo(helper);
-        IItemHandler chute = requireItems(helper, CHUTE);
-        chute.insertItem(0, new ItemStack(Items.IRON_INGOT), false);
+        ResourceHandler<ItemResource> chute = requireItems(helper, CHUTE);
+        TransferBridge.insert(chute, 0, new ItemStack(Items.IRON_INGOT), false);
 
-        ItemStack taken = chute.extractItem(0, 1, false);
+        ItemStack taken = TransferBridge.extract(chute, 0, 1, false);
         helper.assertTrue(taken.is(Items.IRON_INGOT), "expected the chute to hand the ingot back, got " + taken);
         helper.assertTrue(helper.getBlockEntity(core, SmelteryControllerBlockEntity.class).meltingItems().stream()
                         .allMatch(ItemStack::isEmpty),
@@ -208,8 +209,8 @@ public class SmelteryIoGameTests {
     public static void anUnformedCoreExposesAnEmptyItemHandler(GameTestHelper helper) {
         BlockPos core = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
 
-        IItemHandler handler = requireItems(helper, core);
-        helper.assertValueEqual(handler.getSlots(), 0, "expected an unformed core's melting inventory to have no slots");
+        ResourceHandler<ItemResource> handler = requireItems(helper, core);
+        helper.assertValueEqual(handler.size(), 0, "expected an unformed core's melting inventory to have no slots");
         helper.succeed();
     }
 
@@ -218,12 +219,12 @@ public class SmelteryIoGameTests {
     public static void theCoreInsertsAndRefusesForMeltingDirectly(GameTestHelper helper) {
         SmelteryGameTests.buildWalls(helper, 1, 1, 2);
         BlockPos core = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
-        IItemHandler handler = requireItems(helper, core);
+        ResourceHandler<ItemResource> handler = requireItems(helper, core);
 
-        helper.assertTrue(handler.getSlots() > 0, "expected the formed core to expose the melting slots");
-        helper.assertTrue(!handler.insertItem(0, new ItemStack(Items.STICK), false).isEmpty(),
+        helper.assertTrue(handler.size() > 0, "expected the formed core to expose the melting slots");
+        helper.assertTrue(!TransferBridge.insert(handler, 0, new ItemStack(Items.STICK), false).isEmpty(),
                 "expected the core to refuse a stick");
-        helper.assertTrue(handler.insertItem(0, new ItemStack(Items.IRON_INGOT), false).isEmpty(),
+        helper.assertTrue(TransferBridge.insert(handler, 0, new ItemStack(Items.IRON_INGOT), false).isEmpty(),
                 "expected the core to take an iron ingot");
         helper.assertTrue(helper.getBlockEntity(core, SmelteryControllerBlockEntity.class).meltingItems().stream()
                         .anyMatch(stack -> stack.is(Items.IRON_INGOT)),
@@ -267,9 +268,9 @@ public class SmelteryIoGameTests {
 
     /** Replaces whatever is in the duct's filter slot with {@code container}. */
     private static void setFilter(GameTestHelper helper, ItemStack container) {
-        IItemHandler filter = requireItems(helper, DUCT);
-        filter.extractItem(0, 1, false);
-        helper.assertTrue(filter.insertItem(0, container, false).isEmpty(),
+        ResourceHandler<ItemResource> filter = requireItems(helper, DUCT);
+        TransferBridge.extract(filter, 0, 1, false);
+        helper.assertTrue(TransferBridge.insert(filter, 0, container, false).isEmpty(),
                 "expected the duct filter to take " + container);
     }
 
@@ -277,22 +278,22 @@ public class SmelteryIoGameTests {
         return helper.getBlockEntity(core, SmelteryControllerBlockEntity.class).tank();
     }
 
-    private static IFluidHandler fluids(GameTestHelper helper, BlockPos pos) {
+    private static ResourceHandler<FluidResource> fluids(GameTestHelper helper, BlockPos pos) {
         return TransferBridge.fluidAt(helper.getLevel(), helper.absolutePos(pos), null);
     }
 
-    private static IItemHandler items(GameTestHelper helper, BlockPos pos) {
+    private static ResourceHandler<ItemResource> items(GameTestHelper helper, BlockPos pos) {
         return TransferBridge.itemsAt(helper.getLevel(), helper.absolutePos(pos), null);
     }
 
-    private static IFluidHandler requireFluids(GameTestHelper helper, BlockPos pos) {
-        IFluidHandler handler = fluids(helper, pos);
+    private static ResourceHandler<FluidResource> requireFluids(GameTestHelper helper, BlockPos pos) {
+        ResourceHandler<FluidResource> handler = fluids(helper, pos);
         helper.assertTrue(handler != null, "expected a fluid handler at " + pos);
         return handler;
     }
 
-    private static IItemHandler requireItems(GameTestHelper helper, BlockPos pos) {
-        IItemHandler handler = items(helper, pos);
+    private static ResourceHandler<ItemResource> requireItems(GameTestHelper helper, BlockPos pos) {
+        ResourceHandler<ItemResource> handler = items(helper, pos);
         helper.assertTrue(handler != null, "expected an item handler at " + pos);
         return handler;
     }

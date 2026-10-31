@@ -2,8 +2,6 @@ package dev.gkissel.forgeweave.block;
 
 import javax.annotation.Nullable;
 
-import com.mojang.serialization.MapCodec;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.core.Direction;
@@ -39,16 +37,9 @@ import net.minecraft.world.phys.BlockHitResult;
  */
 public class SearedReservoirControllerBlock extends HorizontalDirectionalBlock implements EntityBlock {
     public static final BooleanProperty ACTIVE = SmelteryControllerBlock.ACTIVE;
-    private static final MapCodec<SearedReservoirControllerBlock> CODEC = simpleCodec(SearedReservoirControllerBlock::new);
-
     public SearedReservoirControllerBlock(Properties properties) {
         super(properties);
         registerDefaultState(defaultBlockState().setValue(FACING, Direction.NORTH).setValue(ACTIVE, false));
-    }
-
-    @Override
-    protected MapCodec<? extends SearedReservoirControllerBlock> codec() {
-        return CODEC;
     }
 
     @Override

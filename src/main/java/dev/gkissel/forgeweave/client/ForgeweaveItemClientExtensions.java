@@ -110,7 +110,7 @@ public final class ForgeweaveItemClientExtensions {
             public HumanoidModel.ArmPose getArmPose(LivingEntity holder, InteractionHand hand, ItemStack stack) {
                 return crossbowArmPose(stack,
                         holder.getUsedItemHand() == hand && holder.getUseItemRemainingTicks() > 0,
-                        holder.swinging);
+                        holder.isSwinging());
             }
         };
         for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {

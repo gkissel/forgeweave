@@ -5,7 +5,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
+import dev.gkissel.forgeweave.block.TransferBridge;
 
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 
@@ -44,7 +44,7 @@ public final class GuideBookGift {
         if (persisted.getBooleanOr(GIVEN_KEY, false)) {
             return;
         }
-        ItemHandlerHelper.giveItemToPlayer(player, new ItemStack(ForgeweaveItems.GUIDE_BOOK.get()));
+        TransferBridge.giveItemToPlayer(player, new ItemStack(ForgeweaveItems.GUIDE_BOOK.get()));
         persisted.putBoolean(GIVEN_KEY, true);
         root.put(PLAYER_PERSISTED_TAG, persisted);
     }

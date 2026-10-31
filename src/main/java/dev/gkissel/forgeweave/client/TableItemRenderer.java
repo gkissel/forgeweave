@@ -131,7 +131,7 @@ final class TableItemRenderer {
         poseStack.pushPose();
         poseStack.translate(0.5f + item.x(), item.centerY(), 0.5f + item.z());
         if (item.flat()) {
-            poseStack.mulPose(Axis.XP.rotationDegrees(-90f));
+            poseStack.rotateDegrees(Axis.XP, -90f);
             poseStack.scale(item.scale(), item.scale(), FLAT_THICKNESS / ITEM_MODEL_DEPTH);
         } else {
             poseStack.scale(item.scale(), item.scale(), item.scale());

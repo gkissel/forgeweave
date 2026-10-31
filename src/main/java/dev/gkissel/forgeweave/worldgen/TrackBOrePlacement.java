@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.worldgen;
 
+import java.util.function.Consumer;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -16,7 +17,6 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.levelgen.placement.PlacementContext;
 import net.minecraft.world.level.levelgen.placement.PlacementModifier;
-import net.minecraft.world.level.levelgen.placement.PlacementModifierType;
 
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -38,16 +38,16 @@ import dev.gkissel.forgeweave.config.ForgeweaveConfig;
  * <p>No NOTICE.md row -- a novel placement modifier type, not ported code (same reasoning as
  * {@code NetherOrePlacement}'s own javadoc).
  */
-public class TrackBOrePlacement extends PlacementModifier {
-    public static final DeferredRegister<PlacementModifierType<?>> PLACEMENT_MODIFIERS =
+public class TrackBOrePlacement implements PlacementModifier {
+    public static final DeferredRegister<MapCodec<? extends PlacementModifier>> PLACEMENT_MODIFIERS =
             DeferredRegister.create(Registries.PLACEMENT_MODIFIER_TYPE, Forgeweave.MODID);
 
     public static final MapCodec<TrackBOrePlacement> CODEC = RecordCodecBuilder.mapCodec(instance -> instance
             .group(com.mojang.serialization.Codec.INT.fieldOf("count").forGetter(TrackBOrePlacement::count))
             .apply(instance, TrackBOrePlacement::new));
 
-    public static final DeferredHolder<PlacementModifierType<?>, PlacementModifierType<TrackBOrePlacement>> TYPE =
-            PLACEMENT_MODIFIERS.register("track_b_ore_rate", () -> () -> CODEC);
+    public static final DeferredHolder<MapCodec<? extends PlacementModifier>, MapCodec<TrackBOrePlacement>> TYPE =
+            PLACEMENT_MODIFIERS.register("track_b_ore_rate", () -> CODEC);
 
     /**
      * Allthemodium's own mining dimension (issue #998, D-M8-19), reused unqualified rather than
@@ -80,7 +80,6 @@ public class TrackBOrePlacement extends PlacementModifier {
      * {@code null} context to exercise {@code genTrackBOres} alone, predating this method needing a
      * real level at all.
      */
-    @Override
     public Stream<BlockPos> getPositions(PlacementContext context, RandomSource random, BlockPos pos) {
         ResourceKey<Level> dimension = context == null ? null : context.getLevel().getLevel().dimension();
         int effective = allowed(dimension) ? count : 0;
@@ -100,8 +99,14 @@ public class TrackBOrePlacement extends PlacementModifier {
         return trackBOn && allowedHere;
     }
 
+    /** 26.3's push-style {@code PlacementModifier} entry point, fed from {@link #getPositions}. */
     @Override
-    public PlacementModifierType<?> type() {
+    public void modify(PlacementContext context, RandomSource random, BlockPos origin, Consumer<BlockPos> output) {
+        getPositions(context, random, origin).forEach(output);
+    }
+
+    @Override
+    public MapCodec<TrackBOrePlacement> codec() {
         return TYPE.get();
     }
 }

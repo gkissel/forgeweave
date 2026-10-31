@@ -18,7 +18,6 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.material.Fluid;
 
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
@@ -56,8 +55,8 @@ public class ModernMaterialGameTests {
     @GameTest(template = "smeltery")
     public static void copperAndAmethystAlloyIntoAmethystBronze(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = smeltery(helper);
-        core.tank().fill(new FluidStack(ForgeweaveFluids.COPPER.still().get(), 90), IFluidHandler.FluidAction.EXECUTE);
-        core.tank().fill(new FluidStack(ForgeweaveFluids.AMETHYST.still().get(), 100), IFluidHandler.FluidAction.EXECUTE);
+        core.tank().fill(new FluidStack(ForgeweaveFluids.COPPER.still().get(), 90), false);
+        core.tank().fill(new FluidStack(ForgeweaveFluids.AMETHYST.still().get(), 100), false);
 
         helper.assertValueEqual(core.tank().fluids().size(), 1, "distinct fluids left in the tank");
         helper.assertTrue(core.tank().getFluid().getFluid() == ForgeweaveFluids.AMETHYST_BRONZE.still().get(),
@@ -216,7 +215,7 @@ public class ModernMaterialGameTests {
     private static CastingBlockEntity rig(GameTestHelper helper, Fluid fluid) {
         helper.setBlock(TANK, ForgeweaveBlocks.SEARED_TANK.get());
         helper.getBlockEntity(TANK, SearedTankBlockEntity.class).tank()
-                .fill(new FluidStack(fluid, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
+                .fill(new FluidStack(fluid, SearedTankBlockEntity.CAPACITY), false);
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_TABLE.get());
         helper.setBlock(FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
                 .setValue(FaucetBlock.FACING, Direction.WEST));

@@ -13,7 +13,7 @@
     },
     "has_the_recipe": {
       "conditions": {
-        "recipe": "forgeweave:mendalloy_gear"
+        "recipes": "forgeweave:mendalloy_gear"
       },
       "trigger": "minecraft:recipe_unlocked"
     }

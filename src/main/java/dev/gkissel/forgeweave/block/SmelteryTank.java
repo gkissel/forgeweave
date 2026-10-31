@@ -17,7 +17,6 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 
 /**
  * A smeltery's molten contents: an <em>ordered list</em> of fluids sharing one capacity, ported from
@@ -29,10 +28,10 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandler;
  * #101) moves it to index 0 via {@link #moveToBottom}, which is upstream's {@code moveFluidToBottom}
  * and the only reason a player can choose <em>which</em> metal comes out of a mixed smeltery.
  *
- * <p>Issue #95 shipped the core with a single-fluid {@link
+ * <p>Issue #95 shipped the core with a single-fluid {@code
  * net.neoforged.neoforge.fluids.capability.templates.FluidTank} as a placeholder, which cannot
  * express any of that -- a smeltery holding iron would have refused to accept copper at all. This
- * replaces it, keeping the {@link IFluidHandler} surface {@link SearedDrainBlockEntity} and the
+ * replaces it, keeping the fill/drain surface {@link SearedDrainBlockEntity} and the
  * melting work (#96) use unchanged: {@link #fill} still returns the amount actually accepted (0 when
  * there is no room), and {@link #getCapacity()}/{@link #getFluidAmount()} still describe the whole
  * store, which is what #96 gates melting on.
@@ -41,7 +40,7 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandler;
  * dirty and push a block update; the GUI reads the client-side copy of the block entity rather than
  * a menu payload of its own, exactly as upstream's smeltery screen reads its tile.
  */
-public class SmelteryTank implements IFluidHandler {
+public class SmelteryTank extends TransferBridge.FluidStore {
     private static final String TAG_FLUIDS = "fluids";
     /** NeoForge {@code FluidTank}'s own key, which issue #95's single-fluid tank saved under. */
     private static final String LEGACY_TAG_FLUID = "Fluid";
@@ -115,7 +114,7 @@ public class SmelteryTank implements IFluidHandler {
         return true;
     }
 
-    /* IFluidHandler */
+    /* Fill and drain (TransferBridge.FluidStore) */
 
     @Override
     public int getTanks() {
@@ -147,7 +146,7 @@ public class SmelteryTank implements IFluidHandler {
      * are capped by the room left across the whole store.
      */
     @Override
-    public int fill(FluidStack resource, FluidAction action) {
+    public int fill(FluidStack resource, boolean simulate) {
         if (resource.isEmpty()) {
             return 0;
         }
@@ -155,7 +154,7 @@ public class SmelteryTank implements IFluidHandler {
         if (usable <= 0) {
             return 0;
         }
-        if (action.simulate()) {
+        if (simulate) {
             return usable;
         }
         for (FluidStack fluid : fluids) {
@@ -172,12 +171,12 @@ public class SmelteryTank implements IFluidHandler {
 
     /** Upstream's {@code drain(int)}: whatever is at the bottom is what comes out. */
     @Override
-    public FluidStack drain(int maxDrain, FluidAction action) {
-        return fluids.isEmpty() ? FluidStack.EMPTY : drain(getFluid().copyWithAmount(maxDrain), action);
+    public FluidStack drain(int maxDrain, boolean simulate) {
+        return fluids.isEmpty() ? FluidStack.EMPTY : drain(getFluid().copyWithAmount(maxDrain), simulate);
     }
 
     @Override
-    public FluidStack drain(FluidStack resource, FluidAction action) {
+    public FluidStack drain(FluidStack resource, boolean simulate) {
         ListIterator<FluidStack> iterator = fluids.listIterator();
         while (iterator.hasNext()) {
             FluidStack fluid = iterator.next();
@@ -185,7 +184,7 @@ public class SmelteryTank implements IFluidHandler {
                 continue;
             }
             int drainable = Math.min(resource.getAmount(), fluid.getAmount());
-            if (action.execute()) {
+            if (!simulate) {
                 fluid.shrink(drainable);
                 if (fluid.isEmpty()) {
                     iterator.remove();
@@ -200,16 +199,20 @@ public class SmelteryTank implements IFluidHandler {
     /* Transactions (see TransferBridge): a deep copy of the melt, and putting one back. */
 
     private final TransferBridge.State<List<FluidStack>> transferState = TransferBridge.State.of(this::snapshot, this::restore);
-    private final ResourceHandler<FluidResource> transferHandler = TransferBridge.fluids(this, transferState);
 
-    /** The melt's one transaction journal; every bridge over this tank (drain, duct, core) must use it. */
+    /** The melt's one transaction journal; every store over this tank (drain, duct, core) must use it. */
     TransferBridge.State<List<FluidStack>> transferState() {
         return transferState;
     }
 
-    /** This tank as the 21.9 transfer API sees it. */
+    @Override
+    protected TransferBridge.State<?> state() {
+        return transferState;
+    }
+
+    /** This tank as the transfer API sees it: itself. */
     public ResourceHandler<FluidResource> transferHandler() {
-        return transferHandler;
+        return this;
     }
 
     List<FluidStack> snapshot() {
@@ -265,7 +268,7 @@ public class SmelteryTank implements IFluidHandler {
     /**
      * Reads the single-fluid shape issue #95 saved before this class existed.
      *
-     * <p>#95 stored the tank as a NeoForge {@link
+     * <p>#95 stored the tank as a NeoForge {@code
      * net.neoforged.neoforge.fluids.capability.templates.FluidTank}, whose {@code writeToNBT} puts
      * one fluid under {@code "Fluid"} rather than a list. Every world saved on master before #101
      * has that shape, and without this the smeltery silently comes back empty -- a full 9x9 of

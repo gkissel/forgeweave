@@ -3,8 +3,6 @@ package dev.gkissel.forgeweave.block;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.core.component.DataComponentGetter;
-import net.neoforged.neoforge.transfer.item.ItemResource;
-import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.minecraft.world.Containers;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,9 +32,6 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
-import net.neoforged.neoforge.items.wrapper.InvWrapper;
 
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.menu.ChestMenu;
@@ -57,10 +52,10 @@ import dev.gkissel.forgeweave.menu.StationGroup;
  * back ({@code ChestMenu}/{@code ChestScreen}), so the capacity is upstream's own one-slot step
  * again. No NOTICE.md row: ported semantics, not copied code.
  *
- * <p>Exposes its inventory as an {@link IItemHandler} capability ({@link #registerCapabilities})
+ * <p>Exposes its inventory as an item-handler capability ({@link #registerCapabilities})
  * so any adjacent station's side-inventory panel ({@link SideInventory#find}) picks it up
- * automatically, the same as a vanilla chest already does -- {@link IItemHandler#getSlots()}
- * (NeoForge's {@code InvWrapper} delegates straight to {@link Container#getContainerSize()})
+ * automatically, the same as a vanilla chest already does -- its slot count
+ * ({@link TransferBridge.ContainerItems} reads it straight from {@link Container#getContainerSize()})
  * reports the chest's *current* capacity, so a neighbor's side panel only ever sees as many slots
  * as the chest currently has, exactly like it does for a vanilla chest. {@code SideInventorySlots}
  * already scrolls a panel whose neighbor has more slots than fit on screen (issue #68), so this
@@ -76,16 +71,14 @@ public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
 
     private final ChestKind kind;
     private final FilteredContainer container;
-    /** The container in the old item-handler shape, which the insertion helpers below use. */
-    private final InvWrapper slots;
-    private final ResourceHandler<ItemResource> itemHandler;
+    /** The container as an item store: what the capability hands out and the insertion helpers below use. */
+    private final TransferBridge.ContainerItems slots;
 
     public ChestBlockEntity(BlockPos pos, BlockState state, ChestKind kind) {
         super(kind.blockEntityType().get(), pos, state);
         this.kind = kind;
         this.container = new FilteredContainer(kind, this::setChanged);
-        this.slots = new InvWrapper(container);
-        this.itemHandler = TransferBridge.items(slots);
+        this.slots = TransferBridge.items(container);
     }
 
     public ChestKind kind() {
@@ -157,8 +150,9 @@ public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
         super.applyImplicitComponents(componentInput);
         ItemContainerContents stored = componentInput.get(DataComponents.CONTAINER);
         if (stored != null) {
-            for (int slot = 0; slot < stored.getSlots() && slot < MAX_SLOTS; slot++) {
-                container.setItem(slot, stored.getStackInSlot(slot));
+            List<ItemStack> items = stored.itemCopies().limit(MAX_SLOTS).toList();
+            for (int slot = 0; slot < items.size(); slot++) {
+                container.setItem(slot, items.get(slot));
             }
         }
     }
@@ -197,7 +191,7 @@ public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
         if (held.isEmpty()) {
             return false;
         }
-        ItemStack remainder = ItemHandlerHelper.insertItem(slots, held, false);
+        ItemStack remainder = TransferBridge.insert(slots, held, false);
         if (remainder.getCount() == held.getCount()) {
             return false;
         }
@@ -220,23 +214,23 @@ public class ChestBlockEntity extends BlockEntity implements StationMenuHost {
     /** Wires {@link Capabilities.Item#BLOCK} for both chest types; called from {@code Forgeweave}'s constructor. */
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(Capabilities.Item.BLOCK, ForgeweaveBlockEntities.PATTERN_CHEST.get(),
-                (blockEntity, side) -> blockEntity.itemHandler);
+                (blockEntity, side) -> blockEntity.slots);
         event.registerBlockEntity(Capabilities.Item.BLOCK, ForgeweaveBlockEntities.PART_CHEST.get(),
-                (blockEntity, side) -> blockEntity.itemHandler);
+                (blockEntity, side) -> blockEntity.slots);
     }
 
     /**
      * A {@link SimpleContainer} that only accepts items {@link ChestKind#accepts} -- enforced here
-     * so both the {@link IItemHandler} capability (automation/side-panel insertion, via {@link
-     * InvWrapper#isItemValid} delegating to {@link #canPlaceItem}) and the GUI slots ({@code
+     * so both the item capability (automation/side-panel insertion, via {@link
+     * TransferBridge.ContainerItems#isItemValid} delegating to {@link #canPlaceItem}) and the GUI slots ({@code
      * ChestMenu}'s {@code ChestSlot}) share one source of truth, matching upstream's single
      * {@code isItemValidForSlot} check (NOTICE.md, {@link ChestKind}).
      *
      * <p>Also owns the self-expanding capacity (class javadoc, issue #305): {@link
      * #getContainerSize()} reports the current logical {@code capacity} rather than the fixed
      * {@value #MAX_SLOTS}-slot backing array, mirroring upstream's {@code
-     * getSizeInventory()}/{@code actualSize} split -- so both the {@link IItemHandler} capability
-     * ({@code InvWrapper#getSlots} delegates straight to this) and {@code ChestMenu}'s scroll
+     * getSizeInventory()}/{@code actualSize} split -- so both the item capability
+     * ({@code ContainerItems#getSlots} delegates straight to this) and {@code ChestMenu}'s scroll
      * window see the same grown-or-not number.
      */
     private static final class FilteredContainer extends SimpleContainer {

@@ -2,16 +2,16 @@
 # Fight. On 26.1.2 Better Combat needs Player Animation Library (player_animation_library) instead of
 # playerAnimator, which has no 26.1.2 build.
 
-mod modrinth jei 30.48.0.244 eb9c66808518b5f78e624dfd38c8a541daa19948f0269e42c3d9e6c24f72a8f401124572c1f6be8c711c491301df7a441c7d9db12da1943b8717971e73ede5a9 jei-26.2-neoforge-30.48.0.244.jar
-mod modrinth better-combat 3.2.2+26.2-neoforge 6770d417dbf459126e8d9bb76b8ecf706f1823a25cdba04e32794813af72c694d4692213b460c2a69f3203e851befa9ae49d75de93234d3672a13d1cc4c920c5 bettercombat-neoforge-3.2.2+26.2.jar
-mod modrinth player-animation-library 1.2.8 6ddb2a1cfd71a5022210c68fcc0524ab4ddd08538b7a5892fa51395fcdbb70ab43ab1d8acad2300ab02065fc068616537b710d4e2ce1576943dc15e208cc4853 PlayerAnimationLibMerged-1.2.8+mc.26.2.jar
-mod modrinth cloth-config 26.2.155+neoforge 3f7ea8108d8c0463764e419f3fe7d4d7f586b6fb7d2578de85f709b70d59587060a07c0fe02d5b79ed37e74850dd088caace40f8baefb4402df8139d076dc662 cloth-config-26.2.155.jar
+mod modrinth jei 31.17.0.100 bdedfbdd72840e8fadd67d400aa4d6a91960ded85c0acf7ec4d482edbb4c5618b0ec08a0d068fb5e38aa9a32769cae479f4c333717b1049408786f325887051c jei-26.3-neoforge-31.17.0.100.jar
+mod modrinth better-combat 3.2.2+26.3-neoforge 2ad3584995acc8bc7693942a150d674a9147651c2103f6d8225eb61203c04cd19c8cd8f0fdf530ff6ddd6fc7c061f5d80ecd1df225b84390675d78b69fcb4843 bettercombat-neoforge-3.2.2+26.3.jar
+mod modrinth player-animation-library 1.2.8 d6870759e2f5f83c6a74b2d02aeabab937d6d8da8c46245566646bc6e8efaeeb06c978edc43a50b57a0de2d015b341c284382bc5d4ae2e450d1b6aa5f8e2e97e PlayerAnimationLibMerged-1.2.8+mc.26.3.jar
+mod modrinth cloth-config 26.3.159+neoforge 941dd8aab50d658cfa6da071dacd05802c7097643ad569935d0073b39231a2137f2ade2403b791f70cf5ebf1649d7b6337862568a8b340c88e5d364569f94431 cloth-config-neoforge-26.3.159.jar
 # 1.21.1:
 # mod modrinth jei 19.43.0.393 04ea7c24a00b980851a34b71899c44731df5b830feafe4172641ae5f42432aabd34ba2ea57fa8f0577823bed0212c4214d409a8ea2060038deed0e8e7e237e81 jei-1.21.1-neoforge-19.43.0.393.jar
 # mod modrinth better-combat 2.4.0+1.21.1-neoforge db24730a42ae7e2dd546ee031d2f5e0dd6f9896418417a529fa21a44121761ebb29c8b8299db8f20500f7497f7b60a7d793b66c93abf37a8ea0aa3edafd80eb6 bettercombat-neoforge-2.4.0+1.21.1.jar
 # mod modrinth playeranimator 2.0.4+1.21.1-forge fc00450fb6c95ec1779021bdc726122dacb5915c6baddaacc981cd221b01b8db35f2a0dfde5d6fa6766d877266dc82f58854f571ea53cc5c4d468b80e1548a5f player-animation-lib-forge-2.0.4+1.21.1.jar
 # mod modrinth cloth-config 15.0.140+neoforge aaf9b010955b8cd294e5a92f069985b18729fd5e2cf22d351f1dff9680f15488688803ec41e77e941cbde130ceb535014ca4c868047d80ab69c2d508e216654d cloth-config-15.0.140-neoforge.jar
-recipes 2221
+recipes 2678
 materials 80
 
 # 26.1.2:
@@ -19,3 +19,9 @@ materials 80
 # mod modrinth better-combat 3.2.2+26.1.2-neoforge d55afc070d7cf8e56f98147d647111976cacc3bfc5fbd42e3d917d083b996ff709d4baa13ed9afe3e0546a09f85ea32adfbe9fb8d171b883e4e371bb82025c4c bettercombat-neoforge-3.2.2+26.1.2.jar
 # mod modrinth player-animation-library 1.2.8 5e259e531dd667ec58eca115d52b828411309112db5d1aa9331a8ead905a613a3f80cb3eec6d0fddabf2e59eadcef3f0dd6aab45012866af8388456feefc4e8c PlayerAnimationLibMerged-1.2.8+mc.26.1.jar
 # mod modrinth cloth-config 26.1.154+neoforge b3084e992459c211617bf5247a94b93c06823277932341e7cec98602a6c6e21ca599aae5e552868ae7a60aac6ec33f3a9cee11615667470483948b3e349d3caf cloth-config-26.1.154.jar
+
+# 26.2:
+# mod modrinth jei 30.48.0.244 eb9c66808518b5f78e624dfd38c8a541daa19948f0269e42c3d9e6c24f72a8f401124572c1f6be8c711c491301df7a441c7d9db12da1943b8717971e73ede5a9 jei-26.2-neoforge-30.48.0.244.jar
+# mod modrinth better-combat 3.2.2+26.2-neoforge 6770d417dbf459126e8d9bb76b8ecf706f1823a25cdba04e32794813af72c694d4692213b460c2a69f3203e851befa9ae49d75de93234d3672a13d1cc4c920c5 bettercombat-neoforge-3.2.2+26.2.jar
+# mod modrinth player-animation-library 1.2.8 6ddb2a1cfd71a5022210c68fcc0524ab4ddd08538b7a5892fa51395fcdbb70ab43ab1d8acad2300ab02065fc068616537b710d4e2ce1576943dc15e208cc4853 PlayerAnimationLibMerged-1.2.8+mc.26.2.jar
+# mod modrinth cloth-config 26.2.155+neoforge 3f7ea8108d8c0463764e419f3fe7d4d7f586b6fb7d2578de85f709b70d59587060a07c0fe02d5b79ed37e74850dd088caace40f8baefb4402df8139d076dc662 cloth-config-26.2.155.jar
