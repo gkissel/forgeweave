@@ -7,7 +7,6 @@ import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -32,7 +31,6 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.enchantment.Enchantment;
 
 import dev.gkissel.forgeweave.Forgeweave;
-import dev.gkissel.forgeweave.client.StationText;
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisAffixes; // #970
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
 import dev.gkissel.forgeweave.compat.mekanism.modules.MekanismGearModules; // #994
@@ -251,12 +249,16 @@ public class ArmorPieceItem extends ArmorItem {
      * real {@code ElytraItem} this, but the hook is on {@code Item}, so a heavy chestplate carrying
      * the modifier answers the same way a real elytra would. Never while Broken, the same gate every
      * other worn behavior on this class uses.
+     *
+     * <p>Never once the chestplate also carries creative flight, which replaces the glide. Otherwise
+     * a jump in mid-air meant to start flying opens the wings instead.
      */
     @Override
     public boolean canElytraFly(ItemStack stack, LivingEntity entity) {
         // #994: a powered Mekanism elytra unit is a second, independent grant of the same glide.
         // Ored, not anded: two grants are no better than one, and neither takes the other away.
         return (ForgeweaveModifiers.grantsElytraFlight(stack) || MekanismGearModules.grantsElytraFlight(stack))
+                && !ForgeweaveModifiers.grantsCreativeFlight(stack)
                 && !ToolItem.isBroken(stack);
     }
 
@@ -321,15 +323,9 @@ public class ArmorPieceItem extends ArmorItem {
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
         super.appendHoverText(stack, context, tooltip, flag);
-        if (stats(stack) == null) {
-            return;
+        ToolTooltip.appendArmor(stack, context.registries(), ToolTooltip.detailed(flag), tooltip);
+        if (stats(stack) != null) {
+            ToolTooltip.appendShiftHint(ToolTooltip.shiftHint(flag), tooltip);
         }
-        if (ToolItem.isBroken(stack)) {
-            tooltip.add(Component.translatable("tooltip.forgeweave.durability")
-                    .append(": ")
-                    .append(Component.translatable("tooltip.forgeweave.broken")
-                            .withStyle(ChatFormatting.DARK_RED, ChatFormatting.BOLD)));
-        }
-        tooltip.addAll(StationText.armorStats(stack));
     }
 }

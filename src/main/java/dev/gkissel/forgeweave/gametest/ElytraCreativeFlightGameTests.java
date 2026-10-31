@@ -193,6 +193,18 @@ public class ElytraCreativeFlightGameTests {
         helper.succeed();
     }
 
+    /** Creative flight replaces the glide: the same chestplate stops answering {@code canElytraFly} once it has both. */
+    @GameTest(template = "empty")
+    public static void creativeFlightTurnsTheElytraGlideOff(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack flying = apply(helper, player, heavyChestplate(helper, player), new ItemStack(Items.ELYTRA));
+        helper.assertTrue(flying.canElytraFly(player), "elytra flight alone still glides");
+
+        ItemStack both = apply(helper, player, flying, new ItemStack(Items.END_CRYSTAL), new ItemStack(Items.NETHER_STAR));
+        helper.assertTrue(!both.canElytraFly(player), "a chestplate with creative flight must not open the wings");
+        helper.succeed();
+    }
+
     /** {@code requiresElytraFlightFirst()}: the combo is still refused without elytra flight already on the piece. */
     @GameTest(template = "empty")
     public static void creativeFlightComboStillRequiresElytraFlightFirst(GameTestHelper helper) {
