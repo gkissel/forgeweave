@@ -1,12 +1,12 @@
 package dev.gkissel.forgeweave.gametest;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.level.block.Blocks;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -40,13 +40,13 @@ public class SmelteryWallTagGameTests {
         helper.setBlock(vanillaWallBlock, Blocks.DIAMOND_BLOCK);
         BlockPos core = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
 
-        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core);
+        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core, SmelteryControllerBlockEntity.class);
         helper.assertTrue(blockEntity.isFormed(),
                 "expected a datapack-tagged vanilla block to be accepted as a wall: " + reason(helper, core));
         helper.succeed();
     }
 
     private static String reason(GameTestHelper helper, BlockPos core) {
-        return helper.<SmelteryControllerBlockEntity>getBlockEntity(core).lastResult().getString();
+        return helper.getBlockEntity(core, SmelteryControllerBlockEntity.class).lastResult().getString();
     }
 }

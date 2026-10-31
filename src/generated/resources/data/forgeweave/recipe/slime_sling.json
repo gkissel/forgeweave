@@ -2,15 +2,9 @@
   "type": "forgeweave:gated_shaped",
   "category": "equipment",
   "key": {
-    "B": {
-      "item": "minecraft:slime_ball"
-    },
-    "C": {
-      "item": "forgeweave:green_congealed_slime"
-    },
-    "S": {
-      "item": "minecraft:string"
-    }
+    "B": "minecraft:slime_ball",
+    "C": "forgeweave:green_congealed_slime",
+    "S": "minecraft:string"
   },
   "pattern": [
     "SCS",
@@ -18,7 +12,6 @@
     " B "
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:slime_sling"
   }
 }

@@ -2,7 +2,7 @@ package dev.gkissel.forgeweave.gametest;
 
 import java.util.List;
 
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
@@ -11,8 +11,8 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.block.Block;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -57,9 +57,9 @@ public class SearedStairsSlabsGameTests {
                 block, block, empty,
                 block, block, block));
 
-        ItemStack crafted = level.getRecipeManager()
+        ItemStack crafted = level.recipeAccess()
                 .getRecipeFor(RecipeType.CRAFTING, input, level)
-                .map(match -> match.value().assemble(input, level.registryAccess()))
+                .map(match -> match.value().assemble(input))
                 .orElse(ItemStack.EMPTY);
 
         helper.assertTrue(crafted.is(ForgeweaveBlocks.SEARED_STAIRS_STONE.get().asItem()) && crafted.getCount() == 4,
@@ -73,9 +73,9 @@ public class SearedStairsSlabsGameTests {
         ItemStack block = new ItemStack(ForgeweaveBlocks.SEARED_CREEPER.get());
         CraftingInput input = CraftingInput.of(3, 1, List.of(block, block, block));
 
-        ItemStack crafted = level.getRecipeManager()
+        ItemStack crafted = level.recipeAccess()
                 .getRecipeFor(RecipeType.CRAFTING, input, level)
-                .map(match -> match.value().assemble(input, level.registryAccess()))
+                .map(match -> match.value().assemble(input))
                 .orElse(ItemStack.EMPTY);
 
         helper.assertTrue(crafted.is(ForgeweaveBlocks.SEARED_SLAB_CREEPER.get().asItem()) && crafted.getCount() == 6,
@@ -90,9 +90,9 @@ public class SearedStairsSlabsGameTests {
         ItemStack brickItem = new ItemStack(ForgeweaveItems.SEARED_BRICK.get());
         CraftingInput input = CraftingInput.of(2, 1, List.of(brickItem, brickItem));
 
-        ItemStack crafted = level.getRecipeManager()
+        ItemStack crafted = level.recipeAccess()
                 .getRecipeFor(RecipeType.CRAFTING, input, level)
-                .map(match -> match.value().assemble(input, level.registryAccess()))
+                .map(match -> match.value().assemble(input))
                 .orElse(ItemStack.EMPTY);
 
         helper.assertTrue(crafted.is(ForgeweaveBlocks.SEARED_SLAB_BRICKS.get().asItem()) && crafted.getCount() == 1,
@@ -105,9 +105,9 @@ public class SearedStairsSlabsGameTests {
         ServerLevel level = helper.getLevel();
         SingleRecipeInput input = new SingleRecipeInput(new ItemStack(ForgeweaveBlocks.SEARED_PAVER.get()));
 
-        List<ItemStack> results = level.getRecipeManager()
-                .getRecipesFor(RecipeType.STONECUTTING, input, level).stream()
-                .map(match -> match.value().assemble(input, level.registryAccess()))
+        List<ItemStack> results = level.recipeAccess().recipeMap()
+                .getRecipesFor(RecipeType.STONECUTTING, input, level)
+                .map(match -> match.value().assemble(input))
                 .toList();
 
         helper.assertTrue(results.stream().anyMatch(stack -> stack.is(ForgeweaveBlocks.SEARED_STAIRS_PAVER.get().asItem())),

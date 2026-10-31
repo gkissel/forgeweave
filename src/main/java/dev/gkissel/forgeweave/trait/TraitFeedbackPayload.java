@@ -9,7 +9,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -51,7 +51,7 @@ import dev.gkissel.forgeweave.config.ForgeweaveClientConfig;
  * @param y the entity's mid-height, matching {@code ForgeweaveParticles#spawnHearts}' own placement
  * @param z where the proc happened
  */
-public record TraitFeedbackPayload(Optional<ResourceLocation> particle, Optional<ResourceLocation> sound,
+public record TraitFeedbackPayload(Optional<Identifier> particle, Optional<Identifier> sound,
         double x, double y, double z) implements CustomPacketPayload {
 
     /** How far a proc carries, in blocks. Roughly vanilla's own sound range for a quiet cue. */
@@ -67,12 +67,12 @@ public record TraitFeedbackPayload(Optional<ResourceLocation> particle, Optional
     private static final int PARTICLE_COUNT = 3;
 
     public static final CustomPacketPayload.Type<TraitFeedbackPayload> TYPE =
-            new CustomPacketPayload.Type<>(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "trait_feedback"));
+            new CustomPacketPayload.Type<>(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "trait_feedback"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, TraitFeedbackPayload> STREAM_CODEC =
             StreamCodec.composite(
-                    ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC), TraitFeedbackPayload::particle,
-                    ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC), TraitFeedbackPayload::sound,
+                    ByteBufCodecs.optional(Identifier.STREAM_CODEC), TraitFeedbackPayload::particle,
+                    ByteBufCodecs.optional(Identifier.STREAM_CODEC), TraitFeedbackPayload::sound,
                     ByteBufCodecs.DOUBLE, TraitFeedbackPayload::x,
                     ByteBufCodecs.DOUBLE, TraitFeedbackPayload::y,
                     ByteBufCodecs.DOUBLE, TraitFeedbackPayload::z,
@@ -92,7 +92,7 @@ public record TraitFeedbackPayload(Optional<ResourceLocation> particle, Optional
     static TraitFeedbackPayload of(Entity at, TraitFeedback.Feedback feedback) {
         return new TraitFeedbackPayload(
                 feedback.particle().map(BuiltInRegistries.PARTICLE_TYPE::getKey),
-                feedback.sound().map(SoundEvent::getLocation),
+                feedback.sound().map(SoundEvent::location),
                 at.getX(), at.getY() + at.getBbHeight() * 0.5, at.getZ());
     }
 
@@ -126,11 +126,11 @@ public record TraitFeedbackPayload(Optional<ResourceLocation> particle, Optional
             return;
         }
         Level level = player.level();
-        particle.map(BuiltInRegistries.PARTICLE_TYPE::get)
+        particle.map(BuiltInRegistries.PARTICLE_TYPE::getValue)
                 .filter(SimpleParticleType.class::isInstance)
                 .map(SimpleParticleType.class::cast)
                 .ifPresent(type -> spawn(level, type));
-        sound.map(BuiltInRegistries.SOUND_EVENT::get)
+        sound.map(BuiltInRegistries.SOUND_EVENT::getValue)
                 .ifPresent(event -> level.playLocalSound(x, y, z, event, SoundSource.PLAYERS, VOLUME, 1.0F, false));
     }
 

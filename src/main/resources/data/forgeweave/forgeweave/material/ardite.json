@@ -28,13 +28,11 @@
     "armor": ["forgeweave:depth_protection"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:ardite_ingot" }, "value": 144 },
-    { "ingredient": { "item": "forgeweave:ardite_nugget" }, "value": 16 },
-    { "ingredient": { "item": "forgeweave:ardite_block" }, "value": 1296 }
+    { "ingredient": "forgeweave:ardite_ingot", "value": 144 },
+    { "ingredient": "forgeweave:ardite_nugget", "value": 16 },
+    { "ingredient": "forgeweave:ardite_block", "value": 1296 }
   ],
-  "repair_item": {
-    "tag": "c:ingots/ardite"
-  },
+  "repair_item": "#c:ingots/ardite",
   "cast_only": true,
   "enchantability": 10,
   "color": "#D14210"

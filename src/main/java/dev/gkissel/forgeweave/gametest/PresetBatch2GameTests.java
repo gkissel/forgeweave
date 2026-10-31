@@ -1,12 +1,12 @@
 package dev.gkissel.forgeweave.gametest;
 
 import net.minecraft.core.Registry;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.material.Material;
@@ -14,7 +14,7 @@ import dev.gkissel.forgeweave.material.Material;
 /**
  * Issue #834 (M6 preset batch 2): Mekanism, Applied Energistics 2 and Occultism. Every material here
  * follows the same {@code neoforge:conditions} existence gate as batch 1 (issue #833) and the
- * original four (#826) -- one {@code neoforge:item_exists} on a concrete item id, no {@code or}
+ * original four (#826) -- one {@code neoforge:registered} on a concrete item id, no {@code or}
  * combinator needed since each material has exactly one candidate source mod (unlike #833's
  * re-homed generics).
  *
@@ -83,16 +83,16 @@ public class PresetBatch2GameTests {
 
     @GameTest(template = "empty")
     public static void unsuppliedPresetsDoNotExistAtAll(GameTestHelper helper) {
-        Registry<Material> materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
+        Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         for (String name : MATERIALS) {
-            helper.assertTrue(materials.get(materialId(name)) == null,
+            helper.assertTrue(materials.getValue(materialId(name)) == null,
                     "expected the " + name + " material to be absent without its supplying mod, found it registered");
         }
         helper.succeed();
     }
 
-    private static ResourceLocation materialId(String name) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name);
+    private static Identifier materialId(String name) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, name);
     }
 
     private PresetBatch2GameTests() {}

@@ -10,9 +10,7 @@
     }
   ],
   "type": "enderio:sag_milling",
-  "input": {
-    "tag": "c:ores/murkiron"
-  },
+  "input": "#c:ores/murkiron",
   "outputs": [
     {
       "item": {

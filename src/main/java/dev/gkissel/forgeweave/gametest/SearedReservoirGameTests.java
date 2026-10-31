@@ -3,7 +3,7 @@ package dev.gkissel.forgeweave.gametest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -16,14 +16,14 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.level.material.Fluids;
 
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.TransferBridge;
 import dev.gkissel.forgeweave.block.SearedReservoirBlockEntity;
 import dev.gkissel.forgeweave.block.SearedReservoirControllerBlock;
 import dev.gkissel.forgeweave.block.SearedReservoirScan;
@@ -147,8 +147,7 @@ public class SearedReservoirGameTests {
         SearedReservoirBlockEntity reservoir = placeController(helper);
         helper.assertTrue(reservoir.isFormed(), "expected the reservoir to form: " + reservoir.lastResult().getString());
 
-        IFluidHandler drain = helper.getLevel().getCapability(
-                Capabilities.FluidHandler.BLOCK, helper.absolutePos(DRAIN_POS), null);
+        IFluidHandler drain = TransferBridge.fluidAt(helper.getLevel(), helper.absolutePos(DRAIN_POS), null);
         helper.assertTrue(drain != null, "expected a formed reservoir's drain to expose a fluid handler");
 
         int filled = drain.fill(new FluidStack(Fluids.WATER, 2000), IFluidHandler.FluidAction.EXECUTE);
@@ -239,7 +238,7 @@ public class SearedReservoirGameTests {
     static SearedReservoirBlockEntity placeController(GameTestHelper helper) {
         helper.setBlock(CORE_POS, ForgeweaveBlocks.SEARED_RESERVOIR_CONTROLLER.get().defaultBlockState()
                 .setValue(HorizontalDirectionalBlock.FACING, Direction.WEST));
-        return helper.getBlockEntity(CORE_POS);
+        return helper.getBlockEntity(CORE_POS, SearedReservoirBlockEntity.class);
     }
 
     private static void assertReason(GameTestHelper helper, SearedReservoirBlockEntity reservoir, String expectedKey) {

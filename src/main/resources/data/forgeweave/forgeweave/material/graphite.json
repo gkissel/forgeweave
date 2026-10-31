@@ -22,32 +22,25 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:ingots/graphite"
-      },
+      "ingredient": "#c:ingots/graphite",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:storage_blocks/graphite"
-      },
+      "ingredient": "#c:storage_blocks/graphite",
       "value": 1296
     },
     {
-      "ingredient": {
-        "tag": "c:ingots/hop_graphite"
-      },
+      "ingredient": "#c:ingots/hop_graphite",
       "value": 144
     }
   ],
-  "repair_item": [
-    {
-      "tag": "c:ingots/graphite"
-    },
-    {
-      "tag": "c:ingots/hop_graphite"
-    }
-  ],
+  "repair_item": {
+    "neoforge:ingredient_type": "neoforge:compound",
+    "children": [
+      "#c:ingots/graphite",
+      "#c:ingots/hop_graphite"
+    ]
+  },
   "cast_only": true,
   "enchantability": 6,
   "color": "#36393B",
@@ -56,16 +49,16 @@
       "type": "neoforge:or",
       "values": [
         {
-          "type": "neoforge:item_exists",
-          "item": "bigreactors:graphite_ingot"
+          "type": "neoforge:registered",
+          "value": "bigreactors:graphite_ingot"
         },
         {
-          "type": "neoforge:item_exists",
-          "item": "eternalores:graphite_ingot"
+          "type": "neoforge:registered",
+          "value": "eternalores:graphite_ingot"
         },
         {
-          "type": "neoforge:item_exists",
-          "item": "immersiveengineering:ingot_hop_graphite"
+          "type": "neoforge:registered",
+          "value": "immersiveengineering:ingot_hop_graphite"
         }
       ]
     }

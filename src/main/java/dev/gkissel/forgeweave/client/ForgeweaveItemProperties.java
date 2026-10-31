@@ -2,16 +2,22 @@ package dev.gkissel.forgeweave.client;
 
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.client.renderer.item.ItemProperties;
-import net.minecraft.resources.ResourceLocation;
+import com.mojang.serialization.MapCodec;
+
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.item.properties.conditional.ConditionalItemModelProperty;
+import net.minecraft.client.renderer.item.properties.numeric.RangeSelectItemModelProperty;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.ItemOwner;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.RegisterConditionalItemModelPropertyEvent;
+import net.neoforged.neoforge.client.event.RegisterRangeSelectItemModelPropertyEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.config.ForgeweaveClientConfig;
@@ -19,12 +25,11 @@ import dev.gkissel.forgeweave.config.HeldBowPose;
 import dev.gkissel.forgeweave.item.BowItem;
 import dev.gkissel.forgeweave.item.CrossbowItem;
 import dev.gkissel.forgeweave.item.ToolItem;
-import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 
 /**
  * The {@code forgeweave:broken} item property every assembled tool's model branches on (issue #284):
  * 1 once the tool's {@code BROKEN} component is set, 0 otherwise. {@code
- * ForgeweaveItemModelProvider} writes the matching {@code overrides} entry, which points at the
+ * ForgeweaveItemModelProvider} writes the matching {@code condition} node, whose true branch is the
  * tool's {@code <tool>_broken} model -- the same layers, with the one layer {@code
  * ToolArt#brokenLayer} names swapped for its broken art.
  *
@@ -33,72 +38,91 @@ import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
  * format cannot express; this is the mechanism upstream itself adopted once it was on a modern
  * Minecraft ({@code TinkerItemProperties#registerBrokenProperty} in the 1.20 clone).
  *
- * <p>Registered off {@link ToolAssemblyRecipes#ENTRIES} rather than a hand list, for the same reason
- * {@link ForgeweaveItemColors#tintedToolItems} is: a tool cannot be added to the station and left
- * out here.
+ * <p>On 26.1 these are model properties any client item can test rather than per-item
+ * registrations, so no tool can be left out of them.
  *
- * <p>M3.5 issue #400 added the bows' three: {@code minecraft:pulling} and {@code minecraft:pull} on
- * every {@link BowItem}, and {@code forgeweave:loaded} on the crossbow. Same mechanism, same
+ * <p>M3.5 issue #400 added the bows' three: {@code forgeweave:pulling} and {@code forgeweave:pull} (1.21.1's
+ * {@code minecraft:pulling}/{@code minecraft:pull}) on every {@link BowItem}, and {@code forgeweave:loaded} on the crossbow. Same mechanism, same
  * provider on the other side -- the difference is only that a bow branches four ways (undrawn plus
  * three pull stages) instead of two, and that the values come from the holder rather than from the
  * stack alone. All three are pure static methods here so a unit test can pin them without a client.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public final class ForgeweaveItemProperties {
 
-    /** The property id; {@code ForgeweaveItemModelProvider.BROKEN_PREDICATE} is its other half. */
-    private static final ResourceLocation BROKEN =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "broken");
-
     /**
-     * The two draw-stage properties (M3.5 issue #400), in <em>vanilla's</em> namespace rather than
-     * Forgeweave's: {@code pulling} and {@code pull} are the names vanilla's own bow models use for
-     * exactly this concept, upstream 1.12 registered the same two unqualified
-     * ({@code BowCore#PROPERTY_IS_PULLING}/{@code #PROPERTY_PULL_PROGRESS}), and a resource pack
-     * re-skinning a Forgeweave bow will reach for them. {@link #BROKEN} stays namespaced because
-     * "this tool is Broken" is a Forgeweave concept vanilla has no word for.
+     * The tool model's on/off properties, one id each: {@code forgeweave:broken} (issue #284),
+     * {@code forgeweave:pulling} (M3.5 issue #400, vanilla's {@code pulling} under Forgeweave's
+     * name -- 26.1 has no free-standing {@code minecraft:pulling} property to share any more),
+     * {@code forgeweave:loaded} (the crossbow's crank, {@code CrossBow#PROPERTY_IS_LOADED};
+     * vanilla's word {@code charged} means a different thing) and {@code forgeweave:modern_pose}
+     * (issue #723's held-pose switch, a model property so it needs no resource reload).
+     * {@code ForgeweaveItemModelProvider} writes the {@code condition} nodes that test them.
      */
-    private static final ResourceLocation PULLING = ResourceLocation.withDefaultNamespace("pulling");
-    private static final ResourceLocation PULL = ResourceLocation.withDefaultNamespace("pull");
+    public enum Flag implements ConditionalItemModelProperty {
+        BROKEN("broken"),
+        PULLING("pulling"),
+        LOADED("loaded"),
+        MODERN_POSE("modern_pose");
 
-    /**
-     * The crossbow's loaded flag ({@code CrossBow#PROPERTY_IS_LOADED}). Namespaced, unlike the two
-     * above: vanilla's word for a crossbow holding a shot is {@code charged}, and it means a
-     * different thing -- vanilla's crossbow stores the projectile it will fire, while upstream's (and
-     * so Forgeweave's) stores nothing but a boolean and finds its ammo at fire time.
-     */
-    private static final ResourceLocation LOADED =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "loaded");
+        private final Identifier id;
+        private final MapCodec<Flag> codec = MapCodec.unit(this);
 
-    /**
-     * Issue #723: the held-pose switch. Every bow model carries a second, {@code modern_pose}-gated
-     * ladder of its states pointing at {@code *_modern} siblings ({@code
-     * ForgeweaveItemModelProvider}); this is what makes it fire. A model property rather than a
-     * baked-model swap because it needs no resource reload and no wrapping of the override tree.
-     */
-    private static final ResourceLocation MODERN_POSE =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "modern_pose");
+        Flag(String path) {
+            this.id = Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
+        }
+
+        public Identifier id() {
+            return id;
+        }
+
+        @Override
+        public boolean get(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity owner, int seed,
+                ItemDisplayContext displayContext) {
+            return switch (this) {
+                case BROKEN -> broken(stack) > 0.0F;
+                case PULLING -> pulling(stack, owner) > 0.0F;
+                case LOADED -> loaded(stack) > 0.0F;
+                case MODERN_POSE -> modernPose(ForgeweaveClientConfig.SPEC.isLoaded()
+                        ? ForgeweaveClientConfig.HELD_BOW_POSE.get()
+                        : HeldBowPose.DEFAULT) > 0.0F;
+            };
+        }
+
+        @Override
+        public MapCodec<Flag> type() {
+            return codec;
+        }
+    }
+
+    /** {@code forgeweave:pull}: the draw progress the {@code range_dispatch} node picks a pull stage by (#400). */
+    public enum Pull implements RangeSelectItemModelProperty {
+        INSTANCE;
+
+        public static final Identifier ID = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "pull");
+        private static final MapCodec<Pull> CODEC = MapCodec.unit(INSTANCE);
+
+        @Override
+        public float get(ItemStack stack, @Nullable ClientLevel level, @Nullable ItemOwner owner, int seed) {
+            return pull(stack, owner == null ? null : owner.asLivingEntity());
+        }
+
+        @Override
+        public MapCodec<Pull> type() {
+            return CODEC;
+        }
+    }
 
     @SubscribeEvent
-    static void registerItemProperties(FMLClientSetupEvent event) {
-        // ItemProperties' map is not thread-safe; enqueueWork is the documented way onto the main thread.
-        event.enqueueWork(() -> {
-            for (ToolAssemblyRecipes.Entry entry : ToolAssemblyRecipes.ENTRIES) {
-                Item tool = entry.tool().get();
-                ItemProperties.register(tool, BROKEN, (stack, level, holder, seed) -> broken(stack));
-                if (tool instanceof BowItem) {
-                    ItemProperties.register(tool, PULLING, (stack, level, holder, seed) -> pulling(stack, holder));
-                    ItemProperties.register(tool, PULL, (stack, level, holder, seed) -> pull(stack, holder));
-                    ItemProperties.register(tool, MODERN_POSE, (stack, level, holder, seed) -> modernPose(
-                            ForgeweaveClientConfig.SPEC.isLoaded()
-                                    ? ForgeweaveClientConfig.HELD_BOW_POSE.get()
-                                    : HeldBowPose.DEFAULT));
-                }
-                if (tool instanceof CrossbowItem) {
-                    ItemProperties.register(tool, LOADED, (stack, level, holder, seed) -> loaded(stack));
-                }
-            }
-        });
+    static void registerConditionalProperties(RegisterConditionalItemModelPropertyEvent event) {
+        for (Flag flag : Flag.values()) {
+            event.register(flag.id(), flag.type());
+        }
+    }
+
+    @SubscribeEvent
+    static void registerRangeProperties(RegisterRangeSelectItemModelPropertyEvent event) {
+        event.register(Pull.ID, Pull.INSTANCE.type());
     }
 
     /** {@code forgeweave:broken}: 1 once the tool's {@code BROKEN} component is set. */

@@ -27,13 +27,11 @@
     "armor": ["forgeweave:voidward"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:riftalloy_ingot" }, "value": 144 },
-    { "ingredient": { "item": "forgeweave:riftalloy_nugget" }, "value": 16 },
-    { "ingredient": { "item": "forgeweave:riftalloy_block" }, "value": 1296 }
+    { "ingredient": "forgeweave:riftalloy_ingot", "value": 144 },
+    { "ingredient": "forgeweave:riftalloy_nugget", "value": 16 },
+    { "ingredient": "forgeweave:riftalloy_block", "value": 1296 }
   ],
-  "repair_item": {
-    "tag": "c:ingots/riftalloy"
-  },
+  "repair_item": "#c:ingots/riftalloy",
   "cast_only": true,
   "enchantability": 10,
   "color": "#A04C9A"

@@ -7,7 +7,6 @@ import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -71,11 +70,11 @@ public class EnergizedTankBlock extends Block implements EntityBlock {
     }
 
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hit) {
         if (level.getBlockEntity(pos) instanceof EnergizedTankBlockEntity tank
                 && FluidUtil.interactWithFluidHandler(player, hand, tank.sample())) {
-            return ItemInteractionResult.sidedSuccess(level.isClientSide);
+            return InteractionResult.SUCCESS;
         }
         return super.useItemOn(stack, state, level, pos, player, hand, hit);
     }
@@ -91,9 +90,9 @@ public class EnergizedTankBlock extends Block implements EntityBlock {
         if (!(level.getBlockEntity(pos) instanceof EnergizedTankBlockEntity tank)) {
             return super.useWithoutItem(state, level, pos, player, hit);
         }
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             tank.open(player);
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.SUCCESS;
     }
 }

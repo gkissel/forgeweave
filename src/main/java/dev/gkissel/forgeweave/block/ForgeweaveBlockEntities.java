@@ -16,151 +16,128 @@ public final class ForgeweaveBlockEntities {
             DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, Forgeweave.MODID);
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PartBuilderBlockEntity>> PART_BUILDER =
-            BLOCK_ENTITIES.register("part_builder", () -> BlockEntityType.Builder
-                    .of(PartBuilderBlockEntity::new, ForgeweaveBlocks.PART_BUILDER.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("part_builder", () -> new BlockEntityType<>(
+                    PartBuilderBlockEntity::new, ForgeweaveBlocks.PART_BUILDER.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ToolStationBlockEntity>> TOOL_STATION =
-            BLOCK_ENTITIES.register("tool_station", () -> BlockEntityType.Builder
+            BLOCK_ENTITIES.register("tool_station", () -> new BlockEntityType<>(
                     // One type for all three blocks (issue #152, extended by issue #782): a Tool
                     // Forge is a Tool Station with a different material and two behaviour tweaks,
                     // and ToolStationBlockEntity reads which one it is off its own BlockState -- so
                     // there is nothing for a second block entity class (or type) to hold. The
                     // retired Armor Station (#1006) was a third block on this same type, which is
                     // why its registry alias needs no block entity alias beside it.
-                    .of(ToolStationBlockEntity::new, ForgeweaveBlocks.TOOL_STATION.get(),
-                            ForgeweaveBlocks.TOOL_FORGE.get())
-                    .build(null));
+                    ToolStationBlockEntity::new, ForgeweaveBlocks.TOOL_STATION.get(),
+                            ForgeweaveBlocks.TOOL_FORGE.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CraftingStationBlockEntity>> CRAFTING_STATION =
-            BLOCK_ENTITIES.register("crafting_station", () -> BlockEntityType.Builder
-                    .of(CraftingStationBlockEntity::new, ForgeweaveBlocks.CRAFTING_STATION.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("crafting_station", () -> new BlockEntityType<>(
+                    CraftingStationBlockEntity::new, ForgeweaveBlocks.CRAFTING_STATION.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<StencilTableBlockEntity>> STENCIL_TABLE =
-            BLOCK_ENTITIES.register("stencil_table", () -> BlockEntityType.Builder
-                    .of(StencilTableBlockEntity::new, ForgeweaveBlocks.STENCIL_TABLE.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("stencil_table", () -> new BlockEntityType<>(
+                    StencilTableBlockEntity::new, ForgeweaveBlocks.STENCIL_TABLE.get()));
 
     /** The Modifier Worktable (issue #1057): tool slot plus upstream 1.20's two reagent slots. */
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ModifierWorktableBlockEntity>>
-            MODIFIER_WORKTABLE = BLOCK_ENTITIES.register("modifier_worktable", () -> BlockEntityType.Builder
-                    .of(ModifierWorktableBlockEntity::new, ForgeweaveBlocks.MODIFIER_WORKTABLE.get())
-                    .build(null));
+            MODIFIER_WORKTABLE = BLOCK_ENTITIES.register("modifier_worktable", () -> new BlockEntityType<>(
+                    ModifierWorktableBlockEntity::new, ForgeweaveBlocks.MODIFIER_WORKTABLE.get()));
 
     // docs/SCOPE.md M1 issue #66. Two BlockEntityType registrations sharing one ChestBlockEntity
     // class (see ChestKind's javadoc for why): each factory bakes in which ChestKind it builds.
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ChestBlockEntity>> PATTERN_CHEST =
-            BLOCK_ENTITIES.register("pattern_chest", () -> BlockEntityType.Builder
-                    .of((pos, state) -> new ChestBlockEntity(pos, state, ChestKind.PATTERN), ForgeweaveBlocks.PATTERN_CHEST.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("pattern_chest", () -> new BlockEntityType<>(
+                    (pos, state) -> new ChestBlockEntity(pos, state, ChestKind.PATTERN), ForgeweaveBlocks.PATTERN_CHEST.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ChestBlockEntity>> PART_CHEST =
-            BLOCK_ENTITIES.register("part_chest", () -> BlockEntityType.Builder
-                    .of((pos, state) -> new ChestBlockEntity(pos, state, ChestKind.PART), ForgeweaveBlocks.PART_CHEST.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("part_chest", () -> new BlockEntityType<>(
+                    (pos, state) -> new ChestBlockEntity(pos, state, ChestKind.PART), ForgeweaveBlocks.PART_CHEST.get()));
 
     // The smeltery multiblock (docs/SCOPE.md M2 issue #95). The two cores get one type each so a
     // SmelteryControllerBlockEntity always knows which SmelteryCore tier it is (same pattern as the
     // chests above); the three tank blocks share one type because they behave identically.
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SmelteryControllerBlockEntity>> STANDARD_CORE =
-            BLOCK_ENTITIES.register("standard_core", () -> BlockEntityType.Builder
-                    .of((pos, state) -> new SmelteryControllerBlockEntity(pos, state, SmelteryCore.STANDARD),
-                            ForgeweaveBlocks.STANDARD_CORE.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("standard_core", () -> new BlockEntityType<>(
+                    (pos, state) -> new SmelteryControllerBlockEntity(pos, state, SmelteryCore.STANDARD),
+                            ForgeweaveBlocks.STANDARD_CORE.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SmelteryControllerBlockEntity>> NETHER_CORE =
-            BLOCK_ENTITIES.register("nether_core", () -> BlockEntityType.Builder
-                    .of((pos, state) -> new SmelteryControllerBlockEntity(pos, state, SmelteryCore.NETHER),
-                            ForgeweaveBlocks.NETHER_CORE.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("nether_core", () -> new BlockEntityType<>(
+                    (pos, state) -> new SmelteryControllerBlockEntity(pos, state, SmelteryCore.NETHER),
+                            ForgeweaveBlocks.NETHER_CORE.get()));
 
     // #845 -- the End and Deep Core, one type each like the two tiers above.
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SmelteryControllerBlockEntity>> END_CORE =
-            BLOCK_ENTITIES.register("end_core", () -> BlockEntityType.Builder
-                    .of((pos, state) -> new SmelteryControllerBlockEntity(pos, state, SmelteryCore.END),
-                            ForgeweaveBlocks.END_CORE.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("end_core", () -> new BlockEntityType<>(
+                    (pos, state) -> new SmelteryControllerBlockEntity(pos, state, SmelteryCore.END),
+                            ForgeweaveBlocks.END_CORE.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SmelteryControllerBlockEntity>> DEEP_CORE =
-            BLOCK_ENTITIES.register("deep_core", () -> BlockEntityType.Builder
-                    .of((pos, state) -> new SmelteryControllerBlockEntity(pos, state, SmelteryCore.DEEP),
-                            ForgeweaveBlocks.DEEP_CORE.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("deep_core", () -> new BlockEntityType<>(
+                    (pos, state) -> new SmelteryControllerBlockEntity(pos, state, SmelteryCore.DEEP),
+                            ForgeweaveBlocks.DEEP_CORE.get()));
 
     // #442 -- the seared furnace controller (upstream's TileSearedFurnace).
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SearedFurnaceBlockEntity>> SEARED_FURNACE =
-            BLOCK_ENTITIES.register("seared_furnace_controller", () -> BlockEntityType.Builder
-                    .of(SearedFurnaceBlockEntity::new, ForgeweaveBlocks.SEARED_FURNACE_CONTROLLER.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("seared_furnace_controller", () -> new BlockEntityType<>(
+                    SearedFurnaceBlockEntity::new, ForgeweaveBlocks.SEARED_FURNACE_CONTROLLER.get()));
 
     // T44/#475 -- the seared reservoir controller (upstream's TileTinkerTank).
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SearedReservoirBlockEntity>> SEARED_RESERVOIR =
-            BLOCK_ENTITIES.register("seared_reservoir_controller", () -> BlockEntityType.Builder
-                    .of(SearedReservoirBlockEntity::new, ForgeweaveBlocks.SEARED_RESERVOIR_CONTROLLER.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("seared_reservoir_controller", () -> new BlockEntityType<>(
+                    SearedReservoirBlockEntity::new, ForgeweaveBlocks.SEARED_RESERVOIR_CONTROLLER.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SearedTankBlockEntity>> SEARED_TANK =
-            BLOCK_ENTITIES.register("seared_tank", () -> BlockEntityType.Builder
-                    .of(SearedTankBlockEntity::new, ForgeweaveBlocks.SEARED_TANK.get(),
-                            ForgeweaveBlocks.SEARED_GAUGE.get(), ForgeweaveBlocks.SEARED_WINDOW.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("seared_tank", () -> new BlockEntityType<>(
+                    SearedTankBlockEntity::new, ForgeweaveBlocks.SEARED_TANK.get(),
+                            ForgeweaveBlocks.SEARED_GAUGE.get(), ForgeweaveBlocks.SEARED_WINDOW.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SearedDrainBlockEntity>> SEARED_DRAIN =
-            BLOCK_ENTITIES.register("seared_drain", () -> BlockEntityType.Builder
-                    .of(SearedDrainBlockEntity::new, ForgeweaveBlocks.SEARED_DRAIN.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("seared_drain", () -> new BlockEntityType<>(
+                    SearedDrainBlockEntity::new, ForgeweaveBlocks.SEARED_DRAIN.get()));
 
     // #972 (M8, D-M8-11) -- the energized tank's fuel sample, energy buffer and overdrive state.
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<EnergizedTankBlockEntity>> ENERGIZED_TANK =
-            BLOCK_ENTITIES.register("energized_tank", () -> BlockEntityType.Builder
-                    .of(EnergizedTankBlockEntity::new, ForgeweaveBlocks.ENERGIZED_TANK.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("energized_tank", () -> new BlockEntityType<>(
+                    EnergizedTankBlockEntity::new, ForgeweaveBlocks.ENERGIZED_TANK.get()));
 
     // #277 -- the duct's filter slot and the chute's item port (docs/SCOPE.md M3.4). Both share the
     // drain's core-linking base (SmelteryIoBlockEntity) but hand out different capabilities, so each
     // gets its own type.
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SearedDuctBlockEntity>> SEARED_DUCT =
-            BLOCK_ENTITIES.register("seared_duct", () -> BlockEntityType.Builder
-                    .of(SearedDuctBlockEntity::new, ForgeweaveBlocks.SEARED_DUCT.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("seared_duct", () -> new BlockEntityType<>(
+                    SearedDuctBlockEntity::new, ForgeweaveBlocks.SEARED_DUCT.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SearedChuteBlockEntity>> SEARED_CHUTE =
-            BLOCK_ENTITIES.register("seared_chute", () -> BlockEntityType.Builder
-                    .of(SearedChuteBlockEntity::new, ForgeweaveBlocks.SEARED_CHUTE.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("seared_chute", () -> new BlockEntityType<>(
+                    SearedChuteBlockEntity::new, ForgeweaveBlocks.SEARED_CHUTE.get()));
 
     // #441 (parity audit T9) -- the channel's fluid buffer and flow flags.
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SearedChannelBlockEntity>> SEARED_CHANNEL =
-            BLOCK_ENTITIES.register("seared_channel", () -> BlockEntityType.Builder
-                    .of(SearedChannelBlockEntity::new, ForgeweaveBlocks.SEARED_CHANNEL.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("seared_channel", () -> new BlockEntityType<>(
+                    SearedChannelBlockEntity::new, ForgeweaveBlocks.SEARED_CHANNEL.get()));
 
     // #100 -- casting (docs/SCOPE.md M2 issue #100).
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CastingBlockEntity>> CASTING_TABLE =
-            BLOCK_ENTITIES.register("casting_table", () -> BlockEntityType.Builder
-                    .of((pos, state) -> new CastingBlockEntity(pos, state, CastingRecipe.Station.TABLE),
-                            ForgeweaveBlocks.CASTING_TABLE.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("casting_table", () -> new BlockEntityType<>(
+                    (pos, state) -> new CastingBlockEntity(pos, state, CastingRecipe.Station.TABLE),
+                            ForgeweaveBlocks.CASTING_TABLE.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<CastingBlockEntity>> CASTING_BASIN =
-            BLOCK_ENTITIES.register("casting_basin", () -> BlockEntityType.Builder
-                    .of((pos, state) -> new CastingBlockEntity(pos, state, CastingRecipe.Station.BASIN),
-                            ForgeweaveBlocks.CASTING_BASIN.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("casting_basin", () -> new BlockEntityType<>(
+                    (pos, state) -> new CastingBlockEntity(pos, state, CastingRecipe.Station.BASIN),
+                            ForgeweaveBlocks.CASTING_BASIN.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FaucetBlockEntity>> FAUCET =
-            BLOCK_ENTITIES.register("faucet", () -> BlockEntityType.Builder
-                    .of(FaucetBlockEntity::new, ForgeweaveBlocks.FAUCET.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("faucet", () -> new BlockEntityType<>(
+                    FaucetBlockEntity::new, ForgeweaveBlocks.FAUCET.get()));
 
     // The Wooden Hopper (docs/SCOPE.md M5, issue #822): its own type rather than reusing vanilla's
     // BlockEntityType.HOPPER, so a saved Wooden Hopper decodes back as one on reload instead of
     // silently downgrading to a plain vanilla hopper (see WoodenHopperBlockEntity#getType's javadoc).
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<WoodenHopperBlockEntity>> WOODEN_HOPPER =
-            BLOCK_ENTITIES.register("wooden_hopper", () -> BlockEntityType.Builder
-                    .of(WoodenHopperBlockEntity::new, ForgeweaveBlocks.WOODEN_HOPPER.get())
-                    .build(null));
+            BLOCK_ENTITIES.register("wooden_hopper", () -> new BlockEntityType<>(
+                    WoodenHopperBlockEntity::new, ForgeweaveBlocks.WOODEN_HOPPER.get()));
 
     private ForgeweaveBlockEntities() {}
 }

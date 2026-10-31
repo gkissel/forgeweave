@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_knife_blade"
-  },
+  "cast": "forgeweave:cast_knife_blade",
   "fluid": "forgeweave:molten_vibranium_allthemodium_alloy",
   "amount": 144,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "allthemodium:vibranium_allthemodium_alloy_ingot"
+      "type": "neoforge:registered",
+      "value": "allthemodium:vibranium_allthemodium_alloy_ingot"
     }
   ]
 }

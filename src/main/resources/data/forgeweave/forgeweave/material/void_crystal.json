@@ -44,27 +44,21 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "actuallyadditions:void_crystal"
-      },
+      "ingredient": "actuallyadditions:void_crystal",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:storage_blocks/void_crystal"
-      },
+      "ingredient": "#c:storage_blocks/void_crystal",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "item": "actuallyadditions:void_crystal"
-  },
+  "repair_item": "actuallyadditions:void_crystal",
   "enchantability": 16,
   "color": "#241933",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "actuallyadditions:void_crystal"
+      "type": "neoforge:registered",
+      "value": "actuallyadditions:void_crystal"
     }
   ]
 }

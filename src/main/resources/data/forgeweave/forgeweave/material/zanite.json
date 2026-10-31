@@ -45,27 +45,21 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "aether:zanite_gemstone"
-      },
+      "ingredient": "aether:zanite_gemstone",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "aether:zanite_block"
-      },
+      "ingredient": "aether:zanite_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "item": "aether:zanite_gemstone"
-  },
+  "repair_item": "aether:zanite_gemstone",
   "enchantability": 15,
   "color": "#7A36E0",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "aether:zanite_gemstone"
+      "type": "neoforge:registered",
+      "value": "aether:zanite_gemstone"
     }
   ]
 }

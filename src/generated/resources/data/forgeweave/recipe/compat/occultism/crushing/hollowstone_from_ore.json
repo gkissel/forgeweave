@@ -8,9 +8,7 @@
   "type": "occultism:crushing",
   "crushing_time": 400,
   "ignore_crushing_multiplier": false,
-  "ingredient": {
-    "tag": "c:ores/hollowstone"
-  },
+  "ingredient": "#c:ores/hollowstone",
   "min_tier": 4,
   "result": {
     "type": "occultism:tag",

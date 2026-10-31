@@ -21,10 +21,11 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.tags.TagKey;
-import net.minecraft.world.item.crafting.Ingredient;
 
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.SideInventorySlots;
@@ -52,20 +53,20 @@ class StationPanelHoverTest {
         Bootstrap.bootStrap();
     }
 
-    private static final ResourceLocation TRAIT_A =
-            ResourceLocation.fromNamespaceAndPath("forgeweave", "sharp");
-    private static final ResourceLocation TRAIT_B =
-            ResourceLocation.fromNamespaceAndPath("forgeweave", "sturdy");
+    private static final Identifier TRAIT_A =
+            Identifier.fromNamespaceAndPath("forgeweave", "sharp");
+    private static final Identifier TRAIT_B =
+            Identifier.fromNamespaceAndPath("forgeweave", "sturdy");
 
     private static Material material() {
         return new Material(
                 new Material.Head(500, 6.0F, 4.0F),
                 new Material.Handle(1.2F, 25),
                 50,
-                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool")),
+                TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace("incorrect_for_stone_tool")),
                 Material.Traits.general(TRAIT_A, TRAIT_B),
                 List.of(),
-                Ingredient.EMPTY,
+                Ingredient.of(Items.IRON_INGOT),
                 null);
     }
 
@@ -75,7 +76,7 @@ class StationPanelHoverTest {
         if (hover == null) {
             return null;
         }
-        Component text = hover.getValue(HoverEvent.Action.SHOW_TEXT);
+        Component text = hover instanceof HoverEvent.ShowText(Component shown) ? shown : null;
         return text == null ? null : text.getString();
     }
 

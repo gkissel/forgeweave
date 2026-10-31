@@ -4,7 +4,7 @@ import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -14,8 +14,8 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
@@ -124,13 +124,14 @@ public class WeaponMiningGameTests {
                 ForgeweaveItems.TOOL_FRYING_PAN.get(), ForgeweaveItems.TOOL_BATTLESIGN.get(),
                 ForgeweaveItems.TOOL_DAGGER.get(), ForgeweaveItems.TOOL_KATANA.get(),
                 ForgeweaveItems.TOOL_SCIMITAR.get(), ForgeweaveItems.TOOL_WARMACE.get())) {
-            helper.assertFalse(weapon.canAttackBlock(stone, helper.getLevel(), helper.absolutePos(pos), creative),
+            helper.assertFalse(weapon.canDestroyBlock(new ItemStack(weapon), stone, helper.getLevel(), helper.absolutePos(pos), creative),
                     weapon + " must refuse to break blocks in creative (issue #437)");
-            helper.assertTrue(weapon.canAttackBlock(stone, helper.getLevel(), helper.absolutePos(pos), survival),
+            helper.assertTrue(weapon.canDestroyBlock(new ItemStack(weapon), stone, helper.getLevel(), helper.absolutePos(pos), survival),
                     weapon + " must still break blocks in survival");
         }
-        helper.assertTrue(ForgeweaveItems.TOOL_BATTLEAXE.get()
-                        .canAttackBlock(stone, helper.getLevel(), helper.absolutePos(pos), creative),
+        helper.assertTrue(ForgeweaveItems.TOOL_BATTLEAXE.get().canDestroyBlock(
+                        new ItemStack(ForgeweaveItems.TOOL_BATTLEAXE.get()), stone, helper.getLevel(),
+                        helper.absolutePos(pos), creative),
                 "the battleaxe is an axe upstream and keeps creative block breaking");
         helper.succeed();
     }
@@ -198,7 +199,7 @@ public class WeaponMiningGameTests {
      * type cannot coincide by accident.
      */
     private static ItemStack hasten(GameTestHelper helper, Player player, BlockPos pos, ItemStack tool) {
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, tool);
         blockEntity.container().setItem(1, new ItemStack(Items.REDSTONE, 1));
         blockEntity.container().setItem(2, ItemStack.EMPTY);

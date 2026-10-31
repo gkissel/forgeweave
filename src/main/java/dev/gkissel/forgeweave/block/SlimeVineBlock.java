@@ -12,6 +12,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -82,10 +83,10 @@ public class SlimeVineBlock extends VineBlock {
     }
 
     @Override
-    protected BlockState updateShape(BlockState state, Direction direction, BlockState neighbor,
-                                     LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos,
+            Direction direction, BlockPos neighborPos, BlockState neighbor, RandomSource random) {
         if (direction == Direction.DOWN) {
-            return super.updateShape(state, direction, neighbor, level, pos, neighborPos);
+            return super.updateShape(state, level, ticks, pos, direction, neighborPos, neighbor, random);
         }
         BlockState updated = updatedState(state, level, pos);
         return hasFaces(updated) ? updated : Blocks.AIR.defaultBlockState();

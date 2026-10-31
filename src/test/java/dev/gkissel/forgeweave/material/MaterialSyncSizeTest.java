@@ -25,6 +25,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.Bootstrap;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.trait.TraitDefinition;
 
 /**
@@ -188,8 +189,8 @@ class MaterialSyncSizeTest {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
         RegistryAccess.Frozen registries = RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
-        jsonOps = RegistryOps.create(JsonOps.INSTANCE, registries);
-        nbtOps = RegistryOps.create(NbtOps.INSTANCE, registries);
+        jsonOps = TestRegistries.ops(JsonOps.INSTANCE, registries);
+        nbtOps = TestRegistries.ops(NbtOps.INSTANCE, registries);
     }
 
     @Test

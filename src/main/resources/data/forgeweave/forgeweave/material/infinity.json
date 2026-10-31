@@ -48,22 +48,18 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "avaritia:infinity_ingot"
-      },
+      "ingredient": "avaritia:infinity_ingot",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "avaritia:infinity_ingot"
-  },
+  "repair_item": "avaritia:infinity_ingot",
   "cast_only": true,
   "enchantability": 17,
   "color": "#F5E9C8",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "avaritia:infinity_ingot"
+      "type": "neoforge:registered",
+      "value": "avaritia:infinity_ingot"
     }
   ]
 }

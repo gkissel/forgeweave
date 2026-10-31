@@ -6,10 +6,10 @@ NOTICE.md row each:
 
    | Output | Upstream source (`assets/tconstruct/textures/`) |
    | --- | --- |
-   | `models/armor/derived/plating_layer_1.png` | `tinker_armor/plate/plating_armor.png` |
-   | `models/armor/derived/plating_layer_2.png` | `tinker_armor/plate/plating_leggings.png` |
-   | `models/armor/derived/maille_layer_1.png` | `tinker_armor/plate/maille_armor.png` |
-   | `models/armor/derived/maille_layer_2.png` | `tinker_armor/plate/maille_leggings.png` |
+   | `entity/equipment/humanoid/derived/plating.png` | `tinker_armor/plate/plating_armor.png` |
+   | `entity/equipment/humanoid_leggings/derived/plating.png` | `tinker_armor/plate/plating_leggings.png` |
+   | `entity/equipment/humanoid/derived/maille.png` | `tinker_armor/plate/maille_armor.png` |
+   | `entity/equipment/humanoid_leggings/derived/maille.png` | `tinker_armor/plate/maille_leggings.png` |
    | `derived/tools/<piece>_plating.png` | `item/tool/armor/plate/<piece>/plating.png` |
    | `derived/tools/<piece>_plating_broken.png` | `item/tool/armor/plate/<piece>/plating_broken.png` |
    | `derived/tools/<piece>_maille.png` | `item/tool/armor/plate/<piece>/maille.png` |
@@ -35,24 +35,25 @@ UPSTREAM = Path.home() / "development/minecraft/references/tinkers-1.20"
 UPSTREAM_TEXTURES = UPSTREAM / "src/main/resources/assets/tconstruct/textures"
 
 ASSETS = ROOT / "src/main/resources/assets/forgeweave/textures"
-ARMOR_LAYERS = ASSETS / "models/armor/derived"
+ARMOR_LAYERS = ASSETS / "entity/equipment"
 DERIVED_TOOLS = ASSETS / "derived/tools"
 
 PIECES = ("helmet", "chestplate", "leggings", "boots")
-# Vanilla's armor layout: layer_1 is the helmet/chestplate/boots sheet, layer_2 the leggings sheet.
+# The 26.1 equipment layout (`equipment/plate.json`): the `humanoid` layer is the helmet/chestplate/boots
+# sheet, `humanoid_leggings` the leggings sheet, each under textures/entity/equipment/<layer type>/.
 BASES = {
-    "plating_layer_1.png": "tinker_armor/plate/plating_armor.png",
-    "plating_layer_2.png": "tinker_armor/plate/plating_leggings.png",
-    "maille_layer_1.png": "tinker_armor/plate/maille_armor.png",
-    "maille_layer_2.png": "tinker_armor/plate/maille_leggings.png",
+    "humanoid/derived/plating.png": "tinker_armor/plate/plating_armor.png",
+    "humanoid_leggings/derived/plating.png": "tinker_armor/plate/plating_leggings.png",
+    "humanoid/derived/maille.png": "tinker_armor/plate/maille_armor.png",
+    "humanoid_leggings/derived/maille.png": "tinker_armor/plate/maille_leggings.png",
 }
 
 
 def main() -> None:
     if not UPSTREAM_TEXTURES.is_dir():
         raise SystemExit(f"1.20 clone not found at {UPSTREAM} -- see CLAUDE.md for how to re-create it")
-    ARMOR_LAYERS.mkdir(parents=True, exist_ok=True)
     for output, source in BASES.items():
+        (ARMOR_LAYERS / output).parent.mkdir(parents=True, exist_ok=True)
         Image.open(UPSTREAM_TEXTURES / source).convert("RGBA").save(ARMOR_LAYERS / output)
         print(f"wrote {ARMOR_LAYERS / output}")
     for piece in PIECES:

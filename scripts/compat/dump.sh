@@ -9,7 +9,9 @@ grep -h '^setblock ' "$@" | while read -r _ x y z _; do
   line=
   for _ in $(seq 1 50); do
     sleep 0.2
-    line=$(tail -n +$((n + 1)) "$D/logs/latest.log" | grep -m1 -E "$x, $y, $z has the following block data|is not a block entity|Server thread/(ERROR|WARN)") && break
+    # AttachmentHolder errors come from chunks loading (a removed mod's attachments), never from the
+    # command, and would otherwise be taken as this position's answer.
+    line=$(tail -n +$((n + 1)) "$D/logs/latest.log" | grep -v 'attachment.AttachmentHolder/' | grep -m1 -E "$x, $y, $z has the following block data|is not a block entity|Server thread/(ERROR|WARN)") && break
   done
   echo "$x $y $z|${line#*]: }" >> "$OUT"
 done

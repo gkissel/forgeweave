@@ -4,20 +4,20 @@ import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.combat.CombatProviders;
@@ -52,8 +52,8 @@ public class ArmorModifierGameTests {
 
     private static final BlockPos STATION = new BlockPos(1, 1, 1);
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
     private static ItemStack chestplate(GameTestHelper helper, Player player) {
@@ -68,7 +68,7 @@ public class ArmorModifierGameTests {
 
     /** The station loaded with {@code tool} and one reagent stack, output untaken. */
     private static ToolStationMenu load(GameTestHelper helper, Player player, ItemStack tool, ItemStack reagent) {
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION, ToolStationBlockEntity.class);
         for (int i = 0; i < ToolStationMenu.INPUT_SLOTS; i++) {
             blockEntity.container().setItem(i, ItemStack.EMPTY);
         }
@@ -91,7 +91,7 @@ public class ArmorModifierGameTests {
     /** Issue #780: the station loaded with {@code tool} and two reagent stacks in two free slots. */
     private static ToolStationMenu load(GameTestHelper helper, Player player, ItemStack tool,
             ItemStack first, ItemStack second) {
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION, ToolStationBlockEntity.class);
         for (int i = 0; i < ToolStationMenu.INPUT_SLOTS; i++) {
             blockEntity.container().setItem(i, ItemStack.EMPTY);
         }
@@ -358,7 +358,8 @@ public class ArmorModifierGameTests {
         helper.assertTrue(ForgeweaveModifiers.freeSlots(piece) == 0, "and occupies no slot");
         helper.assertTrue(piece.getMaxDamage() == baseDurability + baseDurability / 5,
                 "+20% of the base durability, got " + piece.getMaxDamage() + " over " + baseDurability);
-        helper.assertTrue(piece.has(DataComponents.FIRE_RESISTANT), "the dropped piece survives fire");
+        helper.assertTrue(piece.has(DataComponents.DAMAGE_RESISTANT) && !piece.canBeHurtBy(helper.getLevel().damageSources().inFire()),
+                "the dropped piece survives fire");
 
         player.setItemSlot(EquipmentSlot.CHEST, piece);
         player.tick();
@@ -436,7 +437,7 @@ public class ArmorModifierGameTests {
         ItemStack two = apply(helper, player, piece, new ItemStack(Items.SLIME_BALL, 2));
         helper.assertTrue(ForgeweaveTraits.overslime(two) == 40, "two green balls are 40, got " + ForgeweaveTraits.overslime(two));
         helper.assertTrue(ForgeweaveModifiers.of(two).isEmpty(), "overslime is no modifier entry, got " + ForgeweaveModifiers.of(two));
-        ToolStationBlockEntity station = helper.getBlockEntity(STATION);
+        ToolStationBlockEntity station = helper.getBlockEntity(STATION, ToolStationBlockEntity.class);
         helper.assertTrue(station.container().getItem(1).isEmpty(), "both balls spent");
 
         ItemStack blue = ForgeweaveItems.slimeBallItem(SlimeColour.BLUE).toStack(3);

@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_plating_boots"
-  },
+  "cast": "forgeweave:cast_plating_boots",
   "fluid": "forgeweave:molten_redstone_alloy",
   "amount": 288,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "enderio:redstone_alloy_ingot"
+      "type": "neoforge:registered",
+      "value": "enderio:redstone_alloy_ingot"
     }
   ]
 }

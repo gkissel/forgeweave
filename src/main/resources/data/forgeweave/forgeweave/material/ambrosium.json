@@ -45,27 +45,21 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "aether:ambrosium_shard"
-      },
+      "ingredient": "aether:ambrosium_shard",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "aether:ambrosium_block"
-      },
+      "ingredient": "aether:ambrosium_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "item": "aether:ambrosium_shard"
-  },
+  "repair_item": "aether:ambrosium_shard",
   "enchantability": 24,
   "color": "#F2C94C",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "aether:ambrosium_shard"
+      "type": "neoforge:registered",
+      "value": "aether:ambrosium_shard"
     }
   ]
 }

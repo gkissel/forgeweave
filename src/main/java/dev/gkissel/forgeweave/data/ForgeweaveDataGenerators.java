@@ -1,14 +1,9 @@
 package dev.gkissel.forgeweave.data;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
-import net.minecraft.core.HolderLookup;
-import net.minecraft.data.DataGenerator;
-import net.minecraft.data.PackOutput;
-
-import net.neoforged.neoforge.common.data.AdvancementProvider;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.minecraft.data.advancements.AdvancementProvider;
+import net.minecraft.server.packs.PackType;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 
 import dev.gkissel.forgeweave.data.sprite.MaterialPartTextureProvider;
@@ -17,51 +12,47 @@ import dev.gkissel.forgeweave.data.sprite.MaterialPartTextureProvider;
  * Registers Forgeweave's datagen providers (docs/adr/0002: models, blockstates, loot tables,
  * recipes, and lang are generated, not hand-written; generated output is committed and checked for
  * freshness in CI).
+ *
+ * <p>26.1 splits datagen into client and server events. The build runs one {@code clientData} run,
+ * which fires the client event with every provider in it, so server data registers here too.
  */
 public final class ForgeweaveDataGenerators {
-    public static void gatherData(GatherDataEvent event) {
-        DataGenerator generator = event.getGenerator();
-        PackOutput output = generator.getPackOutput();
-        ExistingFileHelper existingFileHelper = event.getExistingFileHelper();
-        CompletableFuture<HolderLookup.Provider> lookupProvider = event.getLookupProvider();
-
-        generator.addProvider(event.includeClient(), new ForgeweaveItemModelProvider(output, existingFileHelper));
+    public static void gatherData(GatherDataEvent.Client event) {
+        // Every blockstate, block and item model, and client item: one 26.1 ModelProvider, which
+        // runs ForgeweaveItemModelProvider's half itself.
+        event.createProvider(ForgeweaveBlockStateProvider::new);
         // #280 -- greyscale texture pipeline proof slice: recolors greyscale part sprites through
         // per-material palettes into textures/staging/part/ (M9 groundwork, epic #30).
-        generator.addProvider(event.includeClient(), new MaterialPartTextureProvider(output, existingFileHelper));
-        generator.addProvider(event.includeClient(), new ForgeweaveBlockStateProvider(output, existingFileHelper));
-        generator.addProvider(event.includeClient(), new ForgeweaveLanguageProvider(output));
-        generator.addProvider(event.includeServer(), new ForgeweaveRecipeProvider(output, lookupProvider));
+        event.createProvider(output -> new MaterialPartTextureProvider(output, event.getResourceManager(PackType.CLIENT_RESOURCES)));
+        event.createProvider(ForgeweaveLanguageProvider::new);
+        event.createProvider(ForgeweaveRecipeProvider.Runner::new);
         // #915 -- the Draconic Evolution fusion recipes (docs/SCOPE.md M8). A plain DataProvider
         // rather than a RecipeProvider: both layers' serializers live behind the mod_loaded gate, so
         // there is no Recipe object runData could build. See the provider's own javadoc.
-        generator.addProvider(event.includeServer(), new ForgeweaveDraconicRecipeProvider(output));
+        event.createProvider(ForgeweaveDraconicRecipeProvider::new);
         // #997 -- the Occultism crushing, miner and ritual rows (docs/SCOPE.md M8). Same shape and
         // same reason: all three serializers are Occultism's, behind the same mod_loaded gate.
-        generator.addProvider(event.includeServer(), new ForgeweaveOccultismRecipeProvider(output));
+        event.createProvider(ForgeweaveOccultismRecipeProvider::new);
         // #993 -- the one Mekanism nucleosynthesizing recipe (docs/SCOPE.md M8, D-M8-13). Same shape
         // and the same reason: Mekanism's serializer is compileOnly, so there is no Recipe object here
         // either.
-        generator.addProvider(event.includeServer(), new ForgeweaveMekanismRecipeProvider(output));
-        generator.addProvider(event.includeServer(), new ForgeweaveLootTableProvider(output, lookupProvider));
+        event.createProvider(ForgeweaveMekanismRecipeProvider::new);
+        event.createProvider(ForgeweaveLootTableProvider::new);
         // #104 -- the cobalt + ardite nether ore blocks' tool-tier tags (ForgeweaveBlockTagsProvider
-        // javadoc); the first Forgeweave block tags, so ForgeweaveItemTagsProvider's block-tag future
-        // now feeds off it instead of staying empty.
-        ForgeweaveBlockTagsProvider blockTags = generator.addProvider(event.includeServer(),
-                new ForgeweaveBlockTagsProvider(output, lookupProvider, existingFileHelper));
+        // javadoc).
+        event.createProvider(ForgeweaveBlockTagsProvider::new);
         // #103 -- puts the four metal materials with no vanilla item form into the c: convention tags
-        // MeltingRecipe's tag-keyed rows expect (ForgeweaveItemTagsProvider javadoc).
-        generator.addProvider(event.includeServer(), new ForgeweaveItemTagsProvider(output, lookupProvider,
-                blockTags.contentsGetter(), existingFileHelper));
+        // MeltingRecipe's tag-keyed rows expect (ForgeweaveItemTagsProvider javadoc). It copies no
+        // block tags, so it no longer waits on the block tags provider.
+        event.createProvider((output, lookupProvider) ->
+                new ForgeweaveItemTagsProvider(output, lookupProvider, event.getResourceManager(PackType.SERVER_DATA)));
         // #680 -- the five protection damage-type tags the ARMOR traits and #681's modifiers filter on.
-        generator.addProvider(event.includeServer(),
-                new ForgeweaveDamageTypeTagsProvider(output, lookupProvider, existingFileHelper));
-        generator.addProvider(event.includeServer(),
-                new ForgeweaveFluidTagsProvider(output, lookupProvider, existingFileHelper)); // #992
+        event.createProvider(ForgeweaveDamageTypeTagsProvider::new);
+        event.createProvider(ForgeweaveFluidTagsProvider::new); // #992
         // #110 -- the M2 advancement chain (docs/SCOPE.md M2 issue #110): build smeltery -> first
         // melt -> first cast -> first alloy -> first modifier.
-        generator.addProvider(event.includeServer(),
-                new AdvancementProvider(output, lookupProvider, existingFileHelper, List.of(new ForgeweaveAdvancementProvider())));
+        event.createProvider((output, lookupProvider) ->
+                new AdvancementProvider(output, lookupProvider, List.of(new ForgeweaveAdvancementProvider())));
     }
 
     private ForgeweaveDataGenerators() {}

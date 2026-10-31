@@ -5,13 +5,14 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -25,8 +26,8 @@ import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -166,7 +167,7 @@ public class SmelteryGameTests {
         buildWalls(helper, 1, 1, 2);
         BlockPos core = placeCore(helper, ForgeweaveBlocks.NETHER_CORE.get());
 
-        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core);
+        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core, SmelteryControllerBlockEntity.class);
         helper.assertTrue(blockEntity.isFormed(), "expected a Nether Core to form a smeltery too: " + reason(helper, core));
         helper.assertTrue(blockEntity.core() == SmelteryCore.NETHER, "expected the Nether Core tier to be recorded");
         helper.assertTrue(blockEntity.core().yieldMultiplier() > SmelteryCore.STANDARD.yieldMultiplier(),
@@ -180,7 +181,7 @@ public class SmelteryGameTests {
         buildWalls(helper, 3, 3, 2);
         BlockPos core = placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
 
-        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core);
+        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core, SmelteryControllerBlockEntity.class);
         SmelteryStructure structure = blockEntity.structure();
         helper.assertTrue(structure != null, "expected the smeltery to form first: " + reason(helper, core));
         blockEntity.tank().fill(new FluidStack(Fluids.WATER, 500), IFluidHandler.FluidAction.EXECUTE);
@@ -212,7 +213,7 @@ public class SmelteryGameTests {
     public static void menuExposesTheTankContents(GameTestHelper helper) {
         buildWalls(helper, 1, 1, 2);
         BlockPos core = placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
-        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core);
+        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core, SmelteryControllerBlockEntity.class);
         helper.assertTrue(blockEntity.isFormed(), "expected the smeltery to form first: " + reason(helper, core));
 
         // Iron + manyullyn: two fluids no alloy recipe touches (issue #231 made water + lava alloy
@@ -241,7 +242,7 @@ public class SmelteryGameTests {
     public static void clickingAFluidMakesItTheDrainFluid(GameTestHelper helper) {
         buildWalls(helper, 1, 1, 2);
         BlockPos core = placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
-        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core);
+        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core, SmelteryControllerBlockEntity.class);
         // Same non-alloying pair as menuExposesTheTankContents (see the note there).
         blockEntity.tank().fill(new FluidStack(ForgeweaveFluids.IRON.still().get(), 500), IFluidHandler.FluidAction.EXECUTE);
         blockEntity.tank().fill(new FluidStack(ForgeweaveFluids.MANYULLYN.still().get(), 250), IFluidHandler.FluidAction.EXECUTE);
@@ -288,13 +289,14 @@ public class SmelteryGameTests {
     public static void aPreExistingSingleFluidTankStillLoads(GameTestHelper helper) {
         buildWalls(helper, 1, 1, 2);
         BlockPos core = placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
-        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core);
+        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core, SmelteryControllerBlockEntity.class);
         HolderLookup.Provider registries = helper.getLevel().registryAccess();
 
         // The exact shape FluidTank#writeToNBT produced on master before this issue.
         CompoundTag tag = blockEntity.saveWithFullMetadata(registries);
         CompoundTag legacyTank = new CompoundTag();
-        legacyTank.put("Fluid", new FluidStack(Fluids.LAVA, 777).save(registries));
+        legacyTank.put("Fluid", FluidStack.CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE),
+                new FluidStack(Fluids.LAVA, 777)).getOrThrow());
         tag.put("tank", legacyTank);
 
         BlockState state = helper.getLevel().getBlockState(helper.absolutePos(core));
@@ -317,7 +319,7 @@ public class SmelteryGameTests {
     public static void clickingAnItemIntoAMeltSlotReachesTheMeltingInventory(GameTestHelper helper) {
         buildWalls(helper, 1, 1, 2);
         BlockPos core = placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
-        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core);
+        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core, SmelteryControllerBlockEntity.class);
         helper.assertTrue(blockEntity.isFormed(), "expected the smeltery to form first: " + reason(helper, core));
 
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
@@ -326,7 +328,7 @@ public class SmelteryGameTests {
 
         // Carry an iron ingot, then click it into melt slot 0 the way the click packet does.
         menu.setCarried(new ItemStack(Items.IRON_INGOT));
-        menu.clicked(0, 0, ClickType.PICKUP, player);
+        menu.clicked(0, 0, ContainerInput.PICKUP, player);
 
         helper.assertValueEqual(blockEntity.meltingItems().get(0).getItem(), Items.IRON_INGOT,
                 "the item the player clicked into melt slot 0");
@@ -339,12 +341,12 @@ public class SmelteryGameTests {
     public static void aMeltSlotRefusesSomethingWithNoMeltingRecipe(GameTestHelper helper) {
         buildWalls(helper, 1, 1, 2);
         BlockPos core = placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
-        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core);
+        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core, SmelteryControllerBlockEntity.class);
 
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         SmelteryMenu menu = openMenu(helper, core);
         menu.setCarried(new ItemStack(Items.STICK));
-        menu.clicked(0, 0, ClickType.PICKUP, player);
+        menu.clicked(0, 0, ContainerInput.PICKUP, player);
 
         helper.assertTrue(blockEntity.meltingItems().get(0).isEmpty(), "a stick is not meltable and must be refused");
         helper.assertTrue(!menu.getCarried().isEmpty(), "the refused item stays on the cursor");
@@ -365,15 +367,15 @@ public class SmelteryGameTests {
     public static void anItemClickedInThroughTheGuiIsPickedUpByTheMeltLoop(GameTestHelper helper) {
         buildWalls(helper, 1, 1, 2);
         // Lava in the wall tank is what #96's heat model runs on.
-        helper.<SearedTankBlockEntity>getBlockEntity(new BlockPos(1, 2, 0)).tank()
+        helper.getBlockEntity(new BlockPos(1, 2, 0), SearedTankBlockEntity.class).tank()
                 .fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
         BlockPos core = placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
-        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core);
+        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core, SmelteryControllerBlockEntity.class);
 
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         SmelteryMenu menu = openMenu(helper, core);
         menu.setCarried(new ItemStack(Items.IRON_INGOT));
-        menu.clicked(0, 0, ClickType.PICKUP, player);
+        menu.clicked(0, 0, ContainerInput.PICKUP, player);
 
         helper.runAfterDelay(60, () -> {
             float early = blockEntity.meltProgress(0);
@@ -405,10 +407,10 @@ public class SmelteryGameTests {
     @GameTest(template = "smeltery", timeoutTicks = 200)
     public static void anUnmeltableItemInTheGridBurnsNoFuel(GameTestHelper helper) {
         buildWalls(helper, 1, 1, 2);
-        SearedTankBlockEntity wallTank = helper.getBlockEntity(TANK_POS);
+        SearedTankBlockEntity wallTank = helper.getBlockEntity(TANK_POS, SearedTankBlockEntity.class);
         wallTank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
         BlockPos core = placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
-        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core);
+        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core, SmelteryControllerBlockEntity.class);
         helper.assertTrue(blockEntity.isFormed(), "expected the smeltery to form first: " + reason(helper, core));
 
         blockEntity.meltingContainer().setItem(0, new ItemStack(Items.STICK));
@@ -434,7 +436,7 @@ public class SmelteryGameTests {
     public static void theMeltGridIsNotEmptyWhileItHoldsAnUnmeltableItem(GameTestHelper helper) {
         buildWalls(helper, 1, 1, 2);
         BlockPos core = placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
-        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core);
+        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core, SmelteryControllerBlockEntity.class);
 
         helper.assertTrue(blockEntity.meltingContainer().isEmpty(), "a fresh melt grid is empty");
         blockEntity.meltingContainer().setItem(0, new ItemStack(Items.STICK));
@@ -454,10 +456,10 @@ public class SmelteryGameTests {
     @GameTest(template = "smeltery")
     public static void menuExposesFuelGaugeData(GameTestHelper helper) {
         buildWalls(helper, 1, 1, 2);
-        helper.<SearedTankBlockEntity>getBlockEntity(TANK_POS).tank()
+        helper.getBlockEntity(TANK_POS, SearedTankBlockEntity.class).tank()
                 .fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
         BlockPos core = placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
-        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core);
+        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core, SmelteryControllerBlockEntity.class);
         helper.assertTrue(blockEntity.isFormed(), "expected the smeltery to form first: " + reason(helper, core));
 
         SmelteryMenu menu = openMenu(helper, core);
@@ -471,7 +473,7 @@ public class SmelteryGameTests {
 
     /** The menu the controller's own {@code createMenu} builds, i.e. what a right-click produces. */
     private static SmelteryMenu openMenu(GameTestHelper helper, BlockPos core) {
-        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core);
+        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core, SmelteryControllerBlockEntity.class);
         return new SmelteryMenu(1, helper.makeMockPlayer(GameType.SURVIVAL).getInventory(),
                 ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(core)), helper.absolutePos(core),
                 blockEntity.meltingContainer());
@@ -510,15 +512,15 @@ public class SmelteryGameTests {
     }
 
     private static SmelteryStructure structureOf(GameTestHelper helper, BlockPos core) {
-        return helper.<SmelteryControllerBlockEntity>getBlockEntity(core).structure();
+        return helper.getBlockEntity(core, SmelteryControllerBlockEntity.class).structure();
     }
 
     private static String reason(GameTestHelper helper, BlockPos core) {
-        return helper.<SmelteryControllerBlockEntity>getBlockEntity(core).lastResult().getString();
+        return helper.getBlockEntity(core, SmelteryControllerBlockEntity.class).lastResult().getString();
     }
 
     private static void assertReason(GameTestHelper helper, BlockPos core, String expectedKey) {
-        Component message = helper.<SmelteryControllerBlockEntity>getBlockEntity(core).lastResult();
+        Component message = helper.getBlockEntity(core, SmelteryControllerBlockEntity.class).lastResult();
         String key = message.getContents() instanceof TranslatableContents contents ? contents.getKey() : "<literal>";
         helper.assertTrue(expectedKey.equals(key), "expected the core to report " + expectedKey + " but it reported " + key);
     }

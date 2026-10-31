@@ -49,11 +49,9 @@ A material is JSON in your own namespace, at `data/<your namespace>/forgeweave/m
     "general": ["gametest_addon:addon_pack_trait", "gametest_addon:addon_java_trait"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:sniffer_egg" }, "value": 144 }
+    { "ingredient": "minecraft:sniffer_egg", "value": 144 }
   ],
-  "repair_item": {
-    "item": "minecraft:sniffer_egg"
-  },
+  "repair_item": "minecraft:sniffer_egg",
   "color": "#4FA3C8"
 }
 ```
@@ -201,9 +199,7 @@ Registering or defining a modifier does not put it within a player's reach. A mo
   "modifier": "gametest_addon:whetted",
   "reagents": [
     {
-      "ingredient": {
-        "item": "minecraft:goat_horn"
-      }
+      "ingredient": "minecraft:goat_horn"
     }
   ],
   "cost": 1,
@@ -299,7 +295,7 @@ public static final DeferredItem<Item> BLADE =
 ```java
 public static final ToolDefinition TOOL_DEFINITION = ToolDefinition.builder(TOOL_ID, ToolFamily.MELEE)
         .part(PartRole.HEAD, BLADE_ID)
-        .part(PartRole.HANDLE, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "tool_handle"))
+        .part(PartRole.HANDLE, Identifier.fromNamespaceAndPath(Forgeweave.MODID, "tool_handle"))
         .weapon()
         .attackSpeed(1.6f)
         .flatAttackBonus(2.0f)

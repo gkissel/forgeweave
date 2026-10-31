@@ -1,7 +1,7 @@
 package dev.gkissel.forgeweave.jade;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IBlockComponentProvider;
@@ -27,12 +27,12 @@ import dev.gkissel.forgeweave.tool.MiningLevel;
 public final class MiningLevelProvider implements IBlockComponentProvider {
     public static final MiningLevelProvider INSTANCE = new MiningLevelProvider();
 
-    private static final ResourceLocation UID = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "mining_level");
+    private static final Identifier UID = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "mining_level");
 
     private MiningLevelProvider() {}
 
     @Override
-    public ResourceLocation getUid() {
+    public Identifier getUid() {
         return UID;
     }
 

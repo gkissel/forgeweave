@@ -31,6 +31,6 @@ public record SolarRecharge(int ratePerTick) implements Trait {
     }
 
     private static boolean isDaylight(ServerLevel level, LivingEntity holder) {
-        return level.isDay() && level.canSeeSky(holder.blockPosition());
+        return level.isBrightOutside() && level.canSeeSky(holder.blockPosition());
     }
 }

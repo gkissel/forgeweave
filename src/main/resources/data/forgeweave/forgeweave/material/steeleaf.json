@@ -48,28 +48,22 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:ingots/steeleaf"
-      },
+      "ingredient": "#c:ingots/steeleaf",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:storage_blocks/steeleaf"
-      },
+      "ingredient": "#c:storage_blocks/steeleaf",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/steeleaf"
-  },
+  "repair_item": "#c:ingots/steeleaf",
   "cast_only": true,
   "enchantability": 18,
   "color": "#4E7A3D",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "twilightforest:steeleaf_ingot"
+      "type": "neoforge:registered",
+      "value": "twilightforest:steeleaf_ingot"
     }
   ]
 }

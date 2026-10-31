@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 
 import net.minecraft.SharedConstants;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -87,7 +87,7 @@ class FluidReferenceAuditTest {
 
         List<String> unregistered = new ArrayList<>();
         for (String id : referenced) {
-            ResourceLocation location = ResourceLocation.parse(id);
+            Identifier location = Identifier.parse(id);
             if (!BuiltInRegistries.FLUID.containsKey(location)) {
                 unregistered.add(id);
             }

@@ -55,27 +55,19 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "forgeweave:cobalt_ingot"
-      },
+      "ingredient": "forgeweave:cobalt_ingot",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "forgeweave:cobalt_nugget"
-      },
+      "ingredient": "forgeweave:cobalt_nugget",
       "value": 16
     },
     {
-      "ingredient": {
-        "item": "forgeweave:cobalt_block"
-      },
+      "ingredient": "forgeweave:cobalt_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/cobalt"
-  },
+  "repair_item": "#c:ingots/cobalt",
   "cast_only": true,
   "enchantability": 10,
   "color": "#2882D4"

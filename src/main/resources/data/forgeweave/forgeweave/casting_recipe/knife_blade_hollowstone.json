@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_knife_blade"
-  },
+  "cast": "forgeweave:cast_knife_blade",
   "fluid": "forgeweave:molten_hollowstone",
   "amount": 144,
   "result": {

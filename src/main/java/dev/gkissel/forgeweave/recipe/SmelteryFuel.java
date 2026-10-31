@@ -11,7 +11,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.level.material.Fluid;
 
@@ -50,7 +50,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 public record SmelteryFuel(Fluid fluid, int amount, int duration, int temperature) {
 
     public static final ResourceKey<Registry<SmelteryFuel>> REGISTRY = ResourceKey.createRegistryKey(
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "smeltery_fuel"));
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "smeltery_fuel"));
 
     public static final Codec<SmelteryFuel> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             BuiltInRegistries.FLUID.byNameCodec().fieldOf("fluid").forGetter(SmelteryFuel::fluid),
@@ -69,10 +69,10 @@ public record SmelteryFuel(Fluid fluid, int amount, int duration, int temperatur
      * way {@link MeltingRecipe#find} does.
      */
     public static Optional<SmelteryFuel> find(RegistryAccess registries, Fluid fluid) {
-        Registry<SmelteryFuel> fuels = registries.registryOrThrow(REGISTRY);
+        Registry<SmelteryFuel> fuels = registries.lookupOrThrow(REGISTRY);
         return fuels.entrySet().stream()
                 .filter(entry -> entry.getValue().fluid() == fluid)
-                .min(Comparator.comparing(entry -> entry.getKey().location()))
+                .min(Comparator.comparing(entry -> entry.getKey().identifier()))
                 .map(Map.Entry::getValue);
     }
 }

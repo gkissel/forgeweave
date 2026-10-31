@@ -1,8 +1,6 @@
 {
   "modifier": "forgeweave:veinmine",
-  "reagent": {
-    "item": "minecraft:prismarine_shard"
-  },
+  "reagent": "minecraft:prismarine_shard",
   "cost": 4,
   "max_level": 5
 }

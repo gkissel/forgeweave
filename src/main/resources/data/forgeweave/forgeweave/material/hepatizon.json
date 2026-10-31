@@ -22,13 +22,11 @@
     "armor": ["forgeweave:recurrent_protection"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:hepatizon_ingot" }, "value": 144 },
-    { "ingredient": { "item": "forgeweave:hepatizon_nugget" }, "value": 16 },
-    { "ingredient": { "item": "forgeweave:hepatizon_block" }, "value": 1296 }
+    { "ingredient": "forgeweave:hepatizon_ingot", "value": 144 },
+    { "ingredient": "forgeweave:hepatizon_nugget", "value": 16 },
+    { "ingredient": "forgeweave:hepatizon_block", "value": 1296 }
   ],
-  "repair_item": {
-    "tag": "c:ingots/hepatizon"
-  },
+  "repair_item": "#c:ingots/hepatizon",
   "cast_only": true,
   "enchantability": 10,
   "color": "#60496B"

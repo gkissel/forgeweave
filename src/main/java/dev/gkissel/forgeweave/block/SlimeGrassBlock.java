@@ -58,7 +58,7 @@ public class SlimeGrassBlock extends Block implements BonemealableBlock {
                 return;
             }
             BlockPos above = target.above();
-            if (level.getMaxLocalRawBrightness(above) >= 4 && level.getBlockState(above).getLightBlock(level, above) <= 2) {
+            if (level.getMaxLocalRawBrightness(above) >= 4 && level.getBlockState(above).getLightDampening() <= 2) {
                 Optional<Block> grass = ForgeweaveBlocks.slimeGrassForDirt(level.getBlockState(target).getBlock());
                 grass.ifPresent(block -> level.setBlockAndUpdate(target, block.defaultBlockState()));
             }

@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_plating_boots"
-  },
+  "cast": "forgeweave:cast_plating_boots",
   "fluid": "forgeweave:molten_duskweld",
   "amount": 288,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "draconicevolution:draconium_core"
+      "type": "neoforge:registered",
+      "value": "draconicevolution:draconium_core"
     }
   ]
 }

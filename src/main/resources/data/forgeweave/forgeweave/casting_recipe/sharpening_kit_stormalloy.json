@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_sharpening_kit"
-  },
+  "cast": "forgeweave:cast_sharpening_kit",
   "fluid": "forgeweave:molten_stormalloy",
   "amount": 288,
   "result": {

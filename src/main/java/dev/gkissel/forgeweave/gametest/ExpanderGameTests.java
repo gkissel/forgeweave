@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -16,8 +16,8 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
@@ -186,7 +186,7 @@ public class ExpanderGameTests {
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         ItemStack sword = assembled(helper, player, ForgeweaveItems.TOOL_BROADSWORD.get(), "stone");
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION, ToolStationBlockEntity.class);
         for (int i = 0; i < ToolStationMenu.INPUT_SLOTS; i++) {
             blockEntity.container().setItem(i, ItemStack.EMPTY);
         }
@@ -227,7 +227,7 @@ public class ExpanderGameTests {
      * modifier onto a stack.
      */
     private static void expand(GameTestHelper helper, ServerPlayer player, Item reagent) {
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION, ToolStationBlockEntity.class);
         for (int i = 0; i < ToolStationMenu.INPUT_SLOTS; i++) {
             blockEntity.container().setItem(i, ItemStack.EMPTY);
         }

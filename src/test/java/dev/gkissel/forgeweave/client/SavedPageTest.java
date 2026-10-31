@@ -22,9 +22,10 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.client.book.BookContent;
 import dev.gkissel.forgeweave.client.book.BookSection;
@@ -50,7 +51,7 @@ class SavedPageTest {
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(JsonOps.INSTANCE);
     }
 
     private static Material shipped(String name) {
@@ -65,8 +66,8 @@ class SavedPageTest {
 
     private static List<BookSection> sections() {
         return BookContent.sections(List.of(
-                Map.entry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "iron"), shipped("iron")),
-                Map.entry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "stone"), shipped("stone"))));
+                Map.entry(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "iron"), shipped("iron")),
+                Map.entry(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "stone"), shipped("stone"))));
     }
 
     private static int pageCount(List<BookSection> sections) {

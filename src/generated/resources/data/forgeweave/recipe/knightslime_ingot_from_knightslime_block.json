@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "item": "forgeweave:knightslime_block"
-    }
+    "forgeweave:knightslime_block"
   ],
   "result": {
     "count": 9,

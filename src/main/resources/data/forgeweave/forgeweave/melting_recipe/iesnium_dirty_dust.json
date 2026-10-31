@@ -1,14 +1,12 @@
 {
-  "input": {
-    "tag": "c:dirty_dusts/iesnium"
-  },
+  "input": "#c:dirty_dusts/iesnium",
   "fluid": "forgeweave:molten_iesnium",
   "amount": 144,
   "temperature": 1600,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "occultism:iesnium_ingot"
+      "type": "neoforge:registered",
+      "value": "occultism:iesnium_ingot"
     }
   ]
 }

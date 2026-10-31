@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/netherite"
-  },
+  "input": "#c:dusts/netherite",
   "fluid": "forgeweave:molten_netherite",
   "amount": 144
 }

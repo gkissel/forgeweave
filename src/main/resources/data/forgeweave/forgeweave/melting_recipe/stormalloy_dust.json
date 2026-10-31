@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/stormalloy"
-  },
+  "input": "#c:dusts/stormalloy",
   "fluid": "forgeweave:molten_stormalloy",
   "amount": 144,
   "temperature": 1600

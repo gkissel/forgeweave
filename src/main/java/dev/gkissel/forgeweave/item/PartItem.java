@@ -1,5 +1,8 @@
 package dev.gkissel.forgeweave.item;
 
+import java.util.function.Consumer;
+import net.minecraft.world.item.component.TooltipDisplay;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -10,7 +13,7 @@ import javax.annotation.Nullable;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -121,7 +124,7 @@ public class PartItem extends Item {
         if (!(stack.getItem() instanceof PartItem)) {
             return false;
         }
-        ResourceLocation materialId = stack.get(ForgeweaveDataComponents.MATERIAL.get());
+        Identifier materialId = stack.get(ForgeweaveDataComponents.MATERIAL.get());
         if (materialId == null) {
             return true;
         }
@@ -149,16 +152,19 @@ public class PartItem extends Item {
      */
     @Override
     public Component getName(ItemStack stack) {
-        ResourceLocation materialId = stack.get(ForgeweaveDataComponents.MATERIAL.get());
+        Identifier materialId = stack.get(ForgeweaveDataComponents.MATERIAL.get());
         Component name = super.getName(stack);
         return materialId == null ? name : MaterialDisplay.prefixed(List.of(materialId), name);
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
+            Consumer<Component> builder, TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, builder, flag);
+        List<Component> tooltip = new ArrayList<>();
         append(stack, context.registries(), ToolTooltip.detailed(flag), tooltip);
         ToolTooltip.appendShiftHint(ToolTooltip.shiftHint(flag), tooltip);
+        tooltip.forEach(builder);
     }
 
     /**
@@ -177,7 +183,7 @@ public class PartItem extends Item {
         if (stack.is(ForgeweaveItems.PART_SHARPENING_KIT.get())) {
             tooltip.add(Component.translatable("tooltip.forgeweave.sharpening_kit"));
         }
-        ResourceLocation materialId = stack.get(ForgeweaveDataComponents.MATERIAL.get());
+        Identifier materialId = stack.get(ForgeweaveDataComponents.MATERIAL.get());
         if (materialId == null) {
             // Issue #379, upstream ToolPart#checkMissingMaterialTooltip: a part carrying no material
             // at all says so ("Part has no data") instead of hovering as a blank item. Upstream's

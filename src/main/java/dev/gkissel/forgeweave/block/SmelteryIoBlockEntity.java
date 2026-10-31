@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.block;
 
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -113,12 +115,12 @@ public abstract class SmelteryIoBlockEntity extends BlockEntity {
     @Override
     public void onLoad() {
         super.onLoad();
-        if (corePos != null || level == null || level.isClientSide) {
+        if (corePos != null || level == null || level.isClientSide()) {
             return;
         }
-        ChunkPos chunk = new ChunkPos(worldPosition);
-        for (int x = chunk.x - 1; x <= chunk.x + 1; x++) {
-            for (int z = chunk.z - 1; z <= chunk.z + 1; z++) {
+        ChunkPos chunk = ChunkPos.containing(worldPosition);
+        for (int x = chunk.x() - 1; x <= chunk.x() + 1; x++) {
+            for (int z = chunk.z() - 1; z <= chunk.z() + 1; z++) {
                 if (!level.hasChunk(x, z)) {
                     continue;
                 }
@@ -134,16 +136,14 @@ public abstract class SmelteryIoBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        if (corePos != null) {
-            tag.put(TAG_CORE, NbtUtils.writeBlockPos(corePos));
-        }
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.storeNullable(TAG_CORE, BlockPos.CODEC, corePos);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        corePos = tag.contains(TAG_CORE) ? NbtUtils.readBlockPos(tag, TAG_CORE).orElse(null) : null;
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        corePos = input.read(TAG_CORE, BlockPos.CODEC).orElse(null);
     }
 }

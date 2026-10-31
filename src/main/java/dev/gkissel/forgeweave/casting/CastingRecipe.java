@@ -6,22 +6,27 @@ import java.util.Optional;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import net.minecraft.core.NonNullList;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.material.Fluid;
 
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.block.TransferBridge;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.ClayCastItem;
 import dev.gkissel.forgeweave.menu.ContentFamilies;
@@ -78,12 +83,26 @@ import dev.gkissel.forgeweave.menu.ContentFamilies;
  * </ul>
  */
 public record CastingRecipe(Station station, Optional<Ingredient> cast, Optional<Fluid> fluid, int amount,
-        ItemStack result, Optional<Integer> time, boolean consumesCast, boolean resultInInput, int priority) {
+        ItemStackTemplate output, Optional<Integer> time, boolean consumesCast, boolean resultInInput, int priority) {
+
+    /**
+     * 26.1 loads datapack registries before it binds item components, so the result is held as a
+     * template and only becomes a stack when something asks for one.
+     */
+    public CastingRecipe(Station station, Optional<Ingredient> cast, Optional<Fluid> fluid, int amount,
+            ItemStack result, Optional<Integer> time, boolean consumesCast, boolean resultInInput, int priority) {
+        this(station, cast, fluid, amount, ItemStackTemplate.fromNonEmptyStack(result), time, consumesCast, resultInInput, priority);
+    }
 
     /** A recipe at the default priority, the shape every row had before {@code priority} existed. */
     public CastingRecipe(Station station, Optional<Ingredient> cast, Optional<Fluid> fluid, int amount,
             ItemStack result, Optional<Integer> time, boolean consumesCast, boolean resultInInput) {
         this(station, cast, fluid, amount, result, time, consumesCast, resultInInput, 0);
+    }
+
+    /** A fresh copy of the finished stack. */
+    public ItemStack result() {
+        return output.create();
     }
 
     /** Which of the two casting blocks a recipe belongs to (upstream's two separate recipe lists). */
@@ -106,14 +125,14 @@ public record CastingRecipe(Station station, Optional<Ingredient> cast, Optional
     }
 
     public static final ResourceKey<Registry<CastingRecipe>> REGISTRY = ResourceKey.createRegistryKey(
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "casting_recipe"));
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "casting_recipe"));
 
     public static final Codec<CastingRecipe> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             Station.CODEC.fieldOf("station").forGetter(CastingRecipe::station),
             Ingredient.CODEC.optionalFieldOf("cast").forGetter(CastingRecipe::cast),
             BuiltInRegistries.FLUID.byNameCodec().optionalFieldOf("fluid").forGetter(CastingRecipe::fluid),
             ExtraCodecs.POSITIVE_INT.fieldOf("amount").forGetter(CastingRecipe::amount),
-            ItemStack.CODEC.fieldOf("result").forGetter(CastingRecipe::result),
+            ItemStackTemplate.CODEC.fieldOf("result").forGetter(CastingRecipe::output),
             ExtraCodecs.POSITIVE_INT.optionalFieldOf("time").forGetter(CastingRecipe::time),
             Codec.BOOL.optionalFieldOf("consumes_cast", false).forGetter(CastingRecipe::consumesCast),
             Codec.BOOL.optionalFieldOf("result_in_input", false).forGetter(CastingRecipe::resultInInput),
@@ -142,7 +161,7 @@ public record CastingRecipe(Station station, Optional<Ingredient> cast, Optional
         // ...and the family gate on what is being poured: a cast or a part that serves only tool
         // families the server switched off cannot be moulded or cast through. Asked of both sides
         // because a table pour either shapes a cast around a part or a part inside a cast.
-        return ContentFamilies.itemEnabled(held) && ContentFamilies.itemEnabled(result);
+        return ContentFamilies.itemEnabled(held) && ContentFamilies.itemEnabled(result());
     }
 
     /**
@@ -155,7 +174,7 @@ public record CastingRecipe(Station station, Optional<Ingredient> cast, Optional
      * a pour that has nothing to do with clay.
      */
     private boolean usesClayCast(ItemStack held) {
-        return ClayCastItem.is(result) || ClayCastItem.is(held);
+        return ClayCastItem.is(result()) || ClayCastItem.is(held);
     }
 
     /**
@@ -165,15 +184,44 @@ public record CastingRecipe(Station station, Optional<Ingredient> cast, Optional
      */
     public ItemStack resultFor(Fluid poured) {
         if (fluid.isPresent()) {
-            return result.copy();
+            return result();
         }
-        ItemStack container = result.copy();
-        IFluidHandlerItem handler = container.getCapability(Capabilities.FluidHandler.ITEM);
+        ItemStacksResourceHandler slot = containerSlot();
+        if (fill(slot, poured, true) < 0) {
+            return result();
+        }
+        return slot.getResource(0).toStack(slot.getAmountAsInt(0));
+    }
+
+    /**
+     * {@link #result} alone in a one-slot inventory. NeoForge 26.1's item fluid handlers fill through
+     * an {@link ItemAccess}, which needs somewhere to put the filled container back -- the 1.21.1
+     * {@code IFluidHandlerItem#getContainer} had it to hand.
+     */
+    private ItemStacksResourceHandler containerSlot() {
+        return new ItemStacksResourceHandler(NonNullList.of(ItemStack.EMPTY, result()));
+    }
+
+    /**
+     * Pours {@link #amount} of {@code poured} into the container in {@code slot}; {@code commit}
+     * false is a simulation. The amount that went in, or -1 when the container holds no fluid at all.
+     *
+     * <p>The table asks this from inside its own fill, which NeoForge's legacy fluid adapter already
+     * runs in a root transaction, so the pour nests in whatever transaction is open: a second root
+     * would throw.
+     */
+    private int fill(ItemStacksResourceHandler slot, Fluid poured, boolean commit) {
+        ResourceHandler<FluidResource> handler = ItemAccess.forHandlerIndex(slot, 0).getCapability(Capabilities.Fluid.ITEM);
         if (handler == null) {
-            return container;
+            return -1;
         }
-        handler.fill(new FluidStack(poured, amount), IFluidHandler.FluidAction.EXECUTE);
-        return handler.getContainer();
+        try (Transaction transaction = TransferBridge.openNested()) {
+            int filled = handler.insert(FluidResource.of(poured), amount, transaction);
+            if (commit) {
+                transaction.commit();
+            }
+            return filled;
+        }
     }
 
     /**
@@ -183,9 +231,7 @@ public record CastingRecipe(Station station, Optional<Ingredient> cast, Optional
      * bucket item -- some other mod's -- from being poured away into a bucket that comes back empty.
      */
     private boolean containerHolds(Fluid poured) {
-        IFluidHandlerItem handler = result.copy().getCapability(Capabilities.FluidHandler.ITEM);
-        return handler != null
-                && handler.fill(new FluidStack(poured, amount), IFluidHandler.FluidAction.SIMULATE) >= amount;
+        return fill(containerSlot(), poured, false) >= amount;
     }
 
     /**

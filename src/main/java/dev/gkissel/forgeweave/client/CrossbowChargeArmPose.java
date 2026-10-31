@@ -6,9 +6,9 @@ import com.mojang.logging.LogUtils;
 
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelPart;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.HumanoidArm;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.fml.common.asm.enumextension.EnumProxy;
@@ -60,7 +60,8 @@ public final class CrossbowChargeArmPose {
      * field, and FML reads it reflectively when it extends the enum.
      */
     public static final EnumProxy<HumanoidModel.ArmPose> PROXY =
-            new EnumProxy<>(HumanoidModel.ArmPose.class, true, (IArmPoseTransformer) CrossbowChargeArmPose::apply);
+            new EnumProxy<>(HumanoidModel.ArmPose.class, true, true,
+                    (IArmPoseTransformer) CrossbowChargeArmPose::apply);
 
     private static HumanoidModel.ArmPose resolved;
 
@@ -86,8 +87,11 @@ public final class CrossbowChargeArmPose {
     }
 
     /** {@code IArmPoseTransformer#applyTransform}: read the crank's progress, then pose the arms. */
-    private static void apply(HumanoidModel<?> model, LivingEntity holder, HumanoidArm arm) {
-        animate(model.rightArm, model.leftArm, arm, chargeProgress(holder.getUseItem(), holder.getTicksUsingItem()));
+    private static void apply(HumanoidModel<?> model, HumanoidRenderState state, HumanoidArm arm) {
+        // 26.1 hands the transformer a render state, not the entity: the posed arm's own stack and
+        // use ticks stand in for LivingEntity#getUseItem/#getTicksUsingItem.
+        ItemStack using = state.isUsingItem ? state.getUseItemStackForArm(arm) : ItemStack.EMPTY;
+        animate(model.rightArm, model.leftArm, arm, chargeProgress(using, (int) state.ticksUsingItem(arm)));
     }
 
     /**

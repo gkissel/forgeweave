@@ -1,8 +1,8 @@
 {
   "input": [
-    { "item": "minecraft:iron_pickaxe" },
-    { "item": "minecraft:iron_axe" },
-    { "item": "minecraft:bucket" }
+    "minecraft:iron_pickaxe",
+    "minecraft:iron_axe",
+    "minecraft:bucket"
   ],
   "fluid": "forgeweave:molten_iron",
   "amount": 432

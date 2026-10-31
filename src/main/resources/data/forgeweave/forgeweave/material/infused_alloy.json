@@ -44,21 +44,17 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "mekanism:alloy_infused"
-      },
+      "ingredient": "mekanism:alloy_infused",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "mekanism:alloy_infused"
-  },
+  "repair_item": "mekanism:alloy_infused",
   "enchantability": 14,
   "color": "#D95D52",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:alloy_infused"
+      "type": "neoforge:registered",
+      "value": "mekanism:alloy_infused"
     }
   ]
 }

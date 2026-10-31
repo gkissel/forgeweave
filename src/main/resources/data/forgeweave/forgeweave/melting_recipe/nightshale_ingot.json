@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/nightshale"
-  },
+  "input": "#c:ingots/nightshale",
   "fluid": "forgeweave:molten_nightshale",
   "amount": 144
 }

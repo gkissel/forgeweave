@@ -11,11 +11,9 @@
     ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:purple_slime_leaves" }, "value": 72 }
+    { "ingredient": "forgeweave:purple_slime_leaves", "value": 72 }
   ],
-  "repair_item": {
-    "item": "forgeweave:purple_slime_leaves"
-  },
+  "repair_item": "forgeweave:purple_slime_leaves",
   "enchantability": 15,
   "color": "#C873C8"
 }

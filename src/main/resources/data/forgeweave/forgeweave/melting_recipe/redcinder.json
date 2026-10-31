@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "minecraft:redstone"
-  },
+  "input": "minecraft:redstone",
   "fluid": "forgeweave:molten_redcinder",
   "amount": 32
 }

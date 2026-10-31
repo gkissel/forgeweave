@@ -6,11 +6,11 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.contents.TranslatableContents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
@@ -28,8 +28,8 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 
 import net.neoforged.neoforge.event.level.BlockDropsEvent;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.modifier.Modifier;
@@ -59,15 +59,15 @@ import dev.gkissel.forgeweave.tool.ToolStats;
 @PrefixGameTestTemplate(false)
 public class ModifierGameTests {
 
-    private static final ResourceLocation HASTE = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "haste");
+    private static final Identifier HASTE = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "haste");
     // #108 batch: modern-vanilla modifiers (issue #108).
-    private static final ResourceLocation SEARING = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "searing");
-    private static final ResourceLocation MAGNETIC_PULL =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "magnetic_pull");
-    private static final ResourceLocation RESONANT = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "resonant");
-    private static final ResourceLocation LUCK = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "luck");
+    private static final Identifier SEARING = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "searing");
+    private static final Identifier MAGNETIC_PULL =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "magnetic_pull");
+    private static final Identifier RESONANT = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "resonant");
+    private static final Identifier LUCK = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "luck");
     // #107 batch: parity modifiers (issue #107).
-    private static final ResourceLocation EXTRA_SLOT = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "extra_slot");
+    private static final Identifier EXTRA_SLOT = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "extra_slot");
 
     @GameTest(template = "empty")
     public static void oneRedstoneFillsOneModifierSlot(GameTestHelper helper) {
@@ -129,7 +129,7 @@ public class ModifierGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, pickaxe);
         blockEntity.container().setItem(1, new ItemStack(Items.REDSTONE_BLOCK, 16));
         blockEntity.container().setItem(2, new ItemStack(Items.REDSTONE, 6));
@@ -165,7 +165,7 @@ public class ModifierGameTests {
         helper.assertTrue(ForgeweaveModifiers.freeSlots(pickaxe) == 0,
                 "the fixture needs zero free slots, got " + ForgeweaveModifiers.freeSlots(pickaxe));
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, pickaxe);
         blockEntity.container().setItem(1, new ItemStack(Items.REDSTONE, 1));
         blockEntity.container().setItem(2, ItemStack.EMPTY);
@@ -192,7 +192,7 @@ public class ModifierGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, pickaxe);
         blockEntity.container().setItem(1, new ItemStack(Items.REDSTONE_BLOCK, 20));
         blockEntity.container().setItem(2, new ItemStack(Items.REDSTONE, 10));
@@ -233,14 +233,14 @@ public class ModifierGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
         pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "test_one"), 1),
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "test_two"), 1),
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "test_three"), 1)));
+                new ModifierEntry(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "test_one"), 1),
+                new ModifierEntry(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "test_two"), 1),
+                new ModifierEntry(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "test_three"), 1)));
         helper.assertTrue(ForgeweaveModifiers.freeSlots(pickaxe) == 0,
                 "three distinct modifiers must fill the tool, got "
                         + ForgeweaveModifiers.freeSlots(pickaxe) + " free");
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, pickaxe);
         blockEntity.container().setItem(1, new ItemStack(Items.REDSTONE, 1));
         blockEntity.container().setItem(2, ItemStack.EMPTY);
@@ -262,7 +262,7 @@ public class ModifierGameTests {
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
         pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(HASTE, 250)));
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, pickaxe);
         blockEntity.container().setItem(1, new ItemStack(Items.REDSTONE, 8));
         blockEntity.container().setItem(2, ItemStack.EMPTY);
@@ -309,7 +309,7 @@ public class ModifierGameTests {
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
         pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(HASTE, 245)));
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, pickaxe);
         blockEntity.container().setItem(1, new ItemStack(Items.REDSTONE_BLOCK, 1));
         blockEntity.container().setItem(2, ItemStack.EMPTY);
@@ -343,7 +343,7 @@ public class ModifierGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, pickaxe);
         blockEntity.container().setItem(1, new ItemStack(Items.REDSTONE, 2));
         blockEntity.container().setItem(2, new ItemStack(Items.LAPIS_LAZULI, 3));
@@ -384,12 +384,12 @@ public class ModifierGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
         pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "test_one"), 1),
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "test_two"), 1)));
+                new ModifierEntry(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "test_one"), 1),
+                new ModifierEntry(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "test_two"), 1)));
         helper.assertTrue(ForgeweaveModifiers.freeSlots(pickaxe) == 1,
                 "the fixture needs exactly one free slot, got " + ForgeweaveModifiers.freeSlots(pickaxe));
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, pickaxe);
         blockEntity.container().setItem(1, new ItemStack(Items.REDSTONE, 1));
         blockEntity.container().setItem(2, new ItemStack(Items.LAPIS_LAZULI, 1));
@@ -414,7 +414,7 @@ public class ModifierGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, pickaxe);
         ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
 
@@ -622,14 +622,14 @@ public class ModifierGameTests {
      * fixture's stone (issue #458's effectiveness gate needs a real vanilla {@code tool} component,
      * not just the Forgeweave stats these three modifiers otherwise get by on their own).
      */
-    private static ItemStack withModifier(ResourceLocation id) {
+    private static ItemStack withModifier(Identifier id) {
         ItemStack pickaxe = pickaxe("incorrect_for_stone_tool");
         pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(id, 1)));
         return pickaxe;
     }
 
     /** As {@link #withModifier}, but tagged so the tool is never correct for the fixture's stone drop. */
-    private static ItemStack deniedPickaxe(ResourceLocation id) {
+    private static ItemStack deniedPickaxe(Identifier id) {
         ItemStack pickaxe = pickaxe("mineable/pickaxe");
         pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(id, 1)));
         return pickaxe;
@@ -640,7 +640,7 @@ public class ModifierGameTests {
         ToolItem toolItem = ForgeweaveItems.TOOL_PICKAXE.get();
         ToolStats.Stats stats = new ToolStats.Stats(250, 1.0F, 1.0F);
         Material head = new Material(new Material.Head(250, 1.0F, 1.0F), new Material.Handle(1.0F, 0), 0,
-                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace(incorrectForTool)),
+                TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace(incorrectForTool)),
                 new Material.Traits(List.of(), List.of()), List.of(), Ingredient.of(Items.STICK),
                 TextColor.fromRgb(0xFFFFFF));
 
@@ -688,10 +688,10 @@ public class ModifierGameTests {
         // of the widened cap's 4 slots itself) it fits 4 more on top -- a 4th distinct modifier that
         // would have been rejected before this application now fits.
         List<ModifierEntry> filled = new ArrayList<>(ForgeweaveModifiers.of(widened));
-        filled.add(new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "test_one"), 1));
-        filled.add(new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "test_two"), 1));
-        filled.add(new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "test_three"), 1));
-        filled.add(new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "test_four"), 1));
+        filled.add(new ModifierEntry(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "test_one"), 1));
+        filled.add(new ModifierEntry(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "test_two"), 1));
+        filled.add(new ModifierEntry(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "test_three"), 1));
+        filled.add(new ModifierEntry(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "test_four"), 1));
         widened.set(ForgeweaveDataComponents.MODIFIERS.get(), List.copyOf(filled));
         helper.assertTrue(ForgeweaveModifiers.freeSlots(widened) == 0,
                 "extra_slot plus four other distinct modifiers must exactly fill the widened cap, got "
@@ -755,9 +755,9 @@ public class ModifierGameTests {
         CraftingInput repriced =
                 CraftingInput.of(2, 1, List.of(new ItemStack(Items.NETHER_STAR), new ItemStack(Items.GOLD_BLOCK)));
 
-        ItemStack crafted = level.getRecipeManager()
+        ItemStack crafted = level.recipeAccess()
                 .getRecipeFor(RecipeType.CRAFTING, repriced, level)
-                .map(match -> match.value().assemble(repriced, level.registryAccess()))
+                .map(match -> match.value().assemble(repriced))
                 .orElse(ItemStack.EMPTY);
 
         helper.assertTrue(crafted.is(ForgeweaveItems.EXTRA_MODIFIER.get()),
@@ -766,7 +766,7 @@ public class ModifierGameTests {
         CraftingInput retired =
                 CraftingInput.of(2, 1, List.of(new ItemStack(Items.GOLD_BLOCK), new ItemStack(Items.DIAMOND)));
 
-        helper.assertTrue(level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, retired, level).isEmpty(),
+        helper.assertTrue(level.recipeAccess().getRecipeFor(RecipeType.CRAFTING, retired, level).isEmpty(),
                 "gold block + diamond must no longer craft an extra modifier");
 
         helper.succeed();
@@ -783,7 +783,7 @@ public class ModifierGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "sponge");
         helper.assertTrue(pickaxe.getOrDefault(ForgeweaveDataComponents.TRAITS.get(), List.of())
-                .contains(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "squeaky")),
+                .contains(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "squeaky")),
                 "the fixture needs a squeaky tool, got " + pickaxe.get(ForgeweaveDataComponents.TRAITS.get()));
 
         ToolStationMenu menu = loaded(helper, player, pos, pickaxe, new ItemStack(Items.LAPIS_LAZULI, 60));
@@ -820,7 +820,7 @@ public class ModifierGameTests {
     /** The station loaded with {@code tool} and one reagent stack, changes broadcast, output untaken. */
     private static ToolStationMenu loaded(GameTestHelper helper, Player player, BlockPos pos, ItemStack tool,
             ItemStack reagent) {
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, tool);
         blockEntity.container().setItem(1, reagent);
         blockEntity.container().setItem(2, ItemStack.EMPTY);
@@ -836,7 +836,7 @@ public class ModifierGameTests {
     /** Runs one application through the station and returns the modified tool. */
     private static ItemStack applyReagent(GameTestHelper helper, Player player, BlockPos pos, ItemStack tool,
             ItemStack reagent) {
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, tool);
         blockEntity.container().setItem(1, reagent);
         blockEntity.container().setItem(2, ItemStack.EMPTY);
@@ -869,7 +869,7 @@ public class ModifierGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, pickaxe);
         blockEntity.container().setItem(3, new ItemStack(Items.REDSTONE, 2));
         blockEntity.container().setItem(5, new ItemStack(Items.LAPIS_LAZULI, 3));
@@ -901,7 +901,7 @@ public class ModifierGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, pickaxe);
         blockEntity.container().setItem(1, new ItemStack(Items.REDSTONE, 1));
         blockEntity.container().setItem(3, new ItemStack(Items.REDSTONE, 1));
@@ -941,7 +941,7 @@ public class ModifierGameTests {
         helper.assertFalse(pickaxe.isCorrectToolForDrops(Blocks.OBSIDIAN.defaultBlockState()),
                 "an iron-tier pickaxe must not yet mine obsidian");
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, pickaxe);
         blockEntity.container().setItem(ToolStationMenu.BINDING_SLOT, new ItemStack(Items.DIAMOND, 1));
         ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
@@ -963,7 +963,7 @@ public class ModifierGameTests {
         helper.assertFalse(pickaxe.isCorrectToolForDrops(Blocks.DIAMOND_ORE.defaultBlockState()),
                 "a stone-tier pickaxe must not yet mine diamond ore");
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, pickaxe);
         blockEntity.container().setItem(ToolStationMenu.BINDING_SLOT, new ItemStack(Items.DIAMOND, 1));
         ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);

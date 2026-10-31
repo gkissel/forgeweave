@@ -17,7 +17,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.SharedConstants;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 
 import dev.gkissel.forgeweave.menu.StationMenu;
@@ -119,7 +119,7 @@ class StationErrorTakeoverTest {
 
     // ------------------------------------------------------------------ the Material Value line
 
-    private static final ResourceLocation IRON = ResourceLocation.fromNamespaceAndPath("forgeweave", "iron");
+    private static final Identifier IRON = Identifier.fromNamespaceAndPath("forgeweave", "iron");
 
     @Test
     void theMaterialValueLineIsInIngotsAndNamesItsMaterial() {

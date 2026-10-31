@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.level.material.Fluid;
 
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -29,7 +29,7 @@ final class EntityMeltingRecipes {
      */
     static final EntityType<Pig> DEFAULT_ROW_ENTITY = EntityType.PIG;
 
-    static List<EntityMeltingDisplay> build(Map<ResourceLocation, EntityMeltingRecipe> recipes, List<Fluid> fuels) {
+    static List<EntityMeltingDisplay> build(Map<Identifier, EntityMeltingRecipe> recipes, List<Fluid> fuels) {
         List<EntityMeltingDisplay> displays = new ArrayList<>();
         for (EntityMeltingRecipe recipe : recipes.values()) {
             displays.add(new EntityMeltingDisplay(recipe.entities(), recipe.fluid(), recipe.amount(), false, fuels));

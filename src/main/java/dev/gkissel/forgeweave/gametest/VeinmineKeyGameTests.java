@@ -4,9 +4,9 @@ import java.util.Collections;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
@@ -15,8 +15,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
@@ -40,7 +40,7 @@ public class VeinmineKeyGameTests {
 
     private static final BlockPos STATION = new BlockPos(0, 1, 0);
     private static final BlockPos ORIGIN = new BlockPos(3, 2, 3);
-    private static final ResourceLocation VEINMINE = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "veinmine");
+    private static final Identifier VEINMINE = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "veinmine");
 
     /** Key not held: the vein hammer, whose whole point is the vein, takes one block. */
     @GameTest(template = "empty")

@@ -21,11 +21,12 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -40,14 +41,14 @@ import dev.gkissel.forgeweave.tool.ToolStats;
  */
 class NetheriteModifierTest {
 
-    private static final ResourceLocation NETHERITE = ResourceLocation.fromNamespaceAndPath("forgeweave", "netherite");
+    private static final Identifier NETHERITE = Identifier.fromNamespaceAndPath("forgeweave", "netherite");
     private static RegistryOps<JsonElement> ops;
 
     @BeforeAll
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(JsonOps.INSTANCE);
     }
 
     private static ModifierRecipe shippedRecipe() {
@@ -96,9 +97,9 @@ class NetheriteModifierTest {
         ItemStack piece = new ItemStack(ForgeweaveItems.ARMOR_CHESTPLATE.get());
         piece.set(ForgeweaveDataComponents.ARMOR_STATS.get(), new ArmorStats(5, 0, 0, 1000));
         piece.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "one"), 1),
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "two"), 1),
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "three"), 1)));
+                new ModifierEntry(Identifier.fromNamespaceAndPath("forgeweave", "one"), 1),
+                new ModifierEntry(Identifier.fromNamespaceAndPath("forgeweave", "two"), 1),
+                new ModifierEntry(Identifier.fromNamespaceAndPath("forgeweave", "three"), 1)));
         assertEquals(0, ForgeweaveModifiers.freeSlots(piece));
 
         ModifierApplication.Outcome outcome = ModifierApplication.apply(shippedRecipe(), piece, 2, 0);
@@ -106,7 +107,7 @@ class NetheriteModifierTest {
         assertEquals(1, outcome.firstUsed(), "one reagent, level 1");
         assertEquals(0, ForgeweaveModifiers.freeSlots(outcome.output()), "and occupies none");
         assertEquals(1200, outcome.output().get(DataComponents.MAX_DAMAGE), "+20% of the plating's 1000");
-        assertTrue(outcome.output().has(DataComponents.FIRE_RESISTANT), "the dropped piece survives fire");
+        assertTrue(outcome.output().has(DataComponents.DAMAGE_RESISTANT), "the dropped piece survives fire");
 
         ModifierApplication.Outcome again = ModifierApplication.apply(shippedRecipe(), outcome.output(), 1, 0);
         assertTrue(again.output().isEmpty(), "max level 1");

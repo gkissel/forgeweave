@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_tool_handle"
-  },
+  "cast": "forgeweave:cast_tool_handle",
   "fluid": "forgeweave:molten_alumite",
   "amount": 144,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "immersiveengineering:ingot_aluminum"
+      "type": "neoforge:registered",
+      "value": "immersiveengineering:ingot_aluminum"
     }
   ]
 }

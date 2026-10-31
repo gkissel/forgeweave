@@ -21,7 +21,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -33,6 +33,7 @@ import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.trait.Trait;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.ArmorPieceItem;
+import dev.gkissel.forgeweave.item.Enchantability;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PartItem;
@@ -119,8 +120,8 @@ public final class ToolAssemblyRecipes {
          * still being populated.
          */
         public PartItem part(int slot) {
-            ResourceLocation id = constants.parts().get(slot).partId();
-            Item item = BuiltInRegistries.ITEM.get(id);
+            Identifier id = constants.parts().get(slot).partId();
+            Item item = BuiltInRegistries.ITEM.getValue(id);
             if (!(item instanceof PartItem partItem)) {
                 throw new IllegalStateException(constants.id() + " slot " + slot + " names part '" + id
                         + "', which is not a registered part item");
@@ -307,7 +308,7 @@ public final class ToolAssemblyRecipes {
      * joined the tag and no second gate had to be written.
      */
     public static final TagKey<Item> LARGE_TOOLS =
-            TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "large_tools"));
+            TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(Forgeweave.MODID, "large_tools"));
 
     /**
      * The Tool Forge's repair discount (issue #152; a Forgeweave deviation from upstream, maintainer
@@ -389,7 +390,7 @@ public final class ToolAssemblyRecipes {
      * Upstream {@code ToolCore#repairCustom}'s material check: the kit has to carry the very material
      * of the repair slot it is being spent on, or it is not a repair item at all.
      */
-    private static boolean isSharpeningKitOf(ItemStack stack, ResourceLocation materialId) {
+    private static boolean isSharpeningKitOf(ItemStack stack, Identifier materialId) {
         return stack.is(ForgeweaveItems.PART_SHARPENING_KIT.get())
                 && materialId.equals(stack.get(ForgeweaveDataComponents.MATERIAL.get()));
     }
@@ -587,7 +588,7 @@ public final class ToolAssemblyRecipes {
             return Optional.empty();
         }
         Entry entry = found.get();
-        List<ResourceLocation> ids = materials.parts();
+        List<Identifier> ids = materials.parts();
         if (ids.size() != entry.slotCount()) {
             return Optional.empty(); // a materials list this entry's shape can't explain
         }
@@ -617,7 +618,7 @@ public final class ToolAssemblyRecipes {
         Map<Integer, Integer> assigned = new LinkedHashMap<>();
         for (int input : loaded) {
             ItemStack part = freeSlots.get(input);
-            ResourceLocation partMaterial = part.get(ForgeweaveDataComponents.MATERIAL.get());
+            Identifier partMaterial = part.get(ForgeweaveDataComponents.MATERIAL.get());
             int candidate = -1;
             boolean fitsShape = false;
             for (int j = 0; j < entry.slotCount(); j++) {
@@ -641,7 +642,7 @@ public final class ToolAssemblyRecipes {
             assigned.put(input, candidate);
         }
 
-        List<ResourceLocation> newIds = new ArrayList<>(ids);
+        List<Identifier> newIds = new ArrayList<>(ids);
         assigned.forEach((input, slot) ->
                 newIds.set(slot, freeSlots.get(input).get(ForgeweaveDataComponents.MATERIAL.get())));
         Optional<ItemStack> rebuilt = assemble(registries, entry, newIds);
@@ -664,8 +665,7 @@ public final class ToolAssemblyRecipes {
         result.set(ForgeweaveDataComponents.ARMOR_STATS.get(), fresh.get(ForgeweaveDataComponents.ARMOR_STATS.get()));
         // #593: the swapped-in material changes the mean, so this is rebuilt from the new part set
         // exactly like the stat block above rather than riding along on the copy.
-        result.set(ForgeweaveDataComponents.ENCHANTABILITY.get(),
-                fresh.get(ForgeweaveDataComponents.ENCHANTABILITY.get()));
+        Enchantability.set(result, fresh.get(ForgeweaveDataComponents.ENCHANTABILITY.get()));
         // #777: the swapped-in head material changes the base tier the same way it changes the mean
         // enchantability above, so this rides along on the fresh rebuild too rather than the copy.
         result.set(ForgeweaveDataComponents.BASE_TOOL_TIER.get(),
@@ -737,12 +737,12 @@ public final class ToolAssemblyRecipes {
      * against the old base rather than re-derived from the embossment id, because the id names only
      * the donor material, not the donor part kind the trait scope came from.
      */
-    private static List<ResourceLocation> mergedTraits(ItemStack fresh, ItemStack oldBase, ItemStack oldTool) {
-        List<ResourceLocation> traits =
+    private static List<Identifier> mergedTraits(ItemStack fresh, ItemStack oldBase, ItemStack oldTool) {
+        List<Identifier> traits =
                 new ArrayList<>(fresh.getOrDefault(ForgeweaveDataComponents.TRAITS.get(), List.of()));
-        List<ResourceLocation> base = oldBase.getOrDefault(ForgeweaveDataComponents.TRAITS.get(), List.of());
-        List<ResourceLocation> carried = oldTool.getOrDefault(ForgeweaveDataComponents.TRAITS.get(), List.of());
-        for (ResourceLocation trait : carried) {
+        List<Identifier> base = oldBase.getOrDefault(ForgeweaveDataComponents.TRAITS.get(), List.of());
+        List<Identifier> carried = oldTool.getOrDefault(ForgeweaveDataComponents.TRAITS.get(), List.of());
+        for (Identifier trait : carried) {
             if (!base.contains(trait) && !traits.contains(trait)) {
                 traits.add(trait);
             }
@@ -879,9 +879,9 @@ public final class ToolAssemblyRecipes {
             return Optional.empty();
         }
 
-        List<ResourceLocation> materialIds = new ArrayList<>(entry.slotCount());
+        List<Identifier> materialIds = new ArrayList<>(entry.slotCount());
         for (int i = 0; i < entry.slotCount(); i++) {
-            ResourceLocation id = inputs.get(i).get(ForgeweaveDataComponents.MATERIAL.get());
+            Identifier id = inputs.get(i).get(ForgeweaveDataComponents.MATERIAL.get());
             if (id == null) {
                 return Optional.empty();
             }
@@ -902,9 +902,9 @@ public final class ToolAssemblyRecipes {
      * @param materialIds one per {@link Entry#slotCount()} slot, in that order
      */
     public static Optional<ItemStack> assemble(HolderLookup.Provider registries, Entry entry,
-            List<ResourceLocation> materialIds) {
+            List<Identifier> materialIds) {
         List<Material> materials = new ArrayList<>(materialIds.size());
-        for (ResourceLocation id : materialIds) {
+        for (Identifier id : materialIds) {
             Optional<Material> material = lookupMaterial(registries, id);
             if (material.isEmpty()) {
                 return Optional.empty();
@@ -925,7 +925,7 @@ public final class ToolAssemblyRecipes {
         result.set(ForgeweaveDataComponents.TOOL_STATS.get(), stats);
         // #593: what the vanilla enchanting table reads while allowVanillaEnchanting is on, averaged
         // over every part's material here because ToolItem#getEnchantmentValue gets no registry.
-        result.set(ForgeweaveDataComponents.ENCHANTABILITY.get(), ToolStats.averageEnchantability(materials));
+        Enchantability.set(result, ToolStats.averageEnchantability(materials));
         // M3.5 #394: a bow's ranged half (upstream ProjectileLauncherNBT#limb) -- present only for
         // a tool with LIMB slots, so every other tool's component set is exactly what it was.
         LauncherStats.of(entry.constants(), materials)
@@ -983,17 +983,17 @@ public final class ToolAssemblyRecipes {
      * {@code TOOL_STATS}, and {@code max_damage} from the plating's own durability. No
      * {@code minecraft:tool} component -- armor mines nothing.
      */
-    private static ItemStack assembleArmor(Entry entry, List<ResourceLocation> materialIds, List<Material> materials) {
+    private static ItemStack assembleArmor(Entry entry, List<Identifier> materialIds, List<Material> materials) {
         ArmorStats stats = ArmorStats.of(entry.constants(), materials)
                 .orElseThrow(() -> new IllegalStateException(entry.constants().id() + " has no plating slot"));
-        List<ResourceLocation> traits = resolveTraits(entry, materials);
+        List<Identifier> traits = resolveTraits(entry, materials);
         // #728: overslime's -0.5 armor is a build-time stat in the clone, so it lands in the stored stat.
         stats = stats.withArmor(stats.armor() - ForgeweaveTraits.overslimeArmorPenalty(traits));
         ItemStack result = new ItemStack(entry.tool().get());
         result.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(),
                 ToolMaterials.of(entry.constants().parts(), materialIds));
         result.set(ForgeweaveDataComponents.ARMOR_STATS.get(), stats);
-        result.set(ForgeweaveDataComponents.ENCHANTABILITY.get(), platingMaterial(entry, materials).enchantability());
+        Enchantability.set(result, platingMaterial(entry, materials).enchantability());
         result.set(ForgeweaveDataComponents.TRAITS.get(), traits);
         result.set(DataComponents.MAX_DAMAGE, stats.durability());
         result.set(DataComponents.DAMAGE, 0);
@@ -1067,7 +1067,7 @@ public final class ToolAssemblyRecipes {
      */
     private static ToolStats.Stats statsOf(Entry entry, List<Material> materials, List<Material> heads) {
         ToolStats.Stats base = ToolConstants.compute(entry.constants(), materials);
-        List<ResourceLocation> headTraits = heads.stream()
+        List<Identifier> headTraits = heads.stream()
                 .flatMap(head -> head.traits().forPart(PartItem.Kind.HEAD).stream())
                 .distinct()
                 .toList();
@@ -1080,9 +1080,9 @@ public final class ToolAssemblyRecipes {
      * with more than one HEAD part contributes each of them, still deduplicated by id -- upstream
      * 1.12 counts a repeated trait once regardless of how many parts granted it.
      */
-    private static List<ResourceLocation> resolveTraits(Entry entry, List<Material> materials) {
+    private static List<Identifier> resolveTraits(Entry entry, List<Material> materials) {
         List<ToolConstants.PartSlot> slots = entry.constants().parts();
-        List<ResourceLocation> traits = new ArrayList<>();
+        List<Identifier> traits = new ArrayList<>();
         for (ToolConstants.Role role : ToolConstants.Role.values()) {
             for (int i = 0; i < slots.size(); i++) {
                 if (slots.get(i).role() == role) {
@@ -1281,7 +1281,7 @@ public final class ToolAssemblyRecipes {
      * sharpening kit of it carries, issue #463) and its head durability already multiplied by the
      * {@code repairModifier} of the slot that contributed it.
      */
-    private record RepairMaterial(ResourceLocation materialId, Material material, float weightedHeadDurability) {}
+    private record RepairMaterial(Identifier materialId, Material material, float weightedHeadDurability) {}
 
     /**
      * Every material {@code stack} can be repaired with, in repair-slot order -- upstream
@@ -1295,9 +1295,9 @@ public final class ToolAssemblyRecipes {
         if (entry.isEmpty() || materials == null) {
             return List.of();
         }
-        List<ResourceLocation> parts = materials.parts();
+        List<Identifier> parts = materials.parts();
         List<RepairMaterial> repairable = new ArrayList<>(2);
-        Set<ResourceLocation> seen = new HashSet<>();
+        Set<Identifier> seen = new HashSet<>();
         for (ToolConstants.RepairPart part : entry.get().constants().repairSlots()) {
             if (part.slot() >= parts.size() || !seen.add(parts.get(part.slot()))) {
                 continue;
@@ -1331,7 +1331,7 @@ public final class ToolAssemblyRecipes {
         return forge ? (int) Math.ceil(increment / FORGE_REPAIR_DISCOUNT) : increment;
     }
 
-    private static Optional<Material> lookupMaterial(HolderLookup.Provider registries, ResourceLocation id) {
+    private static Optional<Material> lookupMaterial(HolderLookup.Provider registries, Identifier id) {
         return registries.lookup(Material.REGISTRY)
                 .flatMap(lookup -> lookup.get(ResourceKey.create(Material.REGISTRY, id)))
                 .map(holder -> holder.value());

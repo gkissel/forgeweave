@@ -4,7 +4,7 @@ import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
@@ -13,8 +13,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -140,10 +140,10 @@ public class UpgradeReclaimGameTests {
             helper.assertTrue(player.getInventory().countItem(Items.NETHER_STAR) == 3,
                     "a host's reclaimed items must come back whatever returnExchangedParts says, found "
                             + player.getInventory().countItem(Items.NETHER_STAR));
-            helper.assertTrue(player.getInventory().items.stream()
+            helper.assertTrue(player.getInventory().getNonEquipmentItems().stream()
                             .noneMatch(stack -> stack.is(ForgeweaveItems.PART_PICKAXE_HEAD.get())),
                     "the plain displaced head must not come back while the option is off, got "
-                            + player.getInventory().items);
+                            + player.getInventory().getNonEquipmentItems());
         } finally {
             ForgeweaveConfig.RETURN_EXCHANGED_PARTS.set(true);
             UpgradeHosts.clear();
@@ -220,7 +220,7 @@ public class UpgradeReclaimGameTests {
     private static ItemStack swapPart(GameTestHelper helper, Player player, ItemStack tool, Item part,
             String material) {
         helper.setBlock(POS, ForgeweaveBlocks.TOOL_STATION.get());
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(POS, ToolStationBlockEntity.class);
         blockEntity.container().clearContent();
         blockEntity.container().setItem(ToolStationMenu.HEAD_SLOT, tool);
         blockEntity.container().setItem(ToolStationMenu.BINDING_SLOT, ToolAssembly.part(part, material));

@@ -10,9 +10,7 @@
     }
   ],
   "type": "enderio:sag_milling",
-  "input": {
-    "tag": "c:ores/hollowstone"
-  },
+  "input": "#c:ores/hollowstone",
   "outputs": [
     {
       "item": {

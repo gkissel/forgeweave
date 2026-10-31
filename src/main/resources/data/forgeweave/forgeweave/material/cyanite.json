@@ -40,28 +40,22 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:ingots/cyanite"
-      },
+      "ingredient": "#c:ingots/cyanite",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:storage_blocks/cyanite"
-      },
+      "ingredient": "#c:storage_blocks/cyanite",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/cyanite"
-  },
+  "repair_item": "#c:ingots/cyanite",
   "cast_only": true,
   "enchantability": 13,
   "color": "#8FC2ED",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "bigreactors:cyanite_ingot"
+      "type": "neoforge:registered",
+      "value": "bigreactors:cyanite_ingot"
     }
   ]
 }

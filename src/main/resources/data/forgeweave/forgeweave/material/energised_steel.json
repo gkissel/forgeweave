@@ -44,22 +44,18 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "powah:steel_energized"
-      },
+      "ingredient": "powah:steel_energized",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "powah:steel_energized"
-  },
+  "repair_item": "powah:steel_energized",
   "cast_only": true,
   "enchantability": 13,
   "color": "#BA9566",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "powah:steel_energized"
+      "type": "neoforge:registered",
+      "value": "powah:steel_energized"
     }
   ]
 }

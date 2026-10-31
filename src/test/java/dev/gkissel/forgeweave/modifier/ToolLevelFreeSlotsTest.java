@@ -8,7 +8,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.SharedConstants;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 
@@ -26,9 +26,9 @@ import dev.gkissel.forgeweave.tool.ToolLevel;
  */
 class ToolLevelFreeSlotsTest {
 
-    private static final ResourceLocation SEARING = ResourceLocation.fromNamespaceAndPath("forgeweave", "searing");
-    private static final ResourceLocation WRITABLE2 =
-            ResourceLocation.fromNamespaceAndPath("forgeweave", "writable2");
+    private static final Identifier SEARING = Identifier.fromNamespaceAndPath("forgeweave", "searing");
+    private static final Identifier WRITABLE2 =
+            Identifier.fromNamespaceAndPath("forgeweave", "writable2");
 
     @BeforeAll
     static void bootstrapMinecraft() {

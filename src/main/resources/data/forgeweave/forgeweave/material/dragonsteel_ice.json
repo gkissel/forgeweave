@@ -49,28 +49,22 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "iceandfire:dragonsteel_ice_ingot"
-      },
+      "ingredient": "iceandfire:dragonsteel_ice_ingot",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "iceandfire:dragonsteel_ice_block"
-      },
+      "ingredient": "iceandfire:dragonsteel_ice_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "item": "iceandfire:dragonsteel_ice_ingot"
-  },
+  "repair_item": "iceandfire:dragonsteel_ice_ingot",
   "cast_only": true,
   "enchantability": 16,
   "color": "#5FA8D3",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "iceandfire:dragonsteel_ice_ingot"
+      "type": "neoforge:registered",
+      "value": "iceandfire:dragonsteel_ice_ingot"
     }
   ]
 }

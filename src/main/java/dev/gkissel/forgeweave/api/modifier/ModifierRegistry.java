@@ -8,7 +8,7 @@ import com.mojang.serialization.MapCodec;
 
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Where a partner mod adds modifiers from Java (issue #1065), the modifier-side twin of
@@ -42,8 +42,8 @@ import net.minecraft.resources.ResourceLocation;
  */
 public final class ModifierRegistry {
 
-    private static final Map<ResourceLocation, Modifier> MODIFIERS = new ConcurrentHashMap<>();
-    private static final Map<ResourceLocation, MapCodec<? extends Modifier>> BEHAVIORS = new ConcurrentHashMap<>();
+    private static final Map<Identifier, Modifier> MODIFIERS = new ConcurrentHashMap<>();
+    private static final Map<Identifier, MapCodec<? extends Modifier>> BEHAVIORS = new ConcurrentHashMap<>();
 
     /** Written once from the mod-loading thread, read from every later thread. */
     private static volatile boolean closed;
@@ -54,7 +54,7 @@ public final class ModifierRegistry {
      * @throws IllegalStateException if the registration window has closed
      * @throws IllegalArgumentException if another Java registration already owns {@code id}
      */
-    public static void register(ResourceLocation id, Modifier modifier) {
+    public static void register(Identifier id, Modifier modifier) {
         checkOpen(id);
         if (MODIFIERS.putIfAbsent(id, modifier) != null) {
             throw new IllegalArgumentException("Modifier id '" + id + "' is already registered from Java; "
@@ -69,7 +69,7 @@ public final class ModifierRegistry {
      * @throws IllegalStateException if the registration window has closed
      * @throws IllegalArgumentException if another Java registration already owns {@code id}
      */
-    public static void registerBehavior(ResourceLocation id, MapCodec<? extends Modifier> codec) {
+    public static void registerBehavior(Identifier id, MapCodec<? extends Modifier> codec) {
         checkOpen(id);
         if (BEHAVIORS.putIfAbsent(id, codec) != null) {
             throw new IllegalArgumentException("Modifier behavior id '" + id + "' is already registered from Java; "
@@ -77,7 +77,7 @@ public final class ModifierRegistry {
         }
     }
 
-    private static void checkOpen(ResourceLocation id) {
+    private static void checkOpen(Identifier id) {
         if (closed) {
             throw new IllegalStateException("Forgeweave's modifier registration window has closed and '" + id
                     + "' arrived too late; register during mod construction (your mod's constructor or an "
@@ -87,23 +87,23 @@ public final class ModifierRegistry {
 
     /** The modifier registered under {@code id}, or {@code null} if nothing registered one. */
     @Nullable
-    public static Modifier modifier(ResourceLocation id) {
+    public static Modifier modifier(Identifier id) {
         return MODIFIERS.get(id);
     }
 
     /** The behavior codec registered under {@code id}, or {@code null} if nothing registered one. */
     @Nullable
-    public static MapCodec<? extends Modifier> behavior(ResourceLocation id) {
+    public static MapCodec<? extends Modifier> behavior(Identifier id) {
         return BEHAVIORS.get(id);
     }
 
     /** Every Java-registered modifier id. */
-    public static Set<ResourceLocation> modifierIds() {
+    public static Set<Identifier> modifierIds() {
         return Set.copyOf(MODIFIERS.keySet());
     }
 
     /** Every Java-registered behavior id, for the "known behaviors" list a bad file is told about. */
-    public static Set<ResourceLocation> behaviorIds() {
+    public static Set<Identifier> behaviorIds() {
         return Set.copyOf(BEHAVIORS.keySet());
     }
 

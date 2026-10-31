@@ -44,21 +44,17 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:gems/fluix"
-      },
+      "ingredient": "#c:gems/fluix",
       "value": 144
     }
   ],
-  "repair_item": {
-    "tag": "c:gems/fluix"
-  },
+  "repair_item": "#c:gems/fluix",
   "enchantability": 14,
   "color": "#8A3FA0",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "ae2:fluix_crystal"
+      "type": "neoforge:registered",
+      "value": "ae2:fluix_crystal"
     }
   ]
 }

@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_ingot"
-  },
+  "cast": "forgeweave:clay_cast_ingot",
   "fluid": "forgeweave:molten_ludicrite",
   "amount": 144,
   "result": {
@@ -11,8 +9,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "bigreactors:ludicrite_ingot"
+      "type": "neoforge:registered",
+      "value": "bigreactors:ludicrite_ingot"
     }
   ]
 }

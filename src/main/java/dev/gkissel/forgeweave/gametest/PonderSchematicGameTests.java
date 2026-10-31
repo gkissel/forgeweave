@@ -9,7 +9,7 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -21,8 +21,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -106,7 +106,7 @@ public class PonderSchematicGameTests {
         assertFormed(helper, largeCore, 3, 3, 3);
 
         BlockPos stairsDemo = new BlockPos(4, 4, 3).offset(OFFSET); // ForgeweaveSmelteryScenes.STAIRS_DEMO
-        SmelteryControllerBlockEntity core = helper.getBlockEntity(largeCore);
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(largeCore, SmelteryControllerBlockEntity.class);
         helper.setBlock(stairsDemo, ForgeweaveBlocks.SEARED_STAIRS_BRICKS.get().defaultBlockState());
         core.updateStructure();
         assertFormed(helper, largeCore, 3, 3, 2);
@@ -155,7 +155,7 @@ public class PonderSchematicGameTests {
     public static void ponderSearedFurnaceSchematicFormsARealFurnace(GameTestHelper helper) {
         List<BlockPos> controllers = build(helper, "seared_furnace");
         helper.assertValueEqual(controllers.size(), 1, "controllers in seared_furnace.nbt");
-        SearedFurnaceBlockEntity furnace = helper.getBlockEntity(controllers.get(0));
+        SearedFurnaceBlockEntity furnace = helper.getBlockEntity(controllers.get(0), SearedFurnaceBlockEntity.class);
         assertFormed(helper, furnace.structure(), furnace.lastResult(), 1, 1, 2);
         helper.assertBlockPresent(ForgeweaveBlocks.SEARED_TANK.get(), new BlockPos(1, 2, 1).offset(OFFSET));
         helper.assertBlockPresent(ForgeweaveBlocks.SEARED_SLAB_BRICKS.get(), new BlockPos(2, 4, 2).offset(OFFSET));
@@ -167,7 +167,7 @@ public class PonderSchematicGameTests {
     public static void ponderSearedReservoirSchematicFormsARealReservoir(GameTestHelper helper) {
         List<BlockPos> controllers = build(helper, "seared_reservoir");
         helper.assertValueEqual(controllers.size(), 1, "controllers in seared_reservoir.nbt");
-        SearedReservoirBlockEntity reservoir = helper.getBlockEntity(controllers.get(0));
+        SearedReservoirBlockEntity reservoir = helper.getBlockEntity(controllers.get(0), SearedReservoirBlockEntity.class);
         assertFormed(helper, reservoir.structure(), reservoir.lastResult(), 1, 1, 2);
         helper.assertBlockPresent(ForgeweaveBlocks.SEARED_DRAIN.get(), new BlockPos(1, 2, 2).offset(OFFSET));
         helper.assertBlockPresent(ForgeweaveBlocks.FAUCET.get(), new BlockPos(0, 2, 2).offset(OFFSET));
@@ -179,19 +179,19 @@ public class PonderSchematicGameTests {
     private static List<BlockPos> build(GameTestHelper helper, String schematic) {
         CompoundTag root = readSchematic(schematic);
         HolderGetter<Block> blocks = helper.getLevel().holderLookup(Registries.BLOCK);
-        ListTag palette = root.getList("palette", Tag.TAG_COMPOUND);
+        ListTag palette = root.getListOrEmpty("palette");
         List<BlockState> states = new ArrayList<>();
         for (int i = 0; i < palette.size(); i++) {
-            states.add(NbtUtils.readBlockState(blocks, palette.getCompound(i)));
+            states.add(NbtUtils.readBlockState(blocks, palette.getCompoundOrEmpty(i)));
         }
 
         List<BlockPos> cores = new ArrayList<>();
         List<BlockState> coreStates = new ArrayList<>();
-        for (Tag tag : root.getList("blocks", Tag.TAG_COMPOUND)) {
+        for (Tag tag : root.getListOrEmpty("blocks")) {
             CompoundTag block = (CompoundTag) tag;
-            ListTag pos = block.getList("pos", Tag.TAG_INT);
-            BlockPos at = new BlockPos(pos.getInt(0), pos.getInt(1), pos.getInt(2)).offset(OFFSET);
-            BlockState state = states.get(block.getInt("state"));
+            ListTag pos = block.getListOrEmpty("pos");
+            BlockPos at = new BlockPos(pos.getIntOr(0, 0), pos.getIntOr(1, 0), pos.getIntOr(2, 0)).offset(OFFSET);
+            BlockState state = states.get(block.getIntOr("state", 0));
             Block placed = state.getBlock();
             if (placed instanceof SmelteryControllerBlock || placed instanceof SearedFurnaceControllerBlock
                     || placed instanceof SearedReservoirControllerBlock) {
@@ -209,7 +209,7 @@ public class PonderSchematicGameTests {
     }
 
     private static void assertFormed(GameTestHelper helper, BlockPos corePos, int width, int depth, int height) {
-        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         assertFormed(helper, core.structure(), core.lastResult(), width, depth, height);
     }
 

@@ -10,7 +10,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import dev.gkissel.forgeweave.Forgeweave;
 
@@ -109,8 +109,8 @@ class BowDrawArtTest {
      */
     @Test
     void modifierOverlaysFallBackToTheUndrawnArtWhenAStageHasNone() {
-        ResourceLocation haste = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "haste");
-        ResourceLocation smite = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "smite");
+        Identifier haste = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "haste");
+        Identifier smite = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "smite");
 
         assertEquals("derived/tools/mods/shortbow_haste", ModifierArt.overlay("shortbow", haste, 0));
         assertEquals("derived/tools/mods/shortbow_haste_draw1", ModifierArt.overlay("shortbow", haste, 1));
@@ -123,7 +123,7 @@ class BowDrawArtTest {
         assertEquals("derived/tools/mods/broadsword_haste", ModifierArt.overlay("broadsword", haste, 2));
 
         // Luck still has no shortbow art, staged or not.
-        ResourceLocation luck = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "luck");
+        Identifier luck = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "luck");
         assertNull(ModifierArt.overlay("shortbow", luck, 3));
     }
 

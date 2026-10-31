@@ -2,13 +2,13 @@ package dev.gkissel.forgeweave.client;
 
 import java.util.List;
 
-import net.createmod.catnip.gui.ScreenOpener;
-import net.createmod.ponder.api.element.WorldSectionElement;
-import net.createmod.ponder.foundation.PonderIndex;
-import net.createmod.ponder.foundation.PonderScene;
-import net.createmod.ponder.foundation.ui.PonderUI;
+import net.createmod.catnip.api.client.gui.ScreenOpener;
+import net.createmod.ponder.api.client.element.WorldSectionElement;
+import net.createmod.ponder.api.client.PonderIndex;
+import net.createmod.ponder.api.client.scene.PonderScene;
+import net.createmod.ponder.impl.client.gui.PonderUI;
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 
@@ -26,7 +26,7 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
 final class PonderHarnessCaptures {
 
     /** One scene: the item the scene is registered on, which of its scenes (in registration order), and the PNG name. */
-    record Capture(ResourceLocation item, int sceneIndex, String fileName) {}
+    record Capture(Identifier item, int sceneIndex, String fileName) {}
 
     static final List<Capture> CAPTURES = List.of(
             new Capture(ForgeweaveItems.STANDARD_CORE.getId(), 0, "ponder_smeltery"),
@@ -59,6 +59,9 @@ final class PonderHarnessCaptures {
         // Comfy reading slows a scene down while text is up; the harness reads nothing. This writes
         // Ponder's client config in the harness's own game directory (build.gradle), never run/config.
         ui.setComfyReadingEnabled(false);
+        // A player's way in (ScreenOpener.transitionTo) zooms the screen in and settles at 1. Catnip
+        // 26.1 draws a screen still at its starting 0 at 1.5x, so start at the settled value.
+        ui.transition.startWithValue(1.0);
         ScreenOpener.open(ui);
         for (int i = 0; i < capture.sceneIndex(); i++) {
             ui.nextScene();

@@ -20,12 +20,10 @@
     "head": ["forgeweave:cheapskate"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:cobblestone" }, "value": 144 },
-    { "ingredient": { "item": "minecraft:stone" }, "value": 144 }
+    { "ingredient": "minecraft:cobblestone", "value": 144 },
+    { "ingredient": "minecraft:stone", "value": 144 }
   ],
-  "repair_item": {
-    "tag": "minecraft:stone_tool_materials"
-  },
+  "repair_item": "#minecraft:stone_tool_materials",
   "enchantability": 5,
   "color": "#999999"
 }

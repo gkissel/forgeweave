@@ -4,18 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.modifier.Modifier;
@@ -46,8 +47,8 @@ public class ElytraCreativeFlightGameTests {
 
     private static final BlockPos STATION = new BlockPos(1, 1, 1);
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
     // Issue #1006 (retiring #782's Armor Station): the heavy set needs a Tool Forge.
@@ -81,7 +82,7 @@ public class ElytraCreativeFlightGameTests {
      */
     private static ToolStationMenu load(GameTestHelper helper, Player player, ItemStack tool,
             ItemStack firstReagent, ItemStack secondReagent) {
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION, ToolStationBlockEntity.class);
         for (int i = 0; i < ToolStationMenu.INPUT_SLOTS; i++) {
             blockEntity.container().setItem(i, ItemStack.EMPTY);
         }
@@ -107,6 +108,17 @@ public class ElytraCreativeFlightGameTests {
         return output;
     }
 
+    /**
+     * Whether a worn {@code piece} lets {@code player} glide. 1.21.1 asked the stack's
+     * {@code canElytraFly}; 26.1 glides on the {@code minecraft:glider} component, which the piece
+     * syncs in its own inventory tick, so this ticks it once in the chest slot and asks vanilla's
+     * {@code LivingEntity#canGlideUsing}, the check {@code updateFallFlying} runs.
+     */
+    private static boolean glides(GameTestHelper helper, Player player, ItemStack piece) {
+        piece.inventoryTick(helper.getLevel(), player, EquipmentSlot.CHEST);
+        return LivingEntity.canGlideUsing(piece, EquipmentSlot.CHEST);
+    }
+
     private static void assertRefused(GameTestHelper helper, ToolStationMenu menu, String why) {
         helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(), why);
         helper.assertTrue(menu.rejection() != null, "and the station must say why");
@@ -119,13 +131,13 @@ public class ElytraCreativeFlightGameTests {
     public static void anElytraGrantsGlidingToTheHeavyChestplate(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack plain = heavyChestplate(helper, player);
-        helper.assertTrue(!plain.canElytraFly(player), "an unmodified heavy chestplate cannot glide");
+        helper.assertTrue(!glides(helper, player, plain), "an unmodified heavy chestplate cannot glide");
 
         ItemStack flying = apply(helper, player, plain, new ItemStack(Items.ELYTRA));
         ModifierEntry entry = ForgeweaveModifiers.entry(flying, id("elytra_flight"));
         helper.assertTrue(entry != null && entry.level() == 1, "an elytra records level 1, got " + entry);
-        helper.assertTrue(flying.canElytraFly(player), "elytra flight grants gliding");
-        helper.assertTrue(flying.elytraFlightTick(player, 19), "flight continues past a non-multiple-of-10 tick");
+        helper.assertTrue(glides(helper, player, flying), "elytra flight grants gliding");
+        helper.assertTrue(((ArmorPieceItem) flying.getItem()).elytraFlightTick(flying, player, 19), "flight continues past a non-multiple-of-10 tick");
         helper.succeed();
     }
 
@@ -134,9 +146,9 @@ public class ElytraCreativeFlightGameTests {
     public static void elytraFlightIsRevokedOnceThePieceIsBroken(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack flying = apply(helper, player, heavyChestplate(helper, player), new ItemStack(Items.ELYTRA));
-        helper.assertTrue(flying.canElytraFly(player), "sanity: flies before breaking");
+        helper.assertTrue(glides(helper, player, flying), "sanity: flies before breaking");
         flying.set(ForgeweaveDataComponents.BROKEN.get(), true);
-        helper.assertTrue(!flying.canElytraFly(player), "a Broken piece cannot glide even carrying the modifier");
+        helper.assertTrue(!glides(helper, player, flying), "a Broken piece cannot glide even carrying the modifier");
         helper.succeed();
     }
 
@@ -147,7 +159,7 @@ public class ElytraCreativeFlightGameTests {
         ItemStack flying = apply(helper, player, plateChestplate(helper, player), new ItemStack(Items.ELYTRA));
         ModifierEntry entry = ForgeweaveModifiers.entry(flying, id("elytra_flight"));
         helper.assertTrue(entry != null && entry.level() == 1, "the plain plate chestplate takes elytra flight too, got " + entry);
-        helper.assertTrue(flying.canElytraFly(player), "and it glides exactly like the heavy chestplate does");
+        helper.assertTrue(glides(helper, player, flying), "and it glides exactly like the heavy chestplate does");
 
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, STATION, "stone", "wood", "wood");
         assertRefused(helper, load(helper, player, pickaxe, new ItemStack(Items.ELYTRA)),
@@ -190,6 +202,18 @@ public class ElytraCreativeFlightGameTests {
                 "a lone nether star must not apply creative flight -- it is not the specific combo");
         helper.assertTrue(ForgeweaveModifiers.entry(output, id("soulbound")) != null,
                 "it applies soulbound instead, same as before the combo recipe existed");
+        helper.succeed();
+    }
+
+    /** Creative flight replaces the glide: the same chestplate stops answering {@code canElytraFly} once it has both. */
+    @GameTest(template = "empty")
+    public static void creativeFlightTurnsTheElytraGlideOff(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack flying = apply(helper, player, heavyChestplate(helper, player), new ItemStack(Items.ELYTRA));
+        helper.assertTrue(glides(helper, player, flying), "elytra flight alone still glides");
+
+        ItemStack both = apply(helper, player, flying, new ItemStack(Items.END_CRYSTAL), new ItemStack(Items.NETHER_STAR));
+        helper.assertTrue(!glides(helper, player, both), "a chestplate with creative flight must not open the wings");
         helper.succeed();
     }
 

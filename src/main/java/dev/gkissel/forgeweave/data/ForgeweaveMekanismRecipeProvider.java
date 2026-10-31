@@ -9,7 +9,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.ItemLike;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -115,6 +115,6 @@ public class ForgeweaveMekanismRecipeProvider implements DataProvider {
 
     private CompletableFuture<?> save(CachedOutput output, String name, JsonObject json) {
         return DataProvider.saveStable(output, json,
-                recipes.json(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "compat/mekanism/" + name)));
+                recipes.json(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "compat/mekanism/" + name)));
     }
 }

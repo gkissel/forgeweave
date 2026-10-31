@@ -3,12 +3,14 @@ package dev.gkissel.forgeweave.client;
 import java.util.List;
 import java.util.function.Supplier;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.Item;
@@ -57,12 +59,12 @@ import dev.gkissel.forgeweave.menu.StencilTableMenu;
  * pattern buttons already occupy the left; {@link dev.gkissel.forgeweave.menu.StencilTableMenu} owns
  * the coordinates.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public class StencilTableScreen extends StationScreen<StencilTableMenu> implements StationExtraAreas {
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/stencil_table.png");
-    private static final ResourceLocation ICONS =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/station_icons.png");
+    private static final Identifier TEXTURE =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/stencil_table.png");
+    private static final Identifier ICONS =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/station_icons.png");
     private static final int SHEET = 256;
 
     private static final int BASE_WIDTH = 176;
@@ -104,14 +106,12 @@ public class StencilTableScreen extends StationScreen<StencilTableMenu> implemen
             new SideInventoryPanel(StencilTableMenu.SIDE_PANEL_X, StencilTableMenu.SIDE_PANEL_Y);
 
     public StencilTableScreen(StencilTableMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
-        imageWidth = BASE_WIDTH;
-        imageHeight = BASE_HEIGHT;
+        super(menu, playerInventory, title, BASE_WIDTH, BASE_HEIGHT);
     }
 
     @Override
-    protected void renderPanel(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, BASE_WIDTH, BASE_HEIGHT);
+    protected void renderPanel(GuiGraphicsExtractor guiGraphics, float partialTick, int mouseX, int mouseY) {
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, BASE_WIDTH, BASE_HEIGHT);
         renderInputIcon(guiGraphics);
         renderPatternButtons(guiGraphics, mouseX, mouseY);
         sidePanel.render(guiGraphics, menu, leftPos, topPos, imageHeight, menu.sideSlots, menu.sideInventoryLiveSlots());
@@ -123,21 +123,21 @@ public class StencilTableScreen extends StationScreen<StencilTableMenu> implemen
      * Drawn unconditionally, as upstream does -- this is the background layer, so a real item in the
      * slot is painted over it afterwards.
      */
-    private void renderInputIcon(GuiGraphics guiGraphics) {
+    private void renderInputIcon(GuiGraphicsExtractor guiGraphics) {
         var slot = menu.getSlot(StencilTableMenu.INPUT_SLOT);
-        guiGraphics.blit(ICONS, leftPos + slot.x - 1, topPos + slot.y - 1,
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, ICONS, leftPos + slot.x - 1, topPos + slot.y - 1,
                 PATTERN_ICON_U, PATTERN_ICON_V, ICON_SIZE, ICON_SIZE, SHEET, SHEET);
     }
 
-    private void renderPatternButtons(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+    private void renderPatternButtons(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
         List<Supplier<? extends Item>> patterns = StencilTableMenu.PATTERNS;
         for (int i = 0; i < patterns.size(); i++) {
             int x = leftPos + buttonX(i);
             int y = topPos + buttonY(i);
             boolean hovered = isHovering(buttonX(i), buttonY(i), BUTTON_SIZE, BUTTON_SIZE, mouseX, mouseY);
             int u = i == menu.getSelectedPattern() ? BUTTON_PRESSED_U : hovered ? BUTTON_HOVER_U : BUTTON_IDLE_U;
-            guiGraphics.blit(ICONS, x, y, u, BUTTON_V, BUTTON_SIZE, BUTTON_SIZE, SHEET, SHEET);
-            guiGraphics.renderItem(new ItemStack(patterns.get(i).get()), x + 1, y + 1);
+            guiGraphics.blit(RenderPipelines.GUI_TEXTURED, ICONS, x, y, u, BUTTON_V, BUTTON_SIZE, BUTTON_SIZE, SHEET, SHEET);
+            guiGraphics.item(new ItemStack(patterns.get(i).get()), x + 1, y + 1);
         }
     }
 
@@ -160,19 +160,22 @@ public class StencilTableScreen extends StationScreen<StencilTableMenu> implemen
     }
 
     @Override
-    protected void renderTooltip(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        super.renderTooltip(guiGraphics, mouseX, mouseY);
+    protected void extractTooltip(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY) {
+        super.extractTooltip(guiGraphics, mouseX, mouseY);
         List<Supplier<? extends Item>> patterns = StencilTableMenu.PATTERNS;
         for (int i = 0; i < patterns.size(); i++) {
             if (isHovering(buttonX(i), buttonY(i), BUTTON_SIZE, BUTTON_SIZE, mouseX, mouseY)) {
-                guiGraphics.renderTooltip(font, new ItemStack(patterns.get(i).get()), mouseX, mouseY);
+                guiGraphics.setTooltipForNextFrame(font, new ItemStack(patterns.get(i).get()), mouseX, mouseY);
                 return;
             }
         }
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         List<Supplier<? extends Item>> patterns = StencilTableMenu.PATTERNS;
         for (int i = 0; i < patterns.size(); i++) {
             if (isHovering(buttonX(i), buttonY(i), BUTTON_SIZE, BUTTON_SIZE, mouseX, mouseY)
@@ -182,7 +185,7 @@ public class StencilTableScreen extends StationScreen<StencilTableMenu> implemen
                 return true;
             }
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override

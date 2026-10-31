@@ -22,11 +22,12 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.tool.ModifierArt;
 
@@ -43,7 +44,7 @@ import dev.gkissel.forgeweave.tool.ModifierArt;
  */
 class GlowingTest {
 
-    private static final ResourceLocation GLOWING = ResourceLocation.fromNamespaceAndPath("forgeweave", "glowing");
+    private static final Identifier GLOWING = Identifier.fromNamespaceAndPath("forgeweave", "glowing");
 
     private static RegistryOps<JsonElement> ops;
 
@@ -51,7 +52,7 @@ class GlowingTest {
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(JsonOps.INSTANCE);
     }
 
     private static ModifierRecipe shippedRecipe(String path) {

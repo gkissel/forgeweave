@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "minecraft:packed_ice"
-  },
+  "input": "minecraft:packed_ice",
   "fluid": "minecraft:water",
   "amount": 2000,
   "temperature": 310

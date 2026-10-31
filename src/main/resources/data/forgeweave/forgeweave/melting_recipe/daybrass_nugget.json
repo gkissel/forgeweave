@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/daybrass"
-  },
+  "input": "#c:nuggets/daybrass",
   "fluid": "forgeweave:molten_daybrass",
   "amount": 16,
   "temperature": 1400

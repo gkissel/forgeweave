@@ -2,15 +2,9 @@
   "type": "forgeweave:energized_tank",
   "category": "misc",
   "key": {
-    "A": {
-      "item": "forgeweave:seared_brick"
-    },
-    "B": {
-      "item": "minecraft:redstone_block"
-    },
-    "C": {
-      "tag": "c:ingots/copper"
-    }
+    "A": "forgeweave:seared_brick",
+    "B": "minecraft:redstone_block",
+    "C": "#c:ingots/copper"
   },
   "pattern": [
     "ACA",
@@ -18,7 +12,6 @@
     "ACA"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:energized_tank"
   }
 }

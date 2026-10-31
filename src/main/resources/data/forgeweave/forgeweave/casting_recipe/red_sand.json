@@ -1,8 +1,6 @@
 {
   "station": "basin",
-  "cast": {
-    "item": "minecraft:sand"
-  },
+  "cast": "minecraft:sand",
   "fluid": "forgeweave:blood",
   "amount": 10,
   "result": {

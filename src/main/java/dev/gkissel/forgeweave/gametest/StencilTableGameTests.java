@@ -2,7 +2,7 @@ package dev.gkissel.forgeweave.gametest;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
@@ -10,8 +10,8 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ChestBlockEntity;
@@ -34,7 +34,7 @@ public class StencilTableGameTests {
 
     private static StencilTableMenu openMenu(GameTestHelper helper, BlockPos pos, Player player) {
         helper.setBlock(pos, ForgeweaveBlocks.STENCIL_TABLE.get());
-        StencilTableBlockEntity blockEntity = helper.getBlockEntity(pos);
+        StencilTableBlockEntity blockEntity = helper.getBlockEntity(pos, StencilTableBlockEntity.class);
         return new StencilTableMenu(0, player.getInventory(), blockEntity.container(),
                 ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)), blockEntity.findSideInventory());
     }
@@ -149,7 +149,7 @@ public class StencilTableGameTests {
         BlockPos pos = new BlockPos(1, 1, 1);
         BlockPos chestPos = pos.relative(Direction.EAST);
         helper.setBlock(chestPos, ForgeweaveBlocks.PATTERN_CHEST.get());
-        ChestBlockEntity chest = helper.getBlockEntity(chestPos);
+        ChestBlockEntity chest = helper.getBlockEntity(chestPos, ChestBlockEntity.class);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         StencilTableMenu menu = openMenu(helper, pos, player);
 
@@ -197,8 +197,8 @@ public class StencilTableGameTests {
         BlockPos chestPos = pos.relative(Direction.EAST);
         helper.setBlock(pos, ForgeweaveBlocks.STENCIL_TABLE.get());
         helper.setBlock(chestPos, ForgeweaveBlocks.PATTERN_CHEST.get());
-        StencilTableBlockEntity stencilTable = helper.getBlockEntity(pos);
-        ChestBlockEntity chest = helper.getBlockEntity(chestPos);
+        StencilTableBlockEntity stencilTable = helper.getBlockEntity(pos, StencilTableBlockEntity.class);
+        ChestBlockEntity chest = helper.getBlockEntity(chestPos, ChestBlockEntity.class);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
 
         StencilTableMenu menu = (StencilTableMenu) stencilTable.createMenu(0, player.getInventory(), player);

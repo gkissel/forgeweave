@@ -9,7 +9,7 @@ import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ExtraCodecs;
 
 import net.neoforged.neoforge.fluids.SimpleFluidContent;
@@ -43,9 +43,9 @@ public final class ForgeweaveDataComponents {
      * (ADR-0002: materials are datapack registry entries, so parts reference them by id rather than
      * embedding their stats).
      */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ResourceLocation>> MATERIAL =
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Identifier>> MATERIAL =
             DATA_COMPONENTS.registerComponentType("material",
-                    builder -> builder.persistent(ResourceLocation.CODEC).networkSynchronized(ResourceLocation.STREAM_CODEC));
+                    builder -> builder.persistent(Identifier.CODEC).networkSynchronized(Identifier.STREAM_CODEC));
 
     /** The head/binding/handle materials an assembled tool ({@code ToolItem}) was built from. */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<ToolMaterials>> TOOL_MATERIALS =
@@ -132,10 +132,10 @@ public final class ForgeweaveDataComponents {
      * {@code ToolItem#getDefaultAttributeModifiers}, which receives only an {@code ItemStack} -- have
      * no registry access to resolve materials with.
      */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<List<ResourceLocation>>> TRAITS =
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<List<Identifier>>> TRAITS =
             DATA_COMPONENTS.registerComponentType("traits",
-                    builder -> builder.persistent(ResourceLocation.CODEC.listOf())
-                            .networkSynchronized(ResourceLocation.STREAM_CODEC.apply(ByteBufCodecs.list())));
+                    builder -> builder.persistent(Identifier.CODEC.listOf())
+                            .networkSynchronized(Identifier.STREAM_CODEC.apply(ByteBufCodecs.list())));
 
     /**
      * The Modifiers applied to a tool at the Tool Station, in application order. ADR-0004's hard
@@ -212,9 +212,9 @@ public final class ForgeweaveDataComponents {
      * so the placed block can retain that wood's appearance (issue #43). Absent means "unspecified"
      * (e.g. a creative-tab/pick-block item) -- {@code WoodTexturedBlockEntity} falls back to oak.
      */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ResourceLocation>> TEXTURE =
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Identifier>> TEXTURE =
             DATA_COMPONENTS.registerComponentType("texture",
-                    builder -> builder.persistent(ResourceLocation.CODEC).networkSynchronized(ResourceLocation.STREAM_CODEC));
+                    builder -> builder.persistent(Identifier.CODEC).networkSynchronized(Identifier.STREAM_CODEC));
 
     /**
      * {@code ForgeweaveTraits#MOMENTUM}'s current mining-speed-boost stack and its decay countdown

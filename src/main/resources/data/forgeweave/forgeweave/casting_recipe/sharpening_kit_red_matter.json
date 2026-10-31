@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_sharpening_kit"
-  },
+  "cast": "forgeweave:cast_sharpening_kit",
   "fluid": "forgeweave:molten_red_matter",
   "amount": 288,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "projecte:red_matter"
+      "type": "neoforge:registered",
+      "value": "projecte:red_matter"
     }
   ]
 }

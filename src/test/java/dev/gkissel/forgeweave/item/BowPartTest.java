@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import net.minecraft.SharedConstants;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 
@@ -43,8 +43,8 @@ class BowPartTest {
         Bootstrap.bootStrap();
     }
 
-    private static ResourceLocation forgeweave(String path) {
-        return ResourceLocation.fromNamespaceAndPath("forgeweave", path);
+    private static Identifier forgeweave(String path) {
+        return Identifier.fromNamespaceAndPath("forgeweave", path);
     }
 
     @Test

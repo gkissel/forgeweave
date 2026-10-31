@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:dusts/brimspar"
-    }
+    "#c:dusts/brimspar"
   ],
   "result": {
     "count": 3,

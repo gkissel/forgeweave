@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/ironbrand"
-  },
+  "input": "#c:nuggets/ironbrand",
   "fluid": "forgeweave:molten_ironbrand",
   "amount": 16
 }

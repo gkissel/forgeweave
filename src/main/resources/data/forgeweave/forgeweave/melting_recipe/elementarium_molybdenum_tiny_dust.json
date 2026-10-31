@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:tiny_dusts/elementarium_molybdenum"
-  },
+  "input": "#c:tiny_dusts/elementarium_molybdenum",
   "fluid": "forgeweave:molten_elementarium_molybdenum",
   "amount": 16,
   "temperature": 1200,

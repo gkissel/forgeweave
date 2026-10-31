@@ -24,12 +24,13 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.Tool;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -43,17 +44,17 @@ import dev.gkissel.forgeweave.tool.ToolStats;
 class ModifierCompatibilityTest {
 
     private static final ToolStats.Stats PICKAXE_STATS = new ToolStats.Stats(160, 4.0F, 3.0F);
-    private static final ResourceLocation SILKY = id("silky");
-    private static final ResourceLocation LUCK = id("luck");
-    private static final ResourceLocation SQUEAKY = id("squeaky");
-    private static final ResourceLocation AUTOSMELT = id("autosmelt");
+    private static final Identifier SILKY = id("silky");
+    private static final Identifier LUCK = id("luck");
+    private static final Identifier SQUEAKY = id("squeaky");
+    private static final Identifier AUTOSMELT = id("autosmelt");
     private static RegistryOps<JsonElement> ops;
 
     @BeforeAll
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(JsonOps.INSTANCE);
     }
 
     /** {@code ModSilktouch#canApplyTogether(IToolMod)}: not with {@code modLuck}. */
@@ -129,11 +130,11 @@ class ModifierCompatibilityTest {
         assertEquals(Optional.of(key), actual);
     }
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath("forgeweave", path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath("forgeweave", path);
     }
 
-    private static ItemStack pickaxe(List<ResourceLocation> traits, List<ModifierEntry> modifiers) {
+    private static ItemStack pickaxe(List<Identifier> traits, List<ModifierEntry> modifiers) {
         ItemStack stack = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
         stack.set(ForgeweaveDataComponents.TOOL_STATS.get(), PICKAXE_STATS);
         stack.set(ForgeweaveDataComponents.TRAITS.get(), traits);
@@ -141,9 +142,9 @@ class ModifierCompatibilityTest {
         stack.set(DataComponents.MAX_DAMAGE, PICKAXE_STATS.durability());
         stack.set(DataComponents.DAMAGE, 0);
         stack.set(DataComponents.TOOL, new Tool(
-                List.of(Tool.Rule.deniesDrops(BlockTags.INCORRECT_FOR_WOODEN_TOOL),
-                        Tool.Rule.minesAndDrops(BlockTags.MINEABLE_WITH_PICKAXE, PICKAXE_STATS.miningSpeed())),
-                1.0F, 1));
+                List.of(Tool.Rule.deniesDrops(BuiltInRegistries.BLOCK.getOrThrow(BlockTags.INCORRECT_FOR_WOODEN_TOOL)),
+                        Tool.Rule.minesAndDrops(BuiltInRegistries.BLOCK.getOrThrow(BlockTags.MINEABLE_WITH_PICKAXE), PICKAXE_STATS.miningSpeed())),
+                1.0F, 1, true));
         return stack;
     }
 

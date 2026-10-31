@@ -1,14 +1,12 @@
 {
-  "input": {
-    "tag": "c:dusts/azure_electrum"
-  },
+  "input": "#c:dusts/azure_electrum",
   "fluid": "forgeweave:molten_azure_electrum",
   "amount": 144,
   "temperature": 1600,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "silentgear:azure_electrum_ingot"
+      "type": "neoforge:registered",
+      "value": "silentgear:azure_electrum_ingot"
     }
   ]
 }

@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_ingot"
-  },
+  "cast": "forgeweave:clay_cast_ingot",
   "fluid": "forgeweave:molten_inferium",
   "amount": 144,
   "result": {
@@ -11,8 +9,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mysticalagriculture:inferium_ingot"
+      "type": "neoforge:registered",
+      "value": "mysticalagriculture:inferium_ingot"
     }
   ]
 }

@@ -27,13 +27,11 @@
     "armor": ["forgeweave:tideward"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:tideiron_ingot" }, "value": 144 },
-    { "ingredient": { "item": "forgeweave:tideiron_nugget" }, "value": 16 },
-    { "ingredient": { "item": "forgeweave:tideiron_block" }, "value": 1296 }
+    { "ingredient": "forgeweave:tideiron_ingot", "value": 144 },
+    { "ingredient": "forgeweave:tideiron_nugget", "value": 16 },
+    { "ingredient": "forgeweave:tideiron_block", "value": 1296 }
   ],
-  "repair_item": {
-    "tag": "c:ingots/tideiron"
-  },
+  "repair_item": "#c:ingots/tideiron",
   "cast_only": true,
   "enchantability": 10,
   "color": "#007F98"

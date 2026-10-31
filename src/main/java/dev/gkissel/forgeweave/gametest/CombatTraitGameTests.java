@@ -6,10 +6,10 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
@@ -22,10 +22,10 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.monster.Blaze;
 import net.minecraft.world.entity.monster.EnderMan;
-import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -38,8 +38,8 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
 import net.neoforged.neoforge.event.entity.living.LivingHealEvent;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.combat.CombatProviders;
@@ -391,7 +391,7 @@ public class CombatTraitGameTests {
         int fires = 0;
         for (int duration = BleedEffect.DURATION_TICKS; duration >= 1; duration--) {
             if (effect.shouldApplyEffectTickThisTick(duration, 0)) {
-                effect.applyEffectTick(pig, 0);
+                effect.applyEffectTick(helper.getLevel(), pig, 0);
                 fires++;
             }
         }
@@ -417,7 +417,7 @@ public class CombatTraitGameTests {
         pig.setLastHurtByMob(attacker);
 
         BleedEffect effect = (BleedEffect) ForgeweaveMobEffects.BLEED.value();
-        effect.applyEffectTick(pig, 0);
+        effect.applyEffectTick(helper.getLevel(), pig, 0);
 
         helper.assertTrue(pig.getDeltaMovement().horizontalDistanceSqr() < 1.0E-6,
                 "a bleed tick must not apply knockback, got " + pig.getDeltaMovement());
@@ -554,7 +554,7 @@ public class CombatTraitGameTests {
         // still applies the effect through the real trait seam; the cadence and 4-second total are
         // WeaponInnateGameTests#lacerateBleedsOneDamagePerSecondForFourSeconds's to prove.
         pig.invulnerableTime = 0; // the first tick lands a full second after the blow (LacerateEffect javadoc)
-        ((LacerateEffect) ForgeweaveMobEffects.LACERATE.value()).applyEffectTick(pig, 0);
+        ((LacerateEffect) ForgeweaveMobEffects.LACERATE.value()).applyEffectTick(helper.getLevel(), pig, 0);
         helper.assertTrue(pig.getHealth() <= afterHit - 1.0F,
                 "the bleed's tick must cost 1 damage, health still " + pig.getHealth());
         pig.discard();
@@ -867,7 +867,7 @@ public class CombatTraitGameTests {
         Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
 
         onHit(helper, player, hatchet, pig);
-        MobEffectInstance slow = pig.getEffect(MobEffects.MOVEMENT_SLOWDOWN);
+        MobEffectInstance slow = pig.getEffect(MobEffects.SLOWNESS);
         helper.assertTrue(slow != null && slow.getAmplifier() == 3,
                 "a shackling hit must leave Slowness IV, got " + (slow == null ? "none" : slow.getAmplifier()));
         helper.assertTrue(slow.getDuration() <= 20 && slow.getDuration() > 10,
@@ -916,11 +916,11 @@ public class CombatTraitGameTests {
         Pig pig = noAi(helper.spawn(EntityType.PIG, new BlockPos(2, 2, 2)));
 
         onHitCharged(helper, player, hatchet, pig, 0.5F);
-        helper.assertFalse(player.hasEffect(MobEffects.MOVEMENT_SPEED),
+        helper.assertFalse(player.hasEffect(MobEffects.SPEED),
                 "a non-full-charge hit must not grant quickstep's speed burst");
 
         onHitCharged(helper, player, hatchet, pig, 1.0F);
-        MobEffectInstance speed = player.getEffect(MobEffects.MOVEMENT_SPEED);
+        MobEffectInstance speed = player.getEffect(MobEffects.SPEED);
         helper.assertTrue(speed != null && speed.getAmplifier() == 1,
                 "a fully-charged quickstep hit must grant Speed II, got " + (speed == null ? "none" : speed.getAmplifier()));
 
@@ -1099,11 +1099,11 @@ public class CombatTraitGameTests {
     /** Checklist line 81: the two Track B materials carry the tool traits the checklist names. */
     @GameTest(template = "empty")
     public static void glowveilIsLuminousAndFulmeniteArcs(GameTestHelper helper) {
-        var materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
-        List<ResourceLocation> glowveil = materials.getOrThrow(
-                net.minecraft.resources.ResourceKey.create(Material.REGISTRY, traitId("glowveil"))).traits().general();
-        List<ResourceLocation> fulmenite = materials.getOrThrow(
-                net.minecraft.resources.ResourceKey.create(Material.REGISTRY, traitId("fulmenite"))).traits().general();
+        var materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
+        List<Identifier> glowveil = materials.getOrThrow(
+                net.minecraft.resources.ResourceKey.create(Material.REGISTRY, traitId("glowveil"))).value().traits().general();
+        List<Identifier> fulmenite = materials.getOrThrow(
+                net.minecraft.resources.ResourceKey.create(Material.REGISTRY, traitId("fulmenite"))).value().traits().general();
         helper.assertTrue(glowveil.contains(traitId("luminous")), "glowveil must carry luminous, got " + glowveil);
         helper.assertTrue(fulmenite.contains(traitId("arcing")), "fulmenite must carry arcing, got " + fulmenite);
         helper.succeed();
@@ -1288,14 +1288,14 @@ public class CombatTraitGameTests {
     }
 
     /** Builds a tool {@code ItemStack} with the given traits directly (see class javadoc). */
-    static ItemStack tool(ToolItem toolItem, List<ResourceLocation> traits, float attackDamage) {
+    static ItemStack tool(ToolItem toolItem, List<Identifier> traits, float attackDamage) {
         int durability = 1000;
         ToolStats.Stats stats = new ToolStats.Stats(durability, 1.0F, attackDamage);
         Material head = new Material(
                 new Material.Head(durability, 1.0F, attackDamage),
                 new Material.Handle(1.0F, 0),
                 0,
-                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool")),
+                TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace("incorrect_for_stone_tool")),
                 new Material.Traits(List.of(), List.of()),
                 List.of(),
                 Ingredient.of(Items.STICK),
@@ -1310,7 +1310,7 @@ public class CombatTraitGameTests {
         return stack;
     }
 
-    static ResourceLocation traitId(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    static Identifier traitId(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 }

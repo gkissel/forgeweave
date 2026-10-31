@@ -4,18 +4,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.item.DyeItem;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.block.Blocks;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ConnectedGlassBlock;
@@ -81,9 +82,9 @@ public class ClearGlassGameTests {
         ServerLevel level = helper.getLevel();
         ItemStack glass = new ItemStack(Blocks.GLASS);
 
-        ItemStack smelted = level.getRecipeManager()
+        ItemStack smelted = level.recipeAccess()
                 .getRecipeFor(RecipeType.SMELTING, new SingleRecipeInput(glass), level)
-                .map(match -> match.value().assemble(new SingleRecipeInput(glass), level.registryAccess()))
+                .map(match -> match.value().assemble(new SingleRecipeInput(glass)))
                 .orElse(ItemStack.EMPTY);
 
         helper.assertTrue(smelted.is(ForgeweaveBlocks.CLEAR_GLASS.get().asItem()),
@@ -100,15 +101,15 @@ public class ClearGlassGameTests {
 
         List<String> failures = new ArrayList<>();
         for (ForgeweaveBlocks.StainedGlassColor color : ForgeweaveBlocks.clearStainedGlassColors()) {
-            ItemStack dye = new ItemStack(DyeItem.byColor(color.dye()));
+            ItemStack dye = new ItemStack(BuiltInRegistries.ITEM.getValue(Identifier.withDefaultNamespace(color.dye().getName() + "_dye")));
             CraftingInput input = CraftingInput.of(3, 3, List.of(
                     clearGlass, clearGlass, clearGlass,
                     clearGlass, dye, clearGlass,
                     clearGlass, clearGlass, clearGlass));
 
-            ItemStack crafted = level.getRecipeManager()
+            ItemStack crafted = level.recipeAccess()
                     .getRecipeFor(RecipeType.CRAFTING, input, level)
-                    .map(match -> match.value().assemble(input, level.registryAccess()))
+                    .map(match -> match.value().assemble(input))
                     .orElse(ItemStack.EMPTY);
 
             if (!crafted.is(color.block().get().asItem()) || crafted.getCount() != 8) {

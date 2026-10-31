@@ -2,14 +2,12 @@
   "modifier": "forgeweave:socket_gem",
   "reagents": [
     {
-      "ingredient": {
-        "item": "minecraft:nautilus_shell"
-      }
+      "ingredient": "minecraft:nautilus_shell"
     }
   ],
   "cost": 1,
   "max_level": 1,
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "minecraft:diamond" }
+    { "type": "neoforge:registered", "value": "minecraft:diamond" }
   ]
 }

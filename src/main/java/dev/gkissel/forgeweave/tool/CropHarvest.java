@@ -75,7 +75,7 @@ public final class CropHarvest {
         }
         level.playSound(player, player.getX(), player.getY(), player.getZ(), SoundEvents.PLAYER_ATTACK_SWEEP,
                 player.getSoundSource(), 1.0F, 1.0F);
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.SUCCESS;
     }
 
     /**
@@ -92,7 +92,7 @@ public final class CropHarvest {
         }
         level.playSound(player, player.getX(), player.getY(), player.getZ(), SoundEvents.PLAYER_ATTACK_SWEEP,
                 player.getSoundSource(), 1.0F, 1.0F);
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.SUCCESS;
     }
 
     /** Whether {@code pos} held something this harvests -- true on both sides, mutating on neither client. */
@@ -147,7 +147,7 @@ public final class CropHarvest {
      * signal to break it instead.
      */
     private static boolean replant(ServerLevel level, BlockPos pos, BlockState state, List<ItemStack> drops) {
-        ItemStack seed = state.getBlock().getCloneItemStack(level, pos, state);
+        ItemStack seed = state.getCloneItemStack(level, pos, false);
         if (seed.isEmpty()) {
             return false;
         }

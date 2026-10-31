@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:dusts/starweld"
-    }
+    "#c:dusts/starweld"
   ],
   "result": {
     "count": 3,

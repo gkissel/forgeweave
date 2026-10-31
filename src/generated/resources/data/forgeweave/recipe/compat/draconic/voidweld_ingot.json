@@ -6,33 +6,23 @@
     }
   ],
   "type": "draconicevolution:fusion_crafting",
-  "catalyst": {
-    "item": "forgeweave:weldheart"
-  },
+  "catalyst": "forgeweave:weldheart",
   "ingredients": [
     {
       "consume": true,
-      "ingredient": {
-        "item": "draconicevolution:chaotic_core"
-      }
+      "ingredient": "draconicevolution:chaotic_core"
     },
     {
       "consume": true,
-      "ingredient": {
-        "item": "minecraft:nether_star"
-      }
+      "ingredient": "minecraft:nether_star"
     },
     {
       "consume": true,
-      "ingredient": {
-        "tag": "c:ingots/draconium_awakened"
-      }
+      "ingredient": "#c:ingots/draconium_awakened"
     },
     {
       "consume": true,
-      "ingredient": {
-        "tag": "c:ingots/draconium_awakened"
-      }
+      "ingredient": "#c:ingots/draconium_awakened"
     }
   ],
   "result": {

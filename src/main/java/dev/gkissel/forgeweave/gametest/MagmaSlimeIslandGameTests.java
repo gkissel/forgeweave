@@ -3,11 +3,13 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+
+import net.minecraft.util.random.Weighted;
 import java.util.Set;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -24,8 +26,8 @@ import net.minecraft.world.level.levelgen.structure.StructureSet;
 import net.minecraft.world.level.levelgen.structure.StructureSpawnOverride;
 import net.minecraft.world.level.levelgen.structure.placement.RandomSpreadStructurePlacement;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -61,12 +63,12 @@ public class MagmaSlimeIslandGameTests {
     public static void theMagmaIslandStructureIsLocatable(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         Structure structure = level.registryAccess()
-                .registryOrThrow(Registries.STRUCTURE)
-                .get(MagmaSlimeIslandStructure.KEY);
+                .lookupOrThrow(Registries.STRUCTURE)
+                .getValue(MagmaSlimeIslandStructure.KEY);
         helper.assertTrue(structure instanceof MagmaSlimeIslandStructure,
-                "expected the magma island structure registered as " + MagmaSlimeIslandStructure.KEY.location());
+                "expected the magma island structure registered as " + MagmaSlimeIslandStructure.KEY.identifier());
 
-        StructureSet set = level.registryAccess().registryOrThrow(Registries.STRUCTURE_SET).stream()
+        StructureSet set = level.registryAccess().lookupOrThrow(Registries.STRUCTURE_SET).stream()
                 .filter(candidate -> candidate.structures().stream()
                         .anyMatch(entry -> entry.structure().value() == structure))
                 .findFirst()
@@ -93,8 +95,8 @@ public class MagmaSlimeIslandGameTests {
     @GameTest(template = "empty")
     public static void magmaIslandsSpawnMagmaCubesAndNothingElse(GameTestHelper helper) {
         Structure structure = helper.getLevel().registryAccess()
-                .registryOrThrow(Registries.STRUCTURE)
-                .get(MagmaSlimeIslandStructure.KEY);
+                .lookupOrThrow(Registries.STRUCTURE)
+                .getValue(MagmaSlimeIslandStructure.KEY);
         helper.assertTrue(structure != null, "the magma island structure is not registered");
 
         StructureSpawnOverride override = structure.spawnOverrides().get(MobCategory.MONSTER);
@@ -102,13 +104,13 @@ public class MagmaSlimeIslandGameTests {
         helper.assertTrue(override.boundingBox() == StructureSpawnOverride.BoundingBoxType.PIECE,
                 "the override has to be scoped to the island itself, not the whole structure chunk");
 
-        List<MobSpawnSettings.SpawnerData> spawns = override.spawns().unwrap();
+        List<Weighted<MobSpawnSettings.SpawnerData>> spawns = override.spawns().unwrap();
         helper.assertValueEqual(spawns.size(), 1, "magma island monster spawn entries");
-        MobSpawnSettings.SpawnerData magma = spawns.getFirst();
-        helper.assertTrue(magma.type == EntityType.MAGMA_CUBE, "a magma island must only spawn magma cubes");
-        helper.assertValueEqual(magma.getWeight().asInt(), 150, "magma cube spawn weight");
-        helper.assertValueEqual(magma.minCount, 4, "magma cube minimum pack size");
-        helper.assertValueEqual(magma.maxCount, 6, "magma cube maximum pack size");
+        MobSpawnSettings.SpawnerData magma = spawns.getFirst().value();
+        helper.assertTrue(magma.type() == EntityType.MAGMA_CUBE, "a magma island must only spawn magma cubes");
+        helper.assertValueEqual(spawns.getFirst().weight(), 150, "magma cube spawn weight");
+        helper.assertValueEqual(magma.minCount(), 4, "magma cube minimum pack size");
+        helper.assertValueEqual(magma.maxCount(), 6, "magma cube maximum pack size");
 
         helper.succeed();
     }
@@ -171,7 +173,7 @@ public class MagmaSlimeIslandGameTests {
         BlockPos anchor = helper.absolutePos(BlockPos.ZERO);
 
         SlimeIslandShape.Size size = SlimeIslandShape.Size.roll(RandomSource.create(1234L));
-        int bottom = Math.min(anchor.getY() + 40, level.getMaxBuildHeight() - 1 - size.canvasSizeY());
+        int bottom = Math.min(anchor.getY() + 40, level.getMaxY() - size.canvasSizeY());
         int minX = anchor.getX() + 8;
         int minZ = anchor.getZ() + 8;
         BoundingBox box = new BoundingBox(minX, bottom, minZ,

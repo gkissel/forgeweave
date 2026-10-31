@@ -8,21 +8,22 @@ import com.mojang.authlib.GameProfile;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Slime;
 import net.minecraft.world.entity.player.Player;
@@ -36,8 +37,8 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.AABB;
 
 import net.neoforged.neoforge.common.util.FakePlayer;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.combat.CombatHit;
@@ -81,25 +82,25 @@ public class StatefulTraitGameTests {
                 new AlienProgress(pool, AlienProgress.Portion.ZERO));
 
         player.tickCount = 72; // not a multiple of 144 or 216: the durability step.
-        pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+        pickaxe.getItem().inventoryTick(pickaxe, level, player, null);
         helper.assertTrue(pickaxe.getMaxDamage() == 101,
                 "expected the 72-tick step to grow max damage to 101, got " + pickaxe.getMaxDamage());
 
         player.tickCount = 144; // multiple of 144, not 216: the speed step.
-        pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+        pickaxe.getItem().inventoryTick(pickaxe, level, player, null);
         float speed = ForgeweaveTraits.miningSpeed(pickaxe, true, 2.0F);
         helper.assertTrue(Math.abs(speed - 2.007F) < 0.0001F,
                 "expected one 0.007 speed step on top of 2.0, got " + speed);
 
         player.tickCount = 216; // multiple of 216: the attack step.
-        pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+        pickaxe.getItem().inventoryTick(pickaxe, level, player, null);
         float attack = ForgeweaveTraits.attackDamageBonus(pickaxe);
         helper.assertTrue(Math.abs(attack - 0.005F) < 0.0001F,
                 "expected one 0.005 attack step, got " + attack);
 
         // Off-cadence ticks distribute nothing.
         player.tickCount = 73;
-        pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+        pickaxe.getItem().inventoryTick(pickaxe, level, player, null);
         AlienProgress progress = pickaxe.get(ForgeweaveDataComponents.ALIEN_PROGRESS.get());
         helper.assertTrue(progress != null && progress.distributed().durability() == 1,
                 "an off-cadence tick must not distribute, got " + progress);
@@ -123,7 +124,7 @@ public class StatefulTraitGameTests {
                 new AlienProgress(pool, AlienProgress.Portion.ZERO));
 
         holder.tickCount = 72; // an on-cadence durability-step tick, same as the real-player test above.
-        pickaxe.getItem().inventoryTick(pickaxe, level, holder, 0, false);
+        pickaxe.getItem().inventoryTick(pickaxe, level, holder, null);
 
         helper.assertTrue(pickaxe.getMaxDamage() == 100,
                 "a FakePlayer holder must never distribute alien's pool, max damage now " + pickaxe.getMaxDamage());
@@ -142,7 +143,7 @@ public class StatefulTraitGameTests {
         ItemStack pickaxe = pickaxe(List.of(traitId("alien")), 100, 2.0F, 1.0F);
 
         player.tickCount = 72;
-        pickaxe.getItem().inventoryTick(pickaxe, level, player, 0, false);
+        pickaxe.getItem().inventoryTick(pickaxe, level, player, null);
 
         AlienProgress progress = pickaxe.get(ForgeweaveDataComponents.ALIEN_PROGRESS.get());
         helper.assertTrue(progress != null, "the first on-cadence tick must roll and store the pool");
@@ -181,16 +182,16 @@ public class StatefulTraitGameTests {
         pickaxe.remove(ForgeweaveDataComponents.SHOCKING_CHARGE.get());
         attacker.setPos(0.0, 2.0, 0.0);
         attacker.tickCount = 5;
-        pickaxe.getItem().inventoryTick(pickaxe, level, attacker, 0, true); // baseline sample only
+        pickaxe.getItem().inventoryTick(pickaxe, level, attacker, EquipmentSlot.MAINHAND); // baseline sample only
         helper.assertTrue(charge(pickaxe) == 0.0F, "the first sample only sets the baseline");
         attacker.setPos(3.0, 2.0, 0.0);
         attacker.tickCount = 10;
-        pickaxe.getItem().inventoryTick(pickaxe, level, attacker, 0, true);
+        pickaxe.getItem().inventoryTick(pickaxe, level, attacker, EquipmentSlot.MAINHAND);
         helper.assertTrue(Math.abs(charge(pickaxe) - 6.0F) < 0.001F,
                 "expected 3 blocks * 2 = 6 charge, got " + charge(pickaxe));
         attacker.setPos(13.0, 2.0, 0.0);
         attacker.tickCount = 15;
-        pickaxe.getItem().inventoryTick(pickaxe, level, attacker, 0, true);
+        pickaxe.getItem().inventoryTick(pickaxe, level, attacker, EquipmentSlot.MAINHAND);
         helper.assertTrue(Math.abs(charge(pickaxe) - 16.0F) < 0.001F,
                 "expected the 10-block move to clamp at 5 * 2 = +10, got " + charge(pickaxe));
 
@@ -237,7 +238,7 @@ public class StatefulTraitGameTests {
                 "expected the discharge to deal 5 lightning damage, target went " + healthBefore
                         + " -> " + target.getHealth());
         helper.assertTrue(charge(pickaxe) == 0.0F, "the discharge must reset the charge, got " + charge(pickaxe));
-        helper.assertTrue(attacker.hasEffect(MobEffects.MOVEMENT_SPEED),
+        helper.assertTrue(attacker.hasEffect(MobEffects.SPEED),
                 "the discharging attacker gets the upstream Speed effect");
         helper.assertTrue(pickaxe.get(DataComponents.ENCHANTMENT_GLINT_OVERRIDE) == null,
                 "the full-charge glint must clear on discharge");
@@ -249,7 +250,7 @@ public class StatefulTraitGameTests {
                 BlockPos.ZERO, miner, true);
         helper.assertTrue(charge(pickaxe) == 0.0F,
                 "a break that fills the charge must discharge immediately, got " + charge(pickaxe));
-        helper.assertTrue(miner.hasEffect(MobEffects.DIG_SPEED),
+        helper.assertTrue(miner.hasEffect(MobEffects.HASTE),
                 "the mining discharge grants the upstream Haste effect");
 
         target.discard();
@@ -450,7 +451,7 @@ public class StatefulTraitGameTests {
         player.setItemInHand(InteractionHand.MAIN_HAND, fresh);
         player.getFoodData().setFoodLevel(20);
         for (int i = 0; i < 100; i++) {
-            fresh.getItem().inventoryTick(fresh, level, player, 0, true);
+            fresh.getItem().inventoryTick(fresh, level, player, EquipmentSlot.MAINHAND);
         }
         helper.assertTrue(fresh.getDamageValue() == 0, "a sated holder never eats the tool");
 
@@ -495,14 +496,14 @@ public class StatefulTraitGameTests {
     }
 
     /** Builds a pickaxe {@code ItemStack} with the given traits/stats directly (see class javadoc). */
-    private static ItemStack pickaxe(List<ResourceLocation> traits, int durability, float miningSpeed, float attackDamage) {
+    private static ItemStack pickaxe(List<Identifier> traits, int durability, float miningSpeed, float attackDamage) {
         ToolItem toolItem = ForgeweaveItems.TOOL_PICKAXE.get();
         ToolStats.Stats stats = new ToolStats.Stats(durability, miningSpeed, attackDamage);
         Material head = new Material(
                 new Material.Head(durability, miningSpeed, attackDamage),
                 new Material.Handle(1.0F, 0),
                 0,
-                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool")),
+                TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace("incorrect_for_stone_tool")),
                 new Material.Traits(List.of(), List.of()),
                 List.of(),
                 Ingredient.of(Items.STICK),
@@ -517,7 +518,7 @@ public class StatefulTraitGameTests {
         return stack;
     }
 
-    private static ResourceLocation traitId(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier traitId(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 }

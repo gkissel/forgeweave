@@ -45,27 +45,21 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "actuallyadditions:empowered_emeradic_crystal"
-      },
+      "ingredient": "actuallyadditions:empowered_emeradic_crystal",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:storage_blocks/empowered_emeradic_crystal"
-      },
+      "ingredient": "#c:storage_blocks/empowered_emeradic_crystal",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "item": "actuallyadditions:empowered_emeradic_crystal"
-  },
+  "repair_item": "actuallyadditions:empowered_emeradic_crystal",
   "enchantability": 20,
   "color": "#44E033",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "actuallyadditions:empowered_emeradic_crystal"
+      "type": "neoforge:registered",
+      "value": "actuallyadditions:empowered_emeradic_crystal"
     }
   ]
 }

@@ -28,7 +28,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
@@ -36,6 +36,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.block.Block;
 
@@ -45,6 +46,7 @@ import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
 import dev.gkissel.forgeweave.modifier.ModifierEntry;
+import dev.gkissel.forgeweave.tool.ArmorStats;
 import dev.gkissel.forgeweave.tool.LauncherStats;
 import dev.gkissel.forgeweave.tool.ToolLevel;
 import dev.gkissel.forgeweave.tool.ToolLeveling;
@@ -63,21 +65,21 @@ import dev.gkissel.forgeweave.trait.WarMemory;
  */
 class ToolTooltipTest {
 
-    private static final ResourceLocation STONE_ID = ResourceLocation.fromNamespaceAndPath("forgeweave", "stone");
-    private static final ResourceLocation WOOD_ID = ResourceLocation.fromNamespaceAndPath("forgeweave", "wood");
-    private static final ResourceLocation CHEAP_TRAIT = ResourceLocation.fromNamespaceAndPath("forgeweave", "cheap");
+    private static final Identifier STONE_ID = Identifier.fromNamespaceAndPath("forgeweave", "stone");
+    private static final Identifier WOOD_ID = Identifier.fromNamespaceAndPath("forgeweave", "wood");
+    private static final Identifier CHEAP_TRAIT = Identifier.fromNamespaceAndPath("forgeweave", "cheap");
     // Issue #493: stone's head part grants cheapskate, not the general cheap -- see stone().
-    private static final ResourceLocation CHEAPSKATE_TRAIT =
-            ResourceLocation.fromNamespaceAndPath("forgeweave", "cheapskate");
-    private static final ResourceLocation LIGHTWEIGHT_TRAIT =
-            ResourceLocation.fromNamespaceAndPath("forgeweave", "lightweight");
-    private static final ResourceLocation HASTE_ID = ResourceLocation.fromNamespaceAndPath("forgeweave", "haste");
-    private static final ResourceLocation ECOLOGICAL_TRAIT =
-            ResourceLocation.fromNamespaceAndPath("forgeweave", "ecological");
-    private static final ResourceLocation BLOODTALLY_TRAIT =
-            ResourceLocation.fromNamespaceAndPath("forgeweave", "bloodtally");
-    private static final ResourceLocation WARMEMORY_TRAIT =
-            ResourceLocation.fromNamespaceAndPath("forgeweave", "warmemory");
+    private static final Identifier CHEAPSKATE_TRAIT =
+            Identifier.fromNamespaceAndPath("forgeweave", "cheapskate");
+    private static final Identifier LIGHTWEIGHT_TRAIT =
+            Identifier.fromNamespaceAndPath("forgeweave", "lightweight");
+    private static final Identifier HASTE_ID = Identifier.fromNamespaceAndPath("forgeweave", "haste");
+    private static final Identifier ECOLOGICAL_TRAIT =
+            Identifier.fromNamespaceAndPath("forgeweave", "ecological");
+    private static final Identifier BLOODTALLY_TRAIT =
+            Identifier.fromNamespaceAndPath("forgeweave", "bloodtally");
+    private static final Identifier WARMEMORY_TRAIT =
+            Identifier.fromNamespaceAndPath("forgeweave", "warmemory");
 
     private static final ToolStats.Stats PICKAXE_STATS = new ToolStats.Stats(160, 4.0F, 3.0F);
     private static final TextColor STONE_COLOR = TextColor.fromRgb(0x999999);
@@ -142,7 +144,7 @@ class ToolTooltipTest {
     void compactTooltipListsModifiersWithTheirLevelAndProgress() {
         ItemStack stack = assembledPickaxe(40, List.of());
         stack.set(ForgeweaveDataComponents.MODIFIERS.get(),
-                List.of(new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "haste"), 51)));
+                List.of(new ModifierEntry(Identifier.fromNamespaceAndPath("forgeweave", "haste"), 51)));
 
         List<Component> tooltip = new ArrayList<>();
         ToolTooltip.append(stack, null, false, 3.0F, tooltip);
@@ -236,7 +238,7 @@ class ToolTooltipTest {
     void compactTooltipOmitsWarmemorySinceItsStateIsMoreThanOneLine() {
         ItemStack stack = assembledPickaxe(40, List.of(WARMEMORY_TRAIT));
         stack.set(ForgeweaveDataComponents.WAR_MEMORY.get(),
-                WarMemory.EMPTY.with(ResourceLocation.withDefaultNamespace("zombie"), 12));
+                WarMemory.EMPTY.with(Identifier.withDefaultNamespace("zombie"), 12));
 
         List<Component> tooltip = new ArrayList<>();
         ToolTooltip.append(stack, null, false, 3.0F, tooltip);
@@ -257,7 +259,7 @@ class ToolTooltipTest {
         MappedRegistry<Material> registry = new MappedRegistry<>(Material.REGISTRY, Lifecycle.stable());
         registry.register(ResourceKey.create(Material.REGISTRY, STONE_ID), stone(), RegistrationInfo.BUILT_IN);
         registry.register(ResourceKey.create(Material.REGISTRY, WOOD_ID), woodWithBloodtally(), RegistrationInfo.BUILT_IN);
-        HolderLookup.Provider registries = HolderLookup.Provider.create(Stream.of(registry.asLookup()));
+        HolderLookup.Provider registries = HolderLookup.Provider.create(Stream.<HolderLookup.RegistryLookup<?>>of(registry));
 
         List<Component> tooltip = new ArrayList<>();
         ToolTooltip.append(stack, registries, true, 3.0F, tooltip);
@@ -308,6 +310,37 @@ class ToolTooltipTest {
                 pierceLine(),
                 slotsLine(5)), // #921: the two level bonus slots count in freeSlots()
                 tooltip);
+    }
+
+    /**
+     * Armor shows what a tool shows after its own stat block: level and XP, its Modifiers and free
+     * slots, and on Shift one section per part. Before this a piece listed only its armor stats.
+     */
+    @Test
+    void armorTooltipShowsLevelModifiersAndPartSections() {
+        Identifier elytraFlight = Identifier.fromNamespaceAndPath("forgeweave", "elytra_flight");
+        ItemStack piece = new ItemStack(ForgeweaveItems.ARMOR_CHESTPLATE.get());
+        piece.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(),
+                new ToolMaterials(STONE_ID, Optional.of(WOOD_ID), Optional.empty(), List.of(STONE_ID, WOOD_ID)));
+        piece.set(ForgeweaveDataComponents.ARMOR_STATS.get(), new ArmorStats(6, 0, 0, 200));
+        piece.set(DataComponents.MAX_DAMAGE, 200);
+        piece.set(ForgeweaveDataComponents.TOOL_LEVEL.get(), new ToolLevel(2, 30, 2));
+        piece.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(elytraFlight, 1)));
+
+        List<Component> compact = new ArrayList<>();
+        ToolTooltip.appendArmor(piece, registriesWithStoneAndWood(), false, compact);
+        assertTrue(compact.contains(levelNameLine(2)), () -> "no level line in " + compact);
+        assertTrue(compact.stream().anyMatch(line -> line.toString().contains("modifier.forgeweave.elytra_flight")),
+                () -> "no modifier line in " + compact);
+        assertTrue(compact.stream().anyMatch(line -> line.toString().contains("tooltip.forgeweave.modifier_slots")),
+                () -> "no free slot line in " + compact);
+        assertTrue(compact.stream().noneMatch(line -> line.toString().contains("tooltip.forgeweave.part_name")),
+                () -> "part sections are Shift-only, got " + compact);
+
+        List<Component> detailed = new ArrayList<>();
+        ToolTooltip.appendArmor(piece, registriesWithStoneAndWood(), true, detailed);
+        assertEquals(2, detailed.stream().filter(line -> line.toString().contains("tooltip.forgeweave.part_name")).count(),
+                () -> "one section per part (plating, maille), got " + detailed);
     }
 
     /** A tool that never earned or banked any XP shows neither line -- no {@code tool_level} component at all. */
@@ -676,7 +709,7 @@ class ToolTooltipTest {
     @Test
     void aModifierWithNoSpeedBonusHasNoExtraInfo() {
         assertEquals(List.of(), StationText.modifierExtraInfo(assembledShortbow(),
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "soulbound"), 1)));
+                new ModifierEntry(Identifier.fromNamespaceAndPath("forgeweave", "soulbound"), 1)));
         assertEquals(List.of(), StationText.modifierExtraInfo(assembledPickaxe(40, List.of()),
                 new ModifierEntry(HASTE_ID, 50)),
                 "a pickaxe is neither WEAPON nor LAUNCHER upstream, so haste shows it nothing");
@@ -689,7 +722,7 @@ class ToolTooltipTest {
         stack.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(HASTE_ID, 50)));
 
         HoverEvent hover = StationText.toolModifiers(stack).get(0).getStyle().getHoverEvent();
-        assertTrue(hover != null && hover.getValue(HoverEvent.Action.SHOW_TEXT).toString()
+        assertTrue(hover instanceof HoverEvent.ShowText(Component shown) && shown.toString()
                         .contains("modifier.forgeweave.haste.extra"),
                 "the haste row explains its draw-speed bonus on hover");
     }
@@ -727,7 +760,7 @@ class ToolTooltipTest {
     void tierLineIsEmptyForGoldAndUnknownTags() {
         assertEquals(Optional.empty(), ToolTooltip.tierLine(incorrectForTool("gold")));
         assertEquals(Optional.empty(), ToolTooltip.tierLine(TagKey.create(Registries.BLOCK,
-                ResourceLocation.fromNamespaceAndPath("somemod", "incorrect_for_osmium_tool"))));
+                Identifier.fromNamespaceAndPath("somemod", "incorrect_for_osmium_tool"))));
     }
 
     @Test
@@ -735,7 +768,7 @@ class ToolTooltipTest {
         ItemStack stack = assembledPickaxe(40, List.of());
 
         List<Component> tooltip = new ArrayList<>();
-        ForgeweaveItems.TOOL_PICKAXE.get().appendHoverText(stack, Item.TooltipContext.EMPTY, tooltip, TooltipFlag.NORMAL);
+        ForgeweaveItems.TOOL_PICKAXE.get().appendHoverText(stack, Item.TooltipContext.EMPTY, TooltipDisplay.DEFAULT, tooltip::add, TooltipFlag.NORMAL);
 
         // TooltipFlag.NORMAL.hasShiftDown() is NeoForge's TooltipFlagExtension default (false off-client).
         assertEquals(List.of(durabilityLine(120, 160), attackLine(3.0F), pierceLine(), slotsLine(3)), tooltip);
@@ -789,21 +822,21 @@ class ToolTooltipTest {
                 Component.literal(Integer.toString(max)).withStyle(Style.EMPTY.withColor(StationText.DURABILITY_COLOR)));
     }
 
-    private static ItemStack assembledPickaxe(int damage, List<ResourceLocation> traits) {
+    private static ItemStack assembledPickaxe(int damage, List<Identifier> traits) {
         return assembledTool(ForgeweaveItems.TOOL_PICKAXE.get(), damage, traits);
     }
 
     /** Issue #303: the warmace, same fixture shape -- {@link ToolTooltip} doesn't care which tool it is. */
-    private static ItemStack assembledWarmace(int damage, List<ResourceLocation> traits) {
+    private static ItemStack assembledWarmace(int damage, List<Identifier> traits) {
         return assembledTool(ForgeweaveItems.TOOL_WARMACE.get(), damage, traits);
     }
 
-    private static ItemStack assembledTool(Item item, int damage, List<ResourceLocation> traits) {
+    private static ItemStack assembledTool(Item item, int damage, List<Identifier> traits) {
         return assembledTool(item, damage, traits,
                 new ToolMaterials(STONE_ID, Optional.of(WOOD_ID), Optional.of(WOOD_ID), List.of(STONE_ID, WOOD_ID, WOOD_ID)));
     }
 
-    private static ItemStack assembledTool(Item item, int damage, List<ResourceLocation> traits,
+    private static ItemStack assembledTool(Item item, int damage, List<Identifier> traits,
             ToolMaterials materials) {
         ItemStack stack = new ItemStack(item);
         stack.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(), materials);
@@ -818,7 +851,7 @@ class ToolTooltipTest {
         MappedRegistry<Material> registry = new MappedRegistry<>(Material.REGISTRY, Lifecycle.stable());
         registry.register(ResourceKey.create(Material.REGISTRY, STONE_ID), stone(), RegistrationInfo.BUILT_IN);
         registry.register(ResourceKey.create(Material.REGISTRY, WOOD_ID), wood(), RegistrationInfo.BUILT_IN);
-        return HolderLookup.Provider.create(Stream.of(registry.asLookup()));
+        return HolderLookup.Provider.create(Stream.<HolderLookup.RegistryLookup<?>>of(registry));
     }
 
     private static Material stone() {
@@ -846,7 +879,7 @@ class ToolTooltipTest {
     }
 
     private static TagKey<Block> incorrectForTool(String tier) {
-        return TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_" + tier + "_tool"));
+        return TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace("incorrect_for_" + tier + "_tool"));
     }
 
     private static Component durabilityLine(int current, int max) {
@@ -924,7 +957,7 @@ class ToolTooltipTest {
                 Component.literal(value).withStyle(Style.EMPTY.withColor(color)));
         Component hover = line.copy().append("\n").append(
                 Component.translatable("gui.forgeweave.stat." + key + ".desc").withStyle(ChatFormatting.GRAY));
-        return line.withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover)));
+        return line.withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(hover)));
     }
 
     private static Component tierLine(String tier) {
@@ -939,7 +972,7 @@ class ToolTooltipTest {
     }
 
     private static Component traitLine(String path, TextColor color) {
-        return traitLine(path, color, TraitFamilies.of(ResourceLocation.fromNamespaceAndPath("forgeweave", path)));
+        return traitLine(path, color, TraitFamilies.of(Identifier.fromNamespaceAndPath("forgeweave", path)));
     }
 
     /**

@@ -48,21 +48,17 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "iceandfire:deathworm_chitin_white"
-      },
+      "ingredient": "iceandfire:deathworm_chitin_white",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "iceandfire:deathworm_chitin_white"
-  },
+  "repair_item": "iceandfire:deathworm_chitin_white",
   "enchantability": 15,
   "color": "#E8E4D0",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "iceandfire:deathworm_chitin_white"
+      "type": "neoforge:registered",
+      "value": "iceandfire:deathworm_chitin_white"
     }
   ]
 }

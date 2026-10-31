@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_large_plate"
-  },
+  "cast": "forgeweave:clay_cast_large_plate",
   "fluid": "forgeweave:molten_ardite",
   "amount": 1152,
   "result": {

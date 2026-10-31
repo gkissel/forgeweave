@@ -8,11 +8,9 @@
     "general": ["forgeweave:hovering"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:blaze_rod" }, "value": 144 }
+    { "ingredient": "minecraft:blaze_rod", "value": 144 }
   ],
-  "repair_item": {
-    "item": "minecraft:blaze_rod"
-  },
+  "repair_item": "minecraft:blaze_rod",
   "enchantability": 15,
   "color": "#FFC100"
 }

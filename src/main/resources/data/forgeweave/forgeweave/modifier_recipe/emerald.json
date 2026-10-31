@@ -1,8 +1,6 @@
 {
   "modifier": "forgeweave:emerald",
-  "reagent": {
-    "item": "minecraft:emerald"
-  },
+  "reagent": "minecraft:emerald",
   "cost": 1,
   "max_level": 1
 }

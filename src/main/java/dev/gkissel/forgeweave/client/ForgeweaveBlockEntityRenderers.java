@@ -16,7 +16,7 @@ import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
  * the casting table/basin contents and the faucet's pour stream) and, since #447, its one entity
  * renderer -- {@code EntityRenderersEvent.RegisterRenderers} carries both, so they share a listener.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public final class ForgeweaveBlockEntityRenderers {
 
     @SubscribeEvent

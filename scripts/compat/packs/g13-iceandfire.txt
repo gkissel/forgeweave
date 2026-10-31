@@ -1,9 +1,10 @@
-# Group 13 with Ice and Fire (lines 230-231). Ice and Fire is CurseForge only and no 1.21.1 NeoForge jar
-# has been staged yet; drop one (and its libraries, as `mod local` lines) into a FW_COMPAT_JAR_DIRS
-# directory and pin its sha512 here. Until then this pack is a SKIP.
+# SKIP on 26.1.2: Ice and Fire has no 26.1.2 NeoForge build (checked 2026-10-26)
+# Group 13 with Ice and Fire (lines 230-231). Ice and Fire is CurseForge only; its newest file there is
+# for 1.20.1. Drop a jar (and its libraries, as `mod local` lines) into a FW_COMPAT_JAR_DIRS directory,
+# pin its sha512 here and remove the SKIP line.
 
 include g13.txt
-mod local - iceandfire-*.jar
+# mod local - iceandfire-*.jar
 
 material forgeweave:dragon_bone forgeweave:dragonsteel_fire forgeweave:dragonsteel_ice forgeweave:dragonsteel_lightning
 material forgeweave:deathworm_chitin_red forgeweave:deathworm_chitin_white forgeweave:deathworm_chitin_yellow

@@ -9,7 +9,7 @@ import java.util.Optional;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
@@ -86,7 +86,7 @@ public record RecipeViewerContent(
      * modifiers}.
      */
     public static RecipeViewerContent build(RegistryAccess registries) {
-        Map<ResourceLocation, Material> materials = entries(registries, Material.REGISTRY);
+        Map<Identifier, Material> materials = entries(registries, Material.REGISTRY);
 
         // Split by AssemblyRecipes#isLarge (issue #165) so each half lands in the category whose
         // catalyst list matches where it can actually be built -- see AssemblyCategory's class
@@ -102,10 +102,10 @@ public record RecipeViewerContent(
         // tool family takes goes with that family rather than with the smeltery.
         boolean smeltery = ForgeweaveConfig.enabled(ForgeweaveConfig.SMELTERY);
         boolean modifiers = ForgeweaveConfig.enabled(ForgeweaveConfig.MODIFIERS);
-        Map<ResourceLocation, CastingRecipe> casting = smeltery ? entries(registries, CastingRecipe.REGISTRY) : Map.of();
+        Map<Identifier, CastingRecipe> casting = smeltery ? entries(registries, CastingRecipe.REGISTRY) : Map.of();
         // #893: melting's fuel column reads the same smeltery_fuel registry #890's standalone
         // category does, so it is read once here and reused.
-        Map<ResourceLocation, SmelteryFuel> fuels = smeltery ? entries(registries, SmelteryFuel.REGISTRY) : Map.of();
+        Map<Identifier, SmelteryFuel> fuels = smeltery ? entries(registries, SmelteryFuel.REGISTRY) : Map.of();
 
         return new RecipeViewerContent(
                 PartCraftingRecipes.build(materials).stream()
@@ -149,7 +149,7 @@ public record RecipeViewerContent(
     private static List<CastingRecipe> castingEnabled(List<CastingRecipe> recipes) {
         return recipes.stream()
                 .filter(recipe -> ContentFamilies.itemEnabled(recipe.result())
-                        && recipe.cast().map(cast -> Arrays.stream(cast.getItems())
+                        && recipe.cast().map(cast -> Arrays.stream(IngredientStacks.of(cast))
                                 .anyMatch(ContentFamilies::itemEnabled)).orElse(true))
                 .toList();
     }
@@ -167,13 +167,13 @@ public record RecipeViewerContent(
      * ({@code Forgeweave#registerDataPackRegistries}), so the client's copy is exactly what the
      * joined session has, modpack additions included. Empty (not an error) with no registries yet.
      */
-    private static <T> Map<ResourceLocation, T> entries(RegistryAccess registries, ResourceKey<Registry<T>> key) {
+    private static <T> Map<Identifier, T> entries(RegistryAccess registries, ResourceKey<Registry<T>> key) {
         if (registries == null) {
             return Map.of();
         }
-        Map<ResourceLocation, T> entries = new LinkedHashMap<>();
-        for (Map.Entry<ResourceKey<T>, T> entry : registries.registryOrThrow(key).entrySet()) {
-            entries.put(entry.getKey().location(), entry.getValue());
+        Map<Identifier, T> entries = new LinkedHashMap<>();
+        for (Map.Entry<ResourceKey<T>, T> entry : registries.lookupOrThrow(key).entrySet()) {
+            entries.put(entry.getKey().identifier(), entry.getValue());
         }
         return entries;
     }

@@ -2,7 +2,7 @@ package dev.gkissel.forgeweave.gametest;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -11,15 +11,15 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.FaucetBlock;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.TransferBridge;
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryCore;
@@ -161,7 +161,7 @@ public class SmelteryCoreTransformGameTests {
         helper.assertTrue(helper.getBlockState(SmelteryGameTests.CORE_POS).is(ForgeweaveBlocks.END_CORE.get()),
                 "expected the first pour to have produced an End Core");
 
-        SmelteryControllerBlockEntity endCore = helper.getBlockEntity(SmelteryGameTests.CORE_POS);
+        SmelteryControllerBlockEntity endCore = helper.getBlockEntity(SmelteryGameTests.CORE_POS, SmelteryControllerBlockEntity.class);
         int acceptedAgain = endCore.transformHandler()
                 .fill(new FluidStack(ForgeweaveFluids.DRAGON_BREATH.still().get(), 1500), IFluidHandler.FluidAction.EXECUTE);
 
@@ -185,7 +185,7 @@ public class SmelteryCoreTransformGameTests {
 
         helper.assertTrue(helper.getBlockState(SmelteryGameTests.CORE_POS).is(ForgeweaveBlocks.END_CORE.get()),
                 "expected the core to have transformed into an End Core");
-        SmelteryControllerBlockEntity endCore = helper.getBlockEntity(SmelteryGameTests.CORE_POS);
+        SmelteryControllerBlockEntity endCore = helper.getBlockEntity(SmelteryGameTests.CORE_POS, SmelteryControllerBlockEntity.class);
         helper.assertTrue(endCore.isFormed(), "expected the transformed core to still be a formed smeltery");
         helper.assertValueEqual(endCore.tank().getFluidAmount(), 500, "expected the molten iron to have carried across the transform");
         helper.assertTrue(endCore.tank().getFluid().getFluid() == ForgeweaveFluids.IRON.still().get(),
@@ -207,8 +207,7 @@ public class SmelteryCoreTransformGameTests {
         core.tank().fill(new FluidStack(ForgeweaveFluids.IRON.still().get(), MeltingRecipe.VALUE_INGOT * 2),
                 IFluidHandler.FluidAction.EXECUTE);
 
-        IFluidHandler capability = helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK,
-                helper.absolutePos(SmelteryGameTests.CORE_POS), null);
+        IFluidHandler capability = TransferBridge.fluidAt(helper.getLevel(), helper.absolutePos(SmelteryGameTests.CORE_POS), null);
         helper.assertTrue(capability != null, "expected the core to expose a fluid capability for faucets");
         helper.assertValueEqual(capability.getTanks(), 0, "tanks the core's fluid capability reports to overlays");
         helper.assertValueEqual(capability.fill(new FluidStack(ForgeweaveFluids.BLAZING_BLOOD.still().get(), 100),
@@ -225,7 +224,7 @@ public class SmelteryCoreTransformGameTests {
     private static SmelteryControllerBlockEntity formedSmeltery(GameTestHelper helper, Block coreBlock, int height) {
         SmelteryGameTests.buildWalls(helper, 1, 1, height);
         BlockPos corePos = SmelteryGameTests.placeCore(helper, coreBlock);
-        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
         return core;
     }
@@ -237,7 +236,7 @@ public class SmelteryCoreTransformGameTests {
      */
     private static SmelteryControllerBlockEntity lavaFuelledSmeltery(GameTestHelper helper, Block coreBlock) {
         SmelteryControllerBlockEntity core = formedSmeltery(helper, coreBlock, 2);
-        SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS);
+        SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS, SearedTankBlockEntity.class);
         tank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
         helper.assertValueEqual(core.currentTemperature(), Fluids.LAVA.getFluidType().getTemperature(),
                 "smeltery temperature with lava in the wall tank");
@@ -253,7 +252,7 @@ public class SmelteryCoreTransformGameTests {
         formedSmeltery(helper, coreBlock, 1);
 
         helper.setBlock(TRANSFORM_SOURCE, ForgeweaveBlocks.SEARED_TANK.get());
-        SearedTankBlockEntity source = helper.getBlockEntity(TRANSFORM_SOURCE);
+        SearedTankBlockEntity source = helper.getBlockEntity(TRANSFORM_SOURCE, SearedTankBlockEntity.class);
         source.tank().fill(new FluidStack(fluid, amount), IFluidHandler.FluidAction.EXECUTE);
 
         helper.setBlock(TRANSFORM_FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState().setValue(FaucetBlock.FACING, Direction.SOUTH));

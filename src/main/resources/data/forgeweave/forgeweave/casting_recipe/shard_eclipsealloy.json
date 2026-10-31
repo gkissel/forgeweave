@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_shard"
-  },
+  "cast": "forgeweave:cast_shard",
   "fluid": "forgeweave:molten_eclipsealloy",
   "amount": 72,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "justdirethings:eclipsealloy_ingot"
+      "type": "neoforge:registered",
+      "value": "justdirethings:eclipsealloy_ingot"
     }
   ]
 }

@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_plating_chestplate"
-  },
+  "cast": "forgeweave:cast_plating_chestplate",
   "fluid": "forgeweave:molten_unobtainium_vibranium_alloy",
   "amount": 864,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "allthemodium:unobtainium_vibranium_alloy_ingot"
+      "type": "neoforge:registered",
+      "value": "allthemodium:unobtainium_vibranium_alloy_ingot"
     }
   ]
 }

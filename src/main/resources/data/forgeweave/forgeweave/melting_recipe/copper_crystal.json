@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:crystals/copper"
-  },
+  "input": "#c:crystals/copper",
   "fluid": "forgeweave:molten_copper",
   "amount": 144
 }

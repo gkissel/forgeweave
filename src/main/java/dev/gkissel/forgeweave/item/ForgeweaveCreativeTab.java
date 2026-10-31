@@ -9,7 +9,7 @@ import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.BlockItem;
@@ -343,8 +343,8 @@ public final class ForgeweaveCreativeTab {
     }
 
     /** The plating and maille the tab's armor pieces are made of (SCOPE.md M4 acceptance test). */
-    private static final ResourceLocation TAB_ARMOR_MATERIAL =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "iron");
+    private static final Identifier TAB_ARMOR_MATERIAL =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "iron");
 
     static void addPartItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
         addPartItems(parameters, output, ForgeweaveClientConfig.LIST_ALL_PART_MATERIALS.get());
@@ -422,7 +422,7 @@ public final class ForgeweaveCreativeTab {
                     continue;
                 }
                 ItemStack stack = new ItemStack(partItem.get());
-                stack.set(ForgeweaveDataComponents.MATERIAL.get(), material.key().location());
+                stack.set(ForgeweaveDataComponents.MATERIAL.get(), material.key().identifier());
                 output.accept(stack);
             }
         }
@@ -606,7 +606,7 @@ public final class ForgeweaveCreativeTab {
      */
     private static void addTableVariants(CreativeModeTab.Output output, Item table, TagKey<Item> textureSource,
             boolean listAllTableVariants) {
-        List<Holder<Item>> variants = BuiltInRegistries.ITEM.getTag(textureSource)
+        List<Holder<Item>> variants = BuiltInRegistries.ITEM.get(textureSource)
                 .map(HolderSet::stream).map(Stream::toList).orElse(List.of());
         if (variants.isEmpty()) {
             output.accept(new ItemStack(table));

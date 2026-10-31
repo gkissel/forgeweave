@@ -1,6 +1,7 @@
+# SKIP on 26.1.2: EMI has no 26.1.2 NeoForge build (checked 2026-10-26)
 # Group 3 (lines 110-111): EMI instead of JEI. Both lines are client checks; the server run covers the
 # boot, the log and the save passes with EMI loaded.
 
-mod modrinth emi 1.1.24+1.21.1+neoforge f4c45ed686fe617311d6debadcb6ace5963e66f8cfe0cfed398231f081f87407070efc7a73c8b695d158f1d87a97180737b9107a46771e77df2bc9a7dc715ebd emi-1.1.24+1.21.1+neoforge.jar
-recipes 1926
-materials 80
+# mod modrinth emi 1.1.24+1.21.1+neoforge f4c45ed686fe617311d6debadcb6ace5963e66f8cfe0cfed398231f081f87407070efc7a73c8b695d158f1d87a97180737b9107a46771e77df2bc9a7dc715ebd emi-1.1.24+1.21.1+neoforge.jar
+# recipes 1926   # re-pin on 26.1.2 after the first run
+# materials 80   # re-pin on 26.1.2 after the first run

@@ -1,16 +1,18 @@
 package dev.gkissel.forgeweave.block;
 
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import net.neoforged.neoforge.client.model.data.ModelData;
-import net.neoforged.neoforge.client.model.data.ModelProperty;
+import net.neoforged.neoforge.model.data.ModelData;
+import net.neoforged.neoforge.model.data.ModelProperty;
 
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 
@@ -32,18 +34,16 @@ public interface WoodTexturedBlockEntity {
     /** Sets the texture, marks the block entity changed, and pushes a client model-data update. */
     void setTexture(Block texture);
 
-    static Block readTexture(CompoundTag tag, Block fallback) {
-        if (tag.contains(TAG_TEXTURE, Tag.TAG_STRING)) {
-            ResourceLocation id = ResourceLocation.tryParse(tag.getString(TAG_TEXTURE));
-            if (id != null && BuiltInRegistries.BLOCK.containsKey(id)) {
-                return BuiltInRegistries.BLOCK.get(id);
-            }
+    static Block readTexture(ValueInput input, Block fallback) {
+        Identifier id = input.getString(TAG_TEXTURE).map(Identifier::tryParse).orElse(null);
+        if (id != null && BuiltInRegistries.BLOCK.containsKey(id)) {
+            return BuiltInRegistries.BLOCK.getValue(id);
         }
         return fallback;
     }
 
-    static void writeTexture(CompoundTag tag, Block texture) {
-        tag.putString(TAG_TEXTURE, BuiltInRegistries.BLOCK.getKey(texture).toString());
+    static void writeTexture(ValueOutput output, Block texture) {
+        output.putString(TAG_TEXTURE, BuiltInRegistries.BLOCK.getKey(texture).toString());
     }
 
     /**
@@ -55,7 +55,7 @@ public interface WoodTexturedBlockEntity {
         Level level = blockEntity.getLevel();
         if (level != null) {
             blockEntity.requestModelDataUpdate();
-            if (!level.isClientSide) {
+            if (!level.isClientSide()) {
                 level.sendBlockUpdated(blockEntity.getBlockPos(), blockEntity.getBlockState(), blockEntity.getBlockState(), 3);
             }
         }

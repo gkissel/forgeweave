@@ -1,14 +1,12 @@
 {
-  "input": {
-    "tag": "c:dusts/ferricore"
-  },
+  "input": "#c:dusts/ferricore",
   "fluid": "forgeweave:molten_ferricore",
   "amount": 144,
   "temperature": 1200,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "justdirethings:ferricore_ingot"
+      "type": "neoforge:registered",
+      "value": "justdirethings:ferricore_ingot"
     }
   ]
 }

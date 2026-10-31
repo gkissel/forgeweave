@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.trait;
 
+import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 
@@ -27,9 +28,9 @@ public enum WorldCondition {
     /** Whether the condition holds for {@code holder} right now. */
     public boolean active(Level level, LivingEntity holder) {
         return switch (this) {
-            case SUNLIT -> level.isDay() && !level.isRaining() && level.canSeeSky(holder.blockPosition());
+            case SUNLIT -> level.isBrightOutside() && !level.isRaining() && level.canSeeSky(holder.blockPosition());
             case RAINING -> level.isRainingAt(holder.blockPosition().above());
-            case NETHER -> level.dimensionType().ultraWarm();
+            case NETHER -> level.environmentAttributes().getDimensionValue(EnvironmentAttributes.WATER_EVAPORATES); // 1.21.1 ultraWarm
         };
     }
 }

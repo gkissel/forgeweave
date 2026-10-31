@@ -3,12 +3,8 @@
   "category": "misc",
   "group": "pattern_chest",
   "key": {
-    "A": {
-      "item": "forgeweave:pattern_blank"
-    },
-    "B": {
-      "tag": "minecraft:planks"
-    }
+    "A": "forgeweave:pattern_blank",
+    "B": "#minecraft:planks"
   },
   "pattern": [
     "BBB",
@@ -16,7 +12,6 @@
     "BBB"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:pattern_chest"
   }
 }

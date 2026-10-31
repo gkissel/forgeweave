@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -28,7 +28,7 @@ final class RepairRecipes {
                 .toList();
     }
 
-    static List<RepairRecipe> build(Map<ResourceLocation, Material> materials) {
+    static List<RepairRecipe> build(Map<Identifier, Material> materials) {
         // Built once and shared by both slots of every recipe: the "before" and "after" of a repair
         // are the same set of tools, and JEI cycles the two slots in step only if they are the same
         // list instances.
@@ -59,7 +59,7 @@ final class RepairRecipes {
                 .toList());
         ingredients.add(material.repairItem());
         for (Ingredient ingredient : ingredients) {
-            for (ItemStack stack : ingredient.getItems()) {
+            for (ItemStack stack : IngredientStacks.of(ingredient)) {
                 if (seen.add(stack.getItem())) {
                     accepted.add(stack.copyWithCount(1));
                 }

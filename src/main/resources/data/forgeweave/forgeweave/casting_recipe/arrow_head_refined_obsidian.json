@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_arrow_head"
-  },
+  "cast": "forgeweave:cast_arrow_head",
   "fluid": "forgeweave:molten_refined_obsidian",
   "amount": 288,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:ingot_refined_obsidian"
+      "type": "neoforge:registered",
+      "value": "mekanism:ingot_refined_obsidian"
     }
   ]
 }

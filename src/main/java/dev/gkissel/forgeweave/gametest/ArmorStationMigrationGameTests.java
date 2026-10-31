@@ -3,17 +3,19 @@ package dev.gkissel.forgeweave.gametest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlockEntities;
@@ -67,9 +69,10 @@ public class ArmorStationMigrationGameTests {
     private static CompoundTag savedBlockEntity(HolderLookup.Provider registries, ItemStack head) {
         SimpleContainer contents = new SimpleContainer(ToolStationMenu.CONTAINER_SLOTS);
         contents.setItem(ToolStationMenu.HEAD_SLOT, head);
-        CompoundTag tag = new CompoundTag();
+        TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, registries);
+        contents.storeAsItemList(output.list("inventory", ItemStack.CODEC));
+        CompoundTag tag = output.buildResult();
         tag.putString("id", "forgeweave:tool_station");
-        tag.put("inventory", contents.createTag(registries));
         return tag;
     }
 
@@ -97,7 +100,7 @@ public class ArmorStationMigrationGameTests {
 
         // The block really is placeable and openable as a Tool Station, not merely decodable.
         helper.setBlock(STATION, loaded);
-        ToolStationBlockEntity placed = helper.getBlockEntity(STATION);
+        ToolStationBlockEntity placed = helper.getBlockEntity(STATION, ToolStationBlockEntity.class);
         helper.assertTrue(placed != null, "the converted state must still carry a Tool Station block entity");
         helper.succeed();
     }
@@ -109,7 +112,7 @@ public class ArmorStationMigrationGameTests {
         saved.putString("id", OLD_ID);
         saved.putInt("count", 2);
 
-        ItemStack stack = ItemStack.parse(helper.getLevel().registryAccess(), saved).orElse(ItemStack.EMPTY);
+        ItemStack stack = GameTestCompat.parseStack(helper.getLevel().registryAccess(), saved).orElse(ItemStack.EMPTY);
         helper.assertTrue(stack.is(ForgeweaveItems.TOOL_STATION.get()),
                 OLD_ID + " in an old inventory must read back as the Tool Station item, got " + stack);
         helper.assertTrue(stack.getCount() == 2, "and keep its count, got " + stack.getCount());

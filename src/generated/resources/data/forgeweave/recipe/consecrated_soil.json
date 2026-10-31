@@ -3,11 +3,8 @@
   "category": "blocks",
   "cookingtime": 200,
   "experience": 0.1,
-  "ingredient": {
-    "item": "forgeweave:graveyard_soil"
-  },
+  "ingredient": "forgeweave:graveyard_soil",
   "result": {
-    "count": 1,
     "id": "forgeweave:consecrated_soil"
   }
 }

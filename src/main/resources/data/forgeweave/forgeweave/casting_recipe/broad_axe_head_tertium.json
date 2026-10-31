@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_broad_axe_head"
-  },
+  "cast": "forgeweave:cast_broad_axe_head",
   "fluid": "forgeweave:molten_tertium",
   "amount": 1152,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mysticalagriculture:tertium_ingot"
+      "type": "neoforge:registered",
+      "value": "mysticalagriculture:tertium_ingot"
     }
   ]
 }

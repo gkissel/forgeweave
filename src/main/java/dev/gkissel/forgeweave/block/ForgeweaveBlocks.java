@@ -9,10 +9,13 @@ import java.util.Optional;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.LeavesBlock;
+import net.minecraft.world.level.block.TintedParticleLeavesBlock;
 import net.minecraft.world.level.block.SlabBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.StairBlock;
@@ -38,6 +41,11 @@ import dev.gkissel.forgeweave.trackb.TrackBOre;
 public final class ForgeweaveBlocks {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(Forgeweave.MODID);
 
+    /** Since 1.21.2 a block's Properties must carry its registry key before the block is built. */
+    private static ResourceKey<Block> blockKey(String name) {
+        return ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(Forgeweave.MODID, name));
+    }
+
     // #442: upstream's TinkerSmeltery.searedStairsSlabs, the seared furnace's ceiling roster
     // (SearedFurnaceScan#isCeilingBlock). Filled by searedStairs()/searedSlab() as the variants
     // register, so a new one cannot be forgotten from it; declared up here because those helpers
@@ -48,13 +56,13 @@ public final class ForgeweaveBlocks {
             () -> new PartBuilderBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.WOOD)
                     .strength(2.5F)
-                    .sound(SoundType.WOOD)));
+                    .sound(SoundType.WOOD).setId(blockKey("part_builder"))));
 
     public static final DeferredBlock<ToolStationBlock> TOOL_STATION = BLOCKS.register("tool_station",
             () -> new ToolStationBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.WOOD)
                     .strength(2.5F)
-                    .sound(SoundType.WOOD)));
+                    .sound(SoundType.WOOD).setId(blockKey("tool_station"))));
 
     // The Tool Forge (docs/SCOPE.md M3 issue #152). Upstream 1.12's BlockToolForge exists as its own
     // block purely for its material: Material.IRON, SoundType.METAL, hardness 2, resistance 10,
@@ -65,7 +73,7 @@ public final class ForgeweaveBlocks {
                     .mapColor(MapColor.METAL)
                     .destroyTime(2.0F)
                     .explosionResistance(10.0F)
-                    .sound(SoundType.METAL)));
+                    .sound(SoundType.METAL).setId(blockKey("tool_forge"))));
 
     static {
         // The retired Armor Station (issue #1006, undoing #782): armor builds at the Tool Station
@@ -76,21 +84,21 @@ public final class ForgeweaveBlocks {
         // own -- all three blocks always shared ForgeweaveBlockEntities#TOOL_STATION and its saved
         // "forgeweave:tool_station" id, so the four-slot inventory inside loads untouched and the
         // items in it stay put. The menu id is shared the same way.
-        BLOCKS.addAlias(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "armor_station"),
-                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "tool_station"));
+        BLOCKS.addAlias(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "armor_station"),
+                Identifier.fromNamespaceAndPath(Forgeweave.MODID, "tool_station"));
     }
 
     public static final DeferredBlock<CraftingStationBlock> CRAFTING_STATION = BLOCKS.register("crafting_station",
             () -> new CraftingStationBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.WOOD)
                     .strength(2.5F)
-                    .sound(SoundType.WOOD)));
+                    .sound(SoundType.WOOD).setId(blockKey("crafting_station"))));
 
     public static final DeferredBlock<StencilTableBlock> STENCIL_TABLE = BLOCKS.register("stencil_table",
             () -> new StencilTableBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.WOOD)
                     .strength(2.5F)
-                    .sound(SoundType.WOOD)));
+                    .sound(SoundType.WOOD).setId(blockKey("stencil_table"))));
 
     // The Modifier Worktable (issue #1057). A stone table, unlike every wood station above:
     // upstream 1.20 builds it out of seared blocks and natural stone, so it takes a pickaxe and
@@ -101,19 +109,19 @@ public final class ForgeweaveBlocks {
                     .destroyTime(3.0F)
                     .explosionResistance(9.0F)
                     .sound(SoundType.STONE)
-                    .requiresCorrectToolForDrops()));
+                    .requiresCorrectToolForDrops().setId(blockKey("modifier_worktable"))));
 
     public static final DeferredBlock<ChestBlock> PATTERN_CHEST = BLOCKS.register("pattern_chest",
             () -> new ChestBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.WOOD)
                     .strength(2.5F)
-                    .sound(SoundType.WOOD), ChestKind.PATTERN));
+                    .sound(SoundType.WOOD).setId(blockKey("pattern_chest")), ChestKind.PATTERN));
 
     public static final DeferredBlock<ChestBlock> PART_CHEST = BLOCKS.register("part_chest",
             () -> new ChestBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.WOOD)
                     .strength(2.5F)
-                    .sound(SoundType.WOOD), ChestKind.PART));
+                    .sound(SoundType.WOOD).setId(blockKey("part_chest")), ChestKind.PART));
 
     // The Wooden Hopper (docs/SCOPE.md M5, issue #822). Upstream 1.12's BlockWoodenHopper: hardness
     // 3.0, resistance 8.0, SoundType.WOOD (NOTICE.md) -- ported verbatim; the half-speed transfer
@@ -122,7 +130,7 @@ public final class ForgeweaveBlocks {
             () -> new WoodenHopperBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.WOOD)
                     .strength(3.0F, 8.0F)
-                    .sound(SoundType.WOOD)));
+                    .sound(SoundType.WOOD).setId(blockKey("wooden_hopper"))));
 
     // Grout (docs/SCOPE.md M2 issue #93; issue #129 fix). Upstream 1.12 ships it as one state of
     // BlockSoil (SoilTypes.GROUT, NOTICE.md): Material.SAND, hardness 3.0, SoundType.SAND, and a
@@ -131,7 +139,7 @@ public final class ForgeweaveBlocks {
     // correct, faster tool), and level -1 -- no minimum tier -- means no needs_*_tool tag alongside
     // it, matching every other Forgeweave block (see the seared family javadoc below). Not a
     // falling block: BlockSoil extends EnumBlock, not BlockFalling.
-    public static final DeferredBlock<Block> GROUT = BLOCKS.registerSimpleBlock("grout", soilProperties(MapColor.SAND));
+    public static final DeferredBlock<Block> GROUT = BLOCKS.registerSimpleBlock("grout", () -> soilProperties(MapColor.SAND));
 
     // #339 -- green and magma slimy mud: two more states of the same upstream BlockSoil as grout
     // above (SoilTypes.SLIMY_MUD_GREEN / SLIMY_MUD_MAGMA, NOTICE.md), so they share its properties
@@ -140,24 +148,24 @@ public final class ForgeweaveBlocks {
     // (onEntityWalk slowdown, sustaining slime plants) belong to world content and stay out of
     // scope until #181. Blue mud joined them in #635, once blue slime balls existed to craft it.
     public static final DeferredBlock<Block> SLIMY_MUD_GREEN =
-            BLOCKS.registerSimpleBlock("slimy_mud_green", soilProperties(MapColor.COLOR_GREEN));
+            BLOCKS.registerSimpleBlock("slimy_mud_green", () -> soilProperties(MapColor.COLOR_GREEN));
     public static final DeferredBlock<Block> SLIMY_MUD_MAGMA =
-            BLOCKS.registerSimpleBlock("slimy_mud_magma", soilProperties(MapColor.COLOR_ORANGE));
+            BLOCKS.registerSimpleBlock("slimy_mud_magma", () -> soilProperties(MapColor.COLOR_ORANGE));
     // #635 (parity audit T57): blue slimy mud, the third BlockSoil mud state (SoilTypes.SLIMY_MUD_BLUE,
     // NOTICE.md). #339 left it out because upstream's slimy_mud_blue.json wants four blue slime balls
     // and there were none; there are now, so it arrives with them and its furnace smelt replaces
     // #232's interim "green crystal + lapis" craft for the blue slime crystal.
     public static final DeferredBlock<Block> SLIMY_MUD_BLUE =
-            BLOCKS.registerSimpleBlock("slimy_mud_blue", soilProperties(MapColor.COLOR_LIGHT_BLUE));
+            BLOCKS.registerSimpleBlock("slimy_mud_blue", () -> soilProperties(MapColor.COLOR_LIGHT_BLUE));
 
     // #429 -- graveyard soil and consecrated soil, the last two BlockSoil states Forgeweave was
     // missing (SoilTypes.GRAVEYARD / CONSECRATED, NOTICE.md). Same soilProperties() as grout and
     // the muds above; unlike them they carry upstream's onEntityWalk behavior, see UndeadSoilBlock.
     // Smelting graveyard soil gives consecrated soil, which is smite's upstream reagent.
     public static final DeferredBlock<UndeadSoilBlock> GRAVEYARD_SOIL = BLOCKS.register("graveyard_soil",
-            () -> new UndeadSoilBlock(soilProperties(MapColor.TERRACOTTA_BROWN), false));
+            () -> new UndeadSoilBlock(soilProperties(MapColor.TERRACOTTA_BROWN).setId(blockKey("graveyard_soil")), false));
     public static final DeferredBlock<UndeadSoilBlock> CONSECRATED_SOIL = BLOCKS.register("consecrated_soil",
-            () -> new UndeadSoilBlock(soilProperties(MapColor.DIRT), true));
+            () -> new UndeadSoilBlock(soilProperties(MapColor.DIRT).setId(blockKey("consecrated_soil")), true));
 
     // #502 (T71 parity audit): mud brick block, upstream's one BlockDecoGround state
     // (DecoGroundType.MUDBRICK, NOTICE.md) -- hardness 2.0, Material.GROUND, SoundType.GROUND,
@@ -166,7 +174,7 @@ public final class ForgeweaveBlocks {
     // keeps it on its own EnumBlock, not BlockSoil), so it gets its own properties rather than
     // reusing soilProperties()'s 3.0 hardness/SAND sound.
     public static final DeferredBlock<Block> MUD_BRICK_BLOCK = BLOCKS.registerSimpleBlock("mud_brick_block",
-            BlockBehaviour.Properties.of()
+            () -> BlockBehaviour.Properties.of()
                     .mapColor(MapColor.DIRT)
                     .strength(2.0F)
                     .sound(SoundType.GRAVEL));
@@ -232,20 +240,20 @@ public final class ForgeweaveBlocks {
     // The smeltery multiblock's own blocks (docs/SCOPE.md M2 issue #95). All share BlockSeared's
     // strength and sound so a smeltery mines as one material.
     public static final DeferredBlock<SmelteryControllerBlock> STANDARD_CORE = BLOCKS.register("standard_core",
-            () -> new SmelteryControllerBlock(searedProperties(), SmelteryCore.STANDARD));
+            () -> new SmelteryControllerBlock(searedProperties().setId(blockKey("standard_core")), SmelteryCore.STANDARD));
 
     public static final DeferredBlock<SmelteryControllerBlock> NETHER_CORE = BLOCKS.register("nether_core",
-            () -> new NetherCoreBlock(searedProperties()));
+            () -> new NetherCoreBlock(searedProperties().setId(blockKey("nether_core"))));
 
     // #845 -- the top two tiers, reached only by pouring the right fluid over the tier below
     // (CoreTransformRecipe), never crafted directly; since 2026-09-06 the Nether Core is reached the
     // same way (blazing blood over a Standard Core) -- see ForgeweaveRecipeProvider's smelteryRecipes
     // javadoc.
     public static final DeferredBlock<SmelteryControllerBlock> END_CORE = BLOCKS.register("end_core",
-            () -> new SmelteryControllerBlock(searedProperties(), SmelteryCore.END));
+            () -> new SmelteryControllerBlock(searedProperties().setId(blockKey("end_core")), SmelteryCore.END));
 
     public static final DeferredBlock<SmelteryControllerBlock> DEEP_CORE = BLOCKS.register("deep_core",
-            () -> new SmelteryControllerBlock(searedProperties(), SmelteryCore.DEEP));
+            () -> new SmelteryControllerBlock(searedProperties().setId(blockKey("deep_core")), SmelteryCore.DEEP));
 
     // #442 -- the seared furnace controller. Upstream 1.12's BlockSearedFurnaceController
     // (NOTICE.md): Material.ROCK, hardness 3, resistance 20, SoundType.METAL -- deliberately not the
@@ -254,7 +262,7 @@ public final class ForgeweaveBlocks {
             () -> new SearedFurnaceControllerBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.STONE)
                     .strength(3.0F, 20.0F)
-                    .sound(SoundType.METAL)));
+                    .sound(SoundType.METAL).setId(blockKey("seared_furnace_controller"))));
 
     // T44/#475 -- the seared reservoir controller. Upstream 1.12's BlockTinkerTankController
     // (NOTICE.md) uses the same Material.ROCK / hardness 3 / resistance 20 / SoundType.METAL as the
@@ -263,7 +271,7 @@ public final class ForgeweaveBlocks {
             () -> new SearedReservoirControllerBlock(BlockBehaviour.Properties.of()
                     .mapColor(MapColor.STONE)
                     .strength(3.0F, 20.0F)
-                    .sound(SoundType.METAL)));
+                    .sound(SoundType.METAL).setId(blockKey("seared_reservoir_controller"))));
 
     // The gauge and window are see-through, so all three skip occlusion culling (upstream's BlockTank
     // is likewise not a full/opaque cube).
@@ -272,7 +280,7 @@ public final class ForgeweaveBlocks {
     public static final DeferredBlock<SearedTankBlock> SEARED_WINDOW = tankBlock("seared_window");
 
     public static final DeferredBlock<SearedDrainBlock> SEARED_DRAIN = BLOCKS.register("seared_drain",
-            () -> new SearedDrainBlock(searedProperties()));
+            () -> new SearedDrainBlock(searedProperties().setId(blockKey("seared_drain"))));
 
     // #972 (M8, D-M8-11) -- the energized tank. Same seared strength and sound as the rest of the
     // smeltery wall family, but deliberately not tiered (no SearedTier.TIER): it is a Forgeweave
@@ -281,7 +289,7 @@ public final class ForgeweaveBlocks {
     // core tier. ponytail: one texture set instead of four. Give it the tier property if a playtest
     // says a Nether-core wall with one plain block in it reads wrong.
     public static final DeferredBlock<EnergizedTankBlock> ENERGIZED_TANK = BLOCKS.register("energized_tank",
-            () -> new EnergizedTankBlock(searedProperties()));
+            () -> new EnergizedTankBlock(searedProperties().setId(blockKey("energized_tank"))));
 
     // #277 -- the seared duct and seared chute (docs/SCOPE.md M3.4). Maintainer-approved deviation
     // from the 1.12 parity default, recorded on issue #277: neither block exists in the 1.12
@@ -289,16 +297,16 @@ public final class ForgeweaveBlocks {
     // seared strength and sound as the drain they sit alongside; the chute's model has a trough
     // hanging off three of its faces, so it skips occlusion culling like the tank family does.
     public static final DeferredBlock<SearedDuctBlock> SEARED_DUCT = BLOCKS.register("seared_duct",
-            () -> new SearedDuctBlock(searedProperties()));
+            () -> new SearedDuctBlock(searedProperties().setId(blockKey("seared_duct"))));
 
     public static final DeferredBlock<SearedChuteBlock> SEARED_CHUTE = BLOCKS.register("seared_chute",
-            () -> new SearedChuteBlock(searedProperties().noOcclusion()));
+            () -> new SearedChuteBlock(searedProperties().noOcclusion().setId(blockKey("seared_chute"))));
 
     // #441 (parity audit T9) -- the seared channel, upstream 1.12's BlockChannel (NOTICE.md). Same
     // seared strength and sound as the rest of the smeltery family; a channel is a thin trough
     // rather than a cube, so it skips occlusion culling.
     public static final DeferredBlock<SearedChannelBlock> SEARED_CHANNEL = BLOCKS.register("seared_channel",
-            () -> new SearedChannelBlock(searedProperties().noOcclusion()));
+            () -> new SearedChannelBlock(searedProperties().noOcclusion().setId(blockKey("seared_channel"))));
 
     // Plain seared glass (docs/SCOPE.md M3.3 issue #289): a wall-only smeltery block, upstream's
     // BlockSearedGlass (NOTICE.md). Upstream's block adds BlockConnectedTexture rendering and no
@@ -307,18 +315,18 @@ public final class ForgeweaveBlocks {
     // rest of the family. The connected-texture rendering itself is left plain (PR #289 body); its
     // single texture is upstream's own "no neighbours" sprite (NOTICE.md).
     public static final DeferredBlock<TieredSearedBlock> SEARED_GLASS = BLOCKS.registerBlock("seared_glass",
-            TieredSearedBlock::new, searedProperties().noOcclusion());
+            TieredSearedBlock::new, () -> searedProperties().noOcclusion());
 
     // #100 -- casting (docs/SCOPE.md M2 issue #100). Same seared strength/sound as the rest of the
     // smeltery; none of the three is a full cube, so all three skip occlusion culling.
     public static final DeferredBlock<CastingBlock> CASTING_TABLE = BLOCKS.register("casting_table",
-            () -> new CastingBlock(searedProperties().noOcclusion(), CastingRecipe.Station.TABLE));
+            () -> new CastingBlock(searedProperties().noOcclusion().setId(blockKey("casting_table")), CastingRecipe.Station.TABLE));
 
     public static final DeferredBlock<CastingBlock> CASTING_BASIN = BLOCKS.register("casting_basin",
-            () -> new CastingBlock(searedProperties().noOcclusion(), CastingRecipe.Station.BASIN));
+            () -> new CastingBlock(searedProperties().noOcclusion().setId(blockKey("casting_basin")), CastingRecipe.Station.BASIN));
 
     public static final DeferredBlock<FaucetBlock> FAUCET = BLOCKS.register("faucet",
-            () -> new FaucetBlock(searedProperties().noOcclusion()));
+            () -> new FaucetBlock(searedProperties().noOcclusion().setId(blockKey("faucet"))));
 
     // #104 -- cobalt + ardite nether ore (docs/SCOPE.md M2 issue #104). Upstream 1.12's BlockOre
     // (NOTICE.md) sets only setHardness(10f) and setHarvestLevel("pickaxe", HarvestLevels.COBALT) --
@@ -353,7 +361,7 @@ public final class ForgeweaveBlocks {
                     .mapColor(MapColor.NETHER)
                     .strength(10.0F, 1.5F)
                     .sound(SoundType.STONE)
-                    .requiresCorrectToolForDrops(),
+                    .requiresCorrectToolForDrops().setId(blockKey("brimspar_ore")),
                     BRIMSPAR_HARVEST_BLAST_CHANCE, BRIMSPAR_CHAIN_BLAST_CHANCE, BRIMSPAR_BLAST_POWER));
 
     // #910 -- fulmenite is Track B's own unstable ore (research doc §7.3 maps it to the reference
@@ -371,7 +379,7 @@ public final class ForgeweaveBlocks {
     public static final float FULMENITE_BLAST_POWER = 2.0F;
 
     private static DeferredBlock<Block> oreBlock(String name) {
-        return BLOCKS.registerSimpleBlock(name, BlockBehaviour.Properties.of()
+        return BLOCKS.registerSimpleBlock(name, () -> BlockBehaviour.Properties.of()
                 .mapColor(MapColor.NETHER)
                 .strength(10.0F)
                 .sound(SoundType.STONE)
@@ -459,7 +467,7 @@ public final class ForgeweaveBlocks {
     }
 
     private static DeferredBlock<Block> trackBOreBlock(String name, MapColor mapColor) {
-        return BLOCKS.registerSimpleBlock(name, BlockBehaviour.Properties.of()
+        return BLOCKS.registerSimpleBlock(name, () -> BlockBehaviour.Properties.of()
                 .mapColor(mapColor)
                 .strength(10.0F)
                 .sound(SoundType.STONE)
@@ -476,7 +484,7 @@ public final class ForgeweaveBlocks {
                 .mapColor(mapColor)
                 .strength(10.0F, 1.5F)
                 .sound(SoundType.STONE)
-                .requiresCorrectToolForDrops(),
+                .requiresCorrectToolForDrops().setId(blockKey(name)),
                 FULMENITE_HARVEST_BLAST_CHANCE, FULMENITE_CHAIN_BLAST_CHANCE, FULMENITE_BLAST_POWER));
     }
 
@@ -502,7 +510,7 @@ public final class ForgeweaveBlocks {
     // half of upstream's two-state block is in scope: lavawood, its precursor, is not on
     // docs/SCOPE.md's M3.2 roster.
     public static final DeferredBlock<Block> FIREWOOD = BLOCKS.registerSimpleBlock("firewood",
-            BlockBehaviour.Properties.of()
+            () -> BlockBehaviour.Properties.of()
                     .mapColor(MapColor.WOOD)
                     .strength(2.0F, 7.0F)
                     .sound(SoundType.WOOD)
@@ -521,7 +529,7 @@ public final class ForgeweaveBlocks {
                     .mapColor(MapColor.NONE)
                     .strength(0.3F)
                     .sound(SoundType.GLASS)
-                    .noOcclusion()));
+                    .noOcclusion().setId(blockKey("clear_glass"))));
 
     /**
      * A registered clear stained glass color (issue #275): its {@link DyeColor}, the exact ARGB tint
@@ -656,14 +664,14 @@ public final class ForgeweaveBlocks {
                         .mapColor(colour.mapColor())
                         .strength(0.5F)
                         .friction(0.5F)
-                        .sound(SoundType.SLIME_BLOCK)));
+                        .sound(SoundType.SLIME_BLOCK).setId(blockKey(colour.id() + "_congealed_slime"))));
         DeferredBlock<ColouredSlimeBlock> slimeBlock = colour.hasSlimeBlock()
                 ? BLOCKS.register(colour.id() + "_slime_block",
                         () -> new ColouredSlimeBlock(BlockBehaviour.Properties.of()
                                 .mapColor(colour.mapColor())
                                 .friction(0.8F)
                                 .sound(SoundType.SLIME_BLOCK)
-                                .noOcclusion()))
+                                .noOcclusion().setId(blockKey(colour.id() + "_slime_block"))))
                 : null;
         SlimeFamily family = new SlimeFamily(colour, congealed, slimeBlock);
         SLIME_FAMILIES.add(family);
@@ -762,7 +770,7 @@ public final class ForgeweaveBlocks {
         // Material.GRASS, hardness 0.65, SoundType.PLANT, slipperiness default + 0.05 (0.65) and
         // setTickRandomly for its spread.
         DeferredBlock<Block> dirt = BLOCKS.registerSimpleBlock(color + "_slime_dirt",
-                BlockBehaviour.Properties.of()
+                () -> BlockBehaviour.Properties.of()
                         .mapColor(mapColor)
                         .strength(0.55F)
                         .sound(SoundType.SLIME_BLOCK));
@@ -772,7 +780,7 @@ public final class ForgeweaveBlocks {
                         .strength(0.65F)
                         .friction(0.65F)
                         .randomTicks()
-                        .sound(SoundType.GRASS), foliage));
+                        .sound(SoundType.GRASS).setId(blockKey(color + "_slime_grass")), foliage));
         SlimeSoil soil = new SlimeSoil(foliage, dirt, grass);
         SLIME_SOILS.add(soil);
         return soil;
@@ -784,7 +792,7 @@ public final class ForgeweaveBlocks {
         // never triggers either (its 1.12 leaf decay only starts when a nearby *wood* block breaks),
         // and modern LeavesBlock would otherwise delete every worldgen canopy on the first tick.
         DeferredBlock<Block> leaves = BLOCKS.register(foliage.id() + "_slime_leaves",
-                () -> new LeavesBlock(BlockBehaviour.Properties.of()
+                () -> new TintedParticleLeavesBlock(0.01F, BlockBehaviour.Properties.of()
                         .mapColor(mapColor)
                         .strength(0.3F)
                         .randomTicks()
@@ -792,7 +800,7 @@ public final class ForgeweaveBlocks {
                         .noOcclusion()
                         .isValidSpawn((state, level, pos, type) -> false)
                         .isSuffocating((state, level, pos) -> false)
-                        .isViewBlocking((state, level, pos) -> false)));
+                        .isViewBlocking((state, level, pos) -> false).setId(blockKey(foliage.id() + "_slime_leaves"))));
         DeferredBlock<SlimeTallGrassBlock> tallGrass = slimePlant(foliage, mapColor, "slime_tall_grass");
         DeferredBlock<SlimeTallGrassBlock> fern = slimePlant(foliage, mapColor, "slime_fern");
 
@@ -803,11 +811,11 @@ public final class ForgeweaveBlocks {
         DeferredBlock<SlimeSaplingBlock> sapling = BLOCKS.register(foliage.id() + "_slime_sapling",
                 () -> new SlimeSaplingBlock(BlockBehaviour.Properties.of()
                         .mapColor(mapColor)
-                        .noCollission()
+                        .noCollision()
                         .randomTicks()
                         .instabreak()
                         .sound(SoundType.GRASS)
-                        .pushReaction(PushReaction.DESTROY), foliage));
+                        .pushReaction(PushReaction.DESTROY).setId(blockKey(foliage.id() + "_slime_sapling")), foliage));
         DeferredBlock<SlimeVineBlock> vineEnd = hasVines ? slimeVine(foliage, mapColor, "_slime_vine_end", null) : null;
         DeferredBlock<SlimeVineBlock> vineMid = hasVines ? slimeVine(foliage, mapColor, "_slime_vine_mid", vineEnd) : null;
         DeferredBlock<SlimeVineBlock> vine = hasVines ? slimeVine(foliage, mapColor, "_slime_vine", vineMid) : null;
@@ -823,12 +831,12 @@ public final class ForgeweaveBlocks {
                 () -> new SlimeVineBlock(BlockBehaviour.Properties.of()
                         .mapColor(mapColor)
                         .replaceable()
-                        .noCollission()
+                        .noCollision()
                         .strength(0.2F)
                         .randomTicks()
                         .sound(SoundType.VINE)
                         .ignitedByLava()
-                        .pushReaction(PushReaction.DESTROY), foliage,
+                        .pushReaction(PushReaction.DESTROY).setId(blockKey(foliage.id() + suffix)), foliage,
                         nextStage == null ? null : nextStage::get));
     }
 
@@ -837,11 +845,11 @@ public final class ForgeweaveBlocks {
                 () -> new SlimeTallGrassBlock(BlockBehaviour.Properties.of()
                         .mapColor(mapColor)
                         .replaceable()
-                        .noCollission()
+                        .noCollision()
                         .instabreak()
                         .sound(SoundType.GRASS)
                         .offsetType(BlockBehaviour.OffsetType.XYZ)
-                        .pushReaction(PushReaction.DESTROY), foliage));
+                        .pushReaction(PushReaction.DESTROY).setId(blockKey(foliage.id() + "_" + name)), foliage));
     }
 
     private static DeferredBlock<Block> stainedGlassBlock(DyeColor dye, int tint) {
@@ -850,7 +858,7 @@ public final class ForgeweaveBlocks {
                         .mapColor(dye.getMapColor())
                         .strength(0.3F)
                         .sound(SoundType.GLASS)
-                        .noOcclusion()));
+                        .noOcclusion().setId(blockKey(dye.getName() + "_stained_clear_glass"))));
         CLEAR_STAINED_GLASS.add(new StainedGlassColor(dye, tint, block));
         return block;
     }
@@ -865,7 +873,7 @@ public final class ForgeweaveBlocks {
     }
 
     private static DeferredBlock<Block> metalBlock(String name) {
-        return BLOCKS.registerSimpleBlock(name, BlockBehaviour.Properties.of()
+        return BLOCKS.registerSimpleBlock(name, () -> BlockBehaviour.Properties.of()
                 .mapColor(MapColor.METAL)
                 .strength(5.0F, 6.0F)
                 .sound(SoundType.METAL));
@@ -873,7 +881,7 @@ public final class ForgeweaveBlocks {
 
     /** A plain seared block that follows its core's tier (SearedTier); still no block entity. */
     private static DeferredBlock<TieredSearedBlock> searedBlock(String name) {
-        return BLOCKS.registerBlock(name, TieredSearedBlock::new, searedProperties());
+        return BLOCKS.registerBlock(name, TieredSearedBlock::new, () -> searedProperties());
     }
 
     /** Whether {@code block} is one of the seared stairs or slabs (issue #274). */
@@ -882,19 +890,19 @@ public final class ForgeweaveBlocks {
     }
 
     private static DeferredBlock<StairBlock> searedStairs(String name, DeferredBlock<? extends Block> base) {
-        DeferredBlock<StairBlock> block = BLOCKS.register(name, () -> new StairBlock(base.get().defaultBlockState(), searedProperties()));
+        DeferredBlock<StairBlock> block = BLOCKS.register(name, () -> new StairBlock(base.get().defaultBlockState(), searedProperties().setId(blockKey(name))));
         SEARED_STAIRS_SLABS.add(block);
         return block;
     }
 
     private static DeferredBlock<SlabBlock> searedSlab(String name) {
-        DeferredBlock<SlabBlock> block = BLOCKS.register(name, () -> new SlabBlock(searedProperties()));
+        DeferredBlock<SlabBlock> block = BLOCKS.register(name, () -> new SlabBlock(searedProperties().setId(blockKey(name))));
         SEARED_STAIRS_SLABS.add(block);
         return block;
     }
 
     private static DeferredBlock<SearedTankBlock> tankBlock(String name) {
-        return BLOCKS.register(name, () -> new SearedTankBlock(searedProperties().noOcclusion()));
+        return BLOCKS.register(name, () -> new SearedTankBlock(searedProperties().noOcclusion().setId(blockKey(name))));
     }
 
     private static BlockBehaviour.Properties searedProperties() {

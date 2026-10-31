@@ -15,7 +15,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.SharedConstants;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
@@ -45,7 +45,7 @@ class ModifierLangCoverageTest {
                 .getAsJsonObject();
 
         List<String> missing = new ArrayList<>();
-        for (ResourceLocation id : ForgeweaveModifiers.ids()) {
+        for (Identifier id : ForgeweaveModifiers.ids()) {
             for (String suffix : List.of(".name", ".description")) {
                 String key = "modifier." + id.getNamespace() + "." + id.getPath() + suffix;
                 if (!lang.has(key)) {
@@ -75,7 +75,7 @@ class ModifierLangCoverageTest {
                 .getAsJsonObject();
 
         List<String> missing = new ArrayList<>();
-        for (ResourceLocation id : ForgeweaveModifiers.extraInfoIds()) {
+        for (Identifier id : ForgeweaveModifiers.extraInfoIds()) {
             String key = "modifier." + id.getNamespace() + "." + id.getPath() + ".extra";
             if (!lang.has(key)) {
                 missing.add(key);
@@ -87,7 +87,7 @@ class ModifierLangCoverageTest {
                 }
             }
         }
-        for (ResourceLocation id : ForgeweaveTraits.extraInfoIds()) {
+        for (Identifier id : ForgeweaveTraits.extraInfoIds()) {
             String key = "trait." + id.getNamespace() + "." + id.getPath() + ".extra";
             if (!lang.has(key)) {
                 missing.add(key);

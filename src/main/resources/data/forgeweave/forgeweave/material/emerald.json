@@ -27,11 +27,9 @@
     "armor": ["forgeweave:warded"]
   },
   "crafting_items": [
-    { "ingredient": { "tag": "c:gems/emerald" }, "value": 666 }
+    { "ingredient": "#c:gems/emerald", "value": 666 }
   ],
-  "repair_item": {
-    "tag": "c:gems/emerald"
-  },
+  "repair_item": "#c:gems/emerald",
   "enchantability": 20,
   "color": "#58E78E"
 }

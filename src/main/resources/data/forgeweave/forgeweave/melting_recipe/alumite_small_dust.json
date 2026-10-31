@@ -1,14 +1,12 @@
 {
-  "input": {
-    "tag": "c:small_dusts/alumite"
-  },
+  "input": "#c:small_dusts/alumite",
   "fluid": "forgeweave:molten_alumite",
   "amount": 48,
   "temperature": 1400,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "immersiveengineering:ingot_aluminum"
+      "type": "neoforge:registered",
+      "value": "immersiveengineering:ingot_aluminum"
     }
   ]
 }

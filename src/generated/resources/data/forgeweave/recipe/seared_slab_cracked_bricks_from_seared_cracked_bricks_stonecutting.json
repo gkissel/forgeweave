@@ -1,8 +1,6 @@
 {
   "type": "minecraft:stonecutting",
-  "ingredient": {
-    "item": "forgeweave:seared_cracked_bricks"
-  },
+  "ingredient": "forgeweave:seared_cracked_bricks",
   "result": {
     "count": 2,
     "id": "forgeweave:seared_slab_cracked_bricks"

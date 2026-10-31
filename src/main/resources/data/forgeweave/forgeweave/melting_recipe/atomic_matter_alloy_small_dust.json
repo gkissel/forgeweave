@@ -1,14 +1,12 @@
 {
-  "input": {
-    "tag": "c:small_dusts/atomic_matter_alloy"
-  },
+  "input": "#c:small_dusts/atomic_matter_alloy",
   "fluid": "forgeweave:molten_atomic_matter_alloy",
   "amount": 48,
   "temperature": 2000,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:alloy_atomic"
+      "type": "neoforge:registered",
+      "value": "mekanism:alloy_atomic"
     }
   ]
 }

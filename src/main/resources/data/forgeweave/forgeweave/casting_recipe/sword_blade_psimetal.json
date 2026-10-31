@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_sword_blade"
-  },
+  "cast": "forgeweave:cast_sword_blade",
   "fluid": "forgeweave:molten_psimetal",
   "amount": 288,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "psi:psimetal"
+      "type": "neoforge:registered",
+      "value": "psi:psimetal"
     }
   ]
 }

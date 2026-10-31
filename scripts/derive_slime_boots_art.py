@@ -23,7 +23,7 @@ ASSETS = os.path.join(REPO, "src/main/resources/assets/forgeweave/textures")
 
 PAIRS = [
     ("resources/assets/tconstruct/textures/items/armor/slime_boots.png", "derived/item/slime_boots.png"),
-    ("resources/assets/tconstruct/textures/models/armor/slime_layer_1.png", "models/armor/derived/slime_layer_1.png"),
+    ("resources/assets/tconstruct/textures/models/armor/slime_layer_1.png", "entity/equipment/humanoid/derived/slime.png"),
 ]
 
 

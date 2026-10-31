@@ -52,27 +52,19 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:ingots/tungsten"
-      },
+      "ingredient": "#c:ingots/tungsten",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:nuggets/tungsten"
-      },
+      "ingredient": "#c:nuggets/tungsten",
       "value": 16
     },
     {
-      "ingredient": {
-        "tag": "c:storage_blocks/tungsten"
-      },
+      "ingredient": "#c:storage_blocks/tungsten",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/tungsten"
-  },
+  "repair_item": "#c:ingots/tungsten",
   "cast_only": true,
   "enchantability": 10,
   "color": "#545454",
@@ -81,12 +73,12 @@
       "type": "neoforge:or",
       "values": [
         {
-          "type": "neoforge:item_exists",
-          "item": "modern_industrialization:tungsten_ingot"
+          "type": "neoforge:registered",
+          "value": "modern_industrialization:tungsten_ingot"
         },
         {
-          "type": "neoforge:item_exists",
-          "item": "eternalores:tungsten_ingot"
+          "type": "neoforge:registered",
+          "value": "eternalores:tungsten_ingot"
         }
       ]
     }

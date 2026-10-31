@@ -1,5 +1,16 @@
 package dev.gkissel.forgeweave.block;
 
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.util.ProblemReporter;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import java.nio.ByteBuffer;
+
+import com.mojang.serialization.Codec;
+
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -219,7 +230,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      */
     @Nullable
     public SmelteryStructure structure() {
-        if (level != null && !level.isClientSide
+        if (level != null && !level.isClientSide()
                 && (lastScanTick == NEVER_SCANNED || level.getGameTime() - lastScanTick >= RESCAN_INTERVAL_TICKS)) {
             updateStructure();
         }
@@ -233,7 +244,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
 
     /** Rescans now, regardless of how fresh the cached answer is. Server-side only. */
     public void updateStructure() {
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return;
         }
         BlockState state = getBlockState();
@@ -291,7 +302,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * and every heartbeat tick, so the look follows the fuel within a second either way.
      */
     void syncHot() {
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return;
         }
         BlockState state = getBlockState();
@@ -313,7 +324,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * already keeps a formed core's own heartbeat alive.
      */
     void armSettleWindow() {
-        if (level == null || level.isClientSide || isFormed()) {
+        if (level == null || level.isClientSide() || isFormed()) {
             return;
         }
         settleUntilTick = level.getGameTime() + SETTLE_WINDOW_TICKS;
@@ -458,7 +469,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * the one exercising it today.
      */
     public ItemStack insertForMelting(ItemStack stack, @Nullable ServerPlayer player) {
-        if (level == null || level.isClientSide || stack.isEmpty() || !isFormed()
+        if (level == null || level.isClientSide() || stack.isEmpty() || !isFormed()
                 || MeltingRecipe.find(level.registryAccess(), stack).isEmpty()) {
             return stack;
         }
@@ -517,7 +528,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * only {@link #consumeFuel()} does, and only from inside a melt tick.
      */
     public int currentTemperature() {
-        if (level == null || level.isClientSide || structure == null) {
+        if (level == null || level.isClientSide() || structure == null) {
             return 0;
         }
         refreshFuelDisplay();
@@ -577,7 +588,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * smeltery has simply never progresses.
      */
     public boolean meltTick() {
-        if (level == null || level.isClientSide || structure() == null) {
+        if (level == null || level.isClientSide() || structure() == null) {
             return false;
         }
         // #972: settle which heat source pays before anything is drained. The energized tank and a
@@ -716,7 +727,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      */
     @Override
     public void armMeltTick() {
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return;
         }
         boolean melting = hasMeltableItem();
@@ -754,7 +765,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * @return whether an actual sweep ran (i.e. whether a second's worth of time had actually passed)
      */
     public boolean sweepInterior() {
-        if (level == null || level.isClientSide || structure == null) {
+        if (level == null || level.isClientSide() || structure == null) {
             return false;
         }
         long now = level.getGameTime();
@@ -827,7 +838,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
                 .map(EntityMeltingRecipe::result)
                 .orElseGet(EntityMeltingRecipe::defaultResult);
         ResourceKey<DamageType> type = entity.fireImmune() ? DamageTypes.MAGIC : DamageTypes.IN_FIRE;
-        if (entity.hurt(level.damageSources().source(type), EntityMeltingRecipe.DAMAGE)) {
+        if (level instanceof ServerLevel server && entity.hurtServer(server, level.damageSources().source(type), EntityMeltingRecipe.DAMAGE)) {
             tank.fill(result, IFluidHandler.FluidAction.EXECUTE);
         }
     }
@@ -920,7 +931,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
             }
             if (slot < slots) {
                 resized.set(slot, stack);
-            } else if (level != null && !level.isClientSide) {
+            } else if (level != null && !level.isClientSide()) {
                 BlockPos drop = worldPosition.relative(getBlockState().getValue(SmelteryControllerBlock.FACING));
                 Containers.dropItemStack(level, drop.getX(), drop.getY(), drop.getZ(), stack);
             }
@@ -1069,52 +1080,51 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        if (structure != null) {
-            SmelteryStructure.CODEC.encodeStart(NbtOps.INSTANCE, structure)
-                    .resultOrPartial(error -> {})
-                    .ifPresent(encoded -> tag.put(TAG_STRUCTURE, encoded));
-        }
-        tag.put(TAG_TANK, tank.writeToNBT(registries, new CompoundTag()));
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.storeNullable(TAG_STRUCTURE, SmelteryStructure.CODEC, structure);
+        tank.serialize(output.child(TAG_TANK));
         // #96: what is melting and how far along it is (SCOPE.md M2 save-compat fixture list).
-        tag.put(TAG_MELTING, ContainerHelper.saveAllItems(new CompoundTag(), meltingItems, true, registries));
-        tag.putIntArray(TAG_MELT_PROGRESS, meltProgress);
+        ContainerHelper.saveAllItems(output.child(TAG_MELTING), meltingItems, true);
+        SavedItemFix.writeVersion(output);
+        output.putIntArray(TAG_MELT_PROGRESS, meltProgress);
         // #290: the stall flag rides the same tag-based sync as everything else here (getUpdateTag is
         // saveWithoutMetadata), which is the only reason finishMelting's syncToClients() call actually
         // carries it to a watching client.
-        tag.putByteArray(TAG_MELT_STALLED, packBooleans(meltStalled));
+        output.store(TAG_MELT_STALLED, Codec.BYTE_BUFFER, ByteBuffer.wrap(packBooleans(meltStalled)));
         // #97: the in-progress burn -- fuel state (SCOPE.md M2 save-compat fixture list).
-        tag.putInt(TAG_FUEL_BURN_TICKS, fuelBurnTicksRemaining);
-        tag.putInt(TAG_FUEL_TEMPERATURE, fuelTemperature);
+        output.putInt(TAG_FUEL_BURN_TICKS, fuelBurnTicksRemaining);
+        output.putInt(TAG_FUEL_TEMPERATURE, fuelTemperature);
         // #97 follow-up: the fuel gauge's live snapshot, so it has something to show the instant a
         // reopened screen loads rather than waiting for the next refresh.
-        tag.put(TAG_FUEL_DISPLAY, fuelDisplayFluid.saveOptional(registries));
+        output.store(TAG_FUEL_DISPLAY, FluidStack.OPTIONAL_CODEC, fuelDisplayFluid);
         // #845: a pour left mid-transaction survives a reload rather than quietly refunding itself.
-        tag.putInt(TAG_TRANSFORM_PROGRESS, transformProgress);
+        output.putInt(TAG_TRANSFORM_PROGRESS, transformProgress);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        structure = tag.contains(TAG_STRUCTURE)
-                ? SmelteryStructure.CODEC.parse(NbtOps.INSTANCE, tag.get(TAG_STRUCTURE))
-                        .resultOrPartial(error -> {})
-                        .orElse(null)
-                : null;
-        tank.readFromNBT(registries, tag.getCompound(TAG_TANK));
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        structure = input.read(TAG_STRUCTURE, SmelteryStructure.CODEC).orElse(null);
+        tank.deserialize(input.childOrEmpty(TAG_TANK));
         // #96: resizeTank sizes the melting inventory to the interior it just read, so the saved
         // items and their progress go in afterwards.
         resizeTank();
-        ContainerHelper.loadAllItems(tag.getCompound(TAG_MELTING), meltingItems, registries);
-        int[] progress = tag.getIntArray(TAG_MELT_PROGRESS);
+        SavedItemFix.loadAllItems(input, input.childOrEmpty(TAG_MELTING), meltingItems);
+        int[] progress = input.getIntArray(TAG_MELT_PROGRESS).orElse(new int[0]);
         System.arraycopy(progress, 0, meltProgress, 0, Math.min(progress.length, meltProgress.length));
-        unpackBooleans(tag.getByteArray(TAG_MELT_STALLED), meltStalled);
+        unpackBooleans(input.read(TAG_MELT_STALLED, Codec.BYTE_BUFFER).map(SmelteryControllerBlockEntity::bytes).orElse(new byte[0]), meltStalled);
         // #97: the in-progress burn, if any -- fuelTank itself is not saved, it is re-found on demand.
-        fuelBurnTicksRemaining = tag.getInt(TAG_FUEL_BURN_TICKS);
-        fuelTemperature = tag.getInt(TAG_FUEL_TEMPERATURE);
-        fuelDisplayFluid = FluidStack.parseOptional(registries, tag.getCompound(TAG_FUEL_DISPLAY));
-        transformProgress = tag.getInt(TAG_TRANSFORM_PROGRESS);
+        fuelBurnTicksRemaining = input.getIntOr(TAG_FUEL_BURN_TICKS, 0);
+        fuelTemperature = input.getIntOr(TAG_FUEL_TEMPERATURE, 0);
+        fuelDisplayFluid = input.read(TAG_FUEL_DISPLAY, FluidStack.OPTIONAL_CODEC).orElse(FluidStack.EMPTY);
+        transformProgress = input.getIntOr(TAG_TRANSFORM_PROGRESS, 0);
+    }
+
+    private static byte[] bytes(ByteBuffer buffer) {
+        byte[] out = new byte[buffer.remaining()];
+        buffer.duplicate().get(out);
+        return out;
     }
 
     /** Structure bounds and tank contents are what the client needs for the smeltery GUI and fluid rendering (#101). */
@@ -1195,7 +1205,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * </ul>
      */
     private void alloyTankContents() {
-        if (level == null || level.isClientSide || alloying) {
+        if (level == null || level.isClientSide() || alloying) {
             return;
         }
         boolean alloyed = false;
@@ -1225,7 +1235,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      */
     private boolean alloyOnce() {
         boolean alloyed = false;
-        List<AlloyRecipe> recipes = level.registryAccess().registryOrThrow(AlloyRecipe.REGISTRY).stream()
+        List<AlloyRecipe> recipes = level.registryAccess().lookupOrThrow(AlloyRecipe.REGISTRY).stream()
                 .filter(SmelteryControllerBlockEntity::alloyEnabled)
                 .sorted(Comparator.comparingInt(AlloyRecipe::priority))
                 .toList();
@@ -1304,7 +1314,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      */
     private void syncToClients() {
         setChanged();
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
         }
     }
@@ -1317,7 +1327,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * untrusted and {@link SmelteryTank#moveToBottom} range-checks it.
      */
     public void selectDrainFluid(int index) {
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             tank.moveToBottom(index);
         }
     }
@@ -1376,23 +1386,57 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         return new InvWrapper(meltingContainer());
     }
 
+    /** {@link #itemHandler()} as the 21.9 transfer API sees it; what the core's and the chutes' capabilities hand out. */
+    public ResourceHandler<ItemResource> itemCapability() {
+        return TransferBridge.items(itemHandler(), meltingState);
+    }
+
+    /** {@link #transformHandler()} as the 21.9 transfer API sees it: pours count only once their transaction commits. */
+    public ResourceHandler<FluidResource> transformCapability() {
+        return TransferBridge.deferredFluids(transformHandler());
+    }
+
+    /** What automation can change in the melting inventory, for rolling back a transaction. */
+    private record MeltSnapshot(List<ItemStack> items, int[] progress, boolean[] stalled) {}
+
+    /** The melting inventory's one transaction journal, shared by the core's and every chute's bridge. */
+    private final TransferBridge.State<MeltSnapshot> meltingState = TransferBridge.State.of(() -> {
+        List<ItemStack> items = new ArrayList<>(meltingItems.size());
+        for (ItemStack stack : meltingItems) {
+            items.add(stack.copy());
+        }
+        return new MeltSnapshot(items, meltProgress.clone(), meltStalled.clone());
+    }, snapshot -> {
+        if (snapshot.items().size() != meltingItems.size()) {
+            return; // the interior was resized mid-transaction; nothing sensible to put back
+        }
+        for (int slot = 0; slot < meltingItems.size(); slot++) {
+            meltingItems.set(slot, snapshot.items().get(slot));
+            meltRecipes[slot] = null;
+        }
+        System.arraycopy(snapshot.progress(), 0, meltProgress, 0, meltProgress.length);
+        System.arraycopy(snapshot.stalled(), 0, meltStalled, 0, meltStalled.length);
+        setChanged();
+        armMeltTick();
+    });
+
     /** Wires the item-handler capability; called from {@code Forgeweave}'s constructor. */
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ForgeweaveBlockEntities.STANDARD_CORE.get(),
-                (blockEntity, side) -> blockEntity.itemHandler());
-        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ForgeweaveBlockEntities.NETHER_CORE.get(),
-                (blockEntity, side) -> blockEntity.itemHandler());
+        event.registerBlockEntity(Capabilities.Item.BLOCK, ForgeweaveBlockEntities.STANDARD_CORE.get(),
+                (blockEntity, side) -> blockEntity.itemCapability());
+        event.registerBlockEntity(Capabilities.Item.BLOCK, ForgeweaveBlockEntities.NETHER_CORE.get(),
+                (blockEntity, side) -> blockEntity.itemCapability());
         // #845: every tier exposes the transform fluid handler, including Deep (which has no
         // CoreTransformRecipe of its own to match against yet -- its handler simply refuses
         // everything, the same answer any tier gives a fluid nothing pours into it).
-        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ForgeweaveBlockEntities.STANDARD_CORE.get(),
-                (blockEntity, side) -> blockEntity.transformHandler());
-        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ForgeweaveBlockEntities.NETHER_CORE.get(),
-                (blockEntity, side) -> blockEntity.transformHandler());
-        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ForgeweaveBlockEntities.END_CORE.get(),
-                (blockEntity, side) -> blockEntity.transformHandler());
-        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, ForgeweaveBlockEntities.DEEP_CORE.get(),
-                (blockEntity, side) -> blockEntity.transformHandler());
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, ForgeweaveBlockEntities.STANDARD_CORE.get(),
+                (blockEntity, side) -> blockEntity.transformCapability());
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, ForgeweaveBlockEntities.NETHER_CORE.get(),
+                (blockEntity, side) -> blockEntity.transformCapability());
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, ForgeweaveBlockEntities.END_CORE.get(),
+                (blockEntity, side) -> blockEntity.transformCapability());
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, ForgeweaveBlockEntities.DEEP_CORE.get(),
+                (blockEntity, side) -> blockEntity.transformCapability());
     }
 
     // ---------------------------------------------------------------- #845: pour-to-transform
@@ -1423,7 +1467,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * actually inside.
      */
     private void transformTo(Block toBlock) {
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return;
         }
         CompoundTag saved = saveWithoutMetadata(level.registryAccess());
@@ -1433,7 +1477,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
                 .setValue(SmelteryControllerBlock.ACTIVE, oldState.getValue(SmelteryControllerBlock.ACTIVE));
         level.setBlock(worldPosition, newState, Block.UPDATE_ALL);
         if (level.getBlockEntity(worldPosition) instanceof SmelteryControllerBlockEntity newCore) {
-            newCore.loadAdditional(saved, level.registryAccess());
+            newCore.loadAdditional(TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), saved));
             newCore.transformProgress = 0; // irreversible (#845): the new tier starts owing nothing.
             newCore.setChanged();
             newCore.level.sendBlockUpdated(worldPosition, newState, newState, Block.UPDATE_CLIENTS);
@@ -1480,7 +1524,7 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
          */
         @Override
         public int fill(FluidStack resource, FluidAction action) {
-            if (level == null || level.isClientSide || resource.isEmpty()) {
+            if (level == null || level.isClientSide() || resource.isEmpty()) {
                 return 0;
             }
             var recipe = CoreTransformRecipe.find(level.registryAccess(), resource.getFluid(), getBlockState().getBlock());

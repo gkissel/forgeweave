@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/warspar"
-  },
+  "input": "#c:dusts/warspar",
   "fluid": "forgeweave:molten_warspar",
   "amount": 144
 }

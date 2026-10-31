@@ -49,28 +49,22 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "cataclysm:ignitium_ingot"
-      },
+      "ingredient": "cataclysm:ignitium_ingot",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "cataclysm:ignitium_block"
-      },
+      "ingredient": "cataclysm:ignitium_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "item": "cataclysm:ignitium_ingot"
-  },
+  "repair_item": "cataclysm:ignitium_ingot",
   "cast_only": true,
   "enchantability": 15,
   "color": "#FF4500",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "cataclysm:ignitium_ingot"
+      "type": "neoforge:registered",
+      "value": "cataclysm:ignitium_ingot"
     }
   ]
 }

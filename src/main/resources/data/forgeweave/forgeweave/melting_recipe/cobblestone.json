@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "minecraft:cobblestone"
-  },
+  "input": "minecraft:cobblestone",
   "fluid": "forgeweave:molten_seared_stone",
   "amount": 72
 }

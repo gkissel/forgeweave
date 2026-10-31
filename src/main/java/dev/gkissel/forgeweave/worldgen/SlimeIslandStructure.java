@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.worldgen;
 
+import net.minecraft.world.level.dimension.DimensionType;
 import java.util.Optional;
 
 import com.mojang.serialization.MapCodec;
@@ -7,7 +8,7 @@ import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.LevelHeightAccessor;
@@ -68,7 +69,7 @@ public class SlimeIslandStructure extends Structure {
 
     /** The datapack structure this class backs, {@code data/forgeweave/worldgen/structure/slime_island.json}. */
     public static final ResourceKey<Structure> KEY = ResourceKey.create(Registries.STRUCTURE,
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "slime_island"));
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "slime_island"));
 
     /** The {@code spacing} of the structure set's {@code random_spread} placement; keep the two in step. */
     public static final int GRID_SPACING = 9;
@@ -92,7 +93,7 @@ public class SlimeIslandStructure extends Structure {
      * <p>Two of them change shape in the port, both because their 1.12 concepts no longer exist.
      * Upstream's {@code isSurfaceWorld()} becomes {@code DimensionType#natural()}, modern Minecraft's
      * own "behaves like the overworld" flag. Upstream's blacklist is a list of numeric dimension ids
-     * ({@code -1, 1} -- the Nether and the End); dimensions are named by {@link ResourceLocation}
+     * ({@code -1, 1} -- the Nether and the End); dimensions are named by {@link Identifier}
      * now, so the option holds ids like {@code minecraft:the_nether} and keeps the same two defaults.
      */
     public static boolean enabledIn(ServerLevel level, boolean superflat) {
@@ -102,10 +103,13 @@ public class SlimeIslandStructure extends Structure {
         if (superflat && !ForgeweaveConfig.read(ForgeweaveConfig.GEN_ISLANDS_IN_SUPERFLAT)) {
             return false;
         }
-        if (ForgeweaveConfig.read(ForgeweaveConfig.SLIME_ISLANDS_ONLY_IN_SURFACE_WORLDS) && !level.dimensionType().natural()) {
+        // 1.21.11 removed DimensionType#natural (upstream's isSurfaceWorld); an overworld sky is the
+        // nearest thing it left, true for the overworld and false for the Nether and the End alike.
+        if (ForgeweaveConfig.read(ForgeweaveConfig.SLIME_ISLANDS_ONLY_IN_SURFACE_WORLDS)
+                && level.dimensionType().skybox() != DimensionType.Skybox.OVERWORLD) {
             return false;
         }
-        String dimension = level.dimension().location().toString();
+        String dimension = level.dimension().identifier().toString();
         return !ForgeweaveConfig.read(ForgeweaveConfig.SLIME_ISLAND_BLACKLIST).contains(dimension);
     }
 
@@ -173,10 +177,10 @@ public class SlimeIslandStructure extends Structure {
         // Upstream generates against 1.12's fixed 0..255 column and never clamps; a 1.21 dimension
         // can be shorter than the surface height plus an island plus its canopies, so the island is
         // pulled down to fit rather than silently losing its treetops to the build ceiling.
-        int ceiling = heights.getMaxBuildHeight() - 1;
+        int ceiling = heights.getMaxY();
         islandTop = Math.min(islandTop, ceiling - size.canvasTop() + size.yRange());
         int bottom = islandTop - size.yRange();
-        if (bottom <= heights.getMinBuildHeight()) {
+        if (bottom <= heights.getMinY()) {
             return Optional.empty();
         }
 

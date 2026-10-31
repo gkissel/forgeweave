@@ -1,8 +1,6 @@
 {
   "modifier": "forgeweave:necrotic",
-  "reagent": {
-    "item": "forgeweave:necrotic_bone"
-  },
+  "reagent": "forgeweave:necrotic_bone",
   "cost": 1,
   "max_level": 10
 }

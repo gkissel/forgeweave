@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_large_plate"
-  },
+  "cast": "forgeweave:clay_cast_large_plate",
   "fluid": "forgeweave:molten_tyrian_steel",
   "amount": 1152,
   "result": {
@@ -14,8 +12,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "silentgear:tyrian_steel_ingot"
+      "type": "neoforge:registered",
+      "value": "silentgear:tyrian_steel_ingot"
     }
   ]
 }

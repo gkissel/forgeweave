@@ -8,17 +8,18 @@ import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementType;
 import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.CriterionTrigger;
-import net.minecraft.advancements.critereon.InventoryChangeTrigger;
-import net.minecraft.advancements.critereon.ItemPredicate;
+import net.minecraft.advancements.criterion.InventoryChangeTrigger;
+import net.minecraft.advancements.criterion.ItemPredicate;
+import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 
-import net.neoforged.neoforge.common.data.AdvancementProvider;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.minecraft.data.advancements.AdvancementSubProvider;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -78,20 +79,20 @@ import dev.gkissel.forgeweave.item.ForgeweaveItems;
  * (see {@code ForgeweaveLanguageProvider} at the same keys), one plain sentence each naming the next
  * thing to do.
  */
-public final class ForgeweaveAdvancementProvider implements AdvancementProvider.AdvancementGenerator {
-    private static final String ROOT_BACKGROUND = "textures/gui/advancements/backgrounds/stone.png";
+public final class ForgeweaveAdvancementProvider implements AdvancementSubProvider {
+    private static final String ROOT_BACKGROUND = "gui/advancements/backgrounds/stone";
 
     @Override
-    public void generate(HolderLookup.Provider registries, Consumer<AdvancementHolder> saver, ExistingFileHelper existingFileHelper) {
-        Saver save = new Saver(saver, existingFileHelper);
+    public void generate(HolderLookup.Provider registries, Consumer<AdvancementHolder> saver) {
+        Saver save = new Saver(saver, registries.lookupOrThrow(Registries.ITEM));
 
         AdvancementHolder root = Advancement.Builder.advancement()
-                .display(new ItemStack(ForgeweaveItems.GUIDE_BOOK.get()),
+                .display(ForgeweaveItems.GUIDE_BOOK.get(),
                         title("guide_book"), description("guide_book"),
-                        ResourceLocation.withDefaultNamespace(ROOT_BACKGROUND),
+                        Identifier.withDefaultNamespace(ROOT_BACKGROUND),
                         AdvancementType.TASK, true, true, false)
                 .addCriterion("guide_book", owns(ForgeweaveItems.GUIDE_BOOK.get()))
-                .save(saver, id("root"), existingFileHelper);
+                .save(saver, id("root").toString());
 
         buildToolsBranch(save, root);
         buildSmelteryBranch(save, root);
@@ -128,7 +129,7 @@ public final class ForgeweaveAdvancementProvider implements AdvancementProvider.
     private static void buildArmorBranch(Saver save, AdvancementHolder firstTool) {
         AdvancementHolder firstPiece = save.finish(save.advancement(firstTool, "armor_piece",
                 ForgeweaveItems.ARMOR_HELMET.get(), AdvancementType.TASK)
-                .addCriterion("armor_piece", owns(anyOf(
+                .addCriterion("armor_piece", owns(save.anyOf(
                         ForgeweaveItems.ARMOR_HELMET.get(), ForgeweaveItems.ARMOR_CHESTPLATE.get(),
                         ForgeweaveItems.ARMOR_LEGGINGS.get(), ForgeweaveItems.ARMOR_BOOTS.get(),
                         ForgeweaveItems.ARMOR_HEAVY_HELMET.get(), ForgeweaveItems.ARMOR_HEAVY_CHESTPLATE.get(),
@@ -139,13 +140,13 @@ public final class ForgeweaveAdvancementProvider implements AdvancementProvider.
         // Station build and the heavy set a Tool Forge one (#1006), and a mixed set is a real loadout.
         AdvancementHolder fullSet = save.finish(save.advancement(firstPiece, "armor_set",
                 ForgeweaveItems.ARMOR_CHESTPLATE.get(), AdvancementType.GOAL)
-                .addCriterion("helmet", owns(anyOf(
+                .addCriterion("helmet", owns(save.anyOf(
                         ForgeweaveItems.ARMOR_HELMET.get(), ForgeweaveItems.ARMOR_HEAVY_HELMET.get())))
-                .addCriterion("chestplate", owns(anyOf(
+                .addCriterion("chestplate", owns(save.anyOf(
                         ForgeweaveItems.ARMOR_CHESTPLATE.get(), ForgeweaveItems.ARMOR_HEAVY_CHESTPLATE.get())))
-                .addCriterion("leggings", owns(anyOf(
+                .addCriterion("leggings", owns(save.anyOf(
                         ForgeweaveItems.ARMOR_LEGGINGS.get(), ForgeweaveItems.ARMOR_HEAVY_LEGGINGS.get())))
-                .addCriterion("boots", owns(anyOf(
+                .addCriterion("boots", owns(save.anyOf(
                         ForgeweaveItems.ARMOR_BOOTS.get(), ForgeweaveItems.ARMOR_HEAVY_BOOTS.get()))),
                 "armor/full_set");
 
@@ -158,7 +159,7 @@ public final class ForgeweaveAdvancementProvider implements AdvancementProvider.
     private static void buildRangedBranch(Saver save, AdvancementHolder firstTool) {
         AdvancementHolder bow = save.finish(save.advancement(firstTool, "bow",
                 ForgeweaveItems.TOOL_SHORTBOW.get(), AdvancementType.TASK)
-                .addCriterion("bow", owns(anyOf(ForgeweaveItems.TOOL_SHORTBOW.get(),
+                .addCriterion("bow", owns(save.anyOf(ForgeweaveItems.TOOL_SHORTBOW.get(),
                         ForgeweaveItems.TOOL_LONGBOW.get(), ForgeweaveItems.TOOL_CROSSBOW.get()))),
                 "ranged/bow");
 
@@ -196,12 +197,12 @@ public final class ForgeweaveAdvancementProvider implements AdvancementProvider.
 
         save.finish(save.advancement(firstCast, "cast",
                 ForgeweaveItems.CAST_PICKAXE_HEAD.get(), AdvancementType.TASK)
-                .addCriterion("cast", owns(ItemPredicate.Builder.item().of(ForgeweaveItemTagsProvider.CASTS_GOLD))),
+                .addCriterion("cast", owns(ItemPredicate.Builder.item().of(save.items(), ForgeweaveItemTagsProvider.CASTS_GOLD))),
                 "smeltery/cast");
 
         save.finish(save.advancement(firstCast, "core_tier",
                 ForgeweaveItems.NETHER_CORE.get(), AdvancementType.GOAL)
-                .addCriterion("hotter_core", owns(anyOf(ForgeweaveItems.NETHER_CORE.get(),
+                .addCriterion("hotter_core", owns(save.anyOf(ForgeweaveItems.NETHER_CORE.get(),
                         ForgeweaveItems.END_CORE.get(), ForgeweaveItems.DEEP_CORE.get()))),
                 "smeltery/core_tier");
 
@@ -210,7 +211,7 @@ public final class ForgeweaveAdvancementProvider implements AdvancementProvider.
         // vanilla criterion for "this smeltery is burning something hotter".
         save.finish(save.advancement(firstCast, "hotter_fuel",
                 ForgeweaveFluids.BLAZING_BLOOD.bucket().get(), AdvancementType.TASK)
-                .addCriterion("hotter_fuel", owns(anyOf(
+                .addCriterion("hotter_fuel", owns(save.anyOf(
                         ForgeweaveFluids.BLAZING_BLOOD.bucket().get(), ForgeweaveFluids.MOLTEN_MAGMA.bucket().get(),
                         ForgeweaveFluids.BRIMSPAR.bucket().get(), ForgeweaveFluids.PYREALLOY.bucket().get()))),
                 "smeltery/hotter_fuel");
@@ -223,12 +224,12 @@ public final class ForgeweaveAdvancementProvider implements AdvancementProvider.
         AdvancementHolder deepAlloy = save.finish(save.advancement(firstAlloy, "deep_alloy",
                 ForgeweaveItems.trackBAlloyIngot("tideiron").get(), AdvancementType.GOAL)
                 .addCriterion("deep_alloy",
-                        owns(ItemPredicate.Builder.item().of(ForgeweaveItemTagsProvider.ALLOYS_DEEP))),
+                        owns(ItemPredicate.Builder.item().of(save.items(), ForgeweaveItemTagsProvider.ALLOYS_DEEP))),
                 "alloys/deep");
         save.finish(save.advancement(deepAlloy, "deepest_alloy",
                 ForgeweaveItems.trackBAlloyIngot("truesteel").get(), AdvancementType.CHALLENGE)
                 .addCriterion("deepest_alloy",
-                        owns(ItemPredicate.Builder.item().of(ForgeweaveItemTagsProvider.ALLOYS_DEEPEST))),
+                        owns(ItemPredicate.Builder.item().of(save.items(), ForgeweaveItemTagsProvider.ALLOYS_DEEPEST))),
                 "alloys/deepest");
 
         AdvancementHolder forge = save.owning(firstCast, "smeltery/forge", "forge",
@@ -239,11 +240,6 @@ public final class ForgeweaveAdvancementProvider implements AdvancementProvider.
         save.triggered(largeTool, "smeltery/emboss", "emboss",
                 ForgeweaveItems.PART_TOOL_HANDLE.get(), AdvancementType.TASK,
                 ForgeweaveCriteriaTriggers.FIRST_EMBOSSMENT);
-    }
-
-    /** One {@code items} predicate satisfied by any of {@code items} -- an OR inside a single criterion. */
-    private static ItemPredicate.Builder anyOf(ItemLike... items) {
-        return ItemPredicate.Builder.item().of(items);
     }
 
     private static Criterion<InventoryChangeTrigger.TriggerInstance> owns(ItemLike item) {
@@ -262,8 +258,8 @@ public final class ForgeweaveAdvancementProvider implements AdvancementProvider.
         return Component.translatable("advancements.forgeweave." + key + ".description");
     }
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
     /**
@@ -271,17 +267,22 @@ public final class ForgeweaveAdvancementProvider implements AdvancementProvider.
      * "this custom trigger fired". Nodes that need more than one criterion (a full armor set, an
      * either-weight slot) call {@link #advancement} and finish the builder themselves.
      */
-    private record Saver(Consumer<AdvancementHolder> saver, ExistingFileHelper existingFileHelper) {
+    private record Saver(Consumer<AdvancementHolder> saver, HolderGetter<Item> items) {
+
+        /** One {@code items} predicate satisfied by any of {@code items} -- an OR inside a single criterion. */
+        ItemPredicate.Builder anyOf(ItemLike... members) {
+            return ItemPredicate.Builder.item().of(items, members);
+        }
 
         /** A node with its display set and no criteria yet; the caller adds them and calls {@link #finish}. */
         Advancement.Builder advancement(AdvancementHolder parent, String langKey, ItemLike icon, AdvancementType type) {
             return Advancement.Builder.advancement()
                     .parent(parent)
-                    .display(new ItemStack(icon), title(langKey), description(langKey), null, type, true, true, false);
+                    .display(icon, title(langKey), description(langKey), null, type, true, true, false);
         }
 
         AdvancementHolder finish(Advancement.Builder builder, String path) {
-            return builder.save(saver, id(path), existingFileHelper);
+            return builder.save(saver, id(path).toString());
         }
 
         AdvancementHolder owning(AdvancementHolder parent, String path, String langKey, ItemLike icon,

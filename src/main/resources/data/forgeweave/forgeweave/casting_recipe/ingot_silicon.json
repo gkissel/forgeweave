@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_ingot"
-  },
+  "cast": "forgeweave:cast_ingot",
   "fluid": "forgeweave:molten_silicon",
   "amount": 144,
   "result": {
@@ -10,8 +8,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "refinedstorage:silicon"
+      "type": "neoforge:registered",
+      "value": "refinedstorage:silicon"
     }
   ]
 }

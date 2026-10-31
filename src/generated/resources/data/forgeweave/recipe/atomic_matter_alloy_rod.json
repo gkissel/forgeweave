@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "#": {
-      "tag": "c:ingots/atomic_matter_alloy"
-    }
+    "#": "#c:ingots/atomic_matter_alloy"
   },
   "pattern": [
     "#",

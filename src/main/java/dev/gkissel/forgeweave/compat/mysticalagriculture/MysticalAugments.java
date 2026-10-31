@@ -3,7 +3,7 @@ package dev.gkissel.forgeweave.compat.mysticalagriculture;
 import java.util.Map;
 import java.util.Optional;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -80,7 +80,7 @@ public final class MysticalAugments {
             return Optional.empty();
         }
         EssenceTier best = null;
-        for (ResourceLocation id : materials.all()) {
+        for (Identifier id : materials.all()) {
             EssenceTier tier = tierOf(id);
             if (tier != null && (best == null || tier.ordinal() > best.ordinal())) {
                 best = tier;
@@ -99,7 +99,7 @@ public final class MysticalAugments {
     }
 
     /** The tier a single Forgeweave material id stands at, or null when it is not an essence metal. */
-    static EssenceTier tierOf(ResourceLocation materialId) {
+    static EssenceTier tierOf(Identifier materialId) {
         if (!materialId.getNamespace().equals(Forgeweave.MODID)) {
             return null;
         }

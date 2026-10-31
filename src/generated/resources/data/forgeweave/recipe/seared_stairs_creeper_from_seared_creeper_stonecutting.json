@@ -1,10 +1,7 @@
 {
   "type": "minecraft:stonecutting",
-  "ingredient": {
-    "item": "forgeweave:seared_creeper"
-  },
+  "ingredient": "forgeweave:seared_creeper",
   "result": {
-    "count": 1,
     "id": "forgeweave:seared_stairs_creeper"
   }
 }

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/tideiron"
-  },
+  "input": "#c:nuggets/tideiron",
   "fluid": "forgeweave:molten_tideiron",
   "amount": 16,
   "temperature": 1400

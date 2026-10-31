@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_shard"
-  },
+  "cast": "forgeweave:cast_shard",
   "fluid": "forgeweave:molten_blutonium",
   "amount": 72,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "bigreactors:blutonium_ingot"
+      "type": "neoforge:registered",
+      "value": "bigreactors:blutonium_ingot"
     }
   ]
 }

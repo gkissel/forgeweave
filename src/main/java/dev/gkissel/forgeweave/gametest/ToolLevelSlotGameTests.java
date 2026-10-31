@@ -1,16 +1,16 @@
 package dev.gkissel.forgeweave.gametest;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.trait.Trait;
@@ -35,7 +35,7 @@ import dev.gkissel.forgeweave.tool.ToolLeveling;
 @PrefixGameTestTemplate(false)
 public class ToolLevelSlotGameTests {
 
-    private static final ResourceLocation SEARING = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "searing");
+    private static final Identifier SEARING = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "searing");
 
     /**
      * A tool at level 1 shows exactly one more free slot than the same tool at level 0, and the
@@ -169,7 +169,7 @@ public class ToolLevelSlotGameTests {
     /** As {@code ModifierGameTests#applyReagent}: a real Tool Station craft, tool in slot 0, reagent in slot 1. */
     private static ItemStack applyReagent(GameTestHelper helper, Player player, BlockPos pos, ItemStack tool,
             ItemStack reagent) {
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, tool);
         blockEntity.container().setItem(1, reagent);
         blockEntity.container().setItem(2, ItemStack.EMPTY);

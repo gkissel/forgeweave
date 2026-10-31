@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_cross_guard"
-  },
+  "cast": "forgeweave:cast_cross_guard",
   "fluid": "forgeweave:molten_ivory_psimetal",
   "amount": 144,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "psi:ivory_psimetal"
+      "type": "neoforge:registered",
+      "value": "psi:ivory_psimetal"
     }
   ]
 }

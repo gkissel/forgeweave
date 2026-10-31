@@ -44,21 +44,15 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "refinedstorage:quartz_enriched_iron"
-      },
+      "ingredient": "refinedstorage:quartz_enriched_iron",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:ingots/quartz_enriched_iron"
-      },
+      "ingredient": "#c:ingots/quartz_enriched_iron",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "refinedstorage:quartz_enriched_iron"
-  },
+  "repair_item": "refinedstorage:quartz_enriched_iron",
   "cast_only": true,
   "enchantability": 12,
   "color": "#CDCCCA",
@@ -67,12 +61,12 @@
       "type": "neoforge:or",
       "values": [
         {
-          "type": "neoforge:item_exists",
-          "item": "refinedstorage:quartz_enriched_iron"
+          "type": "neoforge:registered",
+          "value": "refinedstorage:quartz_enriched_iron"
         },
         {
-          "type": "neoforge:item_exists",
-          "item": "eternalores:quartz_enriched_iron_ingot"
+          "type": "neoforge:registered",
+          "value": "eternalores:quartz_enriched_iron_ingot"
         }
       ]
     }

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/fulmenite"
-  },
+  "input": "#c:nuggets/fulmenite",
   "fluid": "forgeweave:molten_fulmenite",
   "amount": 16
 }

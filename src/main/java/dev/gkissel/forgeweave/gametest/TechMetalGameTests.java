@@ -1,12 +1,12 @@
 package dev.gkissel.forgeweave.gametest;
 
 import net.minecraft.core.Registry;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.material.Material;
@@ -17,7 +17,7 @@ import dev.gkissel.forgeweave.material.Material;
  * #unsuppliedCompatMetalsDoNotExistAtAll}'s pattern for the original four compat metals: none of
  * Mekanism, Immersive Engineering, Modern Industrialization or Extreme Reactors (modid
  * {@code bigreactors}) is a build dependency (see build.gradle), so every one of this batch's
- * {@code neoforge:item_exists}/{@code neoforge:or} conditions fails here exactly as it would in a
+ * {@code neoforge:registered}/{@code neoforge:or} conditions fails here exactly as it would in a
  * Forgeweave-only install -- each material is absent from the registry entirely, matching issue
  * #826's existence-gating contract (not merely present-and-uncraftable).
  *
@@ -40,16 +40,16 @@ public class TechMetalGameTests {
 
     @GameTest(template = "empty")
     public static void unsuppliedTechMetalsDoNotExistAtAll(GameTestHelper helper) {
-        Registry<Material> materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
+        Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
         for (String name : BATCH_1_MATERIALS) {
-            helper.assertTrue(materials.get(materialId(name)) == null,
+            helper.assertTrue(materials.getValue(materialId(name)) == null,
                     "expected the " + name + " material to be absent without its supplying mod, found it registered");
         }
         helper.succeed();
     }
 
-    private static ResourceLocation materialId(String name) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name);
+    private static Identifier materialId(String name) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, name);
     }
 
     private TechMetalGameTests() {}

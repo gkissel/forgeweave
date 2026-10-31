@@ -3,7 +3,7 @@ package dev.gkissel.forgeweave.jei;
 import java.util.List;
 import java.util.Map;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import dev.gkissel.forgeweave.casting.CastingRecipe;
 
@@ -16,15 +16,15 @@ import dev.gkissel.forgeweave.casting.CastingRecipe;
  * are simply two different, both-correct display rows.
  */
 final class CastingRecipes {
-    static List<CastingRecipe> table(Map<ResourceLocation, CastingRecipe> recipes) {
+    static List<CastingRecipe> table(Map<Identifier, CastingRecipe> recipes) {
         return byStation(recipes, CastingRecipe.Station.TABLE);
     }
 
-    static List<CastingRecipe> basin(Map<ResourceLocation, CastingRecipe> recipes) {
+    static List<CastingRecipe> basin(Map<Identifier, CastingRecipe> recipes) {
         return byStation(recipes, CastingRecipe.Station.BASIN);
     }
 
-    private static List<CastingRecipe> byStation(Map<ResourceLocation, CastingRecipe> recipes, CastingRecipe.Station station) {
+    private static List<CastingRecipe> byStation(Map<Identifier, CastingRecipe> recipes, CastingRecipe.Station station) {
         return recipes.values().stream().filter(recipe -> recipe.station() == station).toList();
     }
 

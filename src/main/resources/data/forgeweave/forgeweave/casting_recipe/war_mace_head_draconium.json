@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_war_mace_head"
-  },
+  "cast": "forgeweave:cast_war_mace_head",
   "fluid": "forgeweave:molten_draconium",
   "amount": 1152,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "draconicevolution:draconium_ingot"
+      "type": "neoforge:registered",
+      "value": "draconicevolution:draconium_ingot"
     }
   ]
 }

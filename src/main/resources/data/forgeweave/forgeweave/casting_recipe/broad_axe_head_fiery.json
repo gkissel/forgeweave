@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_broad_axe_head"
-  },
+  "cast": "forgeweave:cast_broad_axe_head",
   "fluid": "forgeweave:molten_fiery",
   "amount": 1152,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "twilightforest:fiery_ingot"
+      "type": "neoforge:registered",
+      "value": "twilightforest:fiery_ingot"
     }
   ]
 }

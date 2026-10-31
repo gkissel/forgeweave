@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_plating_helmet"
-  },
+  "cast": "forgeweave:cast_plating_helmet",
   "fluid": "forgeweave:molten_ferricore",
   "amount": 432,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "justdirethings:ferricore_ingot"
+      "type": "neoforge:registered",
+      "value": "justdirethings:ferricore_ingot"
     }
   ]
 }

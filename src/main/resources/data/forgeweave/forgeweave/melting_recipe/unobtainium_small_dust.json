@@ -1,14 +1,12 @@
 {
-  "input": {
-    "tag": "c:small_dusts/unobtainium"
-  },
+  "input": "#c:small_dusts/unobtainium",
   "fluid": "forgeweave:molten_unobtainium",
   "amount": 36,
   "temperature": 2000,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "allthemodium:unobtainium_ingot"
+      "type": "neoforge:registered",
+      "value": "allthemodium:unobtainium_ingot"
     }
   ]
 }

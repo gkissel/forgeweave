@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dirty_dusts/copper"
-  },
+  "input": "#c:dirty_dusts/copper",
   "fluid": "forgeweave:molten_copper",
   "amount": 144
 }

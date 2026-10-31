@@ -4,9 +4,9 @@ import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -14,8 +14,8 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
@@ -39,7 +39,7 @@ import dev.gkissel.forgeweave.modifier.ModifierEntry;
 @PrefixGameTestTemplate(false)
 public class GlowingGameTests {
 
-    private static final ResourceLocation GLOWING = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "glowing");
+    private static final Identifier GLOWING = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "glowing");
 
     private static final BlockPos STATION = new BlockPos(1, 1, 1);
     /** Sealed in stone: light 0, so a held glowing tool must light it. */
@@ -71,7 +71,7 @@ public class GlowingGameTests {
                 "glowing must occupy exactly one modifier slot, got "
                         + ForgeweaveModifiers.freeSlots(glowing) + " free");
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, glowing);
         blockEntity.container().setItem(1, new ItemStack(Items.GLOWSTONE_DUST, 1));
         blockEntity.container().setItem(2, new ItemStack(Items.ENDER_EYE, 1));
@@ -93,7 +93,7 @@ public class GlowingGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, STATION, "stone", "wood", "wood");
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, pickaxe);
         blockEntity.container().setItem(1, new ItemStack(Items.ENDER_EYE, 1));
         ToolStationMenu eyeOnly = ToolAssembly.menu(helper, player, STATION, blockEntity);
@@ -117,7 +117,8 @@ public class GlowingGameTests {
     @GameTest(template = "empty", timeoutTicks = 400)
     public static void aHeldGlowingToolLightsOnlyTheDark(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, STATION, "stone", "wood", "wood");
+        // All stone: wood's ecological can heal back the one point the light costs, at random.
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, STATION, "stone", "stone", "stone");
         pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(GLOWING, 1)));
 
         seal(helper, DARK, Blocks.STONE);
@@ -125,7 +126,11 @@ public class GlowingGameTests {
         seal(helper, POCKETED, Blocks.STONE);
 
         helper.startSequence()
-                .thenIdle(10)
+                // 26.1 queues light updates, so wait for the sealed pockets to actually read dark and lit.
+                .thenWaitUntil(() -> {
+                    helper.assertTrue(brightness(helper, DARK) < 8, "the dark pocket is not dark yet");
+                    helper.assertTrue(brightness(helper, LIT) >= 8, "the lit pocket is not lit yet");
+                })
                 .thenExecute(() -> {
                     stand(helper, player, DARK);
                     tick(helper, pickaxe, player, true);
@@ -164,18 +169,22 @@ public class GlowingGameTests {
         helper.setBlock(pocket, Blocks.AIR);
     }
 
+    private static int brightness(GameTestHelper helper, BlockPos pocket) {
+        return helper.getLevel().getMaxLocalRawBrightness(helper.absolutePos(pocket));
+    }
+
     private static void stand(GameTestHelper helper, Player player, BlockPos pocket) {
         BlockPos absolute = helper.absolutePos(pocket);
         player.setPos(absolute.getX() + 0.5, absolute.getY(), absolute.getZ() + 0.5);
     }
 
     private static void tick(GameTestHelper helper, ItemStack tool, Player player, boolean selected) {
-        tool.getItem().inventoryTick(tool, helper.getLevel(), player, 0, selected);
+        tool.getItem().inventoryTick(tool, helper.getLevel(), player, selected ? net.minecraft.world.entity.EquipmentSlot.MAINHAND : null);
     }
 
     /** Issue #780: the station loaded with {@code tool} plus every reagent, each in its own free slot. */
     private static ItemStack applyCombo(GameTestHelper helper, Player player, ItemStack tool, ItemStack... reagents) {
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION, ToolStationBlockEntity.class);
         for (int i = 0; i < ToolStationMenu.INPUT_SLOTS; i++) {
             blockEntity.container().setItem(i, ItemStack.EMPTY);
         }

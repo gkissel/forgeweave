@@ -2,7 +2,7 @@ package dev.gkissel.forgeweave.jei;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.material.Fluid;
 
@@ -132,7 +132,7 @@ final class EntityMeltingCategory implements IRecipeCategory<EntityMeltingDispla
                     tooltip.add(damageText);
                     tooltip.add(Component.translatable("jei.category.forgeweave.entity_melting.per_hit"));
                 });
-        var fuelSlot = builder.addSlot(RecipeIngredientRole.CATALYST, FUEL_X, FUEL_Y)
+        var fuelSlot = builder.addSlot(RecipeIngredientRole.CRAFTING_STATION, FUEL_X, FUEL_Y)
                 .setFluidRenderer(1, false, FUEL_SIZE, FUEL_SIZE)
                 .setOverlay(fuelOverlay, 0, 0);
         for (Fluid fuel : recipe.fuels()) {
@@ -141,11 +141,11 @@ final class EntityMeltingCategory implements IRecipeCategory<EntityMeltingDispla
     }
 
     @Override
-    public void draw(EntityMeltingDisplay recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
+    public void draw(EntityMeltingDisplay recipe, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics, double mouseX, double mouseY) {
         background.draw(guiGraphics, 0, 0);
         arrow.draw(guiGraphics, ARROW_X, ARROW_Y);
         Font font = Minecraft.getInstance().font;
-        guiGraphics.drawString(font, damageHearts, DAMAGE_RIGHT_X - font.width(damageHearts), DAMAGE_Y, DAMAGE_COLOR, false);
+        guiGraphics.text(font, damageHearts, DAMAGE_RIGHT_X - font.width(damageHearts), DAMAGE_Y, JeiCategoryGeometry.opaque(DAMAGE_COLOR), false);
 
         entityPreview.draw(guiGraphics, recipe.primaryEntity(), ENTITY_X, ENTITY_Y, ENTITY_BOX);
     }

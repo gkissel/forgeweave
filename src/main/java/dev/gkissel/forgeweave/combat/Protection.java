@@ -3,7 +3,7 @@ package dev.gkissel.forgeweave.combat;
 import java.util.function.Predicate;
 
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.tags.TagKey;
@@ -51,7 +51,7 @@ public record Protection(float perLevel, int level, Predicate<DamageSource> sour
     public static final Predicate<LivingEntity> ANY_ATTACKER = attacker -> true;
 
     /** Upstream's {@code MobTypePredicate(MobType.UNDEAD)}, 1.21's {@code #minecraft:undead}. */
-    public static final Predicate<LivingEntity> UNDEAD_ATTACKER = attacker -> attacker.getType().is(EntityTypeTags.UNDEAD);
+    public static final Predicate<LivingEntity> UNDEAD_ATTACKER = attacker -> attacker.is(EntityTypeTags.UNDEAD);
 
     public static final TagKey<DamageType> MELEE_PROTECTION = tag("melee_protection");
     public static final TagKey<DamageType> PROJECTILE_PROTECTION = tag("projectile_protection");
@@ -105,6 +105,6 @@ public record Protection(float perLevel, int level, Predicate<DamageSource> sour
     }
 
     private static TagKey<DamageType> tag(String path) {
-        return TagKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path));
+        return TagKey.create(Registries.DAMAGE_TYPE, Identifier.fromNamespaceAndPath(Forgeweave.MODID, path));
     }
 }

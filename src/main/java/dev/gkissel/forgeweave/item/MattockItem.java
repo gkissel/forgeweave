@@ -10,6 +10,7 @@ import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemInstance;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
@@ -59,11 +60,11 @@ public class MattockItem extends ToolItem {
         }
         Player player = context.getPlayer();
         level.playSound(player, context.getClickedPos(), SoundEvents.HOE_TILL, SoundSource.BLOCKS, 1.0F, 1.0F);
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             level.setBlock(context.getClickedPos(), tilled, 11);
             if (player != null) {
                 ItemStack stack = context.getItemInHand();
-                stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(context.getHand()));
+                stack.hurtAndBreak(1, player, context.getHand().asEquipmentSlot());
                 // M7-3 (issue #920, docs/SCOPE.md D-M7-10): upstream's onMattock grant, ModToolLeveling
                 // (Tinkers' Tool Leveling, MIT, NOTICE.md).
                 if (player instanceof ServerPlayer serverPlayer) {
@@ -71,7 +72,7 @@ public class MattockItem extends ToolItem {
                 }
             }
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.SUCCESS;
     }
 
     /**
@@ -90,11 +91,12 @@ public class MattockItem extends ToolItem {
      * not hand back farmland for a tool that does not claim {@link ItemAbilities#HOE_TILL}.
      */
     @Override
-    public boolean canPerformAction(ItemStack stack, ItemAbility itemAbility) {
-        return !isBroken(stack) && ABILITIES.contains(itemAbility);
+    public boolean canPerformAction(ItemInstance stack, ItemAbility itemAbility) {
+        return !stack.getOrDefault(ForgeweaveDataComponents.BROKEN.get(), false) && ABILITIES.contains(itemAbility);
     }
 
     /** See {@link #canPerformAction}. */
     private static final Set<ItemAbility> ABILITIES = Set.of(
-            ItemAbilities.AXE_DIG, ItemAbilities.SHOVEL_DIG, ItemAbilities.HOE_DIG, ItemAbilities.HOE_TILL);
+            // NeoForge 26.1 dropped the *_DIG abilities; the same ids stay answerable by name.
+            ItemAbility.get("axe_dig"), ItemAbility.get("shovel_dig"), ItemAbility.get("hoe_dig"), ItemAbilities.HOE_TILL);
 }

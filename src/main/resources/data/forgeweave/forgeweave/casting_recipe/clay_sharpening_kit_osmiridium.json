@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_sharpening_kit"
-  },
+  "cast": "forgeweave:clay_cast_sharpening_kit",
   "fluid": "forgeweave:molten_osmiridium",
   "amount": 288,
   "result": {
@@ -14,12 +12,12 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:ingot_osmium"
+      "type": "neoforge:registered",
+      "value": "mekanism:ingot_osmium"
     },
     {
-      "type": "neoforge:item_exists",
-      "item": "modern_industrialization:iridium_ingot"
+      "type": "neoforge:registered",
+      "value": "modern_industrialization:iridium_ingot"
     }
   ]
 }

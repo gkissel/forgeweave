@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:dusts/glowveil"
-    }
+    "#c:dusts/glowveil"
   ],
   "result": {
     "count": 3,

@@ -1,8 +1,6 @@
 {
   "modifier": "forgeweave:diamond",
-  "reagent": {
-    "item": "minecraft:diamond"
-  },
+  "reagent": "minecraft:diamond",
   "cost": 1,
   "max_level": 1
 }

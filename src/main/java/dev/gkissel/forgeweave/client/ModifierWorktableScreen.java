@@ -5,13 +5,15 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
@@ -49,10 +51,10 @@ import dev.gkissel.forgeweave.modifier.Worktable;
  * exactly so this screen and the Tool Station share one copy; it shows the result when there is one
  * and the loaded tool otherwise, as upstream's {@code ModifierWorktableScreen#updateDisplay} does.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public class ModifierWorktableScreen extends StationScreen<ModifierWorktableMenu> implements StationExtraAreas {
-    private static final ResourceLocation TEXTURE =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/modifier_worktable.png");
+    private static final Identifier TEXTURE =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "textures/derived/gui/modifier_worktable.png");
     private static final int SHEET = 256;
 
     /** Upstream's panel: 176 wide, {@code imageHeight = 184}. */
@@ -108,9 +110,7 @@ public class ModifierWorktableScreen extends StationScreen<ModifierWorktableMenu
     private int indexOffset;
 
     public ModifierWorktableScreen(ModifierWorktableMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
-        imageWidth = BASE_WIDTH;
-        imageHeight = BASE_HEIGHT;
+        super(menu, playerInventory, title, BASE_WIDTH, BASE_HEIGHT);
         inventoryLabelY = imageHeight - 94;
     }
 
@@ -205,9 +205,9 @@ public class ModifierWorktableScreen extends StationScreen<ModifierWorktableMenu
     // ------------------------------------------------------------------ rendering
 
     @Override
-    protected void renderPanel(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
-        graphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, SHEET, SHEET);
-        graphics.blit(TEXTURE, leftPos + SLIDER_LEFT, topPos + SLIDER_TOP + (int) (SCROLLABLE_AREA * sliderProgress),
+    protected void renderPanel(GuiGraphicsExtractor graphics, float partialTick, int mouseX, int mouseY) {
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, SHEET, SHEET);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos + SLIDER_LEFT, topPos + SLIDER_TOP + (int) (SCROLLABLE_AREA * sliderProgress),
                 canScroll() ? HANDLE_U : HANDLE_U_DISABLED, 0, SLIDER_WIDTH, HANDLE_HEIGHT, SHEET, SHEET);
         renderModifierButtons(graphics, mouseX, mouseY);
         InfoPanel.render(graphics, font, panelX(), panelY(), InfoPanel.WIDTH, InfoPanel.HEIGHT,
@@ -218,7 +218,7 @@ public class ModifierWorktableScreen extends StationScreen<ModifierWorktableMenu
         preview.render(graphics);
     }
 
-    private void renderModifierButtons(GuiGraphics graphics, int mouseX, int mouseY) {
+    private void renderModifierButtons(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
         List<ModifierEntry> options = menu.options();
         int max = Math.min(indexOffset + MAX_MODIFIER, options.size());
         for (int i = indexOffset; i < max; i++) {
@@ -230,10 +230,10 @@ public class ModifierWorktableScreen extends StationScreen<ModifierWorktableMenu
             } else if (mouseX >= x && mouseY >= y && mouseX < x + MODIFIER_SIZE && mouseY < y + MODIFIER_SIZE) {
                 v += 2 * MODIFIER_SIZE;
             }
-            graphics.blit(TEXTURE, x, y, MODIFIER_U, v, MODIFIER_SIZE, MODIFIER_SIZE, SHEET, SHEET);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, MODIFIER_U, v, MODIFIER_SIZE, MODIFIER_SIZE, SHEET, SHEET);
             ItemStack icon = iconFor(options.get(i));
             if (!icon.isEmpty()) {
-                graphics.renderItem(icon, x + 1, y + 1);
+                graphics.item(icon, x + 1, y + 1);
             }
         }
     }
@@ -254,16 +254,14 @@ public class ModifierWorktableScreen extends StationScreen<ModifierWorktableMenu
                         .map(holder -> holder.value())
                         .filter(recipe -> recipe.modifier().equals(entry.id()))
                         .findFirst())
-                .map(recipe -> {
-                    ItemStack[] items = recipe.reagent().getItems();
-                    return items.length == 0 ? ItemStack.EMPTY : items[0];
-                })
+                .flatMap(recipe -> recipe.reagent().items().findFirst())
+                .map(ItemStack::new)
                 .orElse(ItemStack.EMPTY);
     }
 
     @Override
-    protected void renderTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
-        super.renderTooltip(graphics, mouseX, mouseY);
+    protected void extractTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        super.extractTooltip(graphics, mouseX, mouseY);
         // The rows StationText builds carry SHOW_TEXT hover events (issue #376), so both panels are
         // asked which style sits under the cursor and vanilla renders whatever it carries.
         Style hovered = InfoPanel.hoveredStyle(font, panelX(), panelY(), InfoPanel.WIDTH, InfoPanel.HEIGHT,
@@ -273,7 +271,7 @@ public class ModifierWorktableScreen extends StationScreen<ModifierWorktableMenu
                     modifierCaption != null, modifierLines, modifierScroll, mouseX, mouseY);
         }
         if (hovered != null) {
-            graphics.renderComponentHoverEffect(font, hovered, mouseX, mouseY);
+            graphics.componentHoverEffect(font, hovered, mouseX, mouseY);
             return;
         }
         int index = buttonAt(mouseX, mouseY);
@@ -281,7 +279,7 @@ public class ModifierWorktableScreen extends StationScreen<ModifierWorktableMenu
             List<ModifierEntry> options = menu.options();
             if (index < options.size()) {
                 ModifierEntry entry = options.get(index);
-                graphics.renderTooltip(font, List.of(
+                graphics.setTooltipForNextFrame(font, List.of(
                         ModifierApplication.displayName(entry.id(),
                                 ForgeweaveModifiers.displayLevel(entry.id(), entry.level())).getVisualOrderText(),
                         ModifierApplication.description(entry.id()).getVisualOrderText()), mouseX, mouseY);
@@ -322,7 +320,10 @@ public class ModifierWorktableScreen extends StationScreen<ModifierWorktableMenu
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         clickedOnScrollBar = false;
         int index = buttonAt(mouseX, mouseY);
         if (index >= 0 && minecraft != null && menu.clickMenuButton(minecraft.player, index)) {
@@ -341,11 +342,13 @@ public class ModifierWorktableScreen extends StationScreen<ModifierWorktableMenu
         if (preview.mouseClicked(mouseX, mouseY)) {
             return true; // grabbed the stand; see StandPreview#mouseClicked for why it is swallowed
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override
-    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+    public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
+        double mouseX = event.x();
+        double mouseY = event.y();
         if (clickedOnScrollBar && canScroll()) {
             int barStart = topPos + SLIDER_TOP;
             sliderProgress = Math.clamp((float) (mouseY - barStart - HANDLE_HEIGHT / 2.0) / SCROLLABLE_AREA, 0.0F, 1.0F);
@@ -353,14 +356,16 @@ public class ModifierWorktableScreen extends StationScreen<ModifierWorktableMenu
             return true;
         }
         preview.mouseDragged(mouseX);
-        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+        return super.mouseDragged(event, dragX, dragY);
     }
 
     @Override
-    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+    public boolean mouseReleased(MouseButtonEvent event) {
+        double mouseX = event.x();
+        double mouseY = event.y();
         clickedOnScrollBar = false;
         preview.mouseReleased();
-        return super.mouseReleased(mouseX, mouseY, button);
+        return super.mouseReleased(event);
     }
 
     @Override

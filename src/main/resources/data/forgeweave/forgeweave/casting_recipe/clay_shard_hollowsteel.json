@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_shard"
-  },
+  "cast": "forgeweave:clay_cast_shard",
   "fluid": "forgeweave:molten_hollowsteel",
   "amount": 72,
   "result": {

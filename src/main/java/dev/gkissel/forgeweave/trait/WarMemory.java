@@ -9,7 +9,7 @@ import io.netty.buffer.ByteBuf;
 
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.ExtraCodecs;
 
 /**
@@ -26,14 +26,14 @@ import net.minecraft.util.ExtraCodecs;
 public record WarMemory(List<Fight> fights) {
 
     /** One entity type's counted fights, capped by {@code ForgeweaveTraits#WAR_MEMORY_CAP}. */
-    public record Fight(ResourceLocation entityType, int count) {
+    public record Fight(Identifier entityType, int count) {
         public static final Codec<Fight> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                ResourceLocation.CODEC.fieldOf("entity_type").forGetter(Fight::entityType),
+                Identifier.CODEC.fieldOf("entity_type").forGetter(Fight::entityType),
                 ExtraCodecs.NON_NEGATIVE_INT.fieldOf("count").forGetter(Fight::count))
                 .apply(instance, Fight::new));
 
         public static final StreamCodec<ByteBuf, Fight> STREAM_CODEC = StreamCodec.composite(
-                ResourceLocation.STREAM_CODEC, Fight::entityType,
+                Identifier.STREAM_CODEC, Fight::entityType,
                 ByteBufCodecs.VAR_INT, Fight::count,
                 Fight::new);
     }
@@ -46,7 +46,7 @@ public record WarMemory(List<Fight> fights) {
             Fight.STREAM_CODEC.apply(ByteBufCodecs.list()).map(WarMemory::new, WarMemory::fights);
 
     /** The counted fights for one entity type, {@code 0} if it has never been struck. */
-    public int count(ResourceLocation entityType) {
+    public int count(Identifier entityType) {
         for (Fight fight : fights) {
             if (fight.entityType().equals(entityType)) {
                 return fight.count();
@@ -56,7 +56,7 @@ public record WarMemory(List<Fight> fights) {
     }
 
     /** A new {@link WarMemory} with {@code entityType}'s count set to {@code count}. */
-    public WarMemory with(ResourceLocation entityType, int count) {
+    public WarMemory with(Identifier entityType, int count) {
         List<Fight> updated = new java.util.ArrayList<>(fights.size() + 1);
         boolean replaced = false;
         for (Fight fight : fights) {

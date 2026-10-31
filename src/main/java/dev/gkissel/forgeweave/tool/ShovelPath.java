@@ -111,12 +111,12 @@ public final class ShovelPath {
         if (result == null) {
             return InteractionResult.PASS;
         }
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             level.setBlock(pos, result, 11);
             level.gameEvent(GameEvent.BLOCK_CHANGE, pos, GameEvent.Context.of(player, result));
             if (player != null) {
                 ItemStack stack = context.getItemInHand();
-                stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(context.getHand()));
+                stack.hurtAndBreak(1, player, context.getHand().asEquipmentSlot());
                 // M7-3 (issue #920, docs/SCOPE.md D-M7-10): upstream's onPath grant, ModToolLeveling
                 // (Tinkers' Tool Leveling, MIT, NOTICE.md).
                 if (player instanceof ServerPlayer serverPlayer) {
@@ -124,7 +124,7 @@ public final class ShovelPath {
                 }
             }
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.SUCCESS;
     }
 
     /** The same click, moved to another block of the area: same hand, same stack, same face. */

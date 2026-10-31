@@ -28,13 +28,11 @@
     "head": ["forgeweave:insatiable"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:manyullyn_ingot" }, "value": 144 },
-    { "ingredient": { "item": "forgeweave:manyullyn_nugget" }, "value": 16 },
-    { "ingredient": { "item": "forgeweave:manyullyn_block" }, "value": 1296 }
+    { "ingredient": "forgeweave:manyullyn_ingot", "value": 144 },
+    { "ingredient": "forgeweave:manyullyn_nugget", "value": 16 },
+    { "ingredient": "forgeweave:manyullyn_block", "value": 1296 }
   ],
-  "repair_item": {
-    "tag": "c:ingots/manyullyn"
-  },
+  "repair_item": "#c:ingots/manyullyn",
   "cast_only": true,
   "enchantability": 10,
   "color": "#A15CF8"

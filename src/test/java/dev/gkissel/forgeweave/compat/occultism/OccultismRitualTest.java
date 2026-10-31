@@ -25,7 +25,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -91,7 +91,7 @@ class OccultismRitualTest {
 
     private static Optional<ItemStack> bind(ForgeweaveOccultismCompat.Ritual ritual, ItemStack tool) {
         return ForgeweaveOccultismCompat.bind(registries, tool,
-                ResourceLocation.parse(ritual.modifier()), ritual.level());
+                Identifier.parse(ritual.modifier()), ritual.level());
     }
 
     // ----------------------------------------------------------------- the rows
@@ -106,8 +106,8 @@ class OccultismRitualTest {
         assertEquals("forgeweave:" + ritual.factoryName(), json.get("ritual_type").getAsString(),
                 "a row whose ritual_type does not match a registered factory silently does nothing");
         assertEquals(ritual.pentacle(), json.get("pentacle_id").getAsString());
-        assertEquals("forgeweave:ritual_bindable",
-                json.getAsJsonObject("activation_item").get("tag").getAsString(),
+        assertEquals("#forgeweave:ritual_bindable",
+                json.get("activation_item").getAsString(),
                 "the activation item is the tool the player lays on the golden bowl");
         assertTrue(json.get("duration").getAsInt() > 0);
     }
@@ -120,7 +120,7 @@ class OccultismRitualTest {
         assertEquals(ritual.ingredients().size(), ingredients.size(),
                 "one sacrificial bowl per ingredient -- a dropped entry is a cheaper ritual");
         assertEquals(ForgeweaveOccultismCompat.SPIRIT_GEM,
-                ingredients.get(0).getAsJsonObject().get("item").getAsString(),
+                ingredients.get(0).getAsString(),
                 "the spirit itself comes first; it is what is being bound");
         assertEquals(ritual.essence(), ingredients.size() - 1,
                 "and the rest is otherworld essence, one per rank of the ritual's pentacle");
@@ -171,7 +171,7 @@ class OccultismRitualTest {
 
         assertTrue(bound.isPresent(), ritual.name() + " should bind onto a freshly assembled pickaxe;"
                 + " every level in the roster is picked to fit a fresh tool's slot budget");
-        ModifierEntry entry = ForgeweaveModifiers.entry(bound.get(), ResourceLocation.parse(ritual.modifier()));
+        ModifierEntry entry = ForgeweaveModifiers.entry(bound.get(), Identifier.parse(ritual.modifier()));
         assertNotNull(entry, ritual.name() + " wrote no modifier entry at all");
         assertEquals(ritual.level(), entry.level(), ritual.name() + " must land at its roster level");
         assertTrue(ForgeweaveModifiers.of(tool).isEmpty(), "and must not have mutated the tool it was given");
@@ -189,7 +189,7 @@ class OccultismRitualTest {
         ItemStack bound = bind(ritual, tool).orElseThrow();
 
         int spent = before - ForgeweaveModifiers.freeSlots(bound);
-        ResourceLocation modifier = ResourceLocation.parse(ritual.modifier());
+        Identifier modifier = Identifier.parse(ritual.modifier());
         assertEquals(ForgeweaveModifiers.occupiedSlots(modifier, ritual.level()), spent,
                 ritual.name() + " must spend exactly what its entry occupies -- no free upgrade, and no"
                         + " double charge either");
@@ -219,7 +219,7 @@ class OccultismRitualTest {
     @Test
     void anUnknownModifierIsRefused() {
         assertTrue(ForgeweaveOccultismCompat.bind(registries, pickaxe(),
-                ResourceLocation.fromNamespaceAndPath("forgeweave", "no_such_modifier"), 1).isEmpty());
+                Identifier.fromNamespaceAndPath("forgeweave", "no_such_modifier"), 1).isEmpty());
     }
 
     /** Every level in the roster is at or under the modifier's own shipped Tool Station cap. */

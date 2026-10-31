@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/hollowsteel"
-  },
+  "input": "#c:storage_blocks/hollowsteel",
   "fluid": "forgeweave:molten_hollowsteel",
   "amount": 1296,
   "temperature": 1600

@@ -16,7 +16,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import net.minecraft.SharedConstants;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.level.EmptyBlockGetter;
@@ -115,9 +115,9 @@ class ForgeweaveFluidsTest {
     /** #285: obsidian and seared stone ride the stone still/flowing texture pair (molten clay already does), not the shared metal texture. */
     @Test
     void obsidianAndSearedStoneUseStoneTextures() {
-        ResourceLocation stoneStill = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/liquid_stone");
-        ResourceLocation stoneFlowing = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/liquid_stone_flow");
-        ResourceLocation metalStill = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/molten_metal");
+        Identifier stoneStill = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/liquid_stone");
+        Identifier stoneFlowing = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/liquid_stone_flow");
+        Identifier metalStill = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/molten_metal");
 
         assertEquals(stoneStill, ForgeweaveFluids.OBSIDIAN.stillTexture());
         assertEquals(stoneFlowing, ForgeweaveFluids.OBSIDIAN.flowingTexture());
@@ -134,8 +134,8 @@ class ForgeweaveFluidsTest {
      */
     @Test
     void moltenDirtMatchesUpstreamTemperatureAndUsesStoneTextures() {
-        ResourceLocation stoneStill = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/liquid_stone");
-        ResourceLocation stoneFlowing = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/liquid_stone_flow");
+        Identifier stoneStill = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/liquid_stone");
+        Identifier stoneFlowing = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/liquid_stone_flow");
 
         assertEquals(500, ForgeweaveFluids.MOLTEN_DIRT.temperature());
         assertEquals(stoneStill, ForgeweaveFluids.MOLTEN_DIRT.stillTexture());
@@ -149,8 +149,8 @@ class ForgeweaveFluidsTest {
      */
     @Test
     void moltenGlassMatchesUpstreamTemperatureAndUsesTheSharedMetalTextures() {
-        ResourceLocation metalStill = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/molten_metal");
-        ResourceLocation metalFlowing = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/molten_metal_flow");
+        Identifier metalStill = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/molten_metal");
+        Identifier metalFlowing = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "derived/block/molten_metal_flow");
 
         assertEquals(625, ForgeweaveFluids.GLASS.temperature());
         assertEquals(0xC0F5FE, ForgeweaveFluids.GLASS.color());

@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_shard"
-  },
+  "cast": "forgeweave:cast_shard",
   "fluid": "forgeweave:molten_uraninite",
   "amount": 72,
   "result": {
@@ -16,12 +14,12 @@
       "type": "neoforge:or",
       "values": [
         {
-          "type": "neoforge:item_exists",
-          "item": "powah:uraninite_raw"
+          "type": "neoforge:registered",
+          "value": "powah:uraninite_raw"
         },
         {
-          "type": "neoforge:item_exists",
-          "item": "eternalores:uraninite_ingot"
+          "type": "neoforge:registered",
+          "value": "eternalores:uraninite_ingot"
         }
       ]
     }

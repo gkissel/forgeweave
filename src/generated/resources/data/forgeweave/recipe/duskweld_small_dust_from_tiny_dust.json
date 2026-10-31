@@ -2,18 +2,11 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:tiny_dusts/duskweld"
-    },
-    {
-      "tag": "c:tiny_dusts/duskweld"
-    },
-    {
-      "tag": "c:tiny_dusts/duskweld"
-    }
+    "#c:tiny_dusts/duskweld",
+    "#c:tiny_dusts/duskweld",
+    "#c:tiny_dusts/duskweld"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:duskweld_small_dust"
   }
 }

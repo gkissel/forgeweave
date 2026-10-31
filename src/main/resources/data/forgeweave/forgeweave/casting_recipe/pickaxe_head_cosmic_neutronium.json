@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_pickaxe_head"
-  },
+  "cast": "forgeweave:cast_pickaxe_head",
   "fluid": "forgeweave:molten_cosmic_neutronium",
   "amount": 288,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "avaritia:neutronium_ingot"
+      "type": "neoforge:registered",
+      "value": "avaritia:neutronium_ingot"
     }
   ]
 }

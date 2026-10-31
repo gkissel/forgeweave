@@ -1,8 +1,6 @@
 {
   "modifier": "forgeweave:magnetic_pull",
-  "reagent": {
-    "item": "minecraft:ender_pearl"
-  },
+  "reagent": "minecraft:ender_pearl",
   "cost": 1,
   "max_level": 1
 }

@@ -2,10 +2,15 @@ package dev.gkissel.forgeweave.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
+
+import org.jspecify.annotations.Nullable;
 
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
@@ -28,7 +33,7 @@ import dev.gkissel.forgeweave.menu.ToolStationMenu;
  * javadoc), so upstream's six positions and Forgeweave's six {@link ToolStationMenu#INPUT_SLOTS} line
  * up index-for-index with no role remapping needed, unlike {@link PartBuilderBlockEntityRenderer}.
  */
-public class ToolStationBlockEntityRenderer implements BlockEntityRenderer<ToolStationBlockEntity> {
+public class ToolStationBlockEntityRenderer implements BlockEntityRenderer<ToolStationBlockEntity, TableItemRenderer.State> {
     /** {@code (33 - x) / 61f} for each of upstream's six {@code GuiButtonRepair.info} positions. */
     static final float[] POSITION_X = {0f, 18f / 61f, 22f / 61f, 0f, -22f / 61f, -18f / 61f};
     /** {@code (42 - y) / 61f} for the same six positions. */
@@ -41,17 +46,25 @@ public class ToolStationBlockEntityRenderer implements BlockEntityRenderer<ToolS
     static final int HEAD_INDEX = 0;
 
     @Override
-    public void render(ToolStationBlockEntity blockEntity, float partialTick, PoseStack poseStack,
-            MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+    public TableItemRenderer.State createRenderState() {
+        return new TableItemRenderer.State();
+    }
+
+    @Override
+    public void extractRenderState(ToolStationBlockEntity blockEntity, TableItemRenderer.State state, float partialTick,
+            Vec3 cameraPosition, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
+        BlockEntityRenderer.super.extractRenderState(blockEntity, state, partialTick, cameraPosition, breakProgress);
         Container container = blockEntity.container();
         for (int i = 0; i < ToolStationMenu.INPUT_SLOTS; i++) {
             ItemStack stack = container.getItem(i);
-            if (stack.isEmpty()) {
-                continue;
-            }
-            TableItemRenderer.render(stack, POSITION_X[i], POSITION_Z[i], scaleFor(stack, i), poseStack,
-                    bufferSource, packedLight, packedOverlay, blockEntity);
+            state.add(stack, POSITION_X[i], POSITION_Z[i], scaleFor(stack, i), blockEntity);
         }
+    }
+
+    @Override
+    public void submit(TableItemRenderer.State state, PoseStack poseStack, SubmitNodeCollector collector,
+            CameraRenderState camera) {
+        state.submitAll(poseStack, collector);
     }
 
     static float scaleFor(ItemStack stack, int slotIndex) {

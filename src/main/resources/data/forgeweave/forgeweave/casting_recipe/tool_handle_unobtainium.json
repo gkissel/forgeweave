@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_tool_handle"
-  },
+  "cast": "forgeweave:cast_tool_handle",
   "fluid": "forgeweave:molten_unobtainium",
   "amount": 144,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "allthemodium:unobtainium_ingot"
+      "type": "neoforge:registered",
+      "value": "allthemodium:unobtainium_ingot"
     }
   ]
 }

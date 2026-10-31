@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_hand_guard"
-  },
+  "cast": "forgeweave:clay_cast_hand_guard",
   "fluid": "forgeweave:molten_atomic_matter_alloy",
   "amount": 144,
   "result": {
@@ -14,8 +12,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:alloy_atomic"
+      "type": "neoforge:registered",
+      "value": "mekanism:alloy_atomic"
     }
   ]
 }

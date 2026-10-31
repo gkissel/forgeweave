@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/starfall_stone"
-  },
+  "input": "#c:small_dusts/starfall_stone",
   "fluid": "forgeweave:molten_starfall_stone",
   "amount": 48
 }

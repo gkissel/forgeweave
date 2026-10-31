@@ -6,10 +6,10 @@ import java.util.stream.Stream;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
@@ -19,8 +19,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Block;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -139,7 +139,7 @@ public class ArmorGameTests {
             Item anyPiece, List<ToolConstants.Entry> set, ItemStack extra) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.setBlock(STATION, station);
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION, ToolStationBlockEntity.class);
         ToolStationMenu menu = ToolAssembly.menu(helper, player, STATION, blockEntity);
 
         int tab = ToolStationTabs.indexOfTool(anyPiece);
@@ -245,7 +245,7 @@ public class ArmorGameTests {
         chestplate.set(DataComponents.DAMAGE, chestplate.getMaxDamage() - 1);
         chestplate.set(ForgeweaveDataComponents.BROKEN.get(), true);
 
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, chestplate);
         blockEntity.container().setItem(1, new ItemStack(Items.IRON_INGOT, 1));
         for (int i = 2; i < ToolStationMenu.INPUT_SLOTS; i++) {
@@ -278,7 +278,7 @@ public class ArmorGameTests {
     @GameTest(template = "empty")
     public static void everyPieceRepairsModifiesAndRenamesAtItsStation(GameTestHelper helper) {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ResourceLocation fireProtection = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "fire_protection");
+        Identifier fireProtection = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "fire_protection");
         for (ToolConstants.Entry entry : allPieces()) {
             boolean heavy = ToolConstants.HEAVY_ARMOR.contains(entry);
             Block station = heavy ? ForgeweaveBlocks.TOOL_FORGE.get() : ForgeweaveBlocks.TOOL_STATION.get();
@@ -318,7 +318,7 @@ public class ArmorGameTests {
 
     /** The block at {@link #STATION} loaded with {@code piece} in the head slot and {@code reagent} next to it. */
     private static ToolStationMenu load(GameTestHelper helper, Player player, ItemStack piece, ItemStack reagent) {
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(STATION, ToolStationBlockEntity.class);
         blockEntity.container().clearContent();
         blockEntity.container().setItem(0, piece);
         blockEntity.container().setItem(1, reagent);

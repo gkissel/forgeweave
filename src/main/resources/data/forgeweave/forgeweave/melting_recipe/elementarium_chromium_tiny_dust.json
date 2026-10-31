@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:tiny_dusts/elementarium_chromium"
-  },
+  "input": "#c:tiny_dusts/elementarium_chromium",
   "fluid": "forgeweave:molten_elementarium_chromium",
   "amount": 16,
   "temperature": 1200,

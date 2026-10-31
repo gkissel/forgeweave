@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_plating_helmet"
-  },
+  "cast": "forgeweave:cast_plating_helmet",
   "fluid": "forgeweave:molten_unobtainium",
   "amount": 432,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "allthemodium:unobtainium_ingot"
+      "type": "neoforge:registered",
+      "value": "allthemodium:unobtainium_ingot"
     }
   ]
 }

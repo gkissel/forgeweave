@@ -12,12 +12,11 @@
     }
   },
   "display": {
-    "background": "minecraft:textures/gui/advancements/backgrounds/stone.png",
+    "background": "minecraft:gui/advancements/backgrounds/stone",
     "description": {
       "translate": "advancements.forgeweave.guide_book.description"
     },
     "icon": {
-      "count": 1,
       "id": "forgeweave:guide_book"
     },
     "title": {

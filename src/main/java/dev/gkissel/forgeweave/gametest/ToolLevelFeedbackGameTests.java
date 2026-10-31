@@ -3,7 +3,7 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
@@ -12,8 +12,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
@@ -45,7 +45,7 @@ public class ToolLevelFeedbackGameTests {
     public static void levelingUpPlaysTheChimeOncePerLevelCrossed(GameTestHelper helper) {
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         BlockPos pos = helper.absolutePos(new BlockPos(1, 2, 1));
-        player.moveTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+        player.snapTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
 
         ItemStack pickaxe = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
         ToolLevel before = ToolLevel.of(pickaxe);
@@ -110,7 +110,7 @@ public class ToolLevelFeedbackGameTests {
     public static void noLevelCrossedPlaysNoChime(GameTestHelper helper) {
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         BlockPos pos = helper.absolutePos(new BlockPos(1, 2, 1));
-        player.moveTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
+        player.snapTo(pos.getX() + 0.5, pos.getY(), pos.getZ() + 0.5);
 
         ItemStack pickaxe = new ItemStack(ForgeweaveItems.TOOL_PICKAXE.get());
 

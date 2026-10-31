@@ -9,14 +9,14 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.Tag;
 import net.minecraft.nbt.TagParser;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -26,8 +26,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
@@ -230,7 +230,7 @@ public class ApotheosisSocketGameTests {
         GemSockets missing = GemSockets.CODEC
                 .parse(registries.createSerializationContext(NbtOps.INSTANCE), missingGemSockets())
                 .getOrThrow(AssertionError::new);
-        helper.assertTrue(missing.gems().nonEmptyStream().findAny().isEmpty() && missing.unreadable().size() == 1,
+        helper.assertTrue(missing.gems().nonEmptyItemCopyStream().findAny().isEmpty() && missing.unreadable().size() == 1,
                 "setup: apotheosis:gem must be unknown here and kept raw, got " + missing);
         tool.set(ForgeweaveDataComponents.SOCKETS.get(), missing);
 
@@ -252,7 +252,7 @@ public class ApotheosisSocketGameTests {
                         && key.getKey().equals("tooltip.forgeweave.socket.missing_mod"),
                 "the tooltip must say the gem's mod is missing, got " + line);
 
-        ItemStack reloaded = ItemStack.parse(registries, tool.save(registries))
+        ItemStack reloaded = GameTestCompat.parseStack(registries, GameTestCompat.saveStack(registries, tool))
                 .orElseThrow(() -> new AssertionError("the tool must reload"));
         helper.assertTrue(missing.equals(reloaded.get(ForgeweaveDataComponents.SOCKETS.get())),
                 "and the raw gem must survive a save, got " + reloaded.get(ForgeweaveDataComponents.SOCKETS.get()));
@@ -262,7 +262,7 @@ public class ApotheosisSocketGameTests {
     /** One socket holding a real Apotheosis gem's saved form: the item, its gem and its purity. */
     private static Tag missingGemSockets() {
         try {
-            return TagParser.parseTag("{s:[{slot:0,item:{id:\"apotheosis:gem\",count:1,components:{"
+            return TagParser.parseCompoundFully("{s:[{slot:0,item:{id:\"apotheosis:gem\",count:1,components:{"
                     + "\"apotheosis:gem\":\"apotheosis:core/ballast\",\"apotheosis:purity\":\"flawless\"}}}]}")
                     .get("s");
         } catch (CommandSyntaxException e) {
@@ -316,9 +316,9 @@ public class ApotheosisSocketGameTests {
             return ApotheosisSockets.gems(stack).stream()
                     .filter(gem -> !gem.isEmpty())
                     .map(gem -> new ApotheosisSockets.AttributeGrant(
-                            ResourceLocation.withDefaultNamespace("generic.attack_damage"),
+                            Identifier.withDefaultNamespace("generic.attack_damage"),
                             new AttributeModifier(
-                                    ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "gametest_gem"),
+                                    Identifier.fromNamespaceAndPath(Forgeweave.MODID, "gametest_gem"),
                                     2.0, AttributeModifier.Operation.ADD_VALUE)))
                     .toList();
         }

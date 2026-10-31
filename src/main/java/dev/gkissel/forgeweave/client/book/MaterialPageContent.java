@@ -16,7 +16,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -114,7 +114,7 @@ public final class MaterialPageContent {
      * One trait line of a stat block: the drawn line, and the id it came from so the page can link
      * it to that trait's reference entry (issue #1104).
      */
-    public record TraitLine(ResourceLocation id, Component line) {}
+    public record TraitLine(Identifier id, Component line) {}
 
     /**
      * One stat type's block: the parts that draw from it (a cycling icon upstream), the underlined
@@ -167,13 +167,13 @@ public final class MaterialPageContent {
                 .map(id -> new TraitLine(id, traitLine(material, id))).toList();
     }
 
-    private static Component traitLine(Material material, ResourceLocation id) {
+    private static Component traitLine(Material material, Identifier id) {
         // #1103: family name plus roman numeral, family description with this rung's numbers.
         id = ForgeweaveTraits.canonical(id);
         Component hover = TraitFamilies.description(id).withStyle(Style.EMPTY.withColor(material.color()));
         return TraitFamilies.name(id)
                 .withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.UNDERLINE)
-                .withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover)));
+                .withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(hover)));
     }
 
     /**
@@ -182,7 +182,7 @@ public final class MaterialPageContent {
      * {@code Material#hasStatsFor} read from the other end. Shown as one cycling icon beside the
      * stat type's name.
      */
-    public static List<ItemStack> partsFor(PartItem.Kind kind, ResourceLocation materialId) {
+    public static List<ItemStack> partsFor(PartItem.Kind kind, Identifier materialId) {
         List<ItemStack> stacks = new ArrayList<>();
         for (Item item : BuiltInRegistries.ITEM) {
             if (item instanceof PartItem part && part.kind() == kind) {
@@ -203,7 +203,7 @@ public final class MaterialPageContent {
      * question asked here is whether the material has a molten fluid at all, which is the fact
      * upstream's flag actually stands for and the one the tooltip has to name anyway.
      */
-    public static List<Icon> craftIcons(ResourceLocation id, Material material) {
+    public static List<Icon> craftIcons(Identifier id, Material material) {
         List<Icon> icons = new ArrayList<>();
         ItemStack representative = representativeItem(material);
         if (!representative.isEmpty()) {
@@ -227,14 +227,14 @@ public final class MaterialPageContent {
         Component hover = Component.translatable(stage.unlockKey()).withStyle(ChatFormatting.GRAY);
         return Component.translatable(STAGE_LINE, Component.translatable(stage.nameKey()))
                 .withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.UNDERLINE)
-                .withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover)));
+                .withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(hover)));
     }
 
     /**
      * One row of the "how it is made" block: what to draw, what it says, and the material whose own
      * page the row jumps to, or {@code null} for a row that is not a link.
      */
-    public record Source(ItemStack icon, Component label, @Nullable ResourceLocation material) {}
+    public record Source(ItemStack icon, Component label, @Nullable Identifier material) {}
 
     /**
      * How this material is made, for the block under its display bar (issue #1104). Before this the
@@ -251,7 +251,7 @@ public final class MaterialPageContent {
      * @return the header key and its rows, or an empty optional for a material made no other way
      *         than in the Part Builder (the display bar's own icon already says so)
      */
-    public static Optional<Made> madeFrom(HolderLookup.Provider registries, ResourceLocation id, Material material) {
+    public static Optional<Made> madeFrom(HolderLookup.Provider registries, Identifier id, Material material) {
         Fluid fluid = moltenFluid(id).orElse(null);
         if (fluid == null) {
             return Optional.empty();
@@ -282,7 +282,7 @@ public final class MaterialPageContent {
     }
 
     private static Source alloyInput(HolderLookup.Provider registries, FluidStack input) {
-        ResourceLocation material = materialOf(input.getFluid());
+        Identifier material = materialOf(input.getFluid());
         Component label = Component.translatable(ALLOY_INPUT, input.getAmount(),
                 input.getFluid().getFluidType().getDescription());
         ItemStack icon = registries.lookupOrThrow(Material.REGISTRY)
@@ -293,9 +293,9 @@ public final class MaterialPageContent {
     }
 
     /** The material a {@code forgeweave:molten_<material>} fluid belongs to. */
-    private static ResourceLocation materialOf(Fluid fluid) {
-        ResourceLocation fluidId = BuiltInRegistries.FLUID.getKey(fluid);
-        return ResourceLocation.fromNamespaceAndPath(fluidId.getNamespace(),
+    private static Identifier materialOf(Fluid fluid) {
+        Identifier fluidId = BuiltInRegistries.FLUID.getKey(fluid);
+        return Identifier.fromNamespaceAndPath(fluidId.getNamespace(),
                 fluidId.getPath().startsWith("molten_") ? fluidId.getPath().substring("molten_".length())
                         : fluidId.getPath());
     }
@@ -336,7 +336,7 @@ public final class MaterialPageContent {
                 .filter(recipe -> recipe.fluid() == result)
                 .sorted(Comparator.comparingInt(recipe -> meltingRank(recipe, representative)))
                 .forEach(recipe -> {
-                    ItemStack[] items = recipe.input().getItems();
+                    ItemStack[] items = recipe.input().items().map(ItemStack::new).toArray(ItemStack[]::new);
                     if (items.length > 0 && sources.size() < MELTING_SOURCES) {
                         sources.add(new Source(items[0], items[0].getHoverName(), null));
                     }
@@ -345,9 +345,9 @@ public final class MaterialPageContent {
     }
 
     /** This material's molten fluid, if the mod registered one: {@code forgeweave:molten_<material>}. */
-    public static Optional<Fluid> moltenFluid(ResourceLocation id) {
+    public static Optional<Fluid> moltenFluid(Identifier id) {
         return BuiltInRegistries.FLUID.getOptional(
-                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "molten_" + id.getPath()));
+                Identifier.fromNamespaceAndPath(Forgeweave.MODID, "molten_" + id.getPath()));
     }
 
     /**
@@ -358,7 +358,7 @@ public final class MaterialPageContent {
      */
     public static ItemStack representativeItem(Material material) {
         Ingredient repair = material.repairItem();
-        ItemStack[] items = repair.getItems();
+        ItemStack[] items = repair.items().map(ItemStack::new).toArray(ItemStack[]::new);
         return items.length > 0 ? items[0] : ItemStack.EMPTY;
     }
 
@@ -404,7 +404,7 @@ public final class MaterialPageContent {
      * its rungs and each rung fills its own numbers into it (issue #1103), so Keen Edge II reads
      * "3" where Keen Edge IV reads "5" off the same entry.
      */
-    public static Component traitDescription(ResourceLocation trait) {
+    public static Component traitDescription(Identifier trait) {
         return TraitFamilies.description(ForgeweaveTraits.canonical(trait));
     }
 
@@ -413,7 +413,7 @@ public final class MaterialPageContent {
      * out of the book's own language file and skips the quote entirely when it is absent, which for
      * its shipped book is every material but wood and stone.
      */
-    public static String flavourKey(ResourceLocation id) {
+    public static String flavourKey(Identifier id) {
         return "material." + id.getNamespace() + "." + id.getPath() + ".flavour";
     }
 }

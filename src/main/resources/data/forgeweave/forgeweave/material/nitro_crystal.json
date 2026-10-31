@@ -49,21 +49,17 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "powah:crystal_nitro"
-      },
+      "ingredient": "powah:crystal_nitro",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "powah:crystal_nitro"
-  },
+  "repair_item": "powah:crystal_nitro",
   "enchantability": 16,
   "color": "#E63946",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "powah:crystal_nitro"
+      "type": "neoforge:registered",
+      "value": "powah:crystal_nitro"
     }
   ]
 }

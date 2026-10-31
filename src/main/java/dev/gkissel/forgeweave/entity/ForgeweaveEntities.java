@@ -6,7 +6,9 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.Slime;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -30,7 +32,7 @@ import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
  * the blue slime (issue #451). Deliberately just the registry plumbing; see
  * {@link IndestructibleItemEntity} and {@link ShurikenEntity} for what each entity does.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = Forgeweave.MODID)
 public final class ForgeweaveEntities {
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPES =
             DeferredRegister.create(Registries.ENTITY_TYPE, Forgeweave.MODID);
@@ -51,11 +53,11 @@ public final class ForgeweaveEntities {
      */
     public static final DeferredHolder<EntityType<?>, EntityType<ShurikenEntity>> SHURIKEN =
             ENTITY_TYPES.register("shuriken",
-                    () -> EntityType.Builder.<ShurikenEntity>of(ShurikenEntity::new, MobCategory.MISC)
+                    id -> EntityType.Builder.<ShurikenEntity>of(ShurikenEntity::new, MobCategory.MISC)
                             .sized(0.3F, 0.1F)
                             .clientTrackingRange(4)
                             .updateInterval(20)
-                            .build("shuriken"));
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE, id)));
 
     /**
      * The fired material arrow (issue #653). Upstream 1.12 registers it 64-block tracked at a
@@ -65,22 +67,22 @@ public final class ForgeweaveEntities {
      */
     public static final DeferredHolder<EntityType<?>, EntityType<ArrowEntity>> ARROW =
             ENTITY_TYPES.register("arrow",
-                    () -> EntityType.Builder.<ArrowEntity>of(ArrowEntity::new, MobCategory.MISC)
+                    id -> EntityType.Builder.<ArrowEntity>of(ArrowEntity::new, MobCategory.MISC)
                             .sized(0.5F, 0.5F)
                             .eyeHeight(0.13F)
                             .clientTrackingRange(4)
                             .updateInterval(20)
-                            .build("arrow"));
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE, id)));
 
     public static final DeferredHolder<EntityType<?>, EntityType<IndestructibleItemEntity>> INDESTRUCTIBLE_ITEM =
             ENTITY_TYPES.register("indestructible_item",
-                    () -> EntityType.Builder.<IndestructibleItemEntity>of(IndestructibleItemEntity::new, MobCategory.MISC)
+                    id -> EntityType.Builder.<IndestructibleItemEntity>of(IndestructibleItemEntity::new, MobCategory.MISC)
                             .sized(0.25F, 0.25F)
                             .fireImmune()
                             .eyeHeight(ItemEntity.EYE_HEIGHT)
                             .clientTrackingRange(6)
                             .updateInterval(20)
-                            .build("indestructible_item"));
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE, id)));
 
     /**
      * The blue slime (issue #451, parity audit T20), upstream 1.12's {@code EntityBlueSlime}: the
@@ -107,12 +109,12 @@ public final class ForgeweaveEntities {
      */
     public static final DeferredHolder<EntityType<?>, EntityType<Slime>> BLUE_SLIME =
             ENTITY_TYPES.register("blue_slime",
-                    () -> EntityType.Builder.<Slime>of(Slime::new, MobCategory.MONSTER)
+                    id -> EntityType.Builder.<Slime>of(Slime::new, MobCategory.MONSTER)
                             .sized(0.52F, 0.52F)
                             .eyeHeight(0.325F)
                             .spawnDimensionsScale(4.0F)
                             .clientTrackingRange(10)
-                            .build("blue_slime"));
+                            .build(ResourceKey.create(Registries.ENTITY_TYPE, id)));
 
     /**
      * Upstream {@code EntityBlueSlime#getCanSpawnHere}: a blue slime may only appear standing on
@@ -131,11 +133,11 @@ public final class ForgeweaveEntities {
      * Upstream's islands float in daylight and its slimes spawn on them regardless.
      */
     public static boolean canSpawnHere(EntityType<Slime> type, ServerLevelAccessor level,
-            MobSpawnType reason, BlockPos pos, RandomSource random) {
+            EntitySpawnReason reason, BlockPos pos, RandomSource random) {
         if (level.getDifficulty() == Difficulty.PEACEFUL) {
             return false;
         }
-        if (reason == MobSpawnType.SPAWNER) {
+        if (reason == EntitySpawnReason.SPAWNER) {
             return true;
         }
         return ForgeweaveBlocks.isSlimeGrass(level.getBlockState(pos.below()).getBlock());

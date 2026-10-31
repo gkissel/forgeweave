@@ -2,7 +2,7 @@ package dev.gkissel.forgeweave.gametest;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -12,15 +12,15 @@ import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.HopperBlockEntity;
 import net.minecraft.world.level.material.Fluids;
 
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 import net.neoforged.neoforge.items.IItemHandler;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
+import dev.gkissel.forgeweave.block.TransferBridge;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlockEntity;
 import dev.gkissel.forgeweave.block.SmelteryStructure;
 
@@ -65,10 +65,10 @@ public class SmelteryIoGameTests {
     public static void aDuctAndAChuteAreValidWallBlocks(GameTestHelper helper) {
         BlockPos core = buildSmelteryWithIo(helper);
 
-        SmelteryStructure structure = helper.<SmelteryControllerBlockEntity>getBlockEntity(core).structure();
+        SmelteryStructure structure = helper.getBlockEntity(core, SmelteryControllerBlockEntity.class).structure();
         helper.assertTrue(structure != null,
                 "expected a duct and a chute in the walls to still let the smeltery form: "
-                        + helper.<SmelteryControllerBlockEntity>getBlockEntity(core).lastResult().getString());
+                        + helper.getBlockEntity(core, SmelteryControllerBlockEntity.class).lastResult().getString());
         helper.succeed();
     }
 
@@ -164,7 +164,7 @@ public class SmelteryIoGameTests {
         helper.assertTrue(chute.getSlots() > 0, "expected the chute to expose the melting slots");
         helper.assertTrue(chute.insertItem(0, new ItemStack(Items.IRON_INGOT), false).isEmpty(),
                 "expected the chute to take an iron ingot");
-        helper.assertTrue(helper.<SmelteryControllerBlockEntity>getBlockEntity(core).meltingItems().stream()
+        helper.assertTrue(helper.getBlockEntity(core, SmelteryControllerBlockEntity.class).meltingItems().stream()
                         .anyMatch(stack -> stack.is(Items.IRON_INGOT)),
                 "expected the ingot to land in the melting inventory");
         helper.succeed();
@@ -190,7 +190,7 @@ public class SmelteryIoGameTests {
 
         ItemStack taken = chute.extractItem(0, 1, false);
         helper.assertTrue(taken.is(Items.IRON_INGOT), "expected the chute to hand the ingot back, got " + taken);
-        helper.assertTrue(helper.<SmelteryControllerBlockEntity>getBlockEntity(core).meltingItems().stream()
+        helper.assertTrue(helper.getBlockEntity(core, SmelteryControllerBlockEntity.class).meltingItems().stream()
                         .allMatch(ItemStack::isEmpty),
                 "expected the melting inventory to be empty again");
         helper.succeed();
@@ -225,7 +225,7 @@ public class SmelteryIoGameTests {
                 "expected the core to refuse a stick");
         helper.assertTrue(handler.insertItem(0, new ItemStack(Items.IRON_INGOT), false).isEmpty(),
                 "expected the core to take an iron ingot");
-        helper.assertTrue(helper.<SmelteryControllerBlockEntity>getBlockEntity(core).meltingItems().stream()
+        helper.assertTrue(helper.getBlockEntity(core, SmelteryControllerBlockEntity.class).meltingItems().stream()
                         .anyMatch(stack -> stack.is(Items.IRON_INGOT)),
                 "expected the ingot to land in the melting inventory");
         helper.succeed();
@@ -241,14 +241,14 @@ public class SmelteryIoGameTests {
         SmelteryGameTests.buildWalls(helper, 1, 1, 2);
         BlockPos core = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
         helper.setBlock(HOPPER, Blocks.HOPPER.defaultBlockState().setValue(HopperBlock.FACING, Direction.SOUTH));
-        helper.<HopperBlockEntity>getBlockEntity(HOPPER).setItem(0, new ItemStack(Items.IRON_INGOT));
+        helper.getBlockEntity(HOPPER, HopperBlockEntity.class).setItem(0, new ItemStack(Items.IRON_INGOT));
 
         helper.startSequence()
                 .thenWaitUntil(() -> helper.assertTrue(
-                        helper.<SmelteryControllerBlockEntity>getBlockEntity(core).meltingItems().stream()
+                        helper.getBlockEntity(core, SmelteryControllerBlockEntity.class).meltingItems().stream()
                                 .anyMatch(stack -> stack.is(Items.IRON_INGOT)),
                         "expected the hopper to have pushed the ingot into the melting inventory"))
-                .thenExecute(() -> helper.assertTrue(helper.<HopperBlockEntity>getBlockEntity(HOPPER).isEmpty(),
+                .thenExecute(() -> helper.assertTrue(helper.getBlockEntity(HOPPER, HopperBlockEntity.class).isEmpty(),
                         "expected the hopper to have emptied itself into the core"))
                 .thenSucceed();
     }
@@ -274,15 +274,15 @@ public class SmelteryIoGameTests {
     }
 
     private static dev.gkissel.forgeweave.block.SmelteryTank tankOf(GameTestHelper helper, BlockPos core) {
-        return helper.<SmelteryControllerBlockEntity>getBlockEntity(core).tank();
+        return helper.getBlockEntity(core, SmelteryControllerBlockEntity.class).tank();
     }
 
     private static IFluidHandler fluids(GameTestHelper helper, BlockPos pos) {
-        return helper.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, helper.absolutePos(pos), null);
+        return TransferBridge.fluidAt(helper.getLevel(), helper.absolutePos(pos), null);
     }
 
     private static IItemHandler items(GameTestHelper helper, BlockPos pos) {
-        return helper.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, helper.absolutePos(pos), null);
+        return TransferBridge.itemsAt(helper.getLevel(), helper.absolutePos(pos), null);
     }
 
     private static IFluidHandler requireFluids(GameTestHelper helper, BlockPos pos) {

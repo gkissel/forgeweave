@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import net.neoforged.fml.ModList;
 
@@ -21,21 +21,21 @@ import dev.gkissel.forgeweave.config.ForgeweaveConfig;
  *
  * <p>Table entries mirror each material's own {@code neoforge:conditions} exactly (same item ids the
  * material JSON, its melting recipes and its casting recipes key on): {@link #ANY_OF} for a plain
- * {@code neoforge:item_exists} or an {@code neoforge:or} across providers (lead, uranium -- JC2's
+ * {@code neoforge:registered} or an {@code neoforge:or} across providers (lead, uranium -- JC2's
  * "gate by material name, not by mod"), {@link #ALL_OF} for the three alloys' AND-of-inputs gate
  * (deliverable 4). A material id absent from both tables is unconditional (every native and Track B
  * material, plus the two new gem materials) and always reports available.
  *
  * <p>Checked against the live item registry rather than re-evaluating the datapack condition tree:
  * by the time the creative tab or JEI builds its listing, every mod's items are already registered,
- * so {@code BuiltInRegistries.ITEM.containsKey} answers exactly what {@code neoforge:item_exists}
+ * so {@code BuiltInRegistries.ITEM.containsKey} answers exactly what {@code neoforge:registered}
  * itself answers at registry-sync time -- without this class needing its own JSON parser.
  */
 public final class CompatMaterialAvailability {
 
     // Mirrors each material JSON's own `neoforge:conditions`. Multi-entry lists are an
-    // `neoforge:or` (any one provider is enough); every other entry is a plain `item_exists`.
-    private static final Map<String, List<ResourceLocation>> ANY_OF = Map.ofEntries(
+    // `neoforge:or` (any one provider is enough); every other entry is a plain `registered`.
+    private static final Map<String, List<Identifier>> ANY_OF = Map.ofEntries(
             entry("zinc", "create:zinc_ingot"),
             entry("brass", "create:brass_ingot"),
             entry("andesite_alloy", "create:andesite_alloy"),
@@ -97,7 +97,7 @@ public final class CompatMaterialAvailability {
             entry("ludicrite", "bigreactors:ludicrite_ingot"),
             entry("uraninite", "powah:uraninite_raw", "eternalores:uraninite_ingot"),
             // #946 -- the three fusion metals. Each one's gate is the Draconic Evolution core its own
-            // fusion recipe consumes, which is also what its material JSON's `neoforge:item_exists`
+            // fusion recipe consumes, which is also what its material JSON's `neoforge:registered`
             // names; no DE, no core item, no metal.
             // #965 -- the draconium core material and duskweld, the inert rung under the three
             // fusion metals. Both gate on draconicevolution:draconium_core, the item Draconic
@@ -112,7 +112,7 @@ public final class CompatMaterialAvailability {
             // #993's GameTest can reach it with no Mekanism on the classpath (TrackBAlloy's own
             // comment has the reasoning). This row is what still keeps its ingot, nugget and block
             // out of creative and JEI without Mekanism, and its melting and casting rows carry the
-            // same item_exists gate.
+            // same registered gate.
             entry("atomic_matter_alloy", "mekanism:alloy_atomic"),
             // Issue #1058 (D-M8-24): the nine ingot-shaped materials that own a Forgeweave-registered
             // molten fluid and bucket, mirroring each one's own neoforge:conditions anchor item.
@@ -173,17 +173,17 @@ public final class CompatMaterialAvailability {
 
     // The three PlusTiC-inspiration alloys (issue #873 deliverable 4): condition is the AND of their
     // compat inputs' own providers (native inputs -- iron, obsidian, glass -- need no entry).
-    private static final Map<String, List<ResourceLocation>> ALL_OF = Map.of(
+    private static final Map<String, List<Identifier>> ALL_OF = Map.of(
             "alumite", ids("immersiveengineering:ingot_aluminum"),
             "osgloglas", ids("mekanism:ingot_osmium", "mekanism:ingot_refined_obsidian"),
             "osmiridium", ids("mekanism:ingot_osmium", "modern_industrialization:iridium_ingot"));
 
-    private static Map.Entry<String, List<ResourceLocation>> entry(String materialId, String... items) {
+    private static Map.Entry<String, List<Identifier>> entry(String materialId, String... items) {
         return Map.entry(materialId, ids(items));
     }
 
-    private static List<ResourceLocation> ids(String... items) {
-        return List.of(items).stream().map(ResourceLocation::parse).toList();
+    private static List<Identifier> ids(String... items) {
+        return List.of(items).stream().map(Identifier::parse).toList();
     }
 
     /**
@@ -195,18 +195,18 @@ public final class CompatMaterialAvailability {
             return ModList.get().isLoaded("elementarium")
                     && ForgeweaveConfig.enabled(ForgeweaveConfig.ELEMENTARIUM_MATERIALS);
         }
-        List<ResourceLocation> anyOf = ANY_OF.get(materialId);
+        List<Identifier> anyOf = ANY_OF.get(materialId);
         if (anyOf != null) {
             return anyOf.stream().anyMatch(CompatMaterialAvailability::itemRegistered);
         }
-        List<ResourceLocation> allOf = ALL_OF.get(materialId);
+        List<Identifier> allOf = ALL_OF.get(materialId);
         if (allOf != null) {
             return allOf.stream().allMatch(CompatMaterialAvailability::itemRegistered);
         }
         return true;
     }
 
-    private static boolean itemRegistered(ResourceLocation id) {
+    private static boolean itemRegistered(Identifier id) {
         return BuiltInRegistries.ITEM.containsKey(id);
     }
 

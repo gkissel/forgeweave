@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/chromium"
-  },
+  "input": "#c:storage_blocks/chromium",
   "fluid": "forgeweave:molten_elementarium_chromium",
   "amount": 1296,
   "temperature": 1200,

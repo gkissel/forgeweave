@@ -3,6 +3,7 @@ package dev.gkissel.forgeweave.tool;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -47,7 +48,7 @@ public final class EntityShear {
             return InteractionResult.PASS;
         }
         return shear(stack, player, target, shearable, hand)
-                ? InteractionResult.sidedSuccess(target.level().isClientSide())
+                ? InteractionResult.SUCCESS
                 : InteractionResult.PASS;
     }
 
@@ -70,7 +71,7 @@ public final class EntityShear {
         }
         level.playSound(player, player.getX(), player.getY(), player.getZ(), SoundEvents.PLAYER_ATTACK_SWEEP,
                 player.getSoundSource(), 1.0F, 1.0F);
-        return InteractionResult.sidedSuccess(level.isClientSide());
+        return InteractionResult.SUCCESS;
     }
 
     /** One entity's shear attempt, upstream's {@code Kama#shearEntity}; shared by both reaches above. */
@@ -84,8 +85,8 @@ public final class EntityShear {
         boolean isClient = level.isClientSide();
         List<ItemStack> drops = shearable.onSheared(player, stack, level, pos);
         if (!isClient) {
-            drops.forEach(drop -> shearable.spawnShearedDrop(level, pos, drop));
-            stack.hurtAndBreak(1, player, LivingEntity.getSlotForHand(hand));
+            drops.forEach(drop -> shearable.spawnShearedDrop((ServerLevel) level, pos, drop));
+            stack.hurtAndBreak(1, player, hand.asEquipmentSlot());
         }
         entity.gameEvent(GameEvent.SHEAR, player);
         return true;

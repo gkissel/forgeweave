@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import net.minecraft.SharedConstants;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 
 import dev.gkissel.forgeweave.trackb.TrackBOre;
@@ -54,7 +54,7 @@ class ForgeweaveCropTest {
     @Test
     void everyCruxIsARegisteredForgeweaveBlock() {
         for (ForgeweaveCrop crop : ForgeweaveCrop.ALL) {
-            ResourceLocation id = crop.crux().getId();
+            Identifier id = crop.crux().getId();
             assertNotNull(crop.crux(), crop.id() + " has no crux");
             assertTrue(BuiltInRegistries.BLOCK.containsKey(id),
                     crop.id() + "'s crux " + id + " is not a registered block");

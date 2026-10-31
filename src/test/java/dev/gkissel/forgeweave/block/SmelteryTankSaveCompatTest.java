@@ -11,6 +11,7 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.level.material.Fluids;
 
@@ -48,7 +49,7 @@ class SmelteryTankSaveCompatTest {
     @Test
     void aPreIssue101SingleFluidTankStillLoads() {
         CompoundTag legacy = new CompoundTag();
-        legacy.put("Fluid", new FluidStack(Fluids.LAVA, 777).save(registries));
+        legacy.put("Fluid", FluidStack.CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), new FluidStack(Fluids.LAVA, 777)).getOrThrow());
 
         SmelteryTank tank = tank();
         tank.readFromNBT(registries, legacy);
@@ -70,7 +71,7 @@ class SmelteryTankSaveCompatTest {
     @Test
     void aLegacyTankIsRewrittenInTheListShape() {
         CompoundTag legacy = new CompoundTag();
-        legacy.put("Fluid", new FluidStack(Fluids.LAVA, 500).save(registries));
+        legacy.put("Fluid", FluidStack.CODEC.encodeStart(registries.createSerializationContext(NbtOps.INSTANCE), new FluidStack(Fluids.LAVA, 500)).getOrThrow());
 
         SmelteryTank tank = tank();
         tank.readFromNBT(registries, legacy);

@@ -17,7 +17,7 @@ import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 
@@ -365,7 +365,7 @@ public final class StationText {
      * {@code getLocalizedDesc()} handed to the panel as that row's tooltip. It roughly thirds the
      * scroll length of a many-trait material, which is the point.
      */
-    public static List<Component> traits(@Nullable TextColor color, List<ResourceLocation> traitIds) {
+    public static List<Component> traits(@Nullable TextColor color, List<Identifier> traitIds) {
         return traitIds.stream().map(id -> traitLine(color, id, ItemStack.EMPTY)).toList();
     }
 
@@ -380,8 +380,8 @@ public final class StationText {
      * has no assembled tool at all, keeps showing the constant-valued ones only.
      */
     public static List<Component> toolTraits(@Nullable HolderLookup.Provider registries, ToolMaterials materials,
-            List<ResourceLocation> traitIds, ItemStack tool) {
-        List<ResourceLocation> materialIds = materials.all();
+            List<Identifier> traitIds, ItemStack tool) {
+        List<Identifier> materialIds = materials.all();
         return traitIds.stream()
                 .map(id -> traitLine(MaterialDisplay.traitColor(registries, materialIds, id), id, tool))
                 .toList();
@@ -392,8 +392,8 @@ public final class StationText {
      * {@link ForgeweaveTraits#canonical(List)} since #1103, so a tool built before a merge shows
      * the family that replaced its old names rather than a raw lang key, and shows it once.
      */
-    public static List<ResourceLocation> traitIdsOf(ItemStack stack) {
-        List<ResourceLocation> ids = stack.get(ForgeweaveDataComponents.TRAITS.get());
+    public static List<Identifier> traitIdsOf(ItemStack stack) {
+        List<Identifier> ids = stack.get(ForgeweaveDataComponents.TRAITS.get());
         return ids == null ? List.of() : ForgeweaveTraits.canonical(ids);
     }
 
@@ -482,14 +482,14 @@ public final class StationText {
      * <p>Only the <em>amount</em> goes {@code DARK_RED} when it falls short of the pattern's cost;
      * upstream wraps just that substring and lets the label stay in the line's own grey.
      */
-    public static Component materialValue(float ingots, boolean enough, ResourceLocation materialId) {
+    public static Component materialValue(float ingots, boolean enough, Identifier materialId) {
         Component amount = Component.literal(formatNumber(ingots));
         return Component.translatable("gui.forgeweave.part_builder.material_value",
                 enough ? amount : amount.copy().withStyle(ChatFormatting.DARK_RED),
                 MaterialDisplay.plainName(materialId));
     }
 
-    private static Component traitLine(@Nullable TextColor color, ResourceLocation id, ItemStack tool) {
+    private static Component traitLine(@Nullable TextColor color, Identifier id, ItemStack tool) {
         // #1103: the name and the description come off the family's own keys where this id is a rung
         // of one, with the roman numeral appended and the rung's numbers interpolated.
         id = ForgeweaveTraits.canonical(id);
@@ -516,7 +516,7 @@ public final class StationText {
      */
     private static Component withHover(MutableComponent line, Component description) {
         Component hover = line.copy().append("\n").append(description.copy().withStyle(ChatFormatting.GRAY));
-        return line.withStyle(style -> style.withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, hover)));
+        return line.withStyle(style -> style.withHoverEvent(new HoverEvent.ShowText(hover)));
     }
 
     private StationText() {}

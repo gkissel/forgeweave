@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_maille"
-  },
+  "cast": "forgeweave:cast_maille",
   "fluid": "forgeweave:molten_brass",
   "amount": 288,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "create:brass_ingot"
+      "type": "neoforge:registered",
+      "value": "create:brass_ingot"
     }
   ]
 }

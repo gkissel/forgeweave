@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dirty_dusts/gold"
-  },
+  "input": "#c:dirty_dusts/gold",
   "fluid": "forgeweave:molten_gold",
   "amount": 144
 }

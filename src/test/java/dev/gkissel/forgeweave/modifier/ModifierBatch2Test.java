@@ -20,11 +20,12 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -46,7 +47,7 @@ class ModifierBatch2Test {
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(JsonOps.INSTANCE);
     }
 
     private static ModifierRecipe shippedRecipe(String path) {
@@ -75,7 +76,7 @@ class ModifierBatch2Test {
     @Test
     void reinforcedChanceIsTwentyPercentPerLevelUpToUnbreakableAtFive() {
         ModifierRecipe recipe = shippedRecipe("/data/forgeweave/forgeweave/modifier_recipe/reinforced.json");
-        assertEquals(ResourceLocation.fromNamespaceAndPath("forgeweave", "reinforced"), recipe.modifier());
+        assertEquals(Identifier.fromNamespaceAndPath("forgeweave", "reinforced"), recipe.modifier());
         assertEquals(5, recipe.maxLevel(), "upstream ModReinforced's own maxLevel");
         assertTrue(recipe.reagent().test(new ItemStack(ForgeweaveItems.REINFORCED_PLATE.get())));
 
@@ -94,7 +95,7 @@ class ModifierBatch2Test {
     @Test
     void mendingMossHealsMoreAndStoresMorePerLevel() {
         ModifierRecipe recipe = shippedRecipe("/data/forgeweave/forgeweave/modifier_recipe/mending_moss.json");
-        assertEquals(ResourceLocation.fromNamespaceAndPath("forgeweave", "mending_moss"), recipe.modifier());
+        assertEquals(Identifier.fromNamespaceAndPath("forgeweave", "mending_moss"), recipe.modifier());
         assertEquals(3, recipe.maxLevel(), "upstream ModMendingMoss's own maxLevel");
         assertTrue(recipe.reagent().test(new ItemStack(ForgeweaveItems.MENDING_MOSS.get())));
 
@@ -114,7 +115,7 @@ class ModifierBatch2Test {
     @Test
     void silkyGrantsSilkTouchAtTheCostOfThreeOffEachStat() {
         ModifierRecipe recipe = shippedRecipe("/data/forgeweave/forgeweave/modifier_recipe/silky.json");
-        assertEquals(ResourceLocation.fromNamespaceAndPath("forgeweave", "silky"), recipe.modifier());
+        assertEquals(Identifier.fromNamespaceAndPath("forgeweave", "silky"), recipe.modifier());
         assertEquals(1, recipe.maxLevel(), "silky is a single application (upstream's SingleAspect)");
         assertTrue(recipe.reagent().test(new ItemStack(ForgeweaveItems.SILKY_JEWEL.get())));
 
@@ -139,7 +140,7 @@ class ModifierBatch2Test {
     @Test
     void soulboundIsANetherStarSingleApplication() {
         ModifierRecipe recipe = shippedRecipe("/data/forgeweave/forgeweave/modifier_recipe/soulbound.json");
-        assertEquals(ResourceLocation.fromNamespaceAndPath("forgeweave", "soulbound"), recipe.modifier());
+        assertEquals(Identifier.fromNamespaceAndPath("forgeweave", "soulbound"), recipe.modifier());
         assertEquals(1, recipe.maxLevel());
         assertTrue(recipe.reagent().test(new ItemStack(Items.NETHER_STAR)));
         assertFalse(recipe.reagent().test(new ItemStack(Items.DIAMOND)));
@@ -153,7 +154,7 @@ class ModifierBatch2Test {
     @Test
     void extraSlotNetsPlusOneFreeSlotPerLevel() {
         ModifierRecipe recipe = shippedRecipe("/data/forgeweave/forgeweave/modifier_recipe/extra_slot.json");
-        assertEquals(ResourceLocation.fromNamespaceAndPath("forgeweave", "extra_slot"), recipe.modifier());
+        assertEquals(Identifier.fromNamespaceAndPath("forgeweave", "extra_slot"), recipe.modifier());
         assertTrue(recipe.reagent().test(new ItemStack(ForgeweaveItems.EXTRA_MODIFIER.get())));
 
         // The bonusSlots trap this modifier exists to demonstrate (Modifier#bonusSlots's javadoc):

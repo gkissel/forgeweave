@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_katana_blade"
-  },
+  "cast": "forgeweave:clay_cast_katana_blade",
   "fluid": "forgeweave:molten_rose_gold",
   "amount": 432,
   "result": {

@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_shard"
-  },
+  "cast": "forgeweave:clay_cast_shard",
   "fluid": "forgeweave:molten_dragonsteel_lightning",
   "amount": 72,
   "result": {
@@ -14,8 +12,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "iceandfire:dragonsteel_lightning_ingot"
+      "type": "neoforge:registered",
+      "value": "iceandfire:dragonsteel_lightning_ingot"
     }
   ]
 }

@@ -21,7 +21,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.flag.FeatureFlags;
@@ -187,7 +187,7 @@ class ForgeweaveCreativeTabTest {
     /** The first registered material is the one upstream's "first found material" keeps. */
     @Test
     void switchingListAllPartMaterialsOffKeepsTheFirstMaterial() {
-        List<ResourceLocation> kept = partStacks(build(false, MATERIALS)).stream()
+        List<Identifier> kept = partStacks(build(false, MATERIALS)).stream()
                 .map(stack -> stack.get(ForgeweaveDataComponents.MATERIAL.get()))
                 .distinct()
                 .toList();
@@ -195,10 +195,10 @@ class ForgeweaveCreativeTabTest {
         assertEquals(List.of(MATERIALS.getFirst()), kept);
     }
 
-    private static final List<ResourceLocation> MATERIALS = List.of(
-            ResourceLocation.fromNamespaceAndPath("forgeweave", "test_first"),
-            ResourceLocation.fromNamespaceAndPath("forgeweave", "test_second"),
-            ResourceLocation.fromNamespaceAndPath("forgeweave", "test_third"));
+    private static final List<Identifier> MATERIALS = List.of(
+            Identifier.fromNamespaceAndPath("forgeweave", "test_first"),
+            Identifier.fromNamespaceAndPath("forgeweave", "test_second"),
+            Identifier.fromNamespaceAndPath("forgeweave", "test_third"));
 
     private static List<ItemStack> partStacks(List<ItemStack> displayed) {
         return displayed.stream().filter(stack -> stack.getItem() instanceof PartItem).toList();
@@ -209,7 +209,7 @@ class ForgeweaveCreativeTabTest {
     }
 
     /** The union of every tab, i.e. everything the mod puts in front of a creative player. */
-    private static List<ItemStack> build(boolean listAllPartMaterials, List<ResourceLocation> materialIds) {
+    private static List<ItemStack> build(boolean listAllPartMaterials, List<Identifier> materialIds) {
         CreativeModeTab.ItemDisplayParameters parameters = parameters(materialIds);
         List<ItemStack> displayed = new ArrayList<>();
         CreativeModeTab.Output output = (stack, visibility) -> displayed.add(stack);
@@ -239,9 +239,9 @@ class ForgeweaveCreativeTabTest {
         return displayed;
     }
 
-    private static CreativeModeTab.ItemDisplayParameters parameters(List<ResourceLocation> materialIds) {
+    private static CreativeModeTab.ItemDisplayParameters parameters(List<Identifier> materialIds) {
         MappedRegistry<Material> materials = new MappedRegistry<>(Material.REGISTRY, Lifecycle.stable());
-        for (ResourceLocation id : materialIds) {
+        for (Identifier id : materialIds) {
             materials.register(ResourceKey.create(Material.REGISTRY, id), dummyMaterial(), RegistrationInfo.BUILT_IN);
         }
         materials.freeze();
@@ -261,7 +261,7 @@ class ForgeweaveCreativeTabTest {
                 Optional.of(new Material.Head(100, 1f, 1f)),
                 Optional.of(new Material.Handle(1f, 0)),
                 Optional.of(0),
-                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool")),
+                TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace("incorrect_for_stone_tool")),
                 new Material.Traits(List.of(), List.of()),
                 List.of(new Material.CraftingItem(Ingredient.of(Items.BONE), 1)),
                 Ingredient.of(Items.BONE),

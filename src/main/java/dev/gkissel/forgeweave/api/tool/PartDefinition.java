@@ -2,7 +2,7 @@ package dev.gkissel.forgeweave.api.tool;
 
 import java.util.function.Supplier;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 
 /**
@@ -27,20 +27,20 @@ import net.minecraft.world.item.Item;
  *     {@link ForgeweaveTools#INGOT_VALUE}
  */
 public record PartDefinition(
-        ResourceLocation partId,
+        Identifier partId,
         PartKind kind,
         Supplier<? extends Item> part,
         Supplier<? extends Item> pattern,
         int cost) {
 
     /** A part stamped from a pattern at the Part Builder, and offered at the Stencil Table. */
-    public static PartDefinition stamped(ResourceLocation partId, PartKind kind, Supplier<? extends Item> part,
+    public static PartDefinition stamped(Identifier partId, PartKind kind, Supplier<? extends Item> part,
             Supplier<? extends Item> pattern, int cost) {
         return new PartDefinition(partId, kind, part, pattern, cost);
     }
 
     /** A part with no pattern: castable, never stamped. */
-    public static PartDefinition castOnly(ResourceLocation partId, PartKind kind, Supplier<? extends Item> part,
+    public static PartDefinition castOnly(Identifier partId, PartKind kind, Supplier<? extends Item> part,
             int cost) {
         return new PartDefinition(partId, kind, part, null, cost);
     }

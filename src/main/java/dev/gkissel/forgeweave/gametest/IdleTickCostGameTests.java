@@ -6,9 +6,9 @@ import java.util.Set;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -18,8 +18,8 @@ import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ChestBlock;
@@ -65,7 +65,7 @@ public class IdleTickCostGameTests {
         Set<Class<? extends Block>> seen = new HashSet<>();
         int swept = 0;
         for (Block block : BuiltInRegistries.BLOCK) {
-            ResourceLocation id = BuiltInRegistries.BLOCK.getKey(block);
+            Identifier id = BuiltInRegistries.BLOCK.getKey(block);
             if (!id.getNamespace().equals(Forgeweave.MODID) || !(block instanceof EntityBlock entityBlock)) {
                 continue;
             }
@@ -116,7 +116,7 @@ public class IdleTickCostGameTests {
             helper.assertFalse(worn.isEmpty(), "the set must cover the " + slot.getName() + " slot");
             ItemStack before = worn.copy();
             for (int tick = 0; tick < TICKS; tick++) {
-                worn.inventoryTick(helper.getLevel(), player, slot.getIndex(), false);
+                worn.inventoryTick(helper.getLevel(), player, slot);
             }
             helper.assertTrue(ItemStack.isSameItemSameComponents(before, worn) && before.getCount() == worn.getCount(),
                     "the worn " + slot.getName() + " piece must be unchanged after " + TICKS + " ticks: "

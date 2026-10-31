@@ -22,9 +22,10 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 import dev.gkissel.forgeweave.trait.TraitBehaviors;
 import dev.gkissel.forgeweave.trait.TraitDefinition;
@@ -38,15 +39,15 @@ class TraitRegistryTest {
 
     private static RegistryOps<JsonElement> ops;
 
-    private static final ResourceLocation ADDON = ResourceLocation.fromNamespaceAndPath("testaddon", "frosty");
-    private static final ResourceLocation ADDON_BEHAVIOR =
-            ResourceLocation.fromNamespaceAndPath("testaddon", "flat_bonus");
+    private static final Identifier ADDON = Identifier.fromNamespaceAndPath("testaddon", "frosty");
+    private static final Identifier ADDON_BEHAVIOR =
+            Identifier.fromNamespaceAndPath("testaddon", "flat_bonus");
 
     @BeforeAll
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(JsonOps.INSTANCE);
     }
 
     /**
@@ -108,7 +109,7 @@ class TraitRegistryTest {
     /** The one collision that does not throw: the built-in behaviour keeps the id. */
     @Test
     void aBuiltInIdWins() {
-        ResourceLocation builtIn = ResourceLocation.fromNamespaceAndPath("forgeweave", "ecological");
+        Identifier builtIn = Identifier.fromNamespaceAndPath("forgeweave", "ecological");
         Trait shipped = ForgeweaveTraits.lookup(builtIn);
         assertNotNull(shipped, "forgeweave:ecological should be a built-in trait");
 

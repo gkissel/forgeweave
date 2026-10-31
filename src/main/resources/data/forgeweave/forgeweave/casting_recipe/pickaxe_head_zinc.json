@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_pickaxe_head"
-  },
+  "cast": "forgeweave:cast_pickaxe_head",
   "fluid": "forgeweave:molten_zinc",
   "amount": 288,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "create:zinc_ingot"
+      "type": "neoforge:registered",
+      "value": "create:zinc_ingot"
     }
   ]
 }

@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_sign_plate"
-  },
+  "cast": "forgeweave:clay_cast_sign_plate",
   "fluid": "forgeweave:molten_titanium",
   "amount": 432,
   "result": {
@@ -17,12 +15,12 @@
       "type": "neoforge:or",
       "values": [
         {
-          "type": "neoforge:item_exists",
-          "item": "modern_industrialization:titanium_ingot"
+          "type": "neoforge:registered",
+          "value": "modern_industrialization:titanium_ingot"
         },
         {
-          "type": "neoforge:item_exists",
-          "item": "eternalores:titanium_ingot"
+          "type": "neoforge:registered",
+          "value": "eternalores:titanium_ingot"
         }
       ]
     }

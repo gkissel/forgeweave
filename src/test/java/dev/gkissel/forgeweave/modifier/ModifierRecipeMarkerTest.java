@@ -18,7 +18,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.SharedConstants;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 
 /**
@@ -63,7 +63,7 @@ class ModifierRecipeMarkerTest {
                         continue;
                     }
                     recipes++;
-                    ResourceLocation id = ResourceLocation.parse(modifier.getAsString());
+                    Identifier id = Identifier.parse(modifier.getAsString());
                     if (!ForgeweaveModifiers.RECIPE_MARKERS.contains(id) && ForgeweaveModifiers.get(id) == null) {
                         unknown.add(root.relativize(file) + " -> " + id);
                     }
@@ -77,7 +77,7 @@ class ModifierRecipeMarkerTest {
     @Test
     void theThreeMarkersThePlaytestLoggedAreKnown() {
         for (String path : List.of("fortification", "overslime", "socket_gem")) {
-            assertTrue(ForgeweaveModifiers.RECIPE_MARKERS.contains(ResourceLocation.fromNamespaceAndPath("forgeweave", path)),
+            assertTrue(ForgeweaveModifiers.RECIPE_MARKERS.contains(Identifier.fromNamespaceAndPath("forgeweave", path)),
                     path + " is a recipe marker and must not log as an unknown modifier");
         }
     }

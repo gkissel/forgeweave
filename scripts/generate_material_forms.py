@@ -198,7 +198,7 @@ def write_melting_rows() -> None:
                 continue
             name = f"{mat_id}_{form}"
             data = {
-                "input": {"tag": f"c:{form}s/{mat_id}"},
+                "input": f"#c:{form}s/{mat_id}",
                 "fluid": f"forgeweave:molten_{mat_id}",
                 "amount": amount,
             }

@@ -2,15 +2,9 @@
   "type": "forgeweave:gated_shaped",
   "category": "equipment",
   "key": {
-    "B": {
-      "item": "forgeweave:magma_slime_ball"
-    },
-    "C": {
-      "item": "forgeweave:magma_congealed_slime"
-    },
-    "S": {
-      "item": "minecraft:string"
-    }
+    "B": "forgeweave:magma_slime_ball",
+    "C": "forgeweave:magma_congealed_slime",
+    "S": "minecraft:string"
   },
   "pattern": [
     "SCS",
@@ -18,7 +12,6 @@
     " B "
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:magma_slime_sling"
   }
 }

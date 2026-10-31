@@ -2,7 +2,7 @@ package dev.gkissel.forgeweave.config;
 
 import java.util.List;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import net.neoforged.neoforge.common.ModConfigSpec;
 
@@ -1325,7 +1325,7 @@ public final class ForgeweaveConfig {
                 .comment("Prevents generation of slime islands in the listed dimensions.")
                 .defineListAllowEmpty("slimeIslandBlacklist",
                         List.<String>of("minecraft:the_nether", "minecraft:the_end"),
-                        value -> value instanceof String id && ResourceLocation.tryParse(id) != null);
+                        value -> value instanceof String id && Identifier.tryParse(id) != null);
         SLIME_ISLANDS_ONLY_IN_SURFACE_WORLDS = builder
                 .comment("If false, slime islands only generate in dimensions which are of type surface. This",
                         "means they won't generate in modded cave dimensions. Note that the name of this property",

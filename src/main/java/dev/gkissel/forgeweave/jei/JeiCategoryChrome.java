@@ -1,6 +1,6 @@
 package dev.gkissel.forgeweave.jei;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.helpers.IGuiHelper;
@@ -39,7 +39,7 @@ final class JeiCategoryChrome {
     }
 
     /** Draws {@link #slotFrame}'s 18x18 frame around the 16x16 slot whose origin is {@code (x, y)}. */
-    static void drawSlotFrame(IDrawable frame, GuiGraphics guiGraphics, int x, int y) {
+    static void drawSlotFrame(IDrawable frame, GuiGraphicsExtractor guiGraphics, int x, int y) {
         frame.draw(guiGraphics, x - 1, y - 1);
     }
 }

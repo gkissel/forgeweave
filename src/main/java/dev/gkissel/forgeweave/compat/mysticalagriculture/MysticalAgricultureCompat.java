@@ -3,7 +3,7 @@ package dev.gkissel.forgeweave.compat.mysticalagriculture;
 import com.blakebr0.mysticalagriculture.api.IMysticalAgriculturePlugin;
 import com.blakebr0.mysticalagriculture.api.MysticalAgriculturePlugin;
 import com.blakebr0.mysticalagriculture.api.crop.Crop;
-import com.blakebr0.mysticalagriculture.api.crop.CropTextures;
+import com.blakebr0.mysticalagriculture.api.crop.CropModels;
 import com.blakebr0.mysticalagriculture.api.crop.CropTier;
 import com.blakebr0.mysticalagriculture.api.crop.CropType;
 import com.blakebr0.mysticalagriculture.api.lib.LazyIngredient;
@@ -83,7 +83,11 @@ public class MysticalAgricultureCompat implements IMysticalAgriculturePlugin {
         boolean gem = crop.id().equals("brimspar") || crop.id().equals("fulmenite");
         String craftingItem = Forgeweave.MODID + ":" + (gem ? crop.id() + "_crystal" : crop.id() + "_ingot");
         return new Crop(crop.cropId(), tierOf(crop.tier()), CropType.RESOURCE,
-                gem ? CropTextures.GEM_CROP_TEXTURES : CropTextures.INGOT_CROP_TEXTURES,
+                // 26.1.2 renamed CropTextures to CropModels and dropped its presets; these are the
+                // old GEM_CROP_TEXTURES / INGOT_CROP_TEXTURES pairs, one fresh instance per crop
+                // because CropModels is mutable.
+                gem ? new CropModels(CropModels.FLOWER_ROCK_BLANK, CropModels.ESSENCE_GEM_BLANK)
+                        : new CropModels(CropModels.FLOWER_INGOT_BLANK, CropModels.ESSENCE_INGOT_BLANK),
                 crop.color(), LazyIngredient.item(craftingItem))
                 .setCruxBlock(crop.crux());
     }

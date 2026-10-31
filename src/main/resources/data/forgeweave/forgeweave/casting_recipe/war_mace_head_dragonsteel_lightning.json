@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_war_mace_head"
-  },
+  "cast": "forgeweave:cast_war_mace_head",
   "fluid": "forgeweave:molten_dragonsteel_lightning",
   "amount": 1152,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "iceandfire:dragonsteel_lightning_ingot"
+      "type": "neoforge:registered",
+      "value": "iceandfire:dragonsteel_lightning_ingot"
     }
   ]
 }

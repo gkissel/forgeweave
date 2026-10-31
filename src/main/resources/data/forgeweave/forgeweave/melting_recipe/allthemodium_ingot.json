@@ -1,14 +1,12 @@
 {
-  "input": {
-    "tag": "c:ingots/allthemodium"
-  },
+  "input": "#c:ingots/allthemodium",
   "fluid": "forgeweave:molten_allthemodium",
   "amount": 144,
   "temperature": 1800,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "allthemodium:allthemodium_ingot"
+      "type": "neoforge:registered",
+      "value": "allthemodium:allthemodium_ingot"
     }
   ]
 }

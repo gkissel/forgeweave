@@ -1,8 +1,6 @@
 {
   "modifier": "forgeweave:fins",
-  "reagent": {
-    "tag": "minecraft:fishes"
-  },
+  "reagent": "#minecraft:fishes",
   "cost": 2,
   "max_level": 1
 }

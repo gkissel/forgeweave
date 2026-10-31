@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_nugget"
-  },
+  "cast": "forgeweave:clay_cast_nugget",
   "fluid": "forgeweave:molten_nightshale",
   "amount": 16,
   "result": {

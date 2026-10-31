@@ -1,13 +1,13 @@
 package dev.gkissel.forgeweave.gametest;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -36,10 +36,10 @@ public class SearedGlassGameTests {
         helper.setBlock(new BlockPos(2, 2, 1), ForgeweaveBlocks.SEARED_GLASS.get());
         BlockPos core = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
 
-        SmelteryStructure structure = helper.<SmelteryControllerBlockEntity>getBlockEntity(core).structure();
+        SmelteryStructure structure = helper.getBlockEntity(core, SmelteryControllerBlockEntity.class).structure();
         helper.assertTrue(structure != null,
                 "expected seared glass in a wall to still let the smeltery form: "
-                        + helper.<SmelteryControllerBlockEntity>getBlockEntity(core).lastResult().getString());
+                        + helper.getBlockEntity(core, SmelteryControllerBlockEntity.class).lastResult().getString());
         helper.succeed();
     }
 
@@ -50,7 +50,7 @@ public class SearedGlassGameTests {
         helper.setBlock(new BlockPos(1, 1, 1), ForgeweaveBlocks.SEARED_GLASS.get());
         BlockPos core = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
 
-        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core);
+        SmelteryControllerBlockEntity blockEntity = helper.getBlockEntity(core, SmelteryControllerBlockEntity.class);
         helper.assertTrue(blockEntity.structure() == null, "expected seared glass in the floor to be rejected");
 
         Component message = blockEntity.lastResult();

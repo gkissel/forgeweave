@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/hafnium"
-  },
+  "input": "#c:nuggets/hafnium",
   "fluid": "forgeweave:molten_elementarium_hafnium",
   "amount": 16,
   "temperature": 1400,

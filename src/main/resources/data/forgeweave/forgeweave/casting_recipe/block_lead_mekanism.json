@@ -7,8 +7,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:block_lead"
+      "type": "neoforge:registered",
+      "value": "mekanism:block_lead"
     }
   ]
 }

@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:dusts/quakestone"
-    }
+    "#c:dusts/quakestone"
   ],
   "result": {
     "count": 3,

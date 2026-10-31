@@ -24,7 +24,7 @@ import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -37,6 +37,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
@@ -167,7 +168,7 @@ public final class ForgeweaveTraits {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     /** Ids already reported as unknown, so a bad material JSON logs once rather than every tick. */
-    private static final Set<ResourceLocation> WARNED_UNKNOWN = ConcurrentHashMap.newKeySet();
+    private static final Set<Identifier> WARNED_UNKNOWN = ConcurrentHashMap.newKeySet();
 
     /**
      * The always-on self-repair ladder, one name for what used to be nine (issue #1103). Upstream's
@@ -803,7 +804,7 @@ public final class ForgeweaveTraits {
             if (charge.isFull()) {
                 LivingEntity target = hit.target();
                 SecondaryDamage.deal(target, hit.level().damageSources().lightningBolt(), SHOCKING_DISCHARGE_DAMAGE);
-                attacker.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SPEED, 50, 5));
+                attacker.addEffect(new MobEffectInstance(MobEffects.SPEED, 50, 5));
                 dischargeShockingCharge(stack, hit.level(), target.getX(),
                         target.getY() + target.getBbHeight() * 0.5, target.getZ(), charge);
             } else if (attacker instanceof Player && !hit.isProjectile()) {
@@ -823,7 +824,7 @@ public final class ForgeweaveTraits {
                 // Upstream discharges a mining-filled charge on the spot, into haste rather than damage --
                 // both the full-charge and discharge cues fire in this one tick, same as upstream's
                 // addCharge-then-discharge back-to-back calls.
-                breaker.addEffect(new MobEffectInstance(MobEffects.DIG_SPEED, 50, 2));
+                breaker.addEffect(new MobEffectInstance(MobEffects.HASTE, 50, 2));
                 spawnShockingFullChargeFeedback(level, breaker);
                 dischargeShockingCharge(stack, level, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, charged);
             } else {
@@ -954,7 +955,7 @@ public final class ForgeweaveTraits {
      */
     public static void spawnTraitSlime(EntityType<? extends Slime> type, ServerLevel level, LivingEntity owner,
             double x, double y, double z) {
-        Slime slime = type.create(level);
+        Slime slime = type.create(level, EntitySpawnReason.MOB_SUMMONED);
         if (slime == null) {
             return;
         }
@@ -1044,7 +1045,7 @@ public final class ForgeweaveTraits {
             return;
         }
         player.getFoodData().eat(1, 0.0F);
-        level.playSound(null, player.blockPosition(), SoundEvents.GENERIC_EAT, SoundSource.PLAYERS, 0.8F, 1.0F);
+        level.playSound(null, player.blockPosition(), SoundEvents.GENERIC_EAT.value(), SoundSource.PLAYERS, 0.8F, 1.0F);
         stack.hurtAndBreak(TASTY_NOM_COST, player, EquipmentSlot.MAINHAND);
     }
 
@@ -1752,7 +1753,7 @@ public final class ForgeweaveTraits {
 
     /** {@code effect_on_hit(SLOWNESS, duration, amplifier, 0)}: issue #828's "brief root/slow" instance. */
     public static final Trait SHACKLING = seamTrait(
-            new EffectOnHit(MobEffects.MOVEMENT_SLOWDOWN, SHACKLING_TICKS, SHACKLING_AMPLIFIER, 0));
+            new EffectOnHit(MobEffects.SLOWNESS, SHACKLING_TICKS, SHACKLING_AMPLIFIER, 0));
 
     /** Proposed (issue #828 maintainer decision): 10 seconds of Glowing, refreshed each hit. */
     private static final int REVEALING_TICKS = 200;
@@ -1779,7 +1780,7 @@ public final class ForgeweaveTraits {
      * "Foot Fleet" reference instance, a self speed burst on a fully-charged swing.
      */
     public static final Trait QUICKSTEP = seamTrait(new ConditionalSeam(HitCondition.FULL_CHARGE, 1.0F,
-            new EffectOnSelfOnHit(MobEffects.MOVEMENT_SPEED, QUICKSTEP_TICKS, QUICKSTEP_AMPLIFIER)));
+            new EffectOnSelfOnHit(MobEffects.SPEED, QUICKSTEP_TICKS, QUICKSTEP_AMPLIFIER)));
 
     /**
      * {@code strip_effects(chance, count=1, chargedOnly=true)}: a leveled I-III buff strip on a
@@ -2070,7 +2071,7 @@ public final class ForgeweaveTraits {
      */
     public static final Trait CRYSTALSTRIKE = new Trait() {
         @Override
-        public void armorAttributes(ResourceLocation id, EquipmentSlot slot, ItemAttributeModifiers.Builder out) {
+        public void armorAttributes(Identifier id, EquipmentSlot slot, ItemAttributeModifiers.Builder out) {
             out.add(Attributes.ATTACK_SPEED,
                     new AttributeModifier(id, CRYSTALSTRIKE_ATTACK_SPEED, AttributeModifier.Operation.ADD_MULTIPLIED_BASE),
                     EquipmentSlotGroup.bySlot(slot));
@@ -2143,10 +2144,10 @@ public final class ForgeweaveTraits {
     /** {@code OverslimeModifier#getDurabilityRGB}: the light blue the overslime bar always draws in. */
     public static final int OVERSLIME_BAR_COLOR = 0x00A0FF;
 
-    private static final ResourceLocation OVERSLIME_ID = id("overslime");
-    private static final ResourceLocation OVERSLIME_FRIEND_ID = id("overslime_friend");
+    private static final Identifier OVERSLIME_ID = id("overslime");
+    private static final Identifier OVERSLIME_FRIEND_ID = id("overslime_friend");
     /** M6 dedupe batch (issue #876): {@link #VINEWARDEN}'s own overslime-friend id. */
-    private static final ResourceLocation VINEWARDEN_ID = id("vinewarden");
+    private static final Identifier VINEWARDEN_ID = id("vinewarden");
 
     /** The piece's current overslime ({@code OverslimeModule#getAmount}); 0 when absent. */
     public static int overslime(ItemStack stack) {
@@ -2188,7 +2189,7 @@ public final class ForgeweaveTraits {
      * {@code ToolAssemblyRecipes#assembleArmor} so every reader of the stat sees the net value, as
      * the clone's stat builder does.
      */
-    public static float overslimeArmorPenalty(List<ResourceLocation> traitIds) {
+    public static float overslimeArmorPenalty(List<Identifier> traitIds) {
         boolean friend = traitIds.contains(OVERSLIME_FRIEND_ID) || traitIds.contains(VINEWARDEN_ID);
         return traitIds.contains(OVERSLIME_ID) && !friend ? OVERSLIME_ARMOR_PENALTY : 0.0F;
     }
@@ -2348,7 +2349,7 @@ public final class ForgeweaveTraits {
             for (int i = 0; i < ENDERCLEARANCE_TRIES; i++) {
                 double x = attacker.getX() + (random.nextDouble() - 0.5) * ENDERCLEARANCE_DIAMETER;
                 double y = Mth.clamp(attacker.getY() + (random.nextInt(ENDERCLEARANCE_DIAMETER) - ENDERCLEARANCE_DIAMETER / 2),
-                        defense.level().getMinBuildHeight(), defense.level().getMaxBuildHeight() - 1);
+                        defense.level().getMinY(), defense.level().getMaxY());
                 double z = attacker.getZ() + (random.nextDouble() - 0.5) * ENDERCLEARANCE_DIAMETER;
                 if (attacker.randomTeleport(x, y, z, true)) {
                     return;
@@ -2370,7 +2371,7 @@ public final class ForgeweaveTraits {
      */
     public static final Trait SKYFALL = new Trait() {
         @Override
-        public void armorAttributes(ResourceLocation id, EquipmentSlot slot, ItemAttributeModifiers.Builder out) {
+        public void armorAttributes(Identifier id, EquipmentSlot slot, ItemAttributeModifiers.Builder out) {
             EquipmentSlotGroup group = EquipmentSlotGroup.bySlot(slot);
             out.add(Attributes.GRAVITY,
                     new AttributeModifier(id, SKYFALL_GRAVITY_FLAT + SKYFALL_GRAVITY_PER_LEVEL, AttributeModifier.Operation.ADD_MULTIPLIED_BASE), group);
@@ -2481,16 +2482,16 @@ public final class ForgeweaveTraits {
      * knockback resistance and {@code projectile_protection} do.
      */
     public static void armorAttributes(ItemStack piece, EquipmentSlot slot, ItemAttributeModifiers.Builder out) {
-        List<ResourceLocation> ids = piece.get(ForgeweaveDataComponents.TRAITS.get());
+        List<Identifier> ids = piece.get(ForgeweaveDataComponents.TRAITS.get());
         if (ids == null) {
             return;
         }
-        for (ResourceLocation id : ids) {
+        for (Identifier id : ids) {
             Trait trait = lookup(id);
             if (trait == null) {
                 continue;
             }
-            ResourceLocation modifierId = id.withPrefix("trait/").withSuffix("/" + slot.getName());
+            Identifier modifierId = id.withPrefix("trait/").withSuffix("/" + slot.getName());
             trait.armorAttributes(modifierId, slot, out);
             float knockback = trait.knockbackResistance();
             if (knockback > 0.0F) {
@@ -2517,7 +2518,11 @@ public final class ForgeweaveTraits {
      */
     public static void onArmorKnockback(LivingKnockBackEvent event) {
         int level = 0;
-        for (ItemStack piece : event.getEntity().getArmorSlots()) {
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
+            if (slot.getType() != EquipmentSlot.Type.HUMANOID_ARMOR) {
+                continue; // 1.21.1's getArmorSlots: the four humanoid armor slots
+            }
+            ItemStack piece = event.getEntity().getItemBySlot(slot);
             if (piece.getItem() instanceof ArmorPieceItem && !ToolItem.isBroken(piece) && has(piece, CRYSTALSTRIKE)) {
                 level++;
             }
@@ -2765,7 +2770,7 @@ public final class ForgeweaveTraits {
         @Override
         public void combatSeams(Consumer<CombatSeam> out) {
             out.accept(new ConditionalSeam(HitCondition.ANY, 0.4F,
-                    new PotionEffectOnHitSeam(MobEffects.MOVEMENT_SPEED, 1, 100)));
+                    new PotionEffectOnHitSeam(MobEffects.SPEED, 1, 100)));
         }
     };
 
@@ -2774,7 +2779,7 @@ public final class ForgeweaveTraits {
         @Override
         public void combatSeams(Consumer<CombatSeam> out) {
             out.accept(new ConditionalSeam(HitCondition.BURNING, 1.0F,
-                    new PotionEffectOnHitSeam(MobEffects.MOVEMENT_SPEED, 0, 40)));
+                    new PotionEffectOnHitSeam(MobEffects.SPEED, 0, 40)));
         }
     };
 
@@ -2783,7 +2788,7 @@ public final class ForgeweaveTraits {
         @Override
         public void combatSeams(Consumer<CombatSeam> out) {
             out.accept(new ConditionalSeam(HitCondition.ANY, 0.35F,
-                    new PotionEffectOnHitSeam(MobEffects.CONFUSION, 0, 140)));
+                    new PotionEffectOnHitSeam(MobEffects.NAUSEA, 0, 140)));
         }
     };
 
@@ -2827,7 +2832,7 @@ public final class ForgeweaveTraits {
         @Override
         public void combatSeams(Consumer<CombatSeam> out) {
             out.accept(new ConditionalSeam(HitCondition.ANY, 0.4F,
-                    new PotionEffectOnHitSeam(MobEffects.DIG_SPEED, 1, 100)));
+                    new PotionEffectOnHitSeam(MobEffects.HASTE, 1, 100)));
         }
     };
 
@@ -2924,7 +2929,7 @@ public final class ForgeweaveTraits {
         public void afterBlockBreak(ItemStack stack, ServerLevel level, BlockState state, BlockPos pos,
                 LivingEntity breaker, boolean effective) {
             if (effective && level.getRandom().nextFloat() < OVERBURDENED_CHANCE) {
-                breaker.addEffect(new MobEffectInstance(MobEffects.DIG_SLOWDOWN, OVERBURDENED_DURATION_TICKS, 0));
+                breaker.addEffect(new MobEffectInstance(MobEffects.MINING_FATIGUE, OVERBURDENED_DURATION_TICKS, 0));
             }
         }
     };
@@ -3018,7 +3023,7 @@ public final class ForgeweaveTraits {
             if (holder.tickCount % DAYBOUND_TICK_PERIOD != 0) {
                 return;
             }
-            if (level.isDay()) {
+            if (level.isBrightOutside()) {
                 holder.addEffect(new MobEffectInstance(MobEffects.GLOWING, DAYBOUND_GLOW_TICKS, 0));
             } else if (level.getRandom().nextFloat() < DAYBOUND_NIGHT_VISION_CHANCE) {
                 holder.addEffect(new MobEffectInstance(MobEffects.NIGHT_VISION, DAYBOUND_NIGHT_VISION_TICKS, 0));
@@ -3140,7 +3145,7 @@ public final class ForgeweaveTraits {
         if (!target.isAlive() || target instanceof Player) {
             return false;
         }
-        if (target.getType().is(Tags.EntityTypes.BOSSES) || target.getType().is(Tags.EntityTypes.CAPTURING_NOT_SUPPORTED)) {
+        if (target.is(Tags.EntityTypes.BOSSES) || target.is(Tags.EntityTypes.CAPTURING_NOT_SUPPORTED)) {
             return false;
         }
         if (target instanceof Raider raider && raider.isCaptain()) {
@@ -3216,13 +3221,13 @@ public final class ForgeweaveTraits {
 
     private static int warMemoryCount(ItemStack stack, LivingEntity target) {
         WarMemory memory = stack.getOrDefault(ForgeweaveDataComponents.WAR_MEMORY.get(), WarMemory.EMPTY);
-        ResourceLocation type = BuiltInRegistries.ENTITY_TYPE.getKey(target.getType());
+        Identifier type = BuiltInRegistries.ENTITY_TYPE.getKey(target.getType());
         return memory.count(type);
     }
 
     private static void recordWarMemory(ItemStack stack, LivingEntity target) {
         WarMemory memory = stack.getOrDefault(ForgeweaveDataComponents.WAR_MEMORY.get(), WarMemory.EMPTY);
-        ResourceLocation type = BuiltInRegistries.ENTITY_TYPE.getKey(target.getType());
+        Identifier type = BuiltInRegistries.ENTITY_TYPE.getKey(target.getType());
         int current = memory.count(type);
         if (current >= WAR_MEMORY_CAP) {
             return;
@@ -3414,7 +3419,7 @@ public final class ForgeweaveTraits {
     public static final Trait DREADGRIP = new Trait() {
         @Override
         public void afterHit(ItemStack stack, ServerLevel level, LivingEntity attacker, LivingEntity target) {
-            target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, DREADGRIP_TICKS, DREADGRIP_SLOW_AMPLIFIER));
+            target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, DREADGRIP_TICKS, DREADGRIP_SLOW_AMPLIFIER));
             target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, DREADGRIP_TICKS, 0));
             if (target instanceof Mob mob) {
                 mob.setTarget(null);
@@ -3546,8 +3551,8 @@ public final class ForgeweaveTraits {
      * The {@link ForgeweaveDraconicCompat#UPGRADE_LINES} modifier ids, i.e. every modifier a Fusion
      * Crafting upgrade can grant -- read once rather than rebuilt on every tooltip render.
      */
-    private static final Set<ResourceLocation> FUSION_MODIFIER_IDS = ForgeweaveDraconicCompat.UPGRADE_LINES.stream()
-            .map(line -> ResourceLocation.parse(line.modifier()))
+    private static final Set<Identifier> FUSION_MODIFIER_IDS = ForgeweaveDraconicCompat.UPGRADE_LINES.stream()
+            .map(line -> Identifier.parse(line.modifier()))
             .collect(Collectors.toUnmodifiableSet());
 
     /**
@@ -3587,7 +3592,7 @@ public final class ForgeweaveTraits {
         }
     }
 
-    private static final Map<ResourceLocation, Trait> REGISTRY = Map.ofEntries(
+    private static final Map<Identifier, Trait> REGISTRY = Map.ofEntries(
             Map.entry(id("galvanized"), CreateMaterialTraits.GALVANIZED),
             Map.entry(id("galvanized_guard"), CreateMaterialTraits.GALVANIZED_GUARD),
             Map.entry(id("precision"), CreateMaterialTraits.PRECISION),
@@ -3789,10 +3794,10 @@ public final class ForgeweaveTraits {
     // (issue #832, ADR-0004 item 3): datapack definitions and KubeJS script traits.
 
     /** The loaded {@code trait_definition} registry, re-snapshotted on every data load/sync. */
-    private static volatile Map<ResourceLocation, Trait> DATAPACK = Map.of();
+    private static volatile Map<Identifier, Trait> DATAPACK = Map.of();
 
     /** Traits KubeJS startup scripts registered; see {@code kubejs.ForgeweaveKubeJSPlugin}. */
-    private static final Map<ResourceLocation, Trait> SCRIPTED = new ConcurrentHashMap<>();
+    private static final Map<Identifier, Trait> SCRIPTED = new ConcurrentHashMap<>();
 
     /**
      * The behaviour behind {@code id}: the Java roster first, then the datapack snapshot, then a
@@ -3813,7 +3818,7 @@ public final class ForgeweaveTraits {
      * "a toggle per integration, not per mechanism".
      */
     @Nullable
-    public static Trait lookup(ResourceLocation id) {
+    public static Trait lookup(Identifier id) {
         Trait trait = REGISTRY.get(id);
         if (trait == null) {
             trait = DATAPACK.get(id);
@@ -3828,7 +3833,7 @@ public final class ForgeweaveTraits {
             return trait;
         }
         // #1103: last, so a live id is never shadowed by an alias that happens to share its name.
-        ResourceLocation canonical = TraitFamilies.canonical(id);
+        Identifier canonical = TraitFamilies.canonical(id);
         return canonical.equals(id) ? null : lookup(canonical);
     }
 
@@ -3837,12 +3842,12 @@ public final class ForgeweaveTraits {
      * merged its name away. Every read of {@code forgeweave:traits} off a stack goes through this,
      * so a tool built before the merge keeps the behaviour it was assembled with.
      */
-    public static ResourceLocation canonical(ResourceLocation id) {
+    public static Identifier canonical(Identifier id) {
         return TraitFamilies.canonical(id);
     }
 
     /** {@link #canonical} over a whole stored list, dropping the duplicates a merge creates. */
-    public static List<ResourceLocation> canonical(List<ResourceLocation> ids) {
+    public static List<Identifier> canonical(List<Identifier> ids) {
         return TraitFamilies.canonical(ids);
     }
 
@@ -3854,13 +3859,13 @@ public final class ForgeweaveTraits {
      */
     public static void closeApiRegistration() {
         TraitRegistry.closeRegistration();
-        for (ResourceLocation id : TraitRegistry.traitIds()) {
+        for (Identifier id : TraitRegistry.traitIds()) {
             if (REGISTRY.containsKey(id)) {
                 LOGGER.warn("A mod registered trait '{}', which is a built-in Forgeweave trait; the built-in "
                         + "behaviour wins and the registration is ignored (issue #1065).", id);
             }
         }
-        for (ResourceLocation id : TraitRegistry.behaviorIds()) {
+        for (Identifier id : TraitRegistry.behaviorIds()) {
             if (TraitBehaviors.builtInIds().contains(id)) {
                 LOGGER.warn("A mod registered trait behaviour '{}', which is a built-in Forgeweave behaviour; the "
                         + "built-in wins and the registration is ignored (issue #1065).", id);
@@ -3873,7 +3878,7 @@ public final class ForgeweaveTraits {
      * ({@code 'forgeweave:poisonous'}) is a script error in the KubeJS console, not a silent
      * redefinition of shipped content; re-registering a script id replaces it (script reloads).
      */
-    public static void registerScripted(ResourceLocation id, Trait trait) {
+    public static void registerScripted(Identifier id, Trait trait) {
         if (REGISTRY.containsKey(id)) {
             throw new IllegalArgumentException("Trait id '" + id + "' is a built-in Forgeweave trait and cannot be "
                     + "redefined from a script; pick an id in your own namespace.");
@@ -3888,12 +3893,12 @@ public final class ForgeweaveTraits {
      * colliding with a built-in one is logged and ignored -- the built-in wins, per the issue.
      */
     public static void onTagsUpdated(TagsUpdatedEvent event) {
-        Map<ResourceLocation, Trait> loaded = new LinkedHashMap<>();
-        Map<ResourceLocation, TraitFamilies.Rung> rungs = new LinkedHashMap<>();
-        Map<ResourceLocation, TraitDefinition> definitions = new LinkedHashMap<>();
-        event.getRegistryAccess().registry(TraitDefinition.REGISTRY).ifPresent(registry -> registry.entrySet()
+        Map<Identifier, Trait> loaded = new LinkedHashMap<>();
+        Map<Identifier, TraitFamilies.Rung> rungs = new LinkedHashMap<>();
+        Map<Identifier, TraitDefinition> definitions = new LinkedHashMap<>();
+        event.getRegistries().lookup(TraitDefinition.REGISTRY).ifPresent(registry -> registry.entrySet()
                 .forEach(entry -> {
-                    ResourceLocation id = entry.getKey().location();
+                    Identifier id = entry.getKey().identifier();
                     if (REGISTRY.containsKey(id)) {
                         LOGGER.warn("Datapack trait definition '{}' names a built-in Forgeweave trait; the built-in "
                                 + "behavior wins and the definition is ignored (issue #832).", id);
@@ -3918,15 +3923,15 @@ public final class ForgeweaveTraits {
     // so their lines come out of the same TooltipBuilder#addModifierInfo call the modifier ones do
     // and land in the Tool Station's tool info panel.
 
-    private static final ResourceLocation CRUDE_ID = id("crude");
-    private static final ResourceLocation CRUDE2_ID = id("crude2");
-    private static final ResourceLocation HELLISH_ID = id("hellish");
-    private static final ResourceLocation HOLY_ID = id("holy");
-    private static final ResourceLocation JAGGED_ID = id("jagged");
-    private static final ResourceLocation LIGHTWEIGHT_ID = id("lightweight");
-    private static final ResourceLocation STONEBOUND_ID = id("stonebound");
-    private static final ResourceLocation SUPERHEAT_ID = id("superheat");
-    private static final ResourceLocation ALIEN_ID = id("alien");
+    private static final Identifier CRUDE_ID = id("crude");
+    private static final Identifier CRUDE2_ID = id("crude2");
+    private static final Identifier HELLISH_ID = id("hellish");
+    private static final Identifier HOLY_ID = id("holy");
+    private static final Identifier JAGGED_ID = id("jagged");
+    private static final Identifier LIGHTWEIGHT_ID = id("lightweight");
+    private static final Identifier STONEBOUND_ID = id("stonebound");
+    private static final Identifier SUPERHEAT_ID = id("superheat");
+    private static final Identifier ALIEN_ID = id("alien");
 
     /**
      * Which trait ids produce {@code .extra} lines, so a lang-coverage test can guard those keys the
@@ -3934,7 +3939,7 @@ public final class ForgeweaveTraits {
      * three lines reuse the {@code gui.forgeweave.stat.*} keys rather than one of its own, exactly as
      * upstream reuses {@code HeadMaterialStats#formatDurability} and friends.
      */
-    public static Set<ResourceLocation> extraInfoIds() {
+    public static Set<Identifier> extraInfoIds() {
         return Set.of(CRUDE_ID, CRUDE2_ID, HELLISH_ID, HOLY_ID, JAGGED_ID, LIGHTWEIGHT_ID,
                 STONEBOUND_ID, SUPERHEAT_ID);
     }
@@ -3963,7 +3968,7 @@ public final class ForgeweaveTraits {
      *
      * @param tool the assembled stack, read by the three traits whose value is not a constant
      */
-    public static List<Component> extraInfo(ResourceLocation id, ItemStack tool) {
+    public static List<Component> extraInfo(Identifier id, ItemStack tool) {
         String key = "trait." + id.getNamespace() + "." + id.getPath() + ".extra";
         if (CRUDE_ID.equals(id) || CRUDE2_ID.equals(id)) {
             float bonus = CRUDE_FRACTION_PER_LEVEL * (CRUDE2_ID.equals(id) ? 2 : 1);
@@ -4003,8 +4008,8 @@ public final class ForgeweaveTraits {
      * {@code head.traits().forPart(HEAD)}; an id no version of Forgeweave implements simply leaves the
      * durability alone, same as every other hook.
      */
-    public static int headDurability(List<ResourceLocation> traitIds, int durability) {
-        for (ResourceLocation id : traitIds) {
+    public static int headDurability(List<Identifier> traitIds, int durability) {
+        for (Identifier id : traitIds) {
             Trait trait = lookup(id);
             if (trait != null) {
                 durability = trait.headDurability(durability);
@@ -4018,12 +4023,12 @@ public final class ForgeweaveTraits {
      * traits it scopes to the part it was used as ({@link Material.Traits#forPart}), de-duplicated
      * head-first (see class javadoc).
      */
-    public static List<ResourceLocation> resolve(Material head, @Nullable Material binding, Material handle) {
+    public static List<Identifier> resolve(Material head, @Nullable Material binding, Material handle) {
         return Stream.of(
                 head.traits().forPart(PartItem.Kind.HEAD),
                 // Nullable since issue #155: battlesign, frying pan and dagger have no EXTRA part at
                 // all, so there is no binding material to take traits from (see ToolMaterials).
-                binding == null ? List.<ResourceLocation>of() : binding.traits().forPart(PartItem.Kind.EXTRA),
+                binding == null ? List.<Identifier>of() : binding.traits().forPart(PartItem.Kind.EXTRA),
                 handle.traits().forPart(PartItem.Kind.HANDLE))
                 .flatMap(List::stream)
                 .distinct()
@@ -4041,7 +4046,7 @@ public final class ForgeweaveTraits {
     }
 
     public static List<Trait> of(ItemStack stack) {
-        List<ResourceLocation> ids = stack.get(ForgeweaveDataComponents.TRAITS.get());
+        List<Identifier> ids = stack.get(ForgeweaveDataComponents.TRAITS.get());
         if (ids == null || ids.isEmpty()) {
             return List.of();
         }
@@ -4050,7 +4055,7 @@ public final class ForgeweaveTraits {
         // two names for one mechanic now name the same rung, and every hook would run twice).
         ids = canonical(ids);
         List<Trait> traits = new ArrayList<>(ids.size());
-        for (ResourceLocation id : ids) {
+        for (Identifier id : ids) {
             Trait trait = lookup(id);
             if (trait != null) {
                 traits.add(trait);
@@ -4406,7 +4411,7 @@ public final class ForgeweaveTraits {
      * covered both paths, NeoForge splits them. (Ender-pearl throws are a player-only teleport no
      * trait can mark in practice and are left alone.)
      */
-    public static void onChorusFruitTeleport(EntityTeleportEvent.ChorusFruit event) {
+    public static void onChorusFruitTeleport(EntityTeleportEvent.ItemConsumption event) {
         if (event.getEntityLiving().hasEffect(ForgeweaveMobEffects.ENDERFERENCE)) {
             event.setCanceled(true);
         }
@@ -4467,8 +4472,8 @@ public final class ForgeweaveTraits {
     private static final EquipmentSlot[] ARMOR_SLOTS =
             {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
     private ForgeweaveTraits() {}

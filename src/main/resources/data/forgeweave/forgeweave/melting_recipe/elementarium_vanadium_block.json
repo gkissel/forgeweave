@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/vanadium"
-  },
+  "input": "#c:storage_blocks/vanadium",
   "fluid": "forgeweave:molten_elementarium_vanadium",
   "amount": 1296,
   "temperature": 1200,

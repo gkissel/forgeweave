@@ -49,21 +49,17 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "powah:crystal_spirited"
-      },
+      "ingredient": "powah:crystal_spirited",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "powah:crystal_spirited"
-  },
+  "repair_item": "powah:crystal_spirited",
   "enchantability": 15,
   "color": "#00BD00",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "powah:crystal_spirited"
+      "type": "neoforge:registered",
+      "value": "powah:crystal_spirited"
     }
   ]
 }

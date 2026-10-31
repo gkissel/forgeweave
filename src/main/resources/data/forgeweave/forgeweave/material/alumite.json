@@ -27,17 +27,15 @@
     "armor": ["forgeweave:swiftward"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:alumite_ingot" }, "value": 144 },
-    { "ingredient": { "item": "forgeweave:alumite_nugget" }, "value": 16 },
-    { "ingredient": { "item": "forgeweave:alumite_block" }, "value": 1296 }
+    { "ingredient": "forgeweave:alumite_ingot", "value": 144 },
+    { "ingredient": "forgeweave:alumite_nugget", "value": 16 },
+    { "ingredient": "forgeweave:alumite_block", "value": 1296 }
   ],
-  "repair_item": {
-    "tag": "c:ingots/alumite"
-  },
+  "repair_item": "#c:ingots/alumite",
   "cast_only": true,
   "enchantability": 12,
   "color": "#F5C7F8",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "immersiveengineering:ingot_aluminum" }
+    { "type": "neoforge:registered", "value": "immersiveengineering:ingot_aluminum" }
   ]
 }

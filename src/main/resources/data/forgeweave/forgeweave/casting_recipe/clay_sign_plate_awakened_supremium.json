@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_sign_plate"
-  },
+  "cast": "forgeweave:clay_cast_sign_plate",
   "fluid": "forgeweave:molten_awakened_supremium",
   "amount": 432,
   "result": {
@@ -14,8 +12,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mysticalagriculture:awakened_supremium_ingot"
+      "type": "neoforge:registered",
+      "value": "mysticalagriculture:awakened_supremium_ingot"
     }
   ]
 }

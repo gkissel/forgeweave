@@ -9,7 +9,7 @@ import javax.annotation.Nullable;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 
@@ -83,20 +83,20 @@ public final class Embossing {
     // ------------------------------------------------------------------ ids
 
     /** The modifier id an embossment of {@code materialId} serializes as. */
-    public static ResourceLocation idFor(ResourceLocation materialId) {
-        return ResourceLocation.fromNamespaceAndPath(materialId.getNamespace(), PREFIX + materialId.getPath());
+    public static Identifier idFor(Identifier materialId) {
+        return Identifier.fromNamespaceAndPath(materialId.getNamespace(), PREFIX + materialId.getPath());
     }
 
     /** Whether {@code id} is one of {@link #idFor}'s generated embossment ids. */
-    public static boolean isEmbossment(ResourceLocation id) {
+    public static boolean isEmbossment(Identifier id) {
         return id.getPath().startsWith(PREFIX);
     }
 
     /** The material an embossment id names, or {@code null} if the id isn't an embossment at all. */
     @Nullable
-    public static ResourceLocation materialOf(ResourceLocation modifierId) {
+    public static Identifier materialOf(Identifier modifierId) {
         return isEmbossment(modifierId)
-                ? ResourceLocation.fromNamespaceAndPath(
+                ? Identifier.fromNamespaceAndPath(
                         modifierId.getNamespace(), modifierId.getPath().substring(PREFIX.length()))
                 : null;
     }
@@ -173,14 +173,14 @@ public final class Embossing {
         if (on(tool) != null) {
             return Optional.of(rejected("gui.forgeweave.embossment.already_embossed"));
         }
-        ResourceLocation materialId = donor.get(ForgeweaveDataComponents.MATERIAL.get());
+        Identifier materialId = donor.get(ForgeweaveDataComponents.MATERIAL.get());
         Optional<Material> material = registries.lookup(Material.REGISTRY)
                 .flatMap(lookup -> lookup.get(ResourceKey.create(Material.REGISTRY, materialId)))
                 .map(holder -> holder.value());
         if (material.isEmpty()) {
             return Optional.empty(); // a part of a material this pack no longer defines.
         }
-        List<ResourceLocation> traits = material.get().traits().forPart(((PartItem) donor.getItem()).kind());
+        List<Identifier> traits = material.get().traits().forPart(((PartItem) donor.getItem()).kind());
         if (traits.isEmpty()) {
             // Upstream simply never registers a ModExtraTrait for a material/part pair with no
             // traits, so the combination isn't craftable there either -- but a silent dead slot is
@@ -190,7 +190,7 @@ public final class Embossing {
         }
         // T23 (#454): upstream ModExtraTrait#canApplyTogether -- refused if any donor trait can't sit
         // beside what the tool already carries (a firewood part onto a silky tool, say).
-        for (ResourceLocation trait : traits) {
+        for (Identifier trait : traits) {
             Optional<Component> incompatible =
                     ModifierCompatibility.refusal(tool, trait, ModifierApplication.name(idFor(materialId)));
             if (incompatible.isPresent()) {
@@ -206,16 +206,16 @@ public final class Embossing {
      * damage -- rides along on the copy untouched, which is the "without changing stats" half of the
      * mechanic and what the GameTest pins.
      */
-    private static ItemStack embossed(ItemStack tool, ResourceLocation materialId, List<ResourceLocation> donorTraits) {
+    private static ItemStack embossed(ItemStack tool, Identifier materialId, List<Identifier> donorTraits) {
         ItemStack result = tool.copy();
 
         List<ModifierEntry> modifiers = new ArrayList<>(ForgeweaveModifiers.of(tool));
         modifiers.add(new ModifierEntry(idFor(materialId), 1));
         result.set(ForgeweaveDataComponents.MODIFIERS.get(), List.copyOf(modifiers));
 
-        List<ResourceLocation> traits =
+        List<Identifier> traits =
                 new ArrayList<>(tool.getOrDefault(ForgeweaveDataComponents.TRAITS.get(), List.of()));
-        for (ResourceLocation trait : donorTraits) {
+        for (Identifier trait : donorTraits) {
             if (!traits.contains(trait)) {
                 traits.add(trait); // same id from two sources still counts once, as assembly does.
             }

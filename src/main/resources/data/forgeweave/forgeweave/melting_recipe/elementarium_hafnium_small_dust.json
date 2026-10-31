@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/elementarium_hafnium"
-  },
+  "input": "#c:small_dusts/elementarium_hafnium",
   "fluid": "forgeweave:molten_elementarium_hafnium",
   "amount": 36,
   "temperature": 1400,

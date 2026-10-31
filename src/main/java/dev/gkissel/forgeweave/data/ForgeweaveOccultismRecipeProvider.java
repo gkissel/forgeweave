@@ -6,12 +6,13 @@ import java.util.concurrent.CompletableFuture;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.CachedOutput;
 import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.compat.occultism.ForgeweaveOccultismCompat;
@@ -40,11 +41,12 @@ import dev.gkissel.forgeweave.trackb.TrackBOre;
  * have {@code c:raw_materials/<id>}, and that crystal is what the second row grinds.
  *
  * <p><b>Miner.</b> One {@code occultism:miner} row per Track B ore, all eleven in Occultism's general
- * {@code #occultism:miners/ores} pool -- the one every miner spirit item matches -- weighted by
+ * {@code #occultism:miners/basic} pool -- the one every miner spirit item matches -- weighted by
  * {@link ForgeweaveOccultismCompat#minerWeight}. The tier gate here is the weight rather than the
  * pool: an ore in a narrower pool would be unreachable to a foliot outright, and Track B is meant to
  * be climbed slowly, not locked behind a spirit rank twice over (the crushing rows already do that
- * half).
+ * half). Occultism 26.1 replaced its {@code miners/ores} pool with tiered ones; {@code basic} holds
+ * the same spirits {@code ores} did, plus the debug and ancient eldritch miners.
  *
  * <p><b>Rituals.</b> One {@code occultism:ritual} row per
  * {@link ForgeweaveOccultismCompat#RITUALS} entry, each naming the
@@ -73,7 +75,7 @@ public class ForgeweaveOccultismRecipeProvider implements DataProvider {
      * The miner pool every Track B row joins -- Occultism's general ore tag, which each of its five
      * miner spirit items is a member of.
      */
-    private static final String MINER_POOL = "#" + ForgeweaveOccultismCompat.MODID + ":miners/ores";
+    private static final String MINER_POOL = "#" + ForgeweaveOccultismCompat.MODID + ":miners/basic";
 
     /** Occultism's own default is 200 ticks; an ore block is worth a slower grind than a raw item. */
     private static final int ORE_CRUSHING_TICKS = 400;
@@ -113,7 +115,7 @@ public class ForgeweaveOccultismRecipeProvider implements DataProvider {
         }
 
         for (ForgeweaveOccultismCompat.Ritual ritual : ForgeweaveOccultismCompat.RITUALS) {
-            ResourceLocation modifier = ResourceLocation.parse(ritual.modifier());
+            Identifier modifier = Identifier.parse(ritual.modifier());
             if (ForgeweaveModifiers.get(modifier) == null) {
                 throw new IllegalStateException("no modifier registered as " + modifier
                         + " -- ForgeweaveOccultismCompat.RITUALS names one that does not exist");
@@ -168,7 +170,7 @@ public class ForgeweaveOccultismRecipeProvider implements DataProvider {
     }
 
     /** One {@code occultism:ritual} row naming a {@code forgeweave:bind_*} ritual factory. */
-    private static JsonObject ritual(ForgeweaveOccultismCompat.Ritual ritual, ResourceLocation modifier) {
+    private static JsonObject ritual(ForgeweaveOccultismCompat.Ritual ritual, Identifier modifier) {
         JsonArray ingredients = new JsonArray();
         for (String item : ritual.ingredients()) {
             ingredients.add(ingredient(item));
@@ -192,7 +194,7 @@ public class ForgeweaveOccultismRecipeProvider implements DataProvider {
      * entry the ritual grants, so the slot's tooltip names the modifier. A representative rather
      * than the real output -- see the class javadoc.
      */
-    private static JsonObject display(ResourceLocation modifier, int level) {
+    private static JsonObject display(Identifier modifier, int level) {
         JsonObject entry = new JsonObject();
         entry.addProperty("id", modifier.toString());
         entry.addProperty("level", level);
@@ -209,11 +211,13 @@ public class ForgeweaveOccultismRecipeProvider implements DataProvider {
         return stack;
     }
 
-    /** {@code "#namespace:path"} reads as a tag ingredient, anything else as an item ingredient. */
-    private static JsonObject ingredient(String id) {
-        JsonObject json = new JsonObject();
-        json.addProperty(id.startsWith("#") ? "tag" : "item", id.startsWith("#") ? id.substring(1) : id);
-        return json;
+    /**
+     * {@code "#namespace:path"} is a tag ingredient, anything else an item one. Since 1.21.2 an
+     * ingredient is that bare string, not a {@code {"item"|"tag": ...}} object (Occultism's own
+     * 26.1.2 recipes use it too).
+     */
+    private static JsonPrimitive ingredient(String id) {
+        return new JsonPrimitive(id);
     }
 
     private static JsonArray conditions() {
@@ -231,6 +235,6 @@ public class ForgeweaveOccultismRecipeProvider implements DataProvider {
 
     private CompletableFuture<?> save(CachedOutput output, String name, JsonObject json) {
         return DataProvider.saveStable(output, json,
-                recipes.json(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "compat/occultism/" + name)));
+                recipes.json(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "compat/occultism/" + name)));
     }
 }

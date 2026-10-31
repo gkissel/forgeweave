@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.server.level.ServerLevel;
@@ -49,6 +50,14 @@ public final class DamageXpLedger {
     public static final Codec<DamageXpLedger> CODEC = Codec
             .unboundedMap(UUIDUtil.STRING_CODEC, Codec.unboundedMap(UUIDUtil.STRING_CODEC, Codec.FLOAT))
             .xmap(DamageXpLedger::new, ledger -> ledger.byPlayer);
+
+    /**
+     * The attachment's on-disk form. 1.21.1 stored {@link #CODEC}'s map directly as the attachment's
+     * tag; 26.1 attachments take a {@code MapCodec}, and this one writes the same map's entries as the
+     * attachment compound's own keys, so a ledger saved on 1.21.1 reads back unchanged and the bytes
+     * written now are the bytes 1.21.1 wrote ({@code fixtures/attachment/m919_damage_xp_ledger.snbt}).
+     */
+    public static final MapCodec<DamageXpLedger> MAP_CODEC = MapCodec.assumeMapUnsafe(CODEC);
 
     /** An empty ledger -- what an entity that has never been hit with a Forgeweave tool has. */
     public DamageXpLedger() {

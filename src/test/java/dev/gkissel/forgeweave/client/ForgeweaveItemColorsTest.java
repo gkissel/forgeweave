@@ -19,8 +19,9 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.Bootstrap;
-import net.minecraft.util.FastColor;
+import net.minecraft.util.ARGB;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.material.Material;
 
 /**
@@ -36,7 +37,7 @@ class ForgeweaveItemColorsTest {
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(com.mojang.serialization.JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(com.mojang.serialization.JsonOps.INSTANCE);
     }
 
     private static Material shipped(String name) {
@@ -60,6 +61,6 @@ class ForgeweaveItemColorsTest {
         // available outside a running client.
         int tint = ForgeweaveItemColors.opaqueColor(rawColor);
 
-        assertEquals(0xFF, FastColor.ARGB32.alpha(tint), name + ": tint must be fully opaque or the part renders invisible");
+        assertEquals(0xFF, ARGB.alpha(tint), name + ": tint must be fully opaque or the part renders invisible");
     }
 }

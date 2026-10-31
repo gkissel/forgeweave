@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_scythe_head"
-  },
+  "cast": "forgeweave:cast_scythe_head",
   "fluid": "forgeweave:molten_vibranium",
   "amount": 1152,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "allthemodium:vibranium_ingot"
+      "type": "neoforge:registered",
+      "value": "allthemodium:vibranium_ingot"
     }
   ]
 }

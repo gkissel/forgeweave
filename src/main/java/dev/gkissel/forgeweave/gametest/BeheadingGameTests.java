@@ -4,9 +4,9 @@ import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
@@ -18,13 +18,13 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ResolvableProfile;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.levelgen.LegacyRandomSource;
 import net.minecraft.world.phys.Vec3;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ToolStationBlockEntity;
@@ -111,7 +111,7 @@ public class BeheadingGameTests {
         // ({@code Beheading#headDrop}), and a mock Player has both.
         Player victim = helper.makeMockPlayer(GameType.SURVIVAL);
         Vec3 stand = helper.absoluteVec(new BlockPos(2, 2, 2).getCenter());
-        victim.moveTo(stand.x, stand.y, stand.z);
+        victim.snapTo(stand.x, stand.y, stand.z);
 
         withoutMobLoot(helper, () -> {
             // Captured at the spawn seam, not queried back out of the level: see SpawnCapture (this
@@ -129,8 +129,8 @@ public class BeheadingGameTests {
                     .orElseThrow(() -> new AssertionError("a beheaded player must drop a player head"));
             ResolvableProfile profile = head.get(DataComponents.PROFILE);
             helper.assertTrue(profile != null, "the dropped player head must carry a profile");
-            helper.assertTrue(profile.gameProfile().equals(victim.getGameProfile()),
-                    "the dropped player head must carry the victim's profile, got " + profile.gameProfile());
+            helper.assertTrue(profile.partialProfile().equals(victim.getGameProfile()),
+                    "the dropped player head must carry the victim's profile, got " + profile.partialProfile());
         });
 
         helper.succeed();
@@ -217,7 +217,7 @@ public class BeheadingGameTests {
         ItemStack hatchet = ToolAssembly.toolAtForge(helper, player, pos, ForgeweaveItems.PART_AXE_HEAD.get(),
                 "paper", "paper", "paper");
         hatchet.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(
-                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "extra_slot"), 5)));
+                Identifier.fromNamespaceAndPath(Forgeweave.MODID, "extra_slot"), 5)));
 
         ItemStack beheading = applyReagent(helper, player, pos, hatchet, new ItemStack(Items.OBSIDIAN, CERTAIN));
         helper.assertTrue(Beheading.effectiveLevel(beheading) == CERTAIN,
@@ -232,7 +232,7 @@ public class BeheadingGameTests {
     /** One application through the station's own menu; same shape as {@code ModifierGameTests}'s. */
     private static ItemStack applyReagent(GameTestHelper helper, Player player, BlockPos pos, ItemStack tool,
             ItemStack reagent) {
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, tool);
         blockEntity.container().setItem(1, reagent);
         blockEntity.container().setItem(2, ItemStack.EMPTY);
@@ -274,14 +274,14 @@ public class BeheadingGameTests {
      */
     private static void withoutMobLoot(GameTestHelper helper, Runnable body) {
         GameRules rules = helper.getLevel().getGameRules();
-        boolean previous = rules.getBoolean(GameRules.RULE_DOMOBLOOT);
-        rules.getRule(GameRules.RULE_DOMOBLOOT).set(false, helper.getLevel().getServer());
+        boolean previous = rules.get(GameRules.MOB_DROPS);
+        rules.set(GameRules.MOB_DROPS, false, helper.getLevel().getServer());
         try {
             drops(helper).forEach(Entity::discard);
             body.run();
         } finally {
             drops(helper).forEach(Entity::discard);
-            rules.getRule(GameRules.RULE_DOMOBLOOT).set(previous, helper.getLevel().getServer());
+            rules.set(GameRules.MOB_DROPS, previous, helper.getLevel().getServer());
         }
     }
 

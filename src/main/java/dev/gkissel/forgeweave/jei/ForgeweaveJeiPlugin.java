@@ -4,7 +4,7 @@ package dev.gkissel.forgeweave.jei;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -12,7 +12,7 @@ import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.helpers.IGuiHelper;
-import mezz.jei.api.ingredients.subtypes.IIngredientSubtypeInterpreter;
+import mezz.jei.api.ingredients.subtypes.ISubtypeInterpreter;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
@@ -68,7 +68,7 @@ import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
  */
 @JeiPlugin
 public final class ForgeweaveJeiPlugin implements IModPlugin {
-    private static final ResourceLocation UID = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "jei_plugin");
+    private static final Identifier UID = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "jei_plugin");
 
     /**
      * Issue #804: {@link JeiScreenshotHarness} needs a live runtime to open a category's real
@@ -78,7 +78,7 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
     private static volatile IJeiRuntime runtimeForHarness;
 
     @Override
-    public ResourceLocation getPluginUid() {
+    public Identifier getPluginUid() {
         return UID;
     }
 
@@ -103,8 +103,8 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
      * {@code ItemStack} carries no material/texture info in its {@code Item} identity; it is all in
      * data components. The three interpreters below (a fourth, upstream's pattern/cast interpreter,
      * has no Forgeweave equivalent -- see {@link SubtypeKeys}'s javadoc) each wrap one
-     * {@link SubtypeKeys} method, mapping its {@code null} ("no component set") to this API's
-     * {@code NONE} sentinel.
+     * {@link SubtypeKeys} method; its {@code null} ("no component set") is also what JEI's
+     * {@code ISubtypeInterpreter} takes to mean "no subtype".
      *
      * <p>Registration itself walks the live item roster rather than a hand list, so a newly added
      * part or tool is covered automatically: every {@link PartItem} straight off the item registry
@@ -115,9 +115,9 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
      */
     @Override
     public void registerItemSubtypes(ISubtypeRegistration registration) {
-        IIngredientSubtypeInterpreter<ItemStack> partInterpreter = (stack, context) -> orNone(SubtypeKeys.part(stack));
-        IIngredientSubtypeInterpreter<ItemStack> toolInterpreter = (stack, context) -> orNone(SubtypeKeys.tool(stack));
-        IIngredientSubtypeInterpreter<ItemStack> textureInterpreter = (stack, context) -> orNone(SubtypeKeys.texture(stack));
+        ISubtypeInterpreter<ItemStack> partInterpreter = (stack, context) -> SubtypeKeys.part(stack);
+        ISubtypeInterpreter<ItemStack> toolInterpreter = (stack, context) -> SubtypeKeys.tool(stack);
+        ISubtypeInterpreter<ItemStack> textureInterpreter = (stack, context) -> SubtypeKeys.texture(stack);
 
         ForgeweaveItems.ITEMS.getEntries().stream()
                 .<Item>map(DeferredHolder::get)
@@ -133,10 +133,6 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         registration.registerSubtypeInterpreter(ForgeweaveItems.TOOL_FORGE.get(), textureInterpreter);
         registration.registerSubtypeInterpreter(ForgeweaveItems.CRAFTING_STATION.get(), textureInterpreter);
         registration.registerSubtypeInterpreter(ForgeweaveItems.STENCIL_TABLE.get(), textureInterpreter);
-    }
-
-    private static String orNone(String key) {
-        return key == null ? IIngredientSubtypeInterpreter.NONE : key;
     }
 
     @Override

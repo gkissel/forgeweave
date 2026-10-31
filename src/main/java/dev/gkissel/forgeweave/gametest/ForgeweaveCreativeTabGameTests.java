@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.flag.FeatureFlags;
@@ -12,8 +12,8 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.item.ForgeweaveCreativeTab;
@@ -47,8 +47,8 @@ public class ForgeweaveCreativeTabGameTests {
     public static void listAllTableVariantsListsOneStencilTableAndPartBuilderPerPlankAndLog(GameTestHelper helper) {
         List<ItemStack> displayed = build(helper, true);
 
-        int planks = BuiltInRegistries.ITEM.getTag(ItemTags.PLANKS).map(tag -> tag.size()).orElse(0);
-        int logs = BuiltInRegistries.ITEM.getTag(ItemTags.LOGS).map(tag -> tag.size()).orElse(0);
+        int planks = BuiltInRegistries.ITEM.get(ItemTags.PLANKS).map(tag -> tag.size()).orElse(0);
+        int logs = BuiltInRegistries.ITEM.get(ItemTags.LOGS).map(tag -> tag.size()).orElse(0);
         helper.assertTrue(planks > 1, "expected the game to have more than one plank type loaded");
         helper.assertTrue(logs > 1, "expected the game to have more than one log type loaded");
 

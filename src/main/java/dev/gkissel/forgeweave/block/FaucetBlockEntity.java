@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.block;
 
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
@@ -96,7 +98,7 @@ public class FaucetBlockEntity extends BlockEntity {
      * @return whether the faucet is pouring after this call
      */
     public boolean activate() {
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return pouring;
         }
         if (pouring) {
@@ -118,7 +120,7 @@ public class FaucetBlockEntity extends BlockEntity {
             return;
         }
         lastRedstoneState = hasSignal;
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return;
         }
         if (hasSignal) {
@@ -136,7 +138,7 @@ public class FaucetBlockEntity extends BlockEntity {
 
     /** The scheduled tick: one {@value #LIQUID_TRANSFER} mB step, or the handoff to the next transaction. */
     void pourStep() {
-        if (level == null || level.isClientSide || !pouring) {
+        if (level == null || level.isClientSide() || !pouring) {
             return;
         }
         if (buffered.isEmpty()) {
@@ -204,7 +206,7 @@ public class FaucetBlockEntity extends BlockEntity {
     }
 
     private void scheduleNextStep() {
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             level.scheduleTick(worldPosition, getBlockState().getBlock(), 1);
         }
     }
@@ -225,29 +227,29 @@ public class FaucetBlockEntity extends BlockEntity {
     private IFluidHandler handlerAt(BlockPos pos, Direction side) {
         return level == null || !level.isLoaded(pos)
                 ? null
-                : level.getCapability(Capabilities.FluidHandler.BLOCK, pos, side);
+                : TransferBridge.fluidAt(level, pos, side);
     }
 
     private void sync() {
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
         }
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
         // Both keys go in unconditionally, empty buffer and all. This same tag is what getUpdateTag
         // sends, and NeoForge's IBlockEntityExtension#onDataPacket drops any packet whose tag is
         // empty -- so an idle faucet, which had nothing else to write, was telling every client
         // exactly nothing when its pour ended, and they went on drawing the stream forever (#200).
-        // saveOptional/parseOptional is the same never-empty pair SmelteryControllerBlockEntity
-        // already uses for its fuel-gauge fluid, and it still reads a pre-#200 save that has no
-        // "drained" key at all: getCompound returns an empty tag and parseOptional makes it EMPTY.
-        tag.put(TAG_DRAINED, buffered.saveOptional(registries));
-        tag.putBoolean(TAG_POURING, pouring);
-        tag.putBoolean(TAG_STOP, stopRequested);
-        tag.putBoolean(TAG_REDSTONE, lastRedstoneState);
+        // FluidStack.OPTIONAL_CODEC is the same never-empty encoding SmelteryControllerBlockEntity
+        // already uses for its fuel-gauge fluid, and a pre-#200 save with no "drained" key at all
+        // still reads back as EMPTY.
+        output.store(TAG_DRAINED, FluidStack.OPTIONAL_CODEC, buffered);
+        output.putBoolean(TAG_POURING, pouring);
+        output.putBoolean(TAG_STOP, stopRequested);
+        output.putBoolean(TAG_REDSTONE, lastRedstoneState);
     }
 
     /**
@@ -272,12 +274,12 @@ public class FaucetBlockEntity extends BlockEntity {
      * non-empty buffer was, and still is, proof of a pour.
      */
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        buffered = FluidStack.parseOptional(registries, tag.getCompound(TAG_DRAINED));
-        pouring = tag.getBoolean(TAG_POURING) || !buffered.isEmpty();
-        stopRequested = pouring && tag.getBoolean(TAG_STOP);
-        lastRedstoneState = tag.getBoolean(TAG_REDSTONE);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        buffered = input.read(TAG_DRAINED, FluidStack.OPTIONAL_CODEC).orElse(FluidStack.EMPTY);
+        pouring = input.getBooleanOr(TAG_POURING, false) || !buffered.isEmpty();
+        stopRequested = pouring && input.getBooleanOr(TAG_STOP, false);
+        lastRedstoneState = input.getBooleanOr(TAG_REDSTONE, false);
     }
 
     /**

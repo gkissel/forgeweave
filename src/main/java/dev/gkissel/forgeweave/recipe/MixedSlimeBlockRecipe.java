@@ -1,6 +1,5 @@
 package dev.gkissel.forgeweave.recipe;
 
-import net.minecraft.core.HolderLookup;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
@@ -39,8 +38,15 @@ import dev.gkissel.forgeweave.config.ForgeweaveConfig;
  */
 public class MixedSlimeBlockRecipe extends CustomRecipe {
 
+    private final CraftingBookCategory category;
+
     public MixedSlimeBlockRecipe(CraftingBookCategory category) {
-        super(category);
+        this.category = category;
+    }
+
+    @Override
+    public CraftingBookCategory category() {
+        return category;
     }
 
     @Override
@@ -52,7 +58,7 @@ public class MixedSlimeBlockRecipe extends CustomRecipe {
         boolean mixed = false;
         for (int i = 0; i < input.size(); i++) {
             ItemStack stack = input.getItem(i);
-            if (!stack.is(Tags.Items.SLIMEBALLS)) {
+            if (!stack.is(Tags.Items.SLIME_BALLS)) {
                 return false;
             }
             mixed |= !stack.is(first.getItem());
@@ -62,12 +68,7 @@ public class MixedSlimeBlockRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
-        return result();
-    }
-
-    @Override
-    public ItemStack getResultItem(HolderLookup.Provider registries) {
+    public ItemStack assemble(CraftingInput input) {
         return result();
     }
 
@@ -79,12 +80,7 @@ public class MixedSlimeBlockRecipe extends CustomRecipe {
     }
 
     @Override
-    public boolean canCraftInDimensions(int width, int height) {
-        return width >= 3 && height >= 3;
-    }
-
-    @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<MixedSlimeBlockRecipe> getSerializer() {
         return ForgeweaveRecipeSerializers.MIXED_SLIME_BLOCK.get();
     }
 }

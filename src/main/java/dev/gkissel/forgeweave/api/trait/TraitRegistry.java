@@ -8,7 +8,7 @@ import com.mojang.serialization.MapCodec;
 
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Where a partner mod adds traits from Java (issue #1065). Two things can be registered here, and
@@ -40,8 +40,8 @@ import net.minecraft.resources.ResourceLocation;
  */
 public final class TraitRegistry {
 
-    private static final Map<ResourceLocation, Trait> TRAITS = new ConcurrentHashMap<>();
-    private static final Map<ResourceLocation, MapCodec<? extends Trait>> BEHAVIORS = new ConcurrentHashMap<>();
+    private static final Map<Identifier, Trait> TRAITS = new ConcurrentHashMap<>();
+    private static final Map<Identifier, MapCodec<? extends Trait>> BEHAVIORS = new ConcurrentHashMap<>();
 
     /** Written once from the mod-loading thread, read from every later thread. */
     private static volatile boolean closed;
@@ -52,7 +52,7 @@ public final class TraitRegistry {
      * @throws IllegalStateException if the registration window has closed
      * @throws IllegalArgumentException if another Java registration already owns {@code id}
      */
-    public static void register(ResourceLocation id, Trait trait) {
+    public static void register(Identifier id, Trait trait) {
         checkOpen(id);
         if (TRAITS.putIfAbsent(id, trait) != null) {
             throw new IllegalArgumentException("Trait id '" + id + "' is already registered from Java; "
@@ -67,7 +67,7 @@ public final class TraitRegistry {
      * @throws IllegalStateException if the registration window has closed
      * @throws IllegalArgumentException if another Java registration already owns {@code id}
      */
-    public static void registerBehavior(ResourceLocation id, MapCodec<? extends Trait> codec) {
+    public static void registerBehavior(Identifier id, MapCodec<? extends Trait> codec) {
         checkOpen(id);
         if (BEHAVIORS.putIfAbsent(id, codec) != null) {
             throw new IllegalArgumentException("Trait behavior id '" + id + "' is already registered from Java; "
@@ -75,7 +75,7 @@ public final class TraitRegistry {
         }
     }
 
-    private static void checkOpen(ResourceLocation id) {
+    private static void checkOpen(Identifier id) {
         if (closed) {
             throw new IllegalStateException("Forgeweave's trait registration window has closed and '" + id
                     + "' arrived too late; register during mod construction (your mod's constructor or an "
@@ -85,23 +85,23 @@ public final class TraitRegistry {
 
     /** The trait registered under {@code id}, or {@code null} if nothing registered one. */
     @Nullable
-    public static Trait trait(ResourceLocation id) {
+    public static Trait trait(Identifier id) {
         return TRAITS.get(id);
     }
 
     /** The behavior codec registered under {@code id}, or {@code null} if nothing registered one. */
     @Nullable
-    public static MapCodec<? extends Trait> behavior(ResourceLocation id) {
+    public static MapCodec<? extends Trait> behavior(Identifier id) {
         return BEHAVIORS.get(id);
     }
 
     /** Every Java-registered trait id. */
-    public static Set<ResourceLocation> traitIds() {
+    public static Set<Identifier> traitIds() {
         return Set.copyOf(TRAITS.keySet());
     }
 
     /** Every Java-registered behavior id, for the "known behaviors" list a bad file is told about. */
-    public static Set<ResourceLocation> behaviorIds() {
+    public static Set<Identifier> behaviorIds() {
         return Set.copyOf(BEHAVIORS.keySet());
     }
 

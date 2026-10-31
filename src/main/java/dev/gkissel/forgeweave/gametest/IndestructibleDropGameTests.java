@@ -3,20 +3,24 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.phys.AABB;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.entity.ForgeweaveEntities;
@@ -92,11 +96,11 @@ public class IndestructibleDropGameTests {
 
         whenSwapped(helper, () -> {
             IndestructibleItemEntity dropped = onlyIndestructible(helper);
-            helper.assertFalse(dropped.hurt(level.damageSources().inFire(), 4.0F),
+            helper.assertFalse(dropped.hurtServer(level, level.damageSources().inFire(), 4.0F),
                     "a dropped tool must be immune to fire");
-            helper.assertFalse(dropped.hurt(level.damageSources().lava(), 4.0F),
+            helper.assertFalse(dropped.hurtServer(level, level.damageSources().lava(), 4.0F),
                     "a dropped tool must be immune to lava");
-            helper.assertFalse(dropped.hurt(level.damageSources().explosion(null), 20.0F),
+            helper.assertFalse(dropped.hurtServer(level, level.damageSources().explosion(null), 20.0F),
                     "a dropped tool must be immune to explosions");
             helper.assertFalse(dropped.isRemoved(), "none of those hits may destroy the dropped tool");
             helper.assertTrue(dropped.fireImmune(), "a dropped tool must not catch fire either");
@@ -118,10 +122,10 @@ public class IndestructibleDropGameTests {
         whenSwapped(helper, () -> {
             IndestructibleItemEntity dropped = onlyIndestructible(helper);
             // Vanilla's own void tick: 4 damage against an item entity's 5 health, so it takes two.
-            helper.assertTrue(dropped.hurt(level.damageSources().fellOutOfWorld(), 4.0F),
+            helper.assertTrue(dropped.hurtServer(level, level.damageSources().fellOutOfWorld(), 4.0F),
                     "the void must still be able to hurt a dropped tool");
             helper.assertFalse(dropped.isRemoved(), "one void tick is not yet fatal, as for any item");
-            helper.assertTrue(dropped.hurt(level.damageSources().fellOutOfWorld(), 4.0F),
+            helper.assertTrue(dropped.hurtServer(level, level.damageSources().fellOutOfWorld(), 4.0F),
                     "the second void tick must land too");
             helper.assertTrue(dropped.isRemoved(), "a tool worn down by the void must be gone");
             helper.succeed();
@@ -161,12 +165,14 @@ public class IndestructibleDropGameTests {
 
         whenSwapped(helper, () -> {
             IndestructibleItemEntity dropped = onlyIndestructible(helper);
-            CompoundTag tag = new CompoundTag();
-            helper.assertTrue(dropped.save(tag), "a dropped tool must be saved to the region file");
-            helper.assertTrue(EntityType.by(tag).orElse(null) == ForgeweaveEntities.INDESTRUCTIBLE_ITEM.get(),
+            TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, level.registryAccess());
+            helper.assertTrue(dropped.save(output), "a dropped tool must be saved to the region file");
+            CompoundTag tag = output.buildResult();
+            helper.assertTrue(EntityType.by(TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), tag))
+                            .orElse(null) == ForgeweaveEntities.INDESTRUCTIBLE_ITEM.get(),
                     "the saved tag must name this mod's entity type, not minecraft:item");
 
-            Entity reloaded = EntityType.loadEntityRecursive(tag, level, e -> e);
+            Entity reloaded = EntityType.loadEntityRecursive(tag, level, EntitySpawnReason.LOAD, e -> e);
             helper.assertTrue(reloaded instanceof IndestructibleItemEntity,
                     "a saved indestructible drop must reload as one");
             IndestructibleItemEntity reloadedDrop = (IndestructibleItemEntity) reloaded;
@@ -212,7 +218,7 @@ public class IndestructibleDropGameTests {
 
         whenSwapped(helper, () -> {
             IndestructibleItemEntity dropped = onlyIndestructible(helper);
-            helper.assertFalse(dropped.hurt(level.damageSources().lava(), 4.0F),
+            helper.assertFalse(dropped.hurtServer(level, level.damageSources().lava(), 4.0F),
                     "a dropped sharpening kit must be immune to lava");
             helper.assertFalse(dropped.isRemoved(), "lava must not destroy the dropped sharpening kit");
             helper.succeed();

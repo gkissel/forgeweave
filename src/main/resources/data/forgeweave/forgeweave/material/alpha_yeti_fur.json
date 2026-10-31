@@ -45,21 +45,17 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "twilightforest:alpha_yeti_fur"
-      },
+      "ingredient": "twilightforest:alpha_yeti_fur",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "twilightforest:alpha_yeti_fur"
-  },
+  "repair_item": "twilightforest:alpha_yeti_fur",
   "enchantability": 19,
   "color": "#C9D6DC",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "twilightforest:alpha_yeti_fur"
+      "type": "neoforge:registered",
+      "value": "twilightforest:alpha_yeti_fur"
     }
   ]
 }

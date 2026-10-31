@@ -4,7 +4,7 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 
 import dev.gkissel.forgeweave.material.Material;
@@ -28,7 +28,7 @@ public sealed interface BookPage {
      * 1.12 {@code text} and {@code "image with text below"} page types folded together -- the only
      * difference between them is whether {@code image} is present).
      */
-    record TextPage(String titleKey, String textKey, @Nullable ResourceLocation image) implements BookPage {
+    record TextPage(String titleKey, String textKey, @Nullable Identifier image) implements BookPage {
         public TextPage(String titleKey, String textKey) {
             this(titleKey, textKey, null);
         }
@@ -45,7 +45,7 @@ public sealed interface BookPage {
      * is the chapter's ladder rung (issue #1104): shown on the page, and the reason the page sits
      * where it does.
      */
-    record MaterialPage(ResourceLocation id, Material material, MaterialStage stage) implements BookPage {}
+    record MaterialPage(Identifier id, Material material, MaterialStage stage) implements BookPage {}
 
     /**
      * One trait family's reference entry (issue #1104): its levels, what each level does, and the
@@ -58,7 +58,7 @@ public sealed interface BookPage {
      * A modifier's page, upstream's {@code ContentModifier} (issue #651): the coloured name,
      * description, "Effects:" bullets, and the diagram of a demo pickaxe over the reagent slot.
      */
-    record ModifierPage(ResourceLocation id) implements BookPage {}
+    record ModifierPage(Identifier id) implements BookPage {}
 
     /**
      * A section's opening navigation page: one linked text row per page of the section, titled with

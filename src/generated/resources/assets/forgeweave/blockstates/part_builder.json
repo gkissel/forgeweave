@@ -1,17 +1,21 @@
 {
   "variants": {
     "facing=east": {
+      "type": "forgeweave:retextured_table",
       "model": "forgeweave:block/part_builder",
       "y": 90
     },
     "facing=north": {
+      "type": "forgeweave:retextured_table",
       "model": "forgeweave:block/part_builder"
     },
     "facing=south": {
+      "type": "forgeweave:retextured_table",
       "model": "forgeweave:block/part_builder",
       "y": 180
     },
     "facing=west": {
+      "type": "forgeweave:retextured_table",
       "model": "forgeweave:block/part_builder",
       "y": 270
     }

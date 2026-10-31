@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:dusts/fulmenite"
-    }
+    "#c:dusts/fulmenite"
   ],
   "result": {
     "count": 3,

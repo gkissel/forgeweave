@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:dusts/skipalloy"
-    }
+    "#c:dusts/skipalloy"
   ],
   "result": {
     "count": 3,

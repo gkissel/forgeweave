@@ -2,8 +2,9 @@ package dev.gkissel.forgeweave.gametest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
@@ -13,8 +14,8 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -45,8 +46,8 @@ public class RecipeShapeGameTests {
     @GameTest(template = "empty")
     public static void everyStationRecipeCraftsAtTheShapeViewersDisplay(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        List<RecipeHolder<CraftingRecipe>> retextured = level.getRecipeManager()
-                .getAllRecipesFor(RecipeType.CRAFTING).stream()
+        List<RecipeHolder<CraftingRecipe>> retextured = level.recipeAccess().recipeMap()
+                .byType(RecipeType.CRAFTING).stream()
                 .filter(holder -> holder.value() instanceof RetexturedShapedRecipe)
                 .toList();
 
@@ -56,11 +57,11 @@ public class RecipeShapeGameTests {
             RetexturedShapedRecipe recipe = (RetexturedShapedRecipe) holder.value();
             CraftingInput displayed = asDisplayed(recipe);
 
-            ItemStack crafted = level.getRecipeManager()
+            ItemStack crafted = level.recipeAccess()
                     .getRecipeFor(RecipeType.CRAFTING, displayed, level)
-                    .map(match -> match.value().assemble(displayed, level.registryAccess()))
+                    .map(match -> match.value().assemble(displayed))
                     .orElse(ItemStack.EMPTY);
-            ItemStack expected = recipe.getResultItem(level.registryAccess());
+            ItemStack expected = recipe.assemble(CraftingInput.EMPTY);
 
             helper.assertTrue(crafted.is(expected.getItem()),
                     "recipe " + holder.id() + " displays as " + recipe.getWidth() + "x" + recipe.getHeight()
@@ -74,18 +75,18 @@ public class RecipeShapeGameTests {
     @GameTest(template = "empty")
     public static void theStencilTableCraftsAtTheShapeViewersDisplay(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        RetexturedShapedRecipe recipe = level.getRecipeManager().getAllRecipesFor(RecipeType.CRAFTING).stream()
+        RetexturedShapedRecipe recipe = level.recipeAccess().recipeMap().byType(RecipeType.CRAFTING).stream()
                 .map(RecipeHolder::value)
                 .filter(RetexturedShapedRecipe.class::isInstance)
                 .map(RetexturedShapedRecipe.class::cast)
-                .filter(candidate -> candidate.getResultItem(level.registryAccess())
+                .filter(candidate -> candidate.assemble(CraftingInput.EMPTY)
                         .is(ForgeweaveBlocks.STENCIL_TABLE.get().asItem()))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("no Stencil Table crafting recipe is loaded"));
 
         CraftingInput displayed = asDisplayed(recipe);
-        ItemStack crafted = level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, displayed, level)
-                .map(match -> match.value().assemble(displayed, level.registryAccess()))
+        ItemStack crafted = level.recipeAccess().getRecipeFor(RecipeType.CRAFTING, displayed, level)
+                .map(match -> match.value().assemble(displayed))
                 .orElse(ItemStack.EMPTY);
 
         helper.assertTrue(crafted.is(ForgeweaveBlocks.STENCIL_TABLE.get().asItem()),
@@ -100,9 +101,8 @@ public class RecipeShapeGameTests {
      */
     private static CraftingInput asDisplayed(RetexturedShapedRecipe recipe) {
         List<ItemStack> items = new ArrayList<>();
-        for (Ingredient ingredient : recipe.getIngredients()) {
-            ItemStack[] candidates = ingredient.getItems();
-            items.add(ingredient.isEmpty() || candidates.length == 0 ? ItemStack.EMPTY : candidates[0].copy());
+        for (Optional<Ingredient> ingredient : recipe.getIngredients()) {
+            items.add(ingredient.flatMap(i -> i.items().findFirst()).map(ItemStack::new).orElse(ItemStack.EMPTY));
         }
         return CraftingInput.of(recipe.getWidth(), recipe.getHeight(), items);
     }

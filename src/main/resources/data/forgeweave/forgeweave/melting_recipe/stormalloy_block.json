@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/stormalloy"
-  },
+  "input": "#c:storage_blocks/stormalloy",
   "fluid": "forgeweave:molten_stormalloy",
   "amount": 1296,
   "temperature": 1600

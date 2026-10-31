@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_curved_blade"
-  },
+  "cast": "forgeweave:clay_cast_curved_blade",
   "fluid": "forgeweave:molten_pig_iron",
   "amount": 288,
   "result": {

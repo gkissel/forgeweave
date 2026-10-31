@@ -24,6 +24,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.Bootstrap;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.block.FaucetBlockEntity;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.PartBuilderRecipes;
@@ -44,7 +45,7 @@ class BookTutorialPagesTest {
     static void bootstrap() throws IOException {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(JsonOps.INSTANCE);
         lang = read(root().resolve("src/generated/resources/assets/forgeweave/lang/en_us.json"));
     }
 
@@ -71,11 +72,11 @@ class BookTutorialPagesTest {
     }
 
     /** What one {@code ingredient} of a material's crafting items is worth, in units. */
-    private static int value(String material, String ingredientKey, String ingredient) throws IOException {
+    private static int value(String material, String ingredient) throws IOException {
         for (JsonElement item : materialJson(material).getAsJsonArray("crafting_items")) {
             JsonObject entry = item.getAsJsonObject();
-            JsonElement key = entry.getAsJsonObject("ingredient").get(ingredientKey);
-            if (key != null && key.getAsString().equals(ingredient)) {
+            JsonElement key = entry.get("ingredient");
+            if (key.isJsonPrimitive() && key.getAsString().equals(ingredient)) {
                 return entry.get("value").getAsInt();
             }
         }
@@ -103,8 +104,8 @@ class BookTutorialPagesTest {
 
     @Test
     void theFirstPickaxePagePricesItsPartsRight() throws IOException {
-        int log = value("wood", "tag", "minecraft:logs");
-        int cobblestone = value("stone", "item", "minecraft:cobblestone");
+        int log = value("wood", "#minecraft:logs");
+        int cobblestone = value("stone", "minecraft:cobblestone");
         int parts = PartBuilderRecipes.HEAD_COST + 2 * PartBuilderRecipes.SMALL_PART_COST;
         String page = text("intro.first_pickaxe");
 

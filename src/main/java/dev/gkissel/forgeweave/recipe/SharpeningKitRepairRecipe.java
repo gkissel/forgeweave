@@ -4,12 +4,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.core.HolderLookup;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CustomRecipe;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.level.Level;
+
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
@@ -26,10 +29,11 @@ import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
  *
  * <ul>
  *   <li>{@code canFit(width, height) == width >= 3 && height >= 3}: the crafting table only, never
- *       the player's 2x2 grid;
+ *       the player's 2x2 grid. 26.1 dropped {@code Recipe#canCraftInDimensions}; in 1.21.1 it only
+ *       ever filtered the recipe book, which never shows this hidden recipe, so nothing changed;
  *   <li>{@code isHidden()}: it advertises no result, so it stays out of the recipe book and out of
- *       recipe viewers. In 1.21.1 that falls out of {@link CustomRecipe} itself -- {@code isSpecial}
- *       is true and {@code getResultItem} is empty;
+ *       recipe viewers. That falls out of {@link CustomRecipe} itself -- {@code isSpecial} is true
+ *       and it is not placeable;
  *   <li>the "check if all items were used" bail from {@code TinkersItem#repair}: the grid consumes
  *       one of every stack in it regardless of what the repair actually needed, so a loadout the
  *       repair would not spend in full has to not match at all rather than eat the surplus. That is
@@ -41,8 +45,15 @@ import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
  */
 public class SharpeningKitRepairRecipe extends CustomRecipe {
 
+    private final CraftingBookCategory category;
+
     public SharpeningKitRepairRecipe(CraftingBookCategory category) {
-        super(category);
+        this.category = category;
+    }
+
+    @Override
+    public CraftingBookCategory category() {
+        return category;
     }
 
     @Override
@@ -51,18 +62,14 @@ public class SharpeningKitRepairRecipe extends CustomRecipe {
     }
 
     @Override
-    public ItemStack assemble(CraftingInput input, HolderLookup.Provider registries) {
-        return repair(input, registries);
-    }
-
-    /** Upstream {@code RepairRecipe#canFit}: a crafting table, never the inventory's 2x2 grid. */
-    @Override
-    public boolean canCraftInDimensions(int width, int height) {
-        return width >= 3 && height >= 3;
+    public ItemStack assemble(CraftingInput input) {
+        // 26.1 hands assemble no registries; the crafting grid only ever assembles on the server.
+        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+        return server == null ? ItemStack.EMPTY : repair(input, server.registryAccess());
     }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<SharpeningKitRepairRecipe> getSerializer() {
         return ForgeweaveRecipeSerializers.SHARPENING_KIT_REPAIR.get();
     }
 

@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_gem"
-  },
+  "cast": "forgeweave:cast_gem",
   "fluid": "forgeweave:molten_emerald",
   "amount": 666,
   "result": {

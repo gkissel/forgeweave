@@ -1,28 +1,42 @@
 package dev.gkissel.forgeweave.data;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
 import java.util.function.Supplier;
 
+import javax.annotation.Nullable;
+
+import net.minecraft.client.data.models.ItemModelGenerators;
+import net.minecraft.client.data.models.ItemModelOutput;
+import net.minecraft.client.data.models.model.ItemModelUtils;
+import net.minecraft.client.data.models.model.ModelInstance;
+import net.minecraft.client.data.models.model.TextureMapping;
+import net.minecraft.client.data.models.model.TextureSlot;
+import net.minecraft.client.renderer.item.ItemModel;
+import net.minecraft.client.renderer.item.RangeSelectItemModel;
+import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 
-import net.neoforged.neoforge.client.model.generators.ItemModelBuilder;
-import net.neoforged.neoforge.client.model.generators.ItemModelProvider;
-import net.neoforged.neoforge.client.model.generators.ModelFile;
-import net.neoforged.neoforge.client.model.generators.loaders.DynamicFluidContainerModelBuilder;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.client.model.generators.template.ExtendedModelTemplateBuilder;
+import net.neoforged.neoforge.client.model.item.DynamicFluidContainerModel;
 import net.neoforged.neoforge.registries.DeferredItem;
 
 import dev.gkissel.forgeweave.Forgeweave;
-import dev.gkissel.forgeweave.api.modifier.Modifier;
+import dev.gkissel.forgeweave.client.ForgeweaveItemProperties;
+import dev.gkissel.forgeweave.client.model.PartItemModel;
+import dev.gkissel.forgeweave.client.model.ToolItemModel;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.item.PartItem;
 import dev.gkissel.forgeweave.material.MaterialForm;
 import dev.gkissel.forgeweave.material.MaterialForms;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
@@ -49,14 +63,28 @@ import dev.gkissel.forgeweave.trackb.TrackBOre;
  * tool). Layer order matches upstream 1.12's own tool models ({@code models/item/tools/*.tcon.json}:
  * layer0 = handle, layer1 = head, layer2 = binding); {@code ForgeweaveItemColors#toolMaterialTint}'s
  * tintIndex-to-material mapping matches this order, not {@code ToolMaterials}'s field order.
+ *
+ * <p>26.1 also needs a client item ({@code items/<item>.json}) per item, written here beside each
+ * model: {@code forgeweave:tool} for the tools, {@code forgeweave:part} for the parts, NeoForge's
+ * {@code neoforge:fluid_container} for the buckets, and a plain model reference for the rest. Not a
+ * data provider of its own: {@link ForgeweaveBlockStateProvider} is the one 26.1 {@code
+ * ModelProvider} and runs this half, since that provider checks every item has a client item.
  */
-public class ForgeweaveItemModelProvider extends ItemModelProvider {
-    public ForgeweaveItemModelProvider(PackOutput output, ExistingFileHelper existingFileHelper) {
-        super(output, Forgeweave.MODID, existingFileHelper);
+public final class ForgeweaveItemModelProvider {
+    /** {@code ForgeweaveItems#BLUE_SLIME_SPAWN_EGG}'s two 1.21.1 egg colours (#451), the template's layer0 and layer1. */
+    private static final int BLUE_SLIME_EGG_BACKGROUND = 0x47eff5;
+    private static final int BLUE_SLIME_EGG_HIGHLIGHT = 0xacfff4;
+
+    private final ItemModelOutput items;
+    private final BiConsumer<Identifier, ModelInstance> models;
+
+    ForgeweaveItemModelProvider(ItemModelGenerators generators) {
+        this.items = generators.itemModelOutput;
+        this.models = generators.modelOutput;
     }
 
-    @Override
-    protected void registerModels() {
+    /** Every non-block item's models and client item; {@code ForgeweaveBlockStateProvider} runs this. */
+    void registerModels() {
         // The guide book (issue #273), art derived from upstream 1.12's items/book.png (NOTICE.md).
         singleLayerModel(ForgeweaveItems.GUIDE_BOOK, derivedItem("guide_book"));
         // The Dusk Cage (issue #886): original art, no upstream equivalent to derive from -- a
@@ -391,10 +419,15 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         singleLayerModel(ForgeweaveItems.INGOT_KNIGHTSLIME, derivedItem("knightslime_ingot"));
         singleLayerModel(ForgeweaveItems.NUGGET_KNIGHTSLIME, derivedItem("knightslime_nugget"));
 
-        // #451 (T20) -- the blue slime's spawn egg. Vanilla's template model paints itself from the
-        // item's own two colours (ForgeweaveItems#BLUE_SLIME_SPAWN_EGG), so it needs no texture.
-        getBuilder(ForgeweaveItems.BLUE_SLIME_SPAWN_EGG.getId().toString())
-                .parent(new ModelFile.UncheckedModelFile("item/template_spawn_egg"));
+        // #451 (T20) -- the blue slime's spawn egg: 1.21.1's vanilla item/template_spawn_egg, a
+        // two-layer egg tinted with the egg's own two colours. 26.1 ships no template (every vanilla
+        // egg has its own sprite now), so the two 1.21.1 template sprites are copied under
+        // textures/item/ and the colours ride the client item as constant tints.
+        Identifier spawnEgg = layerModel(ForgeweaveItems.BLUE_SLIME_SPAWN_EGG.getId().getPath(), "item/generated",
+                List.of(itemTexture("spawn_egg"), itemTexture("spawn_egg_overlay")), null);
+        items.accept(ForgeweaveItems.BLUE_SLIME_SPAWN_EGG.get(), ItemModelUtils.tintedModel(spawnEgg,
+                ItemModelUtils.constantTint(ARGB.opaque(BLUE_SLIME_EGG_BACKGROUND)),
+                ItemModelUtils.constantTint(ARGB.opaque(BLUE_SLIME_EGG_HIGHLIGHT))));
 
         // #452 -- the slime boots (T21), upstream's items/armor/slime_boots.png with the green slime
         // ball tint baked in (NOTICE.md). Upstream's own model parents item/handheld, which is an
@@ -409,19 +442,13 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         // its own pre-tinted sprite (scripts/derive_slime_sling_art.py, NOTICE.md), the same
         // baked-tint adaptation the slime boots made at #452.
         for (ForgeweaveItems.SlimeSling sling : ForgeweaveItems.slimeSlings()) {
-            getBuilder(sling.item().getId().toString())
-                    .parent(new ModelFile.UncheckedModelFile("item/generated"))
-                    .texture("layer0", derivedItem(sling.item().getId().getPath()))
-                    .transforms()
-                    .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
-                    .rotation(0, 90, 0).translation(0, 4.0F, 2.5F).scale(0.85F).end()
-                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
-                    .rotation(0, -90, 0).translation(0, 4.0F, 2.5F).scale(0.85F).end()
-                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
-                    .rotation(0, 90, 0).translation(0, 1.6F, 0.8F).scale(0.68F).end()
-                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
-                    .rotation(0, -90, 0).translation(0, 1.6F, 0.8F).scale(0.68F).end()
-                    .end();
+            Identifier model = layerModel(sling.item().getId().getPath(), "item/generated",
+                    List.of(derivedItem(sling.item().getId().getPath())), builder -> builder
+                    .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, t -> t.rotation(0, 90, 0).translation(0, 4.0F, 2.5F).scale(0.85F))
+                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND, t -> t.rotation(0, -90, 0).translation(0, 4.0F, 2.5F).scale(0.85F))
+                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, t -> t.rotation(0, 90, 0).translation(0, 1.6F, 0.8F).scale(0.68F))
+                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND, t -> t.rotation(0, -90, 0).translation(0, 1.6F, 0.8F).scale(0.68F)));
+            items.accept(sling.item().get(), ItemModelUtils.plainModel(model));
         }
 
         // #233 -- pig iron ingot/nugget, straight upstream texture ports (ingot_pigiron.png/
@@ -433,116 +460,123 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
         singleLayerModel(ForgeweaveItems.INGOT_AMETHYST_BRONZE, derivedItem("amethyst_bronze_ingot"));
         singleLayerModel(ForgeweaveItems.NUGGET_AMETHYST_BRONZE, derivedItem("amethyst_bronze_nugget"));
 
-        // #286 -- one bucket model per molten fluid, off ForgeweaveFluids#all so a new fluid gets
-        // one by existing. No bucket art of our own: NeoForge's dynamic fluid container model
-        // (parent neoforge:item/bucket = vanilla's own item/bucket sprite plus NeoForge's fluid
-        // mask) re-textures the fluid layer from the fluid's still texture and tints it via
-        // ForgeweaveItemColors. Both upstream generations do the same thing rather than draw 20
+        // #286 -- one bucket per molten fluid, off ForgeweaveFluids#all so a new fluid gets one by
+        // existing. No bucket art of our own: NeoForge's dynamic fluid container item model
+        // (vanilla's own item/bucket sprite plus NeoForge's fluid mask) re-textures the fluid layer
+        // from the fluid's still texture and tints it with the fluid's own colour. Both upstream generations do the same thing rather than draw 20
         // buckets: 1.12 registers every smeltery fluid on Forge's universal bucket
         // (TinkerFluids#registerItems -> FluidRegistry.addBucketForFluid, one shared bucket item
         // recolored per fluid), and the 1.20 clone's generated bucket models are
         // {"parent": "forge:item/bucket_drip", "loader": "tconstruct:fluid_container", "fluid": ...}
         // -- the same dynamic-container mechanism this uses.
         for (ForgeweaveFluids.MoltenMetal fluid : ForgeweaveFluids.all()) {
-            withExistingParent(fluid.name() + "_bucket", BUCKET_MODEL_PARENT)
-                    .customLoader(DynamicFluidContainerModelBuilder::begin)
-                    .fluid(fluid.still().get())
-                    .flipGas(false)
-                    .end();
-        }
-    }
-
-    /** NeoForge's stock bucket container model: vanilla's {@code item/bucket} sprite plus NeoForge's fluid mask (#286). */
-    private static final ResourceLocation BUCKET_MODEL_PARENT =
-            ResourceLocation.fromNamespaceAndPath("neoforge", "item/bucket");
-
-    private ResourceLocation derivedItem(String name) {
-        return modLoc("derived/item/" + name);
-    }
-
-    private ResourceLocation itemTexture(String name) {
-        return modLoc("item/" + name);
-    }
-
-    private ResourceLocation toolLayer(String tool, String layer) {
-        return modLoc(ToolArt.layer(tool, layer));
-    }
-
-    // Unchecked parent, matching basicItem()'s approach: "item/generated" is a vanilla builtin
-    // model that isn't guaranteed to resolve through ExistingFileHelper in every datagen run mode.
-    private void singleLayerModel(DeferredItem<? extends Item> item, ResourceLocation texture) {
-        getBuilder(item.getId().toString())
-                .parent(new ModelFile.UncheckedModelFile("item/generated"))
-                .texture("layer0", texture);
-    }
-
-    private void toolModel(Supplier<? extends Item> item, String tool, List<String> layers, String parent) {
-        ItemModelBuilder builder = toolLayerModel(
-                BuiltInRegistries.ITEM.getKey(item.get()).toString(), tool, layers, null, parent,
-                classicPose(tool, 0));
-        stateOverrides(builder, tool, layers, parent, "", stage -> classicPose(tool, stage), false);
-
-        // Issue #723: the same ladder again, gated on forgeweave:modern_pose and pointing at *_modern
-        // siblings that differ only in their display block. Appended after the classic ladder, and
-        // led by the idle entry, so under the modern setting the last-match rule lands on this set.
-        Consumer<ItemModelBuilder> modern = MODERN_DISPLAY_OVERRIDES.get(tool);
-        if (modern != null) {
-            builder.override().predicate(MODERN_POSE_PREDICATE, 1)
-                    .model(toolLayerModel(tool + "_modern", tool, layers, null, parent, modern)).end();
-            stateOverrides(builder, tool, layers, parent, "_modern", stage -> modern, true);
+            items.accept(fluid.bucket().get(),
+                    new DynamicFluidContainerModel.Unbaked(BUCKET_TEXTURES, fluid.still().get(), false, true, true));
         }
     }
 
     /**
+     * NeoForge's stock bucket container (#286): vanilla's {@code item/bucket} sprite plus NeoForge's
+     * fluid mask, the two textures 1.21.1's {@code neoforge:item/bucket} parent bound. The fluid
+     * layer is tinted by the model itself from the fluid's client extension.
+     */
+    private static final DynamicFluidContainerModel.Textures BUCKET_TEXTURES = new DynamicFluidContainerModel.Textures(
+            Optional.empty(), Optional.of(new Material(Identifier.withDefaultNamespace("item/bucket"))),
+            Optional.of(new Material(Identifier.fromNamespaceAndPath("neoforge", "item/mask/bucket_fluid"))), Optional.empty());
+
+    private Identifier derivedItem(String name) {
+        return modLoc("derived/item/" + name);
+    }
+
+    private Identifier itemTexture(String name) {
+        return modLoc("item/" + name);
+    }
+
+    private Identifier toolLayer(String tool, String layer) {
+        return modLoc(ToolArt.layer(tool, layer));
+    }
+
+    /**
+     * {@code item/generated} over one sprite. A part (every {@link PartItem}, the shard included)
+     * gets the {@code forgeweave:part} client item, which tints it with its material and swaps in a
+     * material finish; anything else draws the model as it is.
+     */
+    private void singleLayerModel(DeferredItem<? extends Item> item, Identifier texture) {
+        Identifier model = layerModel(item.getId().getPath(), "item/generated", List.of(texture), null);
+        items.accept(item.get(), item.get() instanceof PartItem ? new PartItemModel.Unbaked(model) : ItemModelUtils.plainModel(model));
+    }
+
+    /**
+     * One assembled tool's client item, the 26.1 form of 1.21.1's {@code overrides} ladder. Vanilla
+     * resolved that ladder by "the last entry whose every predicate matches", so the entries
+     * appended last won; the condition tree below asks the same questions from the winning end:
+     * the held-pose switch first (issue #723: under the modern setting every modern entry outranked
+     * every classic one), then Broken (issue #284), then the crossbow's crank, then the draw. Every
+     * leaf is a {@code forgeweave:tool} item model over one of the layer models this writes.
+     */
+    private void toolModel(Supplier<? extends Item> item, String tool, List<String> layers, String parent) {
+        ItemModel.Unbaked classic = stateTree(tool, layers, parent, "", stage -> classicPose(tool, stage),
+                toolLeaf(toolLayerModel(BuiltInRegistries.ITEM.getKey(item.get()).getPath(), tool, layers, null, parent,
+                        classicPose(tool, 0)), tool));
+
+        // Issue #723: the same ladder again under forgeweave:modern_pose, pointing at *_modern
+        // siblings that differ only in their display block.
+        Consumer<ExtendedModelTemplateBuilder> modern = MODERN_DISPLAY_OVERRIDES.get(tool);
+        ItemModel.Unbaked root = classic;
+        if (modern != null) {
+            ItemModel.Unbaked modernIdle = toolLeaf(toolLayerModel(tool + "_modern", tool, layers, null, parent, modern), tool);
+            root = ItemModelUtils.conditional(ForgeweaveItemProperties.Flag.MODERN_POSE,
+                    stateTree(tool, layers, parent, "_modern", stage -> modern, modernIdle), classic);
+        }
+        items.accept(item.get(), root);
+    }
+
+    private static ItemModel.Unbaked toolLeaf(Identifier model, String tool) {
+        return new ToolItemModel.Unbaked(model, tool);
+    }
+
+    /**
      * A bow's draw states (M3.5 issue #400), upstream's {@code <bow>.tcon.json} {@code overrides}
-     * block in vanilla's own format: three {@code {"pulling": 1, "pull": <threshold>}} entries in
-     * ascending order, each pointing at a {@code <bow>_pulling_<stage>} model that is the bow's own
-     * layer stack with the bent-limb and stretched-string art swapped in
-     * ({@link ToolArt#drawLayer}), plus the crossbow's fourth {@code {"loaded": 1}} entry, and then
-     * the Broken entry (issue #284) last so it wins: vanilla resolves overrides by "the last entry
-     * whose every predicate still matches", and a Broken bow must render broken whatever else is
-     * true of it.
+     * block: while {@code forgeweave:pulling}, a {@code forgeweave:pull} range over the three
+     * thresholds, each stage a {@code <bow>_pulling_<stage>} model that is the bow's own layer stack
+     * with the bent-limb and stretched-string art swapped in ({@link ToolArt#drawLayer}); the
+     * crossbow's {@code forgeweave:loaded} state above that; and the Broken state (issue #284) above
+     * everything, because a Broken bow must render broken whatever else is true of it.
      *
      * <p>Upstream expresses the draw states as texture <em>patches</em> inside one model, which
      * vanilla's format cannot do; whole sibling models are the same translation issue #284's Broken
      * swap already made, and they keep the layer count and order identical so
      * {@code ForgeweaveItemColors}' tintIndex-to-part mapping survives every swap.
      *
-     * <p>The draw entries are a no-op for every tool that is not a bow -- {@link
+     * <p>The draw states are a no-op for every tool that is not a bow -- {@link
      * ToolArt#drawThresholds} returns null. {@code suffix} and {@code pose} are issue #723's seam:
-     * the modern ladder is this same walk with {@code _modern} names, vanilla's display block for
-     * every state, and {@code forgeweave:modern_pose} on every predicate.
+     * the modern tree is this same walk with {@code _modern} names and vanilla's display block for
+     * every state.
      */
-    private void stateOverrides(ItemModelBuilder builder, String tool, List<String> layers, String parent,
-            String suffix, IntFunction<Consumer<ItemModelBuilder>> pose, boolean modern) {
+    private ItemModel.Unbaked stateTree(String tool, List<String> layers, String parent, String suffix,
+            IntFunction<Consumer<ExtendedModelTemplateBuilder>> pose, ItemModel.Unbaked idle) {
+        ItemModel.Unbaked model = idle;
         float[] thresholds = ToolArt.drawThresholds(tool);
         if (thresholds != null) {
+            List<RangeSelectItemModel.Entry> stages = new ArrayList<>();
             for (int stage = 1; stage <= ToolArt.DRAW_STAGES; stage++) {
-                override(builder, modern)
-                        .predicate(PULLING_PREDICATE, 1)
-                        .predicate(PULL_PREDICATE, thresholds[stage - 1])
-                        .model(drawStageModel(tool + "_pulling_" + stage + suffix, tool, layers, stage,
-                                pose.apply(stage)))
-                        .end();
+                stages.add(ItemModelUtils.override(toolLeaf(drawStageModel(tool + "_pulling_" + stage + suffix, tool, layers,
+                        stage, pose.apply(stage)), tool), thresholds[stage - 1]));
             }
+            model = ItemModelUtils.conditional(ForgeweaveItemProperties.Flag.PULLING,
+                    ItemModelUtils.rangeSelect(ForgeweaveItemProperties.Pull.INSTANCE, model, stages), model);
             if (ToolArt.hasLoadedState(tool)) {
-                override(builder, modern).predicate(LOADED_PREDICATE, 1)
-                        .model(drawStageModel(tool + "_loaded" + suffix, tool, layers, ToolArt.LOADED_STAGE,
-                                pose.apply(LOADED_POSE)))
-                        .end();
+                model = ItemModelUtils.conditional(ForgeweaveItemProperties.Flag.LOADED,
+                        toolLeaf(drawStageModel(tool + "_loaded" + suffix, tool, layers, ToolArt.LOADED_STAGE,
+                                pose.apply(LOADED_POSE)), tool), model);
             }
         }
         String broken = ToolArt.brokenLayer(tool);
         if (broken != null) {
-            override(builder, modern).predicate(BROKEN_PREDICATE, 1)
-                    .model(toolLayerModel(tool + "_broken" + suffix, tool, layers, broken, parent, pose.apply(0)))
-                    .end();
+            model = ItemModelUtils.conditional(ForgeweaveItemProperties.Flag.BROKEN,
+                    toolLeaf(toolLayerModel(tool + "_broken" + suffix, tool, layers, broken, parent, pose.apply(0)), tool), model);
         }
-    }
-
-    private static ItemModelBuilder.OverrideBuilder override(ItemModelBuilder builder, boolean modern) {
-        ItemModelBuilder.OverrideBuilder override = builder.override();
-        return modern ? override.predicate(MODERN_POSE_PREDICATE, 1) : override;
+        return model;
     }
 
     /** {@link #classicPose}'s stage index for the crossbow's loaded state -- distinct from every draw stage. */
@@ -553,8 +587,8 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
      * (0 = idle, and what the Broken model wears), with {@link #DRAWING_DISPLAY_OVERRIDES} layered on
      * for the draw stages and {@link #LOADED_DISPLAY_OVERRIDES} for {@link #LOADED_POSE}.
      */
-    private static Consumer<ItemModelBuilder> classicPose(String tool, int stage) {
-        Consumer<ItemModelBuilder> extra = stage == LOADED_POSE ? LOADED_DISPLAY_OVERRIDES.get(tool)
+    private static Consumer<ExtendedModelTemplateBuilder> classicPose(String tool, int stage) {
+        Consumer<ExtendedModelTemplateBuilder> extra = stage == LOADED_POSE ? LOADED_DISPLAY_OVERRIDES.get(tool)
                 : stage > 0 ? DRAWING_DISPLAY_OVERRIDES.get(tool)
                 : null;
         return builder -> {
@@ -564,18 +598,17 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
     }
 
     /** One draw state's model: {@link #toolLayerModel}'s layer stack at {@code stage}'s art, under {@code display}. */
-    private ItemModelBuilder drawStageModel(String name, String tool, List<String> layers, int stage,
-            Consumer<ItemModelBuilder> display) {
-        ItemModelBuilder builder =
-                getBuilder(name).parent(new ModelFile.UncheckedModelFile(TOOL_MODEL_PARENT));
-        for (int layer = 0; layer < layers.size(); layer++) {
-            builder.texture("layer" + layer, modLoc(ToolArt.drawLayer(tool, layers.get(layer), stage)));
+    private Identifier drawStageModel(String name, String tool, List<String> layers, int stage,
+            Consumer<ExtendedModelTemplateBuilder> display) {
+        List<Identifier> textures = new ArrayList<>();
+        for (String layer : layers) {
+            textures.add(modLoc(ToolArt.drawLayer(tool, layer, stage)));
         }
-        applyDisplayOverrides(builder, display);
-        return builder;
+        return layerModel(name, TOOL_MODEL_PARENT, textures, display);
     }
 
-    private static void applyDisplayOverrides(ItemModelBuilder builder, Consumer<ItemModelBuilder> override) {
+    private static void applyDisplayOverrides(ExtendedModelTemplateBuilder builder,
+            @Nullable Consumer<ExtendedModelTemplateBuilder> override) {
         if (override != null) {
             override.accept(builder);
         }
@@ -588,45 +621,35 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
      * toolMaterialTint}'s tintIndex-to-part mapping keeps working across the swap, and both get the
      * tool's display transforms ({@code display}; a no-op consumer leaves the parent's set).
      */
-    private ItemModelBuilder toolLayerModel(String name, String tool, List<String> layers, String brokenLayer,
-            String parent, Consumer<ItemModelBuilder> display) {
-        ItemModelBuilder builder = getBuilder(name).parent(new ModelFile.UncheckedModelFile(parent));
-        for (int layer = 0; layer < layers.size(); layer++) {
-            String art = layers.get(layer);
-            builder.texture("layer" + layer, art.equals(brokenLayer)
-                    ? modLoc(ToolArt.brokenLayerTexture(tool, art))
-                    : toolLayer(tool, art));
+    private Identifier toolLayerModel(String name, String tool, List<String> layers, @Nullable String brokenLayer,
+            String parent, Consumer<ExtendedModelTemplateBuilder> display) {
+        List<Identifier> textures = new ArrayList<>();
+        for (String art : layers) {
+            textures.add(art.equals(brokenLayer) ? modLoc(ToolArt.brokenLayerTexture(tool, art)) : toolLayer(tool, art));
         }
-        applyDisplayOverrides(builder, display);
-        return builder;
+        return layerModel(name, parent, textures, display);
     }
 
     /**
-     * The item property {@code ForgeweaveItemProperties} registers for the Broken state, and the
-     * predicate each tool model's {@code overrides} entry tests (issue #284). Upstream 1.12 keeps the
-     * broken textures inside its one tool model ({@code broken<N>} keys beside {@code layer<N>}) and
-     * swaps quads in {@code BakedToolModel}; that is its own model loader's format, so this uses
-     * vanilla's predicate-plus-separate-model {@code overrides} instead -- which is what upstream
-     * itself moved to once it was on a modern Minecraft ({@code TinkerItemProperties#BROKEN_ID} and
-     * the {@code "tconstruct:broken": 1} override in the 1.20 clone's {@code models/item/pickaxe.json}).
+     * {@code models/item/<name>}: {@code parent} (a vanilla item model) with {@code layer0..n} bound
+     * in order, plus whatever display block {@code display} adds.
      */
-    private static final ResourceLocation BROKEN_PREDICATE =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "broken");
+    private Identifier layerModel(String name, String parent, List<Identifier> layers,
+            @Nullable Consumer<ExtendedModelTemplateBuilder> display) {
+        ExtendedModelTemplateBuilder builder = ExtendedModelTemplateBuilder.builder().parent(Identifier.withDefaultNamespace(parent));
+        TextureMapping mapping = new TextureMapping();
+        for (int layer = 0; layer < layers.size(); layer++) {
+            TextureSlot slot = TextureSlot.create("layer" + layer);
+            builder.requiredTextureSlot(slot);
+            mapping.put(slot, new Material(layers.get(layer)));
+        }
+        applyDisplayOverrides(builder, display);
+        return builder.build().create(modLoc("item/" + name), mapping, models);
+    }
 
-    /**
-     * The three draw-state predicates (M3.5 issue #400), the other half of the properties
-     * {@code ForgeweaveItemProperties} registers -- and, like them, {@code pulling}/{@code pull} in
-     * vanilla's namespace (they are vanilla's own names for a drawn bow, and upstream 1.12's) while
-     * {@code loaded} is Forgeweave's own.
-     */
-    private static final ResourceLocation PULLING_PREDICATE = ResourceLocation.withDefaultNamespace("pulling");
-    private static final ResourceLocation PULL_PREDICATE = ResourceLocation.withDefaultNamespace("pull");
-    private static final ResourceLocation LOADED_PREDICATE =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "loaded");
-
-    /** Issue #723's held-pose switch, {@code ForgeweaveItemProperties#modernPose}'s other half. */
-    private static final ResourceLocation MODERN_POSE_PREDICATE =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "modern_pose");
+    private static Identifier modLoc(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
+    }
 
     /**
      * The held-render transform set every tool inherits (issue #217). Vanilla's {@code item/handheld}
@@ -639,10 +662,8 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
      * {@code item/generated} parent this used to carry is what made a held tool read as a
      * near-invisible edge-on sliver in the third-person harness captures.
      *
-     * <p>Unchecked for the same reason {@link #singleLayerModel}'s parent is: it is a vanilla builtin
-     * that does not always resolve through {@code ExistingFileHelper}. Layering still works -- the
-     * model's root parent is still {@code item/generated}, which is what makes the item model
-     * generator build geometry from the {@code layerN} textures.
+     * <p>Layering still works -- the model's root parent is still {@code item/generated}, which is
+     * what makes the item model generator build geometry from the {@code layerN} textures.
      */
     private static final String TOOL_MODEL_PARENT = "item/handheld";
 
@@ -657,7 +678,7 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
      * {@code item/handheld} set -- upstream lays the two bows nearly flat and rotates them 260/-260
      * about Y, and stands the crossbow on end. The crossbow gets two more sets on top, in
      * {@link #DRAWING_DISPLAY_OVERRIDES} and {@link #LOADED_DISPLAY_OVERRIDES}, which its own
-     * {@code overrides} entries carry per draw state.
+     * draw-state models carry.
      *
      * <p>Issues #615/#699: every {@code *_lefthand} entry below is upstream 1.12's, verbatim. 1.12's
      * {@code .tcon.json} files author the left-hand entry the way vanilla's own {@code item/handheld}
@@ -672,67 +693,42 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
      * handheld item (beta.1 playtest, #699). The crossbow is back on its 1.12 block (#693) and follows the
      * same convention. {@code LeftHandDisplayTransformTest} pins every value below.
      */
-    private static final Map<String, Consumer<ItemModelBuilder>> TOOL_DISPLAY_OVERRIDES = Map.of(
+    private static final Map<String, Consumer<ExtendedModelTemplateBuilder>> TOOL_DISPLAY_OVERRIDES = Map.of(
             // cleaver.tcon.json: a two-block slab of a weapon, held bigger and higher than a sword.
-            "cleaver", builder -> builder.transforms()
-                    .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
-                    .rotation(0, -90, 55).translation(0, 10.0F, 0.5F).scale(1.5F).end()
-                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
-                    .rotation(0, 90, -55).translation(0, 10.0F, 0.5F).scale(1.5F).end()
-                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
-                    .rotation(0, -95, 30).translation(2.13F, 6.0F, 0.13F).scale(1.2F).end()
-                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
-                    .rotation(0, 95, -30).translation(2.13F, 6.0F, 0.13F).scale(1.2F).end()
-                    .end(),
+            "cleaver", builder -> builder
+                    .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, t -> t.rotation(0, -90, 55).translation(0, 10.0F, 0.5F).scale(1.5F))
+                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND, t -> t.rotation(0, 90, -55).translation(0, 10.0F, 0.5F).scale(1.5F))
+                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, t -> t.rotation(0, -95, 30).translation(2.13F, 6.0F, 0.13F).scale(1.2F))
+                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND, t -> t.rotation(0, 95, -30).translation(2.13F, 6.0F, 0.13F).scale(1.2F)),
             // rapier.tcon.json: held point-forward for the thrust rather than shouldered like a
             // sword (note the inverted yaw against handheld's), and laid flat in the inventory.
-            "rapier", builder -> builder.transforms()
-                    .transform(ItemDisplayContext.GUI).rotation(0, 0, 90).end()
-                    .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
-                    .rotation(0, 90, 15).translation(0, 4.5F, -1).scale(0.85F).end()
-                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
-                    .rotation(0, -90, -15).translation(0, 4.5F, -1).scale(0.85F).end()
-                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
-                    .rotation(0, 90, -25).translation(0, 2, 0.8F).scale(0.68F).end()
-                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
-                    .rotation(0, -90, 25).translation(0, 2, 0.8F).scale(0.68F).end()
-                    .end(),
+            "rapier", builder -> builder
+                    .transform(ItemDisplayContext.GUI, t -> t.rotation(0, 0, 90))
+                    .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, t -> t.rotation(0, 90, 15).translation(0, 4.5F, -1).scale(0.85F))
+                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND, t -> t.rotation(0, -90, -15).translation(0, 4.5F, -1).scale(0.85F))
+                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, t -> t.rotation(0, 90, -25).translation(0, 2, 0.8F).scale(0.68F))
+                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND, t -> t.rotation(0, -90, 25).translation(0, 2, 0.8F).scale(0.68F)),
             // battlesign.tcon.json: a sign, carried face-out and unrotated rather than shouldered.
             // Upstream's first-person left entry negates translation.z, not rotation.z -- kept as is.
-            "battlesign", builder -> builder.transforms()
-                    .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
-                    .rotation(0, 0, 0).translation(0, 4.0F, 2.5F).scale(1).end()
-                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
-                    .rotation(0, 0, 0).translation(0, 4.0F, 2.5F).scale(1).end()
-                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
-                    .rotation(0, 0, -5).translation(0, -2, 0.8F).scale(1).end()
-                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
-                    .rotation(0, 0, -5).translation(0, -2, -0.8F).scale(1).end()
-                    .end(),
+            "battlesign", builder -> builder
+                    .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, t -> t.rotation(0, 0, 0).translation(0, 4.0F, 2.5F).scale(1))
+                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND, t -> t.rotation(0, 0, 0).translation(0, 4.0F, 2.5F).scale(1))
+                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, t -> t.rotation(0, 0, -5).translation(0, -2, 0.8F).scale(1))
+                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND, t -> t.rotation(0, 0, -5).translation(0, -2, -0.8F).scale(1)),
             // shortbow.tcon.json (M3.5 issue #400): the same left-hand authoring as vanilla's bow.json.
-            "shortbow", builder -> builder.transforms()
-                    .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
-                    .rotation(-90, 260, -45).translation(-1, -2, 2.5F).scale(0.875F, 0.875F, 0.75F).end()
-                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
-                    .rotation(-90, -260, 45).translation(-1, -2, 2.5F).scale(0.875F, 0.875F, 0.75F).end()
-                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
-                    .rotation(0, -90, 25).translation(1.13F, 3.2F, 1.13F).scale(0.68F).end()
-                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
-                    .rotation(0, 90, -25).translation(1.13F, 3.2F, 1.13F).scale(0.68F).end()
-                    .end(),
+            "shortbow", builder -> builder
+                    .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, t -> t.rotation(-90, 260, -45).translation(-1, -2, 2.5F).scale(0.875F, 0.875F, 0.75F))
+                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND, t -> t.rotation(-90, -260, 45).translation(-1, -2, 2.5F).scale(0.875F, 0.875F, 0.75F))
+                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, t -> t.rotation(0, -90, 25).translation(1.13F, 3.2F, 1.13F).scale(0.68F))
+                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND, t -> t.rotation(0, 90, -25).translation(1.13F, 3.2F, 1.13F).scale(0.68F)),
             // longbow.tcon.json: the shortbow's angles, held further out and scaled up.
-            "longbow", builder -> builder.transforms()
-                    .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
-                    .rotation(-90, 260, -45).translation(-1.875F, -1.25F, 4.0F)
-                    .scale(1.0625F, 1.0625F, 0.875F).end()
-                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
-                    .rotation(-90, -260, 45).translation(-1.875F, -1.25F, 4.0F)
-                    .scale(1.0625F, 1.0625F, 0.875F).end()
-                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
-                    .rotation(0, -90, 25).translation(1.13F, 3.2F, 1.13F).scale(0.875F, 0.875F, 0.7F).end()
-                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
-                    .rotation(0, 90, -25).translation(1.13F, 3.2F, 1.13F).scale(0.875F, 0.875F, 0.7F).end()
-                    .end(),
+            "longbow", builder -> builder
+                    .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, t -> t
+                            .rotation(-90, 260, -45).translation(-1.875F, -1.25F, 4.0F).scale(1.0625F, 1.0625F, 0.875F))
+                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND, t -> t
+                            .rotation(-90, -260, 45).translation(-1.875F, -1.25F, 4.0F).scale(1.0625F, 1.0625F, 0.875F))
+                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, t -> t.rotation(0, -90, 25).translation(1.13F, 3.2F, 1.13F).scale(0.875F, 0.875F, 0.7F))
+                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND, t -> t.rotation(0, 90, -25).translation(1.13F, 3.2F, 1.13F).scale(0.875F, 0.875F, 0.7F)),
             // crossbow.tcon.json: stood on end rather than laid flat, and the one bow whose pose
             // changes with its draw state -- see the two maps below. Upstream 1.12's numbers verbatim
             // on both hands (issue #693; #616 had replaced them with vanilla's own crossbow block on
@@ -741,16 +737,11 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
             // PerspectiveMapWrapper#getTransforms, the same path every vanilla item took, and
             // vanilla's own item/bow.json display numbers are identical in 1.12 and 1.21, so these
             // render in 1.21 as they did upstream). BowDrawModelTest pins all of it.
-            "crossbow", builder -> builder.transforms()
-                    .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
-                    .rotation(90, 180, -225).translation(-1, 0.75F, -2.5F).scale(0.85F).end()
-                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
-                    .rotation(90, 180, 225).translation(1, 0.75F, -2.5F).scale(0.85F).end()
-                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
-                    .rotation(-75, -5, -45).translation(0, 2, 0).scale(0.68F).end()
-                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
-                    .rotation(-75, -5, 45).translation(0, 2, 0).scale(0.68F).end()
-                    .end());
+            "crossbow", builder -> builder
+                    .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, t -> t.rotation(90, 180, -225).translation(-1, 0.75F, -2.5F).scale(0.85F))
+                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND, t -> t.rotation(90, 180, 225).translation(1, 0.75F, -2.5F).scale(0.85F))
+                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, t -> t.rotation(-75, -5, -45).translation(0, 2, 0).scale(0.68F))
+                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND, t -> t.rotation(-75, -5, 45).translation(0, 2, 0).scale(0.68F)));
 
     /**
      * The first-person pose a crossbow takes <em>while being cranked</em>, carried identically by all
@@ -760,25 +751,19 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
      *
      * <p>Upstream's {@code crossbow.tcon.json} override blocks verbatim, both hands (issue #693).
      */
-    private static final Map<String, Consumer<ItemModelBuilder>> DRAWING_DISPLAY_OVERRIDES = Map.of(
-            "crossbow", builder -> builder.transforms()
-                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
-                    .rotation(-115, -25, -45).translation(-3, 2.5F, 1).scale(0.68F).end()
-                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
-                    .rotation(-115, -25, 45).translation(-3, 2.5F, 1).scale(0.68F).end()
-                    .end());
+    private static final Map<String, Consumer<ExtendedModelTemplateBuilder>> DRAWING_DISPLAY_OVERRIDES = Map.of(
+            "crossbow", builder -> builder
+                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, t -> t.rotation(-115, -25, -45).translation(-3, 2.5F, 1).scale(0.68F))
+                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND, t -> t.rotation(-115, -25, 45).translation(-3, 2.5F, 1).scale(0.68F)));
 
     /**
      * And the pose a <em>loaded</em> crossbow takes: upstream's {@code [-90,-5,-45] / [0,2,0]}
      * verbatim, both hands -- its idle pose pitched up 15 degrees, a cranked crossbow held ready to aim.
      */
-    private static final Map<String, Consumer<ItemModelBuilder>> LOADED_DISPLAY_OVERRIDES = Map.of(
-            "crossbow", builder -> builder.transforms()
-                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
-                    .rotation(-90, -5, -45).translation(0, 2, 0).scale(0.68F).end()
-                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
-                    .rotation(-90, -5, 45).translation(0, 2, 0).scale(0.68F).end()
-                    .end());
+    private static final Map<String, Consumer<ExtendedModelTemplateBuilder>> LOADED_DISPLAY_OVERRIDES = Map.of(
+            "crossbow", builder -> builder
+                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, t -> t.rotation(-90, -5, -45).translation(0, 2, 0).scale(0.68F))
+                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND, t -> t.rotation(-90, -5, 45).translation(0, 2, 0).scale(0.68F)));
 
     /**
      * Issue #723's {@code modern} pose set: vanilla 1.21.1's own {@code item/bow.json} display block
@@ -788,31 +773,21 @@ public class ForgeweaveItemModelProvider extends ItemModelProvider {
      * unlike the classic set there is nothing per state here. Keyed by tool: a tool absent from
      * this map gets no modern ladder at all.
      */
-    private static final Map<String, Consumer<ItemModelBuilder>> MODERN_DISPLAY_OVERRIDES = Map.of(
+    private static final Map<String, Consumer<ExtendedModelTemplateBuilder>> MODERN_DISPLAY_OVERRIDES = Map.of(
             "shortbow", ForgeweaveItemModelProvider::vanillaBowDisplay,
             "longbow", ForgeweaveItemModelProvider::vanillaBowDisplay,
-            "crossbow", builder -> builder.transforms()
-                    .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
-                    .rotation(-90, 0, -60).translation(2, 0.1F, -3).scale(0.9F).end()
-                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
-                    .rotation(-90, 0, 30).translation(2, 0.1F, -3).scale(0.9F).end()
-                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
-                    .rotation(-90, 0, -55).translation(1.13F, 3.2F, 1.13F).scale(0.68F).end()
-                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
-                    .rotation(-90, 0, 35).translation(1.13F, 3.2F, 1.13F).scale(0.68F).end()
-                    .end());
+            "crossbow", builder -> builder
+                    .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, t -> t.rotation(-90, 0, -60).translation(2, 0.1F, -3).scale(0.9F))
+                    .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND, t -> t.rotation(-90, 0, 30).translation(2, 0.1F, -3).scale(0.9F))
+                    .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, t -> t.rotation(-90, 0, -55).translation(1.13F, 3.2F, 1.13F).scale(0.68F))
+                    .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND, t -> t.rotation(-90, 0, 35).translation(1.13F, 3.2F, 1.13F).scale(0.68F)));
 
     /** Vanilla 1.21.1's {@code item/bow.json} display block. */
-    private static void vanillaBowDisplay(ItemModelBuilder builder) {
-        builder.transforms()
-                .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND)
-                .rotation(-80, 260, -40).translation(-1, -2, 2.5F).scale(0.9F).end()
-                .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND)
-                .rotation(-80, -280, 40).translation(-1, -2, 2.5F).scale(0.9F).end()
-                .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND)
-                .rotation(0, -90, 25).translation(1.13F, 3.2F, 1.13F).scale(0.68F).end()
-                .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND)
-                .rotation(0, 90, -25).translation(1.13F, 3.2F, 1.13F).scale(0.68F).end()
-                .end();
+    private static void vanillaBowDisplay(ExtendedModelTemplateBuilder builder) {
+        builder
+                .transform(ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, t -> t.rotation(-80, 260, -40).translation(-1, -2, 2.5F).scale(0.9F))
+                .transform(ItemDisplayContext.THIRD_PERSON_LEFT_HAND, t -> t.rotation(-80, -280, 40).translation(-1, -2, 2.5F).scale(0.9F))
+                .transform(ItemDisplayContext.FIRST_PERSON_RIGHT_HAND, t -> t.rotation(0, -90, 25).translation(1.13F, 3.2F, 1.13F).scale(0.68F))
+                .transform(ItemDisplayContext.FIRST_PERSON_LEFT_HAND, t -> t.rotation(0, 90, -25).translation(1.13F, 3.2F, 1.13F).scale(0.68F));
     }
 }

@@ -1,7 +1,7 @@
 package dev.gkissel.forgeweave.trait;
 
 import net.minecraft.core.Holder;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -61,7 +61,7 @@ public record MovementBonus(Kind kind, float magnitude) implements Trait {
     }
 
     @Override
-    public void armorAttributes(ResourceLocation id, EquipmentSlot slot, ItemAttributeModifiers.Builder out) {
+    public void armorAttributes(Identifier id, EquipmentSlot slot, ItemAttributeModifiers.Builder out) {
         out.add(kind.attribute(), new AttributeModifier(id, magnitude, kind.operation()),
                 EquipmentSlotGroup.bySlot(slot));
     }

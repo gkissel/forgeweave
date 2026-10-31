@@ -48,27 +48,19 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:ingots/uranium"
-      },
+      "ingredient": "#c:ingots/uranium",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:nuggets/uranium"
-      },
+      "ingredient": "#c:nuggets/uranium",
       "value": 16
     },
     {
-      "ingredient": {
-        "tag": "c:storage_blocks/uranium"
-      },
+      "ingredient": "#c:storage_blocks/uranium",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/uranium"
-  },
+  "repair_item": "#c:ingots/uranium",
   "cast_only": true,
   "enchantability": 12,
   "color": "#A8B84B",
@@ -77,20 +69,20 @@
       "type": "neoforge:or",
       "values": [
         {
-          "type": "neoforge:item_exists",
-          "item": "mekanism:ingot_uranium"
+          "type": "neoforge:registered",
+          "value": "mekanism:ingot_uranium"
         },
         {
-          "type": "neoforge:item_exists",
-          "item": "immersiveengineering:ingot_uranium"
+          "type": "neoforge:registered",
+          "value": "immersiveengineering:ingot_uranium"
         },
         {
-          "type": "neoforge:item_exists",
-          "item": "bigreactors:yellorium_ingot"
+          "type": "neoforge:registered",
+          "value": "bigreactors:yellorium_ingot"
         },
         {
-          "type": "neoforge:item_exists",
-          "item": "eternalores:uranium_ingot"
+          "type": "neoforge:registered",
+          "value": "eternalores:uranium_ingot"
         }
       ]
     }

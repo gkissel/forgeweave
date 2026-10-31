@@ -8,7 +8,6 @@ import net.minecraft.data.tags.DamageTypeTagsProvider;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageTypes;
 
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.combat.Protection;
@@ -20,9 +19,8 @@ import dev.gkissel.forgeweave.combat.Protection;
  * counterpart). Read by {@link Protection}.
  */
 public class ForgeweaveDamageTypeTagsProvider extends DamageTypeTagsProvider {
-    public ForgeweaveDamageTypeTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider,
-            ExistingFileHelper existingFileHelper) {
-        super(output, lookupProvider, Forgeweave.MODID, existingFileHelper);
+    public ForgeweaveDamageTypeTagsProvider(PackOutput output, CompletableFuture<HolderLookup.Provider> lookupProvider) {
+        super(output, lookupProvider, Forgeweave.MODID);
     }
 
     @Override

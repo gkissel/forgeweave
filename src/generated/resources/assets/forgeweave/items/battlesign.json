@@ -1,0 +1,16 @@
+{
+  "model": {
+    "type": "minecraft:condition",
+    "on_false": {
+      "type": "forgeweave:tool",
+      "model": "forgeweave:item/battlesign",
+      "tool": "battlesign"
+    },
+    "on_true": {
+      "type": "forgeweave:tool",
+      "model": "forgeweave:item/battlesign_broken",
+      "tool": "battlesign"
+    },
+    "property": "forgeweave:broken"
+  }
+}

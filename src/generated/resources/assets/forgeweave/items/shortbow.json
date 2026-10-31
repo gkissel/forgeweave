@@ -1,0 +1,112 @@
+{
+  "model": {
+    "type": "minecraft:condition",
+    "on_false": {
+      "type": "minecraft:condition",
+      "on_false": {
+        "type": "minecraft:condition",
+        "on_false": {
+          "type": "forgeweave:tool",
+          "model": "forgeweave:item/shortbow",
+          "tool": "shortbow"
+        },
+        "on_true": {
+          "type": "minecraft:range_dispatch",
+          "entries": [
+            {
+              "model": {
+                "type": "forgeweave:tool",
+                "model": "forgeweave:item/shortbow_pulling_1",
+                "tool": "shortbow"
+              },
+              "threshold": 0.0
+            },
+            {
+              "model": {
+                "type": "forgeweave:tool",
+                "model": "forgeweave:item/shortbow_pulling_2",
+                "tool": "shortbow"
+              },
+              "threshold": 0.65
+            },
+            {
+              "model": {
+                "type": "forgeweave:tool",
+                "model": "forgeweave:item/shortbow_pulling_3",
+                "tool": "shortbow"
+              },
+              "threshold": 0.9
+            }
+          ],
+          "fallback": {
+            "type": "forgeweave:tool",
+            "model": "forgeweave:item/shortbow",
+            "tool": "shortbow"
+          },
+          "property": "forgeweave:pull"
+        },
+        "property": "forgeweave:pulling"
+      },
+      "on_true": {
+        "type": "forgeweave:tool",
+        "model": "forgeweave:item/shortbow_broken",
+        "tool": "shortbow"
+      },
+      "property": "forgeweave:broken"
+    },
+    "on_true": {
+      "type": "minecraft:condition",
+      "on_false": {
+        "type": "minecraft:condition",
+        "on_false": {
+          "type": "forgeweave:tool",
+          "model": "forgeweave:item/shortbow_modern",
+          "tool": "shortbow"
+        },
+        "on_true": {
+          "type": "minecraft:range_dispatch",
+          "entries": [
+            {
+              "model": {
+                "type": "forgeweave:tool",
+                "model": "forgeweave:item/shortbow_pulling_1_modern",
+                "tool": "shortbow"
+              },
+              "threshold": 0.0
+            },
+            {
+              "model": {
+                "type": "forgeweave:tool",
+                "model": "forgeweave:item/shortbow_pulling_2_modern",
+                "tool": "shortbow"
+              },
+              "threshold": 0.65
+            },
+            {
+              "model": {
+                "type": "forgeweave:tool",
+                "model": "forgeweave:item/shortbow_pulling_3_modern",
+                "tool": "shortbow"
+              },
+              "threshold": 0.9
+            }
+          ],
+          "fallback": {
+            "type": "forgeweave:tool",
+            "model": "forgeweave:item/shortbow_modern",
+            "tool": "shortbow"
+          },
+          "property": "forgeweave:pull"
+        },
+        "property": "forgeweave:pulling"
+      },
+      "on_true": {
+        "type": "forgeweave:tool",
+        "model": "forgeweave:item/shortbow_broken_modern",
+        "tool": "shortbow"
+      },
+      "property": "forgeweave:broken"
+    },
+    "property": "forgeweave:modern_pose"
+  }
+}

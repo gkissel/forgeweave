@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_pan"
-  },
+  "cast": "forgeweave:cast_pan",
   "fluid": "forgeweave:molten_netherite",
   "amount": 432,
   "result": {

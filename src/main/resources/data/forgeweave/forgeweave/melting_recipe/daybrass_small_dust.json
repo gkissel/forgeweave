@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/daybrass"
-  },
+  "input": "#c:small_dusts/daybrass",
   "fluid": "forgeweave:molten_daybrass",
   "amount": 48,
   "temperature": 1400

@@ -27,11 +27,9 @@
     "general": ["forgeweave:duritos"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "minecraft:obsidian" }, "value": 144 }
+    { "ingredient": "minecraft:obsidian", "value": 144 }
   ],
-  "repair_item": {
-    "item": "minecraft:obsidian"
-  },
+  "repair_item": "minecraft:obsidian",
   "enchantability": 10,
   "color": "#601CC4"
 }

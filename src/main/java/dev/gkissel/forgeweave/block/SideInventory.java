@@ -7,11 +7,10 @@ import javax.annotation.Nullable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.items.IItemHandler;
 
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
@@ -102,7 +101,7 @@ public final class SideInventory {
         if (neighbor == null) {
             return false;
         }
-        ResourceLocation registryName = BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(neighbor.getType());
+        Identifier registryName = BuiltInRegistries.BLOCK_ENTITY_TYPE.getKey(neighbor.getType());
         if (registryName != null && blacklist.contains(registryName.toString())) {
             return true;
         }
@@ -113,7 +112,7 @@ public final class SideInventory {
     private static IItemHandler handlerAt(BlockEntity blockEntity, Direction direction) {
         Level level = blockEntity.getLevel();
         BlockPos neighborPos = blockEntity.getBlockPos().relative(direction);
-        return level.getCapability(Capabilities.ItemHandler.BLOCK, neighborPos, direction.getOpposite());
+        return TransferBridge.itemsAt(level, neighborPos, direction.getOpposite());
     }
 
     /**

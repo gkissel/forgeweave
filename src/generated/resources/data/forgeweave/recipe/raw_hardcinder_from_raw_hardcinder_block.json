@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "item": "forgeweave:raw_hardcinder_block"
-    }
+    "forgeweave:raw_hardcinder_block"
   ],
   "result": {
     "count": 9,

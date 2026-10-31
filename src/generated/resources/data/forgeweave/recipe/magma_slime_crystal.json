@@ -3,11 +3,8 @@
   "category": "misc",
   "cookingtime": 200,
   "experience": 0.75,
-  "ingredient": {
-    "item": "forgeweave:slimy_mud_magma"
-  },
+  "ingredient": "forgeweave:slimy_mud_magma",
   "result": {
-    "count": 1,
     "id": "forgeweave:magma_slime_crystal"
   }
 }

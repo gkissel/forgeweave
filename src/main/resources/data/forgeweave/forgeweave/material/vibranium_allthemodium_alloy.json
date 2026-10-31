@@ -26,15 +26,13 @@
     "general": ["forgeweave:bracingplate2"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "allthemodium:vibranium_allthemodium_alloy_ingot" }, "value": 144 }
+    { "ingredient": "allthemodium:vibranium_allthemodium_alloy_ingot", "value": 144 }
   ],
-  "repair_item": {
-    "item": "allthemodium:vibranium_allthemodium_alloy_ingot"
-  },
+  "repair_item": "allthemodium:vibranium_allthemodium_alloy_ingot",
   "cast_only": true,
   "enchantability": 10,
   "color": "#8CA65A",
   "neoforge:conditions": [
-    { "type": "neoforge:item_exists", "item": "allthemodium:vibranium_allthemodium_alloy_ingot" }
+    { "type": "neoforge:registered", "value": "allthemodium:vibranium_allthemodium_alloy_ingot" }
   ]
 }

@@ -5,7 +5,7 @@ import java.util.List;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
@@ -64,10 +64,10 @@ public final class GameTestAddon {
     private static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(NAMESPACE);
 
     /** The part's own id, which is what {@link #TOOL_DEFINITION}'s head slot names. */
-    public static final ResourceLocation BLADE_ID = ResourceLocation.fromNamespaceAndPath(NAMESPACE, "test_blade");
+    public static final Identifier BLADE_ID = Identifier.fromNamespaceAndPath(NAMESPACE, "test_blade");
 
     /** The tool's id, and so the base of the texture and lang keys an addon would ship art under. */
-    public static final ResourceLocation TOOL_ID = ResourceLocation.fromNamespaceAndPath(NAMESPACE, "test_dirk");
+    public static final Identifier TOOL_ID = Identifier.fromNamespaceAndPath(NAMESPACE, "test_dirk");
 
     /** The pattern that stamps {@link #BLADE} at the Part Builder and shows at the Stencil Table. */
     public static final DeferredItem<Item> PATTERN = ITEMS.registerItem("pattern_test_blade", Item::new);
@@ -78,7 +78,7 @@ public final class GameTestAddon {
     /** Two slots, one part foreign and one of Forgeweave's own, so the mix is covered too. */
     public static final ToolDefinition TOOL_DEFINITION = ToolDefinition.builder(TOOL_ID, ToolFamily.MELEE)
             .part(PartRole.HEAD, BLADE_ID)
-            .part(PartRole.HANDLE, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "tool_handle"))
+            .part(PartRole.HANDLE, Identifier.fromNamespaceAndPath(Forgeweave.MODID, "tool_handle"))
             .weapon()
             .attackSpeed(1.6f)
             .flatAttackBonus(2.0f)
@@ -96,18 +96,18 @@ public final class GameTestAddon {
      * so the smeltery scan takes it as a wall (issue #1067).
      */
     public static final DeferredBlock<Block> WALL_BLOCK = BLOCKS.registerSimpleBlock("addon_wall",
-            BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(3.0F).sound(SoundType.STONE));
+            () -> BlockBehaviour.Properties.of().mapColor(MapColor.STONE).strength(3.0F).sound(SoundType.STONE));
 
     /** The trait behavior an addon ships so packs can parameterize it from a definition file. */
-    public static final ResourceLocation TRAIT_BEHAVIOR_ID =
-            ResourceLocation.fromNamespaceAndPath(NAMESPACE, "flat_attack_bonus");
+    public static final Identifier TRAIT_BEHAVIOR_ID =
+            Identifier.fromNamespaceAndPath(NAMESPACE, "flat_attack_bonus");
 
     /** The modifier behavior, the same idea one registry over. */
-    public static final ResourceLocation MODIFIER_BEHAVIOR_ID =
-            ResourceLocation.fromNamespaceAndPath(NAMESPACE, "flat_attack_bonus");
+    public static final Identifier MODIFIER_BEHAVIOR_ID =
+            Identifier.fromNamespaceAndPath(NAMESPACE, "flat_attack_bonus");
 
     /** A finished modifier, registered from Java rather than parameterized from a file. */
-    public static final ResourceLocation MODIFIER_ID = ResourceLocation.fromNamespaceAndPath(NAMESPACE, "whetted");
+    public static final Identifier MODIFIER_ID = Identifier.fromNamespaceAndPath(NAMESPACE, "whetted");
 
     /** How much attack damage {@link #MODIFIER_ID} adds per level. */
     public static final float WHETTED_PER_LEVEL = 3.0F;

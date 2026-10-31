@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_tough_binding"
-  },
+  "cast": "forgeweave:cast_tough_binding",
   "fluid": "forgeweave:molten_cobalt",
   "amount": 432,
   "result": {

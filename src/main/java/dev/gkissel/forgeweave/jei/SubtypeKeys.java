@@ -1,6 +1,6 @@
 package dev.gkissel.forgeweave.jei;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
@@ -31,7 +31,7 @@ public final class SubtypeKeys {
 
     /** {@code PartItem}s (upstream {@code ToolPartSubtypeInterpreter}): keyed on the material id. */
     public static String part(ItemStack stack) {
-        ResourceLocation materialId = stack.get(ForgeweaveDataComponents.MATERIAL.get());
+        Identifier materialId = stack.get(ForgeweaveDataComponents.MATERIAL.get());
         return materialId == null ? null : materialId.toString();
     }
 
@@ -45,7 +45,7 @@ public final class SubtypeKeys {
             return null;
         }
         StringBuilder key = new StringBuilder();
-        for (ResourceLocation part : materials.parts()) {
+        for (Identifier part : materials.parts()) {
             if (!key.isEmpty()) {
                 key.append(',');
             }
@@ -59,7 +59,7 @@ public final class SubtypeKeys {
      * block id issue #43's retexturing stores in {@link ForgeweaveDataComponents#TEXTURE}.
      */
     public static String texture(ItemStack stack) {
-        ResourceLocation textureId = stack.get(ForgeweaveDataComponents.TEXTURE.get());
+        Identifier textureId = stack.get(ForgeweaveDataComponents.TEXTURE.get());
         // The plain creative-tab forge renders as iron and must find the iron crafting output.
         if (textureId == null && stack.is(ForgeweaveItems.TOOL_FORGE.get())) {
             return "minecraft:iron_block";

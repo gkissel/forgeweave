@@ -3,9 +3,9 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -18,8 +18,8 @@ import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.trait.Trait;
@@ -107,9 +107,9 @@ public class PigIronFirewoodGameTests {
                 new ItemStack(Items.BLAZE_POWDER),
                 new ItemStack(Items.LAVA_BUCKET)));
 
-        ItemStack crafted = level.getRecipeManager()
+        ItemStack crafted = level.recipeAccess()
                 .getRecipeFor(RecipeType.CRAFTING, grid, level)
-                .map(match -> match.value().assemble(grid, level.registryAccess()))
+                .map(match -> match.value().assemble(grid))
                 .orElse(ItemStack.EMPTY);
 
         helper.assertTrue(crafted.is(ForgeweaveItems.FIREWOOD.get()),
@@ -126,7 +126,7 @@ public class PigIronFirewoodGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, new BlockPos(1, 1, 1), "pig_iron", "pig_iron", "pig_iron");
 
-        List<ResourceLocation> traits = pickaxe.get(ForgeweaveDataComponents.TRAITS.get());
+        List<Identifier> traits = pickaxe.get(ForgeweaveDataComponents.TRAITS.get());
         helper.assertTrue(traits != null && traits.contains(traitId("baconlicious")),
                 "expected a pig iron tool to carry baconlicious, got " + traits);
         helper.assertTrue(traits.contains(traitId("tasty")),
@@ -140,7 +140,7 @@ public class PigIronFirewoodGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, new BlockPos(1, 1, 1), "firewood", "wood", "wood");
 
-        List<ResourceLocation> traits = pickaxe.get(ForgeweaveDataComponents.TRAITS.get());
+        List<Identifier> traits = pickaxe.get(ForgeweaveDataComponents.TRAITS.get());
         helper.assertTrue(traits != null && traits.contains(traitId("autosmelt")),
                 "expected a firewood-headed tool to carry autosmelt, got " + traits);
         helper.succeed();
@@ -148,15 +148,15 @@ public class PigIronFirewoodGameTests {
 
     // ------------------------------------------------------------------ helpers
 
-    private static ResourceLocation traitId(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier traitId(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
     /** The 1x1x2 minimum smeltery of {@link SmelteryGameTests} with a Standard Core, formed and empty. */
     private static SmelteryControllerBlockEntity smeltery(GameTestHelper helper) {
         SmelteryGameTests.buildWalls(helper, 1, 1, 2);
         BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
-        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
         return core;
     }
@@ -164,7 +164,7 @@ public class PigIronFirewoodGameTests {
     /** As {@link #smeltery}, with the wall tank full of lava so melting can run. */
     private static SmelteryControllerBlockEntity lavaFuelledSmeltery(GameTestHelper helper) {
         SmelteryControllerBlockEntity core = smeltery(helper);
-        SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS);
+        SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS, SearedTankBlockEntity.class);
         tank.tank().fill(new FluidStack(Fluids.LAVA, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
         return core;
     }

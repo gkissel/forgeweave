@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/mendalloy"
-  },
+  "input": "#c:storage_blocks/mendalloy",
   "fluid": "forgeweave:molten_mendalloy",
   "amount": 1296
 }

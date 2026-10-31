@@ -1,18 +1,18 @@
 {
   "modifier": "forgeweave:overslime",
   "reagents": [
-    { "ingredient": { "item": "minecraft:slime_ball" }, "units": 20 },
-    { "ingredient": { "item": "forgeweave:green_congealed_slime" }, "units": 80 },
-    { "ingredient": { "item": "minecraft:slime_block" }, "units": 180 },
-    { "ingredient": { "item": "forgeweave:blue_slime_ball" }, "units": 50 },
-    { "ingredient": { "item": "forgeweave:blue_congealed_slime" }, "units": 200 },
-    { "ingredient": { "item": "forgeweave:blue_slime_block" }, "units": 450 },
-    { "ingredient": { "item": "forgeweave:purple_slime_ball" }, "units": 80 },
-    { "ingredient": { "item": "forgeweave:purple_congealed_slime" }, "units": 320 },
-    { "ingredient": { "item": "forgeweave:purple_slime_block" }, "units": 720 },
-    { "ingredient": { "item": "forgeweave:magma_slime_ball" }, "units": 100 },
-    { "ingredient": { "item": "forgeweave:magma_congealed_slime" }, "units": 400 },
-    { "ingredient": { "item": "forgeweave:magma_slime_block" }, "units": 900 }
+    { "ingredient": "minecraft:slime_ball", "units": 20 },
+    { "ingredient": "forgeweave:green_congealed_slime", "units": 80 },
+    { "ingredient": "minecraft:slime_block", "units": 180 },
+    { "ingredient": "forgeweave:blue_slime_ball", "units": 50 },
+    { "ingredient": "forgeweave:blue_congealed_slime", "units": 200 },
+    { "ingredient": "forgeweave:blue_slime_block", "units": 450 },
+    { "ingredient": "forgeweave:purple_slime_ball", "units": 80 },
+    { "ingredient": "forgeweave:purple_congealed_slime", "units": 320 },
+    { "ingredient": "forgeweave:purple_slime_block", "units": 720 },
+    { "ingredient": "forgeweave:magma_slime_ball", "units": 100 },
+    { "ingredient": "forgeweave:magma_congealed_slime", "units": 400 },
+    { "ingredient": "forgeweave:magma_slime_block", "units": 900 }
   ],
   "cost": 1,
   "max_level": 1

@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:curved_blade"
-  },
+  "cast": "forgeweave:curved_blade",
   "fluid": "forgeweave:molten_gold",
   "amount": 288,
   "result": {

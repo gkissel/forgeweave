@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:dusts/stormalloy"
-    }
+    "#c:dusts/stormalloy"
   ],
   "result": {
     "count": 3,

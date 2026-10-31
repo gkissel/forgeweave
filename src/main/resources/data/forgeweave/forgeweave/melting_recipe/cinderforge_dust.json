@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dusts/cinderforge"
-  },
+  "input": "#c:dusts/cinderforge",
   "fluid": "forgeweave:molten_cinderforge",
   "amount": 144,
   "temperature": 1400

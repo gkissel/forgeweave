@@ -1,0 +1,12 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "forgeweave:item/orange_slime_tall_grass",
+    "tints": [
+      {
+        "type": "minecraft:constant",
+        "value": -3106816
+      }
+    ]
+  }
+}

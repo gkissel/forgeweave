@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:tiny_dusts/elementarium_tantalum"
-  },
+  "input": "#c:tiny_dusts/elementarium_tantalum",
   "fluid": "forgeweave:molten_elementarium_tantalum",
   "amount": 16,
   "temperature": 1400,

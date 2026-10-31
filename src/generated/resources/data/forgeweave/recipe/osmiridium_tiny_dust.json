@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:small_dusts/osmiridium"
-    }
+    "#c:small_dusts/osmiridium"
   ],
   "result": {
     "count": 3,

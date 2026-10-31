@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:dusts/osgloglas"
-    }
+    "#c:dusts/osgloglas"
   ],
   "result": {
     "count": 3,

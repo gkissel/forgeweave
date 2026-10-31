@@ -4,9 +4,9 @@ import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.Item;
@@ -14,8 +14,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.modifier.Modifier;
@@ -45,21 +45,21 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
 @PrefixGameTestTemplate(false)
 public class AddonSeamGameTests {
 
-    private static final ResourceLocation MATERIAL = id("addon_alloy");
-    private static final ResourceLocation PACK_TRAIT = id("addon_pack_trait");
-    private static final ResourceLocation JAVA_TRAIT = id("addon_java_trait");
-    private static final ResourceLocation PACK_MODIFIER = id("addon_pack_modifier");
-    private static final ResourceLocation JAVA_MODIFIER = id("addon_java_modifier");
+    private static final Identifier MATERIAL = id("addon_alloy");
+    private static final Identifier PACK_TRAIT = id("addon_pack_trait");
+    private static final Identifier JAVA_TRAIT = id("addon_java_trait");
+    private static final Identifier PACK_MODIFIER = id("addon_pack_modifier");
+    private static final Identifier JAVA_MODIFIER = id("addon_java_modifier");
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(GameTestAddon.NAMESPACE, path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(GameTestAddon.NAMESPACE, path);
     }
 
     /** A material an addon ships in its own data folder loads with the stats it wrote. */
     @GameTest(template = "empty")
     public static void anAddonMaterialLoadsWithItsStats(GameTestHelper helper) {
-        Registry<Material> materials = helper.getLevel().registryAccess().registryOrThrow(Material.REGISTRY);
-        Material material = materials.get(MATERIAL);
+        Registry<Material> materials = helper.getLevel().registryAccess().lookupOrThrow(Material.REGISTRY);
+        Material material = materials.getValue(MATERIAL);
         helper.assertTrue(material != null, "expected the addon's material in the registry, got nothing");
         helper.assertTrue(material.head().isPresent(), "expected the addon's material to carry head stats");
         helper.assertTrue(material.head().get().durability() == 320,
@@ -145,14 +145,14 @@ public class AddonSeamGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         BlockPos pos = new BlockPos(1, 1, 1);
         helper.setBlock(pos, ForgeweaveBlocks.TOOL_STATION.get());
-        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos);
+        ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
 
         ToolAssemblyRecipes.Entry entry = ToolAssemblyRecipes.ENTRIES.stream()
                 .filter(candidate -> candidate.constants().id().equals(GameTestAddon.TOOL_ID.toString()))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("the registered tool is missing from the station's table"));
-        List<ResourceLocation> materials = List.of(MATERIAL,
-                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "wood"));
+        List<Identifier> materials = List.of(MATERIAL,
+                Identifier.fromNamespaceAndPath(Forgeweave.MODID, "wood"));
         for (int slot = 0; slot < ToolStationMenu.INPUT_SLOTS; slot++) {
             blockEntity.container().setItem(slot, slot < entry.slotCount()
                     ? part(materials.get(slot), entry.part(slot))
@@ -168,7 +168,7 @@ public class AddonSeamGameTests {
         return tool;
     }
 
-    private static ItemStack part(ResourceLocation material, Item item) {
+    private static ItemStack part(Identifier material, Item item) {
         ItemStack stack = new ItemStack(item);
         stack.set(ForgeweaveDataComponents.MATERIAL.get(), material);
         return stack;

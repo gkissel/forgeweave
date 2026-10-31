@@ -45,21 +45,17 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "iceandfire:troll_leather_frost"
-      },
+      "ingredient": "iceandfire:troll_leather_frost",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "iceandfire:troll_leather_frost"
-  },
+  "repair_item": "iceandfire:troll_leather_frost",
   "enchantability": 14,
   "color": "#A8C4D6",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "iceandfire:troll_leather_frost"
+      "type": "neoforge:registered",
+      "value": "iceandfire:troll_leather_frost"
     }
   ]
 }

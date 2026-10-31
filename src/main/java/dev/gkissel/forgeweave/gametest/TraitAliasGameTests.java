@@ -3,17 +3,17 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.List;
 import java.util.Map;
 
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.trait.Trait;
@@ -41,8 +41,8 @@ import dev.gkissel.forgeweave.trait.TraitFamilies;
 @PrefixGameTestTemplate(false)
 public class TraitAliasGameTests {
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
     /**
@@ -58,7 +58,7 @@ public class TraitAliasGameTests {
     /** Every retired id resolves to the behaviour of the rung that replaced it. */
     @GameTest(template = "empty")
     public static void everyRetiredTraitIdStillResolves(GameTestHelper helper) {
-        for (Map.Entry<ResourceLocation, ResourceLocation> alias : TraitFamilies.aliases().entrySet()) {
+        for (Map.Entry<Identifier, Identifier> alias : TraitFamilies.aliases().entrySet()) {
             Trait retired = ForgeweaveTraits.lookup(alias.getKey());
             Trait replacement = ForgeweaveTraits.lookup(alias.getValue());
             helper.assertTrue(replacement != null,
@@ -105,7 +105,7 @@ public class TraitAliasGameTests {
      */
     @GameTest(template = "empty")
     public static void twoRetiredNamesForOneMechanicFireOnce(GameTestHelper helper) {
-        List<ResourceLocation> ids = ForgeweaveTraits.canonical(
+        List<Identifier> ids = ForgeweaveTraits.canonical(
                 List.of(id("voidward"), id("unravelward")));
         helper.assertTrue(ids.equals(List.of(id("voidward"))),
                 "both ids must fold onto one rung, got " + ids);
@@ -123,7 +123,7 @@ public class TraitAliasGameTests {
      */
     @GameTest(template = "empty")
     public static void aRetiredIdRendersTheFamilysNameNotARawKey(GameTestHelper helper) {
-        for (ResourceLocation retired : TraitFamilies.aliases().keySet()) {
+        for (Identifier retired : TraitFamilies.aliases().keySet()) {
             String base = TraitFamilies.langBase(ForgeweaveTraits.canonical(retired));
             helper.assertTrue(!base.endsWith("." + retired.getPath()),
                     retired + " would render its own retired key " + base + ", which has no lang entry");

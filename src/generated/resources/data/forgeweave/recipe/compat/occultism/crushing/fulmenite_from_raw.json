@@ -8,9 +8,7 @@
   "type": "occultism:crushing",
   "crushing_time": 200,
   "ignore_crushing_multiplier": true,
-  "ingredient": {
-    "tag": "c:gems/fulmenite"
-  },
+  "ingredient": "#c:gems/fulmenite",
   "min_tier": 1,
   "result": {
     "type": "occultism:tag",

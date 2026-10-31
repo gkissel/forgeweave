@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_tool_handle"
-  },
+  "cast": "forgeweave:clay_cast_tool_handle",
   "fluid": "forgeweave:molten_blutonium",
   "amount": 144,
   "result": {
@@ -14,8 +12,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "bigreactors:blutonium_ingot"
+      "type": "neoforge:registered",
+      "value": "bigreactors:blutonium_ingot"
     }
   ]
 }

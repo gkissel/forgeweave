@@ -40,8 +40,8 @@ public final class GuideBookGift {
             return;
         }
         CompoundTag root = player.getPersistentData();
-        CompoundTag persisted = root.getCompound(PLAYER_PERSISTED_TAG);
-        if (persisted.getBoolean(GIVEN_KEY)) {
+        CompoundTag persisted = root.getCompoundOrEmpty(PLAYER_PERSISTED_TAG);
+        if (persisted.getBooleanOr(GIVEN_KEY, false)) {
             return;
         }
         ItemHandlerHelper.giveItemToPlayer(player, new ItemStack(ForgeweaveItems.GUIDE_BOOK.get()));

@@ -2,11 +2,12 @@ package dev.gkissel.forgeweave.client;
 
 import java.util.List;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 import net.neoforged.api.distmarker.Dist;
@@ -22,7 +23,7 @@ import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
  * The Crafting Station's GUI (docs/SCOPE.md M1 issue #40). Background is vanilla's own {@code
  * textures/gui/container/crafting_table.png}, referenced directly rather than copied into a derived
  * texture: upstream 1.12's {@code GuiCraftingStation} does exactly this too ({@code new
- * ResourceLocation("textures/gui/container/crafting_table.png")}, no TinkersConstruct-original art of
+ * Identifier("textures/gui/container/crafting_table.png")}, no TinkersConstruct-original art of
  * its own), so there is nothing to derive -- no NOTICE.md row, see that class for reference. Slot
  * coordinates in {@link CraftingStationMenu} match upstream's {@code ContainerCraftingStation}
  * (which in turn matches vanilla's {@code CraftingMenu}) exactly so this blit lines up pixel-for-pixel.
@@ -42,9 +43,9 @@ import dev.gkissel.forgeweave.menu.ForgeweaveMenus;
  * its own -- it does not, and issue #75 is the playtest report of the resulting screen with no hover
  * text anywhere.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public class CraftingStationScreen extends StationScreen<CraftingStationMenu> implements StationExtraAreas {
-    private static final ResourceLocation TEXTURE = ResourceLocation.withDefaultNamespace("textures/gui/container/crafting_table.png");
+    private static final Identifier TEXTURE = Identifier.withDefaultNamespace("textures/gui/container/crafting_table.png");
     private static final int BASE_WIDTH = 176;
     private static final int BASE_HEIGHT = 166;
     /** Vanilla container backgrounds are 256x256 sheets; the panel is only their top-left corner. */
@@ -54,14 +55,12 @@ public class CraftingStationScreen extends StationScreen<CraftingStationMenu> im
             new SideInventoryPanel(CraftingStationMenu.SIDE_PANEL_X, CraftingStationMenu.SIDE_PANEL_Y);
 
     public CraftingStationScreen(CraftingStationMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
-        imageWidth = BASE_WIDTH;
-        imageHeight = BASE_HEIGHT;
+        super(menu, playerInventory, title, BASE_WIDTH, BASE_HEIGHT);
     }
 
     @Override
-    protected void renderPanel(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        guiGraphics.blit(TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, SHEET, SHEET);
+    protected void renderPanel(GuiGraphicsExtractor guiGraphics, float partialTick, int mouseX, int mouseY) {
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, leftPos, topPos, 0, 0, BASE_WIDTH, BASE_HEIGHT, SHEET, SHEET);
         sidePanel.render(guiGraphics, menu, leftPos, topPos, imageHeight, menu.sideSlots, menu.sideInventorySlotCount);
     }
 

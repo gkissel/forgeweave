@@ -219,8 +219,8 @@ class MaterialFormsTest {
                 }
                 JsonObject json = JsonParser.parseString(
                         Files.readString(row, StandardCharsets.UTF_8)).getAsJsonObject();
-                String tag = json.getAsJsonObject("input").get("tag").getAsString();
-                assertEquals("c:" + form.tagPath(material.id()), tag, id + " melts off the tag, not the item");
+                String tag = json.get("input").getAsString();
+                assertEquals("#c:" + form.tagPath(material.id()), tag, id + " melts off the tag, not the item");
                 assertEquals("forgeweave:molten_" + material.id(), json.get("fluid").getAsString(), id);
                 assertEquals(form.meltAmount(), json.get("amount").getAsInt(), id);
             }

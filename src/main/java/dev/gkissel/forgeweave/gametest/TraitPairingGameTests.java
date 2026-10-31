@@ -3,9 +3,9 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffects;
@@ -17,8 +17,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -62,11 +62,11 @@ public class TraitPairingGameTests {
             "magic_protection2", "magic_protection2", "magic_protection3", "magic_protection3",
             "blightward", "cyanite_chillback", "witherward", "witherward");
 
-    private static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 
-    private static List<ResourceLocation> ids(String... traits) {
+    private static List<Identifier> ids(String... traits) {
         return List.of(traits).stream().map(TraitPairingGameTests::id).toList();
     }
 
@@ -296,13 +296,13 @@ public class TraitPairingGameTests {
         LivingEntity control = helper.spawn(EntityType.COW, 2, 2, 2);
         CombatTraitGameTests.onHit(helper, attacker,
                 CombatTraitGameTests.tool(ForgeweaveItems.TOOL_HATCHET.get(), List.of(), 3.0F), control);
-        helper.assertTrue(control.getEffect(MobEffects.MOVEMENT_SLOWDOWN) == null,
+        helper.assertTrue(control.getEffect(MobEffects.SLOWNESS) == null,
                 "a plain hatchet must leave the target unslowed");
 
         LivingEntity target = helper.spawn(EntityType.COW, 3, 2, 3);
         CombatTraitGameTests.onHit(helper, attacker,
                 CombatTraitGameTests.tool(ForgeweaveItems.TOOL_HATCHET.get(), ids("cyanite_chill"), 3.0F), target);
-        helper.assertTrue(target.getEffect(MobEffects.MOVEMENT_SLOWDOWN) != null,
+        helper.assertTrue(target.getEffect(MobEffects.SLOWNESS) != null,
                 "cyanite chill must slow what it strikes");
         helper.succeed();
     }
@@ -356,7 +356,7 @@ public class TraitPairingGameTests {
 
     /** How far a small blast 1.5 blocks away pushes a zombie wearing a staged chestplate of {@code traits}. */
     private static double blasted(GameTestHelper helper, int x, String... traits) {
-        net.minecraft.world.entity.monster.Zombie zombie = helper.spawn(EntityType.ZOMBIE, x, 2, 2);
+        net.minecraft.world.entity.monster.zombie.Zombie zombie = helper.spawn(EntityType.ZOMBIE, x, 2, 2);
         zombie.setNoAi(true);
         Player builder = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack piece = ToolAssembly.assembleAt(helper, builder, STATION, ForgeweaveBlocks.TOOL_STATION.get(),
@@ -430,7 +430,7 @@ public class TraitPairingGameTests {
     /** Checklist line 243: whoever strikes a cyanite wearer comes away with Slowness II for 5 seconds. */
     @GameTest(template = "empty")
     public static void cyaniteChillbackSlowsWhoeverStrikesTheWearer(GameTestHelper helper) {
-        assertTheAttackerComesAwayWith(helper, "cyanite_chillback", MobEffects.MOVEMENT_SLOWDOWN, 1);
+        assertTheAttackerComesAwayWith(helper, "cyanite_chillback", MobEffects.SLOWNESS, 1);
         helper.succeed();
     }
 
@@ -510,7 +510,7 @@ public class TraitPairingGameTests {
     /** The detailed tooltip of a pickaxe assembled from three parts of the shipped {@code material}. */
     private static List<net.minecraft.network.chat.Component> shiftTooltip(GameTestHelper helper, String material)
             throws Exception {
-        ResourceLocation materialId = id(material);
+        Identifier materialId = id(material);
         var ops = net.minecraft.resources.RegistryOps.create(com.mojang.serialization.JsonOps.INSTANCE,
                 helper.getLevel().registryAccess());
         var resource = helper.getLevel().getServer().getResourceManager()
@@ -525,7 +525,7 @@ public class TraitPairingGameTests {
         registry.register(net.minecraft.resources.ResourceKey.create(
                         dev.gkissel.forgeweave.material.Material.REGISTRY, materialId),
                 parsed, net.minecraft.core.RegistrationInfo.BUILT_IN);
-        var registries = net.minecraft.core.HolderLookup.Provider.create(java.util.stream.Stream.of(registry.asLookup()));
+        var registries = net.minecraft.core.HolderLookup.Provider.create(java.util.stream.Stream.of(registry));
 
         ItemStack pickaxe = dev.gkissel.forgeweave.menu.ToolAssemblyRecipes.assemble(registries,
                         ToolAssembly.entryFor(ForgeweaveItems.TOOL_PICKAXE.get()), List.of(materialId, materialId, materialId))

@@ -50,27 +50,19 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "forgeweave:embercast_ingot"
-      },
+      "ingredient": "forgeweave:embercast_ingot",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "forgeweave:embercast_nugget"
-      },
+      "ingredient": "forgeweave:embercast_nugget",
       "value": 16
     },
     {
-      "ingredient": {
-        "item": "forgeweave:embercast_block"
-      },
+      "ingredient": "forgeweave:embercast_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/embercast"
-  },
+  "repair_item": "#c:ingots/embercast",
   "cast_only": true,
   "enchantability": 10,
   "color": "#FFA800"

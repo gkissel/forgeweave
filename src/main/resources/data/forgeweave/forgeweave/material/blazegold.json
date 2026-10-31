@@ -45,34 +45,26 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:ingots/blazegold"
-      },
+      "ingredient": "#c:ingots/blazegold",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:raw_materials/blazegold"
-      },
+      "ingredient": "#c:raw_materials/blazegold",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "justdirethings:blazegold_block"
-      },
+      "ingredient": "justdirethings:blazegold_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/blazegold"
-  },
+  "repair_item": "#c:ingots/blazegold",
   "cast_only": true,
   "enchantability": 22,
   "color": "#D66C4C",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "justdirethings:blazegold_ingot"
+      "type": "neoforge:registered",
+      "value": "justdirethings:blazegold_ingot"
     }
   ]
 }

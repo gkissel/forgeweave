@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/hafnium"
-  },
+  "input": "#c:storage_blocks/hafnium",
   "fluid": "forgeweave:molten_elementarium_hafnium",
   "amount": 1296,
   "temperature": 1400,

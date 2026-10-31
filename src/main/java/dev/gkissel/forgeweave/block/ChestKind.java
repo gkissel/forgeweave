@@ -3,7 +3,7 @@ package dev.gkissel.forgeweave.block;
 import java.util.function.Supplier;
 
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.Item;
@@ -110,7 +110,7 @@ public enum ChestKind {
 
     /** Every cast item, gold or clay (issue #100/#222/#292) -- filled by {@code ForgeweaveItemTagsProvider}. */
     public static final TagKey<Item> CASTS =
-            TagKey.create(Registries.ITEM, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "casts"));
+            TagKey.create(Registries.ITEM, Identifier.fromNamespaceAndPath(Forgeweave.MODID, "casts"));
 
     private final String id;
     private final int maxStackSize;

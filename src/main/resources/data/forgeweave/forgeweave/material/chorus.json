@@ -24,15 +24,11 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "minecraft:popped_chorus_fruit"
-      },
+      "ingredient": "minecraft:popped_chorus_fruit",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "minecraft:popped_chorus_fruit"
-  },
+  "repair_item": "minecraft:popped_chorus_fruit",
   "enchantability": 18,
   "color": "#8F648F"
 }

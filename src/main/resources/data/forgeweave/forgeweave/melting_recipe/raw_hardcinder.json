@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:raw_materials/hardcinder"
-  },
+  "input": "#c:raw_materials/hardcinder",
   "fluid": "forgeweave:molten_hardcinder",
   "amount": 144,
   "ore": true

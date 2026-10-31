@@ -1,7 +1,5 @@
 {
-  "input": {
-    "item": "forgeweave:seared_creeper"
-  },
+  "input": "forgeweave:seared_creeper",
   "fluid": "forgeweave:molten_seared_stone",
   "amount": 288
 }

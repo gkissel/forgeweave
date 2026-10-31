@@ -3,10 +3,10 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.List;
 
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -16,8 +16,8 @@ import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.GameType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.client.StationText;
@@ -43,7 +43,7 @@ public class GuideBookGameTests {
 
     @GameTest(template = "empty")
     public static void guideBookItemIsRegistered(GameTestHelper helper) {
-        ResourceLocation id = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "guide_book");
+        Identifier id = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "guide_book");
         helper.assertTrue(BuiltInRegistries.ITEM.containsKey(id), "forgeweave:guide_book is not registered");
         helper.assertTrue(new ItemStack(ForgeweaveItems.GUIDE_BOOK.get()).getMaxStackSize() == 1,
                 "the guide book should not stack");
@@ -197,9 +197,9 @@ public class GuideBookGameTests {
                 new ItemStack(Items.BOOK),
                 new ItemStack(ForgeweaveItems.PATTERN_BLANK.get())));
 
-        ItemStack crafted = level.getRecipeManager()
+        ItemStack crafted = level.recipeAccess()
                 .getRecipeFor(RecipeType.CRAFTING, input, level)
-                .map(holder -> holder.value().assemble(input, level.registryAccess()))
+                .map(holder -> holder.value().assemble(input))
                 .orElse(ItemStack.EMPTY);
 
         helper.assertTrue(crafted.is(ForgeweaveItems.GUIDE_BOOK.get()),
@@ -218,9 +218,9 @@ public class GuideBookGameTests {
                 new ItemStack(ForgeweaveItems.PATTERN_BLANK.get()),
                 new ItemStack(ForgeweaveItems.PATTERN_BLANK.get())));
 
-        ItemStack crafted = level.getRecipeManager()
+        ItemStack crafted = level.recipeAccess()
                 .getRecipeFor(RecipeType.CRAFTING, input, level)
-                .map(holder -> holder.value().assemble(input, level.registryAccess()))
+                .map(holder -> holder.value().assemble(input))
                 .orElse(ItemStack.EMPTY);
 
         helper.assertTrue(crafted.is(Items.BOOK),

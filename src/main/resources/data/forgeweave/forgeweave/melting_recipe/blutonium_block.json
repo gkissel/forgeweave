@@ -1,14 +1,12 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/blutonium"
-  },
+  "input": "#c:storage_blocks/blutonium",
   "fluid": "forgeweave:molten_blutonium",
   "amount": 1296,
   "temperature": 1400,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "bigreactors:blutonium_ingot"
+      "type": "neoforge:registered",
+      "value": "bigreactors:blutonium_ingot"
     }
   ]
 }

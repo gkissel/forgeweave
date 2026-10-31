@@ -1,6 +1,7 @@
 package dev.gkissel.forgeweave.combat;
 
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.LivingEntity;
@@ -32,11 +33,11 @@ public final class LightningOnHit implements CombatSeam {
     @Override
     public void onHit(CombatHit hit, float damageDealt) {
         LivingEntity target = hit.target();
-        LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(hit.level());
+        LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(hit.level(), EntitySpawnReason.TRIGGERED);
         if (bolt == null) {
             return;
         }
-        bolt.moveTo(target.getX(), target.getY(), target.getZ());
+        bolt.snapTo(target.getX(), target.getY(), target.getZ());
         if (hit.attacker() instanceof ServerPlayer player) {
             bolt.setCause(player);
         }

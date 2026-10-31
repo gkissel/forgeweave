@@ -5,9 +5,11 @@ import javax.annotation.Nullable;
 import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.core.particles.PowerParticleOption;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
@@ -101,8 +103,8 @@ public class SmelteryControllerBlock extends HorizontalDirectionalBlock implemen
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, block, fromPos, movedByPiston);
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @Nullable Orientation orientation, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
         updateStructure(level, pos);
     }
 
@@ -116,7 +118,7 @@ public class SmelteryControllerBlock extends HorizontalDirectionalBlock implemen
      */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof SmelteryControllerBlockEntity core) {
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof SmelteryControllerBlockEntity core) {
             core.updateStructure();
             boolean formed = core.isFormed();
             // #110 -- first-interaction hook for the advancement chain and the Ponder soft dependency
@@ -136,7 +138,7 @@ public class SmelteryControllerBlock extends HorizontalDirectionalBlock implemen
             if (formed) {
                 core.open(player);
             } else {
-                player.displayClientMessage(core.lastResult(), false);
+                player.sendSystemMessage(core.lastResult());
             }
         }
         return InteractionResult.SUCCESS;
@@ -199,7 +201,7 @@ public class SmelteryControllerBlock extends HorizontalDirectionalBlock implemen
         double z = pos.getZ() + 0.5;
         double side = random.nextDouble() * 0.6 - 0.3;
         switch (core) {
-            case END -> spawnFrontParticle(level, ParticleTypes.DRAGON_BREATH, state.getValue(FACING), x, y, z, 0.52, side);
+            case END -> spawnFrontParticle(level, PowerParticleOption.create(ParticleTypes.DRAGON_BREATH, 1.0F), state.getValue(FACING), x, y, z, 0.52, side);
             case DEEP -> spawnFrontParticle(level, ParticleTypes.SCULK_SOUL, state.getValue(FACING), x, y, z, 0.52, side);
             default -> spawnFireParticles(level, state.getValue(FACING), x, y, z, 0.52, side);
         }

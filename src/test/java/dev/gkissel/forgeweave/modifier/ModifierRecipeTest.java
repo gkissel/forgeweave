@@ -23,12 +23,13 @@ import net.minecraft.SharedConstants;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.RegistryOps;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
+import dev.gkissel.forgeweave.TestRegistries;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 
@@ -42,13 +43,13 @@ class ModifierRecipeTest {
 
     private static RegistryOps<JsonElement> ops;
 
-    private static final ResourceLocation HASTE = ResourceLocation.fromNamespaceAndPath("forgeweave", "haste");
+    private static final Identifier HASTE = Identifier.fromNamespaceAndPath("forgeweave", "haste");
 
     @BeforeAll
     static void bootstrapMinecraft() {
         SharedConstants.tryDetectVersion();
         Bootstrap.bootStrap();
-        ops = RegistryOps.create(JsonOps.INSTANCE, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+        ops = TestRegistries.ops(JsonOps.INSTANCE);
     }
 
     private static ModifierRecipe parse(String json) {
@@ -111,7 +112,7 @@ class ModifierRecipeTest {
     void reagentUnitsDefaultToOne() {
         ModifierRecipe recipe = parse("""
                 {"modifier": "forgeweave:haste",
-                 "reagents": [{"ingredient": {"item": "minecraft:redstone"}}],
+                 "reagents": [{"ingredient": "minecraft:redstone"}],
                  "max_level": 250}
                 """);
 
@@ -150,14 +151,14 @@ class ModifierRecipeTest {
     @Test
     void costDefaultsToOneReagentPerUnit() {
         assertEquals(1, parse("""
-                {"modifier": "forgeweave:haste", "reagent": {"item": "minecraft:redstone"}, "max_level": 250}
+                {"modifier": "forgeweave:haste", "reagent": "minecraft:redstone", "max_level": 250}
                 """).cost());
     }
 
     @Test
     void rejectsARecipeWithoutACap() {
         DataResult<ModifierRecipe> result = ModifierRecipe.CODEC.parse(ops, JsonParser.parseString("""
-                {"modifier": "forgeweave:haste", "reagent": {"item": "minecraft:redstone"}}
+                {"modifier": "forgeweave:haste", "reagent": "minecraft:redstone"}
                 """));
 
         assertTrue(result.isError(), "a modifier recipe without max_level must not parse");
@@ -172,7 +173,7 @@ class ModifierRecipeTest {
     @Test
     void retuningTheCostChangesWhatTenReagentsBuy() {
         String template = """
-                {"modifier": "forgeweave:haste", "reagent": {"item": "minecraft:redstone"},
+                {"modifier": "forgeweave:haste", "reagent": "minecraft:redstone",
                  "cost": %d, "max_level": 250}
                 """;
 
@@ -189,7 +190,7 @@ class ModifierRecipeTest {
     @Test
     void retuningTheCapChangesWhereApplicationStops() {
         String template = """
-                {"modifier": "forgeweave:haste", "reagent": {"item": "minecraft:redstone"},
+                {"modifier": "forgeweave:haste", "reagent": "minecraft:redstone",
                  "max_level": %d}
                 """;
 
@@ -267,9 +268,9 @@ class ModifierRecipeTest {
     void aFourthDistinctModifierIsRejected() {
         ItemStack tool = pickaxe();
         tool.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "one"), 1),
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "two"), 1),
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "three"), 1)));
+                new ModifierEntry(Identifier.fromNamespaceAndPath("forgeweave", "one"), 1),
+                new ModifierEntry(Identifier.fromNamespaceAndPath("forgeweave", "two"), 1),
+                new ModifierEntry(Identifier.fromNamespaceAndPath("forgeweave", "three"), 1)));
 
         ModifierApplication.Outcome outcome = ModifierApplication.apply(shipped(), tool, 1, 0);
 
@@ -292,7 +293,7 @@ class ModifierRecipeTest {
     @Test
     void tooFewReagentsForOneUnitIsRejectedRatherThanRoundedDown() {
         ModifierRecipe expensive = parse("""
-                {"modifier": "forgeweave:haste", "reagent": {"item": "minecraft:redstone"},
+                {"modifier": "forgeweave:haste", "reagent": "minecraft:redstone",
                  "cost": 5, "max_level": 250}
                 """);
 
@@ -393,7 +394,7 @@ class ModifierRecipeTest {
 
         ModifierRecipe recipe = ModifierRecipe.CODEC.parse(ops, json).getOrThrow();
 
-        assertEquals(ResourceLocation.fromNamespaceAndPath("forgeweave", modifierPath), recipe.modifier());
+        assertEquals(Identifier.fromNamespaceAndPath("forgeweave", modifierPath), recipe.modifier());
         assertEquals(1, recipe.cost());
         assertEquals(expectedMaxLevel, recipe.maxLevel());
         assertTrue(recipe.reagent().test(new ItemStack(reagent)));
@@ -432,7 +433,7 @@ class ModifierRecipeTest {
 
         ItemStack tool = pickaxe();
         tool.set(ForgeweaveDataComponents.MODIFIERS.get(),
-                List.of(new ModifierEntry(ResourceLocation.fromNamespaceAndPath("forgeweave", "far_reach"), 2)));
+                List.of(new ModifierEntry(Identifier.fromNamespaceAndPath("forgeweave", "far_reach"), 2)));
         assertEquals(2.0F, ForgeweaveModifiers.blockInteractionRangeBonus(tool), 1.0e-5F);
     }
 
@@ -440,7 +441,7 @@ class ModifierRecipeTest {
     @Test
     void aRecipeMayNameAModifierThisVersionDoesNotImplement() {
         ModifierRecipe future = parse("""
-                {"modifier": "forgeweave:not_implemented_here", "reagent": {"item": "minecraft:redstone"},
+                {"modifier": "forgeweave:not_implemented_here", "reagent": "minecraft:redstone",
                  "max_level": 4}
                 """);
 
@@ -456,8 +457,8 @@ class ModifierRecipeTest {
     private static ModifierRecipe combo() {
         return parse("""
                 {"modifier": "forgeweave:creative_flight",
-                 "reagents": [{"ingredient": {"item": "minecraft:end_crystal"}},
-                              {"ingredient": {"item": "minecraft:nether_star"}}],
+                 "reagents": [{"ingredient": "minecraft:end_crystal"},
+                              {"ingredient": "minecraft:nether_star"}],
                  "require_all_reagents": true, "max_level": 1}
                 """);
     }
@@ -532,7 +533,7 @@ class ModifierRecipeTest {
     @Test
     void mostSpecificPrefersTheLargerReagentSetOverAnOverlappingSmallerOne() {
         ModifierRecipe soulbound = parse("""
-                {"modifier": "forgeweave:soulbound", "reagent": {"item": "minecraft:nether_star"}, "max_level": 1}
+                {"modifier": "forgeweave:soulbound", "reagent": "minecraft:nether_star", "max_level": 1}
                 """);
         ModifierRecipe creativeFlight = combo();
         List<ModifierRecipe> recipes = List.of(soulbound, creativeFlight);
@@ -551,7 +552,7 @@ class ModifierRecipeTest {
     void mostSpecificKeepsSatisfiedRecipesThatDoNotOverlap() {
         ModifierRecipe haste = shipped();
         ModifierRecipe soulbound = parse("""
-                {"modifier": "forgeweave:soulbound", "reagent": {"item": "minecraft:nether_star"}, "max_level": 1}
+                {"modifier": "forgeweave:soulbound", "reagent": "minecraft:nether_star", "max_level": 1}
                 """);
 
         List<ModifierRecipe> recipes = ModifierApplication.mostSpecific(List.of(haste, soulbound),
@@ -596,7 +597,7 @@ class ModifierRecipeTest {
 
     private static ModifierRecipe shipped() {
         return parse("""
-                {"modifier": "forgeweave:haste", "reagent": {"item": "minecraft:redstone"},
+                {"modifier": "forgeweave:haste", "reagent": "minecraft:redstone",
                  "cost": 1, "max_level": 250}
                 """);
     }

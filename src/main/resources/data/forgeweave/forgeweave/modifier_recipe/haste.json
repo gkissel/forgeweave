@@ -2,14 +2,10 @@
   "modifier": "forgeweave:haste",
   "reagents": [
     {
-      "ingredient": {
-        "item": "minecraft:redstone"
-      }
+      "ingredient": "minecraft:redstone"
     },
     {
-      "ingredient": {
-        "item": "minecraft:redstone_block"
-      },
+      "ingredient": "minecraft:redstone_block",
       "units": 9
     }
   ],

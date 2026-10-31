@@ -53,27 +53,19 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "forgeweave:hardcinder_ingot"
-      },
+      "ingredient": "forgeweave:hardcinder_ingot",
       "value": 144
     },
     {
-      "ingredient": {
-        "item": "forgeweave:hardcinder_nugget"
-      },
+      "ingredient": "forgeweave:hardcinder_nugget",
       "value": 16
     },
     {
-      "ingredient": {
-        "item": "forgeweave:hardcinder_block"
-      },
+      "ingredient": "forgeweave:hardcinder_block",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/hardcinder"
-  },
+  "repair_item": "#c:ingots/hardcinder",
   "cast_only": true,
   "enchantability": 10,
   "color": "#C72C20"

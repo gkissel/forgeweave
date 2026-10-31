@@ -18,14 +18,17 @@ import org.junit.jupiter.api.Test;
  *
  * <p>Two halves, because the defect needed both to be true at once.
  *
- * <p><b>The state.</b> {@code StationScreen#renderBg} draws the station-group tab row before the
- * panel, and that row renders item stacks. {@code GuiGraphics#renderItem} flushes through the item
- * render types, whose {@code clearRenderState} ends in {@code RenderSystem.disableBlend()} -- so
- * every translucent blit in {@code renderPanel} afterwards lands at full opacity unless blending is
- * turned back on in between. Upstream {@code GuiToolStation} does the same thing explicitly ("reset
- * state after item drawing"). Nothing in a unit test can see a GL state machine, so this is an
- * ordering scan over the source, matching {@code StationScreenTooltipTest} and {@code
- * StationSocketAlignmentTest}'s approach -- the test classpath has no Minecraft client.
+ * <p><b>The state.</b> {@code StationScreen#extractBackground} draws the station-group tab row
+ * before the panel, and that row draws item stacks. On 1.21.1 drawing an item flushed through the
+ * item render types, whose {@code clearRenderState} ended in {@code RenderSystem.disableBlend()}, so
+ * every translucent blit in {@code renderPanel} afterwards landed at full opacity unless blending
+ * was turned back on in between (upstream {@code GuiToolStation} does the same: "reset state after
+ * item drawing"). 26.x took that global state away: a GUI draw is recorded with its own render
+ * pipeline and colour and drawn later, so nothing an item does can leak into the next blit. What
+ * the slot plate needs now is that its own blit asks for it: a blending pipeline and its 28% alpha
+ * in the colour. Nothing in a unit test can see a GL state machine, so this is a scan over the
+ * source, matching {@code StationScreenTooltipTest} and {@code StationSocketAlignmentTest}'s
+ * approach -- the test classpath has no Minecraft client.
  *
  * <p><b>The sprite.</b> Why losing the alpha is catastrophic rather than merely wrong: upstream's
  * {@code SlotBackground} is an <em>opaque black mask</em>, only ever drawn at 28%. If a future
@@ -49,32 +52,45 @@ class StationScreenBlendStateTest {
     }
 
     @Test
-    void renderBgRestoresBlendingBetweenTheTabRowAndThePanel() throws IOException {
+    void theTabRowIsDrawnBeforeThePanel() throws IOException {
         String source = Files.readString(
                 projectRoot().resolve("src/main/java/dev/gkissel/forgeweave/client/StationScreen.java"),
                 StandardCharsets.UTF_8);
 
-        int renderBg = source.indexOf("protected final void renderBg(");
-        assertTrue(renderBg >= 0, "StationScreen no longer declares renderBg -- update this guard");
+        int extractBackground = source.indexOf("public final void extractBackground(");
+        assertTrue(extractBackground >= 0, "StationScreen no longer declares extractBackground -- update this guard");
         // Comments stripped, or commenting the call out would still satisfy the scan below.
-        String body = stripComments(source.substring(renderBg, source.indexOf("\n    }", renderBg)));
+        String body = stripComments(source.substring(extractBackground, source.indexOf("\n    }", extractBackground)));
 
         int tabs = body.indexOf("renderTabs(graphics, false)");
-        int enableBlend = body.indexOf("restoreBlending()");
         int panel = body.indexOf("renderPanel(");
 
-        assertTrue(tabs >= 0, "renderBg no longer draws the tab row first -- update this guard");
-        assertTrue(enableBlend >= 0,
-                "renderBg must call restoreBlending() after the tab row: renderTabs draws item stacks, "
-                        + "which leaves RenderSystem blending disabled, and every translucent blit in "
-                        + "renderPanel then lands opaque (issue #84 -- black repair slots)");
-        assertTrue(panel >= 0, "renderBg no longer calls renderPanel -- update this guard");
-        assertTrue(tabs < enableBlend && enableBlend < panel,
-                "restoreBlending() must sit between the tab row and renderPanel; it is the tab row's "
-                        + "item rendering that clears the blend state renderPanel depends on");
+        assertTrue(tabs >= 0, "extractBackground no longer draws the tab row first -- update this guard");
+        assertTrue(panel >= 0, "extractBackground no longer calls renderPanel -- update this guard");
+        assertTrue(tabs < panel, "the tab row's item stacks come before the panel, the order issue #84 was about");
+    }
 
-        assertTrue(stripComments(source).contains("RenderSystem.enableBlend()"),
-                "restoreBlending() must actually enable blending");
+    /**
+     * 26.x's half of issue #84: the slot plate is blended because its own blit says so. It goes
+     * through {@code RenderPipelines.GUI_TEXTURED} (translucent blending) with a white colour at
+     * {@code SLOT_BACKGROUND_ALPHA}, and that constant is still upstream's 28%. An opaque pipeline
+     * or a colour without the alpha gives back the black squares.
+     */
+    @Test
+    void theSlotPlateIsBlittedThroughABlendingPipelineAtTwentyEightPercent() throws IOException {
+        String source = stripComments(Files.readString(
+                projectRoot().resolve("src/main/java/dev/gkissel/forgeweave/client/ToolStationScreen.java"),
+                StandardCharsets.UTF_8));
+
+        int plate = source.indexOf("SLOT_BACKGROUND_U, ");
+        assertTrue(plate >= 0, "ToolStationScreen no longer blits SLOT_BACKGROUND_U -- update this guard");
+        String call = source.substring(source.lastIndexOf("graphics.blit(", plate), source.indexOf(");", plate));
+        assertTrue(call.contains("RenderPipelines.GUI_TEXTURED,"),
+                "the slot plate must be drawn through GUI_TEXTURED, which blends; got: " + call);
+        assertTrue(call.contains("ARGB.white(SLOT_BACKGROUND_ALPHA)"),
+                "the slot plate's colour must carry SLOT_BACKGROUND_ALPHA, or it lands opaque (issue #84); got: " + call);
+        assertTrue(source.contains("SLOT_BACKGROUND_ALPHA = 0.28F"),
+                "upstream draws SlotBackground at 28%");
     }
 
     /** Drops {@code //} line comments and {@code /* *}{@code /} blocks so commented-out code doesn't match. */

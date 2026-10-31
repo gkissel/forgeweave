@@ -10,7 +10,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * The {@code Material} ids (ADR-0002) an assembled tool was built from, stored as a single data
@@ -43,18 +43,18 @@ import net.minecraft.resources.ResourceLocation;
  * {@code head} is its first limb ({@link ToolConstants.Role#LIMB} carries the HEAD block); a tool
  * written before then still has its {@code handle} field and encodes byte-identically.
  */
-public record ToolMaterials(ResourceLocation head, Optional<ResourceLocation> binding, Optional<ResourceLocation> handle,
-                            List<ResourceLocation> parts) {
+public record ToolMaterials(Identifier head, Optional<Identifier> binding, Optional<Identifier> handle,
+                            List<Identifier> parts) {
 
     /** Decoding shape: {@code parts} absent means a pre-M3 tool, rebuilt from the triple. */
-    private record Raw(ResourceLocation head, Optional<ResourceLocation> binding, Optional<ResourceLocation> handle,
-                       Optional<List<ResourceLocation>> parts) {}
+    private record Raw(Identifier head, Optional<Identifier> binding, Optional<Identifier> handle,
+                       Optional<List<Identifier>> parts) {}
 
     private static final Codec<Raw> RAW_CODEC = RecordCodecBuilder.create(instance -> instance.group(
-            ResourceLocation.CODEC.fieldOf("head").forGetter(Raw::head),
-            ResourceLocation.CODEC.optionalFieldOf("binding").forGetter(Raw::binding),
-            ResourceLocation.CODEC.optionalFieldOf("handle").forGetter(Raw::handle),
-            ResourceLocation.CODEC.listOf().optionalFieldOf("parts").forGetter(Raw::parts))
+            Identifier.CODEC.fieldOf("head").forGetter(Raw::head),
+            Identifier.CODEC.optionalFieldOf("binding").forGetter(Raw::binding),
+            Identifier.CODEC.optionalFieldOf("handle").forGetter(Raw::handle),
+            Identifier.CODEC.listOf().optionalFieldOf("parts").forGetter(Raw::parts))
             .apply(instance, Raw::new));
 
     public static final Codec<ToolMaterials> CODEC = RAW_CODEC.xmap(
@@ -64,16 +64,16 @@ public record ToolMaterials(ResourceLocation head, Optional<ResourceLocation> bi
                     Optional.of(materials.parts())));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, ToolMaterials> STREAM_CODEC = StreamCodec.composite(
-            ResourceLocation.STREAM_CODEC, ToolMaterials::head,
-            ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC), ToolMaterials::binding,
-            ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC), ToolMaterials::handle,
-            ResourceLocation.STREAM_CODEC.apply(ByteBufCodecs.list()), ToolMaterials::parts,
+            Identifier.STREAM_CODEC, ToolMaterials::head,
+            ByteBufCodecs.optional(Identifier.STREAM_CODEC), ToolMaterials::binding,
+            ByteBufCodecs.optional(Identifier.STREAM_CODEC), ToolMaterials::handle,
+            Identifier.STREAM_CODEC.apply(ByteBufCodecs.list()), ToolMaterials::parts,
             ToolMaterials::new);
 
     /** M1's slot order, which is what a pre-M3 tool's three fields were written in. */
-    private static List<ResourceLocation> legacyOrder(ResourceLocation head, Optional<ResourceLocation> binding,
-            Optional<ResourceLocation> handle) {
-        List<ResourceLocation> ids = new ArrayList<>(3);
+    private static List<Identifier> legacyOrder(Identifier head, Optional<Identifier> binding,
+            Optional<Identifier> handle) {
+        List<Identifier> ids = new ArrayList<>(3);
         ids.add(head);
         binding.ifPresent(ids::add);
         handle.ifPresent(ids::add);
@@ -84,13 +84,13 @@ public record ToolMaterials(ResourceLocation head, Optional<ResourceLocation> bi
      * The slot-ordered ids folded into both views. {@code roles} is the tool's own
      * {@link ToolConstants.Entry#parts()} role list, index-for-index with {@code materialIds}.
      */
-    public static ToolMaterials of(List<ToolConstants.PartSlot> slots, List<ResourceLocation> materialIds) {
+    public static ToolMaterials of(List<ToolConstants.PartSlot> slots, List<Identifier> materialIds) {
         if (slots.size() != materialIds.size()) {
             throw new IllegalArgumentException("part slots and material ids disagree");
         }
-        ResourceLocation head = null;
-        ResourceLocation binding = null;
-        ResourceLocation handle = null;
+        Identifier head = null;
+        Identifier binding = null;
+        Identifier handle = null;
         for (int i = 0; i < slots.size(); i++) {
             switch (slots.get(i).role()) {
                 // #448: a shuriken blade is a head slot for every primary pick (upstream's
@@ -117,7 +117,7 @@ public record ToolMaterials(ResourceLocation head, Optional<ResourceLocation> bi
      * Every material this tool is made of, in slot order -- what the tooltip lists and what a trait's
      * granting-material lookup searches.
      */
-    public List<ResourceLocation> all() {
+    public List<Identifier> all() {
         return parts;
     }
 }

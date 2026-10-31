@@ -12,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import net.minecraft.SharedConstants;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
@@ -127,7 +127,7 @@ class ShortbowStatsTest {
         assertTrue(bow.drawbackProgress(stack, 11) < 1.0f, "unmodified, 11 ticks is not a full draw");
 
         stack.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(
-                ResourceLocation.fromNamespaceAndPath("forgeweave", "haste"), 50)));
+                Identifier.fromNamespaceAndPath("forgeweave", "haste"), 50)));
 
         assertEquals(0.55f, bow.drawbackProgress(stack, 6), DELTA);
         assertEquals(1.0f, bow.drawbackProgress(stack, 11), DELTA, "hasted, it is full a tick sooner");
@@ -154,6 +154,6 @@ class ShortbowStatsTest {
     }
 
     private static TagKey<net.minecraft.world.level.block.Block> incorrectForStone() {
-        return TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool"));
+        return TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace("incorrect_for_stone_tool"));
     }
 }

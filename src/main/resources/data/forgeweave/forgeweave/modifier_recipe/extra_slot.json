@@ -1,8 +1,6 @@
 {
   "modifier": "forgeweave:extra_slot",
-  "reagent": {
-    "item": "forgeweave:extra_modifier"
-  },
+  "reagent": "forgeweave:extra_modifier",
   "cost": 1,
   "max_level": 5
 }

@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
 import net.minecraft.SharedConstants;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.FormattedText;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.util.FormattedCharSequence;
 
@@ -137,7 +137,7 @@ class DescriptionStyleTest {
     void everyModifierDescriptionStatesItsNumber() throws IOException {
         JsonObject lang = generatedLang();
         Map<String, String> descriptions = new LinkedHashMap<>();
-        for (ResourceLocation id : ForgeweaveModifiers.ids()) {
+        for (Identifier id : ForgeweaveModifiers.ids()) {
             String key = "modifier." + id.getNamespace() + "." + id.getPath() + ".description";
             assertTrue(lang.has(key), id + " ships without " + key);
             descriptions.put(id.getPath(), lang.get(key).getAsString());
@@ -200,7 +200,7 @@ class DescriptionStyleTest {
         JsonObject lang = generatedLang();
         List<String> mismatched = new ArrayList<>();
         Map<String, List<String>> rungs = new LinkedHashMap<>();
-        for (ResourceLocation id : javaTraitIds()) {
+        for (Identifier id : javaTraitIds()) {
             TraitFamilies.Rung rung = TraitFamilies.of(id);
             if (rung != null) {
                 rungs.put(id.getPath(), rung.descriptionArgs());
@@ -277,10 +277,10 @@ class DescriptionStyleTest {
         });
         try {
             assertEquals("Deals 15% more damage to unarmored targets.",
-                    TraitFamilies.description(ResourceLocation.fromNamespaceAndPath("forgeweave", "crude"))
+                    TraitFamilies.description(Identifier.fromNamespaceAndPath("forgeweave", "crude"))
                             .getString());
             assertEquals("Deals 30% more damage to unarmored targets.",
-                    TraitFamilies.description(ResourceLocation.fromNamespaceAndPath("forgeweave", "crude2"))
+                    TraitFamilies.description(Identifier.fromNamespaceAndPath("forgeweave", "crude2"))
                             .getString());
         } finally {
             Language.inject(previous);
@@ -317,7 +317,7 @@ class DescriptionStyleTest {
     void everyModifierWithBulletsSaysWhatItCosts() throws IOException {
         JsonObject lang = generatedLang();
         List<String> silent = new ArrayList<>();
-        for (ResourceLocation id : ForgeweaveModifiers.ids()) {
+        for (Identifier id : ForgeweaveModifiers.ids()) {
             String base = "modifier." + id.getNamespace() + "." + id.getPath() + ".effect.";
             if (!lang.has(base + "0")) {
                 continue; // no bullet list at all; JEI and the description carry it instead
@@ -378,7 +378,7 @@ class DescriptionStyleTest {
         Pattern every = Pattern.compile("every ([\\d.]+) seconds");
         List<String> wrong = new ArrayList<>();
         int checked = 0;
-        for (Map.Entry<ResourceLocation, Trait> entry : javaTraits().entrySet()) {
+        for (Map.Entry<Identifier, Trait> entry : javaTraits().entrySet()) {
             if (!(entry.getValue() instanceof SelfRepairWhen repair)) {
                 continue;
             }
@@ -438,7 +438,7 @@ class DescriptionStyleTest {
     private static TreeSet<String> modifiersWithoutAStatedCap() throws IOException {
         JsonObject lang = generatedLang();
         TreeSet<String> missing = new TreeSet<>();
-        for (ResourceLocation id : ForgeweaveModifiers.ids()) {
+        for (Identifier id : ForgeweaveModifiers.ids()) {
             String base = "modifier." + id.getNamespace() + "." + id.getPath() + ".effect.";
             if (!lang.has(base + "0")) {
                 continue;
@@ -485,7 +485,7 @@ class DescriptionStyleTest {
      */
     private static Map<String, String> liveTraitLangBases() throws Exception {
         Map<String, String> bases = new LinkedHashMap<>();
-        for (ResourceLocation id : javaTraitIds()) {
+        for (Identifier id : javaTraitIds()) {
             bases.put(id.getPath(), TraitFamilies.langBase(id));
         }
         for (Path file : traitDefinitionFiles()) {
@@ -499,15 +499,15 @@ class DescriptionStyleTest {
     }
 
     /** {@code ForgeweaveTraits.REGISTRY}, by reflection, the way {@code TraitDefinitionAuditTest} reads it. */
-    private static Set<ResourceLocation> javaTraitIds() throws Exception {
+    private static Set<Identifier> javaTraitIds() throws Exception {
         return new LinkedHashSet<>(javaTraits().keySet());
     }
 
     @SuppressWarnings("unchecked")
-    private static Map<ResourceLocation, Trait> javaTraits() throws Exception {
+    private static Map<Identifier, Trait> javaTraits() throws Exception {
         var field = ForgeweaveTraits.class.getDeclaredField("REGISTRY");
         field.setAccessible(true);
-        return (Map<ResourceLocation, Trait>) field.get(null);
+        return (Map<Identifier, Trait>) field.get(null);
     }
 
     private static List<Path> traitDefinitionFiles() throws IOException {

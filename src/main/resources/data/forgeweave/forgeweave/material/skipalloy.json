@@ -27,13 +27,11 @@
     "armor": ["forgeweave:swiftward"]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:skipalloy_ingot" }, "value": 144 },
-    { "ingredient": { "item": "forgeweave:skipalloy_nugget" }, "value": 16 },
-    { "ingredient": { "item": "forgeweave:skipalloy_block" }, "value": 1296 }
+    { "ingredient": "forgeweave:skipalloy_ingot", "value": 144 },
+    { "ingredient": "forgeweave:skipalloy_nugget", "value": 16 },
+    { "ingredient": "forgeweave:skipalloy_block", "value": 1296 }
   ],
-  "repair_item": {
-    "tag": "c:ingots/skipalloy"
-  },
+  "repair_item": "#c:ingots/skipalloy",
   "cast_only": true,
   "enchantability": 10,
   "color": "#76D9D3"

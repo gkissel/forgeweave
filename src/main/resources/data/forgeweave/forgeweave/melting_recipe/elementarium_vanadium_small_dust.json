@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/elementarium_vanadium"
-  },
+  "input": "#c:small_dusts/elementarium_vanadium",
   "fluid": "forgeweave:molten_elementarium_vanadium",
   "amount": 36,
   "temperature": 1200,

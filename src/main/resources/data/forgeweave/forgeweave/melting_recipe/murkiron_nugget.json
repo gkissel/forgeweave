@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:nuggets/murkiron"
-  },
+  "input": "#c:nuggets/murkiron",
   "fluid": "forgeweave:molten_murkiron",
   "amount": 16
 }

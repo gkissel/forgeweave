@@ -28,7 +28,7 @@ import dev.gkissel.forgeweave.Forgeweave;
  * scan skips this class entirely on a dedicated server before any of it is loaded, which an {@code
  * if} guard inside a shared class cannot do.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public final class ForgeweaveConfigScreen {
 
     @SubscribeEvent

@@ -1,0 +1,16 @@
+{
+  "model": {
+    "type": "minecraft:condition",
+    "on_false": {
+      "type": "forgeweave:tool",
+      "model": "forgeweave:item/vein_hammer",
+      "tool": "vein_hammer"
+    },
+    "on_true": {
+      "type": "forgeweave:tool",
+      "model": "forgeweave:item/vein_hammer_broken",
+      "tool": "vein_hammer"
+    },
+    "property": "forgeweave:broken"
+  }
+}

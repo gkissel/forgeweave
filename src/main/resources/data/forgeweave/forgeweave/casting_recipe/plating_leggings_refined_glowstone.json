@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_plating_leggings"
-  },
+  "cast": "forgeweave:cast_plating_leggings",
   "fluid": "forgeweave:molten_refined_glowstone",
   "amount": 720,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "mekanism:ingot_refined_glowstone"
+      "type": "neoforge:registered",
+      "value": "mekanism:ingot_refined_glowstone"
     }
   ]
 }

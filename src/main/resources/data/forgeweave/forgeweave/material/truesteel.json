@@ -32,13 +32,11 @@
     ]
   },
   "crafting_items": [
-    { "ingredient": { "item": "forgeweave:truesteel_ingot" }, "value": 144 },
-    { "ingredient": { "item": "forgeweave:truesteel_nugget" }, "value": 16 },
-    { "ingredient": { "item": "forgeweave:truesteel_block" }, "value": 1296 }
+    { "ingredient": "forgeweave:truesteel_ingot", "value": 144 },
+    { "ingredient": "forgeweave:truesteel_nugget", "value": 16 },
+    { "ingredient": "forgeweave:truesteel_block", "value": 1296 }
   ],
-  "repair_item": {
-    "tag": "c:ingots/truesteel"
-  },
+  "repair_item": "#c:ingots/truesteel",
   "cast_only": true,
   "enchantability": 10,
   "color": "#DCFFFF"

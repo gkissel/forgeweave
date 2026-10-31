@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # run_matrix.sh <release-jar> [pack...] : the dedicated-server compat matrix (see README.md).
 # With no packs it runs every scripts/compat/packs/g*.txt. Writes build/compat/summary.md and exits 1 on
-# any FAIL. A pack whose local jars are missing is a SKIP, not a FAIL.
+# any FAIL. A pack whose local jars are missing, or whose file has a `# SKIP on <version>: <reason>` line,
+# is a SKIP, not a FAIL.
 set -uo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$HERE/../.." && pwd)
 [ $# -ge 1 ] && [ -f "$1" ] || { echo "usage: $0 <release-jar> [pack...]" >&2; exit 64; }
+. "$HERE/java.sh"
 JAR=$(realpath "$1"); shift
 if [ $# -eq 0 ]; then set -- "$HERE"/packs/g*.txt; fi
 OUT=${FW_COMPAT_OUT:-$REPO/build/compat}
@@ -22,7 +24,7 @@ if [ ! -f "$FW_SERVER_BASE/run.sh" ]; then
   mkdir -p "$FW_SERVER_BASE"
   inst=$FW_SERVER_BASE/installer.jar
   curl -fsSL -o "$inst" "https://maven.neoforged.net/releases/net/neoforged/neoforge/$NEO/neoforge-$NEO-installer.jar" &&
-    (cd "$FW_SERVER_BASE" && java -jar installer.jar --installServer . > install.log 2>&1) ||
+    (cd "$FW_SERVER_BASE" && "$FW_JAVA" -jar installer.jar --installServer . > install.log 2>&1) ||
     { echo "NeoForge install failed, see $FW_SERVER_BASE/install.log" >&2; exit 1; }
 fi
 
@@ -107,6 +109,8 @@ upgrade_pass() { # the corpus placed under the previous release, then loaded by 
 
 run_pack() {
   PACK=$(realpath "$1"); NAME=$(basename "$PACK" .txt); DIR=$OUT/$NAME; SRV=$DIR/server
+  local skip; skip=$(sed -n 's/^# SKIP on [^:]*: //p' "$PACK" | head -1)
+  if [ -n "$skip" ]; then row build SKIP "$skip"; return; fi
   rm -rf "$DIR"; mkdir -p "$DIR/logs"
   "$HERE/mk.sh" "$SRV" "$JAR" "$PACK" > "$DIR/mk.txt" 2>&1; rc=$?
   if [ $rc -eq 2 ]; then row build SKIP "$(tail -1 "$DIR/mk.txt")"; return; fi

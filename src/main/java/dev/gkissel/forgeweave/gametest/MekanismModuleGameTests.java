@@ -4,16 +4,16 @@ import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.GameType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.compat.mekanism.ForgeweaveMekanismCompat;
@@ -110,7 +110,7 @@ public class MekanismModuleGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack tool = ToolAssembly.pickaxe(helper, player, POS, METAL, METAL, METAL);
 
-        ResourceLocation container = ResourceLocation.fromNamespaceAndPath(
+        Identifier container = Identifier.fromNamespaceAndPath(
                 ForgeweaveMekanismCompat.MODID, "module_container");
         helper.assertTrue(!BuiltInRegistries.DATA_COMPONENT_TYPE.containsKey(container),
                 "no Mekanism data component may exist on this run, or the test proves nothing");
@@ -135,7 +135,7 @@ public class MekanismModuleGameTests {
         ItemStack tool = ToolAssembly.pickaxe(helper, player, POS, METAL, METAL, METAL);
         EnergyBuffer.receive(tool, ForgeweaveTraits.energyCapacity(tool), 50_000, false);
         ToolMaterials before = tool.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
-        List<ResourceLocation> traitsBefore = tool.get(ForgeweaveDataComponents.TRAITS.get());
+        List<Identifier> traitsBefore = tool.get(ForgeweaveDataComponents.TRAITS.get());
         int storedBefore = EnergyBuffer.stored(tool);
 
         MekanismGearModules.install(new MekanismGearModules.Bridge() {
@@ -251,7 +251,7 @@ public class MekanismModuleGameTests {
         helper.succeed();
     }
 
-    private static ResourceLocation metalId() {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, METAL);
+    private static Identifier metalId() {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, METAL);
     }
 }

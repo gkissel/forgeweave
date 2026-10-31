@@ -1,9 +1,9 @@
 package dev.gkissel.forgeweave.jei;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
@@ -84,7 +84,7 @@ final class WorktableCategory implements IRecipeCategory<WorktableDisplay> {
     }
 
     @Override
-    public ResourceLocation getRegistryName(WorktableDisplay display) {
+    public Identifier getRegistryName(WorktableDisplay display) {
         return display.id();
     }
 
@@ -103,7 +103,7 @@ final class WorktableCategory implements IRecipeCategory<WorktableDisplay> {
     }
 
     @Override
-    public void draw(WorktableDisplay display, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics,
+    public void draw(WorktableDisplay display, IRecipeSlotsView recipeSlotsView, GuiGraphicsExtractor guiGraphics,
             double mouseX, double mouseY) {
         JeiCategoryChrome.drawSlotFrame(slotFrame, guiGraphics, TOOL_X, SLOT_Y);
         JeiCategoryChrome.drawSlotFrame(slotFrame, guiGraphics, FIRST_INPUT_X, SLOT_Y);
@@ -112,8 +112,8 @@ final class WorktableCategory implements IRecipeCategory<WorktableDisplay> {
         Component title = Component.translatable(
                 "jei.category.forgeweave.modifier_worktable."
                         + display.recipe().kind().getSerializedName());
-        guiGraphics.drawString(Minecraft.getInstance().font,
+        guiGraphics.text(Minecraft.getInstance().font,
                 JeiCategoryGeometry.trimToWidth(Minecraft.getInstance().font, title, TITLE_WIDTH),
-                TITLE_X, TITLE_Y, TITLE_COLOR, false);
+                TITLE_X, TITLE_Y, JeiCategoryGeometry.opaque(TITLE_COLOR), false);
     }
 }

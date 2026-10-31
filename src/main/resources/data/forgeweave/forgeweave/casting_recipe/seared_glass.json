@@ -1,8 +1,6 @@
 {
   "station": "basin",
-  "cast": {
-    "tag": "c:glass_blocks"
-  },
+  "cast": "#c:glass_blocks",
   "fluid": "forgeweave:molten_seared_stone",
   "amount": 288,
   "result": {

@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:dirty_dusts/iron"
-  },
+  "input": "#c:dirty_dusts/iron",
   "fluid": "forgeweave:molten_iron",
   "amount": 144
 }

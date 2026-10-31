@@ -9,7 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -122,7 +122,7 @@ public final class SmelteryScan {
         List<BlockPos> tanks = new ArrayList<>();
         Component layerFailure = null;
         int height = 0;
-        for (int y = bottom.getY(); y < level.getMaxBuildHeight(); y++) {
+        for (int y = bottom.getY(); y <= level.getMaxY(); y++) {
             Layer layer = detectLayer(level, corePos, y, west, east, north, south);
             if (layer.failure() != null) {
                 layerFailure = layer.failure();
@@ -370,7 +370,7 @@ public final class SmelteryScan {
     public static final TagKey<Block> WALL_ADDON = tag("smeltery/wall_addon");
 
     private static TagKey<Block> tag(String path) {
-        return TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path));
+        return TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(Forgeweave.MODID, path));
     }
 
     private SmelteryScan() {}

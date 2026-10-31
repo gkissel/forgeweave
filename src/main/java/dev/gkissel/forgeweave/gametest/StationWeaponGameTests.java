@@ -3,22 +3,21 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.Arrow;
+import net.minecraft.world.entity.projectile.arrow.Arrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
@@ -27,8 +26,8 @@ import net.minecraft.world.phys.Vec3;
 
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.AttackEntityEvent;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.combat.CombatHit;
@@ -119,15 +118,15 @@ public class StationWeaponGameTests {
         ToolItem tool = (ToolItem) longsword.getItem();
 
         player.startFallFlying();
-        InteractionResultHolder<ItemStack> declined = tool.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-        helper.assertTrue(declined.getResult() == InteractionResult.PASS,
-                "an elytra-flying player must not be able to start the charged leap, got " + declined.getResult());
+        InteractionResult declined = tool.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(declined == InteractionResult.PASS,
+                "an elytra-flying player must not be able to start the charged leap, got " + declined);
         helper.assertFalse(player.isUsingItem(), "the leap must never open its hold while elytra-flying");
 
         player.stopFallFlying();
-        InteractionResultHolder<ItemStack> started = tool.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
-        helper.assertTrue(started.getResult() == InteractionResult.CONSUME,
-                "once no longer elytra-flying the leap must start normally, got " + started.getResult());
+        InteractionResult started = tool.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(started == InteractionResult.CONSUME,
+                "once no longer elytra-flying the leap must start normally, got " + started);
         helper.assertTrue(player.isUsingItem(), "the leap must open its hold once elytra-flying stops");
 
         helper.succeed();
@@ -152,7 +151,7 @@ public class StationWeaponGameTests {
         arrow.setDeltaMovement(0.0, 0.0, -1.0); // flying at the player, who is looking at it
         float before = player.getHealth();
 
-        boolean hurt = player.hurt(helper.getLevel().damageSources().arrow(arrow, arrow), 4.0F);
+        boolean hurt = player.hurtServer(helper.getLevel(), helper.getLevel().damageSources().arrow(arrow, arrow), 4.0F);
 
         helper.assertFalse(hurt, "a reflected arrow must not land at all");
         helper.assertTrue(player.getHealth() == before, "a reflected arrow must cost no health");
@@ -183,7 +182,7 @@ public class StationWeaponGameTests {
         float attackerBefore = attacker.getHealth();
         int durabilityBefore = battlesign.getDamageValue();
 
-        boolean landed = defender.hurt(helper.getLevel().damageSources().mobAttack(attacker), 10.0F);
+        boolean landed = defender.hurtServer(helper.getLevel(), helper.getLevel().damageSources().mobAttack(attacker), 10.0F);
 
         float taken = defenderBefore - defender.getHealth();
         float reflected = attackerBefore - attacker.getHealth();
@@ -454,7 +453,7 @@ public class StationWeaponGameTests {
         tool.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
         helper.assertTrue(player.getDeltaMovement().equals(Vec3.ZERO),
                 "a mid-air right-click must not lunge, got " + player.getDeltaMovement());
-        helper.assertFalse(player.getCooldowns().isOnCooldown(rapier.getItem()),
+        helper.assertFalse(player.getCooldowns().isOnCooldown(rapier),
                 "a lunge that never happened must not cost a cooldown");
 
         player.setOnGround(true);
@@ -468,7 +467,7 @@ public class StationWeaponGameTests {
                 "expected a 0.5 dash away from a +Z facing, got " + lunge.z);
         helper.assertTrue(Math.abs(lunge.x) < 1.0E-4,
                 "a lunge along the Z axis must not drift sideways, got " + lunge.x);
-        helper.assertTrue(player.getCooldowns().isOnCooldown(rapier.getItem()),
+        helper.assertTrue(player.getCooldowns().isOnCooldown(rapier),
                 "a lunge must put the rapier on its 4-tick cooldown");
 
         helper.succeed();
@@ -495,18 +494,18 @@ public class StationWeaponGameTests {
             player.setItemInHand(InteractionHand.OFF_HAND, offhand);
             player.setDeltaMovement(Vec3.ZERO);
 
-            InteractionResultHolder<ItemStack> result =
+            InteractionResult result =
                     tool.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
 
-            helper.assertTrue(result.getResult() == InteractionResult.PASS,
+            helper.assertTrue(result == InteractionResult.PASS,
                     "the click must pass through to " + offhand.getItem() + " in the offhand, got "
-                            + result.getResult());
+                            + result);
             Vec3 lunge = player.getDeltaMovement();
             helper.assertTrue(Math.abs(lunge.y - 0.32) < 1.0E-4,
                     "the lunge must still hop with " + offhand.getItem() + " in the offhand, got " + lunge.y);
             helper.assertTrue(Math.abs(lunge.z + 0.5) < 1.0E-4,
                     "the lunge must still dash with " + offhand.getItem() + " in the offhand, got " + lunge.z);
-            helper.assertTrue(player.getCooldowns().isOnCooldown(rapier.getItem()),
+            helper.assertTrue(player.getCooldowns().isOnCooldown(rapier),
                     "a lunge costs its cooldown whatever the offhand holds");
         }
 
@@ -530,14 +529,18 @@ public class StationWeaponGameTests {
         for (ItemStack offhand : List.of(ItemStack.EMPTY, new ItemStack(Items.SHIELD))) {
             player.setItemInHand(InteractionHand.OFF_HAND, offhand);
 
-            InteractionResultHolder<ItemStack> result =
+            InteractionResult result =
                     tool.use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
 
-            helper.assertTrue(result.getResult() == InteractionResult.SUCCESS,
-                    "a cleaver right-click must swallow the click with SUCCESS, got " + result.getResult()
+            helper.assertTrue(result == InteractionResult.SUCCESS,
+                    "a cleaver right-click must swallow the click with SUCCESS, got " + result
                             + " with " + offhand.getItem() + " in the offhand");
-            helper.assertTrue(ItemStack.isSameItemSameComponents(result.getObject(), cleaver),
-                    "a cleaver right-click must leave the stack untouched, got " + result.getObject());
+            // 26.1: a Success names a replacement stack only when the held one changed; none means untouched.
+            helper.assertTrue(result instanceof InteractionResult.Success success
+                            && success.heldItemTransformedTo() == null,
+                    "a cleaver right-click must leave the stack untouched, got " + result);
+            helper.assertTrue(ItemStack.isSameItemSameComponents(player.getMainHandItem(), cleaver),
+                    "a cleaver right-click must leave the stack untouched, got " + player.getMainHandItem());
         }
 
         helper.succeed();
@@ -642,11 +645,11 @@ public class StationWeaponGameTests {
         helper.assertTrue(defender.isUsingItem(), "right-clicking the broadsword must open the parry window");
 
         before = defender.getHealth();
-        boolean landed = defender.hurt(helper.getLevel().damageSources().mobAttack(attacker), 3.0F);
+        boolean landed = defender.hurtServer(helper.getLevel(), helper.getLevel().damageSources().mobAttack(attacker), 3.0F);
 
         helper.assertFalse(landed, "a parried melee blow must not land");
         helper.assertTrue(defender.getHealth() == before, "a parried melee blow must cost no health");
-        helper.assertTrue(attacker.hasEffect(MobEffects.MOVEMENT_SLOWDOWN),
+        helper.assertTrue(attacker.hasEffect(MobEffects.SLOWNESS),
                 "a parry must slow whoever threw the blow");
         helper.assertFalse(defender.isUsingItem(), "one blow closes the parry window");
 
@@ -669,7 +672,7 @@ public class StationWeaponGameTests {
         player.setOnGround(true);
 
         BlockPos origin = new BlockPos(3, 2, 3);
-        player.moveTo(helper.absoluteVec(new Vec3(origin.getX() + 0.5, origin.getY(), origin.getZ() + 0.5)));
+        player.snapTo(helper.absoluteVec(new Vec3(origin.getX() + 0.5, origin.getY(), origin.getZ() + 0.5)));
         player.setYRot(0.0F);
         player.setYHeadRot(0.0F);
         player.setXRot(0.0F);
@@ -711,7 +714,7 @@ public class StationWeaponGameTests {
         player.setOnGround(true);
 
         BlockPos origin = new BlockPos(3, 2, 3);
-        player.moveTo(helper.absoluteVec(new Vec3(origin.getX() + 0.5, origin.getY(), origin.getZ() + 0.5)));
+        player.snapTo(helper.absoluteVec(new Vec3(origin.getX() + 0.5, origin.getY(), origin.getZ() + 0.5)));
         player.setYRot(0.0F);
         player.setYHeadRot(0.0F);
 

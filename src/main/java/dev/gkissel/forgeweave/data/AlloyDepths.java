@@ -1,14 +1,8 @@
 package dev.gkissel.forgeweave.data;
 
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UncheckedIOException;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,13 +10,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.stream.Stream;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import net.minecraft.server.packs.resources.ResourceManager;
 import dev.gkissel.forgeweave.recipe.AlloyRecipe;
 
 /**
@@ -41,11 +35,9 @@ import dev.gkissel.forgeweave.recipe.AlloyRecipe;
  * it -- {@link AlloyRecipe}'s own parse-time rules already refuse the single-recipe case, and
  * nothing shipped forms a longer loop, so this is a guard rather than a behavior.
  *
- * <p>Datagen only. The directory is read straight off the classpath, which is a plain directory in
- * every dev run {@code runData} happens in.
+ * <p>Datagen only.
  */
 final class AlloyDepths {
-    private static final String DIRECTORY = "/data/" + Forgeweave.MODID + "/" + Forgeweave.MODID + "/alloy_recipe";
     private static final String FLUID_PREFIX = "molten_";
 
     private AlloyDepths() {}
@@ -53,10 +45,23 @@ final class AlloyDepths {
     /**
      * Every alloy the shipped recipes produce, by material id (the fluid path without its {@code
      * molten_} prefix, so {@code forgeweave:molten_truesteel} reads as {@code truesteel}), mapped to
-     * its depth.
+     * its depth. Read through a resource manager: 26.1's loader does not hand out the mod's resource
+     * directory through {@code Class#getResource}.
      */
-    static Map<String, Integer> byMaterial() {
-        Map<String, List<List<String>>> recipes = readRecipes();
+    static Map<String, Integer> byMaterial(ResourceManager resources) {
+        Map<String, List<List<String>>> recipes = new HashMap<>();
+        resources.listResources(Forgeweave.MODID + "/alloy_recipe", id -> id.getPath().endsWith(".json"))
+                .forEach((id, resource) -> {
+                    try (Reader reader = resource.openAsReader()) {
+                        addRecipe(recipes, JsonParser.parseReader(reader).getAsJsonObject());
+                    } catch (IOException e) {
+                        throw new UncheckedIOException("could not read the alloy recipe " + id, e);
+                    }
+                });
+        return depths(recipes);
+    }
+
+    private static Map<String, Integer> depths(Map<String, List<List<String>>> recipes) {
         Map<String, Integer> depths = new TreeMap<>();
         recipes.keySet().forEach(alloy -> depths.put(alloy, depth(alloy, recipes, new HashSet<>())));
         return depths;
@@ -79,43 +84,15 @@ final class AlloyDepths {
         return cheapest;
     }
 
-    /** Result material id to the input material ids of each recipe that produces it. */
-    private static Map<String, List<List<String>>> readRecipes() {
-        Map<String, List<List<String>>> recipes = new HashMap<>();
-        try (Stream<Path> files = Files.list(directory())) {
-            for (Path file : files.filter(path -> path.getFileName().toString().endsWith(".json")).toList()) {
-                JsonObject json = parse(file);
-                List<String> inputs = new ArrayList<>();
-                json.getAsJsonArray("inputs").forEach(input -> inputs.add(material(input)));
-                recipes.computeIfAbsent(material(json.get("result")), key -> new ArrayList<>()).add(inputs);
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException("could not read the alloy recipes under " + DIRECTORY, e);
-        }
-        return recipes;
-    }
-
-    private static JsonObject parse(Path file) throws IOException {
-        try (Reader reader = new InputStreamReader(Files.newInputStream(file), StandardCharsets.UTF_8)) {
-            return JsonParser.parseReader(reader).getAsJsonObject();
-        }
+    private static void addRecipe(Map<String, List<List<String>>> recipes, JsonObject json) {
+        List<String> inputs = new ArrayList<>();
+        json.getAsJsonArray("inputs").forEach(input -> inputs.add(material(input)));
+        recipes.computeIfAbsent(material(json.get("result")), key -> new ArrayList<>()).add(inputs);
     }
 
     private static String material(JsonElement fluidAmount) {
         String fluid = fluidAmount.getAsJsonObject().get("fluid").getAsString();
         String path = fluid.substring(fluid.indexOf(':') + 1);
         return path.startsWith(FLUID_PREFIX) ? path.substring(FLUID_PREFIX.length()) : path;
-    }
-
-    private static Path directory() {
-        URL url = AlloyDepths.class.getResource(DIRECTORY);
-        if (url == null) {
-            throw new IllegalStateException(DIRECTORY + " is not on the classpath");
-        }
-        try {
-            return Path.of(url.toURI());
-        } catch (URISyntaxException e) {
-            throw new IllegalStateException(DIRECTORY + " is not a readable directory: " + url, e);
-        }
     }
 }

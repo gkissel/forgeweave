@@ -48,22 +48,18 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "projecte:red_matter"
-      },
+      "ingredient": "projecte:red_matter",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "projecte:red_matter"
-  },
+  "repair_item": "projecte:red_matter",
   "cast_only": true,
   "enchantability": 12,
   "color": "#B71B1B",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "projecte:red_matter"
+      "type": "neoforge:registered",
+      "value": "projecte:red_matter"
     }
   ]
 }

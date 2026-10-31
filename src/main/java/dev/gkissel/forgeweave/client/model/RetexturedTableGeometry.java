@@ -1,50 +1,51 @@
 package dev.gkissel.forgeweave.client.model;
 
-import java.util.function.Function;
+import com.mojang.serialization.MapCodec;
 
-import net.minecraft.client.renderer.block.model.BlockModel;
-import net.minecraft.client.renderer.block.model.ItemOverrides;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.BakedModel;
-import net.minecraft.client.resources.model.Material;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.block.dispatch.Variant;
 import net.minecraft.client.resources.model.ModelBaker;
-import net.minecraft.client.resources.model.ModelState;
-import net.minecraft.client.resources.model.UnbakedModel;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.resources.model.ResolvableModel;
+import net.minecraft.client.resources.model.ResolvedModel;
+import net.minecraft.resources.Identifier;
 
-import net.neoforged.neoforge.client.model.ElementsModel;
-import net.neoforged.neoforge.client.model.geometry.IGeometryBakingContext;
-import net.neoforged.neoforge.client.model.geometry.IUnbakedGeometry;
+import net.neoforged.neoforge.client.model.block.CustomUnbakedBlockStateModel;
+
+import dev.gkissel.forgeweave.Forgeweave;
 
 /**
- * Unbaked geometry for a table station block model (issue #43): wraps a normal {@link BlockModel}
- * (its {@code elements}, baked once against whatever the JSON's {@code "texture"} variable points
- * at -- the "default = oak" appearance) and hands the baked result to
- * {@link RetexturedTableBakedModel}, which substitutes a different wood's sprite at render time
- * based on the placed block entity's stored texture ({@code WoodTexturedBlockEntity}). The geometry
- * loader/baking split here is the standard NeoForge approach the issue calls for: Mantle's real
- * retexturing baked-model code (which this would otherwise port) isn't in the 1.20.1 reference
- * clone.
+ * The blockstate side of a table station (issue #43): a plain blockstate variant ({@code model},
+ * {@code x}, {@code y}, {@code uvlock}) tagged {@code "type": "forgeweave:retextured_table"}, baked
+ * normally and handed to {@link RetexturedTableBakedModel} together with the sprite the model's
+ * {@code "texture"} variable points at -- the "default = oak" appearance every other wood replaces.
+ *
+ * <p>1.21.1 hung this on a model-JSON geometry loader; 26.1 baked models carry no per-placement
+ * behaviour any more, so the hook moved to the blockstate, and the station JSONs became plain models.
  */
-public class RetexturedTableGeometry implements IUnbakedGeometry<RetexturedTableGeometry> {
+public final class RetexturedTableGeometry {
+    public static final Identifier ID = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "retextured_table");
     private static final String TEXTURE_VARIABLE = "texture";
 
-    private final BlockModel base;
+    private RetexturedTableGeometry() {}
 
-    public RetexturedTableGeometry(BlockModel base) {
-        this.base = base;
-    }
+    public record Unbaked(Variant variant) implements CustomUnbakedBlockStateModel {
+        public static final MapCodec<Unbaked> MAP_CODEC = Variant.MAP_CODEC.xmap(Unbaked::new, Unbaked::variant);
 
-    @Override
-    public BakedModel bake(IGeometryBakingContext context, ModelBaker baker,
-            Function<Material, TextureAtlasSprite> spriteGetter, ModelState modelState, ItemOverrides overrides) {
-        BakedModel bakedBase = new ElementsModel(base.getElements()).bake(context, baker, spriteGetter, modelState, overrides);
-        TextureAtlasSprite defaultSprite = spriteGetter.apply(context.getMaterial(TEXTURE_VARIABLE));
-        return new RetexturedTableBakedModel(bakedBase, defaultSprite);
-    }
+        @Override
+        public BlockStateModel bake(ModelBaker baker) {
+            ResolvedModel model = baker.getModel(variant.modelLocation());
+            return new RetexturedTableBakedModel(variant.bake(baker),
+                    baker.materials().resolveSlot(model.getTopTextureSlots(), TEXTURE_VARIABLE, model).sprite());
+        }
 
-    @Override
-    public void resolveParents(Function<ResourceLocation, UnbakedModel> modelGetter, IGeometryBakingContext context) {
-        base.resolveParents(modelGetter);
+        @Override
+        public void resolveDependencies(ResolvableModel.Resolver resolver) {
+            variant.resolveDependencies(resolver);
+        }
+
+        @Override
+        public MapCodec<Unbaked> codec() {
+            return MAP_CODEC;
+        }
     }
 }

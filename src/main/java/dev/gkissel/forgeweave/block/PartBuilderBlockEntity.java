@@ -1,5 +1,9 @@
 package dev.gkissel.forgeweave.block;
 
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.Containers;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -25,7 +29,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
-import net.neoforged.neoforge.client.model.data.ModelData;
+import net.neoforged.neoforge.model.data.ModelData;
 import net.neoforged.neoforge.items.IItemHandler;
 
 import dev.gkissel.forgeweave.menu.PartBuilderMenu;
@@ -34,7 +38,7 @@ import dev.gkissel.forgeweave.menu.StationGroup;
 /**
  * Holds the Part Builder's persistent 3-slot inventory (pattern, material, output) and opens its
  * menu. Contents are saved/loaded with the block and dropped on removal by {@link
- * PartBuilderBlock#onRemove}; the block entity itself has no ticking logic (docs/SCOPE.md testing
+ * PartBuilderBlockEntity#preRemoveSideEffects}; the block entity itself has no ticking logic (docs/SCOPE.md testing
  * strategy: "idle stations... cost ~zero tick time" -- part crafting resolves instantly when the
  * player takes the output, there's nothing to tick).
  *
@@ -48,13 +52,23 @@ import dev.gkissel.forgeweave.menu.StationGroup;
 public class PartBuilderBlockEntity extends BlockEntity implements StationMenuHost, WoodTexturedBlockEntity {
     private static final String TAG_INVENTORY = "inventory";
 
-    private final SimpleContainer container = new SimpleContainer(PartBuilderMenu.CONTAINER_SLOTS);
+    private final SimpleContainer container = new SimpleContainer(PartBuilderMenu.CONTAINER_SLOTS) {
+        /** What {@code SimpleContainer#addListener} did before 1.21.5 removed it. */
+        @Override
+        public void setChanged() {
+            super.setChanged();
+            markChanged();
+        }
+    };
+
+    private void markChanged() {
+        setChanged();
+    }
     @Nonnull
     private Block texture = Blocks.OAK_LOG;
 
     public PartBuilderBlockEntity(BlockPos pos, BlockState state) {
         super(ForgeweaveBlockEntities.PART_BUILDER.get(), pos, state);
-        container.addListener(c -> setChanged());
     }
 
     public Container container() {
@@ -111,17 +125,18 @@ public class PartBuilderBlockEntity extends BlockEntity implements StationMenuHo
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        tag.put(TAG_INVENTORY, container.createTag(registries));
-        WoodTexturedBlockEntity.writeTexture(tag, texture);
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        container.storeAsItemList(output.list(TAG_INVENTORY, ItemStack.CODEC));
+        SavedItemFix.writeVersion(output);
+        WoodTexturedBlockEntity.writeTexture(output, texture);
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        container.fromTag(tag.getList(TAG_INVENTORY, Tag.TAG_COMPOUND), registries);
-        texture = WoodTexturedBlockEntity.readTexture(tag, Blocks.OAK_LOG);
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        container.fromItemList(input.listOrEmpty(TAG_INVENTORY, SavedItemFix.items(input, ItemStack.CODEC)));
+        texture = WoodTexturedBlockEntity.readTexture(input, Blocks.OAK_LOG);
     }
 
     /**
@@ -166,5 +181,14 @@ public class PartBuilderBlockEntity extends BlockEntity implements StationMenuHo
         buf.writeVarInt(SideInventory.maxSlots(this, sideInventory));
         StationGroup.STREAM_CODEC.encode(buf, StationGroup.tabsFor(level, worldPosition));
         buf.writeBoolean(isPartCrafter());
+    }
+
+    /** Drops the inventory when the block is broken (1.21.1's {@code onRemove}, moved here in 1.21.5). */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        if (level != null) {
+            Containers.dropContents(level, pos, container());
+        }
     }
 }

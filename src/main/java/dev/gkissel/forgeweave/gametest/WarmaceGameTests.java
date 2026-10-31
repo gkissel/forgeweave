@@ -3,7 +3,7 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -11,14 +11,14 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.animal.Pig;
+import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.GameType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
@@ -81,9 +81,9 @@ public class WarmaceGameTests {
         helper.assertTrue(warmace.is(ForgeweaveItems.TOOL_WARMACE.get()),
                 "expected the Tool Forge to assemble a warmace, got " + warmace);
 
-        assertModifier(helper, warmace, Attributes.ATTACK_DAMAGE.getKey().location().toString(), 7.0);
+        assertModifier(helper, warmace, Attributes.ATTACK_DAMAGE.getKey().identifier().toString(), 7.0);
         // Vanilla's ATTACK_SPEED base is 4 attacks/second and the item modifier is the offset.
-        assertModifier(helper, warmace, Attributes.ATTACK_SPEED.getKey().location().toString(),
+        assertModifier(helper, warmace, Attributes.ATTACK_SPEED.getKey().identifier().toString(),
                 ToolConstants.WARMACE.attackSpeed() - 4.0);
 
         helper.succeed();
@@ -169,8 +169,12 @@ public class WarmaceGameTests {
         helper.assertFalse(player.isIgnoringFallDamageFromCurrentImpulse(),
                 "the fixture must start without vanilla's impulse immunity, or this proves nothing");
 
-        helper.assertTrue(warmace.getItem().hurtEnemy(warmace, target, player),
+        // 26.1: hurtEnemy is void, so "accepts the hit" is its own gate (assembled and unbroken),
+        // checked up front, and the flags below prove the blow got past it.
+        helper.assertTrue(!dev.gkissel.forgeweave.item.ToolItem.isBroken(warmace)
+                        && warmace.get(ForgeweaveDataComponents.TOOL_STATS.get()) != null,
                 "an assembled, unbroken warmace must accept the hit");
+        warmace.getItem().hurtEnemy(warmace, target, player);
         helper.assertTrue(player.isIgnoringFallDamageFromCurrentImpulse(),
                 "a smash must set vanilla's ignore-fall-damage-from-impulse flag");
         helper.assertTrue(player.currentImpulseImpactPos != null,

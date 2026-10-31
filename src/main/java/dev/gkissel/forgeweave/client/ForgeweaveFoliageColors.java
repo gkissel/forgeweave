@@ -1,14 +1,20 @@
 package dev.gkissel.forgeweave.client;
 
-import net.minecraft.client.color.block.BlockColor;
-import net.minecraft.client.color.item.ItemColor;
-import net.minecraft.util.FastColor;
+import java.util.List;
+
+import net.minecraft.client.color.block.BlockTintSource;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
+import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -19,24 +25,24 @@ import dev.gkissel.forgeweave.block.FoliageType;
  * Paints every slimy grass, leaf and plant its foliage colour (issue #449, parity audit T18) --
  * upstream 1.12's {@code WorldClientProxy}, which registers exactly these handlers around
  * {@link SlimeColorizer} (NOTICE.md). In the world each block samples the colour map at its own
- * position, giving an island's surface upstream's mottled shading; in an inventory slot, where there
- * is no position, the flat {@link FoliageType#color()} stands in, which is what upstream's
- * {@code getColorStatic} is for.
+ * position, giving an island's surface upstream's mottled shading; anywhere without a position the
+ * flat {@link FoliageType#color()} stands in, which is what upstream's {@code getColorStatic} is for.
  *
- * <p>Same "one greyscale texture + per-instance tint" shape {@link ForgeweaveGlassColors} uses for
- * the clear stained glass, and walked off {@code ForgeweaveBlocks}' own rosters for the same
- * anti-drift reason: a colour added there cannot render white here.
+ * <p>26.1 moved the inventory half into the client item: {@code ForgeweaveBlockStateProvider} gives
+ * each of these block items a {@code minecraft:constant} tint of the flat colour, off the same
+ * {@code ForgeweaveBlocks} rosters walked here, so a colour added there cannot render white.
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public final class ForgeweaveFoliageColors {
 
     @SubscribeEvent
-    static void registerReloadListener(RegisterClientReloadListenersEvent event) {
-        event.registerReloadListener((net.minecraft.server.packs.resources.ResourceManagerReloadListener) SlimeColorizer::reload);
+    static void registerReloadListener(AddClientReloadListenersEvent event) {
+        event.addListener(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "slime_colormaps"),
+                (ResourceManagerReloadListener) SlimeColorizer::reload);
     }
 
     @SubscribeEvent
-    static void registerBlockColors(RegisterColorHandlersEvent.Block event) {
+    static void registerBlockColors(RegisterColorHandlersEvent.BlockTintSources event) {
         for (ForgeweaveBlocks.SlimeSoil soil : ForgeweaveBlocks.slimeSoils()) {
             register(event, soil.foliage(), soil.grass().get());
         }
@@ -48,29 +54,19 @@ public final class ForgeweaveFoliageColors {
         }
     }
 
-    @SubscribeEvent
-    static void registerItemColors(RegisterColorHandlersEvent.Item event) {
-        for (ForgeweaveBlocks.SlimeSoil soil : ForgeweaveBlocks.slimeSoils()) {
-            register(event, soil.foliage(), soil.grass().get());
-        }
-        for (ForgeweaveBlocks.SlimePlants plants : ForgeweaveBlocks.slimePlants()) {
-            register(event, plants.foliage(), plants.leaves().get());
-            register(event, plants.foliage(), plants.tallGrass().get());
-            register(event, plants.foliage(), plants.fern().get());
-            plants.vines().forEach(vine -> register(event, plants.foliage(), vine.get())); // #488 (T57)
-        }
-    }
+    private static void register(RegisterColorHandlersEvent.BlockTintSources event, FoliageType foliage, Block block) {
+        BlockTintSource color = new BlockTintSource() {
+            @Override
+            public int color(BlockState state) {
+                return ARGB.opaque(foliage.color());
+            }
 
-    private static void register(RegisterColorHandlersEvent.Block event, FoliageType foliage, Block block) {
-        BlockColor color = (state, level, pos, tintIndex) -> pos == null
-                ? FastColor.ARGB32.opaque(foliage.color())
-                : FastColor.ARGB32.opaque(SlimeColorizer.colorAt(foliage, pos));
-        event.register(color, block);
-    }
-
-    private static void register(RegisterColorHandlersEvent.Item event, FoliageType foliage, Block block) {
-        ItemColor color = (stack, tintIndex) -> FastColor.ARGB32.opaque(foliage.color());
-        event.register(color, block);
+            @Override
+            public int colorInWorld(BlockState state, BlockAndTintGetter level, BlockPos pos) {
+                return ARGB.opaque(SlimeColorizer.colorAt(foliage, pos));
+            }
+        };
+        event.register(List.of(color), block);
     }
 
     private ForgeweaveFoliageColors() {}

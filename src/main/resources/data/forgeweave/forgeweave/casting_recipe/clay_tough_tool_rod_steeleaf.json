@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_tough_tool_rod"
-  },
+  "cast": "forgeweave:clay_cast_tough_tool_rod",
   "fluid": "forgeweave:molten_steeleaf",
   "amount": 432,
   "result": {
@@ -14,8 +12,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "twilightforest:steeleaf_ingot"
+      "type": "neoforge:registered",
+      "value": "twilightforest:steeleaf_ingot"
     }
   ]
 }

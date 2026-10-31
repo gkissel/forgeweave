@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_war_mace_head"
-  },
+  "cast": "forgeweave:clay_cast_war_mace_head",
   "fluid": "forgeweave:molten_hollowstone",
   "amount": 1152,
   "result": {

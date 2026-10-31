@@ -2,10 +2,10 @@ package dev.gkissel.forgeweave.ponder;
 
 import java.util.function.Consumer;
 
-import net.createmod.catnip.math.Pointing;
-import net.createmod.ponder.api.scene.SceneBuilder;
-import net.createmod.ponder.api.scene.SceneBuildingUtil;
-import net.createmod.ponder.api.scene.Selection;
+import net.createmod.catnip.api.math.Pointing;
+import net.createmod.ponder.api.client.scene.SceneBuilder;
+import net.createmod.ponder.api.client.scene.SceneBuildingUtil;
+import net.createmod.ponder.api.client.scene.Selection;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -138,7 +138,7 @@ public final class ForgeweaveCastingScenes {
         scene.effects().indicateSuccess(TABLE);
         scene.effects().indicateSuccess(BASIN);
         scene.overlay().showControls(util.vector().topOf(TABLE), Pointing.DOWN, 40)
-                .withItem(new ItemStack(Items.IRON_INGOT));
+                .withItem(PonderStacks.of(Items.IRON_INGOT));
         scene.idle(10);
         scene.overlay().showText(90)
                 .attachKeyFrame()

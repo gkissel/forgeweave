@@ -1,14 +1,14 @@
 package dev.gkissel.forgeweave.gametest;
 
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -56,7 +56,7 @@ public class NetherCoreHotGameTests {
     /** A formed 1x1x2 Nether Core smeltery whose wall tank holds a full tank of {@code fuel}. */
     private static SearedTankBlockEntity fuelledNetherSmeltery(GameTestHelper helper, Fluid fuel) {
         SmelteryGameTests.buildWalls(helper, 1, 1, 2);
-        SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS);
+        SearedTankBlockEntity tank = helper.getBlockEntity(SmelteryGameTests.TANK_POS, SearedTankBlockEntity.class);
         tank.tank().fill(new FluidStack(fuel, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
         SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.NETHER_CORE.get());
         return tank;

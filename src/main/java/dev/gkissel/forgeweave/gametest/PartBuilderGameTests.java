@@ -2,19 +2,19 @@ package dev.gkissel.forgeweave.gametest;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.contents.TranslatableContents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ContainerInput;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ChestBlockEntity;
@@ -41,13 +41,13 @@ public class PartBuilderGameTests {
 
     private static PartBuilderMenu openMenu(GameTestHelper helper, BlockPos pos, Player player) {
         helper.setBlock(pos, ForgeweaveBlocks.PART_BUILDER.get());
-        PartBuilderBlockEntity blockEntity = helper.getBlockEntity(pos);
+        PartBuilderBlockEntity blockEntity = helper.getBlockEntity(pos, PartBuilderBlockEntity.class);
         return new PartBuilderMenu(0, player.getInventory(), blockEntity.container(),
                 ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)), blockEntity.findSideInventory());
     }
 
-    private static ResourceLocation materialId(String name) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name);
+    private static Identifier materialId(String name) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, name);
     }
 
     @GameTest(template = "empty")
@@ -451,11 +451,11 @@ public class PartBuilderGameTests {
         menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).set(new ItemStack(Items.OAK_LOG, 3));
         menu.broadcastChanges();
 
-        menu.clicked(PartBuilderMenu.OUTPUT_SLOT, 0, ClickType.QUICK_MOVE, player);
+        menu.clicked(PartBuilderMenu.OUTPUT_SLOT, 0, ContainerInput.QUICK_MOVE, player);
 
         helper.assertTrue(menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).getItem().isEmpty(),
                 "expected all 3 logs to be consumed, got " + menu.getSlot(PartBuilderMenu.MATERIAL_SLOT).getItem());
-        int heads = player.getInventory().items.stream()
+        int heads = player.getInventory().getNonEquipmentItems().stream()
                 .filter(stack -> stack.is(ForgeweaveItems.PART_PICKAXE_HEAD.get()))
                 .mapToInt(ItemStack::getCount).sum();
         helper.assertTrue(heads == 3, "expected 3 pickaxe heads in the player inventory, got " + heads);
@@ -487,7 +487,7 @@ public class PartBuilderGameTests {
         BlockPos pos = new BlockPos(1, 1, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         helper.setBlock(pos.east(), ForgeweaveBlocks.PATTERN_CHEST.get());
-        ChestBlockEntity chest = helper.getBlockEntity(pos.east());
+        ChestBlockEntity chest = helper.getBlockEntity(pos.east(), ChestBlockEntity.class);
         chest.container().setItem(0, new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()));
 
         PartBuilderMenu menu = openMenu(helper, pos, player);
@@ -519,7 +519,7 @@ public class PartBuilderGameTests {
         helper.setBlock(pos.east(), ForgeweaveBlocks.PATTERN_CHEST.get());
         helper.setBlock(pos.south(), ForgeweaveBlocks.STENCIL_TABLE.get());
         helper.setBlock(pos.north(), ForgeweaveBlocks.CRAFTING_STATION.get());
-        ChestBlockEntity chest = helper.getBlockEntity(pos.east());
+        ChestBlockEntity chest = helper.getBlockEntity(pos.east(), ChestBlockEntity.class);
         chest.container().setItem(0, new ItemStack(ForgeweaveItems.PATTERN_PICKAXE_HEAD.get()));
 
         PartBuilderMenu menu = openMenu(helper, pos, player);

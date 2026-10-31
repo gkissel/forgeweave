@@ -2,22 +2,24 @@ package dev.gkissel.forgeweave.client;
 
 import javax.annotation.Nullable;
 
-import com.mojang.blaze3d.platform.GlStateManager;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.joml.Matrix4f;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 
+import org.joml.Matrix3x2f;
+
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.AttackIndicatorStatus;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.gui.navigation.ScreenRectangle;
+import net.minecraft.client.gui.render.TextureSetup;
+import net.minecraft.client.renderer.state.gui.GuiElementRenderState;
+import net.minecraft.client.renderer.texture.AbstractTexture;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -75,7 +77,7 @@ import dev.gkissel.forgeweave.item.CrossbowItem;
  * {@code event.setCanceled(true)}, ported to 1.21's sprites and its extra "full" state.</li>
  * </ul>
  */
-@EventBusSubscriber(modid = Forgeweave.MODID, bus = EventBusSubscriber.Bus.GAME, value = Dist.CLIENT)
+@EventBusSubscriber(modid = Forgeweave.MODID, value = Dist.CLIENT)
 public final class BowCrosshair {
 
     /** {@code Crosshair#render}: {@code spread = (1 - charge) * 25f}. */
@@ -92,12 +94,12 @@ public final class BowCrosshair {
 
     private static final float TIP_UV_CENTER = 7.5F / 16.0F;
 
-    private static final ResourceLocation ATTACK_INDICATOR_FULL =
-            ResourceLocation.withDefaultNamespace("hud/crosshair_attack_indicator_full");
-    private static final ResourceLocation ATTACK_INDICATOR_BACKGROUND =
-            ResourceLocation.withDefaultNamespace("hud/crosshair_attack_indicator_background");
-    private static final ResourceLocation ATTACK_INDICATOR_PROGRESS =
-            ResourceLocation.withDefaultNamespace("hud/crosshair_attack_indicator_progress");
+    private static final Identifier ATTACK_INDICATOR_FULL =
+            Identifier.withDefaultNamespace("hud/crosshair_attack_indicator_full");
+    private static final Identifier ATTACK_INDICATOR_BACKGROUND =
+            Identifier.withDefaultNamespace("hud/crosshair_attack_indicator_background");
+    private static final Identifier ATTACK_INDICATOR_PROGRESS =
+            Identifier.withDefaultNamespace("hud/crosshair_attack_indicator_progress");
 
     /** {@code Crosshairs}: the two entries Forgeweave's launchers actually ask for. */
     public enum Style {
@@ -106,10 +108,10 @@ public final class BowCrosshair {
         /** {@code Crosshairs.T} -- {@code CrossBow#getCrosshair}. */
         T("t");
 
-        private final ResourceLocation texture;
+        private final Identifier texture;
 
         Style(String name) {
-            this.texture = ResourceLocation.fromNamespaceAndPath(
+            this.texture = Identifier.fromNamespaceAndPath(
                     Forgeweave.MODID, "textures/derived/gui/crosshair/" + name + ".png");
         }
     }
@@ -215,83 +217,117 @@ public final class BowCrosshair {
         return styleFor(player.getOffhandItem()) != null ? player.getOffhandItem() : ItemStack.EMPTY;
     }
 
-    private static void render(Minecraft minecraft, GuiGraphics graphics, Style style, float charge) {
+    private static void render(Minecraft minecraft, GuiGraphicsExtractor graphics, Style style, float charge) {
         float spread = spread(charge);
         float centerX = graphics.guiWidth() / 2.0F;
         float centerY = graphics.guiHeight() / 2.0F;
 
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderTexture(0, style.texture);
-        RenderSystem.enableBlend();
-        // The inverting blend vanilla's own crosshair uses, so the crosshair stays readable on any
-        // background -- upstream Crosshair#render sets exactly this.
-        RenderSystem.blendFuncSeparate(
-                GlStateManager.SourceFactor.ONE_MINUS_DST_COLOR,
-                GlStateManager.DestFactor.ONE_MINUS_SRC_COLOR,
-                GlStateManager.SourceFactor.ONE,
-                GlStateManager.DestFactor.ZERO);
-
-        Matrix4f pose = graphics.pose().last().pose();
-        if (style == Style.SQUARE) {
-            drawSquare(pose, centerX, centerY, spread);
-        } else {
-            drawTips(pose, centerX, centerY, spread);
-        }
-        // Vanilla draws the indicator under this same inverting blend, before restoring it.
+        // RenderPipelines.CROSSHAIR is the inverting blend vanilla's own crosshair uses, so the
+        // crosshair stays readable on any background -- upstream Crosshair#render sets exactly this.
+        List<float[]> quads = style == Style.SQUARE
+                ? squareQuads(centerX, centerY, spread)
+                : tipQuads(centerX, centerY, spread);
+        AbstractTexture texture = minecraft.getTextureManager().getTexture(style.texture);
+        graphics.submitGuiElementRenderState(new CrosshairRenderState(
+                TextureSetup.singleTexture(texture.getTextureView(), texture.getSampler()),
+                new Matrix3x2f(graphics.pose()), quads, graphics.peekScissorStack()));
+        // Vanilla draws the indicator under this same inverting blend.
         renderAttackIndicator(minecraft, graphics);
-
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.disableBlend();
     }
 
-    /** The four 8x8 quarters, each drawn from its own quarter of the sprite. */
-    private static void drawSquare(Matrix4f pose, float centerX, float centerY, float spread) {
-        BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
+    /** The four 8x8 quarters, each drawn from its own quarter of the sprite; x, y, u, v per vertex. */
+    private static List<float[]> squareQuads(float centerX, float centerY, float spread) {
+        List<float[]> quads = new ArrayList<>(4);
         for (int part = 0; part < 4; part++) {
             float[] box = squarePart(part, centerX, centerY, spread);
             float u1 = (part == 1 || part == 3) ? 0.5F : 0.0F;
             float v1 = part >= 2 ? 0.5F : 0.0F;
-            buffer.addVertex(pose, box[0], box[1], 0.0F).setUv(u1, v1);
-            buffer.addVertex(pose, box[0], box[3], 0.0F).setUv(u1, v1 + 0.5F);
-            buffer.addVertex(pose, box[2], box[3], 0.0F).setUv(u1 + 0.5F, v1 + 0.5F);
-            buffer.addVertex(pose, box[2], box[1], 0.0F).setUv(u1 + 0.5F, v1);
+            quads.add(new float[] {
+                    box[0], box[1], u1, v1,
+                    box[0], box[3], u1, v1 + 0.5F,
+                    box[2], box[3], u1 + 0.5F, v1 + 0.5F,
+                    box[2], box[1], u1 + 0.5F, v1});
         }
-        BufferUploader.drawWithShader(buffer.buildOrThrow());
+        return quads;
     }
 
-    /** The top / left / right wedges, each the sprite masked along its diagonals. */
-    private static void drawTips(Matrix4f pose, float centerX, float centerY, float spread) {
-        BufferBuilder buffer =
-                Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION_TEX);
+    /**
+     * The top / left / right wedges, each the sprite masked along its diagonals. GUI pipelines draw
+     * quads only, so each triangle is a quad whose last vertex repeats its first.
+     */
+    private static List<float[]> tipQuads(float centerX, float centerY, float spread) {
+        List<float[]> quads = new ArrayList<>(3);
         for (int part = 0; part < 3; part++) {
             float[] tip = tipCenter(part, centerX, centerY, spread);
             float left = tip[0] - TIP_HALF;
             float right = tip[0] + TIP_HALF;
             float top = tip[1] - TIP_HALF;
             float bottom = tip[1] + TIP_HALF;
-            switch (part) {
-                case 0 -> {
-                    buffer.addVertex(pose, left, top, 0.0F).setUv(0.0F, 0.0F);
-                    buffer.addVertex(pose, tip[0], tip[1], 0.0F).setUv(TIP_UV_CENTER, TIP_UV_CENTER);
-                    buffer.addVertex(pose, right, top, 0.0F).setUv(TIP_UV_MAX, 0.0F);
+            float[] triangle = switch (part) {
+                case 0 -> new float[] {
+                        left, top, 0.0F, 0.0F,
+                        tip[0], tip[1], TIP_UV_CENTER, TIP_UV_CENTER,
+                        right, top, TIP_UV_MAX, 0.0F};
+                case 1 -> new float[] {
+                        left, top, 0.0F, 0.0F,
+                        left, bottom, 0.0F, TIP_UV_MAX,
+                        tip[0], tip[1], TIP_UV_CENTER, TIP_UV_CENTER};
+                default -> new float[] {
+                        tip[0], tip[1], TIP_UV_CENTER, TIP_UV_CENTER,
+                        right, bottom, TIP_UV_MAX, TIP_UV_MAX,
+                        right, top, TIP_UV_MAX, 0.0F};
+            };
+            float[] quad = java.util.Arrays.copyOf(triangle, 16);
+            System.arraycopy(triangle, 0, quad, 12, 4);
+            quads.add(quad);
+        }
+        return quads;
+    }
+
+    /** The crosshair's quads as one GUI element, drawn under vanilla's inverting crosshair pipeline. */
+    private record CrosshairRenderState(TextureSetup textureSetup, Matrix3x2f pose, List<float[]> quads,
+            @Nullable ScreenRectangle scissorArea, @Nullable ScreenRectangle bounds)
+            implements GuiElementRenderState {
+        CrosshairRenderState(TextureSetup textureSetup, Matrix3x2f pose, List<float[]> quads,
+                @Nullable ScreenRectangle scissorArea) {
+            this(textureSetup, pose, quads, scissorArea, bounds(pose, quads, scissorArea));
+        }
+
+        private static ScreenRectangle bounds(Matrix3x2f pose, List<float[]> quads,
+                @Nullable ScreenRectangle scissorArea) {
+            float minX = Float.MAX_VALUE, minY = Float.MAX_VALUE, maxX = -Float.MAX_VALUE, maxY = -Float.MAX_VALUE;
+            for (float[] quad : quads) {
+                for (int i = 0; i < quad.length; i += 4) {
+                    minX = Math.min(minX, quad[i]);
+                    maxX = Math.max(maxX, quad[i]);
+                    minY = Math.min(minY, quad[i + 1]);
+                    maxY = Math.max(maxY, quad[i + 1]);
                 }
-                case 1 -> {
-                    buffer.addVertex(pose, left, top, 0.0F).setUv(0.0F, 0.0F);
-                    buffer.addVertex(pose, left, bottom, 0.0F).setUv(0.0F, TIP_UV_MAX);
-                    buffer.addVertex(pose, tip[0], tip[1], 0.0F).setUv(TIP_UV_CENTER, TIP_UV_CENTER);
-                }
-                default -> {
-                    buffer.addVertex(pose, tip[0], tip[1], 0.0F).setUv(TIP_UV_CENTER, TIP_UV_CENTER);
-                    buffer.addVertex(pose, right, bottom, 0.0F).setUv(TIP_UV_MAX, TIP_UV_MAX);
-                    buffer.addVertex(pose, right, top, 0.0F).setUv(TIP_UV_MAX, 0.0F);
+            }
+            int x0 = Mth.floor(minX);
+            int y0 = Mth.floor(minY);
+            ScreenRectangle box = new ScreenRectangle(x0, y0, Mth.ceil(maxX) - x0, Mth.ceil(maxY) - y0)
+                    .transformMaxBounds(pose);
+            return scissorArea != null ? scissorArea.intersection(box) : box;
+        }
+
+        @Override
+        public RenderPipeline pipeline() {
+            return RenderPipelines.CROSSHAIR;
+        }
+
+        @Override
+        public void buildVertices(VertexConsumer consumer) {
+            for (float[] quad : quads) {
+                for (int i = 0; i < quad.length; i += 4) {
+                    consumer.addVertexWith2DPose(pose, quad[i], quad[i + 1]).setUv(quad[i + 2], quad[i + 3]).setColor(-1);
                 }
             }
         }
-        BufferUploader.drawWithShader(buffer.buildOrThrow());
     }
 
     /** {@code Gui#renderCrosshair}'s attack-strength indicator, which the cancelled layer owed us. */
-    private static void renderAttackIndicator(Minecraft minecraft, GuiGraphics graphics) {
+    private static void renderAttackIndicator(Minecraft minecraft, GuiGraphicsExtractor graphics) {
         LocalPlayer player = minecraft.player;
         if (player == null || minecraft.options.attackIndicator().get() != AttackIndicatorStatus.CROSSHAIR) {
             return;
@@ -305,10 +341,10 @@ public final class BowCrosshair {
         int y = graphics.guiHeight() / 2 - 7 + 16;
         int x = graphics.guiWidth() / 2 - 8;
         if (full) {
-            graphics.blitSprite(ATTACK_INDICATOR_FULL, x, y, 16, 16);
+            graphics.blitSprite(RenderPipelines.CROSSHAIR, ATTACK_INDICATOR_FULL, x, y, 16, 16);
         } else if (strength < 1.0F) {
-            graphics.blitSprite(ATTACK_INDICATOR_BACKGROUND, x, y, 16, 4);
-            graphics.blitSprite(ATTACK_INDICATOR_PROGRESS, 16, 4, 0, 0, x, y, (int) (strength * 17.0F), 4);
+            graphics.blitSprite(RenderPipelines.CROSSHAIR, ATTACK_INDICATOR_BACKGROUND, x, y, 16, 4);
+            graphics.blitSprite(RenderPipelines.CROSSHAIR, ATTACK_INDICATOR_PROGRESS, 16, 4, 0, 0, x, y, (int) (strength * 17.0F), 4);
         }
     }
 

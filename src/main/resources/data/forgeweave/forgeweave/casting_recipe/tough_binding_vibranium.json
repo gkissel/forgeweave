@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_tough_binding"
-  },
+  "cast": "forgeweave:cast_tough_binding",
   "fluid": "forgeweave:molten_vibranium",
   "amount": 432,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "allthemodium:vibranium_ingot"
+      "type": "neoforge:registered",
+      "value": "allthemodium:vibranium_ingot"
     }
   ]
 }

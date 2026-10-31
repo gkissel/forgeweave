@@ -5,7 +5,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import net.minecraft.core.Holder;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffects;
@@ -14,8 +14,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.ItemLike;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.SlimeColour;
@@ -35,18 +35,18 @@ public class SlimeFoodGameTests {
 
     @GameTest(template = "empty")
     public static void eatingEachSlimeBallAppliesExactlyUpstreamsEffects(GameTestHelper helper) {
-        assertEats(helper, ForgeweaveItems.slimeBall(SlimeColour.BLUE), Set.of(MobEffects.MOVEMENT_SLOWDOWN, MobEffects.JUMP));
+        assertEats(helper, ForgeweaveItems.slimeBall(SlimeColour.BLUE), Set.of(MobEffects.SLOWNESS, MobEffects.JUMP_BOOST));
         assertEats(helper, ForgeweaveItems.slimeBall(SlimeColour.PURPLE), Set.of(MobEffects.UNLUCK, MobEffects.LUCK));
         assertEats(helper, ForgeweaveItems.slimeBall(SlimeColour.BLOOD), Set.of(MobEffects.POISON, MobEffects.HEALTH_BOOST));
         assertEats(helper, ForgeweaveItems.slimeBall(SlimeColour.MAGMA), Set.of(MobEffects.WEAKNESS, MobEffects.WITHER, MobEffects.FIRE_RESISTANCE));
-        assertEats(helper, ForgeweaveItems.slimeBall(SlimeColour.PINK), Set.of(MobEffects.CONFUSION));
+        assertEats(helper, ForgeweaveItems.slimeBall(SlimeColour.PINK), Set.of(MobEffects.NAUSEA));
         helper.succeed();
     }
 
     @GameTest(template = "empty")
     public static void eatingEachSlimeDropAppliesOnlyItsSinglePositiveEffect(GameTestHelper helper) {
-        assertEats(helper, ForgeweaveItems.slimeDrop(SlimeColour.GREEN), Set.of(MobEffects.MOVEMENT_SPEED));
-        assertEats(helper, ForgeweaveItems.slimeDrop(SlimeColour.BLUE), Set.of(MobEffects.JUMP));
+        assertEats(helper, ForgeweaveItems.slimeDrop(SlimeColour.GREEN), Set.of(MobEffects.SPEED));
+        assertEats(helper, ForgeweaveItems.slimeDrop(SlimeColour.BLUE), Set.of(MobEffects.JUMP_BOOST));
         assertEats(helper, ForgeweaveItems.slimeDrop(SlimeColour.PURPLE), Set.of(MobEffects.LUCK));
         assertEats(helper, ForgeweaveItems.slimeDrop(SlimeColour.BLOOD), Set.of(MobEffects.HEALTH_BOOST));
         assertEats(helper, ForgeweaveItems.slimeDrop(SlimeColour.MAGMA), Set.of(MobEffects.FIRE_RESISTANCE));

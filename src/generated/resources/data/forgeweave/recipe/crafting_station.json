@@ -2,12 +2,9 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "item": "minecraft:crafting_table"
-    }
+    "minecraft:crafting_table"
   ],
   "result": {
-    "count": 1,
     "id": "forgeweave:crafting_station"
   }
 }

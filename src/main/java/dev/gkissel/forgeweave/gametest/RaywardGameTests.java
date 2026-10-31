@@ -3,16 +3,16 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.List;
 
 import net.minecraft.core.Registry;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.compat.mekanism.modules.MekanismGearModules;
@@ -46,8 +46,8 @@ public class RaywardGameTests {
     @GameTest(template = "empty")
     public static void theShippedRecipeIsRegisteredAndSpendsLeadAtUpToFourLevels(GameTestHelper helper) {
         Registry<ModifierRecipe> recipes =
-                helper.getLevel().registryAccess().registryOrThrow(ModifierRecipe.REGISTRY);
-        ModifierRecipe recipe = recipes.get(id("rayward_lead"));
+                helper.getLevel().registryAccess().lookupOrThrow(ModifierRecipe.REGISTRY);
+        ModifierRecipe recipe = recipes.getValue(id("rayward_lead"));
         helper.assertTrue(recipe != null, "the rayward recipe should ship unconditionally, Mekanism or not");
         helper.assertValueEqual(recipe.modifier(), ForgeweaveModifiers.RAYWARD_ID, "recipe modifier");
         helper.assertValueEqual(recipe.maxLevel(), ForgeweaveModifiers.RAYWARD_MAX_LEVEL, "recipe max level");
@@ -157,8 +157,8 @@ public class RaywardGameTests {
         return stack;
     }
 
-    private static ResourceLocation id(String name) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name);
+    private static Identifier id(String name) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, name);
     }
 
     private RaywardGameTests() {}

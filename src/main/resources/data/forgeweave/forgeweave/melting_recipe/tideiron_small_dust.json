@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:small_dusts/tideiron"
-  },
+  "input": "#c:small_dusts/tideiron",
   "fluid": "forgeweave:molten_tideiron",
   "amount": 48,
   "temperature": 1400

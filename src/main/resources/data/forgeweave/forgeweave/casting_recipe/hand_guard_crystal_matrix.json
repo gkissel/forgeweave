@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_hand_guard"
-  },
+  "cast": "forgeweave:cast_hand_guard",
   "fluid": "forgeweave:molten_crystal_matrix",
   "amount": 144,
   "result": {
@@ -13,8 +11,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "avaritia:crystal_matrix_ingot"
+      "type": "neoforge:registered",
+      "value": "avaritia:crystal_matrix_ingot"
     }
   ]
 }

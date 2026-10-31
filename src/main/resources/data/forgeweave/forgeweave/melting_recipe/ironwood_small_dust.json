@@ -1,14 +1,12 @@
 {
-  "input": {
-    "tag": "c:small_dusts/ironwood"
-  },
+  "input": "#c:small_dusts/ironwood",
   "fluid": "forgeweave:molten_ironwood",
   "amount": 36,
   "temperature": 1200,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "twilightforest:ironwood_ingot"
+      "type": "neoforge:registered",
+      "value": "twilightforest:ironwood_ingot"
     }
   ]
 }

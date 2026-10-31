@@ -3,7 +3,7 @@ package dev.gkissel.forgeweave.trackb;
 import java.util.List;
 
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.Block;
 
@@ -98,7 +98,7 @@ public record TrackBOre(String id, Tier tier, Host host, int veinSize, int rateP
     public static final TagKey<Block> INCORRECT_FOR_RESONITE_TOOL = tag("incorrect_for_resonite_tool");
 
     private static TagKey<Block> tag(String path) {
-        return TagKey.create(Registries.BLOCK, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path));
+        return TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(Forgeweave.MODID, path));
     }
 
     /** Which base block and biome tag a material's ore feature targets. */

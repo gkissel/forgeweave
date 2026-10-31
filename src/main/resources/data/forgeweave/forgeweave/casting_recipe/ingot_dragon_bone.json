@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_ingot"
-  },
+  "cast": "forgeweave:cast_ingot",
   "fluid": "forgeweave:molten_dragon_bone",
   "amount": 144,
   "result": {
@@ -10,8 +8,8 @@
   },
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "iceandfire:dragonbone"
+      "type": "neoforge:registered",
+      "value": "iceandfire:dragonbone"
     }
   ]
 }

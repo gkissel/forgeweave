@@ -3,7 +3,7 @@ package dev.gkissel.forgeweave.compat;
 import java.util.List;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.repository.Pack;
 import net.minecraft.server.packs.repository.PackSource;
@@ -37,7 +37,7 @@ public final class CompatDataPacks {
                 continue;
             }
             event.addPackFinders(
-                    ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "datapacks/" + mod),
+                    Identifier.fromNamespaceAndPath(Forgeweave.MODID, "datapacks/" + mod),
                     PackType.SERVER_DATA,
                     Component.translatable("datapack.forgeweave." + mod),
                     PackSource.BUILT_IN,

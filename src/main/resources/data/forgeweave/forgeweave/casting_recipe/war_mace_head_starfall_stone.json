@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:cast_war_mace_head"
-  },
+  "cast": "forgeweave:cast_war_mace_head",
   "fluid": "forgeweave:molten_starfall_stone",
   "amount": 1152,
   "result": {

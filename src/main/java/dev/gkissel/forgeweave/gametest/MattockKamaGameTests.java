@@ -3,13 +3,13 @@ package dev.gkissel.forgeweave.gametest;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.animal.Sheep;
+import net.minecraft.world.entity.animal.sheep.Sheep;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
@@ -20,8 +20,8 @@ import net.minecraft.world.level.block.CropBlock;
 import net.minecraft.world.level.block.SugarCaneBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.combat.CombatHit;
@@ -161,8 +161,8 @@ public class MattockKamaGameTests {
 
         helper.useBlock(cropPos, player);
 
-        helper.assertBlockState(cropPos, state -> state.is(Blocks.WHEAT) && state.getValue(CropBlock.AGE) == 0,
-                () -> "expected the wheat to be replanted at age 0");
+        helper.assertTrue(helper.getBlockState(cropPos).is(Blocks.WHEAT) && helper.getBlockState(cropPos).getValue(CropBlock.AGE) == 0,
+                "expected the wheat to be replanted at age 0");
         helper.succeed();
     }
 

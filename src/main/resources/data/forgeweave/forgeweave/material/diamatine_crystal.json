@@ -45,27 +45,21 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "actuallyadditions:diamatine_crystal"
-      },
+      "ingredient": "actuallyadditions:diamatine_crystal",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:storage_blocks/diamatine_crystal"
-      },
+      "ingredient": "#c:storage_blocks/diamatine_crystal",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "item": "actuallyadditions:diamatine_crystal"
-  },
+  "repair_item": "actuallyadditions:diamatine_crystal",
   "enchantability": 16,
   "color": "#7FD9E8",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "actuallyadditions:diamatine_crystal"
+      "type": "neoforge:registered",
+      "value": "actuallyadditions:diamatine_crystal"
     }
   ]
 }

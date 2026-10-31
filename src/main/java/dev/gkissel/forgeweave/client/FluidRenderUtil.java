@@ -5,12 +5,11 @@ import org.joml.Matrix4f;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.renderer.block.FluidModel;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.FastColor;
+import net.minecraft.util.ARGB;
 
-import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
+import net.neoforged.neoforge.client.fluid.FluidTintSource;
 import net.neoforged.neoforge.fluids.FluidStack;
 
 /**
@@ -32,20 +31,23 @@ final class FluidRenderUtil {
     private FluidRenderUtil() {}
 
     static TextureAtlasSprite stillSprite(FluidStack fluid) {
-        return sprite(IClientFluidTypeExtensions.of(fluid.getFluid()).getStillTexture(fluid));
+        return model(fluid).stillMaterial().sprite();
     }
 
     static TextureAtlasSprite flowingSprite(FluidStack fluid) {
-        return sprite(IClientFluidTypeExtensions.of(fluid.getFluid()).getFlowingTexture(fluid));
+        return model(fluid).flowingMaterial().sprite();
     }
 
-    private static TextureAtlasSprite sprite(ResourceLocation texture) {
-        return Minecraft.getInstance().getModelManager().getAtlas(TextureAtlas.LOCATION_BLOCKS).getSprite(texture);
+    /** 26.1 moved a fluid's textures and tint off its client extensions into a baked {@link FluidModel}. */
+    private static FluidModel model(FluidStack fluid) {
+        return Minecraft.getInstance().getModelManager().getFluidStateModelSet()
+                .get(fluid.getFluid().defaultFluidState());
     }
 
     /** The fluid's own tint, opaque -- upstream reads the same colour off the fluid for every quad. */
     static int tint(FluidStack fluid) {
-        return FastColor.ARGB32.opaque(IClientFluidTypeExtensions.of(fluid.getFluid()).getTintColor(fluid));
+        FluidTintSource tintSource = model(fluid).fluidTintSource();
+        return ARGB.opaque(tintSource == null ? -1 : tintSource.colorAsStack(fluid));
     }
 
     /**

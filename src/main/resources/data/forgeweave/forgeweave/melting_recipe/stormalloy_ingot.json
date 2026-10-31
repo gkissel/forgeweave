@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:ingots/stormalloy"
-  },
+  "input": "#c:ingots/stormalloy",
   "fluid": "forgeweave:molten_stormalloy",
   "amount": 144,
   "temperature": 1600

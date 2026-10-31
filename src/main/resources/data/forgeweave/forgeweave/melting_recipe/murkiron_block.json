@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/murkiron"
-  },
+  "input": "#c:storage_blocks/murkiron",
   "fluid": "forgeweave:molten_murkiron",
   "amount": 1296
 }

@@ -5,13 +5,13 @@ import java.util.List;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.client.book.ModifyPageContent;
@@ -41,7 +41,7 @@ public class ModifierIllustrationGameTests {
     public static void everyRegisteredModifierIllustratesWithAnItemItAccepts(GameTestHelper helper) {
         HolderLookup.Provider registries = helper.getLevel().registryAccess();
         List<String> offenders = new ArrayList<>();
-        for (ResourceLocation id : ForgeweaveModifiers.ids()) {
+        for (Identifier id : ForgeweaveModifiers.ids()) {
             Modifier modifier = ForgeweaveModifiers.get(id);
             if (modifier == null) {
                 continue; // ForgeweaveModifiers.get already warned; nothing more this test can check.

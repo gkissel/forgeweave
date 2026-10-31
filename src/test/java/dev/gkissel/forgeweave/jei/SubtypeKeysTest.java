@@ -11,7 +11,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.SharedConstants;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.ItemStack;
 
@@ -28,8 +28,8 @@ import dev.gkissel.forgeweave.tool.ToolMaterials;
  */
 class SubtypeKeysTest {
 
-    private static final ResourceLocation WOOD_ID = ResourceLocation.fromNamespaceAndPath("forgeweave", "wood");
-    private static final ResourceLocation STONE_ID = ResourceLocation.fromNamespaceAndPath("forgeweave", "stone");
+    private static final Identifier WOOD_ID = Identifier.fromNamespaceAndPath("forgeweave", "wood");
+    private static final Identifier STONE_ID = Identifier.fromNamespaceAndPath("forgeweave", "stone");
 
     @BeforeAll
     static void bootstrapMinecraft() {
@@ -96,9 +96,9 @@ class SubtypeKeysTest {
     @Test
     void textureKeyDiffersByWood() {
         ItemStack oak = new ItemStack(ForgeweaveItems.PART_BUILDER.get());
-        oak.set(ForgeweaveDataComponents.TEXTURE.get(), ResourceLocation.withDefaultNamespace("oak_log"));
+        oak.set(ForgeweaveDataComponents.TEXTURE.get(), Identifier.withDefaultNamespace("oak_log"));
         ItemStack spruce = new ItemStack(ForgeweaveItems.PART_BUILDER.get());
-        spruce.set(ForgeweaveDataComponents.TEXTURE.get(), ResourceLocation.withDefaultNamespace("spruce_log"));
+        spruce.set(ForgeweaveDataComponents.TEXTURE.get(), Identifier.withDefaultNamespace("spruce_log"));
 
         assertNotEquals(SubtypeKeys.texture(oak), SubtypeKeys.texture(spruce));
     }

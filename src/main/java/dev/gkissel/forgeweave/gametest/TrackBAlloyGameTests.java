@@ -7,10 +7,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -19,8 +19,8 @@ import net.minecraft.world.level.material.Fluid;
 
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.CastingBlockEntity;
@@ -217,11 +217,11 @@ public class TrackBAlloyGameTests {
     /** Every catalyst melts from its common vanilla source item -- deliverable 5's "no Material entry" branch. */
     @GameTest(template = "empty")
     public static void everyCatalystMeltsFromItsVanillaSourceItem(GameTestHelper helper) {
-        Registry<MeltingRecipe> recipes = helper.getLevel().registryAccess().registryOrThrow(MeltingRecipe.REGISTRY);
+        Registry<MeltingRecipe> recipes = helper.getLevel().registryAccess().lookupOrThrow(MeltingRecipe.REGISTRY);
         CATALYST_SOURCE_ITEMS.forEach((catalystId, itemId) -> {
-            MeltingRecipe recipe = recipes.get(recipeKey(catalystId));
+            MeltingRecipe recipe = recipes.getValue(recipeKey(catalystId));
             helper.assertTrue(recipe != null, "expected a melting recipe registered as " + catalystId);
-            ItemStack sourceItem = new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.parse(itemId)));
+            ItemStack sourceItem = new ItemStack(BuiltInRegistries.ITEM.getValue(Identifier.parse(itemId)));
             helper.assertTrue(recipe.input().test(sourceItem), catalystId + "'s melting recipe must accept " + itemId);
             helper.assertTrue(recipe.fluid() == fluidByMaterialId(catalystId),
                     catalystId + "'s melting recipe must yield molten_" + catalystId);
@@ -271,12 +271,12 @@ public class TrackBAlloyGameTests {
     // ------------------------------------------------------------------ helpers
 
     private static ResourceKey<MeltingRecipe> recipeKey(String name) {
-        return ResourceKey.create(MeltingRecipe.REGISTRY, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name));
+        return ResourceKey.create(MeltingRecipe.REGISTRY, Identifier.fromNamespaceAndPath(Forgeweave.MODID, name));
     }
 
     private static void assertMelting(GameTestHelper helper, String recipeName, Fluid fluid, int amount, boolean ore) {
-        Registry<MeltingRecipe> recipes = helper.getLevel().registryAccess().registryOrThrow(MeltingRecipe.REGISTRY);
-        MeltingRecipe recipe = recipes.get(recipeKey(recipeName));
+        Registry<MeltingRecipe> recipes = helper.getLevel().registryAccess().lookupOrThrow(MeltingRecipe.REGISTRY);
+        MeltingRecipe recipe = recipes.getValue(recipeKey(recipeName));
         helper.assertTrue(recipe != null, "expected a melting recipe registered as " + recipeName);
         helper.assertTrue(recipe.fluid() == fluid, recipeName + ": expected " + fluid + ", got " + recipe.fluid());
         helper.assertValueEqual(recipe.amount(), amount, recipeName + "'s amount");
@@ -284,7 +284,7 @@ public class TrackBAlloyGameTests {
     }
 
     private static void assertFullCastingRoster(GameTestHelper helper, String materialId, Fluid fluid) {
-        Registry<CastingRecipe> recipes = helper.getLevel().registryAccess().registryOrThrow(CastingRecipe.REGISTRY);
+        Registry<CastingRecipe> recipes = helper.getLevel().registryAccess().lookupOrThrow(CastingRecipe.REGISTRY);
         List<String> parts = List.of("pickaxe_head", "sword_blade", "axe_head", "shovel_head", "hammer_head",
                 "excavator_head", "broad_axe_head", "war_mace_head", "vein_hammer_head", "kama_head",
                 "scythe_head", "katana_blade", "knife_blade", "curved_blade", "large_sword_blade",
@@ -305,22 +305,22 @@ public class TrackBAlloyGameTests {
 
     private static void assertCasting(GameTestHelper helper, Registry<CastingRecipe> recipes, String name, Fluid fluid) {
         ResourceKey<CastingRecipe> key = ResourceKey.create(CastingRecipe.REGISTRY,
-                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name));
-        CastingRecipe recipe = recipes.get(key);
+                Identifier.fromNamespaceAndPath(Forgeweave.MODID, name));
+        CastingRecipe recipe = recipes.getValue(key);
         helper.assertTrue(recipe != null, "expected a casting recipe registered as " + name);
         helper.assertTrue(recipe.fluid().isPresent() && recipe.fluid().get() == fluid,
                 name + ": expected fluid " + fluid + ", got " + recipe.fluid());
     }
 
-    private static ResourceLocation materialId(String name) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, name);
+    private static Identifier materialId(String name) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, name);
     }
 
     /** The 1x1x2 minimum smeltery of {@code SmelteryGameTests} with a Standard Core, formed and empty. */
     private static SmelteryControllerBlockEntity smeltery(GameTestHelper helper) {
         SmelteryGameTests.buildWalls(helper, 1, 1, 2);
         BlockPos corePos = SmelteryGameTests.placeCore(helper, ForgeweaveBlocks.STANDARD_CORE.get());
-        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos);
+        SmelteryControllerBlockEntity core = helper.getBlockEntity(corePos, SmelteryControllerBlockEntity.class);
         helper.assertTrue(core.isFormed(), "expected the test smeltery to form: " + core.lastResult().getString());
         return core;
     }
@@ -332,16 +332,16 @@ public class TrackBAlloyGameTests {
     /** A tank of {@code fluid}, a faucet on its east side pointing back at it, and a casting table below. */
     private static CastingBlockEntity rig(GameTestHelper helper, Fluid fluid) {
         helper.setBlock(TANK, ForgeweaveBlocks.SEARED_TANK.get());
-        helper.<SearedTankBlockEntity>getBlockEntity(TANK).tank()
+        helper.getBlockEntity(TANK, SearedTankBlockEntity.class).tank()
                 .fill(new FluidStack(fluid, SearedTankBlockEntity.CAPACITY), IFluidHandler.FluidAction.EXECUTE);
         helper.setBlock(CASTING, ForgeweaveBlocks.CASTING_TABLE.get());
         helper.setBlock(FAUCET, ForgeweaveBlocks.FAUCET.get().defaultBlockState()
                 .setValue(FaucetBlock.FACING, Direction.WEST));
-        return helper.getBlockEntity(CASTING);
+        return helper.getBlockEntity(CASTING, CastingBlockEntity.class);
     }
 
     private static FaucetBlockEntity faucet(GameTestHelper helper) {
-        return helper.getBlockEntity(FAUCET);
+        return helper.getBlockEntity(FAUCET, FaucetBlockEntity.class);
     }
 
     private static void insert(GameTestHelper helper, CastingBlockEntity casting, ItemStack stack) {

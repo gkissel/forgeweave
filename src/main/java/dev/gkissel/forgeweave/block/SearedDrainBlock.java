@@ -7,7 +7,7 @@ import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.ItemInteractionResult;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
@@ -84,7 +84,7 @@ public class SearedDrainBlock extends HorizontalDirectionalBlock implements Enti
      * click even when nothing moved, so a water bucket places no water block against the wall.
      */
     @Override
-    protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                               Player player, InteractionHand hand, BlockHitResult hit) {
         IFluidHandler smeltery = level.getBlockEntity(pos) instanceof SearedDrainBlockEntity drain
                 ? drain.fluidHandler()
@@ -95,13 +95,13 @@ public class SearedDrainBlock extends HorizontalDirectionalBlock implements Enti
         if (FluidUtil.getFluidHandler(stack).isEmpty()) {
             return super.useItemOn(stack, state, level, pos, player, hand, hit);
         }
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             FluidActionResult emptied = FluidUtil.tryEmptyContainerAndStow(stack, smeltery,
                     new PlayerMainInvWrapper(player.getInventory()), FluidType.BUCKET_VOLUME, player, true);
             if (emptied.isSuccess()) {
                 player.setItemInHand(hand, emptied.getResult());
             }
         }
-        return ItemInteractionResult.sidedSuccess(level.isClientSide);
+        return InteractionResult.SUCCESS;
     }
 }

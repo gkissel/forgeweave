@@ -1,18 +1,16 @@
 {
-  "input": {
-    "item": "neovitae:ingot_hellforged"
-  },
+  "input": "neovitae:ingot_hellforged",
   "fluid": "forgeweave:molten_hellforged",
   "amount": 144,
   "temperature": 1600,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "neovitae:ingot_hellforged"
+      "type": "neoforge:registered",
+      "value": "neovitae:ingot_hellforged"
     },
     {
-      "type": "neoforge:item_exists",
-      "item": "neovitae:ingot_hellforged"
+      "type": "neoforge:registered",
+      "value": "neovitae:ingot_hellforged"
     }
   ]
 }

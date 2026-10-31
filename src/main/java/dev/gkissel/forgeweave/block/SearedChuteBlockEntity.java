@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.block;
 
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.ResourceHandler;
 import javax.annotation.Nullable;
 
 import net.minecraft.core.BlockPos;
@@ -43,9 +45,16 @@ public class SearedChuteBlockEntity extends SmelteryIoBlockEntity {
         return core == null ? null : new InvWrapper(core.meltingContainer());
     }
 
+    /** {@link #itemHandler()} as the 21.9 transfer API sees it; what the capability hands out. */
+    @Nullable
+    public ResourceHandler<ItemResource> itemCapability() {
+        SmelteryControllerBlockEntity core = formedCore();
+        return core == null ? null : core.itemCapability();
+    }
+
     /** Wires the item-handler capability; called from {@code Forgeweave}'s constructor. */
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ForgeweaveBlockEntities.SEARED_CHUTE.get(),
-                (blockEntity, side) -> blockEntity.itemHandler());
+        event.registerBlockEntity(Capabilities.Item.BLOCK, ForgeweaveBlockEntities.SEARED_CHUTE.get(),
+                (blockEntity, side) -> blockEntity.itemCapability());
     }
 }

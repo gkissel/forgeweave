@@ -48,21 +48,17 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "item": "create:andesite_alloy"
-      },
+      "ingredient": "create:andesite_alloy",
       "value": 144
     }
   ],
-  "repair_item": {
-    "item": "create:andesite_alloy"
-  },
+  "repair_item": "create:andesite_alloy",
   "enchantability": 18,
   "color": "#829579",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "create:andesite_alloy"
+      "type": "neoforge:registered",
+      "value": "create:andesite_alloy"
     }
   ]
 }

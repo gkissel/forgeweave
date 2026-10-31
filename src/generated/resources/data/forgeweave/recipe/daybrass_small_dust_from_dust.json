@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "tag": "c:dusts/daybrass"
-    }
+    "#c:dusts/daybrass"
   ],
   "result": {
     "count": 3,

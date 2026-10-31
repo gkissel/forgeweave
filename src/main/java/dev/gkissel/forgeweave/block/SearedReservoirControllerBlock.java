@@ -5,6 +5,7 @@ import javax.annotation.Nullable;
 import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
@@ -75,20 +76,20 @@ public class SearedReservoirControllerBlock extends HorizontalDirectionalBlock i
     }
 
     @Override
-    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean movedByPiston) {
-        super.neighborChanged(state, level, pos, block, fromPos, movedByPiston);
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @Nullable Orientation orientation, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, block, orientation, movedByPiston);
         updateStructure(level, pos);
     }
 
     /** Rescans, then opens the reservoir GUI or -- when nothing formed -- says why in chat, as the cores do. */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof SearedReservoirBlockEntity reservoir) {
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof SearedReservoirBlockEntity reservoir) {
             reservoir.updateStructure();
             if (reservoir.isFormed()) {
                 reservoir.open(player);
             } else {
-                player.displayClientMessage(reservoir.lastResult(), false);
+                player.sendSystemMessage(reservoir.lastResult());
             }
         }
         return InteractionResult.SUCCESS;

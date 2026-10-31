@@ -46,27 +46,19 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:ingots/lead"
-      },
+      "ingredient": "#c:ingots/lead",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:nuggets/lead"
-      },
+      "ingredient": "#c:nuggets/lead",
       "value": 16
     },
     {
-      "ingredient": {
-        "tag": "c:storage_blocks/lead"
-      },
+      "ingredient": "#c:storage_blocks/lead",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:ingots/lead"
-  },
+  "repair_item": "#c:ingots/lead",
   "cast_only": true,
   "enchantability": 9,
   "color": "#4D4968",
@@ -75,16 +67,16 @@
       "type": "neoforge:or",
       "values": [
         {
-          "type": "neoforge:item_exists",
-          "item": "mekanism:ingot_lead"
+          "type": "neoforge:registered",
+          "value": "mekanism:ingot_lead"
         },
         {
-          "type": "neoforge:item_exists",
-          "item": "immersiveengineering:ingot_lead"
+          "type": "neoforge:registered",
+          "value": "immersiveengineering:ingot_lead"
         },
         {
-          "type": "neoforge:item_exists",
-          "item": "eternalores:lead_ingot"
+          "type": "neoforge:registered",
+          "value": "eternalores:lead_ingot"
         }
       ]
     }

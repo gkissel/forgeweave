@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.item;
 
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.util.ProblemReporter;
 import java.util.List;
 
 import org.jetbrains.annotations.Nullable;
@@ -9,16 +11,16 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ProjectileWeaponItem;
-import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 
@@ -220,8 +222,8 @@ public class BowItem extends ToolItem {
     }
 
     @Override
-    public UseAnim getUseAnimation(ItemStack stack) {
-        return UseAnim.BOW;
+    public ItemUseAnimation getUseAnimation(ItemStack stack) {
+        return ItemUseAnimation.BOW;
     }
 
     @Override
@@ -231,43 +233,44 @@ public class BowItem extends ToolItem {
 
     /** {@code BowCore#onItemRightClick}. */
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         if (isBroken(stack)) {
-            return InteractionResultHolder.fail(stack);
+            return InteractionResult.FAIL;
         }
         boolean hasAmmo = !findAmmo(player).isEmpty();
-        InteractionResultHolder<ItemStack> nock = EventHooks.onArrowNock(stack, level, player, hand, hasAmmo);
+        InteractionResult nock = EventHooks.onArrowNock(stack, level, player, hand, hasAmmo);
         if (nock != null) {
             return nock;
         }
         if (player.hasInfiniteMaterials() || hasAmmo) {
             player.startUsingItem(hand);
-            return InteractionResultHolder.consume(stack);
+            return InteractionResult.CONSUME;
         }
-        return InteractionResultHolder.fail(stack);
+        return InteractionResult.FAIL;
     }
 
     /** {@code BowCore#onPlayerStoppedUsing}. */
     @Override
-    public void releaseUsing(ItemStack stack, Level level, LivingEntity user, int timeLeft) {
+    public boolean releaseUsing(ItemStack stack, Level level, LivingEntity user, int timeLeft) {
         if (isBroken(stack) || !(user instanceof Player player)) {
-            return;
+            return false;
         }
         ItemStack ammo = findAmmo(player);
         if (ammo.isEmpty() && !player.hasInfiniteMaterials()) {
-            return;
+            return false;
         }
         int useTime = getUseDuration(stack, user) - timeLeft;
         useTime = EventHooks.onArrowLoose(stack, level, player, useTime, !ammo.isEmpty());
         if (useTime < MIN_DRAW_TICKS) {
-            return; // also the event's -1 for "cancelled"
+            return false; // also the event's -1 for "cancelled"
         }
         if (ammo.isEmpty()) {
             ammo = new ItemStack(Items.ARROW); // BowCore#getCreativeProjectileStack
         }
         shoot(ammo, stack, level, player, useTime);
         player.awardStat(Stats.ITEM_USED.get(this));
+        return false;
     }
 
     /** {@code TraitSplitting#DOUBLESHOT_CHANCE} (issue #653). */
@@ -336,7 +339,7 @@ public class BowItem extends ToolItem {
                     if (arrow instanceof ArrowEntity forgeweaveArrow) {
                         forgeweaveArrow.setFlatDamage(forgeweaveArrow.flatDamage() * (1.0F + projectile.damage()));
                     } else {
-                        arrow.setBaseDamage(arrow.getBaseDamage() * (1.0 + projectile.damage()));
+                        arrow.setBaseDamage(baseDamage(arrow) * (1.0 + projectile.damage()));
                     }
                 }
                 if (progress >= 1.0F) {
@@ -351,6 +354,16 @@ public class BowItem extends ToolItem {
             }
         }
         playShootSound(level, player, velocity);
+    }
+
+    /**
+     * 26.1 dropped {@code AbstractArrow#getBaseDamage}; the arrow's own saved {@code damage} field is
+     * the same number. ponytail: a save per shot, swap for an access transformer if it ever shows up.
+     */
+    private static double baseDamage(AbstractArrow arrow) {
+        TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, arrow.registryAccess());
+        arrow.saveWithoutId(output);
+        return output.buildResult().getDoubleOr("damage", 2.0);
     }
 
     /**
@@ -399,7 +412,7 @@ public class BowItem extends ToolItem {
             arrow.shoot(shotVector.x, shotVector.y, shotVector.z, velocity, inaccuracy);
             LauncherStats stats = launcherStats(bow);
             if (stats != null && velocity > 0.0F) {
-                arrow.setBaseDamage(arrow.getBaseDamage() + stats.bonusDamage() / velocity);
+                arrow.setBaseDamage(baseDamage(arrow) + stats.bonusDamage() / velocity);
             }
         }
         if (player.hasInfiniteMaterials()) {

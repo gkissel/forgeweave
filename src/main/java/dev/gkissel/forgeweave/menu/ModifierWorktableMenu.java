@@ -16,7 +16,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.DataSlot;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.ArmorItem;
+import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.neoforge.items.IItemHandler;
@@ -169,7 +169,7 @@ public class ModifierWorktableMenu extends StationMenu {
         // Added after the player inventory on purpose: every slot range in this class counts from
         // the station's own slots forward, so hanging these off the end leaves all of them alone and
         // keeps a shift-click from ever landing a stack in the player's armor.
-        for (ArmorItem.Type type : ArmorItem.Type.values()) {
+        for (ArmorType type : ArmorType.values()) {
             EquipmentSlot equipment = type.getSlot();
             addSlot(new Slot(playerInventory, equipment.getIndex(Inventory.INVENTORY_SIZE),
                     ARMOR_X, ARMOR_Y + type.ordinal() * ARMOR_PITCH) {

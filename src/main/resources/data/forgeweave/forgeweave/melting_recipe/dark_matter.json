@@ -1,14 +1,12 @@
 {
-  "input": {
-    "item": "projecte:dark_matter"
-  },
+  "input": "projecte:dark_matter",
   "fluid": "forgeweave:molten_dark_matter",
   "amount": 144,
   "temperature": 1600,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "projecte:dark_matter"
+      "type": "neoforge:registered",
+      "value": "projecte:dark_matter"
     }
   ]
 }

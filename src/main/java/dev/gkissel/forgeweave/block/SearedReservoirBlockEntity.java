@@ -1,5 +1,7 @@
 package dev.gkissel.forgeweave.block;
 
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.level.storage.ValueInput;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -103,7 +105,7 @@ public class SearedReservoirBlockEntity extends BlockEntity implements StationMe
     /** The formed structure, or {@code null}; rescans a stale answer on the server. */
     @Nullable
     public SmelteryStructure structure() {
-        if (level != null && !level.isClientSide
+        if (level != null && !level.isClientSide()
                 && (lastScanTick == NEVER || level.getGameTime() - lastScanTick >= RESCAN_INTERVAL_TICKS)) {
             updateStructure();
         }
@@ -133,7 +135,7 @@ public class SearedReservoirBlockEntity extends BlockEntity implements StationMe
     /** Rescans now. Server-side only. */
     @Override
     public void updateStructure() {
-        if (level == null || level.isClientSide) {
+        if (level == null || level.isClientSide()) {
             return;
         }
         BlockState state = getBlockState();
@@ -187,7 +189,7 @@ public class SearedReservoirBlockEntity extends BlockEntity implements StationMe
      * needs no ongoing heartbeat once formed ({@link #armMeltTick} below is itself a no-op).
      */
     void armSettleWindow() {
-        if (level == null || level.isClientSide || isFormed()) {
+        if (level == null || level.isClientSide() || isFormed()) {
             return;
         }
         settleUntilTick = level.getGameTime() + SETTLE_WINDOW_TICKS;
@@ -239,32 +241,26 @@ public class SearedReservoirBlockEntity extends BlockEntity implements StationMe
 
     private void syncToClients() {
         setChanged();
-        if (level != null && !level.isClientSide) {
+        if (level != null && !level.isClientSide()) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
         }
     }
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        if (structure != null) {
-            SmelteryStructure.CODEC.encodeStart(NbtOps.INSTANCE, structure)
-                    .resultOrPartial(error -> {})
-                    .ifPresent(encoded -> tag.put(TAG_STRUCTURE, encoded));
-        }
-        tag.put(TAG_TANK, tank.writeToNBT(registries, new CompoundTag()));
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        output.storeNullable(TAG_STRUCTURE, SmelteryStructure.CODEC, structure);
+        tank.serialize(output.child(TAG_TANK));
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        structure = tag.contains(TAG_STRUCTURE)
-                ? SmelteryStructure.CODEC.parse(NbtOps.INSTANCE, tag.get(TAG_STRUCTURE)).resultOrPartial(error -> {}).orElse(null)
-                : null;
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        structure = input.read(TAG_STRUCTURE, SmelteryStructure.CODEC).orElse(null);
         // Capacity is a function of the structure and so is never saved -- restore it before the
         // fluids load, or setCapacity would trim a full reservoir down to a capacity of zero.
         tank.setCapacity(capacityFor(structure));
-        tank.readFromNBT(registries, tag.getCompound(TAG_TANK));
+        tank.deserialize(input.childOrEmpty(TAG_TANK));
     }
 
     @Override

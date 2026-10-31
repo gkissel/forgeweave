@@ -1,15 +1,23 @@
 package dev.gkissel.forgeweave.client;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.IronBarsBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
+
+import org.jspecify.annotations.Nullable;
 
 import dev.gkissel.forgeweave.config.ForgeweaveClientConfig;
 
@@ -69,34 +77,66 @@ final class TableItemRenderer {
     }
 
     /**
-     * Renders one stack lying flat or standing at block-local {@code (0.5f + x, centerY, 0.5f + z)},
-     * scaled to {@code scale} in the horizontal plane -- the same flat/standing {@link PoseStack}
-     * transform as {@code CastingBlockEntityRenderer#renderItem}. A no-op for an empty stack or with
-     * {@link ForgeweaveClientConfig#RENDER_TABLE_ITEMS} off, matching upstream's {@code
+     * One stack captured for {@link #submit}: its resolved item model plus where and how it lies. On
+     * 26.1 a block entity renderer resolves item models while extracting its render state and only
+     * draws them later, so the old single {@code render} call is split into {@link #extract} and
+     * {@link #submit}.
+     */
+    record Item(ItemStackRenderState state, float x, float z, float scale, float centerY, boolean flat) {}
+
+    /** The render state every table renderer shares: the stacks it {@link #extract}ed this frame. */
+    static class State extends BlockEntityRenderState {
+        final List<Item> items = new ArrayList<>();
+
+        /** {@link #extract}s {@code stack} and keeps it, unless it resolved to nothing. */
+        void add(ItemStack stack, float x, float z, float scale, BlockEntity blockEntity) {
+            Item item = extract(stack, x, z, scale, blockEntity);
+            if (item != null) {
+                items.add(item);
+            }
+        }
+
+        /** {@link #submit}s every kept stack at this state's own light level. */
+        void submitAll(PoseStack poseStack, SubmitNodeCollector collector) {
+            for (Item item : items) {
+                submit(item, poseStack, collector, lightCoords);
+            }
+        }
+    }
+
+    /**
+     * Resolves {@code stack} to lie at block-local {@code (0.5f + x, centerY, 0.5f + z)}, scaled to
+     * {@code scale} in the horizontal plane. Returns {@code null} for an empty stack or with {@link
+     * ForgeweaveClientConfig#RENDER_TABLE_ITEMS} off, matching upstream's {@code
      * Config.renderTableItems} gate.
      */
-    static void render(ItemStack stack, float x, float z, float scale, PoseStack poseStack,
-            MultiBufferSource bufferSource, int packedLight, int packedOverlay, BlockEntity blockEntity) {
+    static @Nullable Item extract(ItemStack stack, float x, float z, float scale, BlockEntity blockEntity) {
         if (stack.isEmpty() || !ForgeweaveClientConfig.RENDER_TABLE_ITEMS.get()) {
+            return null;
+        }
+        ItemStackRenderState state = new ItemStackRenderState();
+        Minecraft.getInstance().getItemModelResolver().updateForTopItem(state, stack, ItemDisplayContext.NONE,
+                blockEntity.getLevel(), null, (int) blockEntity.getBlockPos().asLong());
+        return new Item(state, x, z, scale, centerY(stack, scale), isFlat(stack));
+    }
+
+    /**
+     * Draws an {@link #extract}ed stack lying flat or standing -- the same flat/standing {@link
+     * PoseStack} transform as {@code CastingBlockEntityRenderer#submit}. A no-op for {@code null}.
+     */
+    static void submit(@Nullable Item item, PoseStack poseStack, SubmitNodeCollector collector, int packedLight) {
+        if (item == null || item.state().isEmpty()) {
             return;
         }
-        boolean flat = isFlat(stack);
-
         poseStack.pushPose();
-        poseStack.translate(0.5f + x, centerY(stack, scale), 0.5f + z);
-        if (flat) {
-            // After the rotation the model's own depth axis is the block's vertical one, so the
-            // third scale is the item's thickness -- squashed to FLAT_THICKNESS, see there.
+        poseStack.translate(0.5f + item.x(), item.centerY(), 0.5f + item.z());
+        if (item.flat()) {
             poseStack.mulPose(Axis.XP.rotationDegrees(-90f));
-            poseStack.scale(scale, scale, FLAT_THICKNESS / ITEM_MODEL_DEPTH);
+            poseStack.scale(item.scale(), item.scale(), FLAT_THICKNESS / ITEM_MODEL_DEPTH);
         } else {
-            poseStack.scale(scale, scale, scale);
+            poseStack.scale(item.scale(), item.scale(), item.scale());
         }
-        // ItemDisplayContext.NONE applies no display transform, so the model arrives centred on the
-        // pose above -- upstream renders the raw baked model for the same reason.
-        Minecraft.getInstance().getItemRenderer().renderStatic(stack, ItemDisplayContext.NONE,
-                packedLight, packedOverlay, poseStack, bufferSource, blockEntity.getLevel(),
-                (int) blockEntity.getBlockPos().asLong());
+        item.state().submit(poseStack, collector, packedLight, OverlayTexture.NO_OVERLAY, 0);
         poseStack.popPose();
     }
 }

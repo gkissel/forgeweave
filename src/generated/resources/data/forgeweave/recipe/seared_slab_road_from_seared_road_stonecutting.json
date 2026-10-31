@@ -1,8 +1,6 @@
 {
   "type": "minecraft:stonecutting",
-  "ingredient": {
-    "item": "forgeweave:seared_road"
-  },
+  "ingredient": "forgeweave:seared_road",
   "result": {
     "count": 2,
     "id": "forgeweave:seared_slab_road"

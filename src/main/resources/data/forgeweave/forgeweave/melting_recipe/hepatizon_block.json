@@ -1,7 +1,5 @@
 {
-  "input": {
-    "tag": "c:storage_blocks/hepatizon"
-  },
+  "input": "#c:storage_blocks/hepatizon",
   "fluid": "forgeweave:molten_hepatizon",
   "amount": 1296
 }

@@ -4,15 +4,16 @@ import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.util.random.Weighted;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.SpawnPlacementTypes;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.monster.Slime;
@@ -32,8 +33,8 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
@@ -170,25 +171,25 @@ public class BlueSlimeGameTests {
     @GameTest(template = "empty")
     public static void theSlimeIslandStructureReplacesItsMonsterSpawnsWithBlueSlimes(GameTestHelper helper) {
         ResourceKey<Structure> key = ResourceKey.create(Registries.STRUCTURE,
-                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "slime_island"));
-        Structure island = helper.getLevel().registryAccess().registryOrThrow(Registries.STRUCTURE).get(key);
-        helper.assertTrue(island != null, "expected a structure registered as " + key.location());
+                Identifier.fromNamespaceAndPath(Forgeweave.MODID, "slime_island"));
+        Structure island = helper.getLevel().registryAccess().lookupOrThrow(Registries.STRUCTURE).getValue(key);
+        helper.assertTrue(island != null, "expected a structure registered as " + key.identifier());
 
         StructureSpawnOverride override = island.spawnOverrides().get(MobCategory.MONSTER);
         helper.assertTrue(override != null, "an island must override its monster spawns, upstream clears the list");
         helper.assertTrue(override.boundingBox() == StructureSpawnOverride.BoundingBoxType.PIECE,
                 "the override must apply over the island itself, got " + override.boundingBox());
 
-        List<MobSpawnSettings.SpawnerData> spawns = override.spawns().unwrap();
+        List<Weighted<MobSpawnSettings.SpawnerData>> spawns = override.spawns().unwrap();
         helper.assertTrue(spawns.size() == 1,
                 "upstream leaves exactly one entry after its clear, got " + spawns.size());
-        MobSpawnSettings.SpawnerData entry = spawns.get(0);
-        helper.assertTrue(entry.type == ForgeweaveEntities.BLUE_SLIME.get(),
-                "that one entry must be the blue slime, got " + entry.type);
-        helper.assertTrue(entry.getWeight().asInt() == 15,
-                "upstream weights the blue slime 15, got " + entry.getWeight().asInt());
-        helper.assertTrue(entry.minCount == 2 && entry.maxCount == 4,
-                "upstream spawns 2-4 at a time, got " + entry.minCount + "-" + entry.maxCount);
+        MobSpawnSettings.SpawnerData entry = spawns.get(0).value();
+        helper.assertTrue(entry.type() == ForgeweaveEntities.BLUE_SLIME.get(),
+                "that one entry must be the blue slime, got " + entry.type());
+        helper.assertTrue(spawns.get(0).weight() == 15,
+                "upstream weights the blue slime 15, got " + spawns.get(0).weight());
+        helper.assertTrue(entry.minCount() == 2 && entry.maxCount() == 4,
+                "upstream spawns 2-4 at a time, got " + entry.minCount() + "-" + entry.maxCount());
         helper.succeed();
     }
 
@@ -206,7 +207,7 @@ public class BlueSlimeGameTests {
 
     private static boolean maySpawnAt(GameTestHelper helper, BlockPos relative) {
         return ForgeweaveEntities.canSpawnHere(ForgeweaveEntities.BLUE_SLIME.get(), helper.getLevel(),
-                MobSpawnType.NATURAL, helper.absolutePos(relative), helper.getLevel().getRandom());
+                EntitySpawnReason.NATURAL, helper.absolutePos(relative), helper.getLevel().getRandom());
     }
 
     private static int rollSlimeBalls(ServerLevel level, Slime victim, Player killer) {
@@ -215,7 +216,7 @@ public class BlueSlimeGameTests {
 
     private static int roll(ServerLevel level, Slime victim, Player killer, Item wanted) {
         LootTable table = level.getServer().reloadableRegistries()
-                .getLootTable(ForgeweaveEntities.BLUE_SLIME.get().getDefaultLootTable());
+                .getLootTable(ForgeweaveEntities.BLUE_SLIME.get().getDefaultLootTable().orElseThrow());
         LootParams params = new LootParams.Builder(level)
                 .withParameter(LootContextParams.THIS_ENTITY, victim)
                 .withParameter(LootContextParams.ORIGIN, victim.position())

@@ -5,10 +5,10 @@ import java.util.List;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.GameTest;
+import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.InteractionHand;
@@ -20,8 +20,8 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 
-import net.neoforged.neoforge.gametest.GameTestHolder;
-import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
+import dev.gkissel.forgeweave.gametest.GameTestHolder;
+import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.combat.CombatHit;
@@ -101,7 +101,7 @@ public class DedupeBatchGameTests {
         for (int i = 0; i < 200 && !applied; i++) {
             helper.setBlock(pos, Blocks.STONE);
             player.gameMode.destroyBlock(helper.absolutePos(pos));
-            applied = player.hasEffect(MobEffects.DIG_SLOWDOWN);
+            applied = player.hasEffect(MobEffects.MINING_FATIGUE);
         }
 
         helper.assertTrue(applied, "overburdened should have applied Mining Fatigue within 200 mined blocks");
@@ -173,11 +173,11 @@ public class DedupeBatchGameTests {
     public static void dayboundGlowsByDay(GameTestHelper helper) {
         ServerPlayer player = holding(helper, List.of(traitId("daybound")));
         ItemStack pickaxe = player.getMainHandItem();
-        helper.getLevel().setDayTime(6000L);
+        GameTestCompat.setDayTime(helper.getLevel(), 6000L);
         helper.getLevel().updateSkyBrightness();
 
         for (int i = 0; i < 200 && !player.hasEffect(MobEffects.GLOWING); i++) {
-            pickaxe.getItem().inventoryTick(pickaxe, helper.getLevel(), player, 0, false);
+            pickaxe.getItem().inventoryTick(pickaxe, helper.getLevel(), player, null);
         }
 
         helper.assertTrue(player.hasEffect(MobEffects.GLOWING), "daybound should have glowed the wielder by day");
@@ -193,14 +193,14 @@ public class DedupeBatchGameTests {
         CombatHit hit = new CombatHit(helper.getLevel(), player.getMainHandItem(), player, player,
                 helper.getLevel().damageSources().generic());
 
-        helper.getLevel().setDayTime(18000L);
+        GameTestCompat.setDayTime(helper.getLevel(), 18000L);
         helper.getLevel().updateSkyBrightness();
         float nightDamage = 5.0F;
         for (CombatSeam seam : seams) {
             nightDamage = seam.preHit(hit, 5.0F, nightDamage);
         }
 
-        helper.getLevel().setDayTime(6000L);
+        GameTestCompat.setDayTime(helper.getLevel(), 6000L);
         helper.getLevel().updateSkyBrightness();
         float dayDamage = 5.0F;
         for (CombatSeam seam : seams) {
@@ -239,7 +239,7 @@ public class DedupeBatchGameTests {
     }
 
     /** A survival {@link ServerPlayer} holding a hand-built pickaxe carrying {@code traits}. */
-    private static ServerPlayer holding(GameTestHelper helper, List<ResourceLocation> traits) {
+    private static ServerPlayer holding(GameTestHelper helper, List<Identifier> traits) {
         ServerPlayer player = helper.makeMockServerPlayerInLevel();
         player.setGameMode(GameType.SURVIVAL);
         ItemStack pickaxe = pickaxe(traits, 1000);
@@ -248,14 +248,14 @@ public class DedupeBatchGameTests {
     }
 
     /** Builds a pickaxe {@code ItemStack} with the given traits directly (see class javadoc). */
-    private static ItemStack pickaxe(List<ResourceLocation> traits, int durability) {
+    private static ItemStack pickaxe(List<Identifier> traits, int durability) {
         ToolItem toolItem = ForgeweaveItems.TOOL_PICKAXE.get();
         ToolStats.Stats stats = new ToolStats.Stats(durability, 1.0F, 1.0F);
         Material head = new Material(
                 new Material.Head(durability, 1.0F, 1.0F),
                 new Material.Handle(1.0F, 0),
                 0,
-                TagKey.create(Registries.BLOCK, ResourceLocation.withDefaultNamespace("incorrect_for_stone_tool")),
+                TagKey.create(Registries.BLOCK, Identifier.withDefaultNamespace("incorrect_for_stone_tool")),
                 new Material.Traits(List.of(), List.of()),
                 List.of(),
                 Ingredient.of(Items.STICK),
@@ -270,7 +270,7 @@ public class DedupeBatchGameTests {
         return stack;
     }
 
-    private static ResourceLocation traitId(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, path);
+    private static Identifier traitId(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
     }
 }

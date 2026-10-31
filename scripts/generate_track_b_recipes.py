@@ -120,16 +120,16 @@ def ore_melting_recipes() -> None:
         fluid = f"forgeweave:molten_{ore_id}"
         if ore_id not in CRYSTAL_ORES:
             write_json(MELTING_DIR / f"{ore_id}_ore.json",
-                       {"input": {"tag": f"c:ores/{ore_id}"}, "fluid": fluid, "amount": VALUE_INGOT, "ore": True})
+                       {"input": f"#c:ores/{ore_id}", "fluid": fluid, "amount": VALUE_INGOT, "ore": True})
             write_json(MELTING_DIR / f"raw_{ore_id}.json",
-                       {"input": {"tag": f"c:raw_materials/{ore_id}"}, "fluid": fluid, "amount": VALUE_INGOT, "ore": True})
+                       {"input": f"#c:raw_materials/{ore_id}", "fluid": fluid, "amount": VALUE_INGOT, "ore": True})
             count += 2
         write_json(MELTING_DIR / f"{ore_id}_ingot.json",
-                   {"input": {"tag": f"c:ingots/{ore_id}"}, "fluid": fluid, "amount": VALUE_INGOT})
+                   {"input": f"#c:ingots/{ore_id}", "fluid": fluid, "amount": VALUE_INGOT})
         write_json(MELTING_DIR / f"{ore_id}_nugget.json",
-                   {"input": {"tag": f"c:nuggets/{ore_id}"}, "fluid": fluid, "amount": VALUE_NUGGET})
+                   {"input": f"#c:nuggets/{ore_id}", "fluid": fluid, "amount": VALUE_NUGGET})
         write_json(MELTING_DIR / f"{ore_id}_block.json",
-                   {"input": {"tag": f"c:storage_blocks/{ore_id}"}, "fluid": fluid, "amount": VALUE_BLOCK})
+                   {"input": f"#c:storage_blocks/{ore_id}", "fluid": fluid, "amount": VALUE_BLOCK})
         count += 3
     print(f"wrote {count} ore melting recipes")
 
@@ -140,7 +140,7 @@ def crystal_melting_recipes() -> None:
     melting_recipe/brimspar_crystal.json."""
     for ore_id in sorted(CRYSTAL_ORES):
         write_json(MELTING_DIR / f"{ore_id}_crystal.json",
-                   {"input": {"item": f"forgeweave:{ore_id}_crystal"}, "fluid": f"forgeweave:molten_{ore_id}",
+                   {"input": f"forgeweave:{ore_id}_crystal", "fluid": f"forgeweave:molten_{ore_id}",
                     "amount": VALUE_INGOT})
     print(f"wrote {len(CRYSTAL_ORES)} crystal melting recipes")
 
@@ -156,7 +156,7 @@ def alloy_melting_recipes() -> None:
         gated += temperature is not None
         for form, tag, amount in (("ingot", "ingots", VALUE_INGOT), ("nugget", "nuggets", VALUE_NUGGET),
                                   ("block", "storage_blocks", VALUE_BLOCK)):
-            data = {"input": {"tag": f"c:{tag}/{alloy_id}"}, "fluid": fluid, "amount": amount}
+            data = {"input": f"#c:{tag}/{alloy_id}", "fluid": fluid, "amount": amount}
             if temperature is not None:
                 data["temperature"] = temperature
             write_json(MELTING_DIR / f"{alloy_id}_{form}.json", data)
@@ -167,7 +167,7 @@ def catalyst_melting_recipes() -> None:
     """One melting row per catalyst, sourced from a common vanilla item (deliverable 5)."""
     for catalyst_id, (item, amount) in CATALYSTS.items():
         write_json(MELTING_DIR / f"{catalyst_id}.json",
-                   {"input": {"item": item}, "fluid": f"forgeweave:molten_{catalyst_id}", "amount": amount})
+                   {"input": item, "fluid": f"forgeweave:molten_{catalyst_id}", "amount": amount})
     print(f"wrote {len(CATALYSTS)} catalyst melting recipes")
 
 
@@ -176,7 +176,7 @@ def basalt_melting_recipe() -> None:
     Basalt is not a TrackBOre (Part-Builder-only, no ore/raw/nugget/block items of its own), so it
     gets one hand-picked melting row instead of the ORES loop's five."""
     write_json(MELTING_DIR / "basalt.json",
-               {"input": {"item": "minecraft:basalt"}, "fluid": "forgeweave:molten_basalt", "amount": VALUE_INGOT})
+               {"input": "minecraft:basalt", "fluid": "forgeweave:molten_basalt", "amount": VALUE_INGOT})
     print("wrote 1 basalt melting recipe")
 
 

@@ -1,8 +1,6 @@
 {
   "station": "table",
-  "cast": {
-    "item": "forgeweave:clay_cast_ingot"
-  },
+  "cast": "forgeweave:clay_cast_ingot",
   "fluid": "forgeweave:molten_constantan",
   "amount": 144,
   "result": {
@@ -11,8 +9,8 @@
   "consumes_cast": true,
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "immersiveengineering:ingot_constantan"
+      "type": "neoforge:registered",
+      "value": "immersiveengineering:ingot_constantan"
     }
   ]
 }

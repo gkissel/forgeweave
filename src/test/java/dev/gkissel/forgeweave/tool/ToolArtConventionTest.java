@@ -7,7 +7,7 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import dev.gkissel.forgeweave.Forgeweave;
 
@@ -26,14 +26,14 @@ class ToolArtConventionTest {
 
     @Test
     void aForgeweaveToolResolvesThroughForgeweavesOwnTwoTrees() {
-        assertEquals(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, ToolArt.layer("pickaxe", "head")),
+        assertEquals(Identifier.fromNamespaceAndPath(Forgeweave.MODID, ToolArt.layer("pickaxe", "head")),
                 ToolArt.layerTexture("pickaxe", "head"),
                 "an unnamespaced tool is Forgeweave's own and keeps whichever tree its sprite lives in");
     }
 
     @Test
     void aRegisteredToolResolvesByConvention() {
-        assertEquals(ResourceLocation.fromNamespaceAndPath("someaddon", "item/dirk_head"),
+        assertEquals(Identifier.fromNamespaceAndPath("someaddon", "item/dirk_head"),
                 ToolArt.layerTexture("someaddon:dirk", "head"),
                 "a registered tool's layers live at <namespace>:item/<tool>_<layer>");
     }

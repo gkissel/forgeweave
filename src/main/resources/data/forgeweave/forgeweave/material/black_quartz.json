@@ -44,27 +44,21 @@
   },
   "crafting_items": [
     {
-      "ingredient": {
-        "tag": "c:gems/black_quartz"
-      },
+      "ingredient": "#c:gems/black_quartz",
       "value": 144
     },
     {
-      "ingredient": {
-        "tag": "c:storage_blocks/black_quartz"
-      },
+      "ingredient": "#c:storage_blocks/black_quartz",
       "value": 1296
     }
   ],
-  "repair_item": {
-    "tag": "c:gems/black_quartz"
-  },
+  "repair_item": "#c:gems/black_quartz",
   "enchantability": 12,
   "color": "#2B2B2E",
   "neoforge:conditions": [
     {
-      "type": "neoforge:item_exists",
-      "item": "actuallyadditions:black_quartz"
+      "type": "neoforge:registered",
+      "value": "actuallyadditions:black_quartz"
     }
   ]
 }

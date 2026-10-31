@@ -1,15 +1,42 @@
 package dev.gkissel.forgeweave.data;
 
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
 
+import javax.annotation.Nullable;
+
+import com.google.gson.JsonObject;
+import com.mojang.math.Quadrant;
+import com.mojang.serialization.JsonOps;
+
+import net.minecraft.client.data.models.BlockModelGenerators;
+import net.minecraft.client.data.models.ItemModelGenerators;
+import net.minecraft.client.data.models.ItemModelOutput;
+import net.minecraft.client.data.models.ModelProvider;
+import net.minecraft.client.data.models.MultiVariant;
+import net.minecraft.client.data.models.blockstates.BlockModelDefinitionGenerator;
+import net.minecraft.client.data.models.blockstates.ConditionBuilder;
+import net.minecraft.client.data.models.blockstates.MultiPartGenerator;
+import net.minecraft.client.data.models.blockstates.PropertyValueList;
+import net.minecraft.client.data.models.model.ItemModelUtils;
+import net.minecraft.client.data.models.model.ModelInstance;
+import net.minecraft.client.color.item.ItemTintSource;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModelDispatcher;
+import net.minecraft.client.renderer.block.dispatch.Variant;
+import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.data.PackOutput;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.HopperBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
@@ -19,17 +46,13 @@ import net.minecraft.world.level.block.VineBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 
-import net.neoforged.neoforge.client.model.generators.BlockStateProvider;
-import net.neoforged.neoforge.client.model.generators.ConfiguredModel;
-import net.neoforged.neoforge.client.model.generators.ModelFile;
-import net.neoforged.neoforge.client.model.generators.MultiPartBlockStateBuilder;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.client.model.generators.blockstate.CustomBlockStateModelBuilder;
 
 import dev.gkissel.forgeweave.Forgeweave;
-import dev.gkissel.forgeweave.api.modifier.Modifier;
 import dev.gkissel.forgeweave.block.ConnectedGlassBlock;
 import dev.gkissel.forgeweave.block.EnergizedTankBlock;
 import dev.gkissel.forgeweave.block.FaucetBlock;
+import dev.gkissel.forgeweave.block.FoliageType;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.SearedChannelBlock;
 import dev.gkissel.forgeweave.block.SearedChannelBlock.ChannelConnection;
@@ -37,19 +60,26 @@ import dev.gkissel.forgeweave.block.SearedChuteBlock;
 import dev.gkissel.forgeweave.block.SmelteryControllerBlock;
 import dev.gkissel.forgeweave.block.SmelteryCore;
 import dev.gkissel.forgeweave.block.SearedTier;
+import dev.gkissel.forgeweave.client.model.RetexturedTableGeometry;
+import dev.gkissel.forgeweave.client.model.RetexturedTableItemModel;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.trackb.TrackBAlloy;
 import dev.gkissel.forgeweave.trackb.TrackBOre;
 
 /**
- * Blockstate and item model for the Part Builder (docs/SCOPE.md M1 issue #9), the Tool Station
- * (issue #10), the Crafting Station (issue #40), and the Stencil Table (issue #44): table-shaped (tabletop + 4 legs, hollow
- * underside) rather than a solid cube (issue #43). The block models themselves are hand-authored
- * JSON under {@code models/block/} using the
- * {@code forgeweave:retextured_table} custom geometry loader ({@code
- * dev.gkissel.forgeweave.client.model}) -- not datagen'd, since NeoForge's model-builder DSL has no
- * first-class support for custom-loader models -- so this provider only wires blockstate rotation
- * and the item model parent onto those existing files. The element geometry in both JSONs is a
+ * Forgeweave's one model provider: every blockstate and block model, and every client item, the
+ * block items' here and every other item's in {@link ForgeweaveItemModelProvider} (26.1's {@code
+ * ModelProvider} writes both halves in one pass and checks that no Forgeweave block or item is left
+ * without a definition).
+ *
+ * <p>The table-shaped stations -- the Part Builder (docs/SCOPE.md M1 issue #9), the Tool Station
+ * (issue #10), the Crafting Station (issue #40) and the Stencil Table (issue #44) -- are tabletop + 4
+ * legs, hollow underside, rather than a solid cube (issue #43). The block models themselves are
+ * hand-authored JSON under {@code models/block/} -- not datagen'd -- so this provider only wires
+ * blockstate rotation and the item model parent onto those existing files. Their blockstate variants
+ * carry the {@code forgeweave:retextured_table} type and their client items the
+ * {@code forgeweave:retextured_table} item model ({@code dev.gkissel.forgeweave.client.model}), which
+ * is what swaps the table into the crafting wood. The element geometry in both JSONs is a
  * near-literal transcription of upstream 1.12's {@code models/block/table.json} (NOTICE.md), with
  * every face's texture variable consolidated onto a single {@code #texture} slot (upstream splits
  * top/side/leg/legBottom) so the whole table retextures as one piece from the crafting wood.
@@ -58,36 +88,46 @@ import dev.gkissel.forgeweave.trackb.TrackBOre;
  * geometry, one derived texture per variant -- see {@link #cubeAllBlock}. Its stairs and slabs
  * (docs/SCOPE.md M3.4-5 issue #274) reuse those same textures via vanilla's own stairs/slab model
  * shapes -- see {@link #searedStairs} and {@link #searedSlab}.
+ *
+ * <p>Every block item keeps its own {@code models/item/<name>} model parenting the block model, as
+ * the 1.21.1 provider wrote it, and its client item points at that model. 26.1 models carry no
+ * {@code render_type} any more: the chunk layer is worked out per quad from the sprite's alpha, so
+ * the 1.21.1 cutout entries are simply gone, and the two translucent families (the coloured slime
+ * blocks and the clear stained glass) mark their faces {@code force_translucent} instead.
  */
-public class ForgeweaveBlockStateProvider extends BlockStateProvider {
-    public ForgeweaveBlockStateProvider(PackOutput output, ExistingFileHelper existingFileHelper) {
-        super(output, Forgeweave.MODID, existingFileHelper);
+public class ForgeweaveBlockStateProvider extends ModelProvider {
+    public ForgeweaveBlockStateProvider(PackOutput output) {
+        super(output, Forgeweave.MODID);
+    }
+
+    // ponytail: set at the top of registerModels, which datagen calls once per run.
+    private Consumer<BlockModelDefinitionGenerator> blockStates;
+    private ItemModelOutput items;
+    private BiConsumer<Identifier, ModelInstance> models;
+
+    @Override
+    protected void registerModels(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        this.blockStates = blockModels.blockStateOutput;
+        this.items = blockModels.itemModelOutput;
+        this.models = blockModels.modelOutput;
+        registerStatesAndModels();
+        new ForgeweaveItemModelProvider(itemModels).registerModels();
     }
 
     @Override
-    protected void registerStatesAndModels() {
-        ModelFile partBuilderModel = models().getExistingFile(modLoc("block/part_builder"));
-        horizontalBlock(ForgeweaveBlocks.PART_BUILDER.get(), partBuilderModel);
-        simpleBlockItem(ForgeweaveBlocks.PART_BUILDER.get(), partBuilderModel);
+    public String getName() {
+        return "Forgeweave block and item models";
+    }
 
-        ModelFile toolStationModel = models().getExistingFile(modLoc("block/tool_station"));
-        horizontalBlock(ForgeweaveBlocks.TOOL_STATION.get(), toolStationModel);
-        simpleBlockItem(ForgeweaveBlocks.TOOL_STATION.get(), toolStationModel);
-
-        ModelFile toolForgeModel = models().getExistingFile(modLoc("block/tool_forge"));
-        horizontalBlock(ForgeweaveBlocks.TOOL_FORGE.get(), toolForgeModel);
-        simpleBlockItem(ForgeweaveBlocks.TOOL_FORGE.get(), toolForgeModel);
-
-        ModelFile craftingStationModel = models().getExistingFile(modLoc("block/crafting_station"));
-        horizontalBlock(ForgeweaveBlocks.CRAFTING_STATION.get(), craftingStationModel);
-        simpleBlockItem(ForgeweaveBlocks.CRAFTING_STATION.get(), craftingStationModel);
-
-        ModelFile stencilTableModel = models().getExistingFile(modLoc("block/stencil_table"));
-        horizontalBlock(ForgeweaveBlocks.STENCIL_TABLE.get(), stencilTableModel);
-        simpleBlockItem(ForgeweaveBlocks.STENCIL_TABLE.get(), stencilTableModel);
+    private void registerStatesAndModels() {
+        retexturedTable(ForgeweaveBlocks.PART_BUILDER.get(), modLoc("block/part_builder"));
+        retexturedTable(ForgeweaveBlocks.TOOL_STATION.get(), modLoc("block/tool_station"));
+        retexturedTable(ForgeweaveBlocks.TOOL_FORGE.get(), modLoc("block/tool_forge"));
+        retexturedTable(ForgeweaveBlocks.CRAFTING_STATION.get(), modLoc("block/crafting_station"));
+        retexturedTable(ForgeweaveBlocks.STENCIL_TABLE.get(), modLoc("block/stencil_table"));
 
         // The Modifier Worktable (issue #1057): a fixed stone table, so no retexture loader.
-        ModelFile modifierWorktableModel = models().getExistingFile(modLoc("block/modifier_worktable"));
+        Identifier modifierWorktableModel = modLoc("block/modifier_worktable");
         horizontalBlock(ForgeweaveBlocks.MODIFIER_WORKTABLE.get(), modifierWorktableModel);
         simpleBlockItem(ForgeweaveBlocks.MODIFIER_WORKTABLE.get(), modifierWorktableModel);
 
@@ -116,25 +156,25 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
 
         // The seared brick block family (docs/SCOPE.md M2 issue #93): plain cube_all blocks, one
         // derived texture per variant (NOTICE.md) -- unlike the tables above, these have no custom
-        // geometry, so simpleBlockWithItem covers both the blockstate and the block-item model.
+        // geometry, so one cube_all model covers both the blockstate and the block-item model.
         // Every seared wall/floor block follows its core's tier (SearedTier): the standard tier is
         // upstream's own texture, every other tier is scripts/generate_seared_tier_textures.py's
         // recolour of it in that core's hue, so the whole shell reads as one piece with the core.
-        tieredCubeAll("seared_stone", ForgeweaveBlocks.SEARED_STONE.get(), false);
-        tieredCubeAll("seared_cobblestone", ForgeweaveBlocks.SEARED_COBBLESTONE.get(), false);
-        tieredCubeAll("seared_paver", ForgeweaveBlocks.SEARED_PAVER.get(), false);
-        tieredCubeAll("seared_bricks", ForgeweaveBlocks.SEARED_BRICKS.get(), false);
-        tieredCubeAll("seared_cracked_bricks", ForgeweaveBlocks.SEARED_CRACKED_BRICKS.get(), false);
-        tieredCubeAll("seared_fancy_bricks", ForgeweaveBlocks.SEARED_FANCY_BRICKS.get(), false);
-        tieredCubeAll("seared_square_bricks", ForgeweaveBlocks.SEARED_SQUARE_BRICKS.get(), false);
-        tieredCubeAll("seared_triangle_bricks", ForgeweaveBlocks.SEARED_TRIANGLE_BRICKS.get(), false);
-        tieredCubeAll("seared_small_bricks", ForgeweaveBlocks.SEARED_SMALL_BRICKS.get(), false);
-        tieredCubeAll("seared_road", ForgeweaveBlocks.SEARED_ROAD.get(), false);
-        tieredCubeAll("seared_tile", ForgeweaveBlocks.SEARED_TILE.get(), false);
-        tieredCubeAll("seared_creeper", ForgeweaveBlocks.SEARED_CREEPER.get(), false);
+        tieredCubeAll("seared_stone", ForgeweaveBlocks.SEARED_STONE.get());
+        tieredCubeAll("seared_cobblestone", ForgeweaveBlocks.SEARED_COBBLESTONE.get());
+        tieredCubeAll("seared_paver", ForgeweaveBlocks.SEARED_PAVER.get());
+        tieredCubeAll("seared_bricks", ForgeweaveBlocks.SEARED_BRICKS.get());
+        tieredCubeAll("seared_cracked_bricks", ForgeweaveBlocks.SEARED_CRACKED_BRICKS.get());
+        tieredCubeAll("seared_fancy_bricks", ForgeweaveBlocks.SEARED_FANCY_BRICKS.get());
+        tieredCubeAll("seared_square_bricks", ForgeweaveBlocks.SEARED_SQUARE_BRICKS.get());
+        tieredCubeAll("seared_triangle_bricks", ForgeweaveBlocks.SEARED_TRIANGLE_BRICKS.get());
+        tieredCubeAll("seared_small_bricks", ForgeweaveBlocks.SEARED_SMALL_BRICKS.get());
+        tieredCubeAll("seared_road", ForgeweaveBlocks.SEARED_ROAD.get());
+        tieredCubeAll("seared_tile", ForgeweaveBlocks.SEARED_TILE.get());
+        tieredCubeAll("seared_creeper", ForgeweaveBlocks.SEARED_CREEPER.get());
 
-        // Seared stairs + slabs (docs/SCOPE.md M3.4-5 issue #274): vanilla's own stairsBlock/slabBlock
-        // blockstate helpers, one derived texture per variant reused from the parent cube_all block
+        // Seared stairs + slabs (docs/SCOPE.md M3.4-5 issue #274): vanilla's own stairs/slab
+        // blockstate generators, one derived texture per variant reused from the parent cube_all block
         // above -- see ForgeweaveBlocks for the parity notes.
         searedStairs("seared_stairs_stone", ForgeweaveBlocks.SEARED_STAIRS_STONE.get(), "seared_stone");
         searedStairs("seared_stairs_cobblestone", ForgeweaveBlocks.SEARED_STAIRS_COBBLESTONE.get(), "seared_cobblestone");
@@ -189,9 +229,9 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         tieredTank("seared_gauge", ForgeweaveBlocks.SEARED_GAUGE.get(), "seared_gauge_side", "seared_window_top");
         tieredTank("seared_window", ForgeweaveBlocks.SEARED_WINDOW.get(), "seared_window_side", "seared_window_top");
 
-        // Plain seared glass (docs/SCOPE.md M3.3 issue #289): cube_all like the seared brick family,
-        // but cutout like the tank family -- see cubeAllCutoutBlock.
-        tieredCubeAll("seared_glass", ForgeweaveBlocks.SEARED_GLASS.get(), true);
+        // Plain seared glass (docs/SCOPE.md M3.3 issue #289): cube_all like the seared brick family;
+        // its alpha-cutout panes pick the cutout layer by themselves on 26.1.
+        tieredCubeAll("seared_glass", ForgeweaveBlocks.SEARED_GLASS.get());
 
         // The drain has distinct front and back faces, so it needs the full six-face cube rather than
         // "orientable" (which would repeat the side texture on the back).
@@ -214,14 +254,14 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         // model keeps upstream's orientation (its back on north, i.e. authored facing south), so the
         // rotations here are upstream's blockstates/seared_chute.json y-values rather than
         // horizontalBlock's north-facing convention.
-        ModelFile chuteModel = models().getExistingFile(modLoc("block/seared_chute"));
+        Identifier chuteModel = modLoc("block/seared_chute");
         tiered(ForgeweaveBlocks.SEARED_CHUTE.get(), tier -> tier == SmelteryCore.STANDARD ? chuteModel
-                : models().withExistingParent("seared_chute_" + tier.getSerializedName(), modLoc("block/seared_chute"))
-                        .texture("particle", tierTexture("seared_chute_side", tier))
-                        .texture("top", tierTexture("seared_chute_top", tier))
-                        .texture("side", tierTexture("seared_chute_side", tier))
-                        .texture("back", tierTexture("seared_drain_back", tier))
-                        .texture("bricks", tierTexture("seared_bricks", tier)),
+                : model("block/seared_chute_" + tier.getSerializedName(), chuteModel, textures(
+                        "particle", tierTexture("seared_chute_side", tier),
+                        "top", tierTexture("seared_chute_top", tier),
+                        "side", tierTexture("seared_chute_side", tier),
+                        "back", tierTexture("seared_drain_back", tier),
+                        "bricks", tierTexture("seared_bricks", tier))),
                 state -> (int) state.getValue(SearedChuteBlock.FACING).toYRot());
 
         // #441 (parity audit T9) -- the seared channel. Its blockstate is upstream 1.12's own
@@ -231,54 +271,51 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         // channel/{center,center_out,side,side_in,side_out}.json. Upstream's fifth `lever` state --
         // a cosmetic backing plate drawn when a lever or button is stuck to a channel's side -- is
         // deliberately absent; upstream itself dropped it adapting the block to modern Minecraft.
-        ModelFile channelCentre = models().getExistingFile(modLoc("block/channel/center"));
-        ModelFile channelCentreOut = models().getExistingFile(modLoc("block/channel/center_out"));
-        ModelFile channelSide = models().getExistingFile(modLoc("block/channel/side"));
-        ModelFile channelSideIn = models().getExistingFile(modLoc("block/channel/side_in"));
-        ModelFile channelSideOut = models().getExistingFile(modLoc("block/channel/side_out"));
-        MultiPartBlockStateBuilder channel = getMultipartBuilder(ForgeweaveBlocks.SEARED_CHANNEL.get());
-        channel.part().modelFile(channelCentre).addModel()
-                .condition(SearedChannelBlock.DOWN, false).end();
-        channel.part().modelFile(channelCentreOut).addModel()
-                .condition(SearedChannelBlock.DOWN, true).end();
-        SearedChannelBlock.SIDES.forEach((side, property) -> {
+        Identifier channelCentre = modLoc("block/channel/center");
+        Identifier channelCentreOut = modLoc("block/channel/center_out");
+        Identifier channelSide = modLoc("block/channel/side");
+        Identifier channelSideIn = modLoc("block/channel/side_in");
+        Identifier channelSideOut = modLoc("block/channel/side_out");
+        MultiPartGenerator channel = MultiPartGenerator.multiPart(ForgeweaveBlocks.SEARED_CHANNEL.get())
+                .with(new ConditionBuilder().term(SearedChannelBlock.DOWN, false), part(channelCentre, 0, 0, false))
+                .with(new ConditionBuilder().term(SearedChannelBlock.DOWN, true), part(channelCentreOut, 0, 0, false));
+        for (var side : SearedChannelBlock.SIDES.entrySet()) {
             // The side models are authored on the north face; upstream's own blockstate rotates
             // them north:0, east:90, south:180, west:270, which is toYRot() turned half round.
-            int rotation = ((int) side.toYRot() + 180) % 360;
+            int rotation = ((int) side.getKey().toYRot() + 180) % 360;
             for (ChannelConnection connection : ChannelConnection.values()) {
-                ModelFile model = switch (connection) {
+                Identifier model = switch (connection) {
                     case NONE -> channelSide;
                     case IN -> channelSideIn;
                     case OUT -> channelSideOut;
                 };
-                channel.part().modelFile(model).rotationY(rotation).uvLock(true).addModel()
-                        .condition(property, connection).end();
+                channel = channel.with(new ConditionBuilder().term(side.getValue(), connection), part(model, 0, rotation, true));
             }
-        });
-        simpleBlockItem(ForgeweaveBlocks.SEARED_CHANNEL.get(),
-                models().getExistingFile(modLoc("block/channel/item")));
+        }
+        blockStates.accept(channel);
+        simpleBlockItem(ForgeweaveBlocks.SEARED_CHANNEL.get(), modLoc("block/channel/item"));
 
         // #100 -- casting (docs/SCOPE.md M2 issue #100). All four models are hand-authored JSON under
         // models/block/, transcribed from upstream 1.12's own casting_table/casting_basin/faucet/
         // faucet_top models (NOTICE.md) with the texture slots pointed at derived/block/*; the
         // rotations below are upstream's blockstates/faucet.json y-values, with the faucet model
         // authored facing south.
-        ModelFile castingTable = models().getExistingFile(modLoc("block/casting_table"));
+        Identifier castingTable = modLoc("block/casting_table");
         simpleBlock(ForgeweaveBlocks.CASTING_TABLE.get(), castingTable);
         simpleBlockItem(ForgeweaveBlocks.CASTING_TABLE.get(), castingTable);
 
-        ModelFile castingBasin = models().getExistingFile(modLoc("block/casting_basin"));
+        Identifier castingBasin = modLoc("block/casting_basin");
         simpleBlock(ForgeweaveBlocks.CASTING_BASIN.get(), castingBasin);
         simpleBlockItem(ForgeweaveBlocks.CASTING_BASIN.get(), castingBasin);
 
-        ModelFile faucet = models().getExistingFile(modLoc("block/faucet"));
-        ModelFile faucetTop = models().getExistingFile(modLoc("block/faucet_top"));
-        getVariantBuilder(ForgeweaveBlocks.FAUCET.get()).forAllStates(state -> switch (state.getValue(FaucetBlock.FACING)) {
-            case UP -> ConfiguredModel.builder().modelFile(faucetTop).build();
-            case NORTH -> ConfiguredModel.builder().modelFile(faucet).rotationY(180).build();
-            case EAST -> ConfiguredModel.builder().modelFile(faucet).rotationY(270).build();
-            case WEST -> ConfiguredModel.builder().modelFile(faucet).rotationY(90).build();
-            default -> ConfiguredModel.builder().modelFile(faucet).build();
+        Identifier faucet = modLoc("block/faucet");
+        Identifier faucetTop = modLoc("block/faucet_top");
+        forAllStates(ForgeweaveBlocks.FAUCET.get(), state -> switch (state.getValue(FaucetBlock.FACING)) {
+            case UP -> variant(faucetTop, 0, 0);
+            case NORTH -> variant(faucet, 0, 180);
+            case EAST -> variant(faucet, 0, 270);
+            case WEST -> variant(faucet, 0, 90);
+            default -> variant(faucet, 0, 0);
         });
         simpleBlockItem(ForgeweaveBlocks.FAUCET.get(), faucet);
 
@@ -287,23 +324,20 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         // ones) and swaps their three texture variables for the derived wood-themed sprites
         // (NOTICE.md) -- the geometry itself is unmodified vanilla. The item model is a separate flat
         // sprite registered in ForgeweaveItemModelProvider, matching vanilla's own hopper item.
-        ModelFile woodenHopperDown = models().withExistingParent("wooden_hopper", mcLoc("block/hopper"))
-                .texture("top", modLoc("derived/block/wooden_hopper_top"))
-                .texture("side", modLoc("derived/block/wooden_hopper_outside"))
-                .texture("inside", modLoc("derived/block/wooden_hopper_inside"))
-                .texture("particle", modLoc("derived/block/wooden_hopper_outside"));
-        ModelFile woodenHopperSide = models().withExistingParent("wooden_hopper_side", mcLoc("block/hopper_side"))
-                .texture("top", modLoc("derived/block/wooden_hopper_top"))
-                .texture("side", modLoc("derived/block/wooden_hopper_outside"))
-                .texture("inside", modLoc("derived/block/wooden_hopper_inside"))
-                .texture("particle", modLoc("derived/block/wooden_hopper_outside"));
-        getVariantBuilder(ForgeweaveBlocks.WOODEN_HOPPER.get()).forAllStates(state -> switch (state.getValue(HopperBlock.FACING)) {
-            case DOWN -> ConfiguredModel.builder().modelFile(woodenHopperDown).build();
-            case NORTH -> ConfiguredModel.builder().modelFile(woodenHopperSide).build();
-            case SOUTH -> ConfiguredModel.builder().modelFile(woodenHopperSide).rotationY(180).build();
-            case WEST -> ConfiguredModel.builder().modelFile(woodenHopperSide).rotationY(270).build();
-            case EAST -> ConfiguredModel.builder().modelFile(woodenHopperSide).rotationY(90).build();
-            default -> ConfiguredModel.builder().modelFile(woodenHopperDown).build();
+        Map<String, Material> hopperTextures = textures(
+                "top", modLoc("derived/block/wooden_hopper_top"),
+                "side", modLoc("derived/block/wooden_hopper_outside"),
+                "inside", modLoc("derived/block/wooden_hopper_inside"),
+                "particle", modLoc("derived/block/wooden_hopper_outside"));
+        Identifier woodenHopperDown = model("block/wooden_hopper", mcLoc("block/hopper"), hopperTextures);
+        Identifier woodenHopperSide = model("block/wooden_hopper_side", mcLoc("block/hopper_side"), hopperTextures);
+        forAllStates(ForgeweaveBlocks.WOODEN_HOPPER.get(), state -> switch (state.getValue(HopperBlock.FACING)) {
+            case DOWN -> variant(woodenHopperDown, 0, 0);
+            case NORTH -> variant(woodenHopperSide, 0, 0);
+            case SOUTH -> variant(woodenHopperSide, 0, 180);
+            case WEST -> variant(woodenHopperSide, 0, 270);
+            case EAST -> variant(woodenHopperSide, 0, 90);
+            default -> variant(woodenHopperDown, 0, 0);
         });
 
         // #104 -- cobalt + ardite nether ore (docs/SCOPE.md M2 issue #104): plain cube_all geometry,
@@ -359,13 +393,13 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
         // #275/#951 -- clear glass (cutout, like seared glass above) and its 16 clear stained glass
         // colors (translucent, matching upstream's BlockClearStainedGlass#getBlockLayer). Both draw
         // with upstream's connected textures; see connectedGlassBlock.
-        connectedGlassBlock(ForgeweaveBlocks.CLEAR_GLASS.get(),
-                connectedGlassModels("clear_glass", "minecraft:cutout"));
+        connectedGlassBlock(ForgeweaveBlocks.CLEAR_GLASS.get(), connectedGlassModels("clear_glass", false));
         // All 16 colors share one model set: one texture, tinted apart per block instance by
         // ForgeweaveGlassColors, exactly as upstream's own blockstate has one file for all 16 metas.
-        Map<String, ModelFile> stained = connectedGlassModels("clear_stained_glass", "minecraft:translucent");
+        // The item side of that tint is the client item's constant tint (connectedGlassBlock).
+        Map<String, Identifier> stained = connectedGlassModels("clear_stained_glass", true);
         for (ForgeweaveBlocks.StainedGlassColor color : ForgeweaveBlocks.clearStainedGlassColors()) {
-            connectedGlassBlock(color.block().get(), stained);
+            connectedGlassBlock(color.block().get(), stained, ItemModelUtils.constantTint(ARGB.opaque(color.tint())));
         }
 
         slimeIslandBlocks(); // #449 (parity audit T18)
@@ -381,9 +415,8 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
     private void moltenFluidBlocks() {
         for (ForgeweaveFluids.MoltenMetal fluid : ForgeweaveFluids.all()) {
             Block block = fluid.block().get();
-            ModelFile model = models().getBuilder("block/" + BuiltInRegistries.BLOCK.getKey(block).getPath())
-                    .texture("particle", fluid.stillTexture());
-            getVariantBuilder(block).partialState().setModels(new ConfiguredModel(model));
+            Identifier model = model("block/" + name(block), null, textures("particle", fluid.stillTexture()));
+            simpleBlock(block, model);
         }
     }
 
@@ -398,8 +431,9 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
      * parenting {@code minecraft:block/grass_block} gives.
      *
      * <p>One shared texture per tinted shape rather than one per colour, the same "one greyscale
-     * texture + per-instance tint" idiom {@link #cubeAllTranslucentBlock} already uses for the clear
-     * stained glass -- and upstream's own, since {@code SlimeColorizer} is what paints all of these.
+     * texture + per-instance tint" idiom the clear stained glass already uses -- and upstream's own,
+     * since {@code SlimeColorizer} is what paints all of these. In the inventory the tint is the
+     * foliage type's flat colour, a constant tint on the client item.
      */
     private void slimeIslandBlocks() {
         for (ForgeweaveBlocks.SlimeSoil soil : ForgeweaveBlocks.slimeSoils()) {
@@ -407,14 +441,14 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
             cubeAllBlock(dirtName, soil.dirt().get());
 
             String grassName = name(soil.grass().get());
-            ModelFile grass = models().withExistingParent(grassName, mcLoc("block/grass_block"))
-                    .texture("particle", modLoc("derived/block/" + dirtName))
-                    .texture("bottom", modLoc("derived/block/" + dirtName))
-                    .texture("side", modLoc("derived/block/" + dirtName))
-                    .texture("top", modLoc("derived/block/slime_grass_top"))
-                    .texture("overlay", modLoc("derived/block/slime_grass_side_overlay"))
-                    .renderType("minecraft:cutout_mipped");
-            simpleBlockWithItem(soil.grass().get(), grass);
+            Identifier grass = model("block/" + grassName, mcLoc("block/grass_block"), textures(
+                    "particle", modLoc("derived/block/" + dirtName),
+                    "bottom", modLoc("derived/block/" + dirtName),
+                    "side", modLoc("derived/block/" + dirtName),
+                    "top", modLoc("derived/block/slime_grass_top"),
+                    "overlay", modLoc("derived/block/slime_grass_side_overlay")));
+            simpleBlock(soil.grass().get(), grass);
+            simpleBlockItem(soil.grass().get(), grass, foliageTint(soil.foliage()));
         }
 
         // Every colour's congealed slime is a plain cube_all off its own derived sprite; the
@@ -424,37 +458,44 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
             cubeAllBlock(name(family.congealed().get()), family.congealed().get());
             if (family.slimeBlock() != null) {
                 String slimeName = name(family.slimeBlock().get());
-                ModelFile slime = models().cubeAll(slimeName, modLoc("derived/block/" + slimeName))
-                        .renderType("minecraft:translucent");
-                simpleBlockWithItem(family.slimeBlock().get(), slime);
+                Identifier slime = model("block/" + slimeName, mcLoc("block/cube_all"),
+                        Map.of("all", new Material(modLoc("derived/block/" + slimeName), true)));
+                simpleBlock(family.slimeBlock().get(), slime);
+                simpleBlockItem(family.slimeBlock().get(), slime);
             }
         }
 
         for (ForgeweaveBlocks.SlimePlants plants : ForgeweaveBlocks.slimePlants()) {
+            ItemTintSource foliage = foliageTint(plants.foliage());
             String leavesName = name(plants.leaves().get());
-            ModelFile leaves = models().withExistingParent(leavesName, mcLoc("block/leaves"))
-                    .texture("all", modLoc("derived/block/slime_leaves"))
-                    .renderType("minecraft:cutout_mipped");
-            simpleBlockWithItem(plants.leaves().get(), leaves);
+            Identifier leaves = model("block/" + leavesName, mcLoc("block/leaves"),
+                    textures("all", modLoc("derived/block/slime_leaves")));
+            simpleBlock(plants.leaves().get(), leaves);
+            simpleBlockItem(plants.leaves().get(), leaves, foliage);
 
-            slimePlantBlock(plants.tallGrass().get(), "slime_tall_grass");
-            slimePlantBlock(plants.fern().get(), "slime_fern");
+            slimePlantBlock(plants.tallGrass().get(), "slime_tall_grass", foliage);
+            slimePlantBlock(plants.fern().get(), "slime_fern", foliage);
 
             // #488 (parity audit T57): the sapling is a plain cross with its own coloured texture
             // (upstream ships slimesapling_blue/purple rather than tinting one greyscale sprite),
             // and each vine stage is vanilla's own multipart vine wired to a greyscale slime sprite.
             String saplingName = name(plants.sapling().get());
-            ResourceLocation saplingSprite = modLoc("derived/block/" + saplingName);
-            simpleBlock(plants.sapling().get(),
-                    models().cross(saplingName, saplingSprite).renderType("minecraft:cutout"));
-            itemModels().withExistingParent(saplingName, mcLoc("item/generated")).texture("layer0", saplingSprite);
+            Identifier saplingSprite = modLoc("derived/block/" + saplingName);
+            simpleBlock(plants.sapling().get(), model("block/" + saplingName, mcLoc("block/cross"),
+                    textures("cross", saplingSprite)));
+            flatBlockItem(plants.sapling().get(), saplingSprite);
 
             if (!plants.vines().isEmpty()) {
-                slimeVineBlock(plants.vine().get(), "slime_vine");
-                slimeVineBlock(plants.vineMid().get(), "slime_vine_mid");
-                slimeVineBlock(plants.vineEnd().get(), "slime_vine_end");
+                slimeVineBlock(plants.vine().get(), "slime_vine", foliage);
+                slimeVineBlock(plants.vineMid().get(), "slime_vine_mid", foliage);
+                slimeVineBlock(plants.vineEnd().get(), "slime_vine_end", foliage);
             }
         }
+    }
+
+    /** The inventory half of {@code ForgeweaveFoliageColors}: the foliage type's flat colour. */
+    private static ItemTintSource foliageTint(FoliageType foliage) {
+        return ItemModelUtils.constantTint(ARGB.opaque(foliage.color()));
     }
 
     /**
@@ -462,39 +503,39 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
      * rotation of {@code block/vine} per lit face, plus the same model again for the faceless state
      * so an unattached vine still renders -- over a slime vine sprite.
      */
-    private void slimeVineBlock(Block block, String texture) {
+    private void slimeVineBlock(Block block, String texture, ItemTintSource tint) {
         String blockName = name(block);
-        ResourceLocation sprite = modLoc("derived/block/" + texture);
-        ModelFile model = models().withExistingParent(blockName, mcLoc("block/vine"))
-                .texture("particle", sprite)
-                .texture("vine", sprite)
-                .renderType("minecraft:cutout");
-        MultiPartBlockStateBuilder builder = getMultipartBuilder(block);
+        Identifier sprite = modLoc("derived/block/" + texture);
+        Identifier model = model("block/" + blockName, mcLoc("block/vine"), textures(
+                "particle", sprite,
+                "vine", sprite));
+        MultiPartGenerator builder = MultiPartGenerator.multiPart(block);
         int[] rotations = {0, 90, 180, 270};
         BooleanProperty[] faces = {VineBlock.NORTH, VineBlock.EAST, VineBlock.SOUTH, VineBlock.WEST};
         for (int i = 0; i < faces.length; i++) {
-            builder.part().modelFile(model).rotationY(rotations[i]).uvLock(rotations[i] != 0).addModel()
-                    .condition(faces[i], true).end();
-            builder.part().modelFile(model).rotationY(rotations[i]).uvLock(rotations[i] != 0).addModel()
-                    .condition(VineBlock.UP, false).condition(VineBlock.NORTH, false).condition(VineBlock.EAST, false)
-                    .condition(VineBlock.SOUTH, false).condition(VineBlock.WEST, false).end();
+            builder = builder
+                    .with(new ConditionBuilder().term(faces[i], true), part(model, 0, rotations[i], rotations[i] != 0))
+                    .with(faceless(), part(model, 0, rotations[i], rotations[i] != 0));
         }
-        builder.part().modelFile(model).rotationX(270).uvLock(true).addModel()
-                .condition(VineBlock.UP, true).end();
-        builder.part().modelFile(model).rotationX(270).uvLock(true).addModel()
-                .condition(VineBlock.UP, false).condition(VineBlock.NORTH, false).condition(VineBlock.EAST, false)
-                .condition(VineBlock.SOUTH, false).condition(VineBlock.WEST, false).end();
-        itemModels().withExistingParent(blockName, mcLoc("item/generated")).texture("layer0", sprite);
+        builder = builder
+                .with(new ConditionBuilder().term(VineBlock.UP, true), part(model, 270, 0, true))
+                .with(faceless(), part(model, 270, 0, true));
+        blockStates.accept(builder);
+        flatBlockItem(block, sprite, tint);
+    }
+
+    /** A vine with no face lit at all, which vanilla's multipart still draws on every side. */
+    private static ConditionBuilder faceless() {
+        return new ConditionBuilder().term(VineBlock.UP, false).term(VineBlock.NORTH, false).term(VineBlock.EAST, false)
+                .term(VineBlock.SOUTH, false).term(VineBlock.WEST, false);
     }
 
     /** A slimy tall grass or fern: a tinted cross in the world, a flat tinted sprite in the hand. */
-    private void slimePlantBlock(Block block, String texture) {
+    private void slimePlantBlock(Block block, String texture, ItemTintSource tint) {
         String blockName = name(block);
-        ResourceLocation sprite = modLoc("derived/block/" + texture);
-        ModelFile model = models().singleTexture(blockName, mcLoc("block/tinted_cross"), "cross", sprite)
-                .renderType("minecraft:cutout");
-        simpleBlock(block, model);
-        itemModels().withExistingParent(blockName, mcLoc("item/generated")).texture("layer0", sprite);
+        Identifier sprite = modLoc("derived/block/" + texture);
+        simpleBlock(block, model("block/" + blockName, mcLoc("block/tinted_cross"), textures("cross", sprite)));
+        flatBlockItem(block, sprite, tint);
     }
 
     private static String name(Block block) {
@@ -511,12 +552,12 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
      * partchest} variants at that one model and overrides only the textures.
      */
     private void chestBlock(String name, Block block) {
-        ModelFile model = models().withExistingParent(name, modLoc("block/chest"))
-                .texture("side", modLoc("derived/block/" + name + "_side"))
-                .texture("front", modLoc("derived/block/" + name + "_front"))
-                .texture("top", modLoc("derived/block/" + name + "_top"))
-                .texture("drawer_front", modLoc("derived/block/" + name + "_drawer_front"))
-                .texture("drawer_side", modLoc("derived/block/" + name + "_drawer_side"));
+        Identifier model = model("block/" + name, modLoc("block/chest"), textures(
+                "side", modLoc("derived/block/" + name + "_side"),
+                "front", modLoc("derived/block/" + name + "_front"),
+                "top", modLoc("derived/block/" + name + "_top"),
+                "drawer_front", modLoc("derived/block/" + name + "_drawer_front"),
+                "drawer_side", modLoc("derived/block/" + name + "_drawer_side")));
         horizontalBlock(block, model);
         simpleBlockItem(block, model);
     }
@@ -528,33 +569,38 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
      * front is never shown and simply reuses the normal one.
      */
     private void netherCoreBlock() {
-        ResourceLocation side = modLoc("derived/block/nether_core_side");
-        ModelFile inactive = models().orientable("nether_core", side, modLoc("derived/block/nether_core_front_inactive"), side);
-        Map<Boolean, Map<Boolean, ModelFile>> models = new java.util.HashMap<>();
+        Identifier side = modLoc("derived/block/nether_core_side");
+        Identifier inactive = orientable("nether_core", side, modLoc("derived/block/nether_core_front_inactive"));
+        Map<Boolean, Map<Boolean, Identifier>> models = new HashMap<>();
         for (boolean hot : new boolean[] {false, true}) {
             String active = hot ? "nether_core_v2_front_active" : "nether_core_front_active";
-            Map<Boolean, ModelFile> byActive = new java.util.HashMap<>();
+            Map<Boolean, Identifier> byActive = new HashMap<>();
             byActive.put(false, inactive);
-            byActive.put(true, models().orientable(hot ? "nether_core_v2_active" : "nether_core_active", side, modLoc("derived/block/" + active), side));
+            byActive.put(true, orientable(hot ? "nether_core_v2_active" : "nether_core_active", side, modLoc("derived/block/" + active)));
             models.put(hot, byActive);
         }
-        getVariantBuilder(ForgeweaveBlocks.NETHER_CORE.get()).forAllStates(state -> ConfiguredModel.builder()
-                .modelFile(models.get(state.getValue(SmelteryControllerBlock.HOT)).get(state.getValue(SmelteryControllerBlock.ACTIVE)))
-                .rotationY(((int) state.getValue(HorizontalDirectionalBlock.FACING).toYRot() + 180) % 360)
-                .build());
+        forAllStates(ForgeweaveBlocks.NETHER_CORE.get(), state -> variant(
+                models.get(state.getValue(SmelteryControllerBlock.HOT)).get(state.getValue(SmelteryControllerBlock.ACTIVE)),
+                0, horizontalRotation(state)));
         simpleBlockItem(ForgeweaveBlocks.NETHER_CORE.get(), models.get(false).get(false));
     }
 
     private void coreBlock(String name, Block block, String sideTexture) {
-        ResourceLocation side = modLoc("derived/block/" + sideTexture);
-        ModelFile inactive = models().orientable(name, side, modLoc("derived/block/" + name + "_front_inactive"), side);
-        ModelFile active = models().orientable(name + "_active", side, modLoc("derived/block/" + name + "_front_active"), side);
-        horizontalBlock(block, state -> state.getValue(SmelteryControllerBlock.ACTIVE) ? active : inactive);
+        Identifier side = modLoc("derived/block/" + sideTexture);
+        Identifier inactive = orientable(name, side, modLoc("derived/block/" + name + "_front_inactive"));
+        Identifier active = orientable(name + "_active", side, modLoc("derived/block/" + name + "_front_active"));
+        forAllStates(block, state -> variant(state.getValue(SmelteryControllerBlock.ACTIVE) ? active : inactive,
+                0, horizontalRotation(state)));
         simpleBlockItem(block, inactive);
     }
 
+    /** Vanilla's {@code block/orientable} with the side texture on the top as well, 1.21.1's {@code orientable(name, side, front, side)}. */
+    private Identifier orientable(String name, Identifier side, Identifier front) {
+        return model("block/" + name, mcLoc("block/orientable"), textures("side", side, "front", front, "top", side));
+    }
+
     /** {@code derived/block/<base>} at the standard tier, {@code derived/block/<base>_<tier>} otherwise (SearedTier). */
-    private ResourceLocation tierTexture(String base, SmelteryCore tier) {
+    private Identifier tierTexture(String base, SmelteryCore tier) {
         return modLoc("derived/block/" + base + (tier == SmelteryCore.STANDARD ? "" : "_" + tier.getSerializedName()));
     }
 
@@ -568,23 +614,17 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
      * with the standard tier's model as the block item. Models are built once per tier, not per
      * state, so a facing block's four rotations share them.
      */
-    private void tiered(Block block, Function<SmelteryCore, ModelFile> model, ToIntFunction<BlockState> rotationY) {
-        Map<SmelteryCore, ModelFile> models = new EnumMap<>(SmelteryCore.class);
+    private void tiered(Block block, Function<SmelteryCore, Identifier> model, ToIntFunction<BlockState> rotationY) {
+        Map<SmelteryCore, Identifier> models = new EnumMap<>(SmelteryCore.class);
         for (SmelteryCore tier : SmelteryCore.values()) {
             models.put(tier, model.apply(tier));
         }
-        getVariantBuilder(block).forAllStates(state -> ConfiguredModel.builder()
-                .modelFile(models.get(state.getValue(SearedTier.TIER)))
-                .rotationY(rotationY.applyAsInt(state))
-                .build());
+        forAllStates(block, state -> variant(models.get(state.getValue(SearedTier.TIER)), 0, rotationY.applyAsInt(state)));
         simpleBlockItem(block, models.get(SmelteryCore.STANDARD));
     }
 
-    private void tieredCubeAll(String name, Block block, boolean cutout) {
-        tiered(block, tier -> {
-            var model = models().cubeAll(tierName(name, tier), tierTexture(name, tier));
-            return cutout ? model.renderType("minecraft:cutout") : model;
-        }, state -> 0);
+    private void tieredCubeAll(String name, Block block) {
+        tiered(block, tier -> cubeAll("block/" + tierName(name, tier), tierTexture(name, tier)), state -> 0);
     }
 
     /**
@@ -593,20 +633,27 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
      * block item takes the un-pressed model, which is the state a freshly placed tank is in.
      */
     private void energizedTank() {
-        ResourceLocation top = modLoc("block/energized_tank_top");
-        ModelFile off = models().cubeBottomTop("energized_tank", modLoc("block/energized_tank_side"), top, top);
-        ModelFile on = models().cubeBottomTop("energized_tank_overdrive",
-                modLoc("block/energized_tank_side_overdrive"), top, top);
-        getVariantBuilder(ForgeweaveBlocks.ENERGIZED_TANK.get()).forAllStates(state -> ConfiguredModel.builder()
-                .modelFile(state.getValue(EnergizedTankBlock.OVERDRIVE) ? on : off)
-                .build());
+        Identifier top = modLoc("block/energized_tank_top");
+        Identifier off = cubeBottomTop("energized_tank", modLoc("block/energized_tank_side"), top);
+        Identifier on = cubeBottomTop("energized_tank_overdrive", modLoc("block/energized_tank_side_overdrive"), top);
+        forAllStates(ForgeweaveBlocks.ENERGIZED_TANK.get(),
+                state -> variant(state.getValue(EnergizedTankBlock.OVERDRIVE) ? on : off, 0, 0));
         simpleBlockItem(ForgeweaveBlocks.ENERGIZED_TANK.get(), off);
     }
 
-    /** The tank family: side and top textures per type, cutout for the fluid windows (see tankBlock's note). */
+    /**
+     * The tank family: side and top textures per type. #145: the derived side/top textures carry
+     * real alpha-cutout windows (0 and 255 alpha values), which 26.1 sorts onto the cutout layer by
+     * itself.
+     */
     private void tieredTank(String name, Block block, String sideTexture, String topTexture) {
-        tiered(block, tier -> models().cubeBottomTop(tierName(name, tier), tierTexture(sideTexture, tier),
-                tierTexture(topTexture, tier), tierTexture(topTexture, tier)).renderType("minecraft:cutout"), state -> 0);
+        tiered(block, tier -> cubeBottomTop(tierName(name, tier), tierTexture(sideTexture, tier), tierTexture(topTexture, tier)),
+                state -> 0);
+    }
+
+    /** {@code block/cube_bottom_top} with the same texture on the top and the bottom. */
+    private Identifier cubeBottomTop(String name, Identifier side, Identifier end) {
+        return model("block/" + name, mcLoc("block/cube_bottom_top"), textures("side", side, "bottom", end, "top", end));
     }
 
     /**
@@ -616,26 +663,22 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
      */
     private void tieredDrainLike(String name, Block block, String frontTexture) {
         tiered(block, tier -> {
-            ResourceLocation side = tierTexture("seared_bricks", tier);
-            return models().cube(tierName(name, tier), side, side, tierTexture(frontTexture, tier),
-                    tierTexture("seared_drain_back", tier), side, side).texture("particle", side);
-        }, state -> ((int) state.getValue(HorizontalDirectionalBlock.FACING).toYRot() + 180) % 360);
-    }
-
-    private void tankBlock(String name, Block block, String sideTexture, String topTexture) {
-        ResourceLocation top = modLoc("derived/block/" + topTexture);
-        // #145: the derived side/top textures carry real alpha-cutout windows (0 and 255 alpha
-        // values). NeoForge 1.21 declares a block's chunk render type on the model itself rather
-        // than through the legacy ItemBlockRenderTypes.setRenderLayer Java map -- mixing the two
-        // left the block with an empty render-type set and made it disappear entirely.
-        ModelFile model = models().cubeBottomTop(name, modLoc("derived/block/" + sideTexture), top, top)
-                .renderType("minecraft:cutout");
-        simpleBlockWithItem(block, model);
+            Identifier side = tierTexture("seared_bricks", tier);
+            return model("block/" + tierName(name, tier), mcLoc("block/cube"), textures(
+                    "down", side,
+                    "up", side,
+                    "north", tierTexture(frontTexture, tier),
+                    "south", tierTexture("seared_drain_back", tier),
+                    "east", side,
+                    "west", side,
+                    "particle", side));
+        }, ForgeweaveBlockStateProvider::horizontalRotation);
     }
 
     private void cubeAllBlock(String name, Block block) {
-        ModelFile model = models().cubeAll(name, modLoc("derived/block/" + name));
-        simpleBlockWithItem(block, model);
+        Identifier model = cubeAll("block/" + name, modLoc("derived/block/" + name));
+        simpleBlock(block, model);
+        simpleBlockItem(block, model);
     }
 
     /**
@@ -644,42 +687,43 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
      * ore family (issue #839), whose textures are procedurally generated, not ported.
      */
     private void cubeAllBlockOriginal(String name, Block block) {
-        ModelFile model = models().cubeAll(name, modLoc("block/" + name));
-        simpleBlockWithItem(block, model);
+        Identifier model = cubeAll("block/" + name, modLoc("block/" + name));
+        simpleBlock(block, model);
+        simpleBlockItem(block, model);
+    }
+
+    private Identifier cubeAll(String path, Identifier texture) {
+        return model(path, mcLoc("block/cube_all"), textures("all", texture));
     }
 
     /** A seared stairs block (issue #274), textured from its parent seared block's derived texture. */
     private void searedStairs(String name, StairBlock block, String parentTexture) {
-        ResourceLocation texture = modLoc("derived/block/" + parentTexture);
-        ModelFile stairs = models().stairs(name, texture, texture, texture);
-        ModelFile inner = models().stairsInner(name + "_inner", texture, texture, texture);
-        ModelFile outer = models().stairsOuter(name + "_outer", texture, texture, texture);
-        stairsBlock(block, stairs, inner, outer);
+        Map<String, Material> texture = sameTexture(modLoc("derived/block/" + parentTexture));
+        Identifier stairs = model("block/" + name, mcLoc("block/stairs"), texture);
+        Identifier inner = model("block/" + name + "_inner", mcLoc("block/inner_stairs"), texture);
+        Identifier outer = model("block/" + name + "_outer", mcLoc("block/outer_stairs"), texture);
+        blockStates.accept(BlockModelGenerators.createStairs(block,
+                BlockModelGenerators.plainVariant(inner), BlockModelGenerators.plainVariant(stairs),
+                BlockModelGenerators.plainVariant(outer)));
         simpleBlockItem(block, stairs);
     }
 
     /**
      * A seared slab block (issue #274), textured from its parent seared block's derived texture. The
-     * double-slab model reuses the parent cube_all block model registered by {@link #cubeAllBlock} --
-     * this must run after that call registers {@code parentTexture}'s block model.
+     * double-slab model reuses the parent cube_all block model registered by {@link #tieredCubeAll}.
      */
     private void searedSlab(String name, SlabBlock block, String parentTexture) {
-        ResourceLocation texture = modLoc("derived/block/" + parentTexture);
-        ModelFile bottom = models().slab(name, texture, texture, texture);
-        ModelFile top = models().slabTop(name + "_top", texture, texture, texture);
-        ModelFile doubleSlab = models().getExistingFile(modLoc("block/" + parentTexture));
-        slabBlock(block, bottom, top, doubleSlab);
+        Map<String, Material> texture = sameTexture(modLoc("derived/block/" + parentTexture));
+        Identifier bottom = model("block/" + name, mcLoc("block/slab"), texture);
+        Identifier top = model("block/" + name + "_top", mcLoc("block/slab_top"), texture);
+        blockStates.accept(BlockModelGenerators.createSlab(block, BlockModelGenerators.plainVariant(bottom),
+                BlockModelGenerators.plainVariant(top), BlockModelGenerators.plainVariant(modLoc("block/" + parentTexture))));
         simpleBlockItem(block, bottom);
     }
 
-    /**
-     * A cube_all block whose texture carries real alpha-cutout transparency (issue #289's seared
-     * glass) -- same {@code minecraft:cutout} render_type deviation as {@link #tankBlock}, for the
-     * same reason (NeoForge 1.21 declares chunk render type on the model itself).
-     */
-    private void cubeAllCutoutBlock(String name, Block block) {
-        ModelFile model = models().cubeAll(name, modLoc("derived/block/" + name)).renderType("minecraft:cutout");
-        simpleBlockWithItem(block, model);
+    /** The bottom/top/side triple vanilla's stairs and slab models bind, all one texture. */
+    private static Map<String, Material> sameTexture(Identifier texture) {
+        return textures("bottom", texture, "top", texture, "side", texture);
     }
 
     /**
@@ -791,30 +835,31 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
     /**
      * Builds one glass's nine connected models over its eleven sprites under
      * {@code derived/block/connected/&lt;set&gt;/}, indexed the same way {@link #CONNECTED_MODELS} is.
+     * A translucent glass marks its six faces {@code force_translucent}, 26.1's replacement for the
+     * 1.21.1 {@code minecraft:translucent} render type; a cutout one leaves the layer to its alpha.
      *
      * <p>Upstream keeps the sprite names in the blockstate file and the face bindings in Mantle's
      * shared models, which 1.21 has no equivalent for -- a blockstate cannot retexture a model any
      * more. So each glass gets its own nine concrete models instead, which is the same nine bindings
      * with the texture paths already resolved.
      */
-    private Map<String, ModelFile> connectedGlassModels(String set, String renderType) {
-        Map<String, ModelFile> models = new LinkedHashMap<>();
+    private Map<String, Identifier> connectedGlassModels(String set, boolean translucent) {
+        Map<String, Identifier> glass = new LinkedHashMap<>();
         for (ConnectedModel model : CONNECTED_MODELS) {
-            models.put(model.suffix(), models().withExistingParent("block/connected/" + set + "/" + model.suffix(),
-                            modLoc("block/tinted_cube"))
-                    .texture("particle", connectedSprite(set, "normal"))
-                    .texture("down", connectedSprite(set, model.down()))
-                    .texture("up", connectedSprite(set, model.up()))
-                    .texture("north", connectedSprite(set, model.north()))
-                    .texture("south", connectedSprite(set, model.south()))
-                    .texture("west", connectedSprite(set, model.west()))
-                    .texture("east", connectedSprite(set, model.east()))
-                    .renderType(renderType));
+            Map<String, Material> faces = new LinkedHashMap<>();
+            faces.put("particle", new Material(connectedSprite(set, "normal")));
+            faces.put("down", new Material(connectedSprite(set, model.down()), translucent));
+            faces.put("up", new Material(connectedSprite(set, model.up()), translucent));
+            faces.put("north", new Material(connectedSprite(set, model.north()), translucent));
+            faces.put("south", new Material(connectedSprite(set, model.south()), translucent));
+            faces.put("west", new Material(connectedSprite(set, model.west()), translucent));
+            faces.put("east", new Material(connectedSprite(set, model.east()), translucent));
+            glass.put(model.suffix(), model("block/connected/" + set + "/" + model.suffix(), modLoc("block/tinted_cube"), faces));
         }
-        return models;
+        return glass;
     }
 
-    private ResourceLocation connectedSprite(String set, String frame) {
+    private Identifier connectedSprite(String set, String frame) {
         return modLoc("derived/block/connected/" + set + "/" + frame);
     }
 
@@ -826,19 +871,130 @@ public class ForgeweaveBlockStateProvider extends BlockStateProvider {
      * <p>The item model is the isolated frame, {@code connected/&lt;set&gt;/0} -- upstream's blockstate
      * gives {@code inventory} the same {@code mantle:connected_0} it gives a pane with no neighbours.
      */
-    private void connectedGlassBlock(Block block, Map<String, ModelFile> models) {
-        getVariantBuilder(block).forAllStates(state -> {
+    private void connectedGlassBlock(Block block, Map<String, Identifier> models, ItemTintSource... tints) {
+        forAllStates(block, state -> {
             StringBuilder key = new StringBuilder(CONNECTED_SIDES.size());
             for (BooleanProperty side : CONNECTED_SIDES) {
                 key.append(state.getValue(side) ? '1' : '0');
             }
             ConnectedVariant variant = CONNECTED_VARIANTS.get(key.toString());
-            return ConfiguredModel.builder()
-                    .modelFile(models.get(variant.suffix()))
-                    .rotationX(variant.x())
-                    .rotationY(variant.y())
-                    .build();
+            return variant(models.get(variant.suffix()), variant.x(), variant.y());
         });
-        simpleBlockItem(block, models.get("0"));
+        simpleBlockItem(block, models.get("0"), tints);
+    }
+
+    // ---- 1.21.1 BlockStateProvider / ModelProvider equivalents ----
+
+    /**
+     * A table station (issue #43): {@link #horizontalBlock}'s variants, each wrapped in the
+     * {@code forgeweave:retextured_table} blockstate type that swaps the table into the crafting
+     * wood, and a {@code forgeweave:retextured_table} client item over the usual block-item model.
+     */
+    private void retexturedTable(Block block, Identifier model) {
+        forAllStatesUnbaked(block, state -> MultiVariant.of(new CustomBlockStateModelBuilder.Simple(
+                new RetexturedTableGeometry.Unbaked(variant(model, 0, horizontalRotation(state))))).toUnbaked());
+        items.accept(block.asItem(), new RetexturedTableItemModel.Unbaked(blockItemModel(block, model)));
+    }
+
+    /** NeoForge 1.21.1's {@code horizontalBlock}: a north-authored model turned to face {@code facing}. */
+    private void horizontalBlock(Block block, Identifier model) {
+        forAllStates(block, state -> variant(model, 0, horizontalRotation(state)));
+    }
+
+    private static int horizontalRotation(BlockState state) {
+        return ((int) state.getValue(HorizontalDirectionalBlock.FACING).toYRot() + 180) % 360;
+    }
+
+    /** One model for every state, the {@code ""} variant. */
+    private void simpleBlock(Block block, Identifier model) {
+        forAllStatesUnbaked(block, state -> BlockModelGenerators.plainVariant(model).toUnbaked(), true);
+    }
+
+    /** {@code models/item/<block>} parenting {@code model}, and the block item's client item on it. */
+    private void simpleBlockItem(Block block, Identifier model, ItemTintSource... tints) {
+        items.accept(block.asItem(), ItemModelUtils.tintedModel(blockItemModel(block, model), tints));
+    }
+
+    private Identifier blockItemModel(Block block, Identifier model) {
+        return model("item/" + name(block), model, Map.of());
+    }
+
+    /** A block item drawn as a flat {@code item/generated} sprite rather than its block model. */
+    private void flatBlockItem(Block block, Identifier sprite, ItemTintSource... tints) {
+        Identifier model = model("item/" + name(block), mcLoc("item/generated"), textures("layer0", sprite));
+        items.accept(block.asItem(), ItemModelUtils.tintedModel(model, tints));
+    }
+
+    /** One variant per block state, keyed by every property the way 1.21.1's {@code forAllStates} keyed it. */
+    private void forAllStates(Block block, Function<BlockState, Variant> variant) {
+        forAllStatesUnbaked(block, state -> BlockModelGenerators.variant(variant.apply(state)).toUnbaked());
+    }
+
+    private void forAllStatesUnbaked(Block block, Function<BlockState, BlockStateModel.Unbaked> model) {
+        forAllStatesUnbaked(block, model, false);
+    }
+
+    private void forAllStatesUnbaked(Block block, Function<BlockState, BlockStateModel.Unbaked> model, boolean single) {
+        blockStates.accept(new BlockModelDefinitionGenerator() {
+            @Override
+            public BlockStateModelDispatcher create() {
+                Map<String, BlockStateModel.Unbaked> variants = new HashMap<>();
+                if (single) {
+                    variants.put("", model.apply(block.defaultBlockState()));
+                } else {
+                    for (BlockState state : block.getStateDefinition().getPossibleStates()) {
+                        variants.put(new PropertyValueList(state.getValues().toList()).getKey(), model.apply(state));
+                    }
+                }
+                return new BlockStateModelDispatcher(Optional.of(new BlockStateModelDispatcher.SimpleModelSelectors(variants)),
+                        Optional.empty());
+            }
+
+            @Override
+            public Block block() {
+                return block;
+            }
+        });
+    }
+
+    private static Variant variant(Identifier model, int x, int y) {
+        return new Variant(model).withXRot(Quadrant.parseJson(x)).withYRot(Quadrant.parseJson(y));
+    }
+
+    private static MultiVariant part(Identifier model, int x, int y, boolean uvLock) {
+        return BlockModelGenerators.variant(variant(model, x, y).withUvLock(uvLock));
+    }
+
+    /** {@code {"parent": parent, "textures": textures}} at {@code forgeweave:<path>}, 1.21.1's {@code withExistingParent(...).texture(...)}. */
+    private Identifier model(String path, @Nullable Identifier parent, Map<String, Material> textures) {
+        Identifier id = modLoc(path);
+        JsonObject json = new JsonObject();
+        if (parent != null) {
+            json.addProperty("parent", parent.toString());
+        }
+        if (!textures.isEmpty()) {
+            JsonObject slots = new JsonObject();
+            textures.forEach((slot, material) -> slots.add(slot, Material.CODEC.encodeStart(JsonOps.INSTANCE, material).getOrThrow()));
+            json.add("textures", slots);
+        }
+        models.accept(id, () -> json);
+        return id;
+    }
+
+    /** Alternating slot name / texture id pairs, as plain (not force-translucent) materials. */
+    private static Map<String, Material> textures(Object... slotsAndTextures) {
+        Map<String, Material> textures = new LinkedHashMap<>();
+        for (int i = 0; i < slotsAndTextures.length; i += 2) {
+            textures.put((String) slotsAndTextures[i], new Material((Identifier) slotsAndTextures[i + 1]));
+        }
+        return textures;
+    }
+
+    private static Identifier modLoc(String path) {
+        return Identifier.fromNamespaceAndPath(Forgeweave.MODID, path);
+    }
+
+    private static Identifier mcLoc(String path) {
+        return Identifier.withDefaultNamespace(path);
     }
 }

@@ -2,9 +2,7 @@
   "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "item": "forgeweave:raw_voltcinder_block"
-    }
+    "forgeweave:raw_voltcinder_block"
   ],
   "result": {
     "count": 9,
