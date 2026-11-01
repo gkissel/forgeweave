@@ -3295,6 +3295,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "more metal.\n\n"
                         + "Nothing comes out on its own. A Seared Drain in a wall is the outlet, and a "
                         + "Faucet on the drain is what pours. The Casting chapter covers that end.\n\n"
+                        + "A drain always pours the bottom layer. A new metal settles on top, so the first "
+                        + "one in is the first one out. To pour a different one first, click it in the "
+                        + "core's screen and it sinks to the bottom. A Seared Reservoir works the same way.\n\n"
                         + "A melt that sits at no progress is short of heat. The next page is about "
                         + "fuel, which is where heat comes from.");
         add("book.forgeweave.smeltery.fuel.title", "Fuel and Heat");

@@ -300,6 +300,11 @@ public class BookScreen extends Screen {
         this.spread = Math.min(spread, lastSpread());
     }
 
+    /** Turns {@code spreads} spreads past the current one, for a harness capture of a page's continuation. */
+    public void turnForward(int spreads) {
+        openSpread(spread + spreads);
+    }
+
     /**
      * Upstream {@code GuiBook#onGuiClosed} (issue #623): bookmark the page left open on the book
      * item -- {@code ""} from the cover, so the bookmark clears, else the left leaf's page (the
