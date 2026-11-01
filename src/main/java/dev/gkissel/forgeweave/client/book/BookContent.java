@@ -150,7 +150,8 @@ public final class BookContent {
             return new BookPage.StructurePage(def.name(), StructureInfo.load(def.data()));
         }
         String base = "book.forgeweave." + sectionName + "." + def.name();
-        return new TextPage(base + ".title", base + ".text", imageOf(def.image()));
+        return new TextPage(base + ".title", base + ".text", imageOf(def.image()),
+                def.data() == null ? null : MiningLadder.load(def.data()));
     }
 
     @Nullable
