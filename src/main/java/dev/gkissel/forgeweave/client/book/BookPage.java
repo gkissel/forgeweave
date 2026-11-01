@@ -26,11 +26,13 @@ public sealed interface BookPage {
     /**
      * A titled page of wrapped body text, optionally with an image between title and text (the
      * 1.12 {@code text} and {@code "image with text below"} page types folded together -- the only
-     * difference between them is whether {@code image} is present).
+     * difference between them is whether {@code image} is present). A page whose JSON names a
+     * {@code data} file draws that {@link MiningLadder} under its text.
      */
-    record TextPage(String titleKey, String textKey, @Nullable Identifier image) implements BookPage {
+    record TextPage(String titleKey, String textKey, @Nullable Identifier image,
+            @Nullable MiningLadder ladder) implements BookPage {
         public TextPage(String titleKey, String textKey) {
-            this(titleKey, textKey, null);
+            this(titleKey, textKey, null, null);
         }
     }
 

@@ -634,11 +634,17 @@ public final class ScreenshotHarness {
      * A guide-book capture: the file name and either the spread to open ({@code -1} = the closed
      * cover) or a {@code section.page} bookmark resolved through the screen's ordinary
      * bookmark-opening path -- for the pages whose spread number shifts with the registry-generated
-     * content in front of them.
+     * content in front of them. With a bookmark, a positive {@code spread} turns that many spreads
+     * past it instead, to capture where a long page continues. A {@code pointer} of
+     * {@code {leaf, x, y}} (leaf 0 left, 1 right) holds the cursor there, to capture a hover.
      */
-    private record BookScene(String fileName, int spread, @Nullable String bookmark) {
+    private record BookScene(String fileName, int spread, @Nullable String bookmark, @Nullable int[] pointer) {
         BookScene(String fileName, int spread) {
-            this(fileName, spread, null);
+            this(fileName, spread, null, null);
+        }
+
+        BookScene(String fileName, int spread, @Nullable String bookmark) {
+            this(fileName, spread, bookmark, null);
         }
     }
 
@@ -671,6 +677,19 @@ public final class ScreenshotHarness {
             new BookScene("book_material_stages", -1, "materials.stages"),
             new BookScene("book_material_stage_grid", -1, "materials.first_smeltery"),
             new BookScene("book_material_manyullyn", -1, "materials.manyullyn"),
+            // The mining ladder pages, both long enough to continue onto a second leaf, and the
+            // smeltery page that explains clicking a fluid to pour it first.
+            new BookScene("book_mining_ladder", -1, "materials.mining_ladder"),
+            new BookScene("book_mining_ladder_2", 1, "materials.mining_ladder"),
+            // The ladder's hover states: a rung's pickaxe, an alloy head with its recipe, and an
+            // ore with where it generates.
+            new BookScene("book_mining_ladder_hover_pickaxe", -1, "materials.mining_ladder", new int[] {1, 60, 102}),
+            new BookScene("book_mining_ladder_hover_alloy", 1, "materials.mining_ladder", new int[] {0, 10, 72}),
+            new BookScene("book_mining_ladder_hover_ore", 1, "materials.mining_ladder", new int[] {0, 91, 20}),
+            new BookScene("book_raising_tier", -1, "materials.raising_tier"),
+            new BookScene("book_raising_tier_2", 1, "materials.raising_tier"),
+            new BookScene("book_smeltery_working", -1, "smeltery.working"),
+            new BookScene("book_smeltery_working_2", 1, "smeltery.working"),
             // "alien" because a Forgeweave-only install has to carry the family: endstone grants
             // level one and voidglass level two, and neither is gated on another mod.
             new BookScene("book_trait_alien", -1, "materials.trait_alien"));
@@ -2329,6 +2348,11 @@ public final class ScreenshotHarness {
         mc.gui.setScreen(screen);
         if (scene.bookmark() == null && scene.spread() >= 0) {
             screen.openSpread(scene.spread());
+        } else if (scene.bookmark() != null && scene.spread() > 0) {
+            screen.turnForward(scene.spread());
+        }
+        if (scene.pointer() != null) {
+            screen.pointAt(scene.pointer()[0] == 1, scene.pointer()[1], scene.pointer()[2]);
         }
         screenReadyTicks = -1;
         advance(Stage.SETTLE_BOOK);
