@@ -1,0 +1,76 @@
+{
+  "rungs": [
+    {
+      "tier": "wooden",
+      "heads": ["forgeweave:wood", "forgeweave:slime", "forgeweave:paper"],
+      "mines": [
+        {"item": "minecraft:stone"},
+        {"item": "minecraft:coal_ore"}
+      ]
+    },
+    {
+      "tier": "stone",
+      "heads": ["forgeweave:flint", "forgeweave:stone", "forgeweave:bone"],
+      "mines": [
+        {"item": "minecraft:iron_ore"},
+        {"item": "minecraft:copper_ore"},
+        {"item": "minecraft:lapis_ore"}
+      ]
+    },
+    {
+      "tier": "iron",
+      "heads": ["forgeweave:iron", "forgeweave:seared_stone"],
+      "mines": [
+        {"item": "minecraft:diamond_ore"},
+        {"item": "minecraft:gold_ore"},
+        {"item": "minecraft:redstone_ore"},
+        {"item": "forgeweave:fulmenite_ore"}
+      ]
+    },
+    {
+      "tier": "diamond",
+      "heads": ["forgeweave:amethyst", "forgeweave:emerald", "forgeweave:fulmenite"],
+      "mines": [
+        {"item": "minecraft:obsidian"},
+        {"item": "minecraft:ancient_debris", "where": "nether"}
+      ]
+    },
+    {
+      "tier": "netherite",
+      "heads": ["forgeweave:obsidian", "forgeweave:netherite"],
+      "mines": [
+        {"item": "forgeweave:cobalt_ore", "where": "nether"},
+        {"item": "forgeweave:ardite_ore", "where": "nether"},
+        {"item": "forgeweave:brimspar_ore", "where": "nether"},
+        {"item": "forgeweave:voltcinder_ore"},
+        {"item": "forgeweave:starfall_stone_ore"},
+        {"item": "forgeweave:duskspar_ore"},
+        {"item": "forgeweave:voidglass_ore"}
+      ]
+    },
+    {
+      "tier": "hardcinder",
+      "heads": ["forgeweave:manyullyn"],
+      "mines": [
+        {"item": "forgeweave:hardcinder_ore"},
+        {"item": "forgeweave:murkiron_ore"},
+        {"item": "forgeweave:nightshale_ore"}
+      ]
+    },
+    {
+      "tier": "warspar",
+      "heads": ["forgeweave:glowveil"],
+      "mines": [
+        {"item": "forgeweave:warspar_ore"},
+        {"item": "forgeweave:hollowstone_ore"}
+      ]
+    },
+    {
+      "tier": "resonite",
+      "heads": ["forgeweave:sunsteel"],
+      "mines": [
+        {"item": "forgeweave:resonite_ore"}
+      ]
+    }
+  ]
+}

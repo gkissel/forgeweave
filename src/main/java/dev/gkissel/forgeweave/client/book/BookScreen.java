@@ -128,6 +128,15 @@ public class BookScreen extends Screen {
      */
     private static final int NO_TARGET = -1;
 
+    /** A mining ladder icon cell: the 16px item and a 2px gutter. */
+    private static final int LADDER_CELL = 18;
+    /** The gap an arrow fills between two runs of ladder icons. */
+    private static final int LADDER_ARROW_W = 14;
+    /** The faint wash behind the rung the cursor is in, under the per-icon {@link #HOVER_COLOR}. */
+    private static final int LADDER_FOCUS_COLOR = 0x22EE541C;
+    private static final int LADDER_RULE_COLOR = 0x40542D0B;
+    private static final int LADDER_ARROW_COLOR = 0xFF8B6A4A;
+
     /** Draws one already-measured piece of a page at the origin it was laid out at. */
     @FunctionalInterface
     private interface Drawer {
@@ -140,11 +149,16 @@ public class BookScreen extends Screen {
      * identity, so a drawer can ask "am I the hovered one?" without two identical rows shadowing
      * each other. The tooltip is a supplier so a cycling item slot ({@code ElementItem}'s reagent
      * cycle, issue #651) can name the stack currently shown; a fixed tooltip supplies a constant.
+     * A tooltip is a list of lines, though most are one.
      */
     private record Region(int dx, int dy, int w, int h, int targetPage,
-            @Nullable Supplier<Component> tooltip) {
+            @Nullable Supplier<List<Component>> tooltip) {
 
         static Region of(int dx, int dy, int w, int h, int targetPage, @Nullable Component tooltip) {
+            return lines(dx, dy, w, h, targetPage, tooltip == null ? null : List.of(tooltip));
+        }
+
+        static Region lines(int dx, int dy, int w, int h, int targetPage, @Nullable List<Component> tooltip) {
             return new Region(dx, dy, w, h, targetPage, tooltip == null ? null : () -> tooltip);
         }
     }
@@ -202,6 +216,10 @@ public class BookScreen extends Screen {
      */
     @Nullable
     private String pendingBookmark;
+
+    /** {@link #pointAt}'s held cursor in screen coordinates, or {@code null} to follow the mouse. */
+    @Nullable
+    private int[] pointer;
 
     /** The link under the cursor as of the last {@link #render}; drives hover styling and tooltips. */
     @Nullable
@@ -300,6 +318,16 @@ public class BookScreen extends Screen {
         this.spread = Math.min(spread, lastSpread());
     }
 
+    /**
+     * Holds the cursor at a point on one leaf, in that leaf's own coordinates, for a harness capture
+     * of a hover state and its tooltip. A headless capture has no real cursor to move.
+     */
+    public void pointAt(boolean rightLeaf, int leafX, int leafY) {
+        this.pointer = new int[] {
+                (rightLeaf ? BookGeometry.rightPageX(this.width) : BookGeometry.leftPageX(this.width)) + leafX,
+                BookGeometry.pageY(this.height) + leafY};
+    }
+
     /** Turns {@code spreads} spreads past the current one, for a harness capture of a page's continuation. */
     public void turnForward(int spreads) {
         openSpread(spread + spreads);
@@ -358,6 +386,10 @@ public class BookScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        if (this.pointer != null) {
+            mouseX = this.pointer[0];
+            mouseY = this.pointer[1];
+        }
         super.render(graphics, mouseX, mouseY, partialTick);
         this.frame++;
         this.hovered = regionAt(mouseX, mouseY);
@@ -373,7 +405,7 @@ public class BookScreen extends Screen {
         }
         renderArrows(graphics, mouseX, mouseY);
         if (this.hovered != null && this.hovered.tooltip() != null) {
-            graphics.renderTooltip(this.font, this.hovered.tooltip().get(), mouseX, mouseY);
+            graphics.renderComponentTooltip(this.font, this.hovered.tooltip().get(), mouseX, mouseY);
         }
     }
 
@@ -599,6 +631,9 @@ public class BookScreen extends Screen {
                         graphics.blit(image, x, y, PAGE_TEXT_W, imageH, 0, 0, 854, 480, 854, 480)));
             }
             bodyBlocks(blocks, Component.translatable(text.textKey()));
+            if (text.ladder() != null) {
+                ladderBlocks(blocks, text.ladder());
+            }
         } else if (page instanceof StructurePage structure) {
             structureBlocks(blocks, structure);
         } else if (page instanceof ToolPage tool) {
@@ -611,6 +646,93 @@ public class BookScreen extends Screen {
             modifierBlocks(blocks, modifier.id());
         }
         return List.copyOf(blocks);
+    }
+
+    /**
+     * The mining ladder diagram ({@link MiningLadder}): one indivisible block per rung, so a rung
+     * never splits across leaves.
+     */
+    private void ladderBlocks(List<Block> blocks, MiningLadder ladder) {
+        HolderLookup.Provider registries = registries();
+        if (registries == null) {
+            return;
+        }
+        blocks.add(new Block(4, (graphics, x, y) -> {
+        }));
+        for (MiningLadder.Rung rung : ladder.rungs()) {
+            blocks.add(rungBlock(registries, rung));
+        }
+    }
+
+    /**
+     * One rung: its name and a rule, then left to right the heads that reach it, an arrow into a
+     * pickaxe built from the first head, and an arrow into the ores that pickaxe opens, wrapping
+     * under the first ore when they do not fit. Every icon explains itself on hover and a head
+     * jumps to its material page. The last region spans the whole rung, so the cursor anywhere in
+     * it, gaps included, lifts the rung without flickering between icons.
+     */
+    private Block rungBlock(HolderLookup.Provider registries, MiningLadder.Rung rung) {
+        int rowY = this.font.lineHeight + 2;
+        List<ItemStack> icons = new ArrayList<>();
+        List<Region> regions = new ArrayList<>();
+        int cx = 0;
+        for (ResourceLocation head : rung.heads()) {
+            icons.add(MiningLadder.headIcon(registries, head));
+            regions.add(Region.lines(cx, rowY, LADDER_CELL, LADDER_CELL,
+                    this.materialPages.getOrDefault(head, NO_TARGET),
+                    MiningLadder.headTooltip(registries, head, rung.tier())));
+            cx += LADDER_CELL;
+        }
+        int headsEnd = cx;
+        int pickX = headsEnd + LADDER_ARROW_W;
+        ItemStack pick = MiningLadder.pickaxe(registries, rung);
+        icons.add(pick);
+        regions.add(Region.lines(pickX, rowY, LADDER_CELL, LADDER_CELL, NO_TARGET,
+                MiningLadder.pickaxeTooltip(pick, rung.tier())));
+        int oreX = pickX + LADDER_CELL + LADDER_ARROW_W;
+        int columns = Math.max(1, (PAGE_TEXT_W - oreX) / LADDER_CELL);
+        for (int i = 0; i < rung.ores().size(); i++) {
+            MiningLadder.Ore ore = rung.ores().get(i);
+            ItemStack stack = MiningLadder.oreIcon(ore);
+            icons.add(stack);
+            regions.add(Region.lines(oreX + (i % columns) * LADDER_CELL, rowY + (i / columns) * LADDER_CELL,
+                    LADDER_CELL, LADDER_CELL, NO_TARGET, MiningLadder.oreTooltip(ore, stack)));
+        }
+        int rows = Math.max(1, (rung.ores().size() + columns - 1) / columns);
+        int height = rowY + rows * LADDER_CELL + 5;
+        regions.add(Region.of(0, 0, PAGE_TEXT_W, height - 2, NO_TARGET, null));
+
+        Component name = MiningLadder.tierName(rung.tier()).copy().withStyle(ChatFormatting.BOLD);
+        List<Region> rungRegions = List.copyOf(regions);
+        List<ItemStack> stacks = List.copyOf(icons);
+        int arrowY = rowY + LADDER_CELL / 2;
+        return new Block(height, (graphics, x, y) -> {
+            boolean focused = rungRegions.stream().anyMatch(region -> region == this.hovered);
+            if (focused) {
+                graphics.fill(x - 2, y - 2, x + PAGE_TEXT_W, y + height - 2, LADDER_FOCUS_COLOR);
+            }
+            graphics.drawString(this.font, name, x, y, focused ? LINK_COLOR : TITLE_COLOR, false);
+            graphics.fill(x + this.font.width(name) + 4, y + 4, x + PAGE_TEXT_W, y + 5, LADDER_RULE_COLOR);
+            for (int i = 0; i < stacks.size(); i++) {
+                Region region = rungRegions.get(i);
+                int ix = x + region.dx();
+                int iy = y + region.dy();
+                if (this.hovered == region) {
+                    graphics.fill(ix, iy, ix + LADDER_CELL, iy + LADDER_CELL, HOVER_COLOR);
+                }
+                graphics.renderItem(stacks.get(i), ix + 1, iy + 1);
+            }
+            ladderArrow(graphics, x + headsEnd + 2, y + arrowY);
+            ladderArrow(graphics, x + pickX + LADDER_CELL + 2, y + arrowY);
+        }, rungRegions);
+    }
+
+    /** A 10px right-pointing arrow centred on {@code cy}: a 2px shaft and a 4-column head. */
+    private static void ladderArrow(GuiGraphics graphics, int x, int cy) {
+        graphics.fill(x, cy - 1, x + 6, cy + 1, LADDER_ARROW_COLOR);
+        for (int i = 0; i < 4; i++) {
+            graphics.fill(x + 6 + i, cy - 4 + i, x + 7 + i, cy + 4 - i, LADDER_ARROW_COLOR);
+        }
     }
 
     /**
@@ -771,7 +893,7 @@ public class BookScreen extends Screen {
             List<ItemStack> stacks = reagentSlots.get(i);
             if (!stacks.isEmpty()) {
                 regions.add(new Region(sx + ModifyPageContent.MODIFIER_SLOT_X[i], slotDy + ModifyPageContent.MODIFIER_SLOT_Y[i],
-                        ITEM_SIZE, ITEM_SIZE, NO_TARGET, () -> cycled(stacks).getHoverName()));
+                        ITEM_SIZE, ITEM_SIZE, NO_TARGET, () -> List.of(cycled(stacks).getHoverName())));
             }
         }
         blocks.add(new Block(slotDy + slot.h() + 4, (graphics, x, y) -> {

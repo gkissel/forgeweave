@@ -5,7 +5,8 @@
   },
   {
     "name": "mining_ladder",
-    "type": "text"
+    "type": "text",
+    "data": "ladder/mining.json"
   },
   {
     "name": "raising_tier",

@@ -3097,15 +3097,15 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.materials.mining_ladder.title", "The Mining Ladder");
         add("book.forgeweave.materials.mining_ladder.text",
                 "A tool's mining level comes from its head. Every material sits on one rung of an eight-rung ladder, and a tool harvests anything at its own rung or below. A block that needs a higher rung still breaks at the tool's normal speed, but it drops nothing. The Tool Tier line on a tool's tooltip names its rung.\n\n"
-                        + "Below, each rung lists what it mines, then the first head that gets you there.\n\n"
-                        + "Wood mines stone and coal. Wood, slime and paper at the Part Builder.\n\n"
-                        + "Stone mines iron, copper and lapis. Flint, stone and bone at the Part Builder.\n\n"
-                        + "Iron mines diamond, gold, redstone and fulmenite in the Nether. Iron cast in the smeltery, or seared bricks at the Part Builder.\n\n"
-                        + "Diamond mines obsidian and ancient debris. Amethyst shards or emeralds at the Part Builder, or cast fulmenite.\n\n"
-                        + "Netherite mines cobalt, ardite and brimspar in the Nether, voltcinder below y -48, starfall stone near the surface, and duskspar and voidglass in the End. Obsidian, or netherite.\n\n"
-                        + "Hardcinder mines hardcinder in deepslate, murkiron in the Nether and nightshale in the End. Manyullyn, alloyed from cobalt and ardite.\n\n"
-                        + "Warspar mines warspar in the Nether and hollowstone in the End. Glowveil, alloyed from riftalloy or dreadalloy with sparkalloy and brimspar.\n\n"
-                        + "Resonite mines resonite ore, deep in the deepslate below y -16. Sunsteel, alloyed from warspar, hollowstone and glowveil.");
+                        + "Each rung below reads left to right: the first heads that reach it, the pickaxe they make, and the ores that pickaxe opens. Hover any icon for details, and click a head to open its page.");
+        // The ladder diagram's hover text (MiningLadder): where an ore generates, and the hints on
+        // a head and a pickaxe.
+        add("book.forgeweave.ladder.where.overworld", "Overworld");
+        add("book.forgeweave.ladder.where.nether", "The Nether");
+        add("book.forgeweave.ladder.where.end", "The End");
+        add("book.forgeweave.ladder.y_range", "y %s to %s");
+        add("book.forgeweave.ladder.open_page", "Click to open its page");
+        add("book.forgeweave.ladder.mines_below", "Mines everything on its rung and below");
         add("book.forgeweave.materials.raising_tier.title", "Raising a Tool's Rung");
         add("book.forgeweave.materials.raising_tier.text",
                 "You can also climb the ladder without a new head. Four things change a tool's rung. Each one is applied at the Tool Station or Tool Forge and costs a modifier slot.\n\n"
