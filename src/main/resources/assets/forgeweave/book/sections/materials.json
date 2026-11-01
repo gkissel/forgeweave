@@ -4,6 +4,15 @@
     "type": "text"
   },
   {
+    "name": "mining_ladder",
+    "type": "text",
+    "data": "ladder/mining.json"
+  },
+  {
+    "name": "raising_tier",
+    "type": "text"
+  },
+  {
     "name": "tier_equivalence",
     "type": "text"
   }
