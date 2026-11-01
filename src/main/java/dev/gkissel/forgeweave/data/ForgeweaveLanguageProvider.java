@@ -3091,6 +3091,29 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("book.forgeweave.materials.intro.title", "Materials");
         add("book.forgeweave.materials.intro.text",
                 "Every part of a tool contributes the stats of the material it is made from: the head brings durability, mining speed and attack; the handle multiplies durability; a binding adds a flat bonus.\n\nMaterials also grant traits: special behaviours listed on the pages that follow.");
+        // The mining ladder, rung by rung: what each rung mines and the first head that reaches it,
+        // then every other way a tool changes rung. Answers the "what pickaxe mines resonite?"
+        // question players ask, which the tier tags alone never told them.
+        add("book.forgeweave.materials.mining_ladder.title", "The Mining Ladder");
+        add("book.forgeweave.materials.mining_ladder.text",
+                "A tool's mining level comes from its head. Every material sits on one rung of an eight-rung ladder, and a tool harvests anything at its own rung or below. A block that needs a higher rung still breaks at the tool's normal speed, but it drops nothing. The Tool Tier line on a tool's tooltip names its rung.\n\n"
+                        + "Each rung below reads left to right: the first heads that reach it, the pickaxe they make, and the ores that pickaxe opens. Hover any icon for details, and click a head to open its page.");
+        // The ladder diagram's hover text (MiningLadder): where an ore generates, and the hints on
+        // a head and a pickaxe.
+        add("book.forgeweave.ladder.where.overworld", "Overworld");
+        add("book.forgeweave.ladder.where.nether", "The Nether");
+        add("book.forgeweave.ladder.where.end", "The End");
+        add("book.forgeweave.ladder.y_range", "y %s to %s");
+        add("book.forgeweave.ladder.open_page", "Click to open its page");
+        add("book.forgeweave.ladder.mines_below", "Mines everything on its rung and below");
+        add("book.forgeweave.materials.raising_tier.title", "Raising a Tool's Rung");
+        add("book.forgeweave.materials.raising_tier.text",
+                "You can also climb the ladder without a new head. Four things change a tool's rung. Each one is applied at the Tool Station or Tool Forge and costs a modifier slot.\n\n"
+                        + "The Diamond modifier raises a tool 1 rung, but never past diamond. The Emerald modifier raises it 1 rung, but never past iron. A stone pickaxe with Diamond mines what an iron one does, and an iron pickaxe with Diamond mines obsidian.\n\n"
+                        + "The Netherite modifier takes a netherite upgrade template and a netherite ingot together, and lifts any tool to the netherite rung however cheap its head.\n\n"
+                        + "Fortification sets the rung outright. A sharpening kit of any material plus a flint makes the tool mine at that material's rung. It works on harvest tools only, and it works both ways: a kit of a lower material lowers the tool. A tool holds one fortification, and a kit of a new material replaces the old one. That way a favourite pickaxe keeps up with the ladder without being rebuilt.\n\n"
+                        + "A tool with more than one head part, such as a hammer, mines at the rung of its best head. One cobalt plate makes the whole hammer a netherite-rung tool.\n\n"
+                        + "Above netherite, only a head or a fortification moves a tool, and both need the material first. So each of the top three rungs opens with an alloy of ores that the rung below can mine.");
         // #998 (D-M8-19): the Allthemodium tier equivalence, so a player who mines unobtainium with a
         // resonite pick (or the reverse) knows that is expected rather than a bug.
         add("book.forgeweave.materials.tier_equivalence.title", "Beyond Resonite");
@@ -3272,6 +3295,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                         + "more metal.\n\n"
                         + "Nothing comes out on its own. A Seared Drain in a wall is the outlet, and a "
                         + "Faucet on the drain is what pours. The Casting chapter covers that end.\n\n"
+                        + "A drain always pours the bottom layer. A new metal settles on top, so the first "
+                        + "one in is the first one out. To pour a different one first, click it in the "
+                        + "core's screen and it sinks to the bottom. A Seared Reservoir works the same way.\n\n"
                         + "A melt that sits at no progress is short of heat. The next page is about "
                         + "fuel, which is where heat comes from.");
         add("book.forgeweave.smeltery.fuel.title", "Fuel and Heat");
