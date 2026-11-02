@@ -7,9 +7,18 @@ The project aims to bring that generation's modular tool building, material trai
 > [!IMPORTANT]
 > Forgeweave is unofficial and is not a SlimeKnights project. Please do not send Forgeweave support requests to the Tinkers' Construct team.
 
-## Status
+## Download
 
-Forgeweave is in early development. There are no playable releases yet.
+Forgeweave is in beta. Get it from [Modrinth](https://modrinth.com/mod/forgeweave), [CurseForge](https://www.curseforge.com/projects/1657493) or [GitHub Releases](https://github.com/gkissel/forgeweave/releases).
+
+| Minecraft | NeoForge | Java |
+| --- | --- | --- |
+| 1.21.1 | 21.1.248 or newer | 21 |
+| 26.1.2 | 26.1.2.124 or newer | 25 |
+| 26.2 | 26.2.0.93 or newer | 25 |
+| 26.3 | 26.3.0.99 or newer | 25 |
+
+Each Minecraft version has its own file, so pick the one that matches your game. Found a bug? Open an issue on the [issue tracker](https://github.com/gkissel/forgeweave/issues).
 
 ## Origins and attribution
 
