@@ -9,6 +9,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -16,6 +17,7 @@ import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.config.ForgeweaveClientConfig;
 import dev.gkissel.forgeweave.item.ForgeweaveCreativeTab;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -41,6 +43,21 @@ public class ForgeweaveCreativeTabGameTests {
 
     private static List<ItemStack> stacksOf(List<ItemStack> displayed, Item item) {
         return displayed.stream().filter(stack -> stack.is(item)).toList();
+    }
+
+    /**
+     * CC:Tweaked and other mods rebuild every creative tab on {@code ServerStarted}, and a dedicated
+     * server never loads a {@code CLIENT} config. This test server doesn't either, so it runs the same
+     * rebuild that crashed there.
+     */
+    @GameTest(template = "empty")
+    public static void tabsRebuildOnAServerWithoutTheClientConfig(GameTestHelper helper) {
+        var level = helper.getLevel();
+        helper.assertFalse(ForgeweaveClientConfig.SPEC.isLoaded(), "this test needs the client config unloaded");
+        CreativeModeTabs.tryRebuildTabContents(level.enabledFeatures(), true, level.registryAccess());
+        helper.assertFalse(ForgeweaveCreativeTab.PARTS.get().getDisplayItems().isEmpty(),
+                "the parts tab should still fill");
+        helper.succeed();
     }
 
     @GameTest(template = "empty")
