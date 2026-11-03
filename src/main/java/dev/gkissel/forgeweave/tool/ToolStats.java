@@ -47,18 +47,24 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
  */
 public final class ToolStats {
 
-    public record Stats(int durability, float miningSpeed, float attackDamage) {
+    public record Stats(int durability, float miningSpeed, float attackDamage, float attackSpeed) {
         public static final Codec<Stats> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 ExtraCodecs.POSITIVE_INT.fieldOf("durability").forGetter(Stats::durability),
                 Codec.FLOAT.fieldOf("mining_speed").forGetter(Stats::miningSpeed),
-                Codec.FLOAT.fieldOf("attack_damage").forGetter(Stats::attackDamage))
+                Codec.FLOAT.fieldOf("attack_damage").forGetter(Stats::attackDamage),
+                Codec.FLOAT.optionalFieldOf("attack_speed", 0.0F).forGetter(Stats::attackSpeed))
                 .apply(instance, Stats::new));
 
         public static final StreamCodec<ByteBuf, Stats> STREAM_CODEC = StreamCodec.composite(
                 ByteBufCodecs.VAR_INT, Stats::durability,
                 ByteBufCodecs.FLOAT, Stats::miningSpeed,
                 ByteBufCodecs.FLOAT, Stats::attackDamage,
+                ByteBufCodecs.FLOAT, Stats::attackSpeed,
                 Stats::new);
+
+        public Stats(int durability, float miningSpeed, float attackDamage) {
+            this(durability, miningSpeed, attackDamage, 0.0F);
+        }
     }
 
     /**
@@ -75,7 +81,7 @@ public final class ToolStats {
         durability = Math.max(1, durability);
         durability = ForgeweaveTraits.headDurability(head.traits().forPart(PartItem.Kind.HEAD), durability);
 
-        return new Stats(durability, headStats.miningSpeed(), headStats.attackDamage());
+        return new Stats(durability, headStats.miningSpeed(), headStats.attackDamage(), headStats.attackSpeed());
     }
 
     /**
