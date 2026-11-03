@@ -16,24 +16,28 @@
   },
   "plating": {
     "helmet": {
-      "durability": 245,
+      "durability": 264,
       "armor": 3.0,
-      "toughness": 1.0
+      "toughness": 1.0,
+      "knockback_resistance": 0.075
     },
     "chestplate": {
-      "durability": 360,
+      "durability": 384,
       "armor": 7.0,
-      "toughness": 1.0
+      "toughness": 1.0,
+      "knockback_resistance": 0.075
     },
     "leggings": {
-      "durability": 338,
+      "durability": 360,
       "armor": 6.0,
-      "toughness": 1.0
+      "toughness": 1.0,
+      "knockback_resistance": 0.075
     },
     "boots": {
-      "durability": 292,
+      "durability": 312,
       "armor": 3.0,
-      "toughness": 1.0
+      "toughness": 1.0,
+      "knockback_resistance": 0.075
     }
   },
   "maille": true,

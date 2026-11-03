@@ -851,6 +851,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.stat.durability", "Durability: %s");
         add("gui.forgeweave.stat.mining_speed", "Mining Speed: %s");
         add("gui.forgeweave.stat.attack_damage", "Attack Damage: %s");
+        add("gui.forgeweave.stat.attack_speed", "Attack Speed Bonus: +%s");
         add("gui.forgeweave.stat.handle_modifier", "Handle Modifier: %sx");
         add("gui.forgeweave.stat.handle_durability", "Handle Durability: %s");
         add("gui.forgeweave.stat.extra_durability", "Binding Durability: %s");
@@ -886,6 +887,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "How fast a tool with a head of this material mines blocks. Other parts may influence it.");
         add("gui.forgeweave.stat.attack_damage.desc",
                 "The base value for attack calculations. The end result depends on the tool and its other parts.");
+        add("gui.forgeweave.stat.attack_speed.desc",
+                "Attacks per second added to the tool type's own attack speed. Parts average it by weight.");
         add("gui.forgeweave.stat.handle_modifier.desc",
                 "How suitable this material is as a handle. The tool's total durability is multiplied by it.");
         add("gui.forgeweave.stat.handle_durability.desc",

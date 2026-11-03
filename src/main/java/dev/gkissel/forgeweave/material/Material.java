@@ -165,14 +165,21 @@ public record Material(
     }
 
     /** Stats a head part contributes: the tool's durability pool, mining speed and attack damage. */
-    public record Head(int durability, float miningSpeed, float attackDamage) {
+    public record Head(int durability, float miningSpeed, float attackDamage, float attackSpeed) {
         public static final Codec<Head> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 ExtraCodecs.POSITIVE_INT.fieldOf("durability").forGetter(Head::durability),
                 ExtraCodecs.POSITIVE_FLOAT.fieldOf("mining_speed").forGetter(Head::miningSpeed),
                 // Non-negative rather than positive: upstream sponge's head is exactly 0.00 attack
                 // (TinkerMaterials#registerToolMaterialStats), the stat squeaky then hard-zeroes anyway.
-                Codec.floatRange(0.0F, Float.MAX_VALUE).fieldOf("attack_damage").forGetter(Head::attackDamage))
+                Codec.floatRange(0.0F, Float.MAX_VALUE).fieldOf("attack_damage").forGetter(Head::attackDamage),
+                // Attacks per second on top of the tool type's own speed, for a material whose home mod
+                // swings faster than a vanilla sword. Nearly every material leaves it out.
+                Codec.floatRange(0.0F, Float.MAX_VALUE).optionalFieldOf("attack_speed", 0.0F).forGetter(Head::attackSpeed))
                 .apply(instance, Head::new));
+
+        public Head(int durability, float miningSpeed, float attackDamage) {
+            this(durability, miningSpeed, attackDamage, 0.0F);
+        }
     }
 
     /**

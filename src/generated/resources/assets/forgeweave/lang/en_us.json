@@ -861,6 +861,8 @@
   "gui.forgeweave.stat.armor.desc": "Armor points this piece adds while worn. Reduces most incoming damage.",
   "gui.forgeweave.stat.attack_damage": "Attack Damage: %s",
   "gui.forgeweave.stat.attack_damage.desc": "The base value for attack calculations. The end result depends on the tool and its other parts.",
+  "gui.forgeweave.stat.attack_speed": "Attack Speed Bonus: +%s",
+  "gui.forgeweave.stat.attack_speed.desc": "Attacks per second added to the tool type's own attack speed. Parts average it by weight.",
   "gui.forgeweave.stat.bonus_ammo": "Bonus Ammo: %s",
   "gui.forgeweave.stat.bonus_ammo.desc": "How many arrows you can get out of it. This much flat ammo will be added.",
   "gui.forgeweave.stat.bonus_damage": "Bonus Damage: %s",
