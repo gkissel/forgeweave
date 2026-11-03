@@ -17,6 +17,7 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
+import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -151,6 +152,14 @@ public final class ForgeweaveCreativeTab {
     }
 
     /**
+     * The option's value, or its default on a dedicated server, which never loads a {@code CLIENT}
+     * config. Tabs do get built there: CC:Tweaked rebuilds them on {@code ServerStarted}.
+     */
+    private static boolean clientOption(ModConfigSpec.BooleanValue option) {
+        return ForgeweaveClientConfig.SPEC.isLoaded() ? option.get() : option.getDefault();
+    }
+
+    /**
      * Upstream's {@code tabGeneral}: the book ({@code ItemTinkerBook:26}), the station blocks
      * ({@code BlockToolTable:52}, {@code BlockToolForge:41}), the crafting materials, ingots,
      * nuggets and metal blocks ({@code TinkerCommons:287-290}, {@code BlockMetal:27}), the soils
@@ -159,7 +168,7 @@ public final class ForgeweaveCreativeTab {
      * {@code tabWorld} ({@code BlockOre:31}) -- see the class comment.
      */
     static void addGeneralItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output rawOutput) {
-        addGeneralItems(parameters, rawOutput, ForgeweaveClientConfig.LIST_ALL_TABLE_VARIANTS.get());
+        addGeneralItems(parameters, rawOutput, clientOption(ForgeweaveClientConfig.LIST_ALL_TABLE_VARIANTS));
     }
 
     /**
@@ -347,7 +356,7 @@ public final class ForgeweaveCreativeTab {
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "iron");
 
     static void addPartItems(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
-        addPartItems(parameters, output, ForgeweaveClientConfig.LIST_ALL_PART_MATERIALS.get());
+        addPartItems(parameters, output, clientOption(ForgeweaveClientConfig.LIST_ALL_PART_MATERIALS));
     }
 
     /**
