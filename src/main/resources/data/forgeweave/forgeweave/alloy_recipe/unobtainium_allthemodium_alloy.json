@@ -1,0 +1,23 @@
+{
+  "inputs": [
+    {
+      "fluid": "forgeweave:molten_unobtainium",
+      "amount": 2
+    },
+    {
+      "fluid": "forgeweave:molten_allthemodium",
+      "amount": 2
+    }
+  ],
+  "result": {
+    "fluid": "forgeweave:molten_unobtainium_allthemodium_alloy",
+    "amount": 2
+  },
+  "priority": 1,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "allthemodium:unobtainium_allthemodium_alloy_ingot"
+    }
+  ]
+}
