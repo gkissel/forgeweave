@@ -34,6 +34,12 @@ gradle_args+=(--no-daemon --no-configuration-cache runScreenshotHarness -Pharnes
 game_dir=run/harness
 mkdir -p "$game_dir/config"
 rm -rf "$game_dir"/saves/forgeweave_screenshot_harness*
+touch "$game_dir/options.txt"
+# Spawned clients stay silent. This goes through options.txt and never through pactl or wpctl:
+# WirePlumber saves a stream mute as a rule for every stream of that name, which includes a player's
+# own game.
+sed -i '/^soundCategory_master:/d' "$game_dir/options.txt"
+echo 'soundCategory_master:0.0' >> "$game_dir/options.txt"
 # NeoForge's early loading window hands its GL context to Minecraft's window at the end of mod
 # loading, and on a bare X display that handoff can time out (issue #101). Nobody watches it here.
 fml="$game_dir/config/fml.toml"
