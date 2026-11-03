@@ -22,6 +22,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.GameType;
@@ -702,6 +703,26 @@ public class ModifierGameTests {
     // #952: the slot-free application path a Draconic Evolution fusion upgrade goes through.
 
     /**
+     * A fusion or ritual upgrade raises luck with no Tool Station recipe in hand, and has to grant the
+     * Fortune that level earns anyway. Luck's real thresholds are 60, 180 and 360 units.
+     */
+    @GameTest(template = "empty")
+    public static void aDirectLuckUpgradeGrantsItsFortune(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, new BlockPos(1, 1, 1), "stone", "wood", "wood");
+        var registries = helper.getLevel().registryAccess();
+        ResourceLocation luck = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "luck");
+        var fortune = registries.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
+
+        for (int[] rung : new int[][] {{60, 1}, {180, 2}, {270, 2}, {360, 3}}) {
+            ItemStack upgraded = ModifierApplication.applyLevel(registries, pickaxe, luck, rung[0]).output();
+            helper.assertValueEqual(EnchantmentHelper.getTagEnchantmentLevel(fortune, upgraded), rung[1],
+                    "Fortune after a fusion upgrade to " + rung[0] + " units");
+        }
+        helper.succeed();
+    }
+
+    /**
      * Issue #952: {@link ModifierApplication#applyLevel} promises the application costs no modifier
      * slot, and the promise now holds -- the entry it writes occupies a slot like any other, so the
      * tool is handed the same number back through {@code granted_slots}. What that has to mean in
@@ -721,7 +742,7 @@ public class ModifierGameTests {
         int before = ForgeweaveModifiers.freeSlots(pickaxe);
 
         // The draconium rung of the shipped haste line (ForgeweaveDraconicCompat#UPGRADE_LINES).
-        ItemStack upgraded = ModifierApplication.applyLevel(pickaxe, HASTE, 50).output();
+        ItemStack upgraded = ModifierApplication.applyLevel(helper.getLevel().registryAccess(), pickaxe, HASTE, 50).output();
         helper.assertFalse(upgraded.isEmpty(), "the upgrade must produce a tool");
         ModifierEntry haste = ForgeweaveModifiers.entry(upgraded, HASTE);
         helper.assertTrue(haste != null && haste.level() == 50,

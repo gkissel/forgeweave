@@ -237,7 +237,7 @@ public record FusionUpgradeRecipe(Ingredient catalyst, ResourceLocation modifier
         if (behavior == null || !ModifierApplication.acceptsToolShape(registries, behavior, tool)) {
             return Optional.empty();
         }
-        ItemStack upgraded = ModifierApplication.applyLevel(tool, modifier, level).output();
+        ItemStack upgraded = ModifierApplication.applyLevel(registries, tool, modifier, level).output();
         return upgraded.isEmpty() ? Optional.empty() : Optional.of(upgraded);
     }
 

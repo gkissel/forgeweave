@@ -641,7 +641,8 @@ public final class ModifierApplication {
      * <p>The shape gate ({@link #acceptsToolShape}) is the caller's too, since it needs registries
      * this method is not given.
      */
-    public static Outcome applyLevel(ItemStack tool, ResourceLocation modifier, int level) {
+    public static Outcome applyLevel(HolderLookup.Provider registries, ItemStack tool, ResourceLocation modifier,
+            int level) {
         Optional<Component> incompatible = ModifierCompatibility.refusal(tool, modifier, name(modifier));
         if (incompatible.isPresent()) {
             return Outcome.rejected(incompatible.get());
@@ -661,7 +662,22 @@ public final class ModifierApplication {
             upgraded.set(ForgeweaveDataComponents.GRANTED_SLOTS.get(),
                     upgraded.getOrDefault(ForgeweaveDataComponents.GRANTED_SLOTS.get(), 0) + spent);
         }
+        grantEnchantments(registries, modifier, upgraded);
         return Outcome.applied(upgraded, List.of());
+    }
+
+    /**
+     * {@link #applyEnchantmentGrants} for the two paths that raise a modifier with no recipe in hand.
+     * Without it luck's level climbs and the tool's Fortune and Looting never change.
+     */
+    private static void grantEnchantments(HolderLookup.Provider registries, ResourceLocation modifier, ItemStack tool) {
+        if (registries == null) {
+            return;
+        }
+        registries.lookup(ModifierRecipe.REGISTRY)
+                .flatMap(recipes -> recipes.listElements().map(Holder::value)
+                        .filter(recipe -> recipe.modifier().equals(modifier)).findFirst())
+                .ifPresent(recipe -> applyEnchantmentGrants(registries, recipe, tool));
     }
 
     /**
@@ -681,7 +697,8 @@ public final class ModifierApplication {
      * backwards. The shape gate ({@link #acceptsToolShape}) stays the caller's, since it needs
      * registries this method is not given.
      */
-    public static Outcome applyLevelSpendingSlots(ItemStack tool, ResourceLocation modifier, int level) {
+    public static Outcome applyLevelSpendingSlots(HolderLookup.Provider registries, ItemStack tool,
+            ResourceLocation modifier, int level) {
         Optional<Component> incompatible = ModifierCompatibility.refusal(tool, modifier, name(modifier));
         if (incompatible.isPresent()) {
             return Outcome.rejected(incompatible.get());
@@ -698,7 +715,9 @@ public final class ModifierApplication {
             return Outcome.rejected(Component.translatable("gui.forgeweave.modifier.no_slots",
                     ForgeweaveModifiers.DEFAULT_SLOTS));
         }
-        return Outcome.applied(modified(tool, modifier, level), List.of());
+        ItemStack upgraded = modified(tool, modifier, level);
+        grantEnchantments(registries, modifier, upgraded);
+        return Outcome.applied(upgraded, List.of());
     }
 
     /**
