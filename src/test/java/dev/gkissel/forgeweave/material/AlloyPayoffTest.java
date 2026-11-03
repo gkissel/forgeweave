@@ -287,28 +287,30 @@ class AlloyPayoffTest {
     }
 
     /**
-     * The same wall for compat materials. Another mod sets what they cost, but a tier above netherite
-     * that hits softer than netherite is still a step down for whoever climbs to it.
+     * The wall for compat materials sits higher than the one for our own. Another mod sets what they
+     * cost, and whoever earned one expects it to be a clear step past plain netherite: 20% or more on
+     * every head stat and on a full set of plating, on the netherite rung and everything above it.
      */
     @Test
-    void compatMaterialsAboveNetheriteClearPlainNetherite() {
+    void compatMaterialsOnTheNetheriteRungOrAboveClearPlainNetheriteByAFifth() {
         int checked = 0;
         for (Map.Entry<String, Material> entry : materials.entrySet()) {
-            if (!isCompat(entry.getKey()) || !FORGEWEAVE_RUNGS.contains(rungOf(entry.getValue()))) {
+            String rung = rungOf(entry.getValue());
+            if (!isCompat(entry.getKey()) || !(FORGEWEAVE_RUNGS.contains(rung) || rung.equals("netherite"))) {
                 continue;
             }
             double[] stats = head(entry.getKey()).orElse(null);
-            if (stats == null || PARITY_SPECIALISTS.contains(entry.getKey())) {
+            if (stats == null) {
                 continue;
             }
             checked++;
             for (int stat = 0; stat < 3; stat++) {
-                assertTrue(stats[stat] > NETHERITE[stat],
-                        entry.getKey() + " " + show(stats) + " sits on the " + rungOf(entry.getValue())
-                        + " rung and does not clear plain netherite " + show(NETHERITE));
+                assertTrue(stats[stat] >= NETHERITE[stat] * 1.2 - 0.05,
+                        entry.getKey() + " " + show(stats) + " does not clear plain netherite " + show(NETHERITE)
+                        + " by a fifth");
             }
         }
-        assertTrue(checked >= 8, "non-vacuity: only " + checked + " compat materials above the netherite rung");
+        assertTrue(checked >= 50, "non-vacuity: only " + checked + " compat materials on those rungs");
     }
 
     @Test
