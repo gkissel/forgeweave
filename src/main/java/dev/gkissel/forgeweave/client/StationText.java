@@ -126,6 +126,9 @@ public final class StationText {
             lines.add(stat("mining_speed", stats.miningSpeed(), SPEED_COLOR));
         }
         lines.add(stat("attack_damage", stats.attackDamage(), ATTACK_COLOR));
+        if (stats.attackSpeed() > 0.0F) {
+            lines.add(stat("attack_speed", stats.attackSpeed(), ATTACK_COLOR));
+        }
         return List.copyOf(lines);
     }
 
@@ -288,11 +291,16 @@ public final class StationText {
 
     /** What a head part of this material contributes: the durability pool, mining speed and attack. */
     public static List<Component> headStats(Material material) {
-        return material.head().<List<Component>>map(head -> List.of(
-                stat("durability", head.durability(), DURABILITY_COLOR),
-                stat("mining_speed", head.miningSpeed(), SPEED_COLOR),
-                stat("attack_damage", head.attackDamage(), ATTACK_COLOR)))
-                .orElseGet(List::of);
+        return material.head().<List<Component>>map(head -> {
+            List<Component> lines = new ArrayList<>(List.of(
+                    stat("durability", head.durability(), DURABILITY_COLOR),
+                    stat("mining_speed", head.miningSpeed(), SPEED_COLOR),
+                    stat("attack_damage", head.attackDamage(), ATTACK_COLOR)));
+            if (head.attackSpeed() > 0.0F) {
+                lines.add(stat("attack_speed", head.attackSpeed(), ATTACK_COLOR));
+            }
+            return List.copyOf(lines);
+        }).orElseGet(List::of);
     }
 
     /** One plating piece's stats, in the same order and with the same x10 as an assembled piece's. */

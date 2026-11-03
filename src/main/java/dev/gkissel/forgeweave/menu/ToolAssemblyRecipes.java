@@ -1051,7 +1051,7 @@ public final class ToolAssemblyRecipes {
                 .distinct()
                 .toList();
         int durability = ForgeweaveTraits.headDurability(headTraits, base.durability());
-        return new ToolStats.Stats(durability, base.miningSpeed(), base.attackDamage());
+        return new ToolStats.Stats(durability, base.miningSpeed(), base.attackDamage(), base.attackSpeed());
     }
 
     /**

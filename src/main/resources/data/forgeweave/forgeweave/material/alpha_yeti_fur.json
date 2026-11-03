@@ -17,23 +17,23 @@
   "plating": {
     "helmet": {
       "durability": 395,
-      "armor": 3.0,
-      "toughness": 2.0
+      "armor": 4.0,
+      "toughness": 3.0
     },
     "chestplate": {
       "durability": 580,
       "armor": 8.0,
-      "toughness": 2.0
+      "toughness": 3.0
     },
     "leggings": {
       "durability": 541,
       "armor": 6.0,
-      "toughness": 2.0
+      "toughness": 3.0
     },
     "boots": {
       "durability": 468,
       "armor": 3.0,
-      "toughness": 2.0
+      "toughness": 3.0
     }
   },
   "maille": true,

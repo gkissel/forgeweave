@@ -1,8 +1,8 @@
 {
   "head": {
     "durability": 545,
-    "mining_speed": 12.35,
-    "attack_damage": 4.3
+    "mining_speed": 15.0,
+    "attack_damage": 5.0
   },
   "handle": {
     "durability_modifier": 1.0,
@@ -17,19 +17,19 @@
   "plating": {
     "helmet": {
       "durability": 372,
-      "armor": 2.0
+      "armor": 3.0
     },
     "chestplate": {
       "durability": 546,
-      "armor": 5.0
+      "armor": 8.0
     },
     "leggings": {
       "durability": 514,
-      "armor": 4.0
+      "armor": 6.0
     },
     "boots": {
       "durability": 437,
-      "armor": 2.0
+      "armor": 3.0
     }
   },
   "maille": true,

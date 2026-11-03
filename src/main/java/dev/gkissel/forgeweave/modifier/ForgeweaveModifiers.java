@@ -2342,7 +2342,7 @@ public final class ForgeweaveModifiers {
         int durability = modifiedDurability(stack, base.durability());
         return miningSpeed == base.miningSpeed() && attackDamage == base.attackDamage() && durability == base.durability()
                 ? base
-                : new ToolStats.Stats(durability, miningSpeed, attackDamage);
+                : new ToolStats.Stats(durability, miningSpeed, attackDamage, base.attackSpeed());
     }
 
     /**
