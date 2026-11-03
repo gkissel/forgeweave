@@ -20,7 +20,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 
@@ -72,11 +72,11 @@ public final class MysticalAugments {
     /** The Mystical Agriculture materials that are not essence metals, which still earn Cognizant Dust. */
     private static final Set<String> OTHER_MYSTICAL_METALS = Set.of("prosperity", "soulium");
 
-    private static final ResourceLocation COGNIZANT_DUST =
-            ResourceLocation.fromNamespaceAndPath(MODID, "cognizant_dust");
+    private static final Identifier COGNIZANT_DUST =
+            Identifier.fromNamespaceAndPath(MODID, "cognizant_dust");
 
     private static final ResourceKey<Enchantment> MYSTICAL_ENLIGHTENMENT = ResourceKey.create(Registries.ENCHANTMENT,
-            ResourceLocation.fromNamespaceAndPath(MODID, "mystical_enlightenment"));
+            Identifier.fromNamespaceAndPath(MODID, "mystical_enlightenment"));
 
     /** What Mystical Agriculture itself drops for Mystical Enlightenment I. */
     private static final int WITHER_DUST = 4;
@@ -99,7 +99,7 @@ public final class MysticalAugments {
         if (materials == null) {
             return false;
         }
-        for (ResourceLocation id : materials.all()) {
+        for (Identifier id : materials.all()) {
             if (id.getNamespace().equals(Forgeweave.MODID)
                     && (ESSENCE_METALS.containsKey(id.getPath()) || OTHER_MYSTICAL_METALS.contains(id.getPath()))) {
                 return true;
@@ -119,7 +119,7 @@ public final class MysticalAugments {
     public static void onLivingDrops(LivingDropsEvent event) {
         LivingEntity victim = event.getEntity();
         if (!(victim.level() instanceof ServerLevel level) || !(event.getSource().getEntity() instanceof Player player)
-                || !level.getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)) {
+                || !level.getGameRules().get(GameRules.MOB_DROPS)) {
             return;
         }
         ItemStack weapon = player.getMainHandItem();

@@ -19,6 +19,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -838,7 +839,7 @@ public class CastingGameTests {
     private static List<Component> castHover(GameTestHelper helper, Item cast) {
         List<Component> lines = new ArrayList<>();
         ItemStack stack = new ItemStack(cast);
-        cast.appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), lines, TooltipFlag.NORMAL);
+        cast.appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), TooltipDisplay.DEFAULT, lines::add, TooltipFlag.NORMAL);
         return lines;
     }
 

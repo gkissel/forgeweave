@@ -134,8 +134,8 @@ public class ToolItem extends Item {
     private static final Identifier BLOCK_INTERACTION_RANGE_ID =
             Identifier.fromNamespaceAndPath(Forgeweave.MODID, "far_reach");
 
-    private static final ResourceLocation ENTITY_INTERACTION_RANGE_ID =
-            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "far_reach_entity");
+    private static final Identifier ENTITY_INTERACTION_RANGE_ID =
+            Identifier.fromNamespaceAndPath(Forgeweave.MODID, "far_reach_entity");
 
     private final List<TagKey<Block>> mineableBlocks;
     private final float attackSpeed;

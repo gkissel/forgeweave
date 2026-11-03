@@ -10,6 +10,7 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.world.item.ItemStack;
@@ -152,9 +153,9 @@ public class MysticalAgricultureGameTests {
      */
     @GameTest(template = "empty")
     public static void mysticalPartsEarnCognizantDustFromTheBosses(GameTestHelper helper) {
-        Entity wither = EntityType.WITHER.create(helper.getLevel());
-        Entity dragon = EntityType.ENDER_DRAGON.create(helper.getLevel());
-        Entity zombie = EntityType.ZOMBIE.create(helper.getLevel());
+        Entity wither = EntityType.WITHER.create(helper.getLevel(), EntitySpawnReason.TRIGGERED);
+        Entity dragon = EntityType.ENDER_DRAGON.create(helper.getLevel(), EntitySpawnReason.TRIGGERED);
+        Entity zombie = EntityType.ZOMBIE.create(helper.getLevel(), EntitySpawnReason.TRIGGERED);
         for (String name : PRESET_MATERIALS) {
             helper.assertValueEqual(MysticalAugments.cognizantDust(tool(name), wither), 4, name + " on the Wither");
             helper.assertValueEqual(MysticalAugments.cognizantDust(tool(name), dragon), 6, name + " on the dragon");

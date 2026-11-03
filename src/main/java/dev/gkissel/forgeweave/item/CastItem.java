@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.OptionalInt;
+import java.util.function.Consumer;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
@@ -11,6 +12,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 
 import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.client.StationText;
@@ -32,8 +34,9 @@ public class CastItem extends DescribedItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, tooltip, flag);
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
+            Consumer<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, tooltip, flag);
         // Null when a tooltip is built with no level loaded (TooltipContext.EMPTY).
         HolderLookup.Provider registries = context.registries();
         if (registries == null) {
@@ -41,7 +44,7 @@ public class CastItem extends DescribedItem {
         }
         registries.lookup(CastingRecipe.REGISTRY).ifPresent(recipes -> {
             Iterable<CastingRecipe> all = recipes.listElements().map(Holder::value)::iterator;
-            mostUsedAmount(all, stack).ifPresent(amount -> tooltip.add(
+            mostUsedAmount(all, stack).ifPresent(amount -> tooltip.accept(
                     Component.translatable("tooltip.forgeweave.cast_cost",
                             StationText.formatNumber(amount / (float) PartBuilderRecipes.INGOT_VALUE))
                             .withStyle(ChatFormatting.GRAY)));
