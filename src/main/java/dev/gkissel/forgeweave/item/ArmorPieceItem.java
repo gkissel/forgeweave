@@ -28,6 +28,7 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemInstance;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
@@ -366,7 +367,7 @@ public class ArmorPieceItem extends Item {
 
     /** Same seam as {@link ToolItem#getEnchantmentLevel}: what a modifier granted this piece. */
     @Override
-    public int getEnchantmentLevel(ItemStack stack, Holder<Enchantment> enchantment) {
+    public int getEnchantmentLevel(ItemInstance stack, Holder<Enchantment> enchantment) {
         return GrantedEnchantments.combined(enchantment, super.getEnchantmentLevel(stack, enchantment),
                 GrantedEnchantments.of(stack).getLevel(enchantment));
     }

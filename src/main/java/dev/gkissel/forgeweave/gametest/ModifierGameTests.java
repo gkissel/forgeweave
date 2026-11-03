@@ -711,7 +711,7 @@ public class ModifierGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, new BlockPos(1, 1, 1), "stone", "wood", "wood");
         var registries = helper.getLevel().registryAccess();
-        ResourceLocation luck = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "luck");
+        Identifier luck = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "luck");
         var fortune = registries.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
 
         for (int[] rung : new int[][] {{60, 1}, {180, 3}, {270, 4}, {360, 6}}) {
@@ -731,7 +731,7 @@ public class ModifierGameTests {
         BlockPos pos = new BlockPos(1, 1, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         var registries = helper.getLevel().registryAccess();
-        ResourceLocation sharpness = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "sharpness");
+        Identifier sharpness = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "sharpness");
         ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
 
         ItemStack quartzFirst = applyReagent(helper, player, pos, pickaxe.copy(), new ItemStack(Items.QUARTZ, 64));

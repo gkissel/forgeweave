@@ -520,8 +520,8 @@ public final class ModifierApplication {
     }
 
     /** How much of a modifier's level came from fusion rungs rather than the Tool Station. */
-    private static int fusedLevel(ItemStack tool, ResourceLocation modifier) {
-        Map<ResourceLocation, Integer> rungs = tool.get(ForgeweaveDataComponents.FUSION_LEVELS.get());
+    private static int fusedLevel(ItemStack tool, Identifier modifier) {
+        Map<Identifier, Integer> rungs = tool.get(ForgeweaveDataComponents.FUSION_LEVELS.get());
         return rungs == null ? 0 : rungs.getOrDefault(modifier, 0);
     }
 
@@ -694,8 +694,8 @@ public final class ModifierApplication {
         }
         ModifierEntry existing = ForgeweaveModifiers.entry(tool, modifier);
         ItemStack upgraded = modified(tool, modifier, (existing == null ? 0 : existing.level()) + level - fused);
-        Map<ResourceLocation, Integer> stored = tool.get(ForgeweaveDataComponents.FUSION_LEVELS.get());
-        Map<ResourceLocation, Integer> rungs = stored == null ? new HashMap<>() : new HashMap<>(stored);
+        Map<Identifier, Integer> stored = tool.get(ForgeweaveDataComponents.FUSION_LEVELS.get());
+        Map<Identifier, Integer> rungs = stored == null ? new HashMap<>() : new HashMap<>(stored);
         rungs.put(modifier, level);
         upgraded.set(ForgeweaveDataComponents.FUSION_LEVELS.get(), Map.copyOf(rungs));
         // #952: "charges no modifier slot" used to be a promise the arithmetic did not keep -- the
@@ -716,7 +716,7 @@ public final class ModifierApplication {
      * {@link #applyEnchantmentGrants} for the two paths that raise a modifier with no recipe in hand.
      * Without it luck's level climbs and the tool's Fortune and Looting never change.
      */
-    private static void grantEnchantments(HolderLookup.Provider registries, ResourceLocation modifier, ItemStack tool) {
+    private static void grantEnchantments(HolderLookup.Provider registries, Identifier modifier, ItemStack tool) {
         if (registries == null) {
             return;
         }

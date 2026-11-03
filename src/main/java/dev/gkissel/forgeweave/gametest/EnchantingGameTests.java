@@ -104,7 +104,7 @@ public class EnchantingGameTests {
             var registries = helper.getLevel().registryAccess();
             var fortune = registries.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
             ItemStack lucky = ModifierApplication.applyLevel(registries, pickaxe,
-                    ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "luck"), 60).output();
+                    Identifier.fromNamespaceAndPath(Forgeweave.MODID, "luck"), 60).output();
             helper.assertValueEqual(lucky.getEnchantmentLevel(fortune), 1, "Luck's Fortune on the tool");
             helper.assertTrue(lucky.isEnchantable(), "a tool with Luck must still go on the table");
 
@@ -138,7 +138,7 @@ public class EnchantingGameTests {
             var silkTouch = enchantments.getOrThrow(Enchantments.SILK_TOUCH);
             helper.assertTrue(pickaxe.isPrimaryItemFor(silkTouch), "a plain pickaxe can roll Silk Touch");
             ItemStack lucky = ModifierApplication.applyLevel(registries, pickaxe,
-                    ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "luck"), 60).output();
+                    Identifier.fromNamespaceAndPath(Forgeweave.MODID, "luck"), 60).output();
             helper.assertFalse(lucky.isPrimaryItemFor(silkTouch), "the table must not roll Silk Touch onto Luck");
             helper.assertFalse(lucky.supportsEnchantment(silkTouch), "the anvil must not add Silk Touch onto Luck");
             helper.assertTrue(lucky.isPrimaryItemFor(enchantments.getOrThrow(Enchantments.EFFICIENCY)), "Efficiency still fits");
@@ -157,7 +157,7 @@ public class EnchantingGameTests {
         var registries = helper.getLevel().registryAccess();
         var fortune = registries.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
         ItemStack lucky = ModifierApplication.applyLevel(registries, pickaxe,
-                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "luck"), 360).output();
+                Identifier.fromNamespaceAndPath(Forgeweave.MODID, "luck"), 360).output();
         helper.assertValueEqual(lucky.getEnchantmentLevel(fortune), 6, "Luck VI alone");
         lucky.enchant(fortune, 3);
 
@@ -222,7 +222,7 @@ public class EnchantingGameTests {
         var efficiency = enchantments.getOrThrow(Enchantments.EFFICIENCY);
         ItemStack old = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
         old.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(
-                new ModifierEntry(ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "luck"), 60)));
+                new ModifierEntry(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "luck"), 60)));
         old.remove(ForgeweaveDataComponents.GRANTED_ENCHANTMENTS.get());
         old.enchant(fortune, 1);
         old.enchant(efficiency, 2);

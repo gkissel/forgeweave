@@ -222,7 +222,7 @@ public class BeheadingGameTests {
         ItemStack partial = applyReagents(helper, player, pos, hatchet, new ItemStack(Items.ENDER_PEARL, 3),
                 new ItemStack(Items.OBSIDIAN, CERTAIN));
         helper.assertValueEqual(Beheading.effectiveLevel(partial), 3, "three pairs buy three levels");
-        ToolStationBlockEntity station = helper.getBlockEntity(pos);
+        ToolStationBlockEntity station = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         helper.assertValueEqual(station.container().getItem(1).getCount(), 0, "the pearls are spent");
         helper.assertValueEqual(station.container().getItem(2).getCount(), CERTAIN - 3, "the spare obsidian stays");
 
@@ -244,7 +244,7 @@ public class BeheadingGameTests {
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = ToolAssembly.toolAtForge(helper, player, pos, ForgeweaveItems.PART_AXE_HEAD.get(),
                 "paper", "paper", "paper");
-        ToolStationBlockEntity station = helper.getBlockEntity(pos);
+        ToolStationBlockEntity station = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         station.container().setItem(0, hatchet);
         station.container().setItem(1, new ItemStack(Items.OBSIDIAN, CERTAIN));
         station.container().setItem(2, ItemStack.EMPTY);

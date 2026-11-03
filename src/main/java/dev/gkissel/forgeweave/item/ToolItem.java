@@ -1019,7 +1019,7 @@ public class ToolItem extends Item {
 
     /** What {@code EnchantmentHelper} asks when it wants one level, Fortune's loot roll among them. */
     @Override
-    public int getEnchantmentLevel(ItemStack stack, Holder<Enchantment> enchantment) {
+    public int getEnchantmentLevel(ItemInstance stack, Holder<Enchantment> enchantment) {
         return GrantedEnchantments.combined(enchantment, super.getEnchantmentLevel(stack, enchantment),
                 GrantedEnchantments.of(stack).getLevel(enchantment));
     }

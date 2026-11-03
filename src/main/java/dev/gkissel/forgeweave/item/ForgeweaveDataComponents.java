@@ -205,10 +205,10 @@ public final class ForgeweaveDataComponents {
      * done: the modifier's own level can't, since quartz raises that too. Also what lifts the station's
      * level cap by the same amount, so neither route uses up the other. Absent means no rung done.
      */
-    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Map<ResourceLocation, Integer>>> FUSION_LEVELS =
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Map<Identifier, Integer>>> FUSION_LEVELS =
             DATA_COMPONENTS.registerComponentType("fusion_levels",
-                    builder -> builder.persistent(Codec.unboundedMap(ResourceLocation.CODEC, ExtraCodecs.POSITIVE_INT))
-                            .networkSynchronized(ByteBufCodecs.map(HashMap::new, ResourceLocation.STREAM_CODEC, ByteBufCodecs.VAR_INT)));
+                    builder -> builder.persistent(Codec.unboundedMap(Identifier.CODEC, ExtraCodecs.POSITIVE_INT))
+                            .networkSynchronized(ByteBufCodecs.map(HashMap::new, Identifier.STREAM_CODEC, ByteBufCodecs.VAR_INT)));
 
     /**
      * Enchantments the tool has because of its modifiers and traits (Luck's Fortune, Silky's Silk
