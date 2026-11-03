@@ -4,7 +4,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.annotation.Nullable;
@@ -24,9 +26,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.Tool;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraft.world.item.enchantment.ItemEnchantments;
 
 import dev.gkissel.forgeweave.api.modifier.Modifier;
+import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisAffixes;
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.AmmoToolItem;
@@ -301,10 +303,9 @@ public final class ModifierApplication {
      * already confirmed every reagent is present, so the per-reagent slot search below is a formality
      * that also picks which exact slot each reagent spends from.
      *
-     * <p>Ponytail: grants {@link ModifierRecipe#maxLevel()} outright in one craft rather than
-     * reusing {@link #apply}'s partial-fill/slot-budget-affordability stepping -- correct for every
-     * combo recipe shipped today (creative flight, {@code max_level} 1, nothing to partially fill).
-     * A future multi-level combo recipe would need that stepping added here too.
+     * <p>A complete set buys one level, and every complete set in the slots applies up to the level
+     * cap and the slot budget, the way {@link #apply} pools a single reagent. Beheading's ender pearl
+     * and obsidian are the only combo with more than one level today.
      */
     private static Outcome applyCombo(ModifierRecipe recipe, ItemStack tool, List<ItemStack> freeSlots) {
         Optional<Component> incompatible = ModifierCompatibility.refusal(tool, recipe.modifier(), name(recipe.modifier()));
@@ -313,21 +314,28 @@ public final class ModifierApplication {
         }
         ModifierEntry existing = ForgeweaveModifiers.entry(tool, recipe.modifier());
         int current = existing == null ? 0 : existing.level();
-        if (current >= recipe.maxLevel()) {
+        int remaining = recipe.maxLevel() + fusedLevel(tool, recipe.modifier()) - current;
+        if (remaining <= 0) {
             return Outcome.rejected(Component.translatable("gui.forgeweave.modifier.max_level", name(recipe.modifier())));
         }
         int free = Math.max(0, ForgeweaveModifiers.freeSlots(tool));
         int occupiedNow = ForgeweaveModifiers.occupiedSlots(recipe.modifier(), current);
-        if (ForgeweaveModifiers.occupiedSlots(recipe.modifier(), recipe.maxLevel()) - occupiedNow > free) {
+        int affordable = 0;
+        while (affordable < remaining
+                && ForgeweaveModifiers.occupiedSlots(recipe.modifier(), current + affordable + 1) - occupiedNow <= free) {
+            affordable++;
+        }
+        if (affordable == 0) {
             return Outcome.rejected(Component.translatable("gui.forgeweave.modifier.no_slots",
                     ForgeweaveModifiers.DEFAULT_SLOTS));
         }
 
-        int[] used = new int[freeSlots.size()];
+        int[] perSet = new int[freeSlots.size()];
+        int sets = affordable;
         for (ModifierRecipe.Reagent reagent : recipe.reagents()) {
             int slot = -1;
             for (int i = 0; i < freeSlots.size(); i++) {
-                if (used[i] == 0 && reagent.ingredient().test(freeSlots.get(i))
+                if (perSet[i] == 0 && reagent.ingredient().test(freeSlots.get(i))
                         && freeSlots.get(i).getCount() >= reagent.units()) {
                     slot = i;
                     break;
@@ -336,9 +344,12 @@ public final class ModifierApplication {
             if (slot < 0) {
                 return Outcome.rejected(Component.translatable("gui.forgeweave.modifier.not_enough_reagents", recipe.cost()));
             }
-            used[slot] = reagent.units();
+            perSet[slot] = reagent.units();
+            sets = Math.min(sets, freeSlots.get(slot).getCount() / reagent.units());
         }
-        return Outcome.applied(modified(tool, recipe.modifier(), recipe.maxLevel()), Arrays.stream(used).boxed().toList());
+        int bought = sets;
+        return Outcome.applied(modified(tool, recipe.modifier(), current + bought),
+                Arrays.stream(perSet).map(units -> units * bought).boxed().toList());
     }
 
     /** {@link Modifier#chestplateOnly}'s gate: a chestplate slot specifically, heavy or light alike (issue #1005). */
@@ -473,7 +484,7 @@ public final class ModifierApplication {
         if (modifier == null || entry == null) {
             return;
         }
-        int level = recipe.levelsReached(entry.level());
+        int level = grantLevel(recipe, entry.level(), ApotheosisAffixes.raisesEnchantmentCaps());
         boolean weapon = tool.getItem() instanceof ToolItem toolItem && toolItem.isWeapon();
         int fortune = modifier.fortuneLevel(level);
         int looting = weapon ? modifier.lootingLevel(level) : 0;
@@ -481,11 +492,35 @@ public final class ModifierApplication {
             return;
         }
         HolderGetter<Enchantment> enchantments = registries.lookupOrThrow(Registries.ENCHANTMENT);
-        ItemEnchantments.Mutable mutable =
-                new ItemEnchantments.Mutable(tool.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY));
-        mutable.upgrade(enchantments.getOrThrow(Enchantments.FORTUNE), fortune);
-        mutable.upgrade(enchantments.getOrThrow(Enchantments.LOOTING), looting);
-        tool.set(DataComponents.ENCHANTMENTS, mutable.toImmutable());
+        GrantedEnchantments.upgrade(tool, enchantments.getOrThrow(Enchantments.FORTUNE), fortune);
+        GrantedEnchantments.upgrade(tool, enchantments.getOrThrow(Enchantments.LOOTING), looting);
+    }
+
+    /**
+     * The level a recipe's enchantment grant reads off {@code units}. Apotheosis lifts enchantment caps,
+     * so with it installed Luck's Fortune and Looting gain a level per 60 full units, 6 at the recipe's
+     * cap where the tooltip reads Luck VI. Without it Luck keeps upstream's 60/180/360 ladder and tops
+     * out at 3.
+     */
+    static int grantLevel(ModifierRecipe recipe, int units, boolean apotheosis) {
+        Modifier modifier = ForgeweaveModifiers.get(recipe.modifier());
+        if (apotheosis && modifier == ForgeweaveModifiers.LUCK) {
+            return Math.min(units, recipe.maxLevel()) / modifier.unitsPerLevel();
+        }
+        return recipe.levelsReached(units);
+    }
+
+    /** {@link #applyEnchantmentGrants} for every modifier on {@code tool} that has a recipe. */
+    static void grantEnchantments(HolderLookup.Provider registries, ItemStack tool) {
+        for (ModifierEntry entry : ForgeweaveModifiers.of(tool)) {
+            grantEnchantments(registries, entry.id(), tool);
+        }
+    }
+
+    /** How much of a modifier's level came from fusion rungs rather than the Tool Station. */
+    private static int fusedLevel(ItemStack tool, ResourceLocation modifier) {
+        Map<ResourceLocation, Integer> rungs = tool.get(ForgeweaveDataComponents.FUSION_LEVELS.get());
+        return rungs == null ? 0 : rungs.getOrDefault(modifier, 0);
     }
 
     /**
@@ -537,8 +572,10 @@ public final class ModifierApplication {
         }
         ModifierEntry existing = ForgeweaveModifiers.entry(tool, recipe.modifier());
         int current = existing == null ? 0 : existing.level();
+        // Fusion levels sit on top of the station's cap, so a rung never takes room from the reagent.
+        int cap = recipe.maxLevel() + fusedLevel(tool, recipe.modifier());
 
-        if (current >= recipe.maxLevel()) {
+        if (current >= cap) {
             return Outcome.rejected(Component.translatable("gui.forgeweave.modifier.max_level",
                     name(recipe.modifier())));
         }
@@ -560,7 +597,7 @@ public final class ModifierApplication {
         // budget can still fill its current level (which charges nothing). Zero affordable units
         // is upstream's FreeModifierAspect throw: gui.error.not_enough_modifiers, the whole
         // application refused.
-        int remaining = recipe.maxLevel() - current;
+        int remaining = cap - current;
         int free = Math.max(0, ForgeweaveModifiers.freeSlots(tool));
         int occupiedNow = ForgeweaveModifiers.occupiedSlots(recipe.modifier(), current);
         int affordable = 0;
@@ -624,13 +661,15 @@ public final class ModifierApplication {
      * {@link dev.gkissel.forgeweave.compat.draconic.FusionUpgradeRecipe#upgrade} -- where the price
      * is the fusion craft's own materials and RF rather than the station's slot budget.
      *
-     * <p>Everything else {@link #apply} enforces still holds: {@link ModifierCompatibility}'s
-     * trait/modifier/enchantment refusals run first, and a tool already at or above {@code level} is
-     * refused rather than silently rewritten backwards. What is deliberately not checked here is
-     * {@link ForgeweaveModifiers#freeSlots} and the recipe's {@code max_level} -- the first because
-     * this path does not spend slots, the second because there is no {@link ModifierRecipe} in play
-     * at all. Callers pick levels from the modifier's own shipped cap; nothing here can invent one
-     * the Tool Station could not also reach.
+     * <p>{@code level} is the fusion line's own count, tracked in
+     * {@code ForgeweaveDataComponents#FUSION_LEVELS}, and what the rung adds goes on top of whatever
+     * the Tool Station already applied. Quartz in the station therefore never uses up a rung, and a
+     * maxed station modifier can still take all four. A rung the tool has already had is refused.
+     *
+     * <p>{@link ModifierCompatibility}'s trait/modifier/enchantment refusals still run first. What is
+     * deliberately not checked here is {@link ForgeweaveModifiers#freeSlots} and the recipe's
+     * {@code max_level} -- the first because this path does not spend slots, the second because the
+     * rung's levels are in addition to that cap.
      *
      * <p>Not spending a slot takes a grant, not just a missing check (issue #952): the entry this
      * writes occupies a slot the way every entry does, so the tool is handed back exactly as many
@@ -647,11 +686,16 @@ public final class ModifierApplication {
         if (incompatible.isPresent()) {
             return Outcome.rejected(incompatible.get());
         }
-        ModifierEntry existing = ForgeweaveModifiers.entry(tool, modifier);
-        if (existing != null && existing.level() >= level) {
+        int fused = fusedLevel(tool, modifier);
+        if (fused >= level) {
             return Outcome.rejected(Component.translatable("gui.forgeweave.modifier.max_level", name(modifier)));
         }
-        ItemStack upgraded = modified(tool, modifier, level);
+        ModifierEntry existing = ForgeweaveModifiers.entry(tool, modifier);
+        ItemStack upgraded = modified(tool, modifier, (existing == null ? 0 : existing.level()) + level - fused);
+        Map<ResourceLocation, Integer> stored = tool.get(ForgeweaveDataComponents.FUSION_LEVELS.get());
+        Map<ResourceLocation, Integer> rungs = stored == null ? new HashMap<>() : new HashMap<>(stored);
+        rungs.put(modifier, level);
+        upgraded.set(ForgeweaveDataComponents.FUSION_LEVELS.get(), Map.copyOf(rungs));
         // #952: "charges no modifier slot" used to be a promise the arithmetic did not keep -- the
         // entry this just wrote raises ForgeweaveModifiers#occupiedSlots like any other, so a fusion
         // upgrade quietly ate a slot the Tool Station would have sold. Handing back exactly what the

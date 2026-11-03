@@ -199,7 +199,7 @@ public record FusionUpgradeRecipe(Ingredient catalyst, ResourceLocation modifier
 
     /**
      * Draconic Evolution's own catalyst/injector matching, plus "and this upgrade would actually
-     * change this tool". Without the second half, a tool already at the tier's level -- or one whose
+     * change this tool". Without the second half, a tool that already had this rung -- or one whose
      * shape the modifier refuses, a bow under a harvest-only modifier -- would start a craft that
      * produced nothing.
      */
@@ -219,8 +219,9 @@ public record FusionUpgradeRecipe(Ingredient catalyst, ResourceLocation modifier
      * assembled Forgeweave tool, it does not carry {@code evolved} at this tier's level, it is not made of a Draconic core (a weld tool hosts modules instead, maintainer decision 2026-09-06), the
      * modifier id is not registered, the modifier refuses the tool's shape
      * ({@link ModifierApplication#acceptsToolShape}), the tool carries something the modifier cannot
-     * sit beside, or the tool already sits at or above this tier's level. The last case is what keeps
-     * a line's four tiers from all matching at once and makes a player climb them in order.
+     * sit beside, or the tool has already had this rung or a higher one. The last case is what keeps
+     * a line's four tiers from all matching at once and makes a player climb them in order. Levels
+     * from the Tool Station don't count towards it.
      *
      * <p>The {@code evolved} check (issue #946) is the parity target's own rule: fusion crafting
      * only upgrades a tool already made of a fusion metal, and only up to that metal's tier. It is

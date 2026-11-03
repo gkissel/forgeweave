@@ -85,10 +85,10 @@ public final class ForgeweaveDraconicCompat {
      * as the same upgrade paid for differently rather than as an unrelated recipe.
      *
      * @param modifier the Forgeweave modifier id the line raises
-     * @param reagent the line's own ingredient, one per craft
+     * @param reagents the line's own ingredients, one of each per craft
      * @param rungs draconium, wyvern, draconic and chaotic, in that order
      */
-    public record Line(String modifier, String reagent, List<Rung> rungs) {}
+    public record Line(String modifier, List<String> reagents, List<Rung> rungs) {}
 
     private static final long DRACONIUM_ENERGY = 2_000_000L;
     private static final long WYVERN_ENERGY = 8_000_000L;
@@ -116,26 +116,26 @@ public final class ForgeweaveDraconicCompat {
     public static final List<Line> UPGRADE_LINES = List.of(
             // Dig speed. Haste is 50 application units per display level, capped at 250 (Haste V), so
             // the rungs land on Haste I / II / III+half / V.
-            line("haste", "minecraft:redstone_block", 50, 100, 175, 250),
+            line("haste", List.of("minecraft:redstone_block"), 50, 100, 175, 250),
             // Attack damage. Sharpness is 72 units per display level, capped at 360 (Sharpness V).
-            line("sharpness", "minecraft:quartz_block", 72, 144, 252, 360),
+            line("sharpness", List.of("minecraft:quartz_block"), 72, 144, 252, 360),
             // Durability. Reinforced is one unit per level, capped at 5.
-            line("reinforced", "forgeweave:reinforced_plate", 2, 3, 4, 5),
+            line("reinforced", List.of("forgeweave:reinforced_plate"), 2, 3, 4, 5),
             // Modifier slots -- the closest Forgeweave has to DE's "upgrade capacity". One per level,
             // capped at 5.
-            line("extra_slot", "forgeweave:extra_modifier", 2, 3, 4, 5),
+            line("extra_slot", List.of("forgeweave:extra_modifier"), 2, 3, 4, 5),
             // Dig area. Vein mining widens by VEINMINE_BLOCKS_PER_LEVEL per level, capped at 5.
-            line("veinmine", "minecraft:prismarine_shard", 2, 3, 4, 5),
+            line("veinmine", List.of("minecraft:prismarine_shard"), 2, 3, 4, 5),
             // Attack burn. Fiery is 25 units per display level, capped at 125.
-            line("fiery", "minecraft:blaze_powder", 25, 50, 90, 125),
-            // Fortune. Luck's display levels sit at 60 / 180 / 360 units (its cost_per_level ladder),
-            // so the four rungs are I / II / most of III / III.
-            line("luck", "minecraft:lapis_block", 60, 180, 270, 360),
-            // Head drops. Beheading is one unit per level, capped at 10.
-            line("beheading", "minecraft:obsidian", 3, 5, 8, 10));
+            line("fiery", List.of("minecraft:blaze_powder"), 25, 50, 90, 125),
+            // Fortune. Without Apotheosis Luck's ladder is 60 / 180 / 360 units, so the rungs are
+            // Fortune I / II / II / III; with it one per 60 units, so I / III / IV / VI.
+            line("luck", List.of("minecraft:lapis_block"), 60, 180, 270, 360),
+            // Head drops. Beheading is one unit per level, capped at 10. Its station combo's two items.
+            line("beheading", List.of("minecraft:ender_pearl", "minecraft:obsidian"), 3, 5, 8, 10));
 
-    private static Line line(String modifier, String reagent, int draconium, int wyvern, int draconic, int chaotic) {
-        return new Line(Forgeweave.MODID + ":" + modifier, reagent, List.of(
+    private static Line line(String modifier, List<String> reagents, int draconium, int wyvern, int draconic, int chaotic) {
+        return new Line(Forgeweave.MODID + ":" + modifier, reagents, List.of(
                 new Rung("draconium", draconium, DRACONIUM_ENERGY),
                 new Rung("wyvern", wyvern, WYVERN_ENERGY),
                 new Rung("draconic", draconic, DRACONIC_ENERGY),

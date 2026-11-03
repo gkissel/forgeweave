@@ -68,6 +68,7 @@ import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.material.MaterialDisplay;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.modifier.GrantedEnchantments;
 
 import dev.gkissel.forgeweave.tool.AoeHarvest;
 import dev.gkissel.forgeweave.tool.AxeStrip;
@@ -861,6 +862,7 @@ public class ToolItem extends Item {
     @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean isSelected) {
         if (level instanceof ServerLevel serverLevel && entity instanceof LivingEntity holder && !isBroken(stack)) {
+            GrantedEnchantments.migrate(serverLevel.registryAccess(), stack);
             ForgeweaveTraits.inventoryTick(stack, serverLevel, holder);
             ForgeweaveModifiers.inventoryTick(stack, serverLevel, holder, isSelected);
         }
@@ -963,6 +965,12 @@ public class ToolItem extends Item {
         return false;
     }
 
+    /** What {@code EnchantmentHelper} asks when it wants one level, Fortune's loot roll among them. */
+    @Override
+    public int getEnchantmentLevel(ItemStack stack, Holder<Enchantment> enchantment) {
+        return Math.max(super.getEnchantmentLevel(stack, enchantment), GrantedEnchantments.of(stack).getLevel(enchantment));
+    }
+
     /**
      * The enchantments this tool actually has, plus the ones its installed Mekanism modules grant
      * (issue #993): silk touch, fortune and frost walker today, and anything else Mekanism ships as an
@@ -977,7 +985,7 @@ public class ToolItem extends Item {
      */
     @Override
     public ItemEnchantments getAllEnchantments(ItemStack stack, HolderLookup.RegistryLookup<Enchantment> lookup) {
-        ItemEnchantments own = super.getAllEnchantments(stack, lookup);
+        ItemEnchantments own = GrantedEnchantments.withStored(stack);
         ItemEnchantments modules = MekanismGearModules.moduleEnchantments(stack);
         if (modules.isEmpty()) {
             return own;
@@ -1222,6 +1230,7 @@ public class ToolItem extends Item {
         super.appendHoverText(stack, context, tooltip, flag);
         ToolTooltip.append(stack, context.registries(), ToolTooltip.detailed(flag), attackDamage(stack), tooltip);
         ToolTooltip.appendShiftHint(ToolTooltip.shiftHint(flag), tooltip);
+        GrantedEnchantments.of(stack).addToTooltip(context, tooltip::add, flag);
     }
 
     // ------------------------------------------------------------------ innate item use (issue #155)
