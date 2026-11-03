@@ -1614,6 +1614,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 + "vanilla leaves you 20%.");
         add("modifier.forgeweave.resonant.name", "Resonant");
         add("modifier.forgeweave.resonant.description", "Blocks that drop experience drop 50% more per level, up to 3 levels.");
+        add("modifier.forgeweave.knowledge_of_the_ages.name", "Knowledge of the Ages");
+        add("modifier.forgeweave.knowledge_of_the_ages.description", "On a tool, blocks and kills drop 33.33% more "
+                + "experience per level, doubling it at level 3. On armor, each level adds 10% to all experience "
+                + "you gain, up to 30% per piece and 120% for a full set. Up to 3 levels.");
         add("modifier.forgeweave.far_reach.name", "Far Reach");
         add("modifier.forgeweave.far_reach.description", "Adds 1 block of reach per level for mining and hitting, up to 2.");
 
@@ -3736,6 +3740,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Block drops go straight into your inventory", "One level only", "Costs 1 modifier slot");
         modifierEffects("aquadynamic",
                 "No mining speed penalty underwater", "One level only", "Costs 1 modifier slot");
+        modifierEffects("knowledge_of_the_ages",
+                "Tools: blocks and kills drop 33.33% more experience per level",
+                "Armor: 10% more experience gained per level, 120% on a full set at level 3", "Up to 3 levels",
+                "Costs 1 modifier slot per level");
         modifierEffects("resonant",
                 "Blocks that drop experience drop more", "Each level adds 50%", "Up to 3 levels",
                 "Costs 1 modifier slot per level");
