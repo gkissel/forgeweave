@@ -17,6 +17,7 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingInput;
@@ -28,6 +29,7 @@ import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 
+import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
 import net.neoforged.neoforge.event.level.BlockDropsEvent;
 import net.neoforged.neoforge.gametest.GameTestHolder;
 import net.neoforged.neoforge.gametest.PrefixGameTestTemplate;
@@ -537,6 +539,31 @@ public class ModifierGameTests {
                 "a drop the inventory can fully absorb must not spawn in the world");
         helper.assertTrue(player.getInventory().contains(new ItemStack(Items.COBBLESTONE, 4)),
                 "expected the cobblestone in the breaker's inventory instead of the ground");
+        helper.succeed();
+    }
+
+    /** Knowledge of the Ages at level 3 doubles what a mined block and a kill drop. */
+    @GameTest(template = "empty")
+    public static void knowledgeOfTheAgesDoublesDroppedExperienceAtLevelThree(GameTestHelper helper) {
+        ItemStack pickaxe = pickaxe("incorrect_for_stone_tool");
+        ResourceLocation knowledge = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "knowledge_of_the_ages");
+        pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(knowledge, 3)));
+
+        BlockDropsEvent block = dropsEvent(helper, pickaxe, null);
+        block.setDroppedExperience(30);
+        ForgeweaveModifiers.onBlockDrops(block);
+        helper.assertTrue(Math.abs(block.getDroppedExperience() - 60) <= 1, "a block's 30 XP doubles, got " + block.getDroppedExperience());
+
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setItemInHand(InteractionHand.MAIN_HAND, pickaxe);
+        LivingExperienceDropEvent kill = new LivingExperienceDropEvent(player, player, 30);
+        ForgeweaveModifiers.onExperienceDrop(kill);
+        helper.assertTrue(Math.abs(kill.getDroppedExperience() - 60) <= 1, "a kill's 30 XP doubles, got " + kill.getDroppedExperience());
+
+        player.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+        LivingExperienceDropEvent bare = new LivingExperienceDropEvent(player, player, 30);
+        ForgeweaveModifiers.onExperienceDrop(bare);
+        helper.assertValueEqual(bare.getDroppedExperience(), 30, "no tool, no bonus");
         helper.succeed();
     }
 

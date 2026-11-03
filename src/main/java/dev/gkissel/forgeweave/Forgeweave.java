@@ -304,6 +304,9 @@ public class Forgeweave {
         // #108 batch: Searing/Magnetic Pull/Resonant key off what a mined block drops, which has no
         // Item hook either (see ForgeweaveModifiers#onBlockDrops).
         NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onBlockDrops);
+        // Knowledge of the Ages: no Item hook for a kill's dropped XP or for XP gained while worn.
+        NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onExperienceDrop);
+        NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onXpChange);
         // A table level and a modifier grant of the same enchantment read as one tooltip line.
         NeoForge.EVENT_BUS.addListener(GrantedEnchantments::onTooltip);
         // #107 batch: modifiers whose behavior is event-driven rather than a per-level hook: mending
