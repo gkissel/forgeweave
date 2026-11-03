@@ -295,6 +295,15 @@ public final class StationText {
                 .orElseGet(List::of);
     }
 
+    /** One plating piece's stats, in the same order and with the same x10 as an assembled piece's. */
+    public static List<Component> platingStats(Material.PlatingPiece piece) {
+        return List.of(
+                stat("durability", piece.durability(), DURABILITY_COLOR),
+                stat("armor", piece.armor(), ARMOR_COLOR),
+                stat("toughness", piece.toughness(), ARMOR_COLOR),
+                stat("knockback_resistance", piece.knockbackResistance() * 10, ARMOR_COLOR));
+    }
+
     /** What a handle part of this material contributes: a durability multiplier plus a flat bonus. */
     public static List<Component> handleStats(Material material) {
         return material.handle().<List<Component>>map(handle -> List.of(
