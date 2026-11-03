@@ -1682,6 +1682,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("tooltip.forgeweave.cast", "Pour molten metal into it at a Casting Table or Basin to cast "
                 + "its shape. Reusable.");
         add("tooltip.forgeweave.clay_cast", "A single-use clay cast: it breaks after one pour.");
+        add("tooltip.forgeweave.cast_cost", "Ingots used: %s");
 
         // #106 batch: luck, sharpness, diamond, emerald.
         add("modifier.forgeweave.luck.name", "Luck");

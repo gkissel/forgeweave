@@ -2589,6 +2589,7 @@
   "tooltip.forgeweave.axe_level": "Axe Level",
   "tooltip.forgeweave.broken": "Broken",
   "tooltip.forgeweave.cast": "Pour molten metal into it at a Casting Table or Basin to cast its shape. Reusable.",
+  "tooltip.forgeweave.cast_cost": "Ingots used: %s",
   "tooltip.forgeweave.clay_cast": "A single-use clay cast: it breaks after one pour.",
   "tooltip.forgeweave.durability": "Durability",
   "tooltip.forgeweave.dusk_cage": "Holds a snared %s -- right-click a block to let it out",
