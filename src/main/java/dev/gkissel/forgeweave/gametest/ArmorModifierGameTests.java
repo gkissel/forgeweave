@@ -294,6 +294,27 @@ public class ArmorModifierGameTests {
         helper.succeed();
     }
 
+    /** Knowledge of the Ages at the station on a real piece: 10% per level, summed over what's worn. */
+    @GameTest(template = "empty")
+    public static void knowledgeOfTheAgesRaisesExperienceGained(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack plate = chestplate(helper, player);
+        for (int i = 0; i < 3; i++) {
+            plate = apply(helper, player, plate, new ItemStack(Items.EXPERIENCE_BOTTLE));
+        }
+        helper.assertValueEqual(ForgeweaveModifiers.entry(plate, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "knowledge_of_the_ages")).level(), 3, "levels after 3 bottles");
+
+        player.giveExperiencePoints(100);
+        helper.assertValueEqual(player.totalExperience, 100, "no piece worn, no bonus");
+        player.setItemSlot(EquipmentSlot.CHEST, plate);
+        player.giveExperiencePoints(100);
+        helper.assertTrue(Math.abs(player.totalExperience - 230) <= 1, "one level 3 piece adds 30%, got " + player.totalExperience);
+        player.setItemSlot(EquipmentSlot.HEAD, plate.copy());
+        player.giveExperiencePoints(100);
+        helper.assertTrue(Math.abs(player.totalExperience - 390) <= 2, "two pieces add 60%, got " + player.totalExperience);
+        helper.succeed();
+    }
+
     /** D15's {@code armorOnly()}: a seared brick on a pickaxe is refused with the category message. */
     @GameTest(template = "empty")
     public static void aPickaxeRefusesAnArmorOnlyModifier(GameTestHelper helper) {
