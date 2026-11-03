@@ -500,11 +500,14 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
 
     private void renderFuel(GuiGraphics graphics) {
         FluidStack fuel = menu.fuel(level());
-        int capacity = menu.fuelCapacity(level());
+        int energyCapacity = menu.fuelEnergyCapacity(level());
+        // An energized tank's sample is never consumed, so its gauge follows the energy that burns.
+        int amount = energyCapacity > 0 ? menu.fuelEnergy(level()) : fuel.getAmount();
+        int capacity = energyCapacity > 0 ? energyCapacity : menu.fuelCapacity(level());
         if (fuel.isEmpty() || capacity <= 0) {
             return;
         }
-        int height = Math.min(FUEL_HEIGHT, FUEL_HEIGHT * fuel.getAmount() / capacity);
+        int height = (int) Math.min(FUEL_HEIGHT, (long) FUEL_HEIGHT * amount / capacity);
         renderFluid(graphics, fuel, leftPos + FUEL_X, topPos + FUEL_Y + FUEL_HEIGHT - height, FUEL_WIDTH, height);
     }
 
@@ -707,6 +710,19 @@ public class SmelteryScreen extends StationScreen<SmelteryMenu> {
         FluidStack fuel = menu.fuel(level());
         if (fuel.isEmpty()) {
             tooltip.add(translate("fuel.empty"));
+            return tooltip;
+        }
+        int energyCapacity = menu.fuelEnergyCapacity(level());
+        if (energyCapacity > 0) {
+            tooltip.add(fuel.getHoverName().copy());
+            tooltip.add(Component.translatable("gui.forgeweave.energized_tank.energy",
+                            menu.fuelEnergy(level()), energyCapacity)
+                    .withStyle(ChatFormatting.GRAY));
+            int heat = menu.smelteryTemperature(level());
+            tooltip.add(heat > 0
+                    ? Component.translatable(KEY_PREFIX + "fuel.heat", TemperatureText.format(heat))
+                            .withStyle(ChatFormatting.GRAY)
+                    : translate("fuel.no_energy").withStyle(ChatFormatting.DARK_RED));
             return tooltip;
         }
         if (menu.loadedFuel(level()).isEmpty()) {

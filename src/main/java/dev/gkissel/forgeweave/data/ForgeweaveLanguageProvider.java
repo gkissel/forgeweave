@@ -427,6 +427,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.smeltery.liquid.millibucket", "mb");
         add("gui.forgeweave.smeltery.fuel", "Fuel");
         add("gui.forgeweave.smeltery.fuel.empty", "No fuel found");
+        add("gui.forgeweave.smeltery.fuel.no_energy", "Not enough energy to heat the smeltery");
         // Upstream's gui.smeltery.fuel.heat, shown while a burn is under way (#131). Its %s is the
         // gui.forgeweave.temperature component: the raw recipe/fuel number, no unit conversion
         // (#932, recorded deviation from upstream's celsius-converting Util#temperatureString).
