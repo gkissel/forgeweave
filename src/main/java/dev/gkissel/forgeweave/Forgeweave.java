@@ -62,6 +62,7 @@ import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
 import dev.gkissel.forgeweave.compat.create.ForgeweaveCreateCompat;
 import dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat;
 import dev.gkissel.forgeweave.compat.mekanism.ForgeweaveMekanismCompat;
+import dev.gkissel.forgeweave.compat.mysticalagriculture.MysticalAugments;
 import dev.gkissel.forgeweave.compat.occultism.ForgeweaveOccultismCompat;
 import dev.gkissel.forgeweave.config.ForgeweaveClientConfig;
 import dev.gkissel.forgeweave.config.ForgeweaveConfigCondition; // #995
@@ -309,6 +310,7 @@ public class Forgeweave {
         NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onXpPickup);
         NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onRightClickBookshelf);
         NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onLivingDrops);
+        NeoForge.EVENT_BUS.addListener(MysticalAugments::onLivingDrops);
         NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onPlayerClone);
         // #445 -- parity audit T13: a first-time player is given the guide book (upstream's
         // spawnWithBook, default on). See GuideBookGift.
