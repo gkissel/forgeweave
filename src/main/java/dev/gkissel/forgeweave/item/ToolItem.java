@@ -744,7 +744,9 @@ public class ToolItem extends Item {
      * hatchet has, so the multiplier applies here only ({@code ForgeweaveModifiers#HASTE}).
      */
     private float effectiveAttackSpeed(ItemStack stack) {
-        return weapon ? attackSpeed * ForgeweaveModifiers.attackSpeedMultiplier(stack) : attackSpeed;
+        ToolStats.Stats stats = stack.get(ForgeweaveDataComponents.TOOL_STATS.get());
+        float materialBonus = stats == null ? 0.0F : stats.attackSpeed();
+        return (weapon ? attackSpeed * ForgeweaveModifiers.attackSpeedMultiplier(stack) : attackSpeed) + materialBonus;
     }
 
     /**

@@ -731,6 +731,7 @@ public final class ToolConstants {
         double headWeightTotal = 0;
         float headAttackWeighted = 0;
         float headSpeedWeighted = 0;
+        float headAttackSpeedWeighted = 0;
 
         int extraDurabilitySum = 0;
         int extraCount = 0;
@@ -764,6 +765,7 @@ public final class ToolConstants {
                     headDurabilityWeighted += head.durability() * weight;
                     headAttackWeighted += head.attackDamage() * weight;
                     headSpeedWeighted += head.miningSpeed() * weight;
+                    headAttackSpeedWeighted += head.attackSpeed() * weight;
                     headWeightTotal += weight;
                 }
                 case EXTRA -> {
@@ -800,6 +802,7 @@ public final class ToolConstants {
                     headDurabilityWeighted += head.durability() * weight;
                     headAttackWeighted += head.attackDamage() * weight;
                     headSpeedWeighted += head.miningSpeed() * weight;
+                    headAttackSpeedWeighted += head.attackSpeed() * weight;
                     headWeightTotal += weight;
                 }
                 case SHAFT -> {
@@ -825,6 +828,7 @@ public final class ToolConstants {
                     headDurabilityWeighted += blade.durability() * weight;
                     headAttackWeighted += blade.attackDamage() * weight;
                     headSpeedWeighted += blade.miningSpeed() * weight;
+                    headAttackSpeedWeighted += blade.attackSpeed() * weight;
                     headWeightTotal += weight;
                     extraDurabilitySum += material.extraDurability().orElseThrow(() -> ToolStats.noStats("extra"));
                     extraCount++;
@@ -838,6 +842,7 @@ public final class ToolConstants {
         int headDurabilityAvg = Math.max(1, (int) (headDurabilityWeighted / headWeightTotal));
         float headAttackAvg = headAttackWeighted / (float) headWeightTotal;
         float headSpeedAvg = headSpeedWeighted / (float) headWeightTotal;
+        float headAttackSpeedAvg = headAttackSpeedWeighted / (float) headWeightTotal;
 
         int durability;
         if (entry.durabilitySkipsExtraAndHandle()) {
@@ -876,7 +881,7 @@ public final class ToolConstants {
         float attack = entry.sumHeadsForAttack() ? headAttackWeighted : headAttackAvg;
         attack = attack * entry.preAttackMultiplier() + entry.flatAttackBonus();
 
-        return new ToolStats.Stats(durability, headSpeedAvg, attack);
+        return new ToolStats.Stats(durability, headSpeedAvg, attack, headAttackSpeedAvg);
     }
 
     private ToolConstants() {}
