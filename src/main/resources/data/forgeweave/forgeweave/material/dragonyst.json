@@ -1,14 +1,14 @@
 {
   "head": {
-    "durability": 760,
-    "mining_speed": 9.0,
-    "attack_damage": 4.8
+    "durability": 1365,
+    "mining_speed": 12.95,
+    "attack_damage": 8.9
   },
   "handle": {
     "durability_modifier": 0.9,
-    "durability": 70
+    "durability": 125
   },
-  "extra_durability": 200,
+  "extra_durability": 360,
   "bow": {
     "drawspeed": 0.5,
     "range": 1.3,
@@ -16,27 +16,27 @@
   },
   "plating": {
     "helmet": {
-      "durability": 517,
-      "armor": 3.0,
-      "toughness": 1.0,
+      "durability": 705,
+      "armor": 3.4,
+      "toughness": 1.2,
       "knockback_resistance": 0.1
     },
     "chestplate": {
-      "durability": 760,
-      "armor": 7.0,
-      "toughness": 1.0,
+      "durability": 1036,
+      "armor": 8.1,
+      "toughness": 1.2,
       "knockback_resistance": 0.1
     },
     "leggings": {
-      "durability": 714,
-      "armor": 6.0,
-      "toughness": 1.0,
+      "durability": 974,
+      "armor": 7.0,
+      "toughness": 1.2,
       "knockback_resistance": 0.1
     },
     "boots": {
-      "durability": 608,
-      "armor": 3.0,
-      "toughness": 1.0,
+      "durability": 829,
+      "armor": 3.4,
+      "toughness": 1.2,
       "knockback_resistance": 0.1
     }
   },
