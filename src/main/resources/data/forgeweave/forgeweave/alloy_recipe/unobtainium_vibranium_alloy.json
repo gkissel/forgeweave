@@ -1,0 +1,23 @@
+{
+  "inputs": [
+    {
+      "fluid": "forgeweave:molten_unobtainium",
+      "amount": 2
+    },
+    {
+      "fluid": "forgeweave:molten_vibranium",
+      "amount": 2
+    }
+  ],
+  "result": {
+    "fluid": "forgeweave:molten_unobtainium_vibranium_alloy",
+    "amount": 2
+  },
+  "priority": 2,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "allthemodium:unobtainium_vibranium_alloy_ingot"
+    }
+  ]
+}

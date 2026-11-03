@@ -9,8 +9,11 @@ import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
 
 import dev.gkissel.forgeweave.Forgeweave;
@@ -140,6 +143,38 @@ public class MysticalAgricultureGameTests {
         helper.assertValueEqual(MysticalAugments.tierOf(tool("iron")), Optional.empty(),
                 "an iron pickaxe is not augmentable");
         helper.assertValueEqual(MysticalAugments.augmentSlots(tool("iron")), 0, "iron slots");
+        helper.succeed();
+    }
+
+    /**
+     * Any part made of a Mystical Agriculture or Agradditions material earns Cognizant Dust from the
+     * two bosses, at Mystical Agriculture's own Mystical Enlightenment I amounts. Nothing else does.
+     */
+    @GameTest(template = "empty")
+    public static void mysticalPartsEarnCognizantDustFromTheBosses(GameTestHelper helper) {
+        Entity wither = EntityType.WITHER.create(helper.getLevel());
+        Entity dragon = EntityType.ENDER_DRAGON.create(helper.getLevel());
+        Entity zombie = EntityType.ZOMBIE.create(helper.getLevel());
+        for (String name : PRESET_MATERIALS) {
+            helper.assertValueEqual(MysticalAugments.cognizantDust(tool(name), wither), 4, name + " on the Wither");
+            helper.assertValueEqual(MysticalAugments.cognizantDust(tool(name), dragon), 6, name + " on the dragon");
+        }
+
+        ItemStack oneInferiumPart = pickaxe();
+        oneInferiumPart.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(), materials("iron", "wood", "inferium"));
+        helper.assertValueEqual(MysticalAugments.cognizantDust(oneInferiumPart, wither), 4, "one part is enough");
+
+        helper.assertValueEqual(MysticalAugments.cognizantDust(tool("inferium"), zombie), 0, "not a boss");
+        helper.assertValueEqual(MysticalAugments.cognizantDust(tool("iron"), wither), 0, "no mystical part");
+        helper.assertValueEqual(MysticalAugments.cognizantDust(new ItemStack(Items.DIAMOND_SWORD), dragon), 0,
+                "not a Forgeweave tool");
+
+        ForgeweaveConfig.MYSTICAL_AGRICULTURE_AUGMENTS.set(false);
+        try {
+            helper.assertValueEqual(MysticalAugments.cognizantDust(tool("inferium"), wither), 0, "toggle off");
+        } finally {
+            ForgeweaveConfig.MYSTICAL_AGRICULTURE_AUGMENTS.set(true);
+        }
         helper.succeed();
     }
 

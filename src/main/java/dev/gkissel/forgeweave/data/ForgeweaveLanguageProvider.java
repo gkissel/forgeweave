@@ -427,6 +427,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.smeltery.liquid.millibucket", "mb");
         add("gui.forgeweave.smeltery.fuel", "Fuel");
         add("gui.forgeweave.smeltery.fuel.empty", "No fuel found");
+        add("gui.forgeweave.smeltery.fuel.no_energy", "Not enough energy to heat the smeltery");
         // Upstream's gui.smeltery.fuel.heat, shown while a burn is under way (#131). Its %s is the
         // gui.forgeweave.temperature component: the raw recipe/fuel number, no unit conversion
         // (#932, recorded deviation from upstream's celsius-converting Util#temperatureString).
@@ -1023,6 +1024,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // #626, upstream stat.shaft.name / stat.fletching.name.
         add("tooltip.forgeweave.stat_type.shaft", "Arrow Shaft");
         add("tooltip.forgeweave.stat_type.fletching", "Fletching");
+        add("tooltip.forgeweave.stat_type.plating", "Plating");
         // tooltip.tank.amount -- the fluid a broken seared tank/gauge/window kept on its stack. The
         // fluid's own name is its registered display name, so it needs no key of its own.
         add("tooltip.forgeweave.tank.amount", "%s mb");
@@ -1613,7 +1615,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("modifier.forgeweave.resonant.name", "Resonant");
         add("modifier.forgeweave.resonant.description", "Blocks that drop experience drop 50% more per level, up to 3 levels.");
         add("modifier.forgeweave.far_reach.name", "Far Reach");
-        add("modifier.forgeweave.far_reach.description", "Adds 1 block of block-mining reach per level, up to 2.");
+        add("modifier.forgeweave.far_reach.description", "Adds 1 block of reach per level for mining and hitting, up to 2.");
 
         // #107 batch: reinforced, mending moss, silky, soulbound, extra-slot (docs/SCOPE.md M2 issue
         // #107), wording ported from upstream 1.12's modifier.<id>.name/.desc entries.
@@ -1682,6 +1684,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("tooltip.forgeweave.cast", "Pour molten metal into it at a Casting Table or Basin to cast "
                 + "its shape. Reusable.");
         add("tooltip.forgeweave.clay_cast", "A single-use clay cast: it breaks after one pour.");
+        add("tooltip.forgeweave.cast_cost", "Ingots used: %s");
 
         // #106 batch: luck, sharpness, diamond, emerald.
         add("modifier.forgeweave.luck.name", "Luck");

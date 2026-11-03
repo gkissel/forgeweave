@@ -26,6 +26,12 @@ grep -q '^onboardAccessibility:' run/harness/options.txt || echo 'onboardAccessi
 # pause menu across every in-world capture; the harness never needs the pause.
 grep -q '^pauseOnLostFocus:' run/harness/options.txt || echo 'pauseOnLostFocus:false' >> run/harness/options.txt
 
+# Spawned clients stay silent. This goes through options.txt and never through pactl or wpctl:
+# WirePlumber saves a stream mute as a rule for every stream of that name, which includes a player's
+# own game.
+sed -i '/^soundCategory_master:/d' run/harness/options.txt
+echo 'soundCategory_master:0.0' >> run/harness/options.txt
+
 # The harness always creates a world by the same name, so a second run lands in the world the first
 # one left behind -- every station, tank and smeltery still standing, in frame behind whatever the
 # new scene places. Two runs in a row produced a head-drop row (#158) with an old smeltery wall

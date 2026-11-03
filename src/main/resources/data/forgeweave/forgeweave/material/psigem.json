@@ -1,24 +1,24 @@
 {
   "head": {
-    "durability": 300,
-    "mining_speed": 6.0,
-    "attack_damage": 4.2
+    "durability": 390,
+    "mining_speed": 7.8,
+    "attack_damage": 5.45
   },
   "handle": {
     "durability_modifier": 1.0,
-    "durability": 30
+    "durability": 40
   },
-  "extra_durability": 55,
+  "extra_durability": 70,
   "bow": {
     "drawspeed": 0.6,
     "range": 1.25,
     "bonus_damage": 3.8
   },
   "plating": {
-    "helmet": { "durability": 204, "armor": 2.0 },
-    "chestplate": { "durability": 300, "armor": 5.0 },
-    "leggings": { "durability": 282, "armor": 4.0 },
-    "boots": { "durability": 240, "armor": 2.0 }
+    "helmet": { "durability": 265, "armor": 2.0 },
+    "chestplate": { "durability": 390, "armor": 5.0 },
+    "leggings": { "durability": 367, "armor": 4.0 },
+    "boots": { "durability": 312, "armor": 2.0 }
   },
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
