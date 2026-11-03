@@ -192,6 +192,11 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      */
     private FluidStack fuelDisplayFluid = FluidStack.EMPTY;
 
+    /** The energized tank on the fuel gauge, synced with {@link #fuelDisplayFluid}. A capacity of 0 means no tank is shown. */
+    private int fuelDisplayEnergy;
+    private int fuelDisplayEnergyCapacity;
+    private int fuelDisplayTemperature;
+
     public SmelteryControllerBlockEntity(BlockPos pos, BlockState state, SmelteryCore core) {
         super(core.blockEntityType().get(), pos, state);
         this.core = core;
@@ -400,6 +405,9 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
     private static final String TAG_FUEL_BURN_TICKS = "fuel_burn_ticks";
     private static final String TAG_FUEL_TEMPERATURE = "fuel_temperature";
     private static final String TAG_FUEL_DISPLAY = "fuel_display";
+    private static final String TAG_FUEL_DISPLAY_ENERGY = "fuel_display_energy";
+    private static final String TAG_FUEL_DISPLAY_ENERGY_CAPACITY = "fuel_display_energy_capacity";
+    private static final String TAG_FUEL_DISPLAY_TEMPERATURE = "fuel_display_temperature";
 
     /**
      * The items currently melting, one per interior block, in slot order. Read-only; insert through
@@ -504,6 +512,18 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      */
     public FluidStack fuelDisplayFluid() {
         return fuelDisplayFluid;
+    }
+
+    public int fuelDisplayEnergy() {
+        return fuelDisplayEnergy;
+    }
+
+    public int fuelDisplayEnergyCapacity() {
+        return fuelDisplayEnergyCapacity;
+    }
+
+    public int fuelDisplayTemperature() {
+        return fuelDisplayTemperature;
     }
 
     /**
@@ -1008,18 +1028,52 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
      * {@code gui.smeltery.fuel.invalid} branch at all: without it a player who filled the wall tank
      * with water sees an empty gauge and no explanation, instead of their water and the reason it
      * will never burn. No new sync -- {@code fuel_display} already ships a whole {@link FluidStack}.
+     *
+     * <p>An energized tank takes the gauge when it is the heat the smeltery is actually running on, by
+     * the same comparison {@link #meltTick()} uses, or when nothing else offers heat and its buffer is
+     * too low to pay. That second case is why the sample and the energy travel together: "out of
+     * energy" is the explanation a player needs there, and "no fuel found" would be wrong.
      */
     private void refreshFuelDisplay() {
         peekFuel();
+        int liquid = liquidTemperature();
+        EnergizedTankBlockEntity paying = payingEnergizedTank();
+        EnergizedTankBlockEntity shown = paying != null && paying.temperature() >= liquid ? paying
+                : paying == null && liquid == 0 ? firstSampledEnergizedTank() : null;
         BlockPos displayTank = fuelTank != null ? fuelTank : findTank(this::holdsFluid);
-        FluidStack live = displayTank != null && level != null
-                && level.getBlockEntity(displayTank) instanceof SearedTankBlockEntity tank
-                ? tank.tank().getFluid()
-                : FluidStack.EMPTY;
-        if (live.getFluid() != fuelDisplayFluid.getFluid() || live.getAmount() != fuelDisplayFluid.getAmount()) {
+        FluidStack live;
+        if (shown != null) {
+            live = shown.sample().getFluid();
+        } else {
+            live = displayTank != null && level != null
+                    && level.getBlockEntity(displayTank) instanceof SearedTankBlockEntity tank
+                    ? tank.tank().getFluid()
+                    : FluidStack.EMPTY;
+        }
+        int energy = shown == null ? 0 : shown.buffer().getEnergyStored();
+        int capacity = shown == null ? 0 : shown.buffer().getMaxEnergyStored();
+        int temperature = Math.max(liquid, paying == null ? 0 : paying.temperature());
+        if (live.getFluid() != fuelDisplayFluid.getFluid() || live.getAmount() != fuelDisplayFluid.getAmount()
+                || energy != fuelDisplayEnergy || capacity != fuelDisplayEnergyCapacity
+                || temperature != fuelDisplayTemperature) {
             fuelDisplayFluid = live.copy();
+            fuelDisplayEnergy = energy;
+            fuelDisplayEnergyCapacity = capacity;
+            fuelDisplayTemperature = temperature;
             syncToClients();
         }
+    }
+
+    /** The first tank in these walls holding a valid sample, whether or not its buffer can pay. */
+    @Nullable
+    private EnergizedTankBlockEntity firstSampledEnergizedTank() {
+        for (BlockPos pos : energizedTanks) {
+            if (level != null && level.getBlockEntity(pos) instanceof EnergizedTankBlockEntity tank
+                    && tank.temperature() > 0) {
+                return tank;
+            }
+        }
+        return null;
     }
 
     /**
@@ -1090,6 +1144,9 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         // #97 follow-up: the fuel gauge's live snapshot, so it has something to show the instant a
         // reopened screen loads rather than waiting for the next refresh.
         tag.put(TAG_FUEL_DISPLAY, fuelDisplayFluid.saveOptional(registries));
+        tag.putInt(TAG_FUEL_DISPLAY_ENERGY, fuelDisplayEnergy);
+        tag.putInt(TAG_FUEL_DISPLAY_ENERGY_CAPACITY, fuelDisplayEnergyCapacity);
+        tag.putInt(TAG_FUEL_DISPLAY_TEMPERATURE, fuelDisplayTemperature);
         // #845: a pour left mid-transaction survives a reload rather than quietly refunding itself.
         tag.putInt(TAG_TRANSFORM_PROGRESS, transformProgress);
     }
@@ -1114,6 +1171,9 @@ public class SmelteryControllerBlockEntity extends BlockEntity implements Statio
         fuelBurnTicksRemaining = tag.getInt(TAG_FUEL_BURN_TICKS);
         fuelTemperature = tag.getInt(TAG_FUEL_TEMPERATURE);
         fuelDisplayFluid = FluidStack.parseOptional(registries, tag.getCompound(TAG_FUEL_DISPLAY));
+        fuelDisplayEnergy = tag.getInt(TAG_FUEL_DISPLAY_ENERGY);
+        fuelDisplayEnergyCapacity = tag.getInt(TAG_FUEL_DISPLAY_ENERGY_CAPACITY);
+        fuelDisplayTemperature = tag.getInt(TAG_FUEL_DISPLAY_TEMPERATURE);
         transformProgress = tag.getInt(TAG_TRANSFORM_PROGRESS);
     }
 
