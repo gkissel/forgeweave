@@ -325,6 +325,33 @@ class AlloyRecipeTest {
         assertEquals("allthemodium:" + alloy + "_ingot", condition.get("item").getAsString());
     }
 
+    /**
+     * The three Allthemodium alloys: one ingot of each input makes one ingot of alloy, the same ratio
+     * as manyullyn. Each row needs only its own alloy's ingot to exist, and the explicit priorities
+     * decide who wins when a tank holds all three metals at once.
+     */
+    @Test
+    void allthemodiumAlloysShipOneToOneToOneGatedOnTheirOwnIngot() {
+        assertAllthemodiumAlloy("vibranium_allthemodium_alloy", "vibranium", "allthemodium", 0);
+        assertAllthemodiumAlloy("unobtainium_allthemodium_alloy", "unobtainium", "allthemodium", 1);
+        assertAllthemodiumAlloy("unobtainium_vibranium_alloy", "unobtainium", "vibranium", 2);
+    }
+
+    private static void assertAllthemodiumAlloy(String alloy, String first, String second, int priority) {
+        JsonObject json = shipped(alloy);
+
+        assertEquals("forgeweave:molten_" + first, input(json, 0).get("fluid").getAsString());
+        assertEquals("forgeweave:molten_" + second, input(json, 1).get("fluid").getAsString());
+        assertEquals(2, input(json, 0).get("amount").getAsInt());
+        assertEquals(2, input(json, 1).get("amount").getAsInt());
+        assertEquals("forgeweave:molten_" + alloy, json.getAsJsonObject("result").get("fluid").getAsString());
+        assertEquals(2, json.getAsJsonObject("result").get("amount").getAsInt());
+        assertEquals(priority, json.has("priority") ? json.get("priority").getAsInt() : 0);
+        JsonObject condition = json.getAsJsonArray("neoforge:conditions").get(0).getAsJsonObject();
+        assertEquals("neoforge:item_exists", condition.get("type").getAsString());
+        assertEquals("allthemodium:" + alloy + "_ingot", condition.get("item").getAsString());
+    }
+
     private static JsonObject input(JsonObject recipe, int index) {
         return recipe.getAsJsonArray("inputs").get(index).getAsJsonObject();
     }
