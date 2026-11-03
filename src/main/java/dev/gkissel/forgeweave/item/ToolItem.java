@@ -134,6 +134,9 @@ public class ToolItem extends Item {
     private static final Identifier BLOCK_INTERACTION_RANGE_ID =
             Identifier.fromNamespaceAndPath(Forgeweave.MODID, "far_reach");
 
+    private static final ResourceLocation ENTITY_INTERACTION_RANGE_ID =
+            ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "far_reach_entity");
+
     private final List<TagKey<Block>> mineableBlocks;
     private final float attackSpeed;
     private final float damagePotential;
@@ -723,6 +726,10 @@ public class ToolItem extends Item {
         if (blockInteractionRangeBonus != 0.0F) {
             builder.add(Attributes.BLOCK_INTERACTION_RANGE,
                     new AttributeModifier(BLOCK_INTERACTION_RANGE_ID, blockInteractionRangeBonus,
+                            AttributeModifier.Operation.ADD_VALUE),
+                    EquipmentSlotGroup.MAINHAND);
+            builder.add(Attributes.ENTITY_INTERACTION_RANGE,
+                    new AttributeModifier(ENTITY_INTERACTION_RANGE_ID, blockInteractionRangeBonus,
                             AttributeModifier.Operation.ADD_VALUE),
                     EquipmentSlotGroup.MAINHAND);
         }
