@@ -130,6 +130,19 @@ class ToolItemTest {
         assertEquals(1.0, entry.get().modifier().amount(), 1.0e-5);
     }
 
+    /** Far Reach has to reach what it hits as well as what it mines. */
+    @Test
+    void farReachAlsoAddsAnEntityInteractionRangeAttributeModifier() {
+        ItemStack plain = assembledPickaxe();
+        assertTrue(attribute(plain, Attributes.ENTITY_INTERACTION_RANGE).isEmpty(),
+                "an unmodified tool must not carry the attribute at all");
+
+        Optional<ItemAttributeModifiers.Entry> entry =
+                attribute(withModifier(plain, "far_reach"), Attributes.ENTITY_INTERACTION_RANGE);
+        assertTrue(entry.isPresent(), "expected an entity interaction range attribute modifier");
+        assertEquals(1.0, entry.get().modifier().amount(), 1.0e-5);
+    }
+
     // -------------------------------------------------------------------------- #283: Broken state
 
     /**

@@ -235,6 +235,19 @@ class FusionUpgradeRecipeTest {
     }
 
     @Test
+    void stationLevelsNeverUseUpARung() {
+        FusionUpgradeRecipe wyvern = decode(fixture(100, "wyvern", 8_000_000L));
+        ItemStack maxed = evolvedTool(4);
+        maxed.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(HASTE, 250)));
+
+        ItemStack upgraded = wyvern.upgrade(null, maxed).orElseThrow();
+
+        assertEquals(350, ForgeweaveModifiers.entry(upgraded, HASTE).level(),
+                "the rung's levels go on top of what the station applied, even at the station's cap");
+        assertTrue(wyvern.upgrade(null, upgraded).isEmpty(), "the rung itself still only happens once");
+    }
+
+    @Test
     void upgradeRefusesAnythingThatIsNotAnAssembledTool() {
         FusionUpgradeRecipe recipe = decode(fixture(100, "wyvern", 8_000_000L));
         assertTrue(recipe.upgrade(null, new ItemStack(Items.STICK)).isEmpty(),

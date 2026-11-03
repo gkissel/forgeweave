@@ -1,6 +1,8 @@
 package dev.gkissel.forgeweave.item;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 import com.mojang.serialization.Codec;
@@ -11,6 +13,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ExtraCodecs;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 
 import net.neoforged.neoforge.fluids.SimpleFluidContent;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -195,6 +198,27 @@ public final class ForgeweaveDataComponents {
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> GRANTED_SLOTS =
             DATA_COMPONENTS.registerComponentType("granted_slots",
                     builder -> builder.persistent(ExtraCodecs.NON_NEGATIVE_INT).networkSynchronized(ByteBufCodecs.VAR_INT));
+
+    /**
+     * The level each fusion line has reached on this tool, by modifier id. A rung adds its levels on
+     * top of whatever the Tool Station already put there, so this count is what says which rung is
+     * done: the modifier's own level can't, since quartz raises that too. Also what lifts the station's
+     * level cap by the same amount, so neither route uses up the other. Absent means no rung done.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Map<Identifier, Integer>>> FUSION_LEVELS =
+            DATA_COMPONENTS.registerComponentType("fusion_levels",
+                    builder -> builder.persistent(Codec.unboundedMap(Identifier.CODEC, ExtraCodecs.POSITIVE_INT))
+                            .networkSynchronized(ByteBufCodecs.map(HashMap::new, Identifier.STREAM_CODEC, ByteBufCodecs.VAR_INT)));
+
+    /**
+     * Enchantments the tool has because of its modifiers and traits (Luck's Fortune, Silky's Silk
+     * Touch), kept off {@code minecraft:enchantments} because any enchanting table refuses an item
+     * with something in that component. See {@link dev.gkissel.forgeweave.modifier.GrantedEnchantments}.
+     * Present and empty means an old tool was already checked for grants to move here.
+     */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<ItemEnchantments>> GRANTED_ENCHANTMENTS =
+            DATA_COMPONENTS.registerComponentType("granted_enchantments",
+                    builder -> builder.persistent(ItemEnchantments.CODEC).networkSynchronized(ItemEnchantments.STREAM_CODEC));
 
     /**
      * XP banked on a mending-moss-modified tool, spent one at a time to self-repair (issue #107, ADR

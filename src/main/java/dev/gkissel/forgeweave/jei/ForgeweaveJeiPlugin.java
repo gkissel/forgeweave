@@ -277,10 +277,9 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
      * station screens draw tabs, information panels and/or side-inventory panels outside the
      * rectangle {@code AbstractContainerScreen} advertises, which is all JEI would otherwise see.
      *
-     * <p>Also wires up the smeltery tank's ingredient-under-mouse handler (issue #308): unlike the
-     * station handler above, this one does not extend JEI's visible rectangle -- it answers "what
-     * fluid is under the cursor" so R/U recipe lookup works on tank contents, upstream 1.12's {@code
-     * TinkerGuiTankHandler}.
+     * <p>Also wires up the smeltery tank's ingredient-under-mouse handler (issue #308): on top of the
+     * station handler's job, it answers "what fluid is under the cursor" so R/U recipe lookup works
+     * on tank contents, upstream 1.12's {@code TinkerGuiTankHandler}.
      */
     @Override
     public void registerGuiHandlers(IGuiHandlerRegistration registration) {

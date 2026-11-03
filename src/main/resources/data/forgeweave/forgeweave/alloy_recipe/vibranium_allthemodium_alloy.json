@@ -1,0 +1,22 @@
+{
+  "inputs": [
+    {
+      "fluid": "forgeweave:molten_vibranium",
+      "amount": 2
+    },
+    {
+      "fluid": "forgeweave:molten_allthemodium",
+      "amount": 2
+    }
+  ],
+  "result": {
+    "fluid": "forgeweave:molten_vibranium_allthemodium_alloy",
+    "amount": 2
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:registered",
+      "value": "allthemodium:vibranium_allthemodium_alloy_ingot"
+    }
+  ]
+}

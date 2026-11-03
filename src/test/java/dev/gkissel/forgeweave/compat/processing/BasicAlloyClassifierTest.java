@@ -132,8 +132,10 @@ class BasicAlloyClassifierTest {
         Set<String> basic = classifyBasicAlloys(recipes);
 
         assertEquals(Set.of("manyullyn", "rose_gold", "embercast", "osmiridium",
-                "bronze", "constantan", "electrum", "invar"), basic,
+                "bronze", "constantan", "electrum", "invar",
+                "vibranium_allthemodium_alloy", "unobtainium_allthemodium_alloy", "unobtainium_vibranium_alloy"), basic,
                 "the basic-alloy classifier, run over every shipped alloy_recipe file, must return "
-                        + "exactly this set; bronze, constantan, electrum and invar use provider-owned ingots");
+                        + "exactly this set; bronze, constantan, electrum, invar and the Allthemodium alloys use "
+                        + "provider-owned ingots");
     }
 }

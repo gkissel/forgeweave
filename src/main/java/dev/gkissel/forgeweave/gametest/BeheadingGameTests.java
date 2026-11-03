@@ -202,7 +202,7 @@ public class BeheadingGameTests {
     }
 
     /**
-     * The whole chain through a real station: a Tool Forge-assembled tool, obsidian applied through the
+     * The whole chain through a real station: a Tool Forge-assembled tool, ender pearls and obsidian applied through the
      * station's own menu (so {@code modifier_recipe/beheading.json} is what set the level), and a kill
      * that drops a head.
      *
@@ -212,7 +212,7 @@ public class BeheadingGameTests {
      * (+6 gross, one occupied) affords exactly 3 + 3 + 6 - 1 - 10 = 1 to spare.
      */
     @GameTest(template = "empty")
-    public static void obsidianAppliedAtTheStationBeheads(GameTestHelper helper) {
+    public static void pearlsAndObsidianAppliedAtTheStationBehead(GameTestHelper helper) {
         BlockPos pos = new BlockPos(1, 1, 1);
         Player player = helper.makeMockPlayer(GameType.SURVIVAL);
         ItemStack hatchet = ToolAssembly.toolAtForge(helper, player, pos, ForgeweaveItems.PART_AXE_HEAD.get(),
@@ -220,9 +220,17 @@ public class BeheadingGameTests {
         hatchet.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(
                 Identifier.fromNamespaceAndPath(Forgeweave.MODID, "extra_slot"), 5)));
 
-        ItemStack beheading = applyReagent(helper, player, pos, hatchet, new ItemStack(Items.OBSIDIAN, CERTAIN));
+        ItemStack partial = applyReagents(helper, player, pos, hatchet, new ItemStack(Items.ENDER_PEARL, 3),
+                new ItemStack(Items.OBSIDIAN, CERTAIN));
+        helper.assertValueEqual(Beheading.effectiveLevel(partial), 3, "three pairs buy three levels");
+        ToolStationBlockEntity station = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
+        helper.assertValueEqual(station.container().getItem(1).getCount(), 0, "the pearls are spent");
+        helper.assertValueEqual(station.container().getItem(2).getCount(), CERTAIN - 3, "the spare obsidian stays");
+
+        ItemStack beheading = applyReagents(helper, player, pos, partial, new ItemStack(Items.ENDER_PEARL, CERTAIN),
+                new ItemStack(Items.OBSIDIAN, CERTAIN));
         helper.assertTrue(Beheading.effectiveLevel(beheading) == CERTAIN,
-                "ten obsidian must buy ten beheading levels, got " + Beheading.effectiveLevel(beheading));
+                "ten pairs must reach ten beheading levels, got " + Beheading.effectiveLevel(beheading));
 
         player.setItemInHand(InteractionHand.MAIN_HAND, beheading);
         assertBeheads(helper, player, EntityTypes.ZOMBIE, Items.ZOMBIE_HEAD);
@@ -230,18 +238,38 @@ public class BeheadingGameTests {
         helper.succeed();
     }
 
+    /** Obsidian alone is half the recipe, and the station offers nothing for it. */
+    @GameTest(template = "empty")
+    public static void obsidianAloneDoesNotBehead(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack hatchet = ToolAssembly.toolAtForge(helper, player, pos, ForgeweaveItems.PART_AXE_HEAD.get(),
+                "paper", "paper", "paper");
+        ToolStationBlockEntity station = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
+        station.container().setItem(0, hatchet);
+        station.container().setItem(1, new ItemStack(Items.OBSIDIAN, CERTAIN));
+        station.container().setItem(2, ItemStack.EMPTY);
+
+        ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, station);
+        menu.broadcastChanges();
+
+        helper.assertTrue(menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().isEmpty(),
+                "obsidian without an ender pearl must not apply beheading");
+        helper.succeed();
+    }
+
     /** One application through the station's own menu; same shape as {@code ModifierGameTests}'s. */
-    private static ItemStack applyReagent(GameTestHelper helper, Player player, BlockPos pos, ItemStack tool,
-            ItemStack reagent) {
+    private static ItemStack applyReagents(GameTestHelper helper, Player player, BlockPos pos, ItemStack tool,
+            ItemStack first, ItemStack second) {
         ToolStationBlockEntity blockEntity = helper.getBlockEntity(pos, ToolStationBlockEntity.class);
         blockEntity.container().setItem(0, tool);
-        blockEntity.container().setItem(1, reagent);
-        blockEntity.container().setItem(2, ItemStack.EMPTY);
+        blockEntity.container().setItem(1, first);
+        blockEntity.container().setItem(2, second);
 
         ToolStationMenu menu = ToolAssembly.menu(helper, player, pos, blockEntity);
         menu.broadcastChanges();
         ItemStack output = menu.getSlot(ToolStationMenu.OUTPUT_SLOT).getItem().copy();
-        helper.assertFalse(output.isEmpty(), "expected the station to apply the obsidian");
+        helper.assertFalse(output.isEmpty(), "expected the station to apply the pair");
         menu.getSlot(ToolStationMenu.OUTPUT_SLOT).onTake(player, output);
         return output;
     }

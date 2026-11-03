@@ -1,22 +1,13 @@
 package dev.gkissel.forgeweave.item;
 
-import java.util.function.Consumer;
-import net.minecraft.world.item.component.TooltipDisplay;
-
-import java.util.List;
-
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
 
 /**
  * A single-use clay cast (docs/SCOPE.md M3.4-12, issue #292): moulded from molten clay instead of
  * molten gold and eaten by the pour that uses it, upstream 1.12's {@code TinkerSmeltery.clayCast}.
  * The mid-game bridge to the gold casts, which survive their own casting cycle.
  *
- * <p>Its only behaviour beyond plain {@link Item} is the hover line added by issue #783's audit --
+ * <p>Its only behaviour beyond {@link CastItem} is the hover line added by issue #783's audit --
  * neither this nor {@link ForgeweaveItems#CAST_INGOT}'s reusable siblings carried one before, so the
  * item explained neither what it was for nor that it breaks after one pour -- and the class marker
  * so the two halves of the clay system can be recognised without a registry lookup:
@@ -25,16 +16,9 @@ import net.minecraft.world.item.TooltipFlag;
  * ({@link dev.gkissel.forgeweave.config.ForgeweaveConfig#ENABLE_CLAY_CASTS}) is off, which is where
  * upstream instead skips their registration entirely.
  */
-public class ClayCastItem extends Item {
+public class ClayCastItem extends CastItem {
     public ClayCastItem(Properties properties) {
-        super(properties);
-    }
-
-    @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
-            Consumer<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, context, display, tooltip, flag);
-        tooltip.accept(Component.translatable("tooltip.forgeweave.clay_cast").withStyle(ChatFormatting.GRAY));
+        super(properties, "tooltip.forgeweave.clay_cast");
     }
 
     /** Whether {@code stack} is one of the clay casts (see {@link ForgeweaveItems#CLAY_CASTS}). */

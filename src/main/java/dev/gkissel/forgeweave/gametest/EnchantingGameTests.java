@@ -8,6 +8,16 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.inventory.ContainerLevelAccess;
+import net.minecraft.world.inventory.EnchantmentMenu;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.resources.Identifier;
+import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
+import dev.gkissel.forgeweave.modifier.GrantedEnchantments;
+import dev.gkissel.forgeweave.modifier.ModifierApplication;
+import dev.gkissel.forgeweave.modifier.ModifierEntry;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.tags.EnchantmentTags;
@@ -18,6 +28,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantable;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -76,6 +87,152 @@ public class EnchantingGameTests {
         } finally {
             ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.set(false);
         }
+    }
+
+    /**
+     * A tool's modifiers must not keep it off the table. Vanilla's menu, like Apothic Enchanting's,
+     * refuses an item with anything in {@code minecraft:enchantments}, so Luck's Fortune stays out of
+     * that component, and survives whatever the table adds.
+     */
+    @GameTest(template = "empty")
+    public static void aToolWithLuckCanStillBeEnchantedAtTheTable(GameTestHelper helper) {
+        ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.set(true);
+        try {
+            Player player = helper.makeMockPlayer(GameType.CREATIVE);
+            BlockPos pos = new BlockPos(1, 1, 1);
+            ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+            var registries = helper.getLevel().registryAccess();
+            var fortune = registries.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
+            ItemStack lucky = ModifierApplication.applyLevel(registries, pickaxe,
+                    Identifier.fromNamespaceAndPath(Forgeweave.MODID, "luck"), 60).output();
+            helper.assertValueEqual(lucky.getEnchantmentLevel(fortune), 1, "Luck's Fortune on the tool");
+            helper.assertTrue(lucky.isEnchantable(), "a tool with Luck must still go on the table");
+
+            EnchantmentMenu menu = new EnchantmentMenu(0, player.getInventory(),
+                    ContainerLevelAccess.create(helper.getLevel(), helper.absolutePos(pos)));
+            menu.getSlot(1).set(new ItemStack(Items.LAPIS_LAZULI, 3));
+            menu.getSlot(0).set(lucky);
+            menu.slotsChanged(menu.getSlot(0).container);
+            helper.assertTrue(menu.costs[0] > 0, "the table must offer the modified tool something");
+            player.experienceLevel = 100;
+            helper.assertTrue(menu.clickMenuButton(player, 0), "the table must accept the click");
+
+            ItemStack enchanted = menu.getSlot(0).getItem();
+            helper.assertTrue(enchanted.isEnchanted(), "the table's enchantment lands on the tool");
+            helper.assertValueEqual(enchanted.getEnchantmentLevel(fortune) >= 1, true, "Luck's Fortune survives the table");
+            helper.succeed();
+        } finally {
+            ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.set(false);
+        }
+    }
+
+    /** Silk Touch would switch Luck's Fortune off, so neither the table nor an anvil may add it. */
+    @GameTest(template = "empty")
+    public static void silkTouchStaysOffALuckTool(GameTestHelper helper) {
+        ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.set(true);
+        try {
+            ItemStack pickaxe = ToolAssembly.pickaxe(helper, helper.makeMockPlayer(GameType.CREATIVE), new BlockPos(1, 1, 1),
+                    "stone", "wood", "wood");
+            var registries = helper.getLevel().registryAccess();
+            var enchantments = registries.lookupOrThrow(Registries.ENCHANTMENT);
+            var silkTouch = enchantments.getOrThrow(Enchantments.SILK_TOUCH);
+            helper.assertTrue(pickaxe.isPrimaryItemFor(silkTouch), "a plain pickaxe can roll Silk Touch");
+            ItemStack lucky = ModifierApplication.applyLevel(registries, pickaxe,
+                    Identifier.fromNamespaceAndPath(Forgeweave.MODID, "luck"), 60).output();
+            helper.assertFalse(lucky.isPrimaryItemFor(silkTouch), "the table must not roll Silk Touch onto Luck");
+            helper.assertFalse(lucky.supportsEnchantment(silkTouch), "the anvil must not add Silk Touch onto Luck");
+            helper.assertTrue(lucky.isPrimaryItemFor(enchantments.getOrThrow(Enchantments.EFFICIENCY)), "Efficiency still fits");
+            helper.assertTrue(lucky.isPrimaryItemFor(enchantments.getOrThrow(Enchantments.FORTUNE)), "Fortune fits and adds up");
+            helper.succeed();
+        } finally {
+            ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.set(false);
+        }
+    }
+
+    /** Table Fortune III on Luck VI is Fortune IX, shown on one line. */
+    @GameTest(template = "empty")
+    public static void tableFortuneAddsToLuckOnOneTooltipLine(GameTestHelper helper) {
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, helper.makeMockPlayer(GameType.CREATIVE), new BlockPos(1, 1, 1),
+                "stone", "wood", "wood");
+        var registries = helper.getLevel().registryAccess();
+        var fortune = registries.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
+        ItemStack lucky = ModifierApplication.applyLevel(registries, pickaxe,
+                Identifier.fromNamespaceAndPath(Forgeweave.MODID, "luck"), 360).output();
+        helper.assertValueEqual(lucky.getEnchantmentLevel(fortune), 6, "Luck VI alone");
+        lucky.enchant(fortune, 3);
+
+        helper.assertValueEqual(lucky.getEnchantmentLevel(fortune), 9, "the two add up");
+        helper.assertValueEqual(GrantedEnchantments.withStored(lucky).getLevel(fortune), 9, "for the loot predicates too");
+        String name = Enchantment.getFullname(fortune, 1).getString().split(" ")[0];
+        long lines = lucky.getTooltipLines(Item.TooltipContext.of(helper.getLevel()), null, TooltipFlag.NORMAL).stream()
+                .filter(line -> line.getString().startsWith(name)).count();
+        helper.assertValueEqual(lines, 1L, "Fortune tooltip lines");
+        helper.succeed();
+    }
+
+    /**
+     * Vanilla's loot tables are what actually pay out a granted enchantment. Fortune reads through
+     * {@code EnchantmentHelper}; Silk Touch reads through a {@code match_tool} predicate.
+     */
+    @GameTest(template = "empty")
+    public static void grantedEnchantmentsPayOutInRealBlockDrops(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        BlockPos pos = new BlockPos(1, 1, 1);
+        var registries = helper.getLevel().registryAccess();
+        var enchantments = registries.lookupOrThrow(Registries.ENCHANTMENT);
+        ItemStack silky = ToolAssembly.pickaxe(helper, player, pos, "iron", "wood", "wood");
+        GrantedEnchantments.upgrade(silky, enchantments.getOrThrow(Enchantments.SILK_TOUCH), 1);
+
+        helper.assertTrue(Block.getDrops(Blocks.STONE.defaultBlockState(), helper.getLevel(), helper.absolutePos(pos),
+                null, player, silky).stream().anyMatch(drop -> drop.is(Items.STONE)),
+                "a granted Silk Touch must make stone drop stone");
+
+        ItemStack lucky = ToolAssembly.pickaxe(helper, player, pos, "iron", "wood", "wood");
+        GrantedEnchantments.upgrade(lucky, enchantments.getOrThrow(Enchantments.FORTUNE), 6);
+        int diamonds = 0;
+        for (int i = 0; i < 40; i++) {
+            diamonds += Block.getDrops(Blocks.DIAMOND_ORE.defaultBlockState(), helper.getLevel(),
+                    helper.absolutePos(pos), null, player, lucky).stream().mapToInt(ItemStack::getCount).sum();
+        }
+        helper.assertTrue(diamonds > 80, "Fortune VI must multiply the drop, 40 ores paid " + diamonds);
+        helper.succeed();
+    }
+
+    /** A modifier's grant on an armor piece has to read back the same way a tool's does. */
+    @GameTest(template = "empty")
+    public static void armorReadsItsGrantedEnchantments(GameTestHelper helper) {
+        var frostWalker = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                .getOrThrow(Enchantments.FROST_WALKER);
+        ItemStack boots = new ItemStack(ForgeweaveItems.ARMOR_HEAVY_BOOTS.get());
+        GrantedEnchantments.upgrade(boots, frostWalker, 2);
+
+        helper.assertValueEqual(boots.getEnchantmentLevel(frostWalker), 2, "the granted level on the boots");
+        helper.assertFalse(boots.isEnchanted(), "a grant must not read as a table enchantment");
+        helper.succeed();
+    }
+
+    /** A tool from before the grants moved: its modifier's Fortune moves over, a table's higher level stays. */
+    @GameTest(template = "empty")
+    public static void oldToolsMoveTheirGrantsOffTheStoredEnchantments(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        BlockPos pos = new BlockPos(1, 1, 1);
+        var registries = helper.getLevel().registryAccess();
+        var enchantments = registries.lookupOrThrow(Registries.ENCHANTMENT);
+        var fortune = enchantments.getOrThrow(Enchantments.FORTUNE);
+        var efficiency = enchantments.getOrThrow(Enchantments.EFFICIENCY);
+        ItemStack old = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+        old.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(
+                new ModifierEntry(Identifier.fromNamespaceAndPath(Forgeweave.MODID, "luck"), 60)));
+        old.remove(ForgeweaveDataComponents.GRANTED_ENCHANTMENTS.get());
+        old.enchant(fortune, 1);
+        old.enchant(efficiency, 2);
+
+        GrantedEnchantments.migrate(registries, old);
+
+        helper.assertValueEqual(old.get(DataComponents.ENCHANTMENTS).getLevel(fortune), 0, "stored Fortune moved");
+        helper.assertValueEqual(old.getEnchantmentLevel(fortune), 1, "the tool still has its Fortune");
+        helper.assertValueEqual(old.get(DataComponents.ENCHANTMENTS).getLevel(efficiency), 2, "a table's enchantment stays");
+        helper.succeed();
     }
 
     /**
