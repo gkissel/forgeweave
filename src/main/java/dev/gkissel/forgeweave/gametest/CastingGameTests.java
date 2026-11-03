@@ -1,11 +1,16 @@
 package dev.gkissel.forgeweave.gametest;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
@@ -13,6 +18,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -808,5 +815,35 @@ public class CastingGameTests {
         player.setItemInHand(InteractionHand.MAIN_HAND, stack);
         casting.interact(player, InteractionHand.MAIN_HAND);
         helper.assertTrue(casting.input().is(expected), "expected the right-click to put the " + expected + " in");
+    }
+
+    /**
+     * Hovering a cast quotes the ingots one pour uses, read from the loaded recipes: the seared brick's
+     * half ingot does not outvote the ingot cast's metals, and the gem cast's tied amounts quote nothing.
+     */
+    @GameTest(template = "empty")
+    public static void castsQuoteTheIngotsOnePourUses(GameTestHelper helper) {
+        helper.assertTrue(castHover(helper, ForgeweaveItems.CAST_PICKAXE_HEAD.get()).contains(castCost("2")),
+                "the gold pickaxe head cast should quote 2 ingots");
+        helper.assertTrue(castHover(helper, ForgeweaveItems.CAST_INGOT.get()).contains(castCost("1")),
+                "the ingot cast should quote 1 ingot");
+        helper.assertTrue(castHover(helper, ForgeweaveItems.CAST_SHARD.get()).contains(castCost("0.5")),
+                "the shard cast should quote half an ingot");
+        helper.assertTrue(castHover(helper, ForgeweaveItems.CLAY_CASTS.get("cast_hammer_head").get()).contains(castCost("8")),
+                "the clay hammer head cast should quote 8 ingots");
+        helper.assertValueEqual(castHover(helper, ForgeweaveItems.CAST_GEM.get()).size(), 1,
+                "lines on the gem cast, whose two recipes tie");
+        helper.succeed();
+    }
+
+    private static List<Component> castHover(GameTestHelper helper, Item cast) {
+        List<Component> lines = new ArrayList<>();
+        ItemStack stack = new ItemStack(cast);
+        cast.appendHoverText(stack, Item.TooltipContext.of(helper.getLevel()), TooltipDisplay.DEFAULT, lines::add, TooltipFlag.NORMAL);
+        return lines;
+    }
+
+    private static Component castCost(String ingots) {
+        return Component.translatable("tooltip.forgeweave.cast_cost", ingots).withStyle(ChatFormatting.GRAY);
     }
 }

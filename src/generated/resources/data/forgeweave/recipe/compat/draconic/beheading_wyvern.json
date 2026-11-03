@@ -18,6 +18,10 @@
     },
     {
       "consume": true,
+      "ingredient": "minecraft:ender_pearl"
+    },
+    {
+      "consume": true,
       "ingredient": "minecraft:obsidian"
     }
   ],

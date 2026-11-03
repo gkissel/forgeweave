@@ -1,0 +1,6 @@
+{
+  "modifier": "forgeweave:knowledge_of_the_ages",
+  "reagent": "minecraft:experience_bottle",
+  "cost": 1,
+  "max_level": 3
+}

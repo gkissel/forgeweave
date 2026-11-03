@@ -58,8 +58,9 @@ import dev.gkissel.forgeweave.recipe.AlloyRecipe;
  *       the four depth-3/4 alloys on all three head stats.
  * </ol>
  *
- * <p>Compat materials are outside rules 2 and 3: another mod sets their acquisition cost, and the
- * issue's own wording leaves the compat endgame free to sit above Forgeweave's own.
+ * <p>Compat materials are outside rule 3: another mod sets their acquisition cost, and the issue's
+ * own wording leaves the compat endgame free to sit above Forgeweave's own. They do answer to rule 2,
+ * in {@link #compatMaterialsAboveNetheriteClearPlainNetherite}.
  */
 class AlloyPayoffTest {
 
@@ -283,6 +284,33 @@ class AlloyPayoffTest {
             }
         }
         assertTrue(checked >= 15, "non-vacuity: only " + checked + " own materials above the netherite rung");
+    }
+
+    /**
+     * The wall for compat materials sits higher than the one for our own. Another mod sets what they
+     * cost, and whoever earned one expects it to be a clear step past plain netherite: 20% or more on
+     * every head stat and on a full set of plating, on the netherite rung and everything above it.
+     */
+    @Test
+    void compatMaterialsOnTheNetheriteRungOrAboveClearPlainNetheriteByAFifth() {
+        int checked = 0;
+        for (Map.Entry<String, Material> entry : materials.entrySet()) {
+            String rung = rungOf(entry.getValue());
+            if (!isCompat(entry.getKey()) || !(FORGEWEAVE_RUNGS.contains(rung) || rung.equals("netherite"))) {
+                continue;
+            }
+            double[] stats = head(entry.getKey()).orElse(null);
+            if (stats == null) {
+                continue;
+            }
+            checked++;
+            for (int stat = 0; stat < 3; stat++) {
+                assertTrue(stats[stat] >= NETHERITE[stat] * 1.2 - 0.05,
+                        entry.getKey() + " " + show(stats) + " does not clear plain netherite " + show(NETHERITE)
+                        + " by a fifth");
+            }
+        }
+        assertTrue(checked >= 50, "non-vacuity: only " + checked + " compat materials on those rungs");
     }
 
     @Test

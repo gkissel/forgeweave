@@ -62,6 +62,7 @@ import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
 import dev.gkissel.forgeweave.gametest.ForgeweaveGameTestRegistrar;
 import dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat;
 import dev.gkissel.forgeweave.compat.mekanism.ForgeweaveMekanismCompat;
+import dev.gkissel.forgeweave.compat.mysticalagriculture.MysticalAugments;
 import dev.gkissel.forgeweave.compat.occultism.ForgeweaveOccultismCompat;
 import dev.gkissel.forgeweave.config.ForgeweaveClientConfig;
 import dev.gkissel.forgeweave.config.ForgeweaveConfigCondition; // #995
@@ -85,6 +86,7 @@ import dev.gkissel.forgeweave.menu.RegisteredTools;
 import dev.gkissel.forgeweave.menu.RenameStationItemPayload;
 import dev.gkissel.forgeweave.modifier.EmbossingRecipe;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.modifier.GrantedEnchantments;
 import dev.gkissel.forgeweave.modifier.ModifierDefinition; // #973
 import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 import dev.gkissel.forgeweave.modifier.WorktableRecipe; // #1057
@@ -307,6 +309,11 @@ public class Forgeweave {
         // #108 batch: Searing/Magnetic Pull/Resonant key off what a mined block drops, which has no
         // Item hook either (see ForgeweaveModifiers#onBlockDrops).
         NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onBlockDrops);
+        // Knowledge of the Ages: no Item hook for a kill's dropped XP or for XP gained while worn.
+        NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onExperienceDrop);
+        NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onXpChange);
+        // A table level and a modifier grant of the same enchantment read as one tooltip line.
+        NeoForge.EVENT_BUS.addListener(GrantedEnchantments::onTooltip);
         // #107 batch: modifiers whose behavior is event-driven rather than a per-level hook: mending
         // moss's XP banking and acquisition, and soulbound's death/respawn pair. See
         // ForgeweaveModifiers's class javadoc on MENDING_MOSS and SOULBOUND for why these live here
@@ -314,6 +321,7 @@ public class Forgeweave {
         NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onXpPickup);
         NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onRightClickBookshelf);
         NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onLivingDrops);
+        NeoForge.EVENT_BUS.addListener(MysticalAugments::onLivingDrops);
         NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onPlayerClone);
         // #445 -- parity audit T13: a first-time player is given the guide book (upstream's
         // spawnWithBook, default on). See GuideBookGift.
