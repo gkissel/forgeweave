@@ -2342,7 +2342,7 @@
   "modifier.forgeweave.extra_slot.effect.0": "Adds an extra modifier slot",
   "modifier.forgeweave.extra_slot.effect.1": "Up to 5 levels",
   "modifier.forgeweave.extra_slot.name": "Extra Modifier",
-  "modifier.forgeweave.far_reach.description": "Adds 1 block of block-mining reach per level, up to 2.",
+  "modifier.forgeweave.far_reach.description": "Adds 1 block of reach per level for mining and hitting, up to 2.",
   "modifier.forgeweave.far_reach.effect.0": "Reach further to mine blocks",
   "modifier.forgeweave.far_reach.effect.1": "Each level adds one block",
   "modifier.forgeweave.far_reach.effect.2": "Up to 2 levels",

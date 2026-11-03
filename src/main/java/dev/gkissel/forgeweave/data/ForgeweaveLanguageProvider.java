@@ -1614,7 +1614,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("modifier.forgeweave.resonant.name", "Resonant");
         add("modifier.forgeweave.resonant.description", "Blocks that drop experience drop 50% more per level, up to 3 levels.");
         add("modifier.forgeweave.far_reach.name", "Far Reach");
-        add("modifier.forgeweave.far_reach.description", "Adds 1 block of block-mining reach per level, up to 2.");
+        add("modifier.forgeweave.far_reach.description", "Adds 1 block of reach per level for mining and hitting, up to 2.");
 
         // #107 batch: reinforced, mending moss, silky, soulbound, extra-slot (docs/SCOPE.md M2 issue
         // #107), wording ported from upstream 1.12's modifier.<id>.name/.desc entries.
