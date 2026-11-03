@@ -1,8 +1,9 @@
 {
   "head": {
-    "durability": 1960,
-    "mining_speed": 15.6,
-    "attack_damage": 13.75
+    "durability": 9001,
+    "mining_speed": 36.0,
+    "attack_damage": 123.25,
+    "attack_speed": 5.3
   },
   "handle": {
     "durability_modifier": 1.05,
@@ -15,10 +16,10 @@
     "bonus_damage": 4.5
   },
   "plating": {
-    "helmet": { "durability": 829, "armor": 3.4, "toughness": 1.8, "knockback_resistance": 0.05 },
-    "chestplate": { "durability": 1207, "armor": 9.2, "toughness": 1.8, "knockback_resistance": 0.05 },
-    "leggings": { "durability": 1118, "armor": 6.9, "toughness": 1.8, "knockback_resistance": 0.05 },
-    "boots": { "durability": 971, "armor": 3.4, "toughness": 1.8, "knockback_resistance": 0.05 }
+    "helmet": { "durability": 829, "armor": 8.0, "toughness": 15.0, "knockback_resistance": 1.0 },
+    "chestplate": { "durability": 1207, "armor": 11.0, "toughness": 15.0, "knockback_resistance": 1.0 },
+    "leggings": { "durability": 1118, "armor": 13.0, "toughness": 15.0, "knockback_resistance": 1.0 },
+    "boots": { "durability": 971, "armor": 8.0, "toughness": 15.0, "knockback_resistance": 1.0 }
   },
   "maille": true,
   "incorrect_for_tool": "forgeweave:incorrect_for_resonite_tool",
