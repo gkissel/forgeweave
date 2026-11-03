@@ -4,17 +4,25 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.google.gson.JsonParser;
+import com.mojang.serialization.JsonOps;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.SharedConstants;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.Item;
@@ -29,6 +37,8 @@ import net.neoforged.neoforge.registries.DeferredItem;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.block.SlimeColour;
+import dev.gkissel.forgeweave.client.StationText;
+import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.menu.PartBuilderRecipes;
 
 /**
@@ -54,6 +64,25 @@ class ItemTooltipParityTest {
 
     private static ItemStack stackOf(DeferredItem<? extends Item> item) {
         return new ItemStack(item.get());
+    }
+
+    /** Each plating part shows its own piece's numbers, the same rows an assembled armor piece shows. */
+    @Test
+    void platingPartsShowTheirOwnPiecesStats() throws Exception {
+        Material iron;
+        try (Reader json = new InputStreamReader(ItemTooltipParityTest.class.getResourceAsStream(
+                "/data/forgeweave/forgeweave/material/iron.json"), StandardCharsets.UTF_8)) {
+            iron = Material.CODEC.parse(RegistryOps.create(JsonOps.INSTANCE,
+                    RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY)),
+                    JsonParser.parseReader(json)).getOrThrow();
+        }
+        Material.Plating plating = iron.plating().orElseThrow();
+
+        assertEquals(StationText.platingStats(plating.helmet()), ForgeweaveItems.PART_PLATING_HELMET.get().stats(iron));
+        assertEquals(StationText.platingStats(plating.chestplate()), ForgeweaveItems.PART_PLATING_CHESTPLATE.get().stats(iron));
+        assertEquals(StationText.platingStats(plating.leggings()), ForgeweaveItems.PART_PLATING_LEGGINGS.get().stats(iron));
+        assertEquals(StationText.platingStats(plating.boots()), ForgeweaveItems.PART_PLATING_BOOTS.get().stats(iron));
+        assertEquals(4, ForgeweaveItems.PART_PLATING_HELMET.get().stats(iron).size());
     }
 
     private static Component costLine(String ingots) {

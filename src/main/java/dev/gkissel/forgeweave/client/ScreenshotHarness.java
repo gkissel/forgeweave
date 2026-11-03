@@ -87,6 +87,7 @@ import dev.gkissel.forgeweave.client.book.BookContent;
 import dev.gkissel.forgeweave.client.book.BookScreen;
 import dev.gkissel.forgeweave.block.FaucetBlock;
 import dev.gkissel.forgeweave.block.FaucetBlockEntity;
+import dev.gkissel.forgeweave.block.EnergizedTankBlockEntity;
 import dev.gkissel.forgeweave.block.ForgeweaveBlocks;
 import dev.gkissel.forgeweave.block.PartBuilderBlockEntity;
 import dev.gkissel.forgeweave.block.SearedTankBlockEntity;
@@ -342,6 +343,9 @@ public final class ScreenshotHarness {
             // #408: the other end of the melt grid's sizing -- a smeltery with more rows than the
             // grid can show, so the capture is the one that proves the cap and the slider.
             new HarnessScreen("smeltery_large", ForgeweaveBlocks.STANDARD_CORE, ScreenshotHarness::buildLargeSmeltery),
+            // The fuel gauge fed by an energized tank instead of a wall tank of lava, charged and flat.
+            new HarnessScreen("smeltery_energized", ForgeweaveBlocks.STANDARD_CORE, (level, pos) -> buildEnergizedSmeltery(level, pos, 60_000)),
+            new HarnessScreen("smeltery_energized_flat", ForgeweaveBlocks.STANDARD_CORE, (level, pos) -> buildEnergizedSmeltery(level, pos, 0)),
             // Issue #1049 (designer-brief section 5): the energized tank's screen had no harness
             // frame at all, so reviewing its one hand-drawn widget (the energy bar) meant building a
             // tank in game. A single block like every M1 station -- EnergizedTankBlockEntity
@@ -2817,6 +2821,25 @@ public final class ScreenshotHarness {
      * fixed-size hole. Nothing is put in the tank or the grid: an empty smeltery is precisely what a
      * playtester sees once the last thing in it has melted.
      */
+    private static void buildEnergizedSmeltery(ServerLevel level, BlockPos corePos, int energy) {
+        SmelteryControllerBlockEntity controller = buildSmeltery(level, corePos, 1, 3);
+        if (controller == null) {
+            return;
+        }
+        // The spot buildSmeltery's own wall tank stands on, so this rig has no liquid fuel at all.
+        BlockPos tankPos = corePos.offset(-1, 0, -4);
+        level.setBlockAndUpdate(tankPos, ForgeweaveBlocks.ENERGIZED_TANK.get().defaultBlockState());
+        if (level.getBlockEntity(tankPos) instanceof EnergizedTankBlockEntity tank) {
+            tank.sample().fill(new FluidStack(Fluids.LAVA, EnergizedTankBlockEntity.SAMPLE_CAPACITY),
+                    IFluidHandler.FluidAction.EXECUTE);
+            tank.buffer().receiveEnergy(energy, false);
+        }
+        controller.updateStructure();
+        for (int i = 0; i < 7; i++) {
+            controller.insertForMelting(new ItemStack(Items.EMERALD));
+        }
+    }
+
     private static void buildEmptySmeltery(ServerLevel level, BlockPos corePos) {
         buildSmeltery(level, corePos, 0, 1);
     }

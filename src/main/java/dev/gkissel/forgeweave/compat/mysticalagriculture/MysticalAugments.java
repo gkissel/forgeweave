@@ -2,9 +2,27 @@ package dev.gkissel.forgeweave.compat.mysticalagriculture;
 
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
+import net.minecraft.world.entity.boss.wither.WitherBoss;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.level.gamerules.GameRules;
+
+import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
@@ -51,7 +69,73 @@ public final class MysticalAugments {
             "awakened_supremium", EssenceTier.AWAKENED_SUPREMIUM,
             "insanium", EssenceTier.INSANIUM);
 
+    /** The Mystical Agriculture materials that are not essence metals, which still earn Cognizant Dust. */
+    private static final Set<String> OTHER_MYSTICAL_METALS = Set.of("prosperity", "soulium");
+
+    private static final Identifier COGNIZANT_DUST =
+            Identifier.fromNamespaceAndPath(MODID, "cognizant_dust");
+
+    private static final ResourceKey<Enchantment> MYSTICAL_ENLIGHTENMENT = ResourceKey.create(Registries.ENCHANTMENT,
+            Identifier.fromNamespaceAndPath(MODID, "mystical_enlightenment"));
+
+    /** What Mystical Agriculture itself drops for Mystical Enlightenment I. */
+    private static final int WITHER_DUST = 4;
+    private static final int DRAGON_DUST = 6;
+
     private MysticalAugments() {}
+
+    /**
+     * How much Cognizant Dust killing {@code victim} with {@code weapon} is worth: the Wither and the
+     * Ender Dragon pay out when any part of the weapon is a Mystical Agriculture or Agradditions
+     * material, and nothing else does.
+     */
+    public static int cognizantDust(ItemStack weapon, Entity victim) {
+        int dust = victim instanceof WitherBoss ? WITHER_DUST : victim instanceof EnderDragon ? DRAGON_DUST : 0;
+        return dust > 0 && enabled() && hasMysticalPart(weapon) ? dust : 0;
+    }
+
+    private static boolean hasMysticalPart(ItemStack stack) {
+        ToolMaterials materials = stack.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
+        if (materials == null) {
+            return false;
+        }
+        for (Identifier id : materials.all()) {
+            if (id.getNamespace().equals(Forgeweave.MODID)
+                    && (ESSENCE_METALS.containsKey(id.getPath()) || OTHER_MYSTICAL_METALS.contains(id.getPath()))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Adds the dust to a boss's drops. A weapon with Mystical Enlightenment is left alone, because
+     * Mystical Agriculture's own handler already pays that one out, scaled by level.
+     *
+     * <p>ponytail: this reads Forgeweave's toggle, not Mystical Agriculture's {@code witherDropsCognizant}
+     * and {@code dragonDropsCognizant}, which live outside its API jar. Read them here if a pack turns
+     * those off and expects this drop to stop as well.
+     */
+    public static void onLivingDrops(LivingDropsEvent event) {
+        LivingEntity victim = event.getEntity();
+        if (!(victim.level() instanceof ServerLevel level) || !(event.getSource().getEntity() instanceof Player player)
+                || !level.getGameRules().get(GameRules.MOB_DROPS)) {
+            return;
+        }
+        ItemStack weapon = player.getMainHandItem();
+        int dust = cognizantDust(weapon, victim);
+        Optional<Item> item = BuiltInRegistries.ITEM.getOptional(COGNIZANT_DUST);
+        if (dust == 0 || item.isEmpty()) {
+            return;
+        }
+        Optional<Holder.Reference<Enchantment>> enlightenment =
+                level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).get(MYSTICAL_ENLIGHTENMENT);
+        if (enlightenment.isPresent() && EnchantmentHelper.getTagEnchantmentLevel(enlightenment.get(), weapon) > 0) {
+            return;
+        }
+        event.getDrops().add(new ItemEntity(level, victim.getX(), victim.getY(), victim.getZ(),
+                new ItemStack(item.get(), dust)));
+    }
 
     /**
      * Whether the augment integration answers at all ({@code compat.mysticalAgricultureAugments}).

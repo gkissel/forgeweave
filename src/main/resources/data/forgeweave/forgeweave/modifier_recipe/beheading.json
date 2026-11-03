@@ -1,6 +1,10 @@
 {
   "modifier": "forgeweave:beheading",
-  "reagent": "minecraft:obsidian",
+  "reagents": [
+    { "ingredient": "minecraft:ender_pearl" },
+    { "ingredient": "minecraft:obsidian" }
+  ],
+  "require_all_reagents": true,
   "cost": 1,
   "max_level": 10
 }

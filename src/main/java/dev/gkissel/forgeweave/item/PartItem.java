@@ -250,10 +250,22 @@ public class PartItem extends Item {
             case BOWSTRING -> StationText.bowstringStats(material);
             case SHAFT -> StationText.shaftStats(material);
             case FLETCHING -> StationText.fletchingStats(material);
+            case PLATING -> material.plating().map(plating -> StationText.platingStats(platingPiece(plating)))
+                    .orElseGet(List::of);
             // No part item registers as PROJECTILE (a dummy stat scope, #653); nothing to show.
-            // ponytail: PLATING stat lines land with the part items and StationText rows (#677).
-            case PROJECTILE, PLATING, MAILLE, NONE -> List.of();
+            case PROJECTILE, MAILLE, NONE -> List.of();
         };
+    }
+
+    /** The piece of {@code plating} this plating part builds. */
+    private Material.PlatingPiece platingPiece(Material.Plating plating) {
+        if (this == ForgeweaveItems.PART_PLATING_HELMET.get()) {
+            return plating.helmet();
+        }
+        if (this == ForgeweaveItems.PART_PLATING_CHESTPLATE.get()) {
+            return plating.chestplate();
+        }
+        return this == ForgeweaveItems.PART_PLATING_LEGGINGS.get() ? plating.leggings() : plating.boots();
     }
 
     /**

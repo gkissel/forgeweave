@@ -162,7 +162,8 @@ class ModifierLangCoverageTest {
                 "tooltip.forgeweave.silky_cloth",
                 "tooltip.forgeweave.nahuatl_board",
                 "tooltip.forgeweave.cast",
-                "tooltip.forgeweave.clay_cast")) {
+                "tooltip.forgeweave.clay_cast",
+                "tooltip.forgeweave.cast_cost")) {
             if (!lang.has(key)) {
                 missing.add(key);
             }
