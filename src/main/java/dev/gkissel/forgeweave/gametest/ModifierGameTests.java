@@ -22,6 +22,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.GameType;
@@ -610,9 +611,9 @@ public class ModifierGameTests {
         // 60 lapis is exactly the shipped luck.json's first level, so Fortune I actually lands.
         ItemStack lucky = applyReagent(helper, player, pos, pickaxe, new ItemStack(Items.LAPIS_LAZULI, 60));
 
-        ItemEnchantments enchantments = lucky.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
-        helper.assertTrue(enchantments.keySet().stream().anyMatch(holder -> holder.is(Enchantments.FORTUNE)),
-                "60 lapis must grant real Fortune, got " + enchantments);
+        var fortune = helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
+        helper.assertValueEqual(EnchantmentHelper.getItemEnchantmentLevel(fortune, lucky), 1,
+                "60 lapis must grant real Fortune");
         helper.assertFalse(lucky.hasFoil(), "a modifier-granted enchantment must not make the tool glint");
         helper.succeed();
     }
@@ -702,6 +703,55 @@ public class ModifierGameTests {
     // #952: the slot-free application path a Draconic Evolution fusion upgrade goes through.
 
     /**
+     * A fusion or ritual upgrade raises luck with no Tool Station recipe in hand, and has to grant the
+     * Fortune that level earns anyway. Luck's real thresholds are 60, 180 and 360 units.
+     */
+    @GameTest(template = "empty")
+    public static void aDirectLuckUpgradeGrantsItsFortune(GameTestHelper helper) {
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, new BlockPos(1, 1, 1), "stone", "wood", "wood");
+        var registries = helper.getLevel().registryAccess();
+        ResourceLocation luck = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "luck");
+        var fortune = registries.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
+
+        for (int[] rung : new int[][] {{60, 1}, {180, 3}, {270, 4}, {360, 6}}) {
+            ItemStack upgraded = ModifierApplication.applyLevel(registries, pickaxe, luck, rung[0]).output();
+            helper.assertValueEqual(EnchantmentHelper.getItemEnchantmentLevel(fortune, upgraded), rung[1],
+                    "Fortune after a fusion upgrade to " + rung[0] + " units");
+        }
+        helper.succeed();
+    }
+
+    /**
+     * Quartz and a fusion rung raise the same modifier, and neither may use up the other: a rung adds
+     * its full levels over what the station applied, and the station keeps its whole cap over the rung.
+     */
+    @GameTest(template = "empty")
+    public static void quartzAndFusionRungsStackInEitherOrder(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        var registries = helper.getLevel().registryAccess();
+        ResourceLocation sharpness = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "sharpness");
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, player, pos, "stone", "wood", "wood");
+
+        ItemStack quartzFirst = applyReagent(helper, player, pos, pickaxe.copy(), new ItemStack(Items.QUARTZ, 64));
+        int freeAfterQuartz = ForgeweaveModifiers.freeSlots(quartzFirst);
+        ItemStack fused = ModifierApplication.applyLevel(registries, quartzFirst, sharpness, 72).output();
+        helper.assertValueEqual(ForgeweaveModifiers.entry(fused, sharpness).level(), 136,
+                "64 quartz plus the 72 rung");
+        helper.assertValueEqual(ForgeweaveModifiers.freeSlots(fused), freeAfterQuartz,
+                "the rung spends no slot on a tool that already has quartz");
+        helper.assertTrue(ModifierApplication.applyLevel(registries, fused, sharpness, 72).output().isEmpty(),
+                "the same rung twice is refused");
+
+        ItemStack fusedFirst = ModifierApplication.applyLevel(registries, pickaxe, sharpness, 360).output();
+        ItemStack quartzAfter = applyReagent(helper, player, pos, fusedFirst, new ItemStack(Items.QUARTZ));
+        helper.assertValueEqual(ForgeweaveModifiers.entry(quartzAfter, sharpness).level(), 361,
+                "the top rung leaves the station's own cap free");
+        helper.succeed();
+    }
+
+    /**
      * Issue #952: {@link ModifierApplication#applyLevel} promises the application costs no modifier
      * slot, and the promise now holds -- the entry it writes occupies a slot like any other, so the
      * tool is handed the same number back through {@code granted_slots}. What that has to mean in
@@ -721,7 +771,7 @@ public class ModifierGameTests {
         int before = ForgeweaveModifiers.freeSlots(pickaxe);
 
         // The draconium rung of the shipped haste line (ForgeweaveDraconicCompat#UPGRADE_LINES).
-        ItemStack upgraded = ModifierApplication.applyLevel(pickaxe, HASTE, 50).output();
+        ItemStack upgraded = ModifierApplication.applyLevel(helper.getLevel().registryAccess(), pickaxe, HASTE, 50).output();
         helper.assertFalse(upgraded.isEmpty(), "the upgrade must produce a tool");
         ModifierEntry haste = ForgeweaveModifiers.entry(upgraded, HASTE);
         helper.assertTrue(haste != null && haste.level() == 50,

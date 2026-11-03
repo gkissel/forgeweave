@@ -25,6 +25,12 @@
     {
       "consume": true,
       "ingredient": {
+        "item": "minecraft:ender_pearl"
+      }
+    },
+    {
+      "consume": true,
+      "ingredient": {
         "item": "minecraft:obsidian"
       }
     }

@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.stream.Stream;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -179,6 +180,14 @@ class ModifierBatch1Test {
         assertEquals(List.of(60, 120, 180), recipe.costPerLevel());
         assertEquals(360, recipe.maxLevel(), "upstream's cumulative total for level 3");
         assertTrue(recipe.reagent().test(new ItemStack(Items.LAPIS_LAZULI)));
+    }
+
+    @Test
+    void luckFollowsItsDisplayLevelUpToSix() {
+        ModifierRecipe recipe = shippedRecipe("luck.json");
+
+        assertEquals(List.of(0, 1, 1, 3, 4, 6, 6), Stream.of(59, 60, 119, 180, 270, 360, 720)
+                .map(units -> ModifierApplication.grantLevel(recipe, units)).toList());
     }
 
     /**

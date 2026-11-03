@@ -847,9 +847,8 @@ public final class ForgeweaveModifiers {
      * {@code luck.json}'s {@code cost_per_level: [60, 120, 180]} reproduces it exactly
      * ({@code ModifierRecipe#levelsReached}). This constant remains only as the uniform fallback
      * {@link #unitsPerLevel} feeds the tooltip's generic "Luck II (65/180)" readout
-     * ({@link #displayLevel}/{@link #unitsForDisplayLevel}, haste's shipped precedent) -- a cosmetic
-     * approximation, since that display doesn't consult the recipe; the actual Fortune/Looting grant
-     * always uses the recipe's real thresholds via {@code ModifierApplication#applyEnchantmentGrants}.
+     * ({@link #displayLevel}/{@link #unitsForDisplayLevel}, haste's shipped precedent). The Fortune/Looting
+     * grant steps every 60 units too, up to 6. See {@code ModifierApplication#grantLevel}.
      */
     private static final int LUCK_LAPIS_PER_LEVEL = 60;
 
@@ -1014,20 +1013,9 @@ public final class ForgeweaveModifiers {
      * cleaver's innate levels, and a per-entry seam sees neither the innate nor an unmodified cleaver.
      * {@code Beheading} registers a provider of its own that reads both.
      *
-     * <p>Issue #780's survey: upstream's real recipe is a genuine combo,
-     * {@code TinkerModifiers:145}'s {@code ItemCombination(1, ENDER_PEARL, OBSIDIAN)}, one of each --
-     * {@code modifier_recipe/beheading.json} still ships the obsidian-alone reduction, deliberately
-     * <b>not</b> converted. Upstream's {@code LevelAspect(this, 10)} grants exactly one level per
-     * station visit ({@code canApply} refuses a jump of more than one), but the shipped recipe pools
-     * every obsidian present into one craft (up to ten at once, see
-     * {@code gametest.BeheadingGameTests#obsidianAppliedAtTheStationBeheads}) -- an existing,
-     * separately-tracked deviation from before this ticket. {@code ModifierApplication#applyCombo}
-     * (issue #776) only ever grants a combo recipe's {@code max_level} outright in one craft, with no
-     * partial-fill stepping; wiring beheading's ender-pearl-plus-obsidian combo through it as shipped
-     * would jump straight to level 10 off a single pair, which is neither upstream's one-per-visit
-     * rule nor Forgeweave's existing ten-per-visit one. Converting it correctly needs partial-fill
-     * stepping added to {@code applyCombo} itself, which is a matching-engine change beyond this
-     * ticket's recipe-data scope -- left for a maintainer decision (see the PR).
+     * <p>The recipe is upstream's combo, {@code TinkerModifiers:145}'s {@code ItemCombination(1,
+     * ENDER_PEARL, OBSIDIAN)}, one of each per level. Upstream's {@code LevelAspect(this, 10)} grants one
+     * level per station visit; here every complete pair in the slots applies at once, up to ten.
      */
     public static final Modifier BEHEADING = new Modifier() {};
 
