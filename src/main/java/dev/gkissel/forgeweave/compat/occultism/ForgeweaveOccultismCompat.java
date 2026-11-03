@@ -199,7 +199,7 @@ public final class ForgeweaveOccultismCompat {
         }
         ItemStack one = tool.copy();
         one.setCount(1);
-        ItemStack bound = ModifierApplication.applyLevelSpendingSlots(one, modifier, level).output();
+        ItemStack bound = ModifierApplication.applyLevelSpendingSlots(registries, one, modifier, level).output();
         return bound.isEmpty() ? Optional.empty() : Optional.of(bound);
     }
 

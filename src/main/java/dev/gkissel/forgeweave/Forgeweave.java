@@ -86,6 +86,7 @@ import dev.gkissel.forgeweave.menu.RegisteredTools;
 import dev.gkissel.forgeweave.menu.RenameStationItemPayload;
 import dev.gkissel.forgeweave.modifier.EmbossingRecipe;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.modifier.GrantedEnchantments;
 import dev.gkissel.forgeweave.modifier.ModifierDefinition; // #973
 import dev.gkissel.forgeweave.modifier.ModifierRecipe;
 import dev.gkissel.forgeweave.modifier.WorktableRecipe; // #1057
@@ -306,6 +307,8 @@ public class Forgeweave {
         // Knowledge of the Ages: no Item hook for a kill's dropped XP or for XP gained while worn.
         NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onExperienceDrop);
         NeoForge.EVENT_BUS.addListener(ForgeweaveModifiers::onXpChange);
+        // A table level and a modifier grant of the same enchantment read as one tooltip line.
+        NeoForge.EVENT_BUS.addListener(GrantedEnchantments::onTooltip);
         // #107 batch: modifiers whose behavior is event-driven rather than a per-level hook: mending
         // moss's XP banking and acquisition, and soulbound's death/respawn pair. See
         // ForgeweaveModifiers's class javadoc on MENDING_MOSS and SOULBOUND for why these live here

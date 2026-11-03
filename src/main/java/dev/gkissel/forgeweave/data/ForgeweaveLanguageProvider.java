@@ -1692,8 +1692,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
 
         // #106 batch: luck, sharpness, diamond, emerald.
         add("modifier.forgeweave.luck.name", "Luck");
-        add("modifier.forgeweave.luck.description", "Grants Fortune on any tool and Looting on weapons, up to 3 levels. The "
-                + "first level takes 60 lapis lazuli, the second 120 and the third 180.");
+        add("modifier.forgeweave.luck.description", "Grants Fortune on any tool and Looting on weapons, up to 6 levels. "
+                + "Every 60 lapis lazuli adds a level, so the top level takes 360.");
         add("modifier.forgeweave.sharpness.name", "Sharpness");
         add("modifier.forgeweave.sharpness.description", "Each quartz adds up to 0.05 attack damage, less the sharper the "
                 + "weapon already is. Every 72 quartz is another level, worth 0.25 more on top.");
@@ -3689,7 +3689,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Tool remains in your inventory after death", "One level only",
                 "Costs no modifier slot");
         modifierEffects("luck",
-                "Adds fortune or looting", "Tool use has a chance to increase the luck", "Up to 3 levels",
+                "Adds fortune or looting", "Tool use has a chance to increase the luck", "Up to 6 levels",
                 "Costs 1 modifier slot in total, whatever the level");
         modifierEffects("smite",
                 "Deals massive damage to undead enemies", "Up to 5 levels", "Costs 1 modifier slot per level");
@@ -3718,7 +3718,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "4 blocks per level", "Does not work for weapons", "Up to 5 levels", "Costs 1 modifier slot per level");
         modifierEffects("beheading",
                 "Enemies drop their heads",
-                "Adding more Obsidian increases the chance of decapitation", "Up to 10 levels",
+                "Each Ender Pearl and Obsidian pair increases the chance of decapitation", "Up to 10 levels",
                 "Costs 1 modifier slot per level");
         modifierEffects("glowing",
                 "Places a lightsource on low light level", "Costs durability", "One level only",

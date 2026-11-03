@@ -195,7 +195,7 @@ public class WindBurstGameTests {
         ModifierEntry entry = ForgeweaveModifiers.entry(warmace, WIND_BURST);
         helper.assertTrue(entry != null && entry.level() == expected,
                 "expected wind_burst at level " + expected + ", got " + entry);
-        int enchantLevel = warmace.getEnchantments().getLevel(
+        int enchantLevel = dev.gkissel.forgeweave.modifier.GrantedEnchantments.of(warmace).getLevel(
                 helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.WIND_BURST));
         helper.assertTrue(enchantLevel == expected,
                 "expected vanilla Wind Burst " + expected + " granted, got " + enchantLevel);

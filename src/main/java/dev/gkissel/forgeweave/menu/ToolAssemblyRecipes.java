@@ -14,7 +14,6 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.Holder;
-import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -27,7 +26,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraft.world.item.enchantment.ItemEnchantments;
 
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.api.trait.Trait;
@@ -41,9 +39,8 @@ import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.modifier.Embossing;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.modifier.Fortification;
-import dev.gkissel.forgeweave.api.modifier.Modifier;
+import dev.gkissel.forgeweave.modifier.GrantedEnchantments;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
-import dev.gkissel.forgeweave.modifier.ModifierEntry;
 import dev.gkissel.forgeweave.tool.ArmorStats;
 import dev.gkissel.forgeweave.tool.LauncherStats;
 import dev.gkissel.forgeweave.tool.ProjectileStats;
@@ -762,15 +759,10 @@ public final class ToolAssemblyRecipes {
             return;
         }
         if (ForgeweaveTraits.grantsSilkTouch(stack) || ForgeweaveModifiers.grantsSilkTouch(stack)) {
-            stack.enchant(silk.get(), 1); // enchant upgrades, so an existing level-1 stays level-1
+            GrantedEnchantments.upgrade(stack, silk.get(), 1);
             return;
         }
-        ItemEnchantments current = stack.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
-        if (current.getLevel(silk.get()) > 0) {
-            ItemEnchantments.Mutable mutable = new ItemEnchantments.Mutable(current);
-            mutable.set(silk.get(), 0);
-            stack.set(DataComponents.ENCHANTMENTS, mutable.toImmutable());
-        }
+        GrantedEnchantments.remove(stack, silk.get());
     }
 
     /**
@@ -843,20 +835,7 @@ public final class ToolAssemblyRecipes {
      * a levelled modifier can never downgrade what an earlier application already granted.
      */
     private static ItemStack grantEnchantments(HolderLookup.Provider registries, ItemStack stack) {
-        if (ForgeweaveModifiers.grantsSilkTouch(stack)) {
-            registries.lookup(Registries.ENCHANTMENT)
-                    .flatMap(lookup -> lookup.get(Enchantments.SILK_TOUCH))
-                    .ifPresent(silkTouch -> stack.enchant(silkTouch, 1));
-        }
-        HolderGetter<Enchantment> enchantments = registries.lookupOrThrow(Registries.ENCHANTMENT);
-        for (ModifierEntry entry : ForgeweaveModifiers.of(stack)) {
-            Modifier modifier = ForgeweaveModifiers.get(entry.id());
-            if (modifier == null) {
-                continue;
-            }
-            modifier.grantedEnchantment(entry.level())
-                    .ifPresent(grant -> stack.enchant(enchantments.getOrThrow(grant.enchantment()), grant.level()));
-        }
+        GrantedEnchantments.grantFromModifiers(registries, stack);
         return stack;
     }
 
@@ -943,7 +922,7 @@ public final class ToolAssemblyRecipes {
         if (ForgeweaveTraits.grantsSilkTouch(result)) {
             registries.lookup(Registries.ENCHANTMENT)
                     .flatMap(lookup -> lookup.get(Enchantments.SILK_TOUCH))
-                    .ifPresent(silkTouch -> result.enchant(silkTouch, 1));
+                    .ifPresent(silkTouch -> GrantedEnchantments.upgrade(result, silkTouch, 1));
         }
         // Mining tier, mining speed, and the durability bar all ride on vanilla components, so
         // vanilla's own block-breaking and rendering paths need no Forgeweave-specific handling.
