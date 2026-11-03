@@ -17,27 +17,27 @@
   "plating": {
     "helmet": {
       "durability": 687,
-      "armor": 3.4,
-      "toughness": 1.2,
-      "knockback_resistance": 0.05
+      "armor": 4.0,
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
     },
     "chestplate": {
       "durability": 995,
       "armor": 9.2,
-      "toughness": 1.2,
-      "knockback_resistance": 0.05
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
     },
     "leggings": {
       "durability": 936,
       "armor": 6.9,
-      "toughness": 1.2,
-      "knockback_resistance": 0.05
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
     },
     "boots": {
       "durability": 808,
       "armor": 3.4,
-      "toughness": 1.2,
-      "knockback_resistance": 0.05
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
     }
   },
   "maille": true,

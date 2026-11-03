@@ -18,22 +18,26 @@
     "helmet": {
       "durability": 835,
       "armor": 3.4,
-      "toughness": 2.4
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
     },
     "chestplate": {
       "durability": 1228,
       "armor": 9.2,
-      "toughness": 2.4
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
     },
     "leggings": {
       "durability": 1155,
       "armor": 6.9,
-      "toughness": 2.4
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
     },
     "boots": {
       "durability": 983,
       "armor": 3.4,
-      "toughness": 2.4
+      "toughness": 3.0,
+      "knockback_resistance": 0.1
     }
   },
   "maille": true,

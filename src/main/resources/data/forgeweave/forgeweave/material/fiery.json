@@ -17,7 +17,7 @@
   "plating": {
     "helmet": {
       "durability": 593,
-      "armor": 3.4,
+      "armor": 4.0,
       "toughness": 3.6,
       "knockback_resistance": 0.1
     },
@@ -29,13 +29,13 @@
     },
     "leggings": {
       "durability": 816,
-      "armor": 6.9,
+      "armor": 7.0,
       "toughness": 3.6,
       "knockback_resistance": 0.1
     },
     "boots": {
       "durability": 709,
-      "armor": 3.4,
+      "armor": 4.0,
       "toughness": 3.6,
       "knockback_resistance": 0.1
     }
