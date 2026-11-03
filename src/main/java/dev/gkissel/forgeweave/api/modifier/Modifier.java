@@ -455,8 +455,9 @@ public interface Modifier {
     }
 
     /**
-     * Bonus added to the holder's {@code minecraft:player.block_interaction_range} attribute, in
-     * blocks, while this tool is held (Far Reach).
+     * Bonus added to the holder's {@code minecraft:player.block_interaction_range} and
+     * {@code minecraft:player.entity_interaction_range} attributes, in blocks, while this tool is held
+     * (Far Reach).
      */
     default float blockInteractionRangeBonus(int level) {
         return 0.0F;

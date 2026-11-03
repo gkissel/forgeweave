@@ -123,6 +123,12 @@ repositories {
         // on the dependency itself below.
         name = 'CreateMod'
         url = 'https://maven.createmod.net'
+        // Only Ponder's own groups, so an outage on this host can't fail a build that doesn't use them.
+        content {
+            includeGroup 'net.createmod.ponder'
+            includeGroup 'net.createmod.catnip'
+            includeGroup 'dev.engine-room.flywheel'
+        }
     }
     maven {
         // KubeJS and its Rhino fork (issue #832, script-defined traits), a soft dependency -- see

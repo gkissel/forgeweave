@@ -399,8 +399,25 @@ public class SmelteryMenu extends StationMenu {
      * which peeks into a wall tank and so is server-only.
      */
     public int smelteryTemperature(@Nullable Level level) {
+        SmelteryControllerBlockEntity core = core(level);
+        if (core != null && core.fuelDisplayEnergyCapacity() > 0) {
+            // An energized tank is on the gauge, so its sample's own heat only counts if the buffer can pay.
+            return core.fuelDisplayTemperature();
+        }
         int burning = fuelTemperature(level);
         return burning > 0 ? burning : loadedFuel(level).map(SmelteryFuel::temperature).orElse(0);
+    }
+
+    /** The energy held by the energized tank on the fuel gauge; see {@link #fuelEnergyCapacity}. */
+    public int fuelEnergy(@Nullable Level level) {
+        SmelteryControllerBlockEntity core = core(level);
+        return core == null ? 0 : core.fuelDisplayEnergy();
+    }
+
+    /** That tank's buffer size, or 0 when the gauge is showing a wall tank's liquid fuel instead. */
+    public int fuelEnergyCapacity(@Nullable Level level) {
+        SmelteryControllerBlockEntity core = core(level);
+        return core == null ? 0 : core.fuelDisplayEnergyCapacity();
     }
 
     /** Melt ticks left in the current burn; 0 when nothing is burning. */

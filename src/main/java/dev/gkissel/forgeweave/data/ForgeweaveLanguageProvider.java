@@ -425,6 +425,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("gui.forgeweave.smeltery.liquid.millibucket", "mb");
         add("gui.forgeweave.smeltery.fuel", "Fuel");
         add("gui.forgeweave.smeltery.fuel.empty", "No fuel found");
+        add("gui.forgeweave.smeltery.fuel.no_energy", "Not enough energy to heat the smeltery");
         // Upstream's gui.smeltery.fuel.heat, shown while a burn is under way (#131). Its %s is the
         // gui.forgeweave.temperature component: the raw recipe/fuel number, no unit conversion
         // (#932, recorded deviation from upstream's celsius-converting Util#temperatureString).
@@ -1021,6 +1022,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // #626, upstream stat.shaft.name / stat.fletching.name.
         add("tooltip.forgeweave.stat_type.shaft", "Arrow Shaft");
         add("tooltip.forgeweave.stat_type.fletching", "Fletching");
+        add("tooltip.forgeweave.stat_type.plating", "Plating");
         // tooltip.tank.amount -- the fluid a broken seared tank/gauge/window kept on its stack. The
         // fluid's own name is its registered display name, so it needs no key of its own.
         add("tooltip.forgeweave.tank.amount", "%s mb");
@@ -1610,8 +1612,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 + "vanilla leaves you 20%.");
         add("modifier.forgeweave.resonant.name", "Resonant");
         add("modifier.forgeweave.resonant.description", "Blocks that drop experience drop 50% more per level, up to 3 levels.");
+        add("modifier.forgeweave.knowledge_of_the_ages.name", "Knowledge of the Ages");
+        add("modifier.forgeweave.knowledge_of_the_ages.description", "On a tool, blocks and kills drop 33.33% more "
+                + "experience per level, doubling it at level 3. On armor, each level adds 10% to all experience "
+                + "you gain, up to 30% per piece and 120% for a full set. Up to 3 levels.");
         add("modifier.forgeweave.far_reach.name", "Far Reach");
-        add("modifier.forgeweave.far_reach.description", "Adds 1 block of block-mining reach per level, up to 2.");
+        add("modifier.forgeweave.far_reach.description", "Adds 1 block of reach per level for mining and hitting, up to 2.");
 
         // #107 batch: reinforced, mending moss, silky, soulbound, extra-slot (docs/SCOPE.md M2 issue
         // #107), wording ported from upstream 1.12's modifier.<id>.name/.desc entries.
@@ -1680,11 +1686,12 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("tooltip.forgeweave.cast", "Pour molten metal into it at a Casting Table or Basin to cast "
                 + "its shape. Reusable.");
         add("tooltip.forgeweave.clay_cast", "A single-use clay cast: it breaks after one pour.");
+        add("tooltip.forgeweave.cast_cost", "Ingots used: %s");
 
         // #106 batch: luck, sharpness, diamond, emerald.
         add("modifier.forgeweave.luck.name", "Luck");
-        add("modifier.forgeweave.luck.description", "Grants Fortune on any tool and Looting on weapons, up to 3 levels. The "
-                + "first level takes 60 lapis lazuli, the second 120 and the third 180.");
+        add("modifier.forgeweave.luck.description", "Grants Fortune on any tool and Looting on weapons, up to 6 levels. "
+                + "Every 60 lapis lazuli adds a level, so the top level takes 360.");
         add("modifier.forgeweave.sharpness.name", "Sharpness");
         add("modifier.forgeweave.sharpness.description", "Each quartz adds up to 0.05 attack damage, less the sharper the "
                 + "weapon already is. Every 72 quartz is another level, worth 0.25 more on top.");
@@ -3681,7 +3688,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Tool remains in your inventory after death", "One level only",
                 "Costs no modifier slot");
         modifierEffects("luck",
-                "Adds fortune or looting", "Tool use has a chance to increase the luck", "Up to 3 levels",
+                "Adds fortune or looting", "Tool use has a chance to increase the luck", "Up to 6 levels",
                 "Costs 1 modifier slot in total, whatever the level");
         modifierEffects("smite",
                 "Deals massive damage to undead enemies", "Up to 5 levels", "Costs 1 modifier slot per level");
@@ -3710,7 +3717,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "4 blocks per level", "Does not work for weapons", "Up to 5 levels", "Costs 1 modifier slot per level");
         modifierEffects("beheading",
                 "Enemies drop their heads",
-                "Adding more Obsidian increases the chance of decapitation", "Up to 10 levels",
+                "Each Ender Pearl and Obsidian pair increases the chance of decapitation", "Up to 10 levels",
                 "Costs 1 modifier slot per level");
         modifierEffects("glowing",
                 "Places a lightsource on low light level", "Costs durability", "One level only",
@@ -3732,6 +3739,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
                 "Block drops go straight into your inventory", "One level only", "Costs 1 modifier slot");
         modifierEffects("aquadynamic",
                 "No mining speed penalty underwater", "One level only", "Costs 1 modifier slot");
+        modifierEffects("knowledge_of_the_ages",
+                "Tools: blocks and kills drop 33.33% more experience per level",
+                "Armor: 10% more experience gained per level, 120% on a full set at level 3", "Up to 3 levels",
+                "Costs 1 modifier slot per level");
         modifierEffects("resonant",
                 "Blocks that drop experience drop more", "Each level adds 50%", "Up to 3 levels",
                 "Costs 1 modifier slot per level");

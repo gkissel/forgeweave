@@ -106,7 +106,9 @@ public class ForgeweaveDraconicRecipeProvider implements DataProvider {
                 json.addProperty("modifier", modifier.toString());
                 json.addProperty("level", rung.level());
                 String tier = ForgeweaveDraconicCompat.tierIngredient(rung.techLevel());
-                json.add("ingredients", ingredients(List.of(tier, tier, line.reagent())));
+                List<String> ingredients = new ArrayList<>(List.of(tier, tier));
+                ingredients.addAll(line.reagents());
+                json.add("ingredients", ingredients(ingredients));
                 json.addProperty("totalEnergy", rung.energy());
                 json.addProperty("techLevel", rung.techLevel());
                 json.add("neoforge:conditions", conditions());

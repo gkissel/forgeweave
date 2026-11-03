@@ -95,6 +95,37 @@ public class EnergizedTankGameTests {
     }
 
     /**
+     * The fuel gauge and the "no fuel" tooltips read this. A tank that is heating the smeltery has to
+     * show up there, or the screen says "No fuel found" over a smeltery that is melting.
+     */
+    @GameTest(template = "smeltery", timeoutTicks = 100)
+    public static void theFuelDisplayShowsAChargedTank(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = energizedSmeltery(helper, Fluids.LAVA, FULL);
+        core.currentTemperature();
+
+        helper.assertTrue(core.fuelDisplayFluid().getFluid() == Fluids.LAVA,
+                "expected the sample on the gauge, got " + core.fuelDisplayFluid().getFluid());
+        helper.assertValueEqual(core.fuelDisplayEnergy(), FULL, "energy on the gauge");
+        helper.assertValueEqual(core.fuelDisplayEnergyCapacity(), FULL, "energy capacity on the gauge");
+        helper.assertValueEqual(core.fuelDisplayTemperature(), LAVA_TEMPERATURE, "heat on the gauge");
+        helper.succeed();
+    }
+
+    /** An empty buffer is the case a player most needs explained: the sample is there, the heat is not. */
+    @GameTest(template = "smeltery", timeoutTicks = 100)
+    public static void theFuelDisplayShowsAnUnpoweredTankWithNoHeat(GameTestHelper helper) {
+        SmelteryControllerBlockEntity core = energizedSmeltery(helper, Fluids.LAVA, 0);
+        core.currentTemperature();
+
+        helper.assertTrue(core.fuelDisplayFluid().getFluid() == Fluids.LAVA,
+                "expected the sample on the gauge, got " + core.fuelDisplayFluid().getFluid());
+        helper.assertValueEqual(core.fuelDisplayEnergy(), 0, "energy on the gauge");
+        helper.assertValueEqual(core.fuelDisplayEnergyCapacity(), FULL, "energy capacity on the gauge");
+        helper.assertValueEqual(core.fuelDisplayTemperature(), 0, "an empty buffer gives no heat");
+        helper.succeed();
+    }
+
+    /**
      * The other half of temperature gating: a sample only unlocks what its own fuel unlocks. The
      * blaze-rod fixture wants 1400 degrees ({@code src/gametest/resources}'s {@code
      * gametest_above_lava}), which is above lava's 1300 and below blazing blood's 1500 -- so both
