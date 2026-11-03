@@ -546,7 +546,7 @@ public class ModifierGameTests {
     @GameTest(template = "empty")
     public static void knowledgeOfTheAgesDoublesDroppedExperienceAtLevelThree(GameTestHelper helper) {
         ItemStack pickaxe = pickaxe("incorrect_for_stone_tool");
-        ResourceLocation knowledge = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "knowledge_of_the_ages");
+        Identifier knowledge = Identifier.fromNamespaceAndPath(Forgeweave.MODID, "knowledge_of_the_ages");
         pickaxe.set(ForgeweaveDataComponents.MODIFIERS.get(), List.of(new ModifierEntry(knowledge, 3)));
 
         BlockDropsEvent block = dropsEvent(helper, pickaxe, null);

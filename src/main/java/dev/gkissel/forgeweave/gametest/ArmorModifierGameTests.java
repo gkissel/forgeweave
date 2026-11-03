@@ -302,7 +302,7 @@ public class ArmorModifierGameTests {
         for (int i = 0; i < 3; i++) {
             plate = apply(helper, player, plate, new ItemStack(Items.EXPERIENCE_BOTTLE));
         }
-        helper.assertValueEqual(ForgeweaveModifiers.entry(plate, ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "knowledge_of_the_ages")).level(), 3, "levels after 3 bottles");
+        helper.assertValueEqual(ForgeweaveModifiers.entry(plate, Identifier.fromNamespaceAndPath(Forgeweave.MODID, "knowledge_of_the_ages")).level(), 3, "levels after 3 bottles");
 
         player.giveExperiencePoints(100);
         helper.assertValueEqual(player.totalExperience, 100, "no piece worn, no bonus");

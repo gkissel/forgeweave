@@ -321,8 +321,8 @@ class AlloyRecipeTest {
         assertEquals(2, json.getAsJsonObject("result").get("amount").getAsInt());
         assertEquals(priority, json.has("priority") ? json.get("priority").getAsInt() : 0);
         JsonObject condition = json.getAsJsonArray("neoforge:conditions").get(0).getAsJsonObject();
-        assertEquals("neoforge:item_exists", condition.get("type").getAsString());
-        assertEquals("allthemodium:" + alloy + "_ingot", condition.get("item").getAsString());
+        assertEquals("neoforge:registered", condition.get("type").getAsString());
+        assertEquals("allthemodium:" + alloy + "_ingot", condition.get("value").getAsString());
     }
 
     private static JsonObject input(JsonObject recipe, int index) {

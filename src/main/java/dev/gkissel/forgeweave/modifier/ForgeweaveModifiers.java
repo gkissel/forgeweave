@@ -690,7 +690,7 @@ public final class ForgeweaveModifiers {
         }
     };
 
-    private static final ResourceLocation KNOWLEDGE_OF_THE_AGES_ID = id("knowledge_of_the_ages");
+    private static final Identifier KNOWLEDGE_OF_THE_AGES_ID = id("knowledge_of_the_ages");
     private static final float KNOWLEDGE_DROP_XP_PER_LEVEL = 1.0F / 3.0F;
     private static final float KNOWLEDGE_WORN_XP_PER_LEVEL = 0.1F;
 
