@@ -183,13 +183,11 @@ class ModifierBatch1Test {
     }
 
     @Test
-    void luckFollowsItsDisplayLevelOnlyWithApotheosis() {
+    void luckFollowsItsDisplayLevelUpToSix() {
         ModifierRecipe recipe = shippedRecipe("luck.json");
 
-        assertEquals(List.of(0, 1, 1, 2, 3), Stream.of(59, 60, 119, 180, 360)
-                .map(units -> ModifierApplication.grantLevel(recipe, units, false)).toList());
-        assertEquals(List.of(0, 1, 1, 3, 6, 6), Stream.of(59, 60, 119, 180, 360, 720)
-                .map(units -> ModifierApplication.grantLevel(recipe, units, true)).toList());
+        assertEquals(List.of(0, 1, 1, 3, 4, 6, 6), Stream.of(59, 60, 119, 180, 270, 360, 720)
+                .map(units -> ModifierApplication.grantLevel(recipe, units)).toList());
     }
 
     /**

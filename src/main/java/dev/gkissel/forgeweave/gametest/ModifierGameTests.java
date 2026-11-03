@@ -714,7 +714,7 @@ public class ModifierGameTests {
         ResourceLocation luck = ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "luck");
         var fortune = registries.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
 
-        for (int[] rung : new int[][] {{60, 1}, {180, 2}, {270, 2}, {360, 3}}) {
+        for (int[] rung : new int[][] {{60, 1}, {180, 3}, {270, 4}, {360, 6}}) {
             ItemStack upgraded = ModifierApplication.applyLevel(registries, pickaxe, luck, rung[0]).output();
             helper.assertValueEqual(EnchantmentHelper.getItemEnchantmentLevel(fortune, upgraded), rung[1],
                     "Fortune after a fusion upgrade to " + rung[0] + " units");

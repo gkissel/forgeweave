@@ -321,13 +321,15 @@ public class ArmorPieceItem extends ArmorItem {
 
     @Override
     public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
-        return ForgeweaveConfig.read(ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING) && super.supportsEnchantment(stack, enchantment);
+        return ForgeweaveConfig.read(ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING) && GrantedEnchantments.canJoin(stack, enchantment)
+                && super.supportsEnchantment(stack, enchantment);
     }
 
     /** Same seam as {@link ToolItem#getEnchantmentLevel}: what a modifier granted this piece. */
     @Override
     public int getEnchantmentLevel(ItemStack stack, Holder<Enchantment> enchantment) {
-        return Math.max(super.getEnchantmentLevel(stack, enchantment), GrantedEnchantments.of(stack).getLevel(enchantment));
+        return GrantedEnchantments.combined(enchantment, super.getEnchantmentLevel(stack, enchantment),
+                GrantedEnchantments.of(stack).getLevel(enchantment));
     }
 
     /** Same seam as {@link ToolItem#getAllEnchantments}. */
@@ -343,6 +345,6 @@ public class ArmorPieceItem extends ArmorItem {
         if (stats(stack) != null) {
             ToolTooltip.appendShiftHint(ToolTooltip.shiftHint(flag), tooltip);
         }
-        GrantedEnchantments.of(stack).addToTooltip(context, tooltip::add, flag);
+        GrantedEnchantments.appendTooltip(stack, context, tooltip::add, flag);
     }
 }

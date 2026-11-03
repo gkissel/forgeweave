@@ -27,6 +27,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.EnchantmentInstance;
@@ -119,6 +120,50 @@ public class EnchantingGameTests {
         } finally {
             ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.set(false);
         }
+    }
+
+    /** Silk Touch would switch Luck's Fortune off, so neither the table nor an anvil may add it. */
+    @GameTest(template = "empty")
+    public static void silkTouchStaysOffALuckTool(GameTestHelper helper) {
+        ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.set(true);
+        try {
+            ItemStack pickaxe = ToolAssembly.pickaxe(helper, helper.makeMockPlayer(GameType.CREATIVE), new BlockPos(1, 1, 1),
+                    "stone", "wood", "wood");
+            var registries = helper.getLevel().registryAccess();
+            var enchantments = registries.lookupOrThrow(Registries.ENCHANTMENT);
+            var silkTouch = enchantments.getOrThrow(Enchantments.SILK_TOUCH);
+            helper.assertTrue(pickaxe.isPrimaryItemFor(silkTouch), "a plain pickaxe can roll Silk Touch");
+            ItemStack lucky = ModifierApplication.applyLevel(registries, pickaxe,
+                    ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "luck"), 60).output();
+            helper.assertFalse(lucky.isPrimaryItemFor(silkTouch), "the table must not roll Silk Touch onto Luck");
+            helper.assertFalse(lucky.supportsEnchantment(silkTouch), "the anvil must not add Silk Touch onto Luck");
+            helper.assertTrue(lucky.isPrimaryItemFor(enchantments.getOrThrow(Enchantments.EFFICIENCY)), "Efficiency still fits");
+            helper.assertTrue(lucky.isPrimaryItemFor(enchantments.getOrThrow(Enchantments.FORTUNE)), "Fortune fits and adds up");
+            helper.succeed();
+        } finally {
+            ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING.set(false);
+        }
+    }
+
+    /** Table Fortune III on Luck VI is Fortune IX, shown on one line. */
+    @GameTest(template = "empty")
+    public static void tableFortuneAddsToLuckOnOneTooltipLine(GameTestHelper helper) {
+        ItemStack pickaxe = ToolAssembly.pickaxe(helper, helper.makeMockPlayer(GameType.CREATIVE), new BlockPos(1, 1, 1),
+                "stone", "wood", "wood");
+        var registries = helper.getLevel().registryAccess();
+        var fortune = registries.lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
+        ItemStack lucky = ModifierApplication.applyLevel(registries, pickaxe,
+                ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "luck"), 360).output();
+        helper.assertValueEqual(lucky.getEnchantmentLevel(fortune), 6, "Luck VI alone");
+        lucky.enchant(fortune, 3);
+
+        helper.assertValueEqual(lucky.getEnchantmentLevel(fortune), 9, "the two add up");
+        helper.assertValueEqual(GrantedEnchantments.withStored(lucky).getLevel(fortune), 9, "for the loot predicates too");
+        String name = Enchantment.getFullname(fortune, 1).getString().split(" ")[0];
+        long lines = lucky.getTooltipLines(Item.TooltipContext.of(helper.getLevel()), null, TooltipFlag.NORMAL).stream()
+                .filter(line -> line.getString().startsWith(name)).count();
+        helper.assertValueEqual(lines, 1L, "Fortune tooltip lines");
+        helper.succeed();
     }
 
     /**

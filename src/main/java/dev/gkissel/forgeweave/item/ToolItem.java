@@ -508,7 +508,8 @@ public class ToolItem extends Item {
      */
     @Override
     public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
-        return ForgeweaveConfig.read(ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING) && super.supportsEnchantment(stack, enchantment);
+        return ForgeweaveConfig.read(ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING) && GrantedEnchantments.canJoin(stack, enchantment)
+                && super.supportsEnchantment(stack, enchantment);
     }
 
     /**
@@ -968,7 +969,8 @@ public class ToolItem extends Item {
     /** What {@code EnchantmentHelper} asks when it wants one level, Fortune's loot roll among them. */
     @Override
     public int getEnchantmentLevel(ItemStack stack, Holder<Enchantment> enchantment) {
-        return Math.max(super.getEnchantmentLevel(stack, enchantment), GrantedEnchantments.of(stack).getLevel(enchantment));
+        return GrantedEnchantments.combined(enchantment, super.getEnchantmentLevel(stack, enchantment),
+                GrantedEnchantments.of(stack).getLevel(enchantment));
     }
 
     /**
@@ -1230,7 +1232,7 @@ public class ToolItem extends Item {
         super.appendHoverText(stack, context, tooltip, flag);
         ToolTooltip.append(stack, context.registries(), ToolTooltip.detailed(flag), attackDamage(stack), tooltip);
         ToolTooltip.appendShiftHint(ToolTooltip.shiftHint(flag), tooltip);
-        GrantedEnchantments.of(stack).addToTooltip(context, tooltip::add, flag);
+        GrantedEnchantments.appendTooltip(stack, context, tooltip::add, flag);
     }
 
     // ------------------------------------------------------------------ innate item use (issue #155)

@@ -8,10 +8,16 @@ import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
+import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
+
+import java.util.function.Consumer;
 
 /**
  * Enchantments a tool gets from its modifiers and traits, stored apart from the ones a table or an
@@ -48,15 +54,58 @@ public final class GrantedEnchantments {
         }
     }
 
-    /** Stored and granted enchantments together, at the higher level of the two. */
+    /**
+     * A table or anvil level and a modifier's grant add up, so Fortune III on a Luck VI pickaxe mines
+     * at Fortune IX. An enchantment with only one level, Silk Touch among them, stays at 1.
+     */
+    public static int combined(Holder<Enchantment> enchantment, int stored, int granted) {
+        return enchantment.value().getMaxLevel() == 1 ? Math.max(stored, granted) : stored + granted;
+    }
+
+    /** Stored and granted enchantments together, at their {@link #combined} levels. */
     public static ItemEnchantments withStored(ItemStack stack) {
         ItemEnchantments.Mutable merged = new ItemEnchantments.Mutable(
                 stack.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY));
         ItemEnchantments granted = of(stack);
         for (Holder<Enchantment> enchantment : granted.keySet()) {
-            merged.upgrade(enchantment, granted.getLevel(enchantment));
+            merged.set(enchantment, combined(enchantment, merged.getLevel(enchantment), granted.getLevel(enchantment)));
         }
         return merged.toImmutable();
+    }
+
+    /**
+     * Whether a table or anvil may add {@code enchantment} next to the granted ones. Refuses what
+     * conflicts, such as Silk Touch on a Luck tool, where it would silently switch Fortune off. The
+     * same enchantment is fine: its levels add up.
+     */
+    public static boolean canJoin(ItemStack stack, Holder<Enchantment> enchantment) {
+        for (Holder<Enchantment> granted : of(stack).keySet()) {
+            if (!granted.equals(enchantment) && !Enchantment.areCompatible(granted, enchantment)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** One tooltip line per granted enchantment, at its combined level. See {@link #onTooltip}. */
+    public static void appendTooltip(ItemStack stack, Item.TooltipContext context, Consumer<Component> lines, TooltipFlag flag) {
+        ItemEnchantments merged = withStored(stack);
+        ItemEnchantments.Mutable shown = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
+        for (Holder<Enchantment> enchantment : of(stack).keySet()) {
+            shown.set(enchantment, merged.getLevel(enchantment));
+        }
+        shown.toImmutable().addToTooltip(context, lines, flag);
+    }
+
+    /** Drops vanilla's line for a stored level that {@link #appendTooltip} already counted in. */
+    public static void onTooltip(ItemTooltipEvent event) {
+        ItemStack stack = event.getItemStack();
+        ItemEnchantments stored = stack.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
+        for (Holder<Enchantment> enchantment : of(stack).keySet()) {
+            if (stored.getLevel(enchantment) > 0) {
+                event.getToolTip().remove(Enchantment.getFullname(enchantment, stored.getLevel(enchantment)));
+            }
+        }
     }
 
     /** What the tool's modifiers grant through {@link Modifier#grantedEnchantment}, Silky's included. */

@@ -119,10 +119,6 @@ public final class ApotheosisAffixes {
      * gear can carry an affix. Answers "on" with Apotheosis absent, so a Forgeweave-only pack using
      * {@code forgeweave:assemble_tool} for its own loot is never affected by this toggle.
      */
-    public static boolean raisesEnchantmentCaps() {
-        return ModList.get().isLoaded(ApotheosisSockets.MODID) || ModList.get().isLoaded(ENCHANTING_MODID);
-    }
-
     public static boolean affixesEnabled() {
         return !ModList.get().isLoaded(ApotheosisSockets.MODID) || affixesConfigured();
     }

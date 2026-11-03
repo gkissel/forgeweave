@@ -847,10 +847,8 @@ public final class ForgeweaveModifiers {
      * {@code luck.json}'s {@code cost_per_level: [60, 120, 180]} reproduces it exactly
      * ({@code ModifierRecipe#levelsReached}). This constant remains only as the uniform fallback
      * {@link #unitsPerLevel} feeds the tooltip's generic "Luck II (65/180)" readout
-     * ({@link #displayLevel}/{@link #unitsForDisplayLevel}, haste's shipped precedent). With Apotheosis
-     * installed the Fortune/Looting grant steps every 60 units too, up to 6; without it that display is
-     * an approximation and the grant uses the recipe's thresholds. See
-     * {@code ModifierApplication#grantLevel}.
+     * ({@link #displayLevel}/{@link #unitsForDisplayLevel}, haste's shipped precedent). The Fortune/Looting
+     * grant steps every 60 units too, up to 6. See {@code ModifierApplication#grantLevel}.
      */
     private static final int LUCK_LAPIS_PER_LEVEL = 60;
 

@@ -28,7 +28,6 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 
 import dev.gkissel.forgeweave.api.modifier.Modifier;
-import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisAffixes;
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.AmmoToolItem;
@@ -484,7 +483,7 @@ public final class ModifierApplication {
         if (modifier == null || entry == null) {
             return;
         }
-        int level = grantLevel(recipe, entry.level(), ApotheosisAffixes.raisesEnchantmentCaps());
+        int level = grantLevel(recipe, entry.level());
         boolean weapon = tool.getItem() instanceof ToolItem toolItem && toolItem.isWeapon();
         int fortune = modifier.fortuneLevel(level);
         int looting = weapon ? modifier.lootingLevel(level) : 0;
@@ -497,14 +496,12 @@ public final class ModifierApplication {
     }
 
     /**
-     * The level a recipe's enchantment grant reads off {@code units}. Apotheosis lifts enchantment caps,
-     * so with it installed Luck's Fortune and Looting gain a level per 60 full units, 6 at the recipe's
-     * cap where the tooltip reads Luck VI. Without it Luck keeps upstream's 60/180/360 ladder and tops
-     * out at 3.
+     * The level a recipe's enchantment grant reads off {@code units}. Luck's Fortune and Looting gain a
+     * level per 60 full units, 6 at the recipe's cap where the tooltip reads Luck VI.
      */
-    static int grantLevel(ModifierRecipe recipe, int units, boolean apotheosis) {
+    static int grantLevel(ModifierRecipe recipe, int units) {
         Modifier modifier = ForgeweaveModifiers.get(recipe.modifier());
-        if (apotheosis && modifier == ForgeweaveModifiers.LUCK) {
+        if (modifier == ForgeweaveModifiers.LUCK) {
             return Math.min(units, recipe.maxLevel()) / modifier.unitsPerLevel();
         }
         return recipe.levelsReached(units);
