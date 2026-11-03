@@ -155,7 +155,8 @@ public class EnergyTraitGameTests {
                     "expected 2 FE gained on one daylight tick under open sky, got " + afterDaylight);
 
             helper.setBlock(new BlockPos(2, 6, 2), Blocks.STONE);
-            helper.runAfterDelay(5, () -> {
+            // Sky light updates off the server thread, so give a busy CI runner time to see the roof.
+            helper.runAfterDelay(40, () -> {
                 pickaxe.getItem().inventoryTick(pickaxe, level, player, null);
                 int underRoof = EnergyBuffer.stored(pickaxe);
                 helper.assertTrue(underRoof == afterDaylight,
