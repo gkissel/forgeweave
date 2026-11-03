@@ -57,8 +57,9 @@ import dev.gkissel.forgeweave.recipe.AlloyRecipe;
  *       the four depth-3/4 alloys on all three head stats.
  * </ol>
  *
- * <p>Compat materials are outside rules 2 and 3: another mod sets their acquisition cost, and the
- * issue's own wording leaves the compat endgame free to sit above Forgeweave's own.
+ * <p>Compat materials are outside rule 3: another mod sets their acquisition cost, and the issue's
+ * own wording leaves the compat endgame free to sit above Forgeweave's own. They do answer to rule 2,
+ * in {@link #compatMaterialsAboveNetheriteClearPlainNetherite}.
  */
 class AlloyPayoffTest {
 
@@ -283,6 +284,31 @@ class AlloyPayoffTest {
             }
         }
         assertTrue(checked >= 15, "non-vacuity: only " + checked + " own materials above the netherite rung");
+    }
+
+    /**
+     * The same wall for compat materials. Another mod sets what they cost, but a tier above netherite
+     * that hits softer than netherite is still a step down for whoever climbs to it.
+     */
+    @Test
+    void compatMaterialsAboveNetheriteClearPlainNetherite() {
+        int checked = 0;
+        for (Map.Entry<String, Material> entry : materials.entrySet()) {
+            if (!isCompat(entry.getKey()) || !FORGEWEAVE_RUNGS.contains(rungOf(entry.getValue()))) {
+                continue;
+            }
+            double[] stats = head(entry.getKey()).orElse(null);
+            if (stats == null || PARITY_SPECIALISTS.contains(entry.getKey())) {
+                continue;
+            }
+            checked++;
+            for (int stat = 0; stat < 3; stat++) {
+                assertTrue(stats[stat] > NETHERITE[stat],
+                        entry.getKey() + " " + show(stats) + " sits on the " + rungOf(entry.getValue())
+                        + " rung and does not clear plain netherite " + show(NETHERITE));
+            }
+        }
+        assertTrue(checked >= 8, "non-vacuity: only " + checked + " compat materials above the netherite rung");
     }
 
     @Test
