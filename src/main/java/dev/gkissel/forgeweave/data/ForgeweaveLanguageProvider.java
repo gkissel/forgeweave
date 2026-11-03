@@ -1023,6 +1023,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // #626, upstream stat.shaft.name / stat.fletching.name.
         add("tooltip.forgeweave.stat_type.shaft", "Arrow Shaft");
         add("tooltip.forgeweave.stat_type.fletching", "Fletching");
+        add("tooltip.forgeweave.stat_type.plating", "Plating");
         // tooltip.tank.amount -- the fluid a broken seared tank/gauge/window kept on its stack. The
         // fluid's own name is its registered display name, so it needs no key of its own.
         add("tooltip.forgeweave.tank.amount", "%s mb");
