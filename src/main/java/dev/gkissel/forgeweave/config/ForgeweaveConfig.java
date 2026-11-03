@@ -1271,6 +1271,8 @@ public final class ForgeweaveConfig {
                 .comment("If true, Forgeweave works with Mystical Agriculture: the Track B ores and brimspar",
                         "get resource crops, and gear built from a Mystical Agriculture essence metal is",
                         "accepted by Mystical Agriculture's own Tinkering Table so augments can be installed.",
+                        "A tool with any part made of a Mystical Agriculture or Agradditions material also",
+                        "makes the Wither and the Ender Dragon drop Cognizant Dust.",
                         "",
                         "Off makes the augment seam inert rather than absent: a Forgeweave tool still goes into",
                         "the Tinkering Table's first slot, but it offers no augment slot, so nothing can be",

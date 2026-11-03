@@ -144,9 +144,9 @@ public class ApotheosisAffixGameTests {
                         + ForgeweaveModifiers.freeSlots(enchanted));
 
         ModifierApplication.Outcome outcome = ModifierApplication
-                .resolve(helper.getLevel().registryAccess(), enchanted, new ItemStack(Items.OBSIDIAN, 1),
+                .resolve(helper.getLevel().registryAccess(), enchanted, new ItemStack(Items.QUARTZ, 1),
                         ItemStack.EMPTY)
-                .orElseThrow(() -> new AssertionError("the station must still recognise obsidian"));
+                .orElseThrow(() -> new AssertionError("the station must still recognise quartz"));
         helper.assertTrue(!outcome.output().isEmpty(),
                 "an enchanted tool must still take a modifier: " + outcome.rejection());
 
@@ -188,9 +188,9 @@ public class ApotheosisAffixGameTests {
                     "and must not have displaced Forgeweave's own components");
 
             ModifierApplication.Outcome outcome = ModifierApplication
-                    .resolve(helper.getLevel().registryAccess(), pickaxe, new ItemStack(Items.OBSIDIAN, 1),
+                    .resolve(helper.getLevel().registryAccess(), pickaxe, new ItemStack(Items.QUARTZ, 1),
                             ItemStack.EMPTY)
-                    .orElseThrow(() -> new AssertionError("the station must still recognise obsidian"));
+                    .orElseThrow(() -> new AssertionError("the station must still recognise quartz"));
             helper.assertTrue(!outcome.output().isEmpty(),
                     "an affixed tool must still take a modifier with the bridges off: " + outcome.rejection());
             helper.assertTrue(expected.equals(outcome.output().get(DataComponents.CUSTOM_DATA)),

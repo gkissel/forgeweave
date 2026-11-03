@@ -37,6 +37,7 @@ import dev.gkissel.forgeweave.gametest.GameTestHolder;
 import dev.gkissel.forgeweave.gametest.PrefixGameTestTemplate;
 
 import dev.gkissel.forgeweave.Forgeweave;
+import dev.gkissel.forgeweave.modifier.GrantedEnchantments;
 import dev.gkissel.forgeweave.api.combat.CombatHit;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
@@ -299,7 +300,7 @@ public class MiningTraitGameTests {
                 "sponge", "sponge", "sponge");
         helper.assertTrue(!pickaxe.isEmpty(), "the station must assemble the all-squeaky pickaxe");
 
-        ItemEnchantments enchantments = pickaxe.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
+        ItemEnchantments enchantments = GrantedEnchantments.of(pickaxe);
         boolean silkTouch = enchantments.keySet().stream().anyMatch(holder -> holder.is(Enchantments.SILK_TOUCH));
         helper.assertTrue(silkTouch, "assembly must grant vanilla Silk Touch, got " + enchantments);
 

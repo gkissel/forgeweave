@@ -1,24 +1,24 @@
 {
   "head": {
-    "durability": 900,
-    "mining_speed": 9.5,
-    "attack_damage": 4.5
+    "durability": 1635,
+    "mining_speed": 13.35,
+    "attack_damage": 10.95
   },
   "handle": {
     "durability_modifier": 0.9,
-    "durability": 90
+    "durability": 135
   },
-  "extra_durability": 280,
+  "extra_durability": 415,
   "bow": {
     "drawspeed": 0.7,
     "range": 1.3,
     "bonus_damage": 3.5
   },
   "plating": {
-    "helmet": { "durability": 370, "armor": 3.0, "toughness": 1.5, "knockback_resistance": 0.05 },
-    "chestplate": { "durability": 540, "armor": 8.0, "toughness": 1.5, "knockback_resistance": 0.05 },
-    "leggings": { "durability": 500, "armor": 6.0, "toughness": 1.5, "knockback_resistance": 0.05 },
-    "boots": { "durability": 440, "armor": 3.0, "toughness": 1.5, "knockback_resistance": 0.05 }
+    "helmet": { "durability": 658, "armor": 3.4, "toughness": 1.8, "knockback_resistance": 0.05 },
+    "chestplate": { "durability": 955, "armor": 9.2, "toughness": 1.8, "knockback_resistance": 0.05 },
+    "leggings": { "durability": 883, "armor": 6.9, "toughness": 1.8, "knockback_resistance": 0.05 },
+    "boots": { "durability": 781, "armor": 3.4, "toughness": 1.8, "knockback_resistance": 0.05 }
   },
   "maille": true,
   "incorrect_for_tool": "forgeweave:incorrect_for_hardcinder_tool",

@@ -217,9 +217,12 @@ public final class Worktable {
         // slots back through GRANTED_SLOTS, and nothing on the stack records which entry carried that
         // grant. Refunding this entry's slots on such a tool would let a Draconic fusion upgrade be
         // removed and re-applied for a free slot every round, so the whole tool is refused instead.
+        // FUSION_LEVELS refuses for the same reason: a rung that spent no slot leaves no grant behind,
+        // and taking levels off would leave the record of that rung wrong.
         // ponytail: whole-tool refusal, because the grant is a bare count. Tag the granting entry and
         // this becomes a per-entry check.
-        if (tool.getOrDefault(ForgeweaveDataComponents.GRANTED_SLOTS.get(), 0) > 0) {
+        if (tool.getOrDefault(ForgeweaveDataComponents.GRANTED_SLOTS.get(), 0) > 0
+                || tool.has(ForgeweaveDataComponents.FUSION_LEVELS.get())) {
             return Result.rejected(Component.translatable("gui.forgeweave.worktable.granted_slots"));
         }
         Modifier modifier = ForgeweaveModifiers.get(entry.id());

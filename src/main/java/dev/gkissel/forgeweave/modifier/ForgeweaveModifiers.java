@@ -29,6 +29,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.tags.TagKey;
+import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.ExperienceOrb;
@@ -50,6 +51,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.util.TriState;
 import net.neoforged.neoforge.event.TagsUpdatedEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
+import net.neoforged.neoforge.event.entity.living.LivingExperienceDropEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerXpEvent;
@@ -688,6 +690,23 @@ public final class ForgeweaveModifiers {
         }
     };
 
+    private static final Identifier KNOWLEDGE_OF_THE_AGES_ID = id("knowledge_of_the_ages");
+    private static final float KNOWLEDGE_DROP_XP_PER_LEVEL = 1.0F / 3.0F;
+    private static final float KNOWLEDGE_WORN_XP_PER_LEVEL = 0.1F;
+
+    /**
+     * Bottle o' Enchanting, capped at 3 levels. On a tool, mined blocks and kills drop a third more
+     * experience per level ({@link #onBlockDrops}, {@link #onExperienceDrop}). On armor, each level of
+     * each worn piece adds 10% to all experience gained ({@link #onXpChange}). A maintainer design with
+     * no upstream counterpart.
+     */
+    public static final Modifier KNOWLEDGE_OF_THE_AGES = new Modifier() {
+        @Override
+        public float bonusExperienceFraction(int level) {
+            return KNOWLEDGE_DROP_XP_PER_LEVEL * level;
+        }
+    };
+
     /** Amethyst shard. +1 block interaction range per level, our chosen number, capped at 2 levels. */
     public static final Modifier FAR_REACH = new Modifier() {
         @Override
@@ -854,9 +873,8 @@ public final class ForgeweaveModifiers {
      * {@code luck.json}'s {@code cost_per_level: [60, 120, 180]} reproduces it exactly
      * ({@code ModifierRecipe#levelsReached}). This constant remains only as the uniform fallback
      * {@link #unitsPerLevel} feeds the tooltip's generic "Luck II (65/180)" readout
-     * ({@link #displayLevel}/{@link #unitsForDisplayLevel}, haste's shipped precedent) -- a cosmetic
-     * approximation, since that display doesn't consult the recipe; the actual Fortune/Looting grant
-     * always uses the recipe's real thresholds via {@code ModifierApplication#applyEnchantmentGrants}.
+     * ({@link #displayLevel}/{@link #unitsForDisplayLevel}, haste's shipped precedent). The Fortune/Looting
+     * grant steps every 60 units too, up to 6. See {@code ModifierApplication#grantLevel}.
      */
     private static final int LUCK_LAPIS_PER_LEVEL = 60;
 
@@ -1021,20 +1039,9 @@ public final class ForgeweaveModifiers {
      * cleaver's innate levels, and a per-entry seam sees neither the innate nor an unmodified cleaver.
      * {@code Beheading} registers a provider of its own that reads both.
      *
-     * <p>Issue #780's survey: upstream's real recipe is a genuine combo,
-     * {@code TinkerModifiers:145}'s {@code ItemCombination(1, ENDER_PEARL, OBSIDIAN)}, one of each --
-     * {@code modifier_recipe/beheading.json} still ships the obsidian-alone reduction, deliberately
-     * <b>not</b> converted. Upstream's {@code LevelAspect(this, 10)} grants exactly one level per
-     * station visit ({@code canApply} refuses a jump of more than one), but the shipped recipe pools
-     * every obsidian present into one craft (up to ten at once, see
-     * {@code gametest.BeheadingGameTests#obsidianAppliedAtTheStationBeheads}) -- an existing,
-     * separately-tracked deviation from before this ticket. {@code ModifierApplication#applyCombo}
-     * (issue #776) only ever grants a combo recipe's {@code max_level} outright in one craft, with no
-     * partial-fill stepping; wiring beheading's ender-pearl-plus-obsidian combo through it as shipped
-     * would jump straight to level 10 off a single pair, which is neither upstream's one-per-visit
-     * rule nor Forgeweave's existing ten-per-visit one. Converting it correctly needs partial-fill
-     * stepping added to {@code applyCombo} itself, which is a matching-engine change beyond this
-     * ticket's recipe-data scope -- left for a maintainer decision (see the PR).
+     * <p>The recipe is upstream's combo, {@code TinkerModifiers:145}'s {@code ItemCombination(1,
+     * ENDER_PEARL, OBSIDIAN)}, one of each per level. Upstream's {@code LevelAspect(this, 10)} grants one
+     * level per station visit; here every complete pair in the slots applies at once, up to ten.
      */
     public static final Modifier BEHEADING = new Modifier() {};
 
@@ -1815,6 +1822,7 @@ public final class ForgeweaveModifiers {
             Map.entry(id("magnetic_pull"), MAGNETIC_PULL),
             Map.entry(id("aquadynamic"), AQUADYNAMIC),
             Map.entry(id("resonant"), RESONANT),
+            Map.entry(KNOWLEDGE_OF_THE_AGES_ID, KNOWLEDGE_OF_THE_AGES),
             Map.entry(id("far_reach"), FAR_REACH),
             Map.entry(id("reinforced"), REINFORCED),
             Map.entry(id("mending_moss"), MENDING_MOSS),
@@ -2298,6 +2306,7 @@ public final class ForgeweaveModifiers {
             Map.entry(id("magnetic_pull"), TextColor.fromRgb(0xDDDDDD)),
             Map.entry(id("aquadynamic"), TextColor.fromRgb(0x55FFFF)),
             Map.entry(id("resonant"), TextColor.fromRgb(0x2EBAA4)),
+            Map.entry(KNOWLEDGE_OF_THE_AGES_ID, TextColor.fromRgb(0x7FD93B)),
             Map.entry(id("far_reach"), TextColor.fromRgb(0xB180D9)),
             Map.entry(id("wind_burst"), TextColor.fromRgb(0xC0F3F0)),
             Map.entry(id("extra_slot"), TextColor.fromRgb(0xAAAAAA)),
@@ -2490,7 +2499,7 @@ public final class ForgeweaveModifiers {
         }
         float bonusXp = bonusExperienceFraction(tool);
         if (bonusXp > 0.0F) {
-            event.setDroppedExperience(Math.round(event.getDroppedExperience() * (1.0F + bonusXp)));
+            event.setDroppedExperience(scaledExperience(event.getLevel().getRandom(), event.getDroppedExperience(), bonusXp));
         }
         // T24: before the magnetic grab below, so a drop blasting destroyed is never pulled in.
         int blasting = blastingLevel(tool);
@@ -2502,6 +2511,46 @@ public final class ForgeweaveModifiers {
         }
         // Issue #296: upstream ModLuck#afterBlockBreak's half of the autonomous-growth roll.
         growLuckOnUse(tool, event.getLevel());
+    }
+
+    /**
+     * {@code xp} plus the fraction, with what's left over as a chance of one more point. Rounding would
+     * make a small bonus do nothing: most orbs and blocks are worth 1 or 2.
+     */
+    private static int scaledExperience(RandomSource random, int xp, float bonus) {
+        float scaled = xp * (1.0F + bonus);
+        int whole = Mth.floor(scaled);
+        return whole + (random.nextFloat() < scaled - whole ? 1 : 0);
+    }
+
+    /** Knowledge of the Ages on the weapon in hand: a kill drops more experience. */
+    public static void onExperienceDrop(LivingExperienceDropEvent event) {
+        Player player = event.getAttackingPlayer();
+        if (player == null) {
+            return;
+        }
+        ItemStack weapon = player.getMainHandItem();
+        ModifierEntry knowledge = entry(weapon, KNOWLEDGE_OF_THE_AGES_ID);
+        if (knowledge != null && !ToolItem.isBroken(weapon)) {
+            event.setDroppedExperience(scaledExperience(player.getRandom(), event.getDroppedExperience(),
+                    KNOWLEDGE_OF_THE_AGES.bonusExperienceFraction(knowledge.level())));
+        }
+    }
+
+    /** Knowledge of the Ages on worn armor, summed over the pieces: all experience gained is worth more. */
+    public static void onXpChange(PlayerXpEvent.XpChange event) {
+        Player player = event.getEntity();
+        float bonus = 0.0F;
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
+            ItemStack piece = player.getItemBySlot(slot);
+            ModifierEntry knowledge = slot.isArmor() ? entry(piece, KNOWLEDGE_OF_THE_AGES_ID) : null;
+            if (knowledge != null && !ToolItem.isBroken(piece)) {
+                bonus += KNOWLEDGE_WORN_XP_PER_LEVEL * knowledge.level();
+            }
+        }
+        if (bonus > 0.0F && event.getAmount() > 0) {
+            event.setAmount(scaledExperience(player.getRandom(), event.getAmount(), bonus));
+        }
     }
 
     /** Upstream {@code TraitAutosmelt#afterBlockBreak}: 3 FLAME particles per effective break. */

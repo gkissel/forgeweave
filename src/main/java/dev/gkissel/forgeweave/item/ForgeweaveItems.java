@@ -786,74 +786,74 @@ public final class ForgeweaveItems {
     //
     // These casts are gold-only and reusable, which is upstream parity; their single-use clay
     // counterparts are CLAY_CASTS below (issue #292). No sand casts (docs/SCOPE.md M2 non-goals).
-    public static final DeferredItem<Item> CAST_INGOT = ITEMS.registerItem("cast_ingot", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_NUGGET = ITEMS.registerItem("cast_nugget", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_PICKAXE_HEAD = ITEMS.registerItem("cast_pickaxe_head", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_SHOVEL_HEAD = ITEMS.registerItem("cast_shovel_head", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_AXE_HEAD = ITEMS.registerItem("cast_axe_head", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_TOOL_BINDING = ITEMS.registerItem("cast_tool_binding", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_TOOL_HANDLE = ITEMS.registerItem("cast_tool_handle", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_INGOT = ITEMS.registerItem("cast_ingot", CastItem::new);
+    public static final DeferredItem<Item> CAST_NUGGET = ITEMS.registerItem("cast_nugget", CastItem::new);
+    public static final DeferredItem<Item> CAST_PICKAXE_HEAD = ITEMS.registerItem("cast_pickaxe_head", CastItem::new);
+    public static final DeferredItem<Item> CAST_SHOVEL_HEAD = ITEMS.registerItem("cast_shovel_head", CastItem::new);
+    public static final DeferredItem<Item> CAST_AXE_HEAD = ITEMS.registerItem("cast_axe_head", CastItem::new);
+    public static final DeferredItem<Item> CAST_TOOL_BINDING = ITEMS.registerItem("cast_tool_binding", CastItem::new);
+    public static final DeferredItem<Item> CAST_TOOL_HANDLE = ITEMS.registerItem("cast_tool_handle", CastItem::new);
 
     // #222 -- casts for every M3 part (docs/SCOPE.md M3 issue #151/#159/#160/#161's roster), the
     // same gold-only reusable idiom as the five above: pour molten gold over the crafted part at the
     // casting table to mould one, then cast any castable metal into that part's shape.
-    public static final DeferredItem<Item> CAST_SWORD_BLADE = ITEMS.registerItem("cast_sword_blade", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_WIDE_GUARD = ITEMS.registerItem("cast_wide_guard", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_HAND_GUARD = ITEMS.registerItem("cast_hand_guard", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_CROSS_GUARD = ITEMS.registerItem("cast_cross_guard", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_SIGN_PLATE = ITEMS.registerItem("cast_sign_plate", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_PAN = ITEMS.registerItem("cast_pan", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_KNIFE_BLADE = ITEMS.registerItem("cast_knife_blade", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_LARGE_SWORD_BLADE = ITEMS.registerItem("cast_large_sword_blade", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_TOUGH_TOOL_ROD = ITEMS.registerItem("cast_tough_tool_rod", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_TOUGH_BINDING = ITEMS.registerItem("cast_tough_binding", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_LARGE_PLATE = ITEMS.registerItem("cast_large_plate", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_HAMMER_HEAD = ITEMS.registerItem("cast_hammer_head", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_EXCAVATOR_HEAD = ITEMS.registerItem("cast_excavator_head", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_SCYTHE_HEAD = ITEMS.registerItem("cast_scythe_head", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_KAMA_HEAD = ITEMS.registerItem("cast_kama_head", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_BROAD_AXE_HEAD = ITEMS.registerItem("cast_broad_axe_head", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_VEIN_HAMMER_HEAD = ITEMS.registerItem("cast_vein_hammer_head", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_WAR_MACE_HEAD = ITEMS.registerItem("cast_war_mace_head", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_CURVED_BLADE = ITEMS.registerItem("cast_curved_blade", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_KATANA_BLADE = ITEMS.registerItem("cast_katana_blade", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_SWORD_BLADE = ITEMS.registerItem("cast_sword_blade", CastItem::new);
+    public static final DeferredItem<Item> CAST_WIDE_GUARD = ITEMS.registerItem("cast_wide_guard", CastItem::new);
+    public static final DeferredItem<Item> CAST_HAND_GUARD = ITEMS.registerItem("cast_hand_guard", CastItem::new);
+    public static final DeferredItem<Item> CAST_CROSS_GUARD = ITEMS.registerItem("cast_cross_guard", CastItem::new);
+    public static final DeferredItem<Item> CAST_SIGN_PLATE = ITEMS.registerItem("cast_sign_plate", CastItem::new);
+    public static final DeferredItem<Item> CAST_PAN = ITEMS.registerItem("cast_pan", CastItem::new);
+    public static final DeferredItem<Item> CAST_KNIFE_BLADE = ITEMS.registerItem("cast_knife_blade", CastItem::new);
+    public static final DeferredItem<Item> CAST_LARGE_SWORD_BLADE = ITEMS.registerItem("cast_large_sword_blade", CastItem::new);
+    public static final DeferredItem<Item> CAST_TOUGH_TOOL_ROD = ITEMS.registerItem("cast_tough_tool_rod", CastItem::new);
+    public static final DeferredItem<Item> CAST_TOUGH_BINDING = ITEMS.registerItem("cast_tough_binding", CastItem::new);
+    public static final DeferredItem<Item> CAST_LARGE_PLATE = ITEMS.registerItem("cast_large_plate", CastItem::new);
+    public static final DeferredItem<Item> CAST_HAMMER_HEAD = ITEMS.registerItem("cast_hammer_head", CastItem::new);
+    public static final DeferredItem<Item> CAST_EXCAVATOR_HEAD = ITEMS.registerItem("cast_excavator_head", CastItem::new);
+    public static final DeferredItem<Item> CAST_SCYTHE_HEAD = ITEMS.registerItem("cast_scythe_head", CastItem::new);
+    public static final DeferredItem<Item> CAST_KAMA_HEAD = ITEMS.registerItem("cast_kama_head", CastItem::new);
+    public static final DeferredItem<Item> CAST_BROAD_AXE_HEAD = ITEMS.registerItem("cast_broad_axe_head", CastItem::new);
+    public static final DeferredItem<Item> CAST_VEIN_HAMMER_HEAD = ITEMS.registerItem("cast_vein_hammer_head", CastItem::new);
+    public static final DeferredItem<Item> CAST_WAR_MACE_HEAD = ITEMS.registerItem("cast_war_mace_head", CastItem::new);
+    public static final DeferredItem<Item> CAST_CURVED_BLADE = ITEMS.registerItem("cast_curved_blade", CastItem::new);
+    public static final DeferredItem<Item> CAST_KATANA_BLADE = ITEMS.registerItem("cast_katana_blade", CastItem::new);
     // #393: the bow limb casts like any other part. Its string does not, and deliberately so --
     // upstream only ever reaches registerToolpartMeltingCasting through a MaterialIntegration (a
     // material with a molten fluid), and skips any part whose canUseMaterial rejects that material.
     // The only BOWSTRING materials are string and vine (issue #392), neither of which melts, so
     // upstream registers no bow_string cast at all; a cast no fluid could fill is not worth adding.
-    public static final DeferredItem<Item> CAST_BOW_LIMB = ITEMS.registerItem("cast_bow_limb", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_BOW_LIMB = ITEMS.registerItem("cast_bow_limb", CastItem::new);
     // #626: the arrow head casts like any other head part -- every castable metal has HEAD stats
     // (and the PROJECTILE stat upstream auto-adds beside them), so canUseMaterial holds and the
     // registerToolpartMeltingCasting loop reaches it. The shaft and fletching do not: no molten
     // material carries a SHAFT or FLETCHING block, the same reason the bow string has no cast.
-    public static final DeferredItem<Item> CAST_ARROW_HEAD = ITEMS.registerItem("cast_arrow_head", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_ARROW_HEAD = ITEMS.registerItem("cast_arrow_head", CastItem::new);
     // #677: the 1.20 clone's {helmet,chestplate,leggings,boots}PlatingCast and mailleCast
     // (TinkerSmeltery). The first plating cast is moulded from a Part Builder plating (obsidian) --
     // no crafting-table bootstrap (docs/SCOPE.md D12).
-    public static final DeferredItem<Item> CAST_PLATING_HELMET = ITEMS.registerItem("cast_plating_helmet", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_PLATING_CHESTPLATE = ITEMS.registerItem("cast_plating_chestplate", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_PLATING_LEGGINGS = ITEMS.registerItem("cast_plating_leggings", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_PLATING_BOOTS = ITEMS.registerItem("cast_plating_boots", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_MAILLE = ITEMS.registerItem("cast_maille", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_PLATING_HELMET = ITEMS.registerItem("cast_plating_helmet", CastItem::new);
+    public static final DeferredItem<Item> CAST_PLATING_CHESTPLATE = ITEMS.registerItem("cast_plating_chestplate", CastItem::new);
+    public static final DeferredItem<Item> CAST_PLATING_LEGGINGS = ITEMS.registerItem("cast_plating_leggings", CastItem::new);
+    public static final DeferredItem<Item> CAST_PLATING_BOOTS = ITEMS.registerItem("cast_plating_boots", CastItem::new);
+    public static final DeferredItem<Item> CAST_MAILLE = ITEMS.registerItem("cast_maille", CastItem::new);
     // #271: upstream casts the sharpening kit like any other tool part -- TinkerSmeltery's
     // registerToolpartMeltingCasting loops every registered IToolPart whose canBeCasted() holds, and
     // SharpeningKit never overrides it.
-    public static final DeferredItem<Item> CAST_SHARPENING_KIT = ITEMS.registerItem("cast_sharpening_kit", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_SHARPENING_KIT = ITEMS.registerItem("cast_sharpening_kit", CastItem::new);
     // #471/T40: the shard, like the sharpening kit above, casts like any other tool part --
     // TinkerSmeltery's Shard extends ToolPart (itself a MaterialItem), and Shard#canUseMaterial is
     // unconditionally true (no HEAD-stat gate the way the creative-tab listing has), so every
     // material with a molten fluid gets registered through the generic
     // registerToolpartMeltingCasting loop, not just materials with head stats.
-    public static final DeferredItem<Item> CAST_SHARD = ITEMS.registerItem("cast_shard", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_SHARD = ITEMS.registerItem("cast_shard", CastItem::new);
 
     // #272 (M3.4-3) -- the three CastCustom metas upstream ships beyond ingot/nugget (TinkerSmeltery
     // castGem/castPlate/castGear). Same gold-only reusable idiom, straight-ported upstream sprites
     // (like cast_ingot/cast_nugget above, not the compositing script -- upstream ships these three as
     // their own dedicated textures too, NOTICE.md).
-    public static final DeferredItem<Item> CAST_GEM = ITEMS.registerItem("cast_gem", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_PLATE = ITEMS.registerItem("cast_plate", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
-    public static final DeferredItem<Item> CAST_GEAR = ITEMS.registerItem("cast_gear", p -> new DescribedItem(p, "tooltip.forgeweave.cast"));
+    public static final DeferredItem<Item> CAST_GEM = ITEMS.registerItem("cast_gem", CastItem::new);
+    public static final DeferredItem<Item> CAST_PLATE = ITEMS.registerItem("cast_plate", CastItem::new);
+    public static final DeferredItem<Item> CAST_GEAR = ITEMS.registerItem("cast_gear", CastItem::new);
 
     // #292 (M3.4-12) -- one single-use clay counterpart per cast above, keyed by the cast it copies.
     // Upstream ships a second NBT cast item (TinkerSmeltery `clayCast`) moulded from molten clay
