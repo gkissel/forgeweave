@@ -1,5 +1,8 @@
 package dev.gkissel.forgeweave.item;
 
+import dev.gkissel.forgeweave.modifier.GrantedEnchantments;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
+import net.minecraft.core.HolderLookup;
 import dev.gkissel.forgeweave.api.trait.Trait;
 import java.util.ArrayList;
 import java.util.List;
@@ -209,6 +212,7 @@ public class ArmorPieceItem extends Item {
         // give it the one its material set calls for (see Enchantability).
         Enchantability.backfill(stack);
         if (entity instanceof LivingEntity holder && !ToolItem.isBroken(stack)) {
+            GrantedEnchantments.migrate(serverLevel.registryAccess(), stack);
             ForgeweaveTraits.inventoryTick(stack, serverLevel, holder);
         }
         syncGlider(stack);
@@ -356,7 +360,21 @@ public class ArmorPieceItem extends Item {
 
     @Override
     public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
-        return ForgeweaveConfig.read(ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING) && super.supportsEnchantment(stack, enchantment);
+        return ForgeweaveConfig.read(ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING) && GrantedEnchantments.canJoin(stack, enchantment)
+                && super.supportsEnchantment(stack, enchantment);
+    }
+
+    /** Same seam as {@link ToolItem#getEnchantmentLevel}: what a modifier granted this piece. */
+    @Override
+    public int getEnchantmentLevel(ItemStack stack, Holder<Enchantment> enchantment) {
+        return GrantedEnchantments.combined(enchantment, super.getEnchantmentLevel(stack, enchantment),
+                GrantedEnchantments.of(stack).getLevel(enchantment));
+    }
+
+    /** Same seam as {@link ToolItem#getAllEnchantments}. */
+    @Override
+    public ItemEnchantments getAllEnchantments(ItemStack stack, HolderLookup.RegistryLookup<Enchantment> lookup) {
+        return GrantedEnchantments.withStored(stack);
     }
 
     @Override
@@ -368,6 +386,7 @@ public class ArmorPieceItem extends Item {
         if (stats(stack) != null) {
             ToolTooltip.appendShiftHint(ToolTooltip.shiftHint(flag), tooltip);
         }
+        GrantedEnchantments.appendTooltip(stack, context, tooltip::add, flag);
         tooltip.forEach(builder);
     }
 }

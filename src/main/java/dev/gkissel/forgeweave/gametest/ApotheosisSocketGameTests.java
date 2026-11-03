@@ -112,7 +112,7 @@ public class ApotheosisSocketGameTests {
 
         // Two sockets plus one unrelated modifier spends all three starting slots.
         ItemStack spent = apply(helper, apply(helper, pickaxe, sigil(2)),
-                new ItemStack(Items.OBSIDIAN, 1));
+                new ItemStack(Items.QUARTZ, 1));
         helper.assertTrue(ForgeweaveModifiers.freeSlots(spent) == 0,
                 "setup: the three starting slots must all be spent, " + ForgeweaveModifiers.freeSlots(spent)
                         + " left");

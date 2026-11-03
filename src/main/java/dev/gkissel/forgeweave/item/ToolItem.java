@@ -73,6 +73,7 @@ import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.material.MaterialDisplay;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
+import dev.gkissel.forgeweave.modifier.GrantedEnchantments;
 
 import dev.gkissel.forgeweave.tool.AoeHarvest;
 import dev.gkissel.forgeweave.tool.AxeStrip;
@@ -549,7 +550,8 @@ public class ToolItem extends Item {
      */
     @Override
     public boolean supportsEnchantment(ItemStack stack, Holder<Enchantment> enchantment) {
-        return ForgeweaveConfig.read(ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING) && super.supportsEnchantment(stack, enchantment);
+        return ForgeweaveConfig.read(ForgeweaveConfig.ALLOW_VANILLA_ENCHANTING) && GrantedEnchantments.canJoin(stack, enchantment)
+                && super.supportsEnchantment(stack, enchantment);
     }
 
     /**
@@ -910,6 +912,7 @@ public class ToolItem extends Item {
         // give it the one its material set calls for (see Enchantability).
         Enchantability.backfill(stack);
         if (entity instanceof LivingEntity holder && !isBroken(stack)) {
+            GrantedEnchantments.migrate(serverLevel.registryAccess(), stack);
             ForgeweaveTraits.inventoryTick(stack, serverLevel, holder);
             // 26.1 passes MAINHAND for the selected hotbar slot, what 1.21.1's isSelected meant.
             ForgeweaveModifiers.inventoryTick(stack, serverLevel, holder, slot == EquipmentSlot.MAINHAND);
@@ -1014,6 +1017,13 @@ public class ToolItem extends Item {
         return false;
     }
 
+    /** What {@code EnchantmentHelper} asks when it wants one level, Fortune's loot roll among them. */
+    @Override
+    public int getEnchantmentLevel(ItemStack stack, Holder<Enchantment> enchantment) {
+        return GrantedEnchantments.combined(enchantment, super.getEnchantmentLevel(stack, enchantment),
+                GrantedEnchantments.of(stack).getLevel(enchantment));
+    }
+
     /**
      * The enchantments this tool actually has, plus the ones its installed Mekanism modules grant
      * (issue #993): silk touch, fortune and frost walker today, and anything else Mekanism ships as an
@@ -1028,7 +1038,7 @@ public class ToolItem extends Item {
      */
     @Override
     public ItemEnchantments getAllEnchantments(ItemStack stack, HolderLookup.RegistryLookup<Enchantment> lookup) {
-        ItemEnchantments own = super.getAllEnchantments(stack, lookup);
+        ItemEnchantments own = GrantedEnchantments.withStored(stack);
         ItemEnchantments modules = MekanismGearModules.moduleEnchantments(stack);
         if (modules.isEmpty()) {
             return own;
@@ -1280,6 +1290,7 @@ public class ToolItem extends Item {
         List<Component> tooltip = new ArrayList<>();
         ToolTooltip.append(stack, context.registries(), ToolTooltip.detailed(flag), attackDamage(stack), tooltip);
         ToolTooltip.appendShiftHint(ToolTooltip.shiftHint(flag), tooltip);
+        GrantedEnchantments.appendTooltip(stack, context, tooltip::add, flag);
         tooltip.forEach(builder);
     }
 
