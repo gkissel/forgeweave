@@ -2,19 +2,26 @@ package dev.gkissel.forgeweave.menu;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+
+import com.mojang.logging.LogUtils;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -86,6 +93,18 @@ import dev.gkissel.forgeweave.trait.ForgeweaveTraits;
  * {@code ToolRepair}.
  */
 public final class ToolAssemblyRecipes {
+
+    private static final Logger LOGGER = LogUtils.getLogger();
+
+    /**
+     * What each part set builds, for {@link #refreshStats}, which asks every tick for every carried
+     * piece. Material data only changes when a world loads, and a world brings new registries.
+     */
+    // ponytail: unsynchronized, the server thread is the only caller.
+    private static final Map<HolderLookup.Provider, Map<BuildKey, ItemStack>> FRESH_BUILDS = new WeakHashMap<>();
+
+    private record BuildKey(Item item, List<Identifier> parts) {}
+
     /**
      * One assemblable tool: its {@link ToolConstants} entry and the item the station produces.
      * Nothing else -- the ordered part list, the slot count, every slot's role and weight and the
@@ -652,26 +671,7 @@ public final class ToolAssemblyRecipes {
         // Upstream's output = toolStack.copy(): everything not explicitly rebuilt below -- modifiers,
         // enchantments, rename, repair count, Broken, damage, alien's growth component -- rides along.
         ItemStack result = toolStack.copy();
-        result.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(),
-                fresh.get(ForgeweaveDataComponents.TOOL_MATERIALS.get()));
-        result.set(ForgeweaveDataComponents.TOOL_STATS.get(), fresh.get(ForgeweaveDataComponents.TOOL_STATS.get()));
-        // #1087: an armor piece's stat block. Set beside the tool one rather than instead of it --
-        // ItemStack#set with a null value against a prototype that does not carry the component is a
-        // no-op, so each shape writes its own block and clears nothing the other owns. That is what
-        // lets one resolver serve both: assemble() already builds whichever of the two applies.
-        result.set(ForgeweaveDataComponents.ARMOR_STATS.get(), fresh.get(ForgeweaveDataComponents.ARMOR_STATS.get()));
-        // #593: the swapped-in material changes the mean, so this is rebuilt from the new part set
-        // exactly like the stat block above rather than riding along on the copy.
-        Enchantability.set(result, fresh.get(ForgeweaveDataComponents.ENCHANTABILITY.get()));
-        // #777: the swapped-in head material changes the base tier the same way it changes the mean
-        // enchantability above, so this rides along on the fresh rebuild too rather than the copy.
-        result.set(ForgeweaveDataComponents.BASE_TOOL_TIER.get(),
-                fresh.get(ForgeweaveDataComponents.BASE_TOOL_TIER.get()));
-        result.set(ForgeweaveDataComponents.TRAITS.get(), mergedTraits(fresh, oldBase.get(), toolStack));
-        result.set(DataComponents.TOOL, fresh.get(DataComponents.TOOL));
-        result.set(DataComponents.MAX_DAMAGE, fresh.get(DataComponents.MAX_DAMAGE));
-        ModifierApplication.rebake(result);
-        retuneSilkTouch(registries, result);
+        rebuildFrom(registries, result, fresh, oldBase.get());
 
         // #293, upstream rebuildTool's own last gate (its `freeModifiers -= getBaseModifiersUsed`,
         // then `if (freeModifiers < 0) throw gui.error.not_enough_modifiers`): the slot budget is
@@ -725,6 +725,86 @@ public final class ToolAssemblyRecipes {
                 ? displacedParts
                 : Stream.concat(displacedParts.stream(), reclaimed.stream()).toList();
         return Optional.of(new Exchange(result, Arrays.stream(used).boxed().toList(), returned, null));
+    }
+
+    /**
+     * Writes what {@link #assemble} derives from the material set onto a tool that already exists.
+     * Everything else on the stack rides along. The part exchange and {@link #refreshStats} share it.
+     */
+    private static void rebuildFrom(HolderLookup.Provider registries, ItemStack tool, ItemStack fresh, ItemStack oldBase) {
+        tool.set(ForgeweaveDataComponents.TOOL_MATERIALS.get(), fresh.get(ForgeweaveDataComponents.TOOL_MATERIALS.get()));
+        // #1087: ItemStack#set with a null value against a prototype that does not carry the component
+        // is a no-op, so each shape writes its own stat block and clears nothing the other owns.
+        // #593 and #777: enchantability and the base tier depend on the part set like the stat blocks.
+        for (DataComponentType<?> type : derivedStats()) {
+            copyComponent(type, fresh, tool);
+        }
+        // 26.x: the enchanting table reads vanilla's component, which this keeps in step.
+        Enchantability.set(tool, fresh.get(ForgeweaveDataComponents.ENCHANTABILITY.get()));
+        tool.set(ForgeweaveDataComponents.TRAITS.get(), mergedTraits(fresh, oldBase, tool));
+        tool.set(DataComponents.TOOL, fresh.get(DataComponents.TOOL));
+        tool.set(DataComponents.MAX_DAMAGE, fresh.get(DataComponents.MAX_DAMAGE));
+        ModifierApplication.rebake(tool);
+        retuneSilkTouch(registries, tool);
+    }
+
+    private static List<DataComponentType<?>> derivedStats() {
+        return List.of(
+                ForgeweaveDataComponents.TOOL_STATS.get(),
+                ForgeweaveDataComponents.ARMOR_STATS.get(),
+                ForgeweaveDataComponents.LAUNCHER_STATS.get(),
+                ForgeweaveDataComponents.PROJECTILE_STATS.get(),
+                ForgeweaveDataComponents.ENCHANTABILITY.get(),
+                ForgeweaveDataComponents.BASE_TOOL_TIER.get());
+    }
+
+    private static <T> void copyComponent(DataComponentType<T> type, ItemStack from, ItemStack to) {
+        to.set(type, from.get(type));
+    }
+
+    /**
+     * Brings a carried tool or armor piece up to its materials' current stats, so a stat change
+     * reaches gear built before it without a rebuild. It writes what a part exchange writes, with the
+     * same part set; modifiers, enchantments, name and damage stay. A stack that already matches is
+     * not written, and one whose materials no longer build is left alone.
+     *
+     * <p>Only a stat difference starts a refresh, so a trait a pack adds to a material arrives on old
+     * tools only when a stat changes too, and one it removes stays, because an embossment's traits
+     * look the same on the stack. The slot budget is not re-checked: a tool keeps its modifiers.
+     */
+    public static void refreshStats(HolderLookup.Provider registries, ItemStack stack) {
+        ToolMaterials materials = stack.get(ForgeweaveDataComponents.TOOL_MATERIALS.get());
+        if (materials == null) {
+            return;
+        }
+        ItemStack fresh = FRESH_BUILDS.computeIfAbsent(registries, ignored -> new HashMap<>())
+                .computeIfAbsent(new BuildKey(stack.getItem(), materials.parts()),
+                        key -> freshBuild(registries, stack, key.parts()));
+        if (fresh.isEmpty()
+                || derivedStats().stream().allMatch(type -> Objects.equals(stack.get(type), fresh.get(type)))) {
+            return;
+        }
+        rebuildFrom(registries, stack, fresh, fresh);
+        // Same limit as ToolItem#applyDamageKeepingItem: Broken sits at max - 1, and nothing else may
+        // pass it, whichever way the durability pool just moved.
+        int brokenAt = stack.getMaxDamage() - 1;
+        stack.set(DataComponents.DAMAGE,
+                ToolItem.isBroken(stack) ? brokenAt : Math.min(stack.getOrDefault(DataComponents.DAMAGE, 0), brokenAt));
+    }
+
+    /** Empty when this part set no longer builds this item. The cache remembers that too. */
+    private static ItemStack freshBuild(HolderLookup.Provider registries, ItemStack stack, List<Identifier> parts) {
+        Optional<Entry> entry = entryFor(stack);
+        if (entry.isEmpty() || parts.size() != entry.get().slotCount()) {
+            return ItemStack.EMPTY;
+        }
+        try {
+            return assemble(registries, entry.get(), parts).orElse(ItemStack.EMPTY);
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            // A pack took away the stats this slot reads. This runs in the server tick, so it must not throw.
+            LOGGER.warn("Can't refresh {} built from {}: {}", stack.getItem(), parts, e.getMessage());
+            return ItemStack.EMPTY;
+        }
     }
 
     /**
