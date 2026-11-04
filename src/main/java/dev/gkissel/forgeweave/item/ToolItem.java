@@ -913,6 +913,7 @@ public class ToolItem extends Item {
         // 26.1.2: a tool or armor piece assembled on 1.21.1 has no minecraft:enchantable of its own;
         // give it the one its material set calls for (see Enchantability).
         Enchantability.backfill(stack);
+        ToolAssemblyRecipes.refreshStats(serverLevel.registryAccess(), stack);
         if (entity instanceof LivingEntity holder && !isBroken(stack)) {
             GrantedEnchantments.migrate(serverLevel.registryAccess(), stack);
             ForgeweaveTraits.inventoryTick(stack, serverLevel, holder);
