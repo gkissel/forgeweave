@@ -46,6 +46,7 @@ import dev.gkissel.forgeweave.compat.mekanism.modules.MekanismGearModules; // #9
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.material.MaterialDisplay;
+import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.tool.ArmorStats;
 import dev.gkissel.forgeweave.tool.ToolConstants;
@@ -212,6 +213,7 @@ public class ArmorPieceItem extends Item {
         // 26.1.2: a tool or armor piece assembled on 1.21.1 has no minecraft:enchantable of its own;
         // give it the one its material set calls for (see Enchantability).
         Enchantability.backfill(stack);
+        ToolAssemblyRecipes.refreshStats(serverLevel.registryAccess(), stack);
         if (entity instanceof LivingEntity holder && !ToolItem.isBroken(stack)) {
             GrantedEnchantments.migrate(serverLevel.registryAccess(), stack);
             ForgeweaveTraits.inventoryTick(stack, serverLevel, holder);
