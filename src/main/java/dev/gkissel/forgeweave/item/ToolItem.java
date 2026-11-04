@@ -871,6 +871,9 @@ public class ToolItem extends Item {
      */
     @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean isSelected) {
+        if (level instanceof ServerLevel serverLevel) {
+            ToolAssemblyRecipes.refreshStats(serverLevel.registryAccess(), stack);
+        }
         if (level instanceof ServerLevel serverLevel && entity instanceof LivingEntity holder && !isBroken(stack)) {
             GrantedEnchantments.migrate(serverLevel.registryAccess(), stack);
             ForgeweaveTraits.inventoryTick(stack, serverLevel, holder);

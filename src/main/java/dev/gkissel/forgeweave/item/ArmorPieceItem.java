@@ -40,6 +40,7 @@ import dev.gkissel.forgeweave.compat.mekanism.modules.MekanismGearModules; // #9
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.material.Material;
 import dev.gkissel.forgeweave.material.MaterialDisplay;
+import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
 import dev.gkissel.forgeweave.tool.ArmorStats;
 import dev.gkissel.forgeweave.tool.ToolConstants;
@@ -183,6 +184,9 @@ public class ArmorPieceItem extends ArmorItem {
     /** Same seam as {@link ToolItem#inventoryTick}: the piece's traits tick while it is carried or worn (#680). */
     @Override
     public void inventoryTick(ItemStack stack, Level level, Entity entity, int slotId, boolean isSelected) {
+        if (level instanceof ServerLevel serverLevel) {
+            ToolAssemblyRecipes.refreshStats(serverLevel.registryAccess(), stack);
+        }
         if (level instanceof ServerLevel serverLevel && entity instanceof LivingEntity holder && !ToolItem.isBroken(stack)) {
             GrantedEnchantments.migrate(serverLevel.registryAccess(), stack);
             ForgeweaveTraits.inventoryTick(stack, serverLevel, holder);
