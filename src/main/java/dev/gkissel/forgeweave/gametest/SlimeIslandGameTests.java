@@ -152,6 +152,36 @@ public class SlimeIslandGameTests {
     }
 
     /**
+     * A generator no running level owns (a mod that swaps in its own chunk generator, say) still has
+     * to roll {@code slimeIslandRate}. Before the fix that path skipped the roll, so every grid
+     * candidate became an island and the rate setting did nothing. Seeded, so the count is fixed:
+     * 2000 candidates at a rate of 100000 expect about 1.6 islands, and the old path gave 2000.
+     * Synchronous set/assert/restore, like the config test above.
+     */
+    @GameTest(template = "empty")
+    public static void anUnknownGeneratorStillRollsTheIslandRate(GameTestHelper helper) {
+        int defaultRate = ForgeweaveConfig.SLIME_ISLAND_RATE.getDefault();
+        ForgeweaveConfig.SLIME_ISLAND_RATE.set(0);
+        try {
+            helper.assertFalse(SlimeIslandStructure.allowed(null, false, RandomSource.create(1)),
+                    "a rate of 0 turns islands off even when the level is unknown");
+            ForgeweaveConfig.SLIME_ISLAND_RATE.set(100000);
+            RandomSource random = RandomSource.create(1);
+            int islands = 0;
+            for (int candidate = 0; candidate < 2000; candidate++) {
+                if (SlimeIslandStructure.allowed(null, false, random)) {
+                    islands++;
+                }
+            }
+            helper.assertTrue(islands < 20,
+                    "a rate of 100000 must thin the grid when the level is unknown, got " + islands + " of 2000");
+        } finally {
+            ForgeweaveConfig.SLIME_ISLAND_RATE.set(defaultRate);
+        }
+        helper.succeed();
+    }
+
+    /**
      * The half {@code SlimeIslandShapeTest} cannot reach: that the structure piece recovers the
      * island it was sized for from nothing but its own bounding box, and blits it into a real level.
      * Runs high above the test structure -- an island is a sky feature and needs the room -- and

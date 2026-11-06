@@ -2,6 +2,8 @@ package dev.gkissel.forgeweave.worldgen;
 
 import java.util.Optional;
 
+import javax.annotation.Nullable;
+
 import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.BlockPos;
@@ -10,6 +12,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.LevelHeightAccessor;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.FlatLevelSource;
@@ -133,13 +136,21 @@ public class SlimeIslandStructure extends Structure {
     /** Upstream's five gates, in its own order: the four dimension ones, then the rarity roll. */
     private static boolean allowed(GenerationContext context) {
         ChunkGenerator generator = context.chunkGenerator();
-        ServerLevel level = levelOf(generator);
-        if (level == null) {
-            // No running server owns this generator -- a world-creation preview, or a test harness.
-            // Answer with the one gate that needs no dimension rather than vetoing generation.
-            return ForgeweaveConfig.read(ForgeweaveConfig.GEN_SLIME_ISLANDS);
+        return allowed(levelOf(generator), generator instanceof FlatLevelSource, context.random());
+    }
+
+    /**
+     * The gates for a level that may be unknown. With no running server owning the generator (a
+     * world-creation preview, a test harness, or a mod that swaps the chunk generator for one of its
+     * own) the dimension gates cannot be asked, so only {@code generateSlimeIslands} stands in for
+     * them. The rarity roll always runs: skipping it there let every grid candidate become an island,
+     * one per {@value #GRID_DENSITY} chunks whatever {@code slimeIslandRate} said.
+     */
+    public static boolean allowed(@Nullable ServerLevel level, boolean superflat, RandomSource random) {
+        if (level != null && !enabledIn(level, superflat)) {
+            return false;
         }
-        if (!enabledIn(level, generator instanceof FlatLevelSource)) {
+        if (level == null && !ForgeweaveConfig.read(ForgeweaveConfig.GEN_SLIME_ISLANDS)) {
             return false;
         }
         // Upstream: one chunk in slimeIslandRate, and nothing at all when the rate is zero or less.
@@ -147,7 +158,7 @@ public class SlimeIslandStructure extends Structure {
         if (rate <= 0) {
             return false;
         }
-        return rate <= GRID_DENSITY || context.random().nextFloat() < (float) GRID_DENSITY / rate;
+        return rate <= GRID_DENSITY || random.nextFloat() < (float) GRID_DENSITY / rate;
     }
 
     @Override
