@@ -336,6 +336,8 @@ public final class ForgeweaveFluids {
     public static final MoltenMetal SOULARIUM = register("soularium", 0xD9C98A, 1096);
     public static final MoltenMetal TIN = register("tin", 0xD4D4D4, 810);
     public static final MoltenMetal HELLFORGED = register("hellforged", 0x99D6CB, 1320);
+    public static final MoltenMetal THAUMIUM = register("thaumium", 0x6A4FB0, 1180);
+    public static final MoltenMetal VOID_METAL = register("void_metal", 0x3B2A5E, 1340);
     public static final MoltenMetal TITANIUM = register("titanium", 0x8A8F92, 1110);
     public static final MoltenMetal TUNGSTEN = register("tungsten", 0x545454, 1124);
     public static final MoltenMetal URANIUM = register("uranium", 0xA8B84B, 1138);
@@ -459,6 +461,7 @@ public final class ForgeweaveFluids {
             Map.entry("refined_glowstone", REFINED_GLOWSTONE), Map.entry("refined_obsidian", REFINED_OBSIDIAN),
             Map.entry("silver", SILVER), Map.entry("soularium", SOULARIUM), Map.entry("tin", TIN),
             Map.entry("hellforged", HELLFORGED),
+            Map.entry("thaumium", THAUMIUM), Map.entry("void_metal", VOID_METAL),
             Map.entry("titanium", TITANIUM), Map.entry("tungsten", TUNGSTEN), Map.entry("uranium", URANIUM),
             Map.entry("vibrant_alloy", VIBRANT_ALLOY), Map.entry("pink_slime", PINK_SLIME),
             Map.entry("graphite", GRAPHITE), Map.entry("dark_matter", DARK_MATTER),

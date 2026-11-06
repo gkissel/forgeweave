@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:nuggets/void_metal"
+  },
+  "fluid": "forgeweave:molten_void_metal",
+  "amount": 16,
+  "temperature": 1600,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "thaumaturge:ingot_void"
+    }
+  ]
+}

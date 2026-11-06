@@ -1,0 +1,11 @@
+# Thaumaturge's thaumium and void metal. Thaumaturge is CurseForge only (project 1628024), so its jar
+# comes from a FW_COMPAT_JAR_DIRS directory; without one this pack is a SKIP. Its required libraries
+# are Curios and Lithostitched.
+
+mod modrinth curios 9.5.1+1.21.1 5981a267686b744e7e3c227f78cbcd5267c14ac6979a28e814695f4589273998563147207fef4a5cdb7cdbdc39797cd95d9e4abadb55869f18e02a38d0654ae5 curios-neoforge-9.5.1+1.21.1.jar
+mod modrinth lithostitched 1.8.1-neoforge-21.1 6c02b8b269269d5aa84cb03bf824a1b5d52838e806c2fec8727eb4049925592dac9bb65c996858751fbb722f22ac59c4be09860e1f01e8f7b97c95be3faf7a57 lithostitched-1.8.1-neoforge-21.1.jar
+mod local 2366e5c089dce26aae4344eb6d36afc8c59a76209a2e9428d20d678d0ec0aeb7354cfc79a8770db80e7a94219b542aeb2663e8aa51fdd6dc488c69a70bbcd128 thaumaturge-1.21.1-NeoForge-1.1.0.jar
+
+material forgeweave:thaumium forgeweave:void_metal
+recipes 2586
+materials 82

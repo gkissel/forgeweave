@@ -83,6 +83,8 @@ public final class CompatMaterialAvailability {
             entry("soularium", "enderio:soularium_ingot"),
             entry("tin", "mekanism:ingot_tin", "eternalores:tin_ingot"),
             entry("hellforged", "neovitae:ingot_hellforged"),
+            entry("thaumium", "thaumaturge:ingot_thaumium"),
+            entry("void_metal", "thaumaturge:ingot_void"),
             entry("titanium", "modern_industrialization:titanium_ingot", "eternalores:titanium_ingot"),
             entry("tungsten", "modern_industrialization:tungsten_ingot", "eternalores:tungsten_ingot"),
             entry("uranium", "mekanism:ingot_uranium", "immersiveengineering:ingot_uranium", "bigreactors:yellorium_ingot", "eternalores:uranium_ingot"),

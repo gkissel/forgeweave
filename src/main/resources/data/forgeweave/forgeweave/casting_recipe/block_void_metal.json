@@ -1,0 +1,18 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_void_metal",
+  "amount": 1296,
+  "result": {
+    "id": "thaumaturge:metal_void"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "thaumaturge:ingot_void"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "thaumaturge:metal_void"
+    }
+  ]
+}

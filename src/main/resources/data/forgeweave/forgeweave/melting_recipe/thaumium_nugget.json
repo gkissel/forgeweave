@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:nuggets/thaumium"
+  },
+  "fluid": "forgeweave:molten_thaumium",
+  "amount": 16,
+  "temperature": 1400,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "thaumaturge:ingot_thaumium"
+    }
+  ]
+}
