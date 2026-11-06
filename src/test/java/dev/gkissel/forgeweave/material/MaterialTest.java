@@ -204,7 +204,10 @@ class MaterialTest {
             // Issue #1069 (D-M8-26): Actually Additions' six empowered crystals, joining #837
             // batch 5's plain-crystal roster.
             "empowered_restonia_crystal", "empowered_palis_crystal", "empowered_diamatine_crystal",
-            "empowered_void_crystal", "empowered_emeradic_crystal", "empowered_enori_crystal" })
+            "empowered_void_crystal", "empowered_emeradic_crystal", "empowered_enori_crystal",
+            // Issue #857: Botania, through Botania Revived on 1.21.1 (BotaniaGameTests).
+            "manasteel", "elementium", "terrasteel", "mana_diamond", "mana_pearl", "dragonstone",
+            "mana_string", "livingrock", "livingwood", "dreamwood" })
     void shippedMaterialsParse(String name) {
         Material.CODEC.parse(ops, shipped(name)).getOrThrow();
     }
@@ -260,7 +263,10 @@ class MaterialTest {
             // Issue #1069 (D-M8-26): single item_exists each, verified against the shipped
             // actuallyadditions-1.3.24+mc1.21.1.jar (EmpoweredCrystalsGameTests).
             "empowered_restonia_crystal", "empowered_palis_crystal", "empowered_diamatine_crystal",
-            "empowered_void_crystal", "empowered_emeradic_crystal", "empowered_enori_crystal" })
+            "empowered_void_crystal", "empowered_emeradic_crystal", "empowered_enori_crystal",
+            // Issue #857: Botania, through Botania Revived on 1.21.1 (BotaniaGameTests).
+            "manasteel", "elementium", "terrasteel", "mana_diamond", "mana_pearl", "dragonstone",
+            "mana_string", "livingrock", "livingwood", "dreamwood" })
     void conditionalMaterialsCarryAWellFormedConditionsBlockAndStillParse(String name) {
         JsonObject json = shipped(name).getAsJsonObject();
         assertTrue(json.has("neoforge:conditions"), name + " must carry a neoforge:conditions block (issue #826)");

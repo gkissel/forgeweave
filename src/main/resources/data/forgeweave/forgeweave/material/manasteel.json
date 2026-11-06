@@ -1,0 +1,78 @@
+{
+  "head": {
+    "durability": 270,
+    "mining_speed": 6.0,
+    "attack_damage": 5.0
+  },
+  "handle": {
+    "durability_modifier": 0.9,
+    "durability": 50
+  },
+  "extra_durability": 40,
+  "bow": {
+    "drawspeed": 0.5,
+    "range": 1.5,
+    "bonus_damage": 7.0
+  },
+  "plating": {
+    "helmet": {
+      "durability": 176,
+      "armor": 2.0
+    },
+    "chestplate": {
+      "durability": 256,
+      "armor": 6.0
+    },
+    "leggings": {
+      "durability": 240,
+      "armor": 5.0
+    },
+    "boots": {
+      "durability": 208,
+      "armor": 2.0
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": [
+      "forgeweave:momentum",
+      "forgeweave:ecological"
+    ],
+    "armor": [
+      "forgeweave:ecological"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "tag": "c:ingots/manasteel"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:nuggets/manasteel"
+      },
+      "value": 16
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/manasteel"
+      },
+      "value": 1296
+    }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/manasteel"
+  },
+  "enchantability": 20,
+  "color": "#3B86E8",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "botania:manasteel_ingot"
+    }
+  ],
+  "cast_only": true
+}

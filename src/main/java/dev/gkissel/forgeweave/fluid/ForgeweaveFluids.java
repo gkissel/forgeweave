@@ -437,8 +437,15 @@ public final class ForgeweaveFluids {
     public static final MoltenMetal ZINC = register("zinc", 0xA9C7C2, 1200);
     public static final MoltenMetal BRASS = register("brass", 0xCCB66A, 1200);
 
+    // Issue #857: Botania's three metals, for Botania Revived on 1.21.1.
+    public static final MoltenMetal MANASTEEL = register("manasteel", 0x3B86E8, 1040);
+    public static final MoltenMetal ELEMENTIUM = register("elementium", 0xE86BB3, 1054);
+    public static final MoltenMetal TERRASTEEL = register("terrasteel", 0x4FCF2A, 1160);
+
     private static final Map<String, MoltenMetal> COMPAT_METAL_FLUIDS = Map.ofEntries(
             Map.entry("zinc", ZINC), Map.entry("brass", BRASS),
+            Map.entry("manasteel", MANASTEEL), Map.entry("elementium", ELEMENTIUM),
+            Map.entry("terrasteel", TERRASTEEL),
             Map.entry("aluminium", ALUMINIUM), Map.entry("bronze", BRONZE),
             Map.entry("conductive_alloy", CONDUCTIVE_ALLOY), Map.entry("constantan", CONSTANTAN),
             Map.entry("dark_steel", DARK_STEEL), Map.entry("draconium_awakened", DRACONIUM_AWAKENED),

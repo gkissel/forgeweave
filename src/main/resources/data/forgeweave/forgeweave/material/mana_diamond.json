@@ -1,0 +1,70 @@
+{
+  "head": {
+    "durability": 450,
+    "mining_speed": 7.0,
+    "attack_damage": 4.0
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 40
+  },
+  "extra_durability": 60,
+  "bow": {
+    "drawspeed": 0.6,
+    "range": 1.3,
+    "bonus_damage": 4.0
+  },
+  "plating": {
+    "helmet": {
+      "durability": 231,
+      "armor": 2.0
+    },
+    "chestplate": {
+      "durability": 336,
+      "armor": 5.0
+    },
+    "leggings": {
+      "durability": 315,
+      "armor": 4.0
+    },
+    "boots": {
+      "durability": 273,
+      "armor": 2.0
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": [
+      "forgeweave:pristine"
+    ],
+    "armor": [
+      "forgeweave:crystal_ward"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "tag": "c:gems/mana_diamond"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/mana_diamond"
+      },
+      "value": 1296
+    }
+  ],
+  "repair_item": {
+    "tag": "c:gems/mana_diamond"
+  },
+  "enchantability": 20,
+  "color": "#8DEFF7",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "botania:mana_diamond"
+    }
+  ]
+}

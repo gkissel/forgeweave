@@ -1,0 +1,58 @@
+{
+  "head": {
+    "durability": 110,
+    "mining_speed": 3.0,
+    "attack_damage": 3.5
+  },
+  "handle": {
+    "durability_modifier": 1.1,
+    "durability": 0
+  },
+  "extra_durability": 30,
+  "bow": {
+    "drawspeed": 1.1,
+    "range": 1.1,
+    "bonus_damage": 1.0
+  },
+  "shaft": {
+    "modifier": 1.25,
+    "bonus_ammo": 25
+  },
+  "incorrect_for_tool": "minecraft:incorrect_for_wooden_tool",
+  "traits": {
+    "general": [
+      "forgeweave:ecological2"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "botania:dreamwood_twig"
+      },
+      "value": 72
+    },
+    {
+      "ingredient": {
+        "item": "botania:dreamwood_planks"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "botania:dreamwood_logs"
+      },
+      "value": 576
+    }
+  ],
+  "repair_item": {
+    "item": "botania:dreamwood_planks"
+  },
+  "enchantability": 15,
+  "color": "#B4C2C4",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "botania:dreamwood_planks"
+    }
+  ]
+}

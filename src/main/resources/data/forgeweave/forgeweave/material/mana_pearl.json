@@ -1,0 +1,64 @@
+{
+  "head": {
+    "durability": 400,
+    "mining_speed": 7.5,
+    "attack_damage": 3.5
+  },
+  "handle": {
+    "durability_modifier": 0.95,
+    "durability": 35
+  },
+  "extra_durability": 55,
+  "bow": {
+    "drawspeed": 0.65,
+    "range": 1.4,
+    "bonus_damage": 3.5
+  },
+  "plating": {
+    "helmet": {
+      "durability": 198,
+      "armor": 2.0
+    },
+    "chestplate": {
+      "durability": 288,
+      "armor": 5.0
+    },
+    "leggings": {
+      "durability": 270,
+      "armor": 4.0
+    },
+    "boots": {
+      "durability": 234,
+      "armor": 2.0
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": [
+      "forgeweave:riftstep"
+    ],
+    "armor": [
+      "forgeweave:enderclearance"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "botania:mana_pearl"
+      },
+      "value": 144
+    }
+  ],
+  "repair_item": {
+    "item": "botania:mana_pearl"
+  },
+  "enchantability": 18,
+  "color": "#1E9DB8",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "botania:mana_pearl"
+    }
+  ]
+}

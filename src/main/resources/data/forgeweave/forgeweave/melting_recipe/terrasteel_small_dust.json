@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:small_dusts/terrasteel"
+  },
+  "fluid": "forgeweave:molten_terrasteel",
+  "amount": 36,
+  "temperature": 1600,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "botania:terrasteel_ingot"
+    }
+  ]
+}
