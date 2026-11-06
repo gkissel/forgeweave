@@ -10,6 +10,7 @@ import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 
@@ -18,6 +19,7 @@ import dev.gkissel.forgeweave.config.ForgeweaveClientConfig;
 import dev.gkissel.forgeweave.config.HeldBowPose;
 import dev.gkissel.forgeweave.item.BowItem;
 import dev.gkissel.forgeweave.item.CrossbowItem;
+import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 
@@ -75,9 +77,13 @@ public final class ForgeweaveItemProperties {
      * ladder of its states pointing at {@code *_modern} siblings ({@code
      * ForgeweaveItemModelProvider}); this is what makes it fire. A model property rather than a
      * baked-model swap because it needs no resource reload and no wrapping of the override tree.
+     * The rapier carries the same ladder, set by whether Better Combat is loaded rather than by the
+     * bow setting.
      */
     private static final ResourceLocation MODERN_POSE =
             ResourceLocation.fromNamespaceAndPath(Forgeweave.MODID, "modern_pose");
+
+    private static final String BETTER_COMBAT = "bettercombat";
 
     @SubscribeEvent
     static void registerItemProperties(FMLClientSetupEvent event) {
@@ -93,6 +99,12 @@ public final class ForgeweaveItemProperties {
                             ForgeweaveClientConfig.SPEC.isLoaded()
                                     ? ForgeweaveClientConfig.HELD_BOW_POSE.get()
                                     : HeldBowPose.DEFAULT));
+                }
+                if (tool == ForgeweaveItems.TOOL_RAPIER.get()) {
+                    // Better Combat animates the held item for a handheld grip, which the rapier's
+                    // 1.12 pose is not. Its modern_pose sibling is that grip (ForgeweaveItemModelProvider).
+                    float pose = ModList.get().isLoaded(BETTER_COMBAT) ? 1.0F : 0.0F;
+                    ItemProperties.register(tool, MODERN_POSE, (stack, level, holder, seed) -> pose);
                 }
                 if (tool instanceof CrossbowItem) {
                     ItemProperties.register(tool, LOADED, (stack, level, holder, seed) -> loaded(stack));
