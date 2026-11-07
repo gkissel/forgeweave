@@ -74,6 +74,9 @@ public class MaterialTraitCorrectionGameTests {
                 List.of(traits).stream().map(MaterialTraitCorrectionGameTests::id).toList());
         player.setItemSlot(EquipmentSlot.CHEST, piece);
         player.tick();
+        // A stray hit during that tick (the plot lands somewhere random each run) can leave a
+        // stacking trait one stack deep, which made the first measured blow already braced.
+        worn(player).remove(ForgeweaveDataComponents.RESISTANCE_STACKS.get());
         return player;
     }
 
