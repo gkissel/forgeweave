@@ -83,6 +83,19 @@
       "predicate": {
         "forgeweave:broken": 1.0
       }
+    },
+    {
+      "model": "forgeweave:item/rapier_modern",
+      "predicate": {
+        "forgeweave:modern_pose": 1.0
+      }
+    },
+    {
+      "model": "forgeweave:item/rapier_broken_modern",
+      "predicate": {
+        "forgeweave:broken": 1.0,
+        "forgeweave:modern_pose": 1.0
+      }
     }
   ],
   "textures": {

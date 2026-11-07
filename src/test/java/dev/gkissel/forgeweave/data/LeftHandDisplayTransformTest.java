@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -99,6 +100,20 @@ class LeftHandDisplayTransformTest {
         assertTransform(display, "thirdperson_lefthand", 0, -90, -15, 0, 4.5F, -1, 0.85F, 0.85F, 0.85F);
         assertTransform(display, "firstperson_righthand", 0, 90, -25, 0, 2, 0.8F, 0.68F, 0.68F, 0.68F);
         assertTransform(display, "firstperson_lefthand", 0, -90, 25, 0, 2, 0.8F, 0.68F, 0.68F, 0.68F);
+    }
+
+    /**
+     * The rapier's Better Combat grip: its {@code modern_pose} siblings, intact and Broken, declare
+     * no held entry, so they hold the way {@code item/handheld} does, which is what Better Combat's
+     * attack animations are authored against. The inventory rotation stays.
+     */
+    @Test
+    void rapierModernPoseInheritsHandheldGrip() throws IOException {
+        for (String model : List.of("rapier_modern", "rapier_broken_modern")) {
+            JsonObject display = displayOf(model);
+            assertEquals(Set.of("gui"), display.keySet(), model + " must only rotate the inventory icon");
+            assertTransform(display, "gui", 0, 0, 90, 0, 0, 0, 1, 1, 1);
+        }
     }
 
     /** battlesign.tcon.json: upstream's first-person left entry negates translation.z, not rotation.z. */
