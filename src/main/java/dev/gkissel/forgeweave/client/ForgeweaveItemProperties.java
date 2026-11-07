@@ -15,6 +15,7 @@ import net.minecraft.world.item.ItemStack;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterConditionalItemModelPropertyEvent;
 import net.neoforged.neoforge.client.event.RegisterRangeSelectItemModelPropertyEvent;
@@ -24,6 +25,7 @@ import dev.gkissel.forgeweave.config.ForgeweaveClientConfig;
 import dev.gkissel.forgeweave.config.HeldBowPose;
 import dev.gkissel.forgeweave.item.BowItem;
 import dev.gkissel.forgeweave.item.CrossbowItem;
+import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.ToolItem;
 
 /**
@@ -56,7 +58,8 @@ public final class ForgeweaveItemProperties {
      * name -- 26.1 has no free-standing {@code minecraft:pulling} property to share any more),
      * {@code forgeweave:loaded} (the crossbow's crank, {@code CrossBow#PROPERTY_IS_LOADED};
      * vanilla's word {@code charged} means a different thing) and {@code forgeweave:modern_pose}
-     * (issue #723's held-pose switch, a model property so it needs no resource reload).
+     * (issue #723's held-pose switch, a model property so it needs no resource reload). The rapier
+     * reads {@code modern_pose} as "Better Combat is loaded" instead of the bow setting.
      * {@code ForgeweaveItemModelProvider} writes the {@code condition} nodes that test them.
      */
     public enum Flag implements ConditionalItemModelProperty {
@@ -83,7 +86,11 @@ public final class ForgeweaveItemProperties {
                 case BROKEN -> broken(stack) > 0.0F;
                 case PULLING -> pulling(stack, owner) > 0.0F;
                 case LOADED -> loaded(stack) > 0.0F;
-                case MODERN_POSE -> modernPose(ForgeweaveClientConfig.SPEC.isLoaded()
+                // Better Combat animates the held item for a handheld grip, which the rapier's
+                // 1.12 pose is not. Its modern_pose sibling is that grip (ForgeweaveItemModelProvider).
+                case MODERN_POSE -> stack.is(ForgeweaveItems.TOOL_RAPIER.get())
+                        ? BETTER_COMBAT_LOADED
+                        : modernPose(ForgeweaveClientConfig.SPEC.isLoaded()
                         ? ForgeweaveClientConfig.HELD_BOW_POSE.get()
                         : HeldBowPose.DEFAULT) > 0.0F;
             };
@@ -112,6 +119,8 @@ public final class ForgeweaveItemProperties {
             return CODEC;
         }
     }
+
+    private static final boolean BETTER_COMBAT_LOADED = ModList.get().isLoaded("bettercombat");
 
     @SubscribeEvent
     static void registerConditionalProperties(RegisterConditionalItemModelPropertyEvent event) {

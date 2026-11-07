@@ -772,8 +772,16 @@ public final class ForgeweaveItemModelProvider {
      * {@code crossbow_arrow} models parent the idle model and add no display of their own), so
      * unlike the classic set there is nothing per state here. Keyed by tool: a tool absent from
      * this map gets no modern ladder at all.
+     *
+     * <p>The rapier's entry is not a bow pose. It drops the held entries so the model inherits
+     * {@code item/handheld}, the way every sword holds, and keeps only the inventory rotation.
+     * {@code ForgeweaveItemProperties} turns it on when Better Combat is loaded: Better Combat's
+     * attack animations turn the held item assuming a handheld grip, so the 1.12 point-forward
+     * grip sent the blade sideways and out of view during every rapier swing.
      */
     private static final Map<String, Consumer<ExtendedModelTemplateBuilder>> MODERN_DISPLAY_OVERRIDES = Map.of(
+            "rapier", builder -> builder
+                    .transform(ItemDisplayContext.GUI, t -> t.rotation(0, 0, 90)),
             "shortbow", ForgeweaveItemModelProvider::vanillaBowDisplay,
             "longbow", ForgeweaveItemModelProvider::vanillaBowDisplay,
             "crossbow", builder -> builder
