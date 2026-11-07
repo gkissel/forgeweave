@@ -438,7 +438,7 @@ public final class ForgeweaveFluids {
     public static final MoltenMetal BRASS = register("brass", 0xCCB66A, 1200);
 
     // Issue #857: Botania's three metals, for Botania Revived on 1.21.1.
-    public static final MoltenMetal MANASTEEL = register("manasteel", 0x3B86E8, 1040);
+    public static final MoltenMetal MANASTEEL = register("manasteel", 0x4888E8, 1040);
     public static final MoltenMetal ELEMENTIUM = register("elementium", 0xE86BB3, 1054);
     public static final MoltenMetal TERRASTEEL = register("terrasteel", 0x4FCF2A, 1160);
 
