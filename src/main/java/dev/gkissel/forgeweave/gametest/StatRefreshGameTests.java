@@ -42,7 +42,16 @@ public class StatRefreshGameTests {
         return Identifier.fromNamespaceAndPath(Forgeweave.MODID, name);
     }
 
+    /**
+     * The refresh alone. A full inventory tick would also run the wood parts' ecological trait,
+     * which repairs at random and would make the exact damage checks below flaky.
+     */
     private static void tick(GameTestHelper helper, Player player, ItemStack stack) {
+        ToolAssemblyRecipes.refreshStats(helper.getLevel().registryAccess(), stack);
+    }
+
+    /** A real inventory tick, for the one test whose parts carry no trait that ticks. */
+    private static void inventoryTick(GameTestHelper helper, Player player, ItemStack stack) {
         stack.inventoryTick(helper.getLevel(), player, null);
     }
 
@@ -87,7 +96,7 @@ public class StatRefreshGameTests {
         piece.set(ForgeweaveDataComponents.ARMOR_STATS.get(), new ArmorStats(0.5F, 0.0F, 0.0F, 100));
         piece.set(DataComponents.MAX_DAMAGE, 100);
 
-        tick(helper, player, piece);
+        inventoryTick(helper, player, piece);
 
         helper.assertTrue(current.equals(piece.get(ForgeweaveDataComponents.ARMOR_STATS.get())),
                 "the stats must be what iron plating builds now, got "
