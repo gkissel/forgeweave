@@ -1405,6 +1405,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.reinforced_alloy", "Reinforced Alloy");
         add("material.forgeweave.atomic_alloy", "Atomic Alloy");
         add("material.forgeweave.hellforged", "Hellforged Metal");
+        add("material.forgeweave.thaumium", "Thaumium");
+        add("material.forgeweave.void_metal", "Void Metal");
         add("material.forgeweave.refined_obsidian", "Refined Obsidian");
         add("material.forgeweave.refined_glowstone", "Refined Glowstone");
         add("material.forgeweave.hdpe", "HDPE");
@@ -2043,6 +2045,8 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addFluid(ForgeweaveFluids.SOULARIUM, "Molten Soularium");
         addFluid(ForgeweaveFluids.TIN, "Molten Tin");
         addFluid(ForgeweaveFluids.HELLFORGED, "Molten Hellforged Metal");
+        addFluid(ForgeweaveFluids.THAUMIUM, "Molten Thaumium");
+        addFluid(ForgeweaveFluids.VOID_METAL, "Molten Void Metal");
         addFluid(ForgeweaveFluids.TITANIUM, "Molten Titanium");
         addFluid(ForgeweaveFluids.TUNGSTEN, "Molten Tungsten");
         addFluid(ForgeweaveFluids.URANIUM, "Molten Uranium");

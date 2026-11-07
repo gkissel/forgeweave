@@ -1,0 +1,18 @@
+{
+  "station": "table",
+  "cast": "forgeweave:cast_knife_blade",
+  "fluid": "forgeweave:molten_void_metal",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:knife_blade",
+    "components": {
+      "forgeweave:material": "forgeweave:void_metal"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:registered",
+      "value": "thaumaturge:ingot_void"
+    }
+  ]
+}

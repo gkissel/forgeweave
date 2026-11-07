@@ -257,7 +257,7 @@ Forgeweave weapons come with movesets for both mods, in 24 weapon attribute file
 
 ### ![Material presets](https://raw.githubusercontent.com/gkissel/forgeweave/master/docs/launch/modpage/assets/integration-material-presets.png)
 
-These 19 mods get materials and nothing else: Twilight Forest, Ice and Fire, Neo Vitae, Silent Gear, Just Dire Things, Actually Additions, Extreme Reactors, Avaritia, ProjectE, AE2, Psi, The Aether, L_Ender's Cataclysm, PneumaticCraft, Forbidden and Arcanus, Industrial Foregoing, Refined Storage, Modern Industrialization and Eternal Ores.
+These 20 mods get materials and nothing else: Twilight Forest, Ice and Fire, Neo Vitae, Thaumaturge, Silent Gear, Just Dire Things, Actually Additions, Extreme Reactors, Avaritia, ProjectE, AE2, Psi, The Aether, L_Ender's Cataclysm, PneumaticCraft, Forbidden and Arcanus, Industrial Foregoing, Refined Storage, Modern Industrialization and Eternal Ores.
 
 
 ## ![What you need](https://raw.githubusercontent.com/gkissel/forgeweave/master/docs/launch/modpage/assets/section-requirements.png)

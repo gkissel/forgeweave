@@ -1,0 +1,16 @@
+{
+  "station": "table",
+  "cast": "forgeweave:clay_cast_ingot",
+  "fluid": "forgeweave:molten_void_metal",
+  "amount": 144,
+  "result": {
+    "id": "thaumaturge:ingot_void"
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:registered",
+      "value": "thaumaturge:ingot_void"
+    }
+  ]
+}
