@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:storage_blocks/elementium"
+  },
+  "fluid": "forgeweave:molten_elementium",
+  "amount": 1296,
+  "temperature": 1400,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "botania:elementium_ingot"
+    }
+  ]
+}

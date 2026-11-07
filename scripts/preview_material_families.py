@@ -50,8 +50,10 @@ CONSTITUENTS = {
 def family_of(material: str) -> str:
     if material in CONSTITUENTS:
         return "ligas_duplas"
-    if material == "andesite_alloy":
+    if material in {"andesite_alloy", "livingrock"}:
         return "pedra"
+    if material in {"dragonstone", "mana_diamond", "mana_pearl"}:
+        return "cristal"
     if material == "ice":
         return "cristal"
     if material == "blaze":

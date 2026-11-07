@@ -173,8 +173,13 @@ class MaterialSyncSizeTest {
      * cheaper encoding of it short of dropping the rule. Raised to 170 KB (174,080 bytes), ~7.6 KB
      * (4.5%) of headroom above the new measurement, the same deliberately-tight step every earlier
      * raise took.
+     *
+     * <p>Issue #857 adds Botania's ten materials, six of them with a full plating block. The
+     * 234-material roster measures 178,985 bytes, about 470 bytes for each new material, which is
+     * the roster's norm. Raised to 183 KB (187,392 bytes), ~8.2 KB (4.7%) of headroom, the same
+     * tight step.
      */
-    private static final int SYNC_BUDGET_BYTES = 170 * 1024;
+    private static final int SYNC_BUDGET_BYTES = 183 * 1024;
 
     /** The {@code trait_definition} registry's own line, first drawn by issue #1103. */
     private static final int DEFINITION_SYNC_BUDGET_BYTES = 12 * 1024;

@@ -1,0 +1,42 @@
+{
+  "head": {
+    "durability": 170,
+    "mining_speed": 4.5,
+    "attack_damage": 4.0
+  },
+  "handle": {
+    "durability_modifier": 0.9,
+    "durability": 10
+  },
+  "extra_durability": 35,
+  "bow": {
+    "drawspeed": 0.6,
+    "range": 0.9,
+    "bonus_damage": 0.0
+  },
+  "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
+  "traits": {
+    "general": [
+      "forgeweave:stonebound"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "botania:livingrock"
+      },
+      "value": 144
+    }
+  ],
+  "repair_item": {
+    "item": "botania:livingrock"
+  },
+  "enchantability": 5,
+  "color": "#D4D6C3",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "botania:livingrock"
+    }
+  ]
+}

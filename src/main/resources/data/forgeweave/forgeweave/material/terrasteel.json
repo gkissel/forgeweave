@@ -1,0 +1,82 @@
+{
+  "head": {
+    "durability": 1260,
+    "mining_speed": 9.6,
+    "attack_damage": 9.0
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 180
+  },
+  "extra_durability": 120,
+  "bow": {
+    "drawspeed": 0.4,
+    "range": 1.75,
+    "bonus_damage": 9.0
+  },
+  "plating": {
+    "helmet": {
+      "durability": 374,
+      "armor": 3.0,
+      "toughness": 3.0
+    },
+    "chestplate": {
+      "durability": 544,
+      "armor": 8.0,
+      "toughness": 3.0
+    },
+    "leggings": {
+      "durability": 510,
+      "armor": 6.0,
+      "toughness": 3.0
+    },
+    "boots": {
+      "durability": 442,
+      "armor": 3.0,
+      "toughness": 3.0
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": [
+      "forgeweave:grievous",
+      "forgeweave:arcing"
+    ],
+    "armor": [
+      "forgeweave:vigorward"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "tag": "c:ingots/terrasteel"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:nuggets/terrasteel"
+      },
+      "value": 16
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/terrasteel"
+      },
+      "value": 1296
+    }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/terrasteel"
+  },
+  "enchantability": 26,
+  "color": "#4FCF2A",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "botania:terrasteel_ingot"
+    }
+  ],
+  "cast_only": true
+}

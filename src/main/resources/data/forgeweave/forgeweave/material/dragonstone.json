@@ -1,0 +1,74 @@
+{
+  "head": {
+    "durability": 1260,
+    "mining_speed": 10.2,
+    "attack_damage": 8.4
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 90
+  },
+  "extra_durability": 120,
+  "bow": {
+    "drawspeed": 0.5,
+    "range": 1.5,
+    "bonus_damage": 6.0
+  },
+  "plating": {
+    "helmet": {
+      "durability": 341,
+      "armor": 3.0,
+      "toughness": 2.0
+    },
+    "chestplate": {
+      "durability": 496,
+      "armor": 8.0,
+      "toughness": 2.0
+    },
+    "leggings": {
+      "durability": 465,
+      "armor": 6.0,
+      "toughness": 2.0
+    },
+    "boots": {
+      "durability": 403,
+      "armor": 3.0,
+      "toughness": 2.0
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
+  "traits": {
+    "general": [
+      "forgeweave:prickly"
+    ],
+    "armor": [
+      "forgeweave:magic_protection2"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "tag": "c:gems/dragonstone"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/dragonstone"
+      },
+      "value": 1296
+    }
+  ],
+  "repair_item": {
+    "tag": "c:gems/dragonstone"
+  },
+  "enchantability": 20,
+  "color": "#F4A6D8",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "botania:dragonstone"
+    }
+  ]
+}

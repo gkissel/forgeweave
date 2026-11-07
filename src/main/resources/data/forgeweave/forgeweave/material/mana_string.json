@@ -1,0 +1,30 @@
+{
+  "incorrect_for_tool": "minecraft:incorrect_for_stone_tool",
+  "traits": {
+    "general": [
+      "forgeweave:ecological"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "item": "botania:mana_string"
+      },
+      "value": 144
+    }
+  ],
+  "repair_item": {
+    "item": "botania:mana_string"
+  },
+  "enchantability": 15,
+  "color": "#BFF2E6",
+  "bowstring": {
+    "modifier": 1.0
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "botania:mana_string"
+    }
+  ]
+}

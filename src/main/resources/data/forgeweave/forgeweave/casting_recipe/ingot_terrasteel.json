@@ -1,0 +1,17 @@
+{
+  "station": "table",
+  "cast": {
+    "item": "forgeweave:cast_ingot"
+  },
+  "fluid": "forgeweave:molten_terrasteel",
+  "amount": 144,
+  "result": {
+    "id": "botania:terrasteel_ingot"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "botania:terrasteel_ingot"
+    }
+  ]
+}

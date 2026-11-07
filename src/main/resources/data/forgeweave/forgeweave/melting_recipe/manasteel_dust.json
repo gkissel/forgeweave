@@ -1,0 +1,14 @@
+{
+  "input": {
+    "tag": "c:dusts/manasteel"
+  },
+  "fluid": "forgeweave:molten_manasteel",
+  "amount": 144,
+  "temperature": 1400,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "botania:manasteel_ingot"
+    }
+  ]
+}

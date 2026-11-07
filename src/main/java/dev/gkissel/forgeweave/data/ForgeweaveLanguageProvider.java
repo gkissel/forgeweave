@@ -1151,6 +1151,17 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add("material.forgeweave.brass", "Brass");
         add("material.forgeweave.andesite_alloy", "Andesite Alloy");
         add("material.forgeweave.rose_quartz", "Rose Quartz");
+        // #857: Botania, through Botania Revived on 1.21.1.
+        add("material.forgeweave.manasteel", "Manasteel");
+        add("material.forgeweave.elementium", "Elementium");
+        add("material.forgeweave.terrasteel", "Terrasteel");
+        add("material.forgeweave.mana_diamond", "Mana Diamond");
+        add("material.forgeweave.mana_pearl", "Mana Pearl");
+        add("material.forgeweave.dragonstone", "Dragonstone");
+        add("material.forgeweave.mana_string", "Mana String");
+        add("material.forgeweave.livingrock", "Livingrock");
+        add("material.forgeweave.livingwood", "Livingwood");
+        add("material.forgeweave.dreamwood", "Dreamwood");
         add("material.forgeweave.tin", "Tin");
         add("material.forgeweave.aluminium", "Aluminium");
         add("material.forgeweave.nickel", "Nickel");
@@ -2131,6 +2142,9 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         addFluid(ForgeweaveFluids.DRAGONSTEEL_LIGHTNING, "Molten Dragonsteel (Lightning)");
         addFluid(ForgeweaveFluids.ZINC, "Molten Zinc");
         addFluid(ForgeweaveFluids.BRASS, "Molten Brass");
+        addFluid(ForgeweaveFluids.MANASTEEL, "Molten Manasteel");
+        addFluid(ForgeweaveFluids.ELEMENTIUM, "Molten Elementium");
+        addFluid(ForgeweaveFluids.TERRASTEEL, "Molten Terrasteel");
         addFluid(ForgeweaveFluids.FERRICORE, "Molten Ferricore");
         addFluid(ForgeweaveFluids.BLAZEGOLD, "Molten Blazegold");
         addFluid(ForgeweaveFluids.ECLIPSEALLOY, "Molten Eclipse Alloy");
