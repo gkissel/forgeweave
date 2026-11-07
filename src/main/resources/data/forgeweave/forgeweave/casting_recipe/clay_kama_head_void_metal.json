@@ -1,0 +1,19 @@
+{
+  "station": "table",
+  "cast": "forgeweave:clay_cast_kama_head",
+  "fluid": "forgeweave:molten_void_metal",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:kama_head",
+    "components": {
+      "forgeweave:material": "forgeweave:void_metal"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:registered",
+      "value": "thaumaturge:ingot_void"
+    }
+  ]
+}
