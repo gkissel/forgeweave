@@ -1,0 +1,75 @@
+{
+  "head": {
+    "durability": 620,
+    "mining_speed": 8.5,
+    "attack_damage": 6.5
+  },
+  "handle": {
+    "durability_modifier": 1.0,
+    "durability": 75
+  },
+  "extra_durability": 85,
+  "bow": {
+    "drawspeed": 0.5,
+    "range": 1.45,
+    "bonus_damage": 5.0
+  },
+  "plating": {
+    "helmet": {
+      "durability": 370,
+      "armor": 2.5,
+      "toughness": 1.5
+    },
+    "chestplate": {
+      "durability": 540,
+      "armor": 7.0,
+      "toughness": 1.5
+    },
+    "leggings": {
+      "durability": 505,
+      "armor": 5.5,
+      "toughness": 1.5
+    },
+    "boots": {
+      "durability": 440,
+      "armor": 2.5,
+      "toughness": 1.5
+    }
+  },
+  "maille": true,
+  "incorrect_for_tool": "minecraft:incorrect_for_diamond_tool",
+  "traits": {
+    "general": [
+      "forgeweave:writable"
+    ],
+    "armor": [
+      "forgeweave:magic_protection"
+    ]
+  },
+  "crafting_items": [
+    {
+      "ingredient": {
+        "tag": "c:ingots/thaumium"
+      },
+      "value": 144
+    },
+    {
+      "ingredient": {
+        "tag": "c:storage_blocks/thaumium"
+      },
+      "value": 1296
+    }
+  ],
+  "repair_item": {
+    "tag": "c:ingots/thaumium"
+  },
+  "cast_only": true,
+  "enchantability": 22,
+  "color": "#6A4FB0",
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "thaumaturge:ingot_thaumium"
+    }
+  ]
+}

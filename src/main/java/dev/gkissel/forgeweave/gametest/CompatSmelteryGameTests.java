@@ -81,7 +81,8 @@ public class CompatSmelteryGameTests {
     private static final List<String> UNSUPPLIED_MATERIALS = List.of(
             "zinc", "brass", "andesite_alloy", "rose_quartz",
             "infused_alloy", "reinforced_alloy", "atomic_alloy",
-            "hellforged");
+            "hellforged",
+            "thaumium", "void_metal");
 
     /**
      * The negative path: bronze's molten fluid exists (unconditional Java registration) but is
@@ -114,9 +115,9 @@ public class CompatSmelteryGameTests {
 
     /**
      * Playtest checklist 1.0.0, line 9: with none of their mods present, the Create four (zinc,
-     * brass, andesite alloy, rose quartz), Mekanism's three alloys (infused, reinforced, atomic) and
-     * Neo Vitae's hellforged are not in the material registry, and no melting, casting or alloy row
-     * of theirs loaded. A row counts as theirs when its id names the material, or when it pours or
+     * brass, andesite alloy, rose quartz), Mekanism's three alloys (infused, reinforced, atomic),
+     * Neo Vitae's hellforged and Thaumaturge's thaumium and void metal are not in the material
+     * registry, and no melting, casting or alloy row of theirs loaded. A row counts as theirs when its id names the material, or when it pours or
      * makes the material's own molten fluid. Each material JSON is gated on an item from its
      * provider, for example {@code neoforge:item_exists mekanism:alloy_infused}.
      */

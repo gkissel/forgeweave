@@ -1,0 +1,18 @@
+{
+  "station": "basin",
+  "fluid": "forgeweave:molten_thaumium",
+  "amount": 1296,
+  "result": {
+    "id": "thaumaturge:metal_thaumium"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:item_exists",
+      "item": "thaumaturge:ingot_thaumium"
+    },
+    {
+      "type": "neoforge:item_exists",
+      "item": "thaumaturge:metal_thaumium"
+    }
+  ]
+}

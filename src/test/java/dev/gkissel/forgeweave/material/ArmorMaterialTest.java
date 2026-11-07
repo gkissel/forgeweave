@@ -146,7 +146,9 @@ class ArmorMaterialTest {
             // #857: Botania's three metals and three gems. Plating durability and armor for the
             // metals follow Botania's own armor sets; the woods, livingrock and mana string build
             // no armor, like wood, stone and string.
-            Stream.of("manasteel", "elementium", "terrasteel", "mana_diamond", "mana_pearl", "dragonstone"))
+            Stream.of("manasteel", "elementium", "terrasteel", "mana_diamond", "mana_pearl", "dragonstone"),
+            // Thaumaturge's thaumium and void metal.
+            Stream.of("thaumium", "void_metal"))
             .flatMap(java.util.function.Function.identity())
             .collect(java.util.stream.Collectors.toSet());
 
