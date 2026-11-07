@@ -1,0 +1,15 @@
+{
+  "station": "table",
+  "cast": "forgeweave:cast_ingot",
+  "fluid": "forgeweave:molten_thaumium",
+  "amount": 144,
+  "result": {
+    "id": "thaumaturge:ingot_thaumium"
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:registered",
+      "value": "thaumaturge:ingot_thaumium"
+    }
+  ]
+}

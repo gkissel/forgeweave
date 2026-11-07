@@ -1,0 +1,18 @@
+{
+  "station": "table",
+  "cast": "forgeweave:cast_plating_helmet",
+  "fluid": "forgeweave:molten_thaumium",
+  "amount": 432,
+  "result": {
+    "id": "forgeweave:plating_helmet",
+    "components": {
+      "forgeweave:material": "forgeweave:thaumium"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:registered",
+      "value": "thaumaturge:ingot_thaumium"
+    }
+  ]
+}

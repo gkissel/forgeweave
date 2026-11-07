@@ -174,8 +174,12 @@ class MaterialSyncSizeTest {
      * cheaper encoding of it short of dropping the rule. Raised to 170 KB (174,080 bytes), ~7.6 KB
      * (4.5%) of headroom above the new measurement, the same deliberately-tight step every earlier
      * raise took.
+     *
+     * <p>Thaumaturge's thaumium and void metal take the 226-material roster to 174,218 bytes, 138
+     * bytes over the 170 KB line. Raised to 176 KB (180,224 bytes), ~5.9 KB (3.4%) of headroom above
+     * the new measurement, the same tight step as every raise above.
      */
-    private static final int SYNC_BUDGET_BYTES = 170 * 1024;
+    private static final int SYNC_BUDGET_BYTES = 176 * 1024;
 
     /** The {@code trait_definition} registry's own line, first drawn by issue #1103. */
     private static final int DEFINITION_SYNC_BUDGET_BYTES = 12 * 1024;

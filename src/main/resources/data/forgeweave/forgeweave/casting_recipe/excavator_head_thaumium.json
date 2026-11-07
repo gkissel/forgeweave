@@ -1,0 +1,18 @@
+{
+  "station": "table",
+  "cast": "forgeweave:cast_excavator_head",
+  "fluid": "forgeweave:molten_thaumium",
+  "amount": 1152,
+  "result": {
+    "id": "forgeweave:excavator_head",
+    "components": {
+      "forgeweave:material": "forgeweave:thaumium"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:registered",
+      "value": "thaumaturge:ingot_thaumium"
+    }
+  ]
+}
