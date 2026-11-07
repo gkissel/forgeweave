@@ -1,0 +1,18 @@
+{
+  "station": "table",
+  "cast": "forgeweave:cast_shard",
+  "fluid": "forgeweave:molten_void_metal",
+  "amount": 72,
+  "result": {
+    "id": "forgeweave:shard",
+    "components": {
+      "forgeweave:material": "forgeweave:void_metal"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:registered",
+      "value": "thaumaturge:ingot_void"
+    }
+  ]
+}

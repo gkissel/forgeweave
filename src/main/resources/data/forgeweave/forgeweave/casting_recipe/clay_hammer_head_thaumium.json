@@ -1,0 +1,19 @@
+{
+  "station": "table",
+  "cast": "forgeweave:clay_cast_hammer_head",
+  "fluid": "forgeweave:molten_thaumium",
+  "amount": 1152,
+  "result": {
+    "id": "forgeweave:hammer_head",
+    "components": {
+      "forgeweave:material": "forgeweave:thaumium"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:registered",
+      "value": "thaumaturge:ingot_thaumium"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "station": "table",
+  "cast": "forgeweave:cast_sword_blade",
+  "fluid": "forgeweave:molten_thaumium",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:sword_blade",
+    "components": {
+      "forgeweave:material": "forgeweave:thaumium"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:registered",
+      "value": "thaumaturge:ingot_thaumium"
+    }
+  ]
+}

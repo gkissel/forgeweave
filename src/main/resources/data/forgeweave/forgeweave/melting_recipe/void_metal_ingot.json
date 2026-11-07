@@ -1,0 +1,12 @@
+{
+  "input": "#c:ingots/void_metal",
+  "fluid": "forgeweave:molten_void_metal",
+  "amount": 144,
+  "temperature": 1600,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:registered",
+      "value": "thaumaturge:ingot_void"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "station": "table",
+  "cast": "forgeweave:cast_hand_guard",
+  "fluid": "forgeweave:molten_thaumium",
+  "amount": 144,
+  "result": {
+    "id": "forgeweave:hand_guard",
+    "components": {
+      "forgeweave:material": "forgeweave:thaumium"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:registered",
+      "value": "thaumaturge:ingot_thaumium"
+    }
+  ]
+}

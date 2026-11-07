@@ -6,6 +6,7 @@ recipes 2221
 materials 80
 no-material forgeweave:zinc forgeweave:brass forgeweave:andesite_alloy forgeweave:rose_quartz
 no-material forgeweave:infused_alloy forgeweave:reinforced_alloy forgeweave:atomic_alloy forgeweave:hellforged
+no-material forgeweave:thaumium forgeweave:void_metal
 no-material forgeweave:tin forgeweave:silver forgeweave:ferricore forgeweave:celestigem
 material forgeweave:atomic_matter_alloy  # line 11: in the registry without Mekanism
 # No upgrade pass on 26.1.2: no earlier Forgeweave release targets 26.1.2, and the 1.21.1 -> 26.1.2

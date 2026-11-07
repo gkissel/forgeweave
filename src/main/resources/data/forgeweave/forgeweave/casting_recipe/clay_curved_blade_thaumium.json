@@ -1,0 +1,19 @@
+{
+  "station": "table",
+  "cast": "forgeweave:clay_cast_curved_blade",
+  "fluid": "forgeweave:molten_thaumium",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:curved_blade",
+    "components": {
+      "forgeweave:material": "forgeweave:thaumium"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:registered",
+      "value": "thaumaturge:ingot_thaumium"
+    }
+  ]
+}

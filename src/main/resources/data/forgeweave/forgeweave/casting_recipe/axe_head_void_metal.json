@@ -1,0 +1,18 @@
+{
+  "station": "table",
+  "cast": "forgeweave:cast_axe_head",
+  "fluid": "forgeweave:molten_void_metal",
+  "amount": 288,
+  "result": {
+    "id": "forgeweave:axe_head",
+    "components": {
+      "forgeweave:material": "forgeweave:void_metal"
+    }
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:registered",
+      "value": "thaumaturge:ingot_void"
+    }
+  ]
+}

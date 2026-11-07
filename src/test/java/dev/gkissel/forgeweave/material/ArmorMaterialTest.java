@@ -143,7 +143,8 @@ class ArmorMaterialTest {
             Stream.of("empowered_restonia_crystal", "empowered_palis_crystal", "empowered_diamatine_crystal",
                     "empowered_void_crystal", "empowered_emeradic_crystal", "empowered_enori_crystal"),
             Stream.of("zinc", "brass", "andesite_alloy", "rose_quartz"),
-            Stream.of("infused_alloy", "reinforced_alloy", "atomic_alloy", "hellforged"))
+            Stream.of("infused_alloy", "reinforced_alloy", "atomic_alloy", "hellforged"),
+            Stream.of("thaumium", "void_metal"))
             .flatMap(java.util.function.Function.identity())
             .collect(java.util.stream.Collectors.toSet());
 

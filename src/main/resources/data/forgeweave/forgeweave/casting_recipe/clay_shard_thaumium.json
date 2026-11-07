@@ -1,0 +1,19 @@
+{
+  "station": "table",
+  "cast": "forgeweave:clay_cast_shard",
+  "fluid": "forgeweave:molten_thaumium",
+  "amount": 72,
+  "result": {
+    "id": "forgeweave:shard",
+    "components": {
+      "forgeweave:material": "forgeweave:thaumium"
+    }
+  },
+  "consumes_cast": true,
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:registered",
+      "value": "thaumaturge:ingot_thaumium"
+    }
+  ]
+}
