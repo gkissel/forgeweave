@@ -384,7 +384,7 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         add(SearedFurnaceScan.KEY_TOO_LARGE, "The seared furnace interior is %s x %s, larger than the maximum of %s");
         add(SearedFurnaceScan.KEY_INVALID_FLOOR, "The floor needs a seared block at %s, %s, %s");
         add(SearedFurnaceScan.KEY_INVALID_WALL, "The wall needs a seared block (or a tank at a corner) at %s, %s, %s");
-        add(SearedFurnaceScan.KEY_INVALID_CEILING, "The ceiling needs a seared block, slab or stairs at %s, %s, %s");
+        add(SearedFurnaceScan.KEY_INVALID_CEILING, "The ceiling needs a seared block, slab or stairs at %s, %s, %s. Building a smeltery? Use a Core instead.");
         add(SearedFurnaceScan.KEY_NO_TANK, "The seared furnace needs at least one seared tank in its frame");
         add(SearedFurnaceScan.KEY_CLAIMED, "Another structure already uses the tank at %s, %s, %s");
         add(SearedFurnaceScan.KEY_CORE_OUTSIDE, "The controller has to sit in a wall of the seared furnace");
