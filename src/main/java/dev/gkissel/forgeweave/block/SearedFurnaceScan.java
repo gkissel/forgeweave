@@ -132,10 +132,14 @@ public final class SearedFurnaceScan {
 
         Part ceiling = detectPlane(level, corePos, bottom.getY() + height, west, east, north, south, true);
         if (ceiling.failure() != null) {
-            // The layer above the last good one failed either because the ceiling blocks are sitting
-            // in it (the normal case -- report the ceiling's own complaint) or because a wall block
-            // there was wrong, in which case the hole in the wall is the better report.
-            boolean wallHole = layerFailure != null && !layerFailure.interiorBlocked();
+            // The layer above the last good one failed because the ceiling blocks are sitting in it
+            // (the normal case -- report the ceiling's own complaint), because nothing has been
+            // built there yet (the roof is missing, and asking for a wall would only move the
+            // complaint up a block each time), or because a wall block there was wrong, in which
+            // case the hole in the wall is the better report.
+            boolean wallHole = layerFailure != null && !layerFailure.interiorBlocked()
+                    && SmelteryScan.ringHasAny(level, bottom.getY() + height, west, east, north, south,
+                            state -> SmelteryScan.isSearedBlock(state) || SmelteryScan.isTankBlock(state));
             return failure(wallHole ? layerFailure.failure() : ceiling.failure());
         }
         tanks.addAll(ceiling.tanks());
