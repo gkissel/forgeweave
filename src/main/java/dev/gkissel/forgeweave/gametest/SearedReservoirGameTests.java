@@ -134,6 +134,25 @@ public class SearedReservoirGameTests {
         helper.succeed();
     }
 
+    /** The furnace's open-top report: an unbuilt layer above the walls asks for the ceiling. */
+    @GameTest(template = "smeltery")
+    public static void anOpenTopAsksForTheCeilingNotAnotherWall(GameTestHelper helper) {
+        buildReservoir(helper, 1, 1, 1);
+        for (int x = 0; x <= 2; x++) {
+            for (int z = 0; z <= 2; z++) {
+                helper.setBlock(new BlockPos(x, 3, z), Blocks.AIR);
+            }
+        }
+        SearedReservoirBlockEntity reservoir = placeController(helper);
+        helper.assertTrue(!reservoir.isFormed(), "expected a reservoir with no roof to be refused");
+        assertReason(helper, reservoir, SearedReservoirScan.KEY_INVALID_CEILING);
+
+        helper.setBlock(new BlockPos(2, 3, 2), ForgeweaveBlocks.SEARED_BRICKS.get());
+        reservoir.updateStructure();
+        assertReason(helper, reservoir, SearedReservoirScan.KEY_INVALID_WALL);
+        helper.succeed();
+    }
+
     /**
      * The ticket's drain integration: a drain in a reservoir wall pours the reservoir, the same
      * {@code SearedDrainBlockEntity} that pours a smeltery -- upstream's {@code TileDrain} looks up
