@@ -2,6 +2,7 @@ package dev.gkissel.forgeweave.block;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 import javax.annotation.Nullable;
 
@@ -274,6 +275,26 @@ public final class SmelteryScan {
     /** Upstream's {@code isInnerBlock}: loaded and air. */
     private static boolean isInterior(Level level, BlockPos pos) {
         return !level.isOutsideBuildHeight(pos) && level.hasChunkAt(pos) && level.getBlockState(pos).isAir();
+    }
+
+    /**
+     * Whether any block in the outer ring of this layer passes {@code wall}. The closed multiblocks
+     * use it to tell a wall with a gap from a layer nobody has started, which is where the roof
+     * goes. A layer that is not fully loaded counts as started, so the scan reports it as not loaded.
+     */
+    static boolean ringHasAny(Level level, int y, int west, int east, int north, int south, Predicate<BlockState> wall) {
+        if (!level.hasChunksAt(new BlockPos(west, y, north), new BlockPos(east, y, south))) {
+            return true;
+        }
+        for (int x = west; x <= east; x++) {
+            for (int z = north; z <= south; z++) {
+                boolean ring = x == west || x == east || z == north || z == south;
+                if (ring && wall.test(level.getBlockState(new BlockPos(x, y, z)))) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /** The twelve plain seared blocks (upstream's {@code TinkerSmeltery.searedBlock}); shared with {@link SearedFurnaceScan}. */
