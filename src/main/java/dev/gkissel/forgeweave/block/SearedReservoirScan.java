@@ -127,9 +127,12 @@ public final class SearedReservoirScan {
         Part ceiling = detectPlane(level, corePos, bottom.getY() + height, west, east, north, south, true);
         if (ceiling.failure() != null) {
             // Same tie-break as SearedFurnaceScan: the layer above the last good one failed either
-            // because the ceiling sits in it (report the ceiling's own complaint) or because a wall
-            // block there was wrong, in which case the hole in the wall is the better report.
-            boolean wallHole = layerFailure != null && !layerFailure.interiorBlocked();
+            // because the ceiling sits in it (report the ceiling's own complaint), because nothing
+            // has been built there yet (the roof is missing) or because a wall block there was
+            // wrong, in which case the hole in the wall is the better report.
+            boolean wallHole = layerFailure != null && !layerFailure.interiorBlocked()
+                    && SmelteryScan.ringHasAny(level, bottom.getY() + height, west, east, north, south,
+                            SmelteryScan::isWallBlock);
             return failure(wallHole ? layerFailure.failure() : ceiling.failure());
         }
         collect(io, tanks, ceiling);

@@ -260,6 +260,30 @@ public class SearedFurnaceGameTests {
         helper.succeed();
     }
 
+    /**
+     * A furnace built like a smeltery, with no roof: every new wall layer only moved the complaint
+     * up one block, so the controller has to ask for the ceiling once the layer above is unbuilt.
+     */
+    @GameTest(template = "smeltery")
+    public static void anOpenTopAsksForTheCeilingNotAnotherWall(GameTestHelper helper) {
+        buildFurnace(helper, 1, 1, 1);
+        helper.setBlock(new BlockPos(1, 3, 1), Blocks.AIR);
+        SearedFurnaceBlockEntity furnace = placeController(helper);
+        helper.assertTrue(!furnace.isFormed(), "expected a furnace with no roof to be refused");
+        assertReason(helper, furnace, SearedFurnaceScan.KEY_INVALID_CEILING);
+
+        // A furnace sunk into the ground has terrain around the top layer, which is not a wall.
+        helper.setBlock(new BlockPos(0, 3, 0), Blocks.DIRT);
+        furnace.updateStructure();
+        assertReason(helper, furnace, SearedFurnaceScan.KEY_INVALID_CEILING);
+
+        // One seared block means the player is raising the walls, so the gap is the better report.
+        helper.setBlock(new BlockPos(2, 3, 2), ForgeweaveBlocks.SEARED_BRICKS.get());
+        furnace.updateStructure();
+        assertReason(helper, furnace, SearedFurnaceScan.KEY_INVALID_WALL);
+        helper.succeed();
+    }
+
     // ------------------------------------------------------------------ helpers
 
     /**
