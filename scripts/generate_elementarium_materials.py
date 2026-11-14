@@ -44,6 +44,14 @@ elementarium_tantalum a copy of tungsten, two of the seven stat-identical cluste
 04-impact.md counted. A window that neither endpoint of the roster sits on gives every element its
 own point on the curve, and the rule stays the same one rule.
 
+The bow limb is the one stat that does not come straight off the curve. PR #1116 (issue #1113,
+decision 4) made ranged follow the head: every material whose head moved had its bow drawspeed
+scaled by its mining speed factor and its bonus_damage by its attack damage factor. For these
+presets that pass ran on the #1034 bow, the one the old [23, 73] window generated, so the shipped
+bow is that old bow times new head over old head. bow_stat() redoes that arithmetic with the same
+rounded inputs; issue #1154 found the script had stopped reproducing the shipped files because it
+left this step out. Bow range was never scaled, so it stays on the curve.
+
 incorrect_for_tool is a two-bucket split on the same fraction (iron-tier below the midpoint,
 diamond-tier at or above it) rather than a third tag, since nothing in Elementarium's own public
 data ever asks for more than diamond. This rule is deliberately simple and is the whole rule: no
@@ -63,21 +71,23 @@ ROOT = Path(__file__).resolve().parent.parent
 MATERIAL_DIR = ROOT / "src/main/resources/data/forgeweave/forgeweave/material"
 
 # (element_id, atomic_number, hex_color, trait_id) -- the curated roster. See this script's module
-# docstring for why these six and not the full 118-element table. Each trait id is a distinct,
-# previously-unassigned Forgeweave trait constant (issue #876's dedupe policy: no two materials may
-# share a non-exempt trait id) rather than a thematically "correct" one -- picked from the pool
-# ForgeweaveTraits.REGISTRY already has behavior for but no material names yet.
+# docstring for why these six and not the full 118-element table. The traits were first picked one
+# per material under issue #876's no-shared-trait rule; #1111 merged overlapping traits into shared
+# families and withdrew that rule, which moved molybdenum and tantalum to dominant and palladium to
+# ecological.
 ELEMENTS = [
     ("vanadium", 23, "#8A8F94", "emberwake"),
     ("chromium", 24, "#B8C4C8", "fertilizing"),
-    ("molybdenum", 42, "#8C9296", "obsidian_heart"),
-    ("palladium", 46, "#CED0CE", "smokehouse"),
+    ("molybdenum", 42, "#8C9296", "dominant"),
+    ("palladium", 46, "#CED0CE", "ecological"),
     ("hafnium", 72, "#4F5D63", "surging2"),
-    ("tantalum", 73, "#3B4750", "warbond"),
+    ("tantalum", 73, "#3B4750", "dominant"),
 ]
 
 ATOMIC_NUMBER_MIN = 13  # aluminium
 ATOMIC_NUMBER_MAX = 83  # bismuth
+# The #1034 window the bow limb was first generated on, before #1113 widened it (see docstring).
+BOW_BASE_WINDOW = (23, 73)
 
 # The two in-repo anchors (see docstring). Kept as plain literals rather than read from the shipped
 # JSON, so this script has no runtime dependency on file layout beyond where it writes.
@@ -103,9 +113,22 @@ def round2(value: float) -> float:
     return round(value, 2)
 
 
+def fraction_in(atomic_number: int, low: int, high: int) -> float:
+    return (max(low, min(high, atomic_number)) - low) / (high - low)
+
+
+def curve2(key: str, fraction: float) -> float:
+    return round2(lerp(IRON_ANCHOR[key], TUNGSTEN_ANCHOR[key], fraction))
+
+
+def bow_stat(bow_key: str, head_key: str, atomic_number: int, fraction: float) -> float:
+    """The #1034 bow stat scaled by how far its head stat moved in #1113 (see docstring)."""
+    base = fraction_in(atomic_number, *BOW_BASE_WINDOW)
+    return round2(curve2(bow_key, base) * curve2(head_key, fraction) / curve2(head_key, base))
+
+
 def material_json(element_id: str, atomic_number: int, color: str, trait: str) -> dict:
-    clamped = max(ATOMIC_NUMBER_MIN, min(ATOMIC_NUMBER_MAX, atomic_number))
-    fraction = (clamped - ATOMIC_NUMBER_MIN) / (ATOMIC_NUMBER_MAX - ATOMIC_NUMBER_MIN)
+    fraction = fraction_in(atomic_number, ATOMIC_NUMBER_MIN, ATOMIC_NUMBER_MAX)
 
     tier_tag = "minecraft:incorrect_for_diamond_tool" if fraction >= 0.5 else "minecraft:incorrect_for_iron_tool"
 
@@ -124,10 +147,9 @@ def material_json(element_id: str, atomic_number: int, color: str, trait: str) -
         "extra_durability": round(lerp(IRON_ANCHOR["extra_durability"], TUNGSTEN_ANCHOR["extra_durability"],
                                         fraction)),
         "bow": {
-            "drawspeed": round2(lerp(IRON_ANCHOR["bow_drawspeed"], TUNGSTEN_ANCHOR["bow_drawspeed"], fraction)),
+            "drawspeed": bow_stat("bow_drawspeed", "mining_speed", atomic_number, fraction),
             "range": round2(lerp(IRON_ANCHOR["bow_range"], TUNGSTEN_ANCHOR["bow_range"], fraction)),
-            "bonus_damage": round2(lerp(IRON_ANCHOR["bow_bonus_damage"], TUNGSTEN_ANCHOR["bow_bonus_damage"],
-                                         fraction)),
+            "bonus_damage": bow_stat("bow_bonus_damage", "attack_damage", atomic_number, fraction),
         },
         "incorrect_for_tool": tier_tag,
         "traits": {"general": [f"forgeweave:{trait}"]},

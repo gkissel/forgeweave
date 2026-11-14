@@ -1,6 +1,6 @@
 {
   "input": {
-    "tag": "c:dusts/elementarium_hafnium"
+    "tag": "c:dusts/hafnium"
   },
   "fluid": "forgeweave:molten_elementarium_hafnium",
   "amount": 144,

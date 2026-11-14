@@ -1,6 +1,6 @@
 {
   "input": {
-    "tag": "c:dusts/elementarium_molybdenum"
+    "tag": "c:dusts/molybdenum"
   },
   "fluid": "forgeweave:molten_elementarium_molybdenum",
   "amount": 144,
