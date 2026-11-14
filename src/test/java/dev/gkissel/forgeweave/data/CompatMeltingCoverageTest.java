@@ -153,8 +153,13 @@ class CompatMeltingCoverageTest {
                         continue;
                     }
                     var formInput = read("melting_recipe/" + row.getFileName()).get("input");
-                    var tags = formInput.isJsonArray() ? formInput.getAsJsonArray().asList() : List.of(formInput);
-                    if (tags.stream().noneMatch(t -> t.getAsString().startsWith("#"))) {
+                    // A neoforge:compound ingredient lists its tags under children.
+                    if (formInput.isJsonObject() && formInput.getAsJsonObject().has("children")) {
+                        formInput = formInput.getAsJsonObject().get("children");
+                    }
+                    var tags = (formInput.isJsonArray() ? formInput.getAsJsonArray().asList() : List.of(formInput))
+                            .stream().filter(t -> t.isJsonPrimitive() && t.getAsString().startsWith("#")).toList();
+                    if (tags.isEmpty()) {
                         continue;
                     }
                     String expected = "#c:" + form.getValue() + "/" + common;
