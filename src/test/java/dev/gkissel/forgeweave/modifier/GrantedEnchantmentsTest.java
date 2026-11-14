@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import net.minecraft.SharedConstants;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.Bootstrap;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 class GrantedEnchantmentsTest {
 
     private static final DeferredHolder<Enchantment, Enchantment> UNBOUND =
-            DeferredHolder.create(Registries.ENCHANTMENT, ResourceLocation.fromNamespaceAndPath("testaddon", "corroded"));
+            DeferredHolder.create(Registries.ENCHANTMENT, Identifier.fromNamespaceAndPath("testaddon", "corroded"));
 
     @BeforeAll
     static void bootstrapMinecraft() {
