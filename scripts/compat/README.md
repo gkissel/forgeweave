@@ -101,7 +101,8 @@ reproducible equivalent, and CI can build it too.
 | `FW_SERVER_BASE` | `$FW_COMPAT_CACHE/neoforge-<neo_version>` | A NeoForge server install (`run.sh`, `libraries/`). Installed from maven.neoforged.net when missing. |
 | `FW_COMPAT_OUT` | `build/compat` | Output directory. |
 | `FW_COMPAT_FIXTURES` | `src/test/resources/fixtures/save_compat` | The corpus. |
-| `FW_SERVER_XMX`, `FW_SERVER_PORT` | `6G`, `25599` | Server heap and port. |
+| `FW_SERVER_XMX` | `6G` | Server heap. |
+| `FW_SERVER_PORT` | a free port | The server's port. Unset, `mk.sh` asks the kernel for a free one each time it builds a server, so two runs on one machine don't collide, and prints it (the runner keeps that in `mk.txt`). Rcon and query stay off; the runner talks to the server through the console FIFO and the log only. |
 | `FW_BOOT_TIMEOUT` | `900` | Seconds to wait for `Done (`. |
 
 ## The other scripts
@@ -123,9 +124,37 @@ They work on their own too, against any server directory `mk.sh` built:
 
 ## Gaps
 
-- No Draconic Evolution fixture: its module state lives on its own components, so line 129's module and
-  fusion state on DE gear is still a manual check.
-- Lines 194 (per-mod processing toggles with `/reload`) and 220 (ore generation in Allthemodium's
-  mining dimension) are not automated yet.
+These checklist lines stay manual. `docs/releasing.md` lists them as manual steps.
+
+- Line 129, Draconic Evolution module and fusion state. g8 loads Draconic Evolution, but no fixture
+  holds a Forgeweave tool or armor piece with DE modules installed or a fusion upgrade, so `boot`,
+  `restart` and `without` never see that state. DE keeps it on its own data components, not Forgeweave's.
+  The fixture needs that item's exact SNBT: build the item in game on a server with g8's jars, read its
+  chest back with `data get block`, and save the result as `fixtures/draconic-gear.cmds`, the way
+  `partner-gear.cmds` was made. SNBT written by hand, with no live DE to check it against, either fails to
+  place or loads with an empty module grid, and the restart pass would then compare two empty grids and
+  pass. On 26.1.2 g8 has no Draconic Evolution at all (no 26.1.2 build, see g8.txt), so this half waits
+  for one.
+- Line 194, per-mod processing toggles with `/reload`. The runner only changes a toggle while the server
+  is stopped, then restarts it. Line 194 needs the server up: set `createRecipes` (then
+  `immersiveEngineeringRecipes`, then `enderIoRecipes`) to false in the running server's
+  `compat-server.toml`, send `/reload`, and expect the next `Loaded N recipes` line below the boot count;
+  set it back, `/reload` again, and expect the boot count. On 1.21.1, g8 and g9 load all three mods
+  through `base.txt`. On 26.1.2 `base.txt` has only EnderIO (Create and Immersive Engineering have no
+  26.1.2 build), so only `enderIoRecipes` can be checked. It isn't automated because it relies on NeoForge's config watcher reading an edit made
+  outside the running server before `/reload` runs, and no one has checked on a dedicated server that it
+  does, or how long it takes. A count also shows only that some recipes went away, not that only the
+  toggled mod's rows did: the log doesn't name recipe ids. `ProcessingCompatToggleGameTests` covers the
+  recipe condition reading the live toggle value.
+- Line 220, Track B ore in Allthemodium's mining dimension. With no player on the server,
+  `allthemodium:mining` never loads a chunk, so nothing generates there. A pass for
+  `g10-allthemodium.txt` would run `execute in allthemodium:mining run forceload add ...` over a few
+  chunks, then count each Track B ore block with `execute in allthemodium:mining run fill ... air replace
+  <ore>` and read the `Successfully filled N block(s)` lines (by default `fill` changes at most 32,768
+  blocks per command, so one chunk takes several). It isn't automated because the dimension's terrain is
+  flat and layered: an ore's host block may never fall inside that ore's height band, as the checklist
+  line itself warns, so a zero for one ore is not a failure, and the counts to expect need a real run to
+  pin. `AllthemodiumMiningWorldgenTest` checks that the `allthemodium_mining_ores` biome modifier lists
+  every Track B ore.
 - On a dedicated server with no player, worn armor never ticks, so the spark pass measures the smeltery
   and the idle server only, not line 20's worn-armor half.

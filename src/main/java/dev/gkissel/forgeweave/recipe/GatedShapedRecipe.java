@@ -55,7 +55,12 @@ public class GatedShapedRecipe extends ShapedRecipe {
 
     @Override
     public boolean matches(CraftingInput input, Level level) {
-        return ContentFamilies.itemEnabled(result.item().value()) && super.matches(input, level);
+        return familyEnabled() && super.matches(input, level);
+    }
+
+    /** Whether the result's content family is on; recipe viewers hide this recipe while it is off (issue #1153). */
+    public boolean familyEnabled() {
+        return ContentFamilies.itemEnabled(result.item().value());
     }
 
     /** The vanilla parent pins its own serializer type; ours encodes this subclass, which is all dispatch needs. */
