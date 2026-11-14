@@ -161,6 +161,16 @@ thing on every push to a `release/**` branch, for the packs whose jars all downl
 the packs that need a jar Modrinth doesn't carry (Just Dire Things, Twilight Forest, Ice and Fire,
 Catalyst-Studios' Eternal Ores, Elementarium's corelib) only ever run locally.
 
+The matrix does not cover three lines of the 1.0.0 checklist. Run them by hand on every release; the
+README's Gaps section says why each one isn't automated:
+
+- Line 129, the Draconic Evolution half: module state and fusion upgrades on DE gear survive a save, a
+  restart and a reload.
+- Line 194: turn `createRecipes`, `immersiveEngineeringRecipes` and `enderIoRecipes` off one at a time on
+  a running server. Each one's rows stop resolving, nothing else changes, and a `/reload` with the toggle
+  back on brings everything back.
+- Line 220: Track B ores generate in Allthemodium's mining dimension.
+
 ## Publishing
 
 From the branch or commit being released:

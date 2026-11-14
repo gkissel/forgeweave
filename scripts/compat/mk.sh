@@ -11,11 +11,18 @@ ln -s "$FW_SERVER_BASE/libraries" "$D/libraries"
 cp "$FW_SERVER_BASE/run.sh" "$D/"
 echo "-Xmx${FW_SERVER_XMX:-6G}" > "$D/user_jvm_args.txt"
 echo eula=true > "$D/eula.txt"
+# A port the kernel hands out as free, so concurrent runs don't collide. The server binds only this one:
+# rcon and query stay off, and the runner talks to it through the console FIFO and the log.
+# ponytail: free when built, not reserved; another process could take it before the boot. Set FW_SERVER_PORT then.
+PORT=${FW_SERVER_PORT:-$(python3 -I -c 'import socket; s = socket.socket(); s.bind(("", 0)); print(s.getsockname()[1])')}
+echo "server port $PORT"
 cat > "$D/server.properties" <<P
 online-mode=false
 level-type=minecraft\:flat
 spawn-protection=0
-server-port=${FW_SERVER_PORT:-25599}
+server-port=$PORT
+enable-rcon=false
+enable-query=false
 enable-command-block=true
 max-tick-time=-1
 P
