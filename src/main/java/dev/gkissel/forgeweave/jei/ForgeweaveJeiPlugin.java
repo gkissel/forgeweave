@@ -82,9 +82,19 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         return UID;
     }
 
+    /**
+     * Also hides the gated crafting recipes whose family is off (issue #1153). They sit in JEI's own
+     * crafting category, which JEI fills itself, and the pinned JEI can only hide a recipe from the
+     * runtime, not at registration. Same once-per-session read as {@link #registerRecipes}.
+     */
     @Override
     public void onRuntimeAvailable(IJeiRuntime jeiRuntime) {
         runtimeForHarness = jeiRuntime;
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level != null) {
+            jeiRuntime.getRecipeManager().hideRecipes(RecipeTypes.CRAFTING,
+                    RecipeViewerContent.disabledCrafting(level.getRecipeManager()));
+        }
     }
 
     @Override
