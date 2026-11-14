@@ -12,6 +12,7 @@ import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.helpers.IGuiHelper;
+import mezz.jei.api.recipe.IRecipeManager;
 import mezz.jei.api.ingredients.subtypes.ISubtypeInterpreter;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
@@ -82,9 +83,18 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         return UID;
     }
 
+    /**
+     * Also hides the gated crafting recipes whose family is off (issue #1153). They sit in JEI's own
+     * crafting category, which JEI fills itself, and the pinned JEI can only hide a recipe from the
+     * runtime, not at registration. Same once-per-session read as {@link #registerRecipes}. The list
+     * filtered is JEI's own crafting list, since the 26.1.2 client has no recipe manager to ask.
+     */
     @Override
     public void onRuntimeAvailable(IJeiRuntime jeiRuntime) {
         runtimeForHarness = jeiRuntime;
+        IRecipeManager recipes = jeiRuntime.getRecipeManager();
+        recipes.hideRecipes(RecipeTypes.CRAFTING, RecipeViewerContent.disabledCrafting(
+                recipes.createRecipeLookup(RecipeTypes.CRAFTING).get().toList()));
     }
 
     @Override
