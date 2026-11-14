@@ -133,13 +133,15 @@ These checklist lines stay manual. `docs/releasing.md` lists them as manual step
   chest back with `data get block`, and save the result as `fixtures/draconic-gear.cmds`, the way
   `partner-gear.cmds` was made. SNBT written by hand, with no live DE to check it against, either fails to
   place or loads with an empty module grid, and the restart pass would then compare two empty grids and
-  pass.
+  pass. On 26.1.2 g8 has no Draconic Evolution at all (no 26.1.2 build, see g8.txt), so this half waits
+  for one.
 - Line 194, per-mod processing toggles with `/reload`. The runner only changes a toggle while the server
   is stopped, then restarts it. Line 194 needs the server up: set `createRecipes` (then
   `immersiveEngineeringRecipes`, then `enderIoRecipes`) to false in the running server's
   `compat-server.toml`, send `/reload`, and expect the next `Loaded N recipes` line below the boot count;
-  set it back, `/reload` again, and expect the boot count. g8 and g9 load all three mods through
-  `base.txt`. It isn't automated because it relies on NeoForge's config watcher reading an edit made
+  set it back, `/reload` again, and expect the boot count. On 1.21.1, g8 and g9 load all three mods
+  through `base.txt`. On 26.1.2 `base.txt` has only EnderIO (Create and Immersive Engineering have no
+  26.1.2 build), so only `enderIoRecipes` can be checked. It isn't automated because it relies on NeoForge's config watcher reading an edit made
   outside the running server before `/reload` runs, and no one has checked on a dedicated server that it
   does, or how long it takes. A count also shows only that some recipes went away, not that only the
   toggled mod's rows did: the log doesn't name recipe ids. `ProcessingCompatToggleGameTests` covers the

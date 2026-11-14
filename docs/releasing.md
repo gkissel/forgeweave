@@ -171,6 +171,9 @@ README's Gaps section says why each one isn't automated:
   back on brings everything back.
 - Line 220: Track B ores generate in Allthemodium's mining dimension.
 
+On 26.1.2, Draconic Evolution, Create and Immersive Engineering have no build, so line 129's Draconic
+half is skipped and line 194 checks `enderIoRecipes` only.
+
 ## Publishing
 
 From the branch or commit being released:
