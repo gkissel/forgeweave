@@ -1,6 +1,7 @@
 package dev.gkissel.forgeweave.emi;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
@@ -36,6 +37,7 @@ import dev.emi.emi.api.widget.Bounds;
 import dev.gkissel.forgeweave.Forgeweave;
 import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.client.SmelteryScreen;
+import dev.gkissel.forgeweave.client.SmelteryScreen.TankHover;
 import dev.gkissel.forgeweave.client.StationExtraAreas;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
 import dev.gkissel.forgeweave.item.PartItem;
@@ -257,9 +259,19 @@ public final class ForgeweaveEmiPlugin implements EmiPlugin {
                         areas.accept(new Bounds(area.getX(), area.getY(), area.getWidth(), area.getHeight())));
             }
         });
-        registry.addStackProvider(SmelteryScreen.class, (screen, x, y) -> screen.hoveredTankFluid(x, y)
-                .map(hover -> new EmiStackInteraction(fluidStack(hover.fluid())))
-                .orElse(EmiStackInteraction.EMPTY));
+        registry.addStackProvider(SmelteryScreen.class, (screen, x, y) -> tankInteraction(screen.hoveredTankFluid(x, y)));
+    }
+
+    /**
+     * The hovered tank fluid, marked not clickable (issue #1216). EMI handles mouse presses before the
+     * screen sees them, and its default "view recipes" bind includes left click, so a clickable stack
+     * here made every click on the tank open EMI instead of reordering the pour. For mouse buttons EMI
+     * skips non-clickable stacks ({@code EmiStackProviders#getStackAt}), while R, U and the other key
+     * binds still find this one. JEI's own GUI handler stacks are never click-to-focus either.
+     */
+    static EmiStackInteraction tankInteraction(Optional<TankHover> hover) {
+        return hover.map(tank -> new EmiStackInteraction(fluidStack(tank.fluid()), null, false))
+                .orElse(EmiStackInteraction.EMPTY);
     }
 
     private static EmiStack fluidStack(FluidStack fluid) {
