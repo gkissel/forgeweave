@@ -45,12 +45,17 @@ def main():
         base = json.loads(ingot.read_text())
         if base["fluid"] != f"forgeweave:molten_{name}":
             continue
+        # Issue #1150: the common tag name is the one the ingot row already melts, not the material
+        # id. Elementarium tags its chromium dust c:dusts/chromium; c:dusts/elementarium_chromium
+        # has no members, so a row keyed on the material id could never match anything.
+        common = base["input"] if isinstance(base["input"], str) else ""
+        common = common.removeprefix("#c:ingots/") if common.startswith("#c:ingots/") else name
         forms = FORMS | (ORE_FORMS if name in ORE_METALS else {})
         for suffix, (tag, amount, ore) in forms.items():
             target = DATA / "melting_recipe" / f"{name}_{suffix}.json"
             if target.exists():
                 continue
-            tag_name = f"raw_{name}" if suffix == "raw_block" else name
+            tag_name = f"raw_{common}" if suffix == "raw_block" else common
             recipe = {"input": f"#c:{tag}/{tag_name}", "fluid": base["fluid"], "amount": amount}
             key = (base["fluid"], json.dumps(recipe["input"], sort_keys=True))
             if key in existing:
