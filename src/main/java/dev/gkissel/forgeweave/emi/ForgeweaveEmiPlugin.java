@@ -107,6 +107,7 @@ public final class ForgeweaveEmiPlugin implements EmiPlugin {
         if (!jeiBridged) {
             registerRetexturedCrafting(registry);
         }
+        hideDisabledCrafting(registry);
 
         // Issue #752: Mending Moss is made at a bookshelf, by no datapack recipe, so without this page
         // it would have an empty recipe tab and no clue how it is made.
@@ -132,6 +133,21 @@ public final class ForgeweaveEmiPlugin implements EmiPlugin {
         registry.removeRecipes(recipe -> ids.contains(recipe.getId()) && !(recipe instanceof RetexturedCraftingEmiRecipe));
         for (RecipeHolder<CraftingRecipe> holder : retextured) {
             registry.addRecipe(new RetexturedCraftingEmiRecipe(holder, (RetexturedShapedRecipe) holder.value()));
+        }
+    }
+
+    /**
+     * Issue #1153: drops the gated crafting recipes whose family is off from EMI's crafting category,
+     * by id. Unconditional, unlike the retextured swap above: EMI applies a removal to every plugin's
+     * recipes, so it also covers the copies the JEI bridge forwards. Read once per EMI reload; see
+     * {@link RecipeViewerContent#disabledCrafting} for a toggle flipped mid-session.
+     */
+    private static void hideDisabledCrafting(EmiRegistry registry) {
+        Set<ResourceLocation> ids = RecipeViewerContent.disabledCrafting(registry.getRecipeManager()).stream()
+                .map(RecipeHolder::id)
+                .collect(Collectors.toSet());
+        if (!ids.isEmpty()) {
+            registry.removeRecipes(recipe -> ids.contains(recipe.getId()));
         }
     }
 

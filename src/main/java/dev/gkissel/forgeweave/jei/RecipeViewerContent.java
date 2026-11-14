@@ -10,6 +10,10 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeManager;
+import net.minecraft.world.item.crafting.RecipeType;
 
 import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
@@ -21,6 +25,7 @@ import dev.gkissel.forgeweave.modifier.WorktableRecipe;
 import dev.gkissel.forgeweave.recipe.AlloyRecipe;
 import dev.gkissel.forgeweave.recipe.CoreTransformRecipe;
 import dev.gkissel.forgeweave.recipe.EntityMeltingRecipe;
+import dev.gkissel.forgeweave.recipe.GatedShapedRecipe;
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 import dev.gkissel.forgeweave.recipe.SmelteryFuel;
 
@@ -135,6 +140,25 @@ public record RecipeViewerContent(
                 // Issue #752: Mending Moss is not produced by any datapack recipe, so without this one
                 // text line it would have an empty "Recipes" tab with no clue how it is made.
                 modifiers);
+    }
+
+    /**
+     * Issue #1153: the vanilla crafting recipes a viewer must hide, i.e. every {@link
+     * GatedShapedRecipe} whose result's family is off (today the Slimeslings under {@code gadgets}).
+     * The 14 lists above are Forgeweave's own; these live in the viewers' own crafting category, so
+     * each plugin hides them there instead ({@link ForgeweaveJeiPlugin#onRuntimeAvailable}, and the EMI
+     * plugin's {@code register}).
+     *
+     * <p>Read once, when the viewer builds its lists, the same as everything else here: a toggle
+     * flipped mid-session leaves the viewer on the old answer until it next rebuilds (at the latest
+     * the next join), while the crafting table itself follows the new value at once, since {@link
+     * GatedShapedRecipe#matches} asks on every craft. See {@link ForgeweaveJeiPlugin#registerRecipes}.
+     */
+    public static List<RecipeHolder<CraftingRecipe>> disabledCrafting(RecipeManager recipes) {
+        return recipes.getAllRecipesFor(RecipeType.CRAFTING).stream()
+                .filter(holder -> holder.value() instanceof GatedShapedRecipe gated
+                        && !ContentFamilies.itemEnabled(gated.getResultItem(RegistryAccess.EMPTY)))
+                .toList();
     }
 
     /** Every recipe in all 14 lists, for a quick "did anything get built" check. */
