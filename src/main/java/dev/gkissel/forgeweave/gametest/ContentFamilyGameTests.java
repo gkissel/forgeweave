@@ -1,10 +1,17 @@
 package dev.gkissel.forgeweave.gametest;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import net.minecraft.core.BlockPos;
 import dev.gkissel.forgeweave.gametest.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityTypes;
@@ -13,6 +20,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
@@ -30,6 +40,7 @@ import dev.gkissel.forgeweave.casting.CastingRecipe;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.fluid.ForgeweaveFluids;
 import dev.gkissel.forgeweave.item.ForgeweaveItems;
+import dev.gkissel.forgeweave.jei.RecipeViewerContent;
 import dev.gkissel.forgeweave.menu.ContentFamilies;
 import dev.gkissel.forgeweave.menu.PartBuilderMenu;
 import dev.gkissel.forgeweave.menu.SmelteryMenu;
@@ -38,6 +49,7 @@ import dev.gkissel.forgeweave.menu.ToolAssemblyRecipes;
 import dev.gkissel.forgeweave.menu.ToolStationMenu;
 import dev.gkissel.forgeweave.menu.ToolStationTabs;
 import dev.gkissel.forgeweave.modifier.ModifierApplication;
+import dev.gkissel.forgeweave.recipe.GatedShapedRecipe;
 import dev.gkissel.forgeweave.recipe.MeltingRecipe;
 import dev.gkissel.forgeweave.tool.ToolConstants;
 import dev.gkissel.forgeweave.worldgen.SlimeIslandStructure;
@@ -492,6 +504,40 @@ public class ContentFamilyGameTests {
         helper.assertTrue(ContentFamilies.itemEnabled(ForgeweaveItems.SLIME_SLING.get())
                         && crafts(helper, pure).is(ForgeweaveItems.SLIME_SLING.get()),
                 "turning gadgets back on must restore the sling with no reload");
+        helper.succeed();
+    }
+
+    /**
+     * Issue #1153, the viewer side of the test above: with gadgets off, the list JEI and EMI hide
+     * from their crafting category holds every gated crafting recipe, all five Slimesling colours
+     * among them, and with gadgets on it is empty.
+     */
+    @GameTest(template = "empty")
+    public static void gadgetsOffHidesTheSlimeslingFromRecipeViewers(GameTestHelper helper) {
+        Collection<RecipeHolder<CraftingRecipe>> crafting =
+                helper.getLevel().recipeAccess().recipeMap().byType(RecipeType.CRAFTING);
+        Set<ResourceKey<Recipe<?>>> gated = crafting.stream()
+                .filter(holder -> holder.value() instanceof GatedShapedRecipe)
+                .map(RecipeHolder::id)
+                .collect(Collectors.toSet());
+        Set<ResourceKey<Recipe<?>>> slings = Stream.of("slime_sling", "blue_slime_sling", "purple_slime_sling",
+                        "magma_slime_sling", "blood_slime_sling")
+                .map(path -> ResourceKey.create(Registries.RECIPE, Identifier.fromNamespaceAndPath(Forgeweave.MODID, path)))
+                .collect(Collectors.toSet());
+        helper.assertTrue(gated.containsAll(slings), "every Slimesling colour must be a gated recipe, got " + gated);
+
+        helper.assertTrue(RecipeViewerContent.disabledCrafting(crafting).isEmpty(),
+                "with gadgets on, the viewers must hide nothing");
+        ForgeweaveConfig.GADGETS.set(false);
+        try {
+            Set<ResourceKey<Recipe<?>>> hidden = RecipeViewerContent.disabledCrafting(crafting).stream()
+                    .map(RecipeHolder::id)
+                    .collect(Collectors.toSet());
+            helper.assertTrue(hidden.equals(gated),
+                    "with gadgets off, the viewers must hide every gated recipe and nothing else, got " + hidden);
+        } finally {
+            ForgeweaveConfig.GADGETS.set(true);
+        }
         helper.succeed();
     }
 
