@@ -57,8 +57,15 @@ public final class GrantedEnchantments {
     /**
      * A table or anvil level and a modifier's grant add up, so Fortune III on a Luck VI pickaxe mines
      * at Fortune IX. An enchantment with only one level, Silk Touch among them, stays at 1.
+     *
+     * <p>Reads the enchantment itself only when both levels are set. Scorched Guns asks about its own
+     * enchantments through a {@code DeferredHolder} that never binds, so {@code value()} throws, and
+     * that exception cancelled every melee hit with a Forgeweave tool (issue #1213).
      */
     public static int combined(Holder<Enchantment> enchantment, int stored, int granted) {
+        if (stored == 0 || granted == 0) {
+            return stored + granted;
+        }
         return enchantment.value().getMaxLevel() == 1 ? Math.max(stored, granted) : stored + granted;
     }
 
