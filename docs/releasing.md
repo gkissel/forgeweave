@@ -171,6 +171,9 @@ README's Gaps section says why each one isn't automated:
   back on brings everything back.
 - Line 220: Track B ores generate in Allthemodium's mining dimension.
 
+On 26.3 these three can't run yet: Draconic Evolution, Create, Immersive Engineering, EnderIO and
+Allthemodium have no 26.3 NeoForge build. Check them once those mods have one.
+
 ## Publishing
 
 From the branch or commit being released:

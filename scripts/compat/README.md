@@ -126,6 +126,11 @@ They work on their own too, against any server directory `mk.sh` built:
 
 These checklist lines stay manual. `docs/releasing.md` lists them as manual steps.
 
+On 26.3 none of the three can run yet, by hand or otherwise: Draconic Evolution, Create, Immersive
+Engineering, EnderIO and Allthemodium have no 26.3 NeoForge build, so `g8` and `base.txt` leave them out
+and `g10-allthemodium` is a SKIP (see "On Minecraft 26.1.2" above and each pack's header). The notes below
+are for when those mods come back.
+
 - Line 129, Draconic Evolution module and fusion state. g8 loads Draconic Evolution, but no fixture
   holds a Forgeweave tool or armor piece with DE modules installed or a fusion upgrade, so `boot`,
   `restart` and `without` never see that state. DE keeps it on its own data components, not Forgeweave's.
