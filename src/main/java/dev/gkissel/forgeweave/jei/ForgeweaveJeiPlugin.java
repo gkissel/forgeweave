@@ -1,5 +1,6 @@
 package dev.gkissel.forgeweave.jei;
 
+import java.util.List;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -7,11 +8,14 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
 
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.helpers.IGuiHelper;
+import mezz.jei.api.recipe.IRecipeManager;
 import mezz.jei.api.ingredients.subtypes.ISubtypeInterpreter;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
@@ -82,9 +86,22 @@ public final class ForgeweaveJeiPlugin implements IModPlugin {
         return UID;
     }
 
+    /**
+     * Also hides the gated crafting recipes whose family is off (issue #1153). They sit in JEI's own
+     * crafting category, which JEI fills itself from the recipes NeoForge syncs, and the pinned JEI can
+     * only hide a recipe from the runtime, not at registration. A 26.2 client has no recipe manager, so
+     * the list comes from JEI's own crafting lookup. Same once-per-session read as {@link
+     * #registerRecipes}.
+     */
     @Override
     public void onRuntimeAvailable(IJeiRuntime jeiRuntime) {
         runtimeForHarness = jeiRuntime;
+        IRecipeManager recipes = jeiRuntime.getRecipeManager();
+        List<RecipeHolder<CraftingRecipe>> hidden = RecipeViewerContent.disabledCrafting(
+                recipes.createRecipeLookup(RecipeTypes.CRAFTING).get().toList());
+        if (!hidden.isEmpty()) {
+            recipes.hideRecipes(RecipeTypes.CRAFTING, hidden);
+        }
     }
 
     @Override

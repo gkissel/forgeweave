@@ -1,16 +1,19 @@
 package dev.gkissel.forgeweave.emi;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import net.minecraft.SharedConstants;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.Bootstrap;
@@ -26,7 +29,9 @@ import dev.emi.emi.api.EmiRegistry;
 import dev.emi.emi.api.recipe.EmiInfoRecipe;
 import dev.emi.emi.api.recipe.EmiRecipe;
 import dev.emi.emi.api.recipe.EmiRecipeCategory;
+import dev.emi.emi.api.stack.EmiStackInteraction;
 
+import dev.gkissel.forgeweave.client.SmelteryScreen.TankHover;
 import dev.gkissel.forgeweave.jei.MeltingDisplay;
 import dev.gkissel.forgeweave.jei.RecipeViewerContent;
 import dev.gkissel.forgeweave.recipe.AlloyRecipe;
@@ -140,5 +145,19 @@ class ForgeweaveEmiPluginTest {
         // the Crafting Station on crafting and the seared furnace controller on smelting.
         assertEquals(2, alone.workstationCategories.size() - bridged.workstationCategories.size());
         assertEquals(14, bridged.categories.size(), "the bridge skips Forgeweave's own categories, so these stay");
+    }
+
+    /**
+     * Issue #1216: EMI sees a mouse press before the smeltery screen does, and left click is one of
+     * its "view recipes" binds. A clickable tank stack swallowed the click that reorders the pour.
+     */
+    @Test
+    void tankFluidAnswersKeysButNotClicks() {
+        EmiStackInteraction hovered = ForgeweaveEmiPlugin.tankInteraction(
+                Optional.of(new TankHover(new FluidStack(Fluids.LAVA, 144), new Rect2i(0, 0, 52, 10))));
+
+        assertFalse(hovered.isEmpty(), "R and U still look the fluid up");
+        assertFalse(hovered.isClickable(), "a mouse click goes on to the screen");
+        assertTrue(ForgeweaveEmiPlugin.tankInteraction(Optional.empty()).isEmpty());
     }
 }

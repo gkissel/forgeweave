@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -126,6 +127,45 @@ class CompatMeltingCoverageTest {
             }
         }
         assertTrue(gated > 0, "expected gated dust rows, atomic matter alloy's among them");
+    }
+
+    /**
+     * Issue #1150: a material's nugget, block and dust rows name the same common tag its ingot row
+     * melts. The gap fill once keyed Elementarium's dusts on the material id
+     * ({@code #c:dusts/elementarium_chromium}), a tag no item fills, while the ingot row and the mod
+     * itself use {@code #c:ingots/chromium}.
+     */
+    @Test
+    void everyFormRowNamesItsIngotRowsCommonTag() throws IOException {
+        Map<String, String> folders = Map.of("nugget", "nuggets", "block", "storage_blocks",
+                "dust", "dusts", "small_dust", "small_dusts", "tiny_dust", "tiny_dusts");
+        int checked = 0;
+        try (var files = Files.list(DATA.resolve("melting_recipe"))) {
+            for (Path ingot : files.filter(p -> p.getFileName().toString().endsWith("_ingot.json")).sorted().toList()) {
+                var input = JsonParser.parseString(Files.readString(ingot)).getAsJsonObject().get("input");
+                if (!input.isJsonPrimitive() || !input.getAsString().startsWith("#c:ingots/")) {
+                    continue;
+                }
+                String common = input.getAsString().substring("#c:ingots/".length());
+                String id = ingot.getFileName().toString().replace("_ingot.json", "");
+                for (var form : folders.entrySet()) {
+                    Path row = DATA.resolve("melting_recipe/" + id + "_" + form.getKey() + ".json");
+                    if (!Files.exists(row)) {
+                        continue;
+                    }
+                    var formInput = read("melting_recipe/" + row.getFileName()).get("input");
+                    List<String> ids = (formInput.isJsonArray() ? formInput.getAsJsonArray().asList() : List.of(formInput))
+                            .stream().filter(JsonElement::isJsonPrimitive).map(JsonElement::getAsString).toList();
+                    if (ids.stream().noneMatch(entry -> entry.startsWith("#"))) {
+                        continue;
+                    }
+                    String expected = "#c:" + form.getValue() + "/" + common;
+                    assertTrue(ids.contains(expected), row.getFileName() + " should melt " + expected);
+                    checked++;
+                }
+            }
+        }
+        assertTrue(checked > 0, "expected tag-based form rows, Elementarium's dusts among them");
     }
 
     private static JsonObject findMeltingTag(String tag) throws IOException {
