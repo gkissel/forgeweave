@@ -1,10 +1,13 @@
 package dev.gkissel.forgeweave.client.book;
 
+import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.function.Function;
 
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
@@ -74,6 +77,29 @@ public final class BookMaterialOrder {
             stages.add(new Stage(stage, bucket));
         }
         return List.copyOf(stages);
+    }
+
+    /**
+     * The order of the chapter's A to Z index (issue #1225): by the material's name as the player
+     * reads it, compared under {@code locale}'s collation rules at secondary strength, so case never
+     * matters and accented letters sort next to their base letter. Two materials with the same
+     * name fall back to their id, so the order never depends on the order they came in.
+     *
+     * @param translate turns a lang key into the text the player sees
+     */
+    public static Comparator<Map.Entry<ResourceLocation, Material>> byName(Function<String, String> translate,
+            Locale locale) {
+        Collator collator = Collator.getInstance(locale);
+        collator.setStrength(Collator.SECONDARY);
+        return Comparator
+                .comparing((Map.Entry<ResourceLocation, Material> entry) -> translate.apply(nameKey(entry.getKey())),
+                        collator)
+                .thenComparing(entry -> entry.getKey().toString());
+    }
+
+    /** A material's name lang key, {@code material.<namespace>.<path>}. */
+    public static String nameKey(ResourceLocation id) {
+        return "material." + id.getNamespace() + "." + id.getPath();
     }
 
     private static Comparator<Map.Entry<ResourceLocation, Material>> insideStage(MaterialStage.Lookup lookup) {
