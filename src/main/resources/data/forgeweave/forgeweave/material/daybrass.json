@@ -26,6 +26,10 @@
     "general": [
       "forgeweave:daybound",
       "forgeweave:sunforged"
+    ],
+    "armor": [
+      "forgeweave:daybound",
+      "forgeweave:revealward"
     ]
   },
   "crafting_items": [

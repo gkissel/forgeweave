@@ -42,6 +42,10 @@
     "general": [
       "forgeweave:poisonous",
       "forgeweave:heft3"
+    ],
+    "armor": [
+      "forgeweave:venomward",
+      "forgeweave:heft3"
     ]
   },
   "crafting_items": [

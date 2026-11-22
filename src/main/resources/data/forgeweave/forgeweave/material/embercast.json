@@ -46,6 +46,10 @@
     "general": [
       "forgeweave:sunmend",
       "forgeweave:netherkeen"
+    ],
+    "armor": [
+      "forgeweave:sunmend",
+      "forgeweave:fire_protection"
     ]
   },
   "crafting_items": [
