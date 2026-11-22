@@ -105,10 +105,12 @@ class BookListingTest {
                 .orElseThrow(() -> new AssertionError("no section " + titleKey));
     }
 
-    /** The ladder page's stage rows, i.e. every row but the last one (the traits reference). */
+    /** The ladder page's stage rows: every row but the A to Z index and the traits reference. */
     private static List<BookLink> stageRows(BookSection chapter, ListingPage ladder) {
         return ladder.links().stream()
                 .filter(row -> chapter.pages().get(row.targetPage()) instanceof IconGridPage)
+                // Issue #1225: the first row opens the A to Z index, which is not a stage.
+                .filter(row -> !row.labelKey().equals(BookContent.MATERIALS_AZ_TITLE))
                 .toList();
     }
 
@@ -232,12 +234,12 @@ class BookListingTest {
         ListingPage ladder = assertInstanceOf(ListingPage.class, materials.pages().get(0),
                 "the materials chapter opens on its progression ladder");
         assertEquals(BookContent.MATERIAL_STAGES_TITLE, ladder.titleKey());
-        assertEquals(List.of(MaterialStage.FIRST_DAY.nameKey(), MaterialStage.FIRST_SMELTERY.nameKey(),
-                        BookContent.TRAITS_TITLE),
+        assertEquals(List.of(BookContent.MATERIALS_AZ_TITLE, MaterialStage.FIRST_DAY.nameKey(),
+                        MaterialStage.FIRST_SMELTERY.nameKey(), BookContent.TRAITS_TITLE),
                 ladder.links().stream().map(BookLink::labelKey).toList(),
-                "wood and stone are first-day materials, iron needs the smeltery; no other stage has "
-                        + "a material here, so no other stage gets a row, and the traits reference "
-                        + "closes the list");
+                "the A to Z index opens the list (#1225); wood and stone are first-day materials, iron "
+                        + "needs the smeltery; no other stage has a material here, so no other stage "
+                        + "gets a row, and the traits reference closes the list");
         assertTargetsAreInSection(materials, ladder.links());
 
         for (BookLink row : stageRows(materials, ladder)) {

@@ -27,7 +27,8 @@ public final class BookOpener {
     public static void open(ItemStack stack, InteractionHand hand) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.level != null) {
-            minecraft.setScreen(new BookScreen(BookContent.sections(minecraft.level.registryAccess()),
+            minecraft.setScreen(new BookScreen(BookContent.sections(minecraft.level.registryAccess(),
+                    minecraft.getLanguageManager().getJavaLocale()),
                     stack.getOrDefault(ForgeweaveDataComponents.BOOK_PAGE.get(), ""), hand));
         }
     }
