@@ -62,6 +62,15 @@ import dev.gkissel.forgeweave.modifier.ForgeweaveModifiers;
  * equivalent of eating a save, so the old file is carried over rather than abandoned, and it is
  * renamed to {@code forgeweave-server.toml.migrated} afterwards instead of deleted.
  *
+ * <p><b>Changing a key (issue #1152).</b> Players keep their config files across updates. Never
+ * rename or remove a key, or change the default or allowed range of a value players may have set,
+ * without a migration in {@link ForgeweaveConfigMigration}. New keys and edited comments are fine:
+ * NeoForge adds them to an old file on the next boot and keeps its values. The compat matrix's
+ * upgrade pass enforces this ({@code upgrade_pass} in {@code scripts/compat/run_matrix.sh}). It
+ * boots the previous release, then this one on the same world, and fails if NeoForge's correction
+ * of a file under {@code config/forgeweave/} changes, resets or drops a value the old file had. A
+ * changed default slips past it, since NeoForge leaves an existing file's value alone.
+ *
  * <p>{@link ForgeweaveClientConfig} stays where it is, at {@code config/forgeweave-client.toml}: it
  * is a single short spec of display preferences that is not growing, and D-M8-8 is about the server
  * file.
