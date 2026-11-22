@@ -47,6 +47,10 @@
     "general": [
       "forgeweave:evolved",
       "forgeweave:stonewake"
+    ],
+    "armor": [
+      "forgeweave:evolved",
+      "forgeweave:warded"
     ]
   },
   "crafting_items": [

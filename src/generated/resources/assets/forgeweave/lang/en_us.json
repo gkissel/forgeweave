@@ -335,6 +335,8 @@
   "book.forgeweave.material.made_by_alloying": "Alloyed from:",
   "book.forgeweave.material.made_by_melting": "Melts from:",
   "book.forgeweave.material.stage": "Stage: %s",
+  "book.forgeweave.materials.a_to_z": "Materials A to Z",
+  "book.forgeweave.materials.a_to_z_index": "Every material in one grid, sorted by name. Use it when you know a material's name but not its stage.",
   "book.forgeweave.materials.intro.text": "Every part of a tool contributes the stats of the material it is made from: the head brings durability, mining speed and attack; the handle multiplies durability; a binding adds a flat bonus.\n\nMaterials also grant traits: special behaviours listed on the pages that follow.",
   "book.forgeweave.materials.intro.title": "Materials",
   "book.forgeweave.materials.mining_ladder.text": "A tool's mining level comes from its head. Every material sits on one rung of an eight-rung ladder, and a tool harvests anything at its own rung or below. A block that needs a higher rung still breaks at the tool's normal speed, but it drops nothing. The Tool Tier line on a tool's tooltip names its rung.\n\nEach rung below reads left to right: the first heads that reach it, the pickaxe they make, and the ores that pickaxe opens. Hover any icon for details, and click a head to open its page.",
