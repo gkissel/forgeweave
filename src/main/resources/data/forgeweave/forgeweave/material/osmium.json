@@ -46,6 +46,9 @@
     "general": [
       "forgeweave:leadfoot",
       "forgeweave:heavy"
+    ],
+    "armor": [
+      "forgeweave:heavy"
     ]
   },
   "crafting_items": [

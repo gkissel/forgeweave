@@ -46,6 +46,10 @@
     "general": [
       "forgeweave:steadfast",
       "forgeweave:stonewake"
+    ],
+    "armor": [
+      "forgeweave:steadfast",
+      "forgeweave:warded"
     ]
   },
   "crafting_items": [

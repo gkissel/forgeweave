@@ -47,6 +47,10 @@
     "general": [
       "forgeweave:evolved3",
       "forgeweave:chaosmark"
+    ],
+    "armor": [
+      "forgeweave:evolved3",
+      "forgeweave:enderclearance"
     ]
   },
   "crafting_items": [

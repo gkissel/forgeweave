@@ -18,7 +18,8 @@
   "maille": true,
   "incorrect_for_tool": "minecraft:incorrect_for_netherite_tool",
   "traits": {
-    "general": ["forgeweave:overlord", "forgeweave:overslime"]
+    "general": ["forgeweave:overlord", "forgeweave:overslime"],
+    "armor": ["forgeweave:overslime", "forgeweave:overshield"]
   },
   "crafting_items": [
     { "ingredient": { "item": "forgeweave:queens_slime_ingot" }, "value": 144 },

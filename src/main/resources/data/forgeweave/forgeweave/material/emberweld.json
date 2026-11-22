@@ -47,6 +47,10 @@
     "general": [
       "forgeweave:evolved",
       "forgeweave:soulrend2"
+    ],
+    "armor": [
+      "forgeweave:evolved",
+      "forgeweave:bloodward"
     ]
   },
   "crafting_items": [

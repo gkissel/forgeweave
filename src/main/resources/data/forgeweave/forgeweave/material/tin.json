@@ -38,6 +38,10 @@
     "general": [
       "forgeweave:steadfast",
       "forgeweave:quick"
+    ],
+    "armor": [
+      "forgeweave:steadfast",
+      "forgeweave:swiftward"
     ]
   },
   "crafting_items": [

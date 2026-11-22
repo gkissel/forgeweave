@@ -42,6 +42,10 @@
     "general": [
       "forgeweave:voidward2",
       "forgeweave:chaosmark"
+    ],
+    "armor": [
+      "forgeweave:voidward2",
+      "forgeweave:enderclearance"
     ]
   },
   "crafting_items": [
