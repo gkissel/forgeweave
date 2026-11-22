@@ -222,6 +222,38 @@ The reactor metals climb the way the essence ladder does, weakest ore to hottest
 `bonusSlots`, which runs on a worn piece as readily as on a held tool, so its armor list came off
 rather than gaining an id -- the `emberdrink` and `bracingplate` case from batch 2.
 
+### Issue #1145: sixteen tool traits shown on armor
+
+Fifteen materials built armor with no `traits.armor` list, so their general tool trait also landed
+on plating and maille, where none of its hooks run. Each one has an armor list now. It keeps the
+general trait that already worked on armor and swaps the idle one for an existing armor trait, the
+idle trait turned around. `TraitReachabilityTest#noTraitIsShownOnASideWhereItDoesNothing` runs
+enabled now.
+
+| Material | Idle on armor | Armor list now | What ties them |
+| --- | --- | --- | --- |
+| `awakened` | `ruthless`, `shieldbreaker` | `evolved2`, `surgeward` | it makes a critical blow land harder; worn, you get a beat longer before the next one can |
+| `bronze` | `stonewake` | `steadfast`, `warded` | 2 more damage while the wielder is at full health; worn, 2 less while the wearer is |
+| `carminite` | `chaosmark` | `voidward2`, `enderclearance` | it leaves the target reeling; worn, it throws the attacker somewhere else |
+| `chaotic` | `chaosmark` | `evolved3`, `enderclearance` | same as carminite |
+| `daybrass` | `sunforged` | `daybound`, `revealward` | it works best in the light; worn, it lights up whoever strikes you |
+| `duskweld` | `soulrend` | `evolving`, `bloodward` | it drinks blood from a target; worn, it closes the wearer's own wound |
+| `embercast` | `netherkeen` | `sunmend`, `fire_protection` | it digs fastest in the Nether; worn, the Nether's fire bites less |
+| `emberweld` | `soulrend2` | `evolved`, `bloodward` | same as duskweld |
+| `lead` | `poisonous` | `venomward`, `heft3` | it poisons what it strikes; worn, it poisons whoever strikes you |
+| `osmium` | `leadfoot` | `heavy` | `leadfoot` is a drawback on a held tool, so nothing replaces it; `heavy` was already the worn half (batch 0) |
+| `queens_slime` | `overlord` | `overslime`, `overshield` | it turns durability into overslime; worn, it spends overslime as protection |
+| `starweld` | `soulrend3` | `evolved2`, `bloodward` | same as duskweld |
+| `tin` | `quick` | `steadfast`, `swiftward` | quick in the hand, quick on the feet |
+| `voidweld` | `soulrend4` | `evolved3`, `bloodward` | same as duskweld |
+| `wyvern` | `stonewake` | `evolved`, `warded` | same as bronze |
+
+No tool side changed. Most pairs copy one batch 1 already uses: `rose_gold` for `quick`,
+`dragon_bone` for a crit bonus, `soularium` for lifesteal, the deathworm chitins for poison. Three
+are new pairings of existing traits: `warded` mirrors `stonewake`'s full-health condition,
+`enderclearance` is the closest worn answer to a confusing hit, and `overshield` spends the
+overslime pool `overlord` builds.
+
 ## One-sided materials
 
 Twenty-five materials build tools and no armor at all, so the rule asks nothing of them on the armor
