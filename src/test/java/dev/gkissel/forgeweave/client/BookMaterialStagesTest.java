@@ -123,10 +123,12 @@ class BookMaterialStagesTest {
         return BookContent.sections(shippedMaterials(), shippedLookup());
     }
 
-    /** The ladder page's stage rows, i.e. every row but the last one (the traits reference). */
+    /** The ladder page's stage rows: every row but the A to Z index and the traits reference. */
     private static List<BookLink> stageRows(BookSection chapter, ListingPage ladder) {
         return ladder.links().stream()
                 .filter(row -> chapter.pages().get(row.targetPage()) instanceof IconGridPage)
+                // Issue #1225: the first row opens the A to Z index, which is not a stage.
+                .filter(row -> !row.labelKey().equals(BookContent.MATERIALS_AZ_TITLE))
                 .toList();
     }
 

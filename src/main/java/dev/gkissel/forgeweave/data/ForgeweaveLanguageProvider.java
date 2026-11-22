@@ -3131,6 +3131,10 @@ public class ForgeweaveLanguageProvider extends LanguageProvider {
         // #1104: the materials chapter is a ladder now, so it opens on the ladder itself -- one row
         // per stage saying what a player needs before that stage opens.
         add("book.forgeweave.materials.stages", "The Material Ladder");
+        // #1225: every material on one grid by name, for a player who does not know its stage.
+        add("book.forgeweave.materials.a_to_z", "Materials A to Z");
+        add("book.forgeweave.materials.a_to_z_index",
+                "Every material in one grid, sorted by name. Use it when you know a material's name but not its stage.");
         add("book.forgeweave.stage.first_day.name", "First day");
         add("book.forgeweave.stage.first_day.unlock",
                 "Wood, stone, flint and bone, carved at the Part Builder. Nothing here needs a smeltery.");

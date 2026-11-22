@@ -9,8 +9,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import com.google.gson.JsonElement;
@@ -32,11 +36,13 @@ import dev.gkissel.forgeweave.client.book.BookContent;
 import dev.gkissel.forgeweave.client.book.BookLayout;
 import dev.gkissel.forgeweave.client.book.BookLayout.Slot;
 import dev.gkissel.forgeweave.client.book.BookLink;
+import dev.gkissel.forgeweave.client.book.BookMaterialOrder;
 import dev.gkissel.forgeweave.client.book.BookPage;
 import dev.gkissel.forgeweave.client.book.BookPage.IconGridPage;
 import dev.gkissel.forgeweave.client.book.BookPage.MaterialPage;
 import dev.gkissel.forgeweave.client.book.BookSection;
 import dev.gkissel.forgeweave.material.Material;
+import dev.gkissel.forgeweave.material.MaterialStage;
 
 /**
  * Issue #846 (M6 UI/schema hardening), pressure point 2: {@code BookContent#withMaterials} builds
@@ -107,6 +113,8 @@ class BookMaterialsScaleTest {
                 // The ladder's last row opens the traits reference's listing, not a grid.
                 .filter(IconGridPage.class::isInstance)
                 .map(IconGridPage.class::cast)
+                // Issue #1225: the A to Z index is a grid too, but not a stage's.
+                .filter(grid -> !grid.titleKey().equals(BookContent.MATERIALS_AZ_TITLE))
                 .toList();
     }
 
@@ -162,5 +170,73 @@ class BookMaterialsScaleTest {
         assertEquals(gridPageBlocks.size(), blocksLaidOut, "no grid row may be dropped while paginating");
         assertEquals(0, slots.get(0).firstBlock(), "the title stays on the grid's first leaf");
         assertTrue(slots.stream().allMatch(slot -> slot.page() == 0), "every leaf still belongs to the one grid page");
+    }
+
+    /** The generated English lang file, the names a player on the default language reads. */
+    private static Map<String, String> englishNames() throws Exception {
+        Path lang = projectRoot().resolve("src/generated/resources/assets/forgeweave/lang/en_us.json");
+        Map<String, String> names = new HashMap<>();
+        JsonParser.parseString(Files.readString(lang, StandardCharsets.UTF_8)).getAsJsonObject()
+                .entrySet().forEach(entry -> names.put(entry.getKey(), entry.getValue().getAsString()));
+        return names;
+    }
+
+    /**
+     * Issue #1225: the A to Z index sits right behind the ladder page, the ladder's first row opens
+     * it, and it holds every material the chapter has a page for exactly once, sorted by English
+     * name, each icon opening that material's own page.
+     */
+    @Test
+    void theAToZIndexListsEveryMaterialOnceByNameAndEveryLinkResolves() throws Exception {
+        Map<String, String> english = englishNames();
+        Comparator<Map.Entry<Identifier, Material>> byName =
+                BookMaterialOrder.byName(key -> english.getOrDefault(key, key), Locale.ROOT);
+        BookSection materials = materialsSection(
+                BookContent.sections(shippedMaterials(), MaterialStage.Lookup.EMPTY, byName));
+
+        BookLink row = ((BookPage.ListingPage) materials.pages().get(0)).links().get(0);
+        assertEquals(BookContent.MATERIALS_AZ_TITLE, row.labelKey(), "the ladder's first row is the A to Z index");
+        assertEquals(1, row.targetPage(), "the A to Z index is the page right after the ladder");
+        IconGridPage az = assertInstanceOf(IconGridPage.class, materials.pages().get(row.targetPage()));
+        assertEquals(BookContent.MATERIALS_AZ_TITLE, az.titleKey());
+
+        Set<Identifier> chapter = new HashSet<>();
+        materials.pages().stream().filter(MaterialPage.class::isInstance)
+                .forEach(page -> chapter.add(((MaterialPage) page).id()));
+        assertTrue(chapter.size() >= 100, "non-vacuity: expected the real roster, saw " + chapter.size());
+
+        List<Map.Entry<Identifier, Material>> listed = new ArrayList<>();
+        for (BookLink link : az.links()) {
+            assertTrue(link.targetPage() >= 1 && link.targetPage() < materials.pages().size(),
+                    "link " + link.labelKey() + " targets page " + link.targetPage() + " outside the section");
+            MaterialPage target = assertInstanceOf(MaterialPage.class, materials.pages().get(link.targetPage()),
+                    "an A to Z icon must link to a material page");
+            assertEquals(BookMaterialOrder.nameKey(target.id()), link.labelKey(),
+                    "an A to Z icon must link to its own material's page");
+            listed.add(Map.entry(target.id(), target.material()));
+        }
+        assertEquals(chapter.size(), listed.size(), "one A to Z icon per material page, no duplicates");
+        assertEquals(chapter, new HashSet<>(listed.stream().map(Map.Entry::getKey).toList()),
+                "the A to Z index lists exactly the chapter's materials");
+        for (int i = 1; i < listed.size(); i++) {
+            assertTrue(byName.compare(listed.get(i - 1), listed.get(i)) < 0,
+                    "out of order: " + listed.get(i - 1).getKey() + " before " + listed.get(i).getKey());
+        }
+    }
+
+    /** Issue #1225: case never decides the A to Z order, and equal names fall back to the id. */
+    @Test
+    void theAToZOrderIgnoresCaseAndBreaksTiesById() throws Exception {
+        Material any = shippedMaterials().get(0).getValue();
+        Map<String, String> names = Map.of(
+                "material.forgeweave.b", "banana", "material.forgeweave.a", "Cherry",
+                "material.forgeweave.c", "Apple", "material.forgeweave.d", "apple");
+        List<Identifier> sorted = names.keySet().stream()
+                .map(key -> Map.entry(Identifier.fromNamespaceAndPath("forgeweave",
+                        key.substring(key.lastIndexOf('.') + 1)), any))
+                .sorted(BookMaterialOrder.byName(names::get, Locale.ROOT))
+                .map(Map.Entry::getKey)
+                .toList();
+        assertEquals(List.of("c", "d", "b", "a"), sorted.stream().map(Identifier::getPath).toList());
     }
 }
