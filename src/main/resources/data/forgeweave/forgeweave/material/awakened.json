@@ -48,6 +48,10 @@
       "forgeweave:evolved2",
       "forgeweave:ruthless",
       "forgeweave:shieldbreaker"
+    ],
+    "armor": [
+      "forgeweave:evolved2",
+      "forgeweave:surgeward"
     ]
   },
   "crafting_items": [

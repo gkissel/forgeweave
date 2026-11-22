@@ -2,7 +2,9 @@ package dev.gkissel.forgeweave.client.book;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -10,6 +12,7 @@ import javax.annotation.Nullable;
 
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.locale.Language;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
@@ -59,6 +62,10 @@ public final class BookContent {
     public static final String TRAITS_TITLE = "book.forgeweave.materials.traits";
     public static final String TRAITS_INDEX_TEXT = "book.forgeweave.materials.traits_index";
 
+    /** The A to Z index right behind the ladder page, and its row on the ladder page (issue #1225). */
+    public static final String MATERIALS_AZ_TITLE = "book.forgeweave.materials.a_to_z";
+    public static final String MATERIALS_AZ_INDEX_TEXT = "book.forgeweave.materials.a_to_z_index";
+
     /** {@code IndexTranformer}: one {@code ContentSectionList} page holds at most nine sections. */
     private static final int SECTIONS_PER_INDEX_PAGE = 9;
 
@@ -83,13 +90,22 @@ public final class BookContent {
 
     /** Builds the full section list; needs registry access for the material listing. */
     public static List<BookSection> sections(RegistryAccess registries) {
+        return sections(registries, Locale.ROOT);
+    }
+
+    /**
+     * As {@link #sections(RegistryAccess)}, with the A to Z index sorted under {@code locale}'s
+     * collation rules -- the client's own language when the book opens (issue #1225).
+     */
+    public static List<BookSection> sections(RegistryAccess registries, Locale locale) {
         return sections(registries.lookupOrThrow(Material.REGISTRY).entrySet().stream()
                 .sorted(Comparator.comparing(entry -> entry.getKey().identifier().getPath()))
                 .map((Map.Entry<ResourceKey<Material>, Material> entry) ->
                         Map.entry(entry.getKey().identifier(), entry.getValue()))
                 .toList(),
                 MaterialStage.Lookup.of(registries.lookupOrThrow(Material.REGISTRY),
-                        registries.lookupOrThrow(AlloyRecipe.REGISTRY)));
+                        registries.lookupOrThrow(AlloyRecipe.REGISTRY)),
+                BookMaterialOrder.byName(Language.getInstance()::getOrDefault, locale));
     }
 
     /**
@@ -112,6 +128,17 @@ public final class BookContent {
      */
     public static List<BookSection> sections(List<Map.Entry<Identifier, Material>> materials,
             MaterialStage.Lookup stages) {
+        return sections(materials, stages,
+                BookMaterialOrder.byName(Language.getInstance()::getOrDefault, Locale.ROOT));
+    }
+
+    /**
+     * As {@link #sections(List, MaterialStage.Lookup)}, with the order of the chapter's A to Z
+     * index handed in (issue #1225), so a test can sort by the shipped English names without a
+     * loaded client language.
+     */
+    public static List<BookSection> sections(List<Map.Entry<Identifier, Material>> materials,
+            MaterialStage.Lookup stages, Comparator<Map.Entry<Identifier, Material>> byName) {
         List<BookMaterialOrder.Stage> ladder = BookMaterialOrder.byStage(materials, stages);
         List<BookTraits.Family> traits = BookTraits.families(materials);
         List<BookSection> sections = new ArrayList<>();
@@ -125,7 +152,7 @@ public final class BookContent {
             // SectionTransformers ("tools"/"materials"/"modifiers", TinkerBook:37-40).
             List<BookPage> pages = switch (def.name()) {
                 case "tools" -> withListing(titleKey, authored);
-                case "materials" -> withMaterials(authored, ladder, traits);
+                case "materials" -> withMaterials(authored, ladder, traits, byName);
                 case "modifiers" -> {
                     ForgeweaveModifiers.ids().stream()
                             .sorted(Comparator.comparing(Identifier::getPath))
@@ -203,7 +230,10 @@ public final class BookContent {
      *
      * <ol>
      *   <li>the chapter's opening page: one row per stage, with the sentence saying what unlocks
-     *       it, jumping to that stage's grid, and a last row for the traits reference;
+     *       it, jumping to that stage's grid, and a last row for the traits reference. Its
+     *       first row opens the A to Z index;
+     *   <li>the A to Z index (issue #1225): one more icon grid, holding every material of every
+     *       stage sorted by name, for a player who knows a material's name but not its stage;
      *   <li>the authored intro pages;
      *   <li>per stage, in ladder order: the stage's icon grid, then its material pages in
      *       {@link BookMaterialOrder}'s order;
@@ -219,11 +249,15 @@ public final class BookContent {
      * round, so this is where it belongs anyway.
      */
     private static List<BookPage> withMaterials(List<BookPage> authored,
-            List<BookMaterialOrder.Stage> ladder, List<BookTraits.Family> families) {
-        // Page 0 is the stage listing; the authored pages follow, then one grid plus its material
-        // pages per stage, then the traits reference.
-        int firstStagePage = 1 + authored.size();
+            List<BookMaterialOrder.Stage> ladder, List<BookTraits.Family> families,
+            Comparator<Map.Entry<Identifier, Material>> byName) {
+        // Page 0 is the stage listing and page 1 the A to Z index; the authored pages follow, then
+        // one grid plus its material pages per stage, then the traits reference.
+        int azPage = 1;
+        int firstStagePage = azPage + 1 + authored.size();
         List<BookLink> stageRows = new ArrayList<>();
+        stageRows.add(new BookLink(MATERIALS_AZ_TITLE, null, null, azPage, MATERIALS_AZ_INDEX_TEXT));
+        Map<Identifier, BookLink> materialLinks = new HashMap<>();
         List<BookPage> stagePages = new ArrayList<>();
         for (BookMaterialOrder.Stage stage : ladder) {
             int gridPage = firstStagePage + stagePages.size();
@@ -234,8 +268,10 @@ public final class BookContent {
             for (Map.Entry<Identifier, Material> entry : stage.materials()) {
                 Identifier id = entry.getKey();
                 Material material = entry.getValue();
-                grid.add(new BookLink("material." + id.getNamespace() + "." + id.getPath(), material.color(),
-                        () -> representativeItem(material), gridPage + 1 + materialPages.size()));
+                BookLink link = new BookLink(BookMaterialOrder.nameKey(id), material.color(),
+                        () -> representativeItem(material), gridPage + 1 + materialPages.size());
+                grid.add(link);
+                materialLinks.put(id, link);
                 materialPages.add(new MaterialPage(id, material, stage.stage()));
             }
             stagePages.add(new IconGridPage(stage.stage().nameKey(), List.copyOf(grid)));
@@ -254,8 +290,17 @@ public final class BookContent {
             traitPages.add(new BookPage.TraitPage(family));
         }
 
+        // The same links the stage grids hold, so an A to Z icon and a stage icon for one material
+        // can never jump to different pages.
+        List<BookLink> azGrid = ladder.stream()
+                .flatMap(stage -> stage.materials().stream())
+                .sorted(byName)
+                .map(entry -> materialLinks.get(entry.getKey()))
+                .toList();
+
         List<BookPage> pages = new ArrayList<>();
         pages.add(new ListingPage(MATERIAL_STAGES_TITLE, List.copyOf(stageRows)));
+        pages.add(new IconGridPage(MATERIALS_AZ_TITLE, azGrid));
         pages.addAll(authored);
         pages.addAll(stagePages);
         pages.add(new ListingPage(TRAITS_TITLE, List.copyOf(traitRows)));
@@ -298,8 +343,7 @@ public final class BookContent {
             case ToolPage tool -> tool.tool().getDescriptionId();
             case ModifierPage modifier ->
                     "modifier." + modifier.id().getNamespace() + "." + modifier.id().getPath() + ".name";
-            case MaterialPage material ->
-                    "material." + material.id().getNamespace() + "." + material.id().getPath();
+            case MaterialPage material -> BookMaterialOrder.nameKey(material.id());
             case BookPage.TraitPage trait -> trait.family().nameKey();
             case ListingPage listing -> listing.titleKey();
             case IconGridPage listing -> listing.titleKey();
@@ -337,6 +381,9 @@ public final class BookContent {
                 MATERIAL_STAGES_TITLE,
                 TRAITS_TITLE,
                 TRAITS_INDEX_TEXT,
+                // Issue #1225: the A to Z index and its row on the ladder page.
+                MATERIALS_AZ_TITLE,
+                MATERIALS_AZ_INDEX_TEXT,
                 MaterialPageContent.STAGE_LINE,
                 MaterialPageContent.MADE_BY_MELTING,
                 MaterialPageContent.MADE_BY_ALLOYING,

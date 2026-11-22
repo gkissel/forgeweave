@@ -164,6 +164,7 @@ public class M615MaterialGameTests {
         Map<String, String> armor = Map.of(
                 "seared_stone", "fire_protection",
                 "necrotic_bone", "restore",
+                "queens_slime", "overslime|overshield",
                 "hepatizon", "recurrent_protection");
 
         general.forEach((name, trait) -> {
