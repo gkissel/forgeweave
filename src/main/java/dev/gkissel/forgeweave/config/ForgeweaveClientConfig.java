@@ -21,6 +21,9 @@ import net.neoforged.neoforge.common.ModConfigSpec;
  * read from any code path that runs there -- every read below sits behind a screen, a tooltip, or
  * the creative tab. That also means {@code runGameTestServer} cannot toggle them; their gates are
  * covered by unit tests that take the flag as a parameter instead (see the PR body).
+ *
+ * <p>The rule for changing a key in {@link ForgeweaveConfig}'s javadoc applies here too, but the
+ * compat matrix never checks this file, because a dedicated server doesn't load it.
  */
 public final class ForgeweaveClientConfig {
     public static final ModConfigSpec SPEC;
