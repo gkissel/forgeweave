@@ -103,6 +103,14 @@ public class ArrowEntity extends net.minecraft.world.entity.projectile.arrow.Abs
     /** Guards the endspeed fast-forward against re-entering itself through {@code super.tick()}. */
     private boolean fastForwarding;
 
+    /**
+     * The bow that fired this arrow (issue #1233), upstream's {@code getLaunchingStack}. The weapon
+     * the damage source hands back is the arrow itself, so the ranged XP grant reads the launcher
+     * from here. ponytail: not saved, so an arrow still in flight across a reload earns its bow
+     * nothing.
+     */
+    private ItemStack launcher = ItemStack.EMPTY;
+
     public ArrowEntity(EntityType<? extends ArrowEntity> type, Level level) {
         super(type, level);
     }
@@ -124,6 +132,15 @@ public class ArrowEntity extends net.minecraft.world.entity.projectile.arrow.Abs
 
     public float flatDamage() {
         return flatDamage;
+    }
+
+    /** See {@link #launcher}. Set once at launch by {@code BowItem#createArrow}. */
+    public void setLauncher(ItemStack launcher) {
+        this.launcher = launcher.copy();
+    }
+
+    public ItemStack launcher() {
+        return launcher;
     }
 
     private boolean hasTrait(dev.gkissel.forgeweave.api.trait.Trait trait) {

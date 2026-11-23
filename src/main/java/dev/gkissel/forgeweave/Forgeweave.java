@@ -57,7 +57,6 @@ import dev.gkissel.forgeweave.combat.BlockingXpSeam;
 import dev.gkissel.forgeweave.combat.CombatSeams;
 import dev.gkissel.forgeweave.combat.ForgeweaveInnates;
 import dev.gkissel.forgeweave.combat.ForgeweaveMobEffects;
-import dev.gkissel.forgeweave.combat.RangedXpSeam;
 import dev.gkissel.forgeweave.compat.apotheosis.ApotheosisSockets;
 import dev.gkissel.forgeweave.gametest.ForgeweaveGameTestRegistrar;
 import dev.gkissel.forgeweave.compat.draconic.ForgeweaveDraconicCompat;
@@ -256,9 +255,6 @@ public class Forgeweave {
         // it rolls on is the cleaver's innate plus the applied modifier summed into one roll, and a
         // per-entry seam sees neither the innate nor an unmodified cleaver. See Beheading.
         CombatProviders.register(Beheading::collect);
-        // M7-3 (issue #920, docs/SCOPE.md D-M7-6) -- ranged XP on projectile impact, off the same
-        // onHit moment that already resolves a projectile's live launcher stack (#416).
-        CombatProviders.register(RangedXpSeam::collect);
         // M7-3 (issue #920, docs/SCOPE.md D-M7-10) -- blocking XP to the tool actively blocking with.
         CombatProviders.register(BlockingXpSeam::collect);
         // #969 (docs/SCOPE.md M8, D-M8-1) -- Apotheosis gems in sockets: their protection, their
