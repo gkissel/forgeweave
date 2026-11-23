@@ -391,7 +391,10 @@ public class BowItem extends ToolItem {
             float launcherBonus = stats == null ? 0.0F : stats.bonusDamage();
             float flatDamage = (materialArrow.attackDamage(ammo) + baseProjectileDamage * power + launcherBonus)
                     * projectileDamageModifier * power;
-            arrow = materialArrow.createProjectile(ammo, level, player, velocity, inaccuracy, flatDamage);
+            ArrowEntity materialShot = materialArrow.createProjectile(ammo, level, player, velocity, inaccuracy,
+                    flatDamage);
+            materialShot.setLauncher(bow); // #1233: whose ranged XP this arrow's hit pays
+            arrow = materialShot;
         } else {
             ArrowItem arrowItem = ammo.getItem() instanceof ArrowItem item ? item : (ArrowItem) Items.ARROW;
             arrow = arrowItem.createArrow(level, ammo, player, bow);

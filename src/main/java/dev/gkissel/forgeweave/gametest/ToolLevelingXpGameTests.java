@@ -148,7 +148,7 @@ public class ToolLevelingXpGameTests {
 
     /**
      * D-M7-6: a miss grants nothing -- an arrow that lands in a block never posts the
-     * {@code LivingDamageEvent.Post} {@link dev.gkissel.forgeweave.combat.RangedXpSeam} rides.
+     * {@code LivingDamageEvent.Post} {@link dev.gkissel.forgeweave.combat.RangedXpSeam} is called from.
      */
     @GameTest(template = "empty")
     public static void aMissAgainstABlockGrantsNothing(GameTestHelper helper) {
@@ -170,6 +170,88 @@ public class ToolLevelingXpGameTests {
                     "an arrow that hits a block must grant no XP, got " + ToolLevel.of(player.getMainHandItem()));
             helper.succeed();
         });
+    }
+
+    /**
+     * The tests above hand-build a vanilla arrow's damage source. These fire for real: the longbow
+     * is drawn and released through {@code releaseUsing} at a pig three blocks out, so the shot
+     * takes whatever ammo {@code BowItem#findAmmo} picks and the arrow entity it really spawns.
+     */
+    private static void longbowShotGrantsRangedXp(GameTestHelper helper, boolean materialArrow) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        ItemStack longbow = assembleUniform(helper, player, pos, ForgeweaveItems.TOOL_LONGBOW.get(), "iron", true);
+        ItemStack ammo = materialArrow
+                ? ToolAssembly.assemble(helper, player, pos, ToolAssembly.entryFor(ForgeweaveItems.TOOL_ARROW.get()),
+                        List.of("wood", "wood", "feather"))
+                : new ItemStack(Items.ARROW, 16);
+        int expected = expectedRangedXp(longbow);
+        Pig pig = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 5));
+        pig.setNoAi(true);
+        pig.setNoGravity(true);
+        float before = pig.getHealth();
+
+        helper.startSequence()
+                .thenWaitUntil(() -> SpawnCapture.assertIndexServes(helper, pig))
+                .thenExecute(() -> {
+                    player.moveTo(helper.absoluteVec(new Vec3(2.5, 2.0, 2.5)), 0.0F, 20.0F);
+                    player.setItemInHand(InteractionHand.MAIN_HAND, longbow);
+                    player.setItemInHand(InteractionHand.OFF_HAND, ammo);
+                    player.startUsingItem(InteractionHand.MAIN_HAND);
+                    int duration = longbow.getUseDuration(player);
+                    longbow.getItem().releaseUsing(longbow, helper.getLevel(), player, duration - 40);
+                    player.stopUsingItem();
+                })
+                .thenWaitUntil(() -> helper.assertTrue(pig.getHealth() < before || pig.isDeadOrDying(),
+                        "the arrow has not hit the pig yet"))
+                .thenExecute(() -> {
+                    int got = ToolLevel.of(player.getMainHandItem()).xp();
+                    helper.assertTrue(got == expected, "a real " + (materialArrow ? "material" : "vanilla")
+                            + " arrow from a longbow must grant it " + expected + " ranged XP, got " + got);
+                })
+                .thenSucceed();
+    }
+
+    /** Issue #1233: the material arrow is the ammo a Forgeweave bow reaches for first. */
+    @GameTest(template = "empty", timeoutTicks = 400)
+    public static void aFiredMaterialArrowGrantsTheLongbowRangedXp(GameTestHelper helper) {
+        longbowShotGrantsRangedXp(helper, true);
+    }
+
+    @GameTest(template = "empty", timeoutTicks = 400)
+    public static void aFiredVanillaArrowGrantsTheLongbowRangedXp(GameTestHelper helper) {
+        longbowShotGrantsRangedXp(helper, false);
+    }
+
+    /**
+     * Issue #1233: a thrown shuriken earns like a melee weapon (PR #944's call, upstream's ledger
+     * {@code afterHit} on the projectile's own stack), so a throw that kills pays the shuriken
+     * {@code round(damage)} -- 3 for wood blades ({@code ShurikenGameTests#hitDealsFlatToolDamage}).
+     */
+    @GameTest(template = "empty", timeoutTicks = 400)
+    public static void aThrownShurikenThatKillsEarnsItsDamageAsXp(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+        ItemStack shuriken = ToolAssembly.assembleAtForge(helper, player, pos,
+                ToolAssembly.entryFor(ForgeweaveItems.TOOL_SHURIKEN.get()), List.of("wood", "wood", "wood", "wood"));
+        Pig pig = helper.spawn(EntityType.PIG, new BlockPos(2, 2, 5));
+        pig.setNoAi(true);
+        pig.setNoGravity(true);
+        pig.setHealth(1.0F);
+
+        helper.startSequence()
+                .thenWaitUntil(() -> SpawnCapture.assertIndexServes(helper, pig))
+                .thenExecute(() -> {
+                    player.moveTo(helper.absoluteVec(new Vec3(2.5, 2.0, 2.5)), 0.0F, 20.0F);
+                    player.setItemInHand(InteractionHand.MAIN_HAND, shuriken);
+                    shuriken.getItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+                })
+                .thenWaitUntil(() -> helper.assertTrue(pig.isDeadOrDying(), "the shuriken has not killed the pig yet"))
+                .thenExecute(() -> {
+                    int got = ToolLevel.of(player.getMainHandItem()).xp();
+                    helper.assertTrue(got == 3, "a shuriken throw that kills must pay round(3) = 3 XP, got " + got);
+                })
+                .thenSucceed();
     }
 
     /** D-M7-3: with the flag off, a ranged hit is inert too, the same as every other grant. */

@@ -365,6 +365,8 @@ public final class CombatSeams {
         // #919 -- M7's melee XP, which is paid on the kill and never on the hit: a blow the target
         // survives banks its damage on the target, a killing one pays out here. See DamageXpLedger.
         DamageXpLedger.afterMeleeHit(hit, event.getNewDamage());
+        // #920 -- ranged XP to the launcher, read off the arrow when the arrow is the weapon (#1233).
+        RangedXpSeam.afterProjectileHit(hit);
         // The flat push CombatSeam#knockback scales is still ahead of us -- LivingEntity#hurt calls its
         // own this.knockback(0.4F, ...) after actuallyHurt (which posted the event that led here)
         // returns, but before hurt() itself returns. Remember this hit so onKnockback can attribute
@@ -469,7 +471,7 @@ public final class CombatSeams {
      * Closing that means teaching the pipeline which seams write state; worth the machinery when a
      * second state-writing trait can reach a launcher.
      */
-    private static ItemStack liveLauncher(@Nullable LivingEntity shooter, ItemStack snapshot) {
+    static ItemStack liveLauncher(@Nullable LivingEntity shooter, ItemStack snapshot) {
         if (shooter == null) {
             return snapshot;
         }
