@@ -1,14 +1,13 @@
 package dev.gkissel.forgeweave.combat;
 
-import java.util.function.Consumer;
-
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 
 import dev.gkissel.forgeweave.api.combat.CombatHit;
-import dev.gkissel.forgeweave.api.combat.CombatSeam;
+import dev.gkissel.forgeweave.entity.ArrowEntity;
 import dev.gkissel.forgeweave.item.BowItem;
+import dev.gkissel.forgeweave.item.ToolItem;
 import dev.gkissel.forgeweave.tool.ToolLeveling;
 
 /**
@@ -18,16 +17,18 @@ import dev.gkissel.forgeweave.tool.ToolLeveling;
  * {@code drawTime} is {@link BowItem#drawTime()} and {@code drawSpeed} the tool's own assembled draw
  * speed ({@link BowItem#drawSpeed}, upstream's {@code ProjectileLauncherNBT.drawSpeed}).
  *
- * <p>Hangs off {@link CombatSeam#onHit} rather than the arrow entity's own hit hook (D-M7-6): that is
- * the moment {@link CombatSeams} already resolves a projectile's live launcher stack to (issue #416),
- * and it only fires once damage was actually dealt to a living target -- an arrow that lands in a
- * block never posts the {@code LivingDamageEvent.Post} this rides, so a miss grants nothing without
- * any extra gate here. Crossbows have no upstream counterpart and take the same formula with their
- * own {@link BowItem#drawTime()} (45); the shuriken has no draw and does not extend {@link BowItem},
- * so it never matches {@link #collect} -- see the PR body for its own treatment.
+ * <p>Called from {@link CombatSeams}' on-hit, beside the melee ledger: that is the moment the
+ * pipeline already resolves a projectile's live launcher stack (issue #416), and it only fires once
+ * damage was actually dealt to a living target, so a miss grants nothing without any extra gate.
+ *
+ * <p>Not a {@code CombatProviders} seam (issue #1233): a provider is chosen by the hit's weapon, and
+ * a material arrow's weapon is the arrow, not the bow, so a seam keyed on {@link BowItem} never ran
+ * for the ammo a Forgeweave bow fires first. The launcher is the weapon for a vanilla arrow and
+ * {@link ArrowEntity#launcher()} for a material one, upstream's {@code getLaunchingStack}. Crossbows
+ * have no upstream counterpart and take the same formula with their own {@link BowItem#drawTime()}
+ * (45). The shuriken has no launcher and earns through {@code DamageXpLedger} instead.
  */
-public final class RangedXpSeam implements CombatSeam {
-    public static final RangedXpSeam INSTANCE = new RangedXpSeam();
+public final class RangedXpSeam {
 
     /** Upstream's flat "5 XP per second of draw time" rate. */
     private static final float XP_PER_SECOND_DRAWN = 5.0F;
@@ -36,22 +37,20 @@ public final class RangedXpSeam implements CombatSeam {
 
     private RangedXpSeam() {}
 
-    /** Registered once in {@code Forgeweave}: applies to every bow-family launcher. */
-    public static void collect(ItemStack weapon, Consumer<CombatSeam> out) {
-        if (weapon.getItem() instanceof BowItem) {
-            out.accept(INSTANCE);
-        }
-    }
-
-    @Override
-    public void onHit(CombatHit hit, float damageDealt) {
-        if (!hit.isProjectile() || !(hit.attacker() instanceof ServerPlayer player)
-                || !(hit.weapon().getItem() instanceof BowItem bow)) {
+    public static void afterProjectileHit(CombatHit hit) {
+        if (!hit.isProjectile() || !(hit.attacker() instanceof ServerPlayer player)) {
             return;
         }
-        float drawSpeed = bow.drawSpeed(hit.weapon());
+        ItemStack launcher = hit.weapon();
+        if (!(launcher.getItem() instanceof BowItem) && hit.source().getDirectEntity() instanceof ArrowEntity arrow) {
+            launcher = CombatSeams.liveLauncher(player, arrow.launcher());
+        }
+        if (!(launcher.getItem() instanceof BowItem bow) || ToolItem.isBroken(launcher)) {
+            return;
+        }
+        float drawSpeed = bow.drawSpeed(launcher);
         float drawTimeSeconds = bow.drawTime() / (TICKS_PER_SECOND * drawSpeed);
         int xp = Mth.ceil(XP_PER_SECOND_DRAWN * drawTimeSeconds);
-        ToolLeveling.addXp(hit.weapon(), xp, player);
+        ToolLeveling.addXp(launcher, xp, player);
     }
 }
