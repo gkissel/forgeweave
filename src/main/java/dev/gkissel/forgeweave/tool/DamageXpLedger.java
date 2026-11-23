@@ -18,6 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import dev.gkissel.forgeweave.api.combat.CombatHit;
 import dev.gkissel.forgeweave.config.ForgeweaveConfig;
 import dev.gkissel.forgeweave.item.ForgeweaveDataComponents;
+import dev.gkissel.forgeweave.item.ShurikenItem;
 
 /**
  * The multi-hit damage ledger melee XP is paid out of (docs/SCOPE.md M7, D-M7-4; issue #919): for
@@ -107,11 +108,15 @@ public final class DamageXpLedger {
      * and gets the same answer. The net grant per tool is unchanged either way: the killing blow is
      * never in the ledger, so {@link #payOut} pays exactly what upstream's ledger paid.
      *
-     * <p>Projectile hits are excluded: upstream grants those off draw time from its own separate
-     * {@code afterHit} overload (docs/SCOPE.md D-M7-6, issue #920), not off damage dealt.
+     * <p>Projectile hits are excluded: upstream grants a launcher off draw time from its own separate
+     * {@code afterHit} overload (docs/SCOPE.md D-M7-6, issue #920), not off damage dealt. The one
+     * exception is a thrown shuriken (issue #1233): it is its own weapon, and upstream runs the same
+     * melee {@code afterHit} on a projectile's stack, which is the treatment PR #944 chose for it.
      */
     public static void afterMeleeHit(CombatHit hit, float damage) {
-        if (hit.isProjectile() || damage <= 0.0F || !ForgeweaveConfig.enabled(ForgeweaveConfig.TOOL_LEVELING)) {
+        boolean thrown = hit.weapon().getItem() instanceof ShurikenItem;
+        if ((hit.isProjectile() && !thrown) || damage <= 0.0F
+                || !ForgeweaveConfig.enabled(ForgeweaveConfig.TOOL_LEVELING)) {
             return;
         }
         if (!(hit.attacker() instanceof Player player)) {
